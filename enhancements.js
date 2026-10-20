@@ -229,8 +229,11 @@ function groundAt(x, z0, maxY) {
 }
 function throwSmoke() {
   if (game.modeRef() !== 'play' || z.over || smokeCharges <= 0) return false;
-  const x = c.pos.x - Math.sin(c.yaw) * 4.2;
-  const z0 = c.pos.z - Math.cos(c.yaw) * 4.2;
+  const speed = Math.hypot(c.vel.x, c.vel.z);
+  const backX = speed > 1 ? -c.vel.x / speed : Math.sin(c.yaw);
+  const backZ = speed > 1 ? -c.vel.z / speed : Math.cos(c.yaw);
+  const x = c.pos.x + backX * 1.5;
+  const z0 = c.pos.z + backZ * 1.5;
   const y = groundAt(x, z0, c.pos.y + 2);
   const model = new Group();
   model.name = 'Sky smoke grenade and cloud';
