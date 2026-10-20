@@ -11,3 +11,6 @@
 
 ## 感想がほしい点
 - 気持ちよかった所、詰まった所
+
+## 記録サーバー
+プレイ記録の受け口（Cloudflare Workers + D1）は `server/` にあります。手順は [server/README.md](server/README.md)。

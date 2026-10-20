@@ -1,0 +1,12 @@
+name = "gunrun-runs"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+# 記録の送信を許可するページ（カンマ区切り）
+ALLOWED_ORIGINS = "https://jirisuke0121.github.io"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gunrun-runs"
+database_id = "ここを `wrangler d1 create gunrun-runs` が表示したIDに置き換える"
