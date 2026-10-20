@@ -118,7 +118,11 @@ blade.rotation.x = -0.06;
 box(uh, 0.014, 0.016, 0.06, palette.amber, 0, 0.009, -0.39);
 
 // Optimized Meshy assets use the procedural viewmodels as load-error fallbacks.
-const loaded = { smg: false, knife: false, ladder: false, error: '' };
+const loaded = { hg: false, sg: false, smg: false, mg: false, knife: false, ladder: false, hook: false, anchor: false, trolley: false, smoke: false, error: '' };
+function recordAssetLoaded(key) {
+  loaded[key] = true;
+  document.body.dataset.skyModels = JSON.stringify(loaded);
+}
 if (window.T2?.GLTFLoader) {
   new T2.GLTFLoader().load('./assets/ladder-meshy-low.glb', (gltf) => {
     for (const ladder of mo) {
@@ -134,7 +138,7 @@ if (window.T2?.GLTFLoader) {
       model.traverse((child) => { if (child.isMesh) child.castShadow = false; });
       ue.add(model);
     }
-    loaded.ladder = true;
+    recordAssetLoaded('ladder');
   }, undefined, (error) => { loaded.error = String(error); });
   new T2.GLTFLoader().load('./assets/knife-meshy-low.glb', (gltf) => {
     const root = gltf.scene;
@@ -145,7 +149,7 @@ if (window.T2?.GLTFLoader) {
     root.traverse((child) => { if (child.isMesh) child.castShadow = false; });
     uh.add(root);
     for (const child of uh.children) if (child !== root && child.isMesh) child.visible = false;
-    loaded.knife = true;
+    recordAssetLoaded('knife');
   }, undefined, (error) => { loaded.error = String(error); });
   new T2.GLTFLoader().load('./assets/smg-meshy-low.glb', (gltf) => {
     const root = gltf.scene;
@@ -156,11 +160,12 @@ if (window.T2?.GLTFLoader) {
     root.traverse((child) => { if (child.isMesh) child.castShadow = false; });
     smgFallback.add(root);
     for (const child of smgFallback.children) if (child !== root) child.visible = false;
-    loaded.smg = true;
+    recordAssetLoaded('smg');
   }, undefined, (error) => { loaded.error = String(error); });
 }
 
 // Complete the existing traversable structures with low polygon route cues.
+const anchors = [];
 for (const [x, y, z0] of us) {
   const anchor = new Group();
   anchor.name = 'Sky grapple anchor';
@@ -170,6 +175,7 @@ for (const [x, y, z0] of us) {
   box(anchor, 0.22, 0.06, 0.22, palette.steel, 0, -0.09, 0);
   for (const dx of [-0.08, 0.08]) for (const dz of [-0.08, 0.08]) cylinder(anchor, 0.014, 0.014, 0.03, palette.silver, dx, -0.045, dz, 6);
   ue.add(anchor);
+  anchors.push(anchor);
 }
 for (const ladder of mo) {
   const marker = new Group();
@@ -235,6 +241,7 @@ Tt.hg = () => {
 // Two smoke charges per run. Smoke blocks enemy sight along the segment from
 // enemy to player; collision and gravity continue to use the original AI.
 const smokeClouds = [];
+let smokeGrenadeTemplate = null;
 let smokeCharges = 2;
 function smokeBlocks(enemy) {
   for (const cloud of smokeClouds) {
@@ -278,8 +285,15 @@ function throwSmoke() {
   const model = new Group();
   model.name = 'Sky smoke grenade and cloud';
   model.position.set(x, y, z0);
-  cylinder(model, 0.09, 0.09, 0.23, palette.dark, 0, 0.13, 0);
-  cylinder(model, 0.06, 0.06, 0.035, palette.amber, 0, 0.25, 0);
+  if (smokeGrenadeTemplate) {
+    const grenade = smokeGrenadeTemplate.clone(true);
+    grenade.scale.setScalar(0.12);
+    grenade.position.y = 0.13;
+    model.add(grenade);
+  } else {
+    cylinder(model, 0.09, 0.09, 0.23, palette.dark, 0, 0.13, 0);
+    cylinder(model, 0.06, 0.06, 0.035, palette.amber, 0, 0.25, 0);
+  }
   for (let i = 0; i < 9; i++) {
     const puff = new Mesh(new Sphere(1, 7, 5), palette.smoke.clone());
     const angle = i * Math.PI * 2 / 9;
@@ -356,6 +370,62 @@ function updateEquipment(now) {
     const active = mode === 'play' && c.state === 'zip' && c.zip === line;
     trolley.position.set(active ? c.pos.x : line.a[0], active ? c.pos.y + 1.8 : line.a[1] - 0.22, active ? c.pos.z : line.a[2]);
   }
+}
+// Meshy details are optional at runtime: the low polygon shapes above stay as
+// fallbacks if a model is unavailable or cannot be decoded on a device.
+if (window.T2?.GLTFLoader) {
+  const loadDetail = (key, filename, apply) => {
+    new T2.GLTFLoader().load(`./assets/${filename}`, (gltf) => {
+      gltf.scene.traverse((child) => { if (child.isMesh) child.castShadow = false; });
+      apply(gltf.scene);
+      recordAssetLoaded(key);
+    }, undefined, (error) => {
+      loaded.error = `${key}: ${String(error)}`;
+      document.body.dataset.skyModels = JSON.stringify(loaded);
+    });
+  };
+  for (const [key, index, scale, forward] of [['hg', 0, 0.25, -0.16], ['sg', 1, 0.47, -0.13], ['mg', 3, 0.70, -0.10]]) {
+    loadDetail(key, `${key}-meshy-low.glb`, (root) => {
+      const view = weaponViews[index];
+      root.name = `Meshy ${key.toUpperCase()} mobile LOD`;
+      root.rotation.y = -Math.PI / 2;
+      root.scale.setScalar(scale);
+      root.position.set(0, -0.02, forward);
+      view.add(root);
+      for (const child of view.children) if (child !== root) child.visible = false;
+    });
+  }
+  loadDetail('hook', 'hook-launcher-meshy-low.glb', (root) => {
+    root.name = 'Meshy hook launcher mobile LOD';
+    root.rotation.y = -Math.PI / 2;
+    root.scale.setScalar(0.13);
+    root.position.set(0, 0.04, -0.06);
+    hookLauncher.add(root);
+    for (const child of hookLauncher.children) if (child !== root) child.visible = false;
+  });
+  loadDetail('anchor', 'grapple-anchor-meshy-low.glb', (root) => {
+    for (const anchor of anchors) {
+      const model = root.clone(true);
+      model.name = 'Meshy grapple anchor mobile LOD';
+      model.scale.setScalar(0.42);
+      anchor.add(model);
+      for (const child of anchor.children) if (child !== model) child.visible = false;
+    }
+  });
+  loadDetail('trolley', 'zipline-trolley-meshy-low.glb', (root) => {
+    for (const { line, trolley } of trolleyViews) {
+      const model = root.clone(true);
+      model.name = 'Meshy zipline trolley mobile LOD';
+      model.scale.setScalar(0.30);
+      trolley.rotation.y = Math.atan2(line.a[2] - line.b[2], line.b[0] - line.a[0]);
+      trolley.add(model);
+      for (const child of trolley.children) if (child !== model) child.visible = false;
+    }
+  });
+  loadDetail('smoke', 'smoke-grenade-meshy-low.glb', (root) => {
+    root.name = 'Meshy smoke grenade mobile LOD';
+    smokeGrenadeTemplate = root;
+  });
 }
 requestAnimationFrame(updateEquipment);
 window.__skyUpgrade = { smokeClouds, loaded, throwSmoke, get smokeCharges() { return smokeCharges; }, weaponViews, trolleyViews };
