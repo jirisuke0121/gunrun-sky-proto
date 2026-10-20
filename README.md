@@ -17,5 +17,6 @@
 プレイ記録の受け口（Cloudflare Workers + D1）は `server/` にあります。手順は [server/README.md](server/README.md)。
 
 ## 素材
-- ゾンビのモデルとアニメーション：Quaternius「Universal Animation Library 2」（CC0）を軽量化して使用
+- 新しいゾンビ4体のモデルとアニメーション：Meshyで制作。詳細は [MESHY_ZOMBIES.md](MESHY_ZOMBIES.md)
+- 読み込み失敗時の予備モデルとアニメーション：Quaternius「Universal Animation Library 2」（CC0）を軽量化して使用
 - 設定の「ゾンビの見た目」を0にすると、旧来の手作りゾンビに戻せます
