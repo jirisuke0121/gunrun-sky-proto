@@ -18,10 +18,11 @@
 プレイ記録の受け口（Cloudflare Workers + D1）は `server/` にあります。手順は [server/README.md](server/README.md)。
 
 ## 素材
-- 新しいゾンビ4体のモデルとアニメーション：Meshyで制作。詳細は [MESHY_ZOMBIES.md](MESHY_ZOMBIES.md)
+- 新しいゾンビ4体のモデルとアニメーション：Meshyで制作。モバイル向けに軽量化（4体で約3.1MB）。詳細は [MESHY_ZOMBIES.md](MESHY_ZOMBIES.md)
 - 読み込み失敗時の予備モデルとアニメーション：Quaternius「Universal Animation Library 2」（CC0）を軽量化して使用
 - 設定の「ゾンビの見た目」を0にすると、旧来の手作りゾンビに戻せます
 - SMGとナイフ：Meshyで生成したモデルをそれぞれ約8千三角面・512pxテクスチャへ軽量化し、`assets/smg-meshy-low.glb` と `assets/knife-meshy-low.glb` に配置。読み込めないときは軽量な組み立てモデルに切り替わります
 - はしご：Meshyのモデルを約4千三角面・512pxに軽量化し、`assets/ladder-meshy-low.glb` に配置。既存のはしご形状と登攀判定を残し、装飾として重ねます
 - HG・SG・MG、フック射出器・固定アンカー・ジップライン滑車・煙幕弾はMeshy原本をモバイル向けに軽量化したGLBを`assets/`に配置しています。読み込めない場合は`enhancements.js`の軽量形状へ切り替わります
+- 一人称の腕の袖は、Meshyの銃や手袋になじむ暗い布の色にしています。黒い袋の飾りは暗いオリーブ色にしました
 - 手袋はMeshy候補の手の甲と手首を既存の手アニメーションに合わせて加工し、`assets/glove-meshy-fitted.glb`から両手へ装着します。指と親指は既存の可動パーツを使い、GLBを読めないときは軽量形状へ戻ります。ジップライン端末・障害物の追加ディテール、煙幕の粒子と敵の視線遮蔽は`enhancements.js`にあります

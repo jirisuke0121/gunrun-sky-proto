@@ -452,5 +452,16 @@ if (window.T2?.GLTFLoader) {
     smokeGrenadeTemplate = root;
   });
 }
+// Sleeve colour: the base game's olive forearm clashed with the detailed Meshy gear.
+{
+  const sleeve = new Standard({ color: 0x2c3238, roughness: 0.95 });
+  for (const hand of mr) {
+    let rig = hand?.wrist;
+    while (rig?.parent && rig.parent !== ue) rig = rig.parent;
+    rig?.traverse((child) => {
+      if (child.isMesh && child.material?.color?.getHex?.() === 0x4d5040) child.material = sleeve;
+    });
+  }
+}
 requestAnimationFrame(updateEquipment);
 window.__skyUpgrade = { smokeClouds, loaded, throwSmoke, get smokeCharges() { return smokeCharges; }, weaponViews, trolleyViews };
