@@ -140,6 +140,7 @@ if (window.T2?.GLTFLoader) {
       );
       model.traverse((child) => { if (child.isMesh) child.castShadow = false; });
       ue.add(model);
+      if (ladder.view) ladder.view.visible = false;
     }
     recordAssetLoaded('ladder');
   }, undefined, (error) => { loaded.error = String(error); });
@@ -226,7 +227,7 @@ for (const block of jn) {
 
 // MG uses the existing shooting, aiming, reload, score and hit systems.
 WP.push({ n: 'MG', mag: 60, res: 180, cd: 0.105, rl: 3.0, dmg: 0.65,
-  head: 3, knock: 3.1, stun: 0.38, range: 70, cone: 0 });
+  head: 3, knock: 3.1, stun: 0.38, range: 70, cone: 0, auto: 1 });
 Jn.weapon = Math.max(0, Math.min(3, Jn.weapon));
 U.weapon = Math.max(0, Math.min(3, U.weapon | 0));
 const weaponSlider = document.getElementById('s_weapon');
@@ -462,6 +463,121 @@ if (window.T2?.GLTFLoader) {
       if (child.isMesh && child.material?.color?.getHex?.() === 0x4d5040) child.material = sleeve;
     });
   }
+}
+// Sound coverage, full-auto support and control hints (2026-10-21).
+{
+  const { Ut, Mn, ni, wpc, modeRef } = game;
+  const audioStats = { zip: 0, hook: 0, ladder: 0, smoke: 0, wallStep: 0, shots: {} };
+  window.__skyAudio = audioStats;
+  const tone = (type, freq, gain, dur, endFreq) => {
+    const ctx = Ut.ctx;
+    if (!ctx || gain <= 0) return;
+    const t = ctx.currentTime, osc = ctx.createOscillator(), amp = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t);
+    if (endFreq) osc.frequency.exponentialRampToValueAtTime(endFreq, t + dur);
+    amp.gain.setValueAtTime(gain, t);
+    amp.gain.exponentialRampToValueAtTime(1e-4, t + dur);
+    osc.connect(amp); amp.connect(Ut.master);
+    osc.start(t); osc.stop(t + dur + 0.02);
+  };
+  const hiss = (gain, dur, freq) => {
+    const ctx = Ut.ctx;
+    if (!ctx || !Ut.noise) return;
+    const t = ctx.currentTime, src = ctx.createBufferSource(), filter = ctx.createBiquadFilter(), amp = ctx.createGain();
+    src.buffer = Ut.noise; src.loop = true;
+    filter.type = 'highpass'; filter.frequency.value = freq;
+    amp.gain.setValueAtTime(1e-4, t);
+    amp.gain.exponentialRampToValueAtTime(gain, t + 0.08);
+    amp.gain.exponentialRampToValueAtTime(1e-4, t + dur);
+    src.connect(filter); filter.connect(amp); amp.connect(Ut.master);
+    src.start(t); src.stop(t + dur + 0.05);
+  };
+  // Each weapon gets its own report instead of sharing the handgun sound.
+  const shotSounds = {
+    HG: () => { Mn(0.7, 3200, 0.6, 0.16, 'bandpass'); ni(0.55, 210, 0.13); },
+    SG: () => { Mn(0.95, 900, 0.5, 0.38); ni(0.8, 95, 0.3); Mn(0.35, 3000, 0.8, 0.08, 'bandpass'); },
+    SMG: () => { Mn(0.42, 4200, 0.9, 0.06, 'bandpass'); ni(0.28, 280, 0.05); },
+    MG: () => { Mn(0.7, 2300, 0.6, 0.15, 'bandpass'); ni(0.65, 130, 0.17); },
+  };
+  Tt.hg = () => {
+    const name = wpc().n;
+    audioStats.shots[name] = (audioStats.shots[name] || 0) + 1;
+    (shotSounds[name] || shotSounds.HG)();
+  };
+  // Continuous layers: trolley hum on the zipline and the hook's cable reel.
+  const makeLoop = (freq, q) => {
+    const ctx = Ut.ctx, src = ctx.createBufferSource(), filter = ctx.createBiquadFilter();
+    const osc = ctx.createOscillator(), oscAmp = ctx.createGain(), amp = ctx.createGain();
+    src.buffer = Ut.noise; src.loop = true;
+    filter.type = 'bandpass'; filter.frequency.value = freq; filter.Q.value = q;
+    osc.type = 'sawtooth'; osc.frequency.value = 60; oscAmp.gain.value = 0.18;
+    amp.gain.value = 0;
+    src.connect(filter); filter.connect(amp); osc.connect(oscAmp); oscAmp.connect(amp); amp.connect(Ut.master);
+    src.start(); osc.start();
+    return { filter, osc, amp };
+  };
+  let loops = null, prevState = 'none', rung = 0, wallStepT = 0, lastNow = performance.now();
+  let cloudCount = smokeClouds.length;
+  const hudKeys = document.querySelector('.hud-tr');
+  const setHints = () => {
+    if (!hudKeys) return;
+    hudKeys.innerHTML = U.gunOn
+      ? '<kbd>クリック</kbd>/<kbd>E</kbd> 射撃　<kbd>右クリック</kbd>/<kbd>F</kbd> ナイフ　<kbd>R</kbd> 装填　<kbd>Q</kbd> フック　<kbd>Esc</kbd> 一時停止・調整'
+      : '<kbd>クリック</kbd>/<kbd>F</kbd> ナイフ　<kbd>Q</kbd> フック　<kbd>Esc</kbd> 一時停止・調整';
+  };
+  for (const item of document.querySelectorAll('#ovStart .rules .keys li')) {
+    item.innerHTML = item.innerHTML.replace('<kbd>クリック</kbd>/<kbd>F</kbd>/<kbd>右クリック</kbd> ナイフ', '<kbd>F</kbd>/<kbd>右クリック</kbd> ナイフ（銃オフのときはクリックも）');
+  }
+  let prevMode = '';
+  const audioTick = () => {
+    requestAnimationFrame(audioTick);
+    const now = performance.now(), dt = Math.min(0.1, (now - lastNow) / 1000);
+    lastNow = now;
+    const mode = modeRef();
+    if (mode !== prevMode) { if (mode === 'play') setHints(); prevMode = mode; }
+    if (!Ut.ctx || !Ut.noise) return;
+    if (!loops) loops = { zip: makeLoop(1500, 3), reel: makeLoop(900, 5) };
+    const t = Ut.ctx.currentTime;
+    const playing = mode === 'play' && !z.over;
+    const state = playing ? c.state : 'none';
+    const speed = Math.hypot(c.vel.x, c.vel.y, c.vel.z);
+    loops.zip.amp.gain.setTargetAtTime(state === 'zip' ? 0.1 + Math.min(0.16, speed * 0.01) : 0, t, 0.06);
+    loops.zip.filter.frequency.setTargetAtTime(1100 + speed * 80, t, 0.1);
+    loops.zip.osc.frequency.setTargetAtTime(55 + speed * 5, t, 0.1);
+    const reel = c.hookT || 0;
+    loops.reel.amp.gain.setTargetAtTime(state === 'hook' ? 0.12 : 0, t, 0.04);
+    loops.reel.filter.frequency.setTargetAtTime(700 + reel * 900, t, 0.08);
+    loops.reel.osc.frequency.setTargetAtTime(100 + reel * 160, t, 0.08);
+    if (state !== prevState) {
+      if (state === 'zip') { tone('square', 900, 0.1, 0.05); tone('triangle', 420, 0.16, 0.12, 260); audioStats.zip++; }
+      if (prevState === 'zip') tone('triangle', 520, 0.12, 0.1, 300);
+      if (state === 'hook') { Mn(0.45, 1500, 1.4, 0.2, 'bandpass'); tone('triangle', 1400, 0.14, 0.07, 900); audioStats.hook++; }
+      if (prevState === 'hook') tone('square', 1600, 0.07, 0.04);
+      if (state === 'ladder') rung = Math.floor((c.bob || 0) / 0.75);
+      prevState = state;
+    }
+    if (state === 'ladder') {
+      const step = Math.floor((c.bob || 0) / 0.75);
+      if (step !== rung) {
+        rung = step;
+        tone('triangle', 560 + Math.random() * 120, 0.15, 0.07, 420);
+        Mn(0.12, 3200, 3, 0.04, 'bandpass');
+        audioStats.ladder++;
+      }
+    }
+    if (state === 'wallrun') {
+      wallStepT -= dt;
+      if (wallStepT <= 0) { wallStepT = 0.19; Tt.step(0.7); audioStats.wallStep++; }
+    } else wallStepT = 0;
+    if (smokeClouds.length > cloudCount) {
+      Mn(0.45, 600, 0.7, 0.12); tone('triangle', 300, 0.15, 0.08, 180);
+      hiss(0.16, 3.2, 2500);
+      audioStats.smoke++;
+    }
+    cloudCount = smokeClouds.length;
+  };
+  requestAnimationFrame(audioTick);
 }
 requestAnimationFrame(updateEquipment);
 window.__skyUpgrade = { smokeClouds, loaded, throwSmoke, get smokeCharges() { return smokeCharges; }, weaponViews, trolleyViews };
