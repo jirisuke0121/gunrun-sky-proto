@@ -195,7 +195,7 @@ Tt.hg = () => {
 // Two smoke charges per run. Smoke blocks enemy sight along the segment from
 // enemy to player; collision and gravity continue to use the original AI.
 const smokeClouds = [];
-let smokeCharges = 2, previousRunTime = -1, previousMode = '';
+let smokeCharges = 2;
 function smokeBlocks(enemy) {
   for (const cloud of smokeClouds) {
     if (cloud.ttl <= 0 || Math.abs(enemy.pos.y - cloud.y) > 3.5 || Math.abs(c.pos.y - cloud.y) > 3.5) continue;
@@ -264,19 +264,24 @@ smokeButton?.addEventListener('pointerdown', (event) => {
   throwSmoke();
 });
 
+function resetSmoke() {
+  smokeCharges = 2;
+  for (const cloud of smokeClouds) ue.remove(cloud.model);
+  smokeClouds.length = 0;
+}
+for (const id of ['bStart', 'bRestart', 'bRetry']) {
+  document.getElementById(id)?.addEventListener('click', resetSmoke, true);
+}
+document.addEventListener('keydown', (event) => {
+  if (event.code === 'KeyR' && !event.repeat && game.modeRef() === 'over') resetSmoke();
+}, true);
+
 let lastFrame = performance.now(), lastWeapon = -1;
 function updateEquipment(now) {
   requestAnimationFrame(updateEquipment);
   const dt = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000));
   lastFrame = now;
-  const mode = game.modeRef(), runTime = z.t;
-  if (mode === 'play' && (previousMode !== 'play' || runTime + 0.2 < previousRunTime)) {
-    smokeCharges = 2;
-    for (const cloud of smokeClouds) ue.remove(cloud.model);
-    smokeClouds.length = 0;
-  }
-  previousMode = mode;
-  previousRunTime = runTime;
+  const mode = game.modeRef();
   const weapon = U.weapon | 0;
   if (weapon !== lastWeapon) {
     weaponViews.forEach((view, index) => { view.visible = U.gunOn && index === weapon; });
