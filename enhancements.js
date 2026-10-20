@@ -103,10 +103,20 @@ const blade = box(uh, 0.035, 0.012, 0.31, palette.silver, 0, 0.006, -0.23);
 blade.rotation.x = -0.06;
 box(uh, 0.014, 0.016, 0.06, palette.amber, 0, 0.009, -0.39);
 
-// A Meshy SMG is used when the local optimized GLB loads. The procedural SMG
-// remains a complete fallback for offline previews and asset errors.
-const loaded = { smg: false, error: '' };
+// Optimized Meshy assets use the procedural viewmodels as load-error fallbacks.
+const loaded = { smg: false, knife: false, error: '' };
 if (window.T2?.GLTFLoader) {
+  new T2.GLTFLoader().load('./assets/knife-meshy-low.glb', (gltf) => {
+    const root = gltf.scene;
+    root.name = 'Meshy knife mobile LOD';
+    root.rotation.y = -Math.PI / 2;
+    root.scale.setScalar(0.24);
+    root.position.set(0, 0.005, -0.12);
+    root.traverse((child) => { if (child.isMesh) child.castShadow = false; });
+    uh.add(root);
+    for (const child of uh.children) if (child !== root && child.isMesh) child.visible = false;
+    loaded.knife = true;
+  }, undefined, (error) => { loaded.error = String(error); });
   new T2.GLTFLoader().load('./assets/smg-meshy-low.glb', (gltf) => {
     const root = gltf.scene;
     root.name = 'Meshy SMG mobile LOD';
