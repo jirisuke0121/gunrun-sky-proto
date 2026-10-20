@@ -15,3 +15,7 @@
 
 ## 記録サーバー
 プレイ記録の受け口（Cloudflare Workers + D1）は `server/` にあります。手順は [server/README.md](server/README.md)。
+
+## 素材
+- ゾンビのモデルとアニメーション：Quaternius「Universal Animation Library 2」（CC0）を軽量化して使用
+- 設定の「ゾンビの見た目」を0にすると、旧来の手作りゾンビに戻せます
