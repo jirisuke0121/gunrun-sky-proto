@@ -49,13 +49,16 @@ function ring(parent, radius, tube, mat, x = 0, y = 0, z0 = 0) {
   return mesh;
 }
 
-// The existing hand rig provides animation. These plates turn it into a glove
-// without adding another skinned mesh or a draw-heavy texture.
+// Keep the animated fingers and thumb. The Meshy glove covers the palm and
+// cuff; these simple shapes remain available if its GLB cannot be loaded.
+const gloveFallbacks = [];
 for (const hand of mr) {
   const wrist = hand?.wrist;
   if (!wrist) continue;
-  box(wrist, 0.075, 0.014, 0.08, palette.cloth, 0, 0.027, -0.025);
-  for (const side of [-1, 1]) box(wrist, 0.012, 0.012, 0.06, palette.dark, side * 0.037, 0.038, -0.025);
+  const parts = wrist.children.filter((child) => child.isMesh && child.position.z < 0.08);
+  parts.push(box(wrist, 0.075, 0.014, 0.08, palette.cloth, 0, 0.027, -0.025));
+  for (const side of [-1, 1]) parts.push(box(wrist, 0.012, 0.012, 0.06, palette.dark, side * 0.037, 0.038, -0.025));
+  gloveFallbacks.push(parts);
 }
 
 // Replace the common box weapon with silhouettes that remain readable during a sprint.
@@ -118,7 +121,7 @@ blade.rotation.x = -0.06;
 box(uh, 0.014, 0.016, 0.06, palette.amber, 0, 0.009, -0.39);
 
 // Optimized Meshy assets use the procedural viewmodels as load-error fallbacks.
-const loaded = { hg: false, sg: false, smg: false, mg: false, knife: false, ladder: false, hook: false, anchor: false, trolley: false, smoke: false, error: '' };
+const loaded = { hg: false, sg: false, smg: false, mg: false, glove: false, knife: false, ladder: false, hook: false, anchor: false, trolley: false, smoke: false, error: '' };
 function recordAssetLoaded(key) {
   loaded[key] = true;
   document.body.dataset.skyModels = JSON.stringify(loaded);
@@ -384,6 +387,28 @@ if (window.T2?.GLTFLoader) {
       document.body.dataset.skyModels = JSON.stringify(loaded);
     });
   };
+  loadDetail('glove', 'glove-meshy-fitted.glb', (source) => {
+    // The Meshy candidate is a single straight hand. Its rigid fingers were
+    // removed in the fitted asset, leaving the game's animated digits free.
+    for (const [index, hand] of mr.entries()) {
+      const mirror = new Group();
+      mirror.name = 'Meshy glove fitted to animated hand';
+      mirror.scale.x = hand.side === 1 ? -1 : 1;
+      const model = source.clone(true);
+      model.scale.set(0.16, 0.12, 0.12);
+      const direction = new Vector3(-1.3, 0.6, -0.3).normalize();
+      const orientation = model.quaternion.constructor;
+      const facing = new orientation().setFromUnitVectors(direction, new Vector3(0, 0, -1));
+      const dorsal = new Vector3(0, 1, 0).applyQuaternion(facing);
+      const roll = new orientation().setFromAxisAngle(new Vector3(0, 0, 1), Math.atan2(dorsal.x, dorsal.y));
+      model.quaternion.copy(facing.premultiply(roll));
+      const sourceAnchor = new Vector3(0.72, -0.28, 0.1).multiply(model.scale).applyQuaternion(model.quaternion);
+      model.position.set(0, 0.015, -0.015).sub(sourceAnchor);
+      mirror.add(model);
+      hand.wrist.add(mirror);
+      gloveFallbacks[index].forEach((part) => { part.visible = false; });
+    }
+  });
   for (const [key, index, scale, forward] of [['hg', 0, 0.25, -0.16], ['sg', 1, 0.47, -0.13], ['mg', 3, 0.70, -0.10]]) {
     loadDetail(key, `${key}-meshy-low.glb`, (root) => {
       const view = weaponViews[index];
