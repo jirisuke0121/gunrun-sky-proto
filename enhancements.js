@@ -2,6 +2,20 @@
 const game = window.__skyInternals;
 if (!game) throw new Error('Air-corridor base game did not initialize');
 
+// The base game's copy predates the weapon selector. Keep its controls and
+// instructions aligned with the equipment that this module adds.
+const gunToggleText = document.querySelector('#t_gunOn + span');
+if (gunToggleText) gunToggleText.textContent = '銃を持つ（オフ＝ナイフだけで始める）';
+const knifeRule = [...document.querySelectorAll('#ovStart .rules .keys li')]
+  .find((item) => item.textContent.includes('最初はナイフだけ'));
+if (knifeRule) {
+  knifeRule.innerHTML = knifeRule.innerHTML.replace(
+    '最初はナイフだけ（調整画面でハンドガンも持てる）',
+    '銃は選んだ武器を持ち、調整画面でオフにもできる',
+  );
+  knifeRule.insertAdjacentHTML('afterend', '<li><kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填。HG・SG・SMG・MGから武器を選べる</li>');
+}
+
 const { WP, U, Jn, Et, ri, Tt, c, z, ue, tl, vd, uh, mr, us, mo, $a: zipLines, jn, Geom } = game;
 const { Box, Cylinder, Torus, Sphere, Mesh, Group, Standard, Basic, Vector3 } = Geom;
 const palette = {
