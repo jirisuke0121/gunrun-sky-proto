@@ -104,8 +104,24 @@ blade.rotation.x = -0.06;
 box(uh, 0.014, 0.016, 0.06, palette.amber, 0, 0.009, -0.39);
 
 // Optimized Meshy assets use the procedural viewmodels as load-error fallbacks.
-const loaded = { smg: false, knife: false, error: '' };
+const loaded = { smg: false, knife: false, ladder: false, error: '' };
 if (window.T2?.GLTFLoader) {
+  new T2.GLTFLoader().load('./assets/ladder-meshy-low.glb', (gltf) => {
+    for (const ladder of mo) {
+      const model = gltf.scene.clone(true);
+      model.name = 'Meshy ladder mobile LOD';
+      model.scale.set(ladder.w / 0.73, (ladder.y1 - ladder.y0) / 1.9, 0.68);
+      model.rotation.y = ladder.nx ? Math.PI / 2 : 0;
+      model.position.set(
+        ladder.x + ladder.nx * 0.24,
+        (ladder.y0 + ladder.y1) / 2,
+        ladder.z + ladder.nz * 0.24,
+      );
+      model.traverse((child) => { if (child.isMesh) child.castShadow = false; });
+      ue.add(model);
+    }
+    loaded.ladder = true;
+  }, undefined, (error) => { loaded.error = String(error); });
   new T2.GLTFLoader().load('./assets/knife-meshy-low.glb', (gltf) => {
     const root = gltf.scene;
     root.name = 'Meshy knife mobile LOD';
