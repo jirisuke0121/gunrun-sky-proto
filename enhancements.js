@@ -13,7 +13,9 @@ if (knifeRule) {
     '最初はナイフだけ（調整画面でハンドガンも持てる）',
     '銃は選んだ武器を持ち、調整画面でオフにもできる',
   );
-  knifeRule.insertAdjacentHTML('afterend', '<li><kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填。HG・SG・SMG・MGから武器を選べる</li>');
+  knifeRule.insertAdjacentHTML('afterend', '<li><kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填。HG・SG・SMG・MGから武器を選べる</li>' +
+    '<li>技（スライド・壁走り・縁つかみ・はしご・ジップライン・フック）を決めると一瞬速くなる。2.5秒以内に次の技をつなぐほど速い（最大3段）</li>' +
+    '<li><kbd>H</kbd> 自己ベストのときの走りを青い人影（ゴースト）で表示・非表示</li>');
 }
 
 const { WP, U, Jn, Et, ri, Tt, c, z, ue, tl, vd, uh, mr, us, mo, $a: zipLines, jn, Geom } = game;
@@ -267,9 +269,25 @@ let smokeGrenadeTemplate = null;
 let smokeCharges = 1;
 const SKILL_STATES = ['wallrun', 'slide', 'ledge', 'ladder', 'zip', 'hook'];
 let skillCount = 0, skillPrev = 'none';
+// Flow: finishing a skill move gives a short burst of speed. Chaining another
+// skill within 2.5 s raises the burst (up to 3 levels). The burst fades through
+// the game's own momentum decay, so it lasts about a second.
+let flowChain = 0, flowAt = -99;
+function flowBoost() {
+  const now = game.ceRef();
+  flowChain = now - flowAt < 2.5 ? Math.min(3, flowChain + 1) : 1;
+  flowAt = now;
+  const sp = Math.hypot(c.vel.x, c.vel.z);
+  const dx = sp > 1 ? c.vel.x / sp : -Math.sin(c.yaw), dz = sp > 1 ? c.vel.z / sp : -Math.cos(c.yaw);
+  const target = U.sprintSpeed + [0, 1.5, 2.5, 3.5][flowChain];
+  if (sp < target) { c.vel.x = dx * target; c.vel.z = dz * target; }
+  Tt.swish();
+  if (flowChain >= 2) game.rn(`流れ ×${flowChain}`);
+}
 function trackSkills() {
   const st = game.modeRef() === 'play' && !z.over ? c.state : 'none';
   if (st !== skillPrev) {
+    if (st === 'normal' && SKILL_STATES.includes(skillPrev)) flowBoost();
     if (SKILL_STATES.includes(st)) {
       skillCount = Math.min(3, skillCount + 1);
       if (skillCount >= 3 && smokeCharges < 2) {
@@ -363,6 +381,8 @@ function resetSmoke() {
   smokeCharges = 1;
   skillCount = 0;
   skillPrev = 'none';
+  flowChain = 0;
+  flowAt = -99;
   for (const cloud of smokeClouds) ue.remove(cloud.model);
   smokeClouds.length = 0;
 }
@@ -701,3 +721,60 @@ if (window.T2?.GLTFLoader) {
 }
 requestAnimationFrame(updateEquipment);
 window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeCharges() { return smokeCharges; }, weaponViews, trolleyViews };
+
+// Ghost of the best run on this course. The path is sampled every 0.1 s of
+// play and kept in this browser only. H shows or hides it.
+{
+  const KEY = 'gunrun-sky-ghost-v1', STEP = 0.1;
+  let best = null;
+  try { best = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { best = null; }
+  if (!best || !Array.isArray(best.p) || best.p.length < 8 || !(best.total > 0)) best = null;
+  let rec = [], lastZt = 0, saved = false, show = true;
+  const mat = new Basic({ color: 0x7fd8ff, transparent: true, opacity: 0.45, depthWrite: false, fog: false });
+  const ghost = new Group();
+  ghost.name = 'Best-run ghost';
+  const body = new Mesh(new Cylinder(0.2, 0.2, 1.0, 10), mat);
+  body.position.y = 0.95;
+  const head = new Mesh(new Sphere(0.14, 10, 8), mat);
+  head.position.y = 1.62;
+  const legs = new Mesh(new Cylinder(0.17, 0.12, 0.5, 10), mat);
+  legs.position.y = 0.25;
+  ghost.add(body, head, legs);
+  ghost.visible = false;
+  ue.add(ghost);
+  const chip = document.createElement('div');
+  chip.style.cssText = 'position:fixed;left:12px;bottom:56px;padding:2px 9px;border-radius:12px;background:rgba(40,110,150,.55);' +
+    'color:#fff;font:600 12px system-ui,sans-serif;pointer-events:none;display:none;z-index:6';
+  document.body.appendChild(chip);
+  document.addEventListener('keydown', (event) => {
+    if (event.code === 'KeyH' && !event.repeat && game.modeRef() === 'play') show = !show;
+  });
+  const round = (v) => Math.round(v * 100) / 100;
+  function ghostTick() {
+    requestAnimationFrame(ghostTick);
+    const playing = game.modeRef() === 'play' && !z.mission;
+    if (!playing) { ghost.visible = false; chip.style.display = 'none'; return; }
+    if (z.t < lastZt - 0.5 || (z.t < 0.2 && lastZt >= 0.2)) { rec = []; saved = false; }
+    lastZt = z.t;
+    if (!z.over) {
+      while (rec.length / 4 * STEP <= z.t) rec.push(round(c.pos.x), round(c.pos.y), round(c.pos.z), round(c.yaw));
+    } else if (!saved && z.final && z.final.total > 0) {
+      saved = true;
+      if (z.final.total > (best ? best.total : 0) && rec.length >= 8) {
+        best = { total: z.final.total, p: rec.slice() };
+        try { localStorage.setItem(KEY, JSON.stringify(best)); } catch {}
+      }
+    }
+    if (!best || !show || z.over) { ghost.visible = false; chip.style.display = best && !z.over ? 'block' : 'none'; chip.textContent = `ゴースト 非表示（H）`; return; }
+    const n = best.p.length / 4, f = z.t / STEP, i0 = Math.floor(f);
+    if (i0 >= n - 1) { ghost.visible = false; chip.style.display = 'none'; return; }
+    const k = f - i0, a = i0 * 4, b = a + 4, p = best.p;
+    ghost.position.set(p[a] + (p[b] - p[a]) * k, p[a + 1] + (p[b + 1] - p[a + 1]) * k, p[a + 2] + (p[b + 2] - p[a + 2]) * k);
+    const near = Math.hypot(ghost.position.x - c.pos.x, ghost.position.z - c.pos.z) < 1.2 && Math.abs(ghost.position.y - c.pos.y) < 2;
+    ghost.visible = !near;
+    chip.style.display = 'block';
+    chip.textContent = `ゴースト ベスト ${best.total}点（H で切替）`;
+  }
+  requestAnimationFrame(ghostTick);
+  window.__skyGhost = { get best() { return best; }, get rec() { return rec; }, ghost };
+}
