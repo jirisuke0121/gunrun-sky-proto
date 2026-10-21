@@ -147,12 +147,29 @@ if (window.T2?.GLTFLoader) {
   new T2.GLTFLoader().load('./assets/knife-meshy-low.glb', (gltf) => {
     const root = gltf.scene;
     root.name = 'Meshy knife mobile LOD';
+    // The knife points straight away from the camera, so it read as a short
+    // dark stub. Tilt it up and lift its brightness so the blade shows.
+    const KP = window.__KNP || {};
+    const pivot = new Group();
+    pivot.name = 'Knife pivot';
+    pivot.rotation.set(KP.px ?? 0.5, KP.py ?? 0, KP.pz ?? 0);
+    pivot.position.set(0, 0.02, -0.1);
     root.rotation.y = -Math.PI / 2;
-    root.scale.setScalar(0.24);
-    root.position.set(0, 0.005, -0.12);
-    root.traverse((child) => { if (child.isMesh) child.castShadow = false; });
-    uh.add(root);
-    for (const child of uh.children) if (child !== root && child.isMesh) child.visible = false;
+    root.scale.setScalar(KP.sc ?? 0.3);
+    root.traverse((child) => {
+      if (!child.isMesh) return;
+      child.castShadow = false;
+      const m = child.material;
+      if (m && m.map) {
+        m.emissive.set(0xffffff);
+        m.emissiveMap = m.map;
+        m.emissiveIntensity = KP.em ?? 0.45;
+        m.needsUpdate = true;
+      }
+    });
+    pivot.add(root);
+    uh.add(pivot);
+    for (const child of uh.children) if (child !== pivot && child.isMesh) child.visible = false;
     recordAssetLoaded('knife');
   }, undefined, (error) => { loaded.error = String(error); });
   new T2.GLTFLoader().load('./assets/smg-meshy-low.glb', (gltf) => {
@@ -356,11 +373,50 @@ document.addEventListener('keydown', (event) => {
   if (event.code === 'KeyR' && !event.repeat && game.modeRef() === 'over') resetSmoke();
 }, true);
 
+// Knife readability: a white slash streak across the view during the swing,
+// and a small prompt when a zombie is in knife range.
+const knifeStreak = new Mesh(new Box(1, 0.04, 0.002),
+  new Basic({ color: 0xffffff, transparent: true, opacity: 0, depthTest: false, depthWrite: false, fog: false }));
+knifeStreak.renderOrder = 999;
+knifeStreak.frustumCulled = false;
+knifeStreak.visible = false;
+game.Se.add(knifeStreak);
+const knifeHint = document.createElement('div');
+knifeHint.id = 'knifeHint';
+knifeHint.style.cssText = 'position:fixed;left:50%;top:60%;transform:translateX(-50%);padding:3px 12px;border-radius:14px;' +
+  'background:rgba(150,25,25,.62);color:#fff;font:600 14px system-ui,sans-serif;pointer-events:none;display:none;z-index:6;white-space:nowrap';
+knifeHint.textContent = 'ナイフ範囲：F / 右クリック';
+document.body.appendChild(knifeHint);
+const coarsePointer = matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches;
+function updateKnifeCue() {
+  const nn = game.nn, playing = game.modeRef() === 'play' && !z.over;
+  const e = playing && nn.t > 0 ? 1 - nn.t / 0.28 : -1;
+  if (e >= 0) {
+    const s = Math.sin(Math.min(1, e) * Math.PI);
+    knifeStreak.visible = true;
+    knifeStreak.material.opacity = 0.8 * s;
+    knifeStreak.position.set(-0.4 + 0.8 * e, -0.2 + 0.28 * s, -0.9);
+    knifeStreak.rotation.z = 0.55 - 0.3 * e;
+    knifeStreak.scale.set(0.35 + 0.9 * s, 1, 1);
+  } else knifeStreak.visible = false;
+  let near = false;
+  if (playing && !coarsePointer && nn.cd <= 0 && c.state !== 'ladder') {
+    const fx = -Math.sin(c.yaw), fz = -Math.cos(c.yaw);
+    for (const zb of game.Jt) {
+      if (zb.dead) continue;
+      const dx = zb.pos.x - c.pos.x, dz = zb.pos.z - c.pos.z, d = Math.hypot(dx, dz);
+      if (d < 2.0 + zb.r && d > 0.3 && (dx * fx + dz * fz) / d > 0.64 && Math.abs(zb.pos.y - c.pos.y) < 1.4) { near = true; break; }
+    }
+  }
+  knifeHint.style.display = near ? 'block' : 'none';
+}
+
 let lastFrame = performance.now(), lastWeapon = -1;
 function updateEquipment(now) {
   requestAnimationFrame(updateEquipment);
   const dt = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000));
   lastFrame = now;
+  updateKnifeCue();
   const mode = game.modeRef();
   const weapon = U.weapon | 0;
   if (weapon !== lastWeapon) {
@@ -644,4 +700,4 @@ if (window.T2?.GLTFLoader) {
   requestAnimationFrame(audioTick);
 }
 requestAnimationFrame(updateEquipment);
-window.__skyUpgrade = { smokeClouds, loaded, throwSmoke, get smokeCharges() { return smokeCharges; }, weaponViews, trolleyViews };
+window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeCharges() { return smokeCharges; }, weaponViews, trolleyViews };
