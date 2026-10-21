@@ -177,9 +177,9 @@ if (window.T2?.GLTFLoader) {
   new T2.GLTFLoader().load('./assets/smg-meshy-low.glb', (gltf) => {
     const root = gltf.scene;
     root.name = 'Meshy SMG mobile LOD';
-    root.rotation.y = Math.PI / 2;
+    root.rotation.y = -Math.PI / 2;
     root.scale.setScalar(0.34);
-    root.position.set(0, -0.02, -0.08);
+    root.position.set(0, -0.02, -0.13);
     root.traverse((child) => { if (child.isMesh) child.castShadow = false; });
     smgFallback.add(root);
     for (const child of smgFallback.children) if (child !== root) child.visible = false;
@@ -441,7 +441,7 @@ function updateEquipment(now) {
   const weapon = U.weapon | 0;
   if (weapon !== lastWeapon) {
     weaponViews.forEach((view, index) => { view.visible = U.gunOn && index === weapon; });
-    vd.position.z = [-0.25, -0.62, -0.43, -0.82][weapon] ?? -0.25;
+    vd.position.z = [-0.25, -0.62, -0.34, -0.82][weapon] ?? -0.25;
     if (mode === 'play' && lastWeapon >= 0) {
       const profile = WP[weapon];
       Et.mag = profile.mag;
@@ -778,3 +778,4 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   requestAnimationFrame(ghostTick);
   window.__skyGhost = { get best() { return best; }, get rec() { return rec; }, ghost };
 }
+
