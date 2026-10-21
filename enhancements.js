@@ -226,7 +226,7 @@ for (const block of jn) {
 }
 
 // MG uses the existing shooting, aiming, reload, score and hit systems.
-WP.push({ n: 'MG', mag: 60, res: 180, cd: 0.105, rl: 3.0, dmg: 0.65,
+WP.push({ n: 'MG', mag: 60, res: 60, cd: 0.105, rl: 3.0, dmg: 0.65,
   head: 3, knock: 3.1, stun: 0.38, range: 70, cone: 0, auto: 1 });
 Jn.weapon = Math.max(0, Math.min(3, Jn.weapon));
 U.weapon = Math.max(0, Math.min(3, U.weapon | 0));
@@ -242,11 +242,28 @@ Tt.hg = () => {
   if (U.weapon === 3) Tt.thud(0.11, 0);
 };
 
-// Two smoke charges per run. Smoke blocks enemy sight along the segment from
-// enemy to player; collision and gravity continue to use the original AI.
+// Smoke: one charge at the start of a run. Every 3 skill moves refills one
+// (max 2). Smoke blocks enemy sight along the segment from enemy to player;
+// collision and gravity continue to use the original AI.
 const smokeClouds = [];
 let smokeGrenadeTemplate = null;
-let smokeCharges = 2;
+let smokeCharges = 1;
+const SKILL_STATES = ['wallrun', 'slide', 'ledge', 'ladder', 'zip', 'hook'];
+let skillCount = 0, skillPrev = 'none';
+function trackSkills() {
+  const st = game.modeRef() === 'play' && !z.over ? c.state : 'none';
+  if (st !== skillPrev) {
+    if (SKILL_STATES.includes(st)) {
+      skillCount = Math.min(3, skillCount + 1);
+      if (skillCount >= 3 && smokeCharges < 2) {
+        skillCount = 0;
+        smokeCharges++;
+        game.rn('技で煙幕+1');
+      }
+    }
+    skillPrev = st;
+  }
+}
 function smokeBlocks(enemy) {
   for (const cloud of smokeClouds) {
     if (cloud.ttl <= 0 || Math.abs(enemy.pos.y - cloud.y) > 3.5 || Math.abs(c.pos.y - cloud.y) > 3.5) continue;
@@ -326,7 +343,9 @@ smokeButton?.addEventListener('pointerdown', (event) => {
 });
 
 function resetSmoke() {
-  smokeCharges = 2;
+  smokeCharges = 1;
+  skillCount = 0;
+  skillPrev = 'none';
   for (const cloud of smokeClouds) ue.remove(cloud.model);
   smokeClouds.length = 0;
 }
@@ -359,7 +378,7 @@ function updateEquipment(now) {
   weaponViews.forEach((view, index) => { view.visible = U.gunOn && index === weapon; });
   document.getElementById('hSmoke').textContent = String(smokeCharges);
   smokeButton?.classList.toggle('empty', smokeCharges === 0);
-  smokeButton && (smokeButton.textContent = `煙幕 ${smokeCharges}`);
+  smokeButton && (smokeButton.textContent = `煙幕 ${smokeCharges}（技${skillCount}/3）`);
   for (let i = smokeClouds.length - 1; i >= 0; i--) {
     const cloud = smokeClouds[i];
     if (mode === 'play' && !z.over) cloud.ttl -= dt;
@@ -467,7 +486,7 @@ if (window.T2?.GLTFLoader) {
 // Sound coverage, full-auto support and control hints (2026-10-21).
 {
   const { Ut, Mn, ni, wpc, modeRef } = game;
-  const audioStats = { zip: 0, hook: 0, ladder: 0, smoke: 0, wallStep: 0, shots: {} };
+  const audioStats = { zip: 0, hook: 0, ladder: 0, smoke: 0, wallStep: 0, bgm: 0, shots: {} };
   window.__skyAudio = audioStats;
   const tone = (type, freq, gain, dur, endFreq) => {
     const ctx = Ut.ctx;
@@ -519,6 +538,34 @@ if (window.T2?.GLTFLoader) {
   };
   let loops = null, prevState = 'none', rung = 0, wallStepT = 0, lastNow = performance.now();
   let cloudCount = smokeClouds.length;
+  let bgmNodes = null, bgmPulseT = 0;
+  const makeBgm = () => {
+    const ctx = Ut.ctx, out = ctx.createGain();
+    out.gain.value = 0;
+    out.connect(Ut.master || ctx.destination);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 240; lp.Q.value = 3;
+    lp.connect(out);
+    const pad = ctx.createGain();
+    pad.gain.value = 0.5;
+    pad.connect(lp);
+    for (const [freq, detune] of [[55, 0], [55.4, 0], [82.5, -6]]) {
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.value = freq;
+      osc.detune.value = detune;
+      const g = ctx.createGain();
+      g.gain.value = freq > 60 ? 0.35 : 0.5;
+      osc.connect(g); g.connect(pad);
+      osc.start();
+    }
+    // Slow LFO on the filter so the drone breathes instead of droning flat.
+    const lfo = ctx.createOscillator(), depth = ctx.createGain();
+    lfo.frequency.value = 0.07; depth.gain.value = 70;
+    lfo.connect(depth); depth.connect(lp.frequency);
+    lfo.start();
+    return { out, lp };
+  };
   const hudKeys = document.querySelector('.hud-tr');
   const setHints = () => {
     if (!hudKeys) return;
@@ -536,6 +583,7 @@ if (window.T2?.GLTFLoader) {
     lastNow = now;
     const mode = modeRef();
     if (mode !== prevMode) { if (mode === 'play') setHints(); prevMode = mode; }
+    trackSkills();
     if (!Ut.ctx || !Ut.noise) return;
     if (!loops) loops = { zip: makeLoop(1500, 3), reel: makeLoop(900, 5) };
     const t = Ut.ctx.currentTime;
@@ -549,6 +597,22 @@ if (window.T2?.GLTFLoader) {
     loops.reel.amp.gain.setTargetAtTime(state === 'hook' ? 0.12 : 0, t, 0.04);
     loops.reel.filter.frequency.setTargetAtTime(700 + reel * 900, t, 0.08);
     loops.reel.osc.frequency.setTargetAtTime(100 + reel * 160, t, 0.08);
+    // Background music: a low detuned drone with a slow heartbeat pulse. It is
+    // synthesized here (no audio files), so it adds no download weight.
+    const bgmLive = mode === 'play' && !z.over;
+    if (bgmLive && !bgmNodes) bgmNodes = makeBgm();
+    if (bgmNodes) {
+      bgmNodes.out.gain.setTargetAtTime(bgmLive ? 0.07 : 0, t, bgmLive ? 0.8 : 0.25);
+      if (bgmLive) {
+        bgmPulseT -= dt;
+        if (bgmPulseT <= 0) {
+          bgmPulseT = 0.95;
+          tone('sine', 62, 0.2, 0.18, 40);
+          setTimeout(() => tone('sine', 56, 0.12, 0.12, 36), 230);
+          audioStats.bgm++;
+        }
+      }
+    }
     if (state !== prevState) {
       if (state === 'zip') { tone('square', 900, 0.1, 0.05); tone('triangle', 420, 0.16, 0.12, 260); audioStats.zip++; }
       if (prevState === 'zip') tone('triangle', 520, 0.12, 0.1, 300);
