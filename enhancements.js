@@ -852,7 +852,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     [-32, 12, -25, 18, 2.8], [-20, 3, -16, 8, 7], [-70, -12, -64, -3, 3], [-61, -12, -55, -5.5, 4.2],
     [-52, -12, -47, -5.5, 4.4], [-38, 12, -34.5, 18, 4], [-45, 13.5, -41, 18, 4.4], [-51, 11, -48, 18, 5],
     [-58, 12, -53.5, 18, 4.4], [-63, 11, -60, 18, 5.5], [-70, 8, -66, 18, 6.5], [-70, 0, -65, 5, 4.4],
-    [-60, -1, -52, 6, 3.4, 0, 'hollow'], [41, -4, 46, 3, 3], [41, 5, 46, 14, 4.4], [34, 7, 38.5, 11.5, 2.6, 0, 'hollow'], [43, 9, 46, 12, 6.6, 4.4, 'shed'], [36, -8.7, 40, -8.3, 3.8, 0, 'shed'], [36.3, -8.3, 36.7, -5, 3.8, 0, 'shed'],
+    [-60, -1, -52, 6, 3.4, 0, 'hollow'], [-49, 0.5, -45, 5.5, 6.2, 0, 'open'], [41, -4, 46, 3, 3], [41, 5, 46, 14, 4.4], [34, 7, 38.5, 11.5, 2.6, 0, 'hollow'], [43, 9, 46, 12, 6.6, 4.4, 'shed'], [36, -8.7, 40, -8.3, 3.8, 0, 'shed'], [36.3, -8.3, 36.7, -5, 3.8, 0, 'shed'],
     // roof sheds: [x0, z0, x1, z1, top, base, 'shed']
     [-70, -12, -67, -8, 5.2, 3, 'shed'], [-61, -12, -58.5, -9.5, 6.4, 4.2, 'shed'],
     [-25, -12, -22, -9.5, 6.4, 4.2, 'shed'], [-56, 1.5, -54.2, 3.5, 5.4, 3.4, 'shed'],
@@ -865,7 +865,8 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     const plaster = mat.plaster[idx % mat.plaster.length], shutter = mat.shutter[idx % mat.shutter.length];
     // Plaster skin and a tiled roof cap with a thin eave. A hollow house keeps
     // its doorways open, so it gets plaster only above the door height.
-    if (kind === 'hollow') addBox(plaster, cx, (top + 2.3) / 2, cz, w + 0.04, top - 2.3, d + 0.04);
+    if (kind === 'open') { /* real walls with openings; no skin */ }
+    else if (kind === 'hollow') addBox(plaster, cx, (top + 2.3) / 2, cz, w + 0.04, top - 2.3, d + 0.04);
     else addBox(plaster, cx, (top + base) / 2, cz, w + 0.04, top - base - 0.02, d + 0.04);
     addBox(mat.tile, cx, top + 0.025, cz, w + 0.02, 0.05, d + 0.02, 0.35);
     addBox(mat.wood, cx, top - 0.12, cz, w + 0.3, 0.12, d + 0.3);
