@@ -1111,3 +1111,266 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(unzoom, 200); });
   window.__zoomGuard = { unzoom, scale: () => (vv ? vv.scale : 1) };
 }
+
+// Gun feel (2026-10-24): layered gunshots with pitch jitter and a short tail,
+// separate body / head / kill feedback, moving tracers, ejected brass, muzzle
+// smoke and a small screen kick for SG and MG. The base game calls
+// window.__gunFx.shot / .hit from its fire routine. All sound is synthesized
+// and all meshes are pooled, so this adds no download weight.
+{
+  const { Ut, Tt, ni, Mn, wpc, c, Se, ue, Geom } = game;
+  const { Box, Sphere, Mesh, Basic, Vector3: V3 } = Geom;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+
+  // ---- Sound ------------------------------------------------------------
+  let wet = null;
+  const getWet = () => {
+    const ctx = Ut.ctx;
+    if (!ctx || !Ut.master) return null;
+    if (wet && wet.ctx === ctx) return wet.node;
+    const len = Math.floor(ctx.sampleRate * 0.32);
+    const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    }
+    const conv = ctx.createConvolver();
+    conv.buffer = buf;
+    conv.connect(Ut.master);
+    wet = { ctx, node: conv };
+    return conv;
+  };
+  // Each report = a sharp crack + a body burst + two low thumps, all shifted by
+  // the same random pitch factor so no two shots are identical.
+  const REPORT = {
+    HG: { wet: 0.32,
+      noise: [[0.45, 5200, 0.8, 0.035, 'bandpass'], [0.7, 3200, 0.6, 0.16, 'bandpass']],
+      tone: [[0.55, 210, 0.13], [0.45, 85, 0.2]] },
+    SG: { wet: 0.4,
+      noise: [[0.5, 3000, 0.8, 0.05, 'bandpass'], [0.95, 900, 0.5, 0.38, 'lowpass']],
+      tone: [[0.8, 95, 0.3], [0.55, 55, 0.4]] },
+    SMG: { wet: 0.16,
+      noise: [[0.4, 5600, 0.9, 0.03, 'bandpass'], [0.42, 4200, 0.9, 0.06, 'bandpass']],
+      tone: [[0.28, 280, 0.05], [0.25, 120, 0.08]] },
+    MG: { wet: 0.2,
+      noise: [[0.4, 4200, 0.8, 0.035, 'bandpass'], [0.7, 2300, 0.6, 0.15, 'bandpass']],
+      tone: [[0.65, 130, 0.17], [0.4, 70, 0.22]] },
+  };
+  const report = (spec) => {
+    const ctx = Ut.ctx;
+    if (!ctx || !Ut.noise || !Ut.master) return;
+    const t = ctx.currentTime, j = rnd(0.94, 1.06);
+    const dry = ctx.createGain();
+    dry.connect(Ut.master);
+    const conv = getWet();
+    if (conv) {
+      const send = ctx.createGain();
+      send.gain.value = spec.wet;
+      dry.connect(send); send.connect(conv);
+    }
+    for (const [g, f, q, d, type] of spec.noise) {
+      const src = ctx.createBufferSource(), flt = ctx.createBiquadFilter(), amp = ctx.createGain();
+      src.buffer = Ut.noise; src.playbackRate.value = 1.5;
+      flt.type = type; flt.frequency.value = f * j; flt.Q.value = q;
+      amp.gain.setValueAtTime(g, t);
+      amp.gain.exponentialRampToValueAtTime(1e-4, t + d);
+      src.connect(flt); flt.connect(amp); amp.connect(dry);
+      src.start(t, Math.random() * 1.5); src.stop(t + d + 0.02);
+    }
+    for (const [g, f, d] of spec.tone) {
+      const osc = ctx.createOscillator(), amp = ctx.createGain();
+      osc.frequency.setValueAtTime(f * j, t);
+      osc.frequency.exponentialRampToValueAtTime(f * j * 0.4, t + d);
+      amp.gain.setValueAtTime(g, t);
+      amp.gain.exponentialRampToValueAtTime(1e-4, t + d);
+      osc.connect(amp); amp.connect(dry);
+      osc.start(t); osc.stop(t + d + 0.02);
+    }
+  };
+  Tt.hg = () => {
+    const name = wpc().n;
+    const st = window.__skyAudio;
+    if (st) st.shots[name] = (st.shots[name] || 0) + 1;
+    report(REPORT[name] || REPORT.HG);
+  };
+  // Body hit: a dull thud. Head hit adds a bright "ping" on top of it.
+  let lastHitSound = 0;
+  Tt.hit = () => {
+    const now = performance.now();
+    if (now - lastHitSound < 35) return; // shotgun pellets hit several zombies at once
+    lastHitSound = now;
+    ni(0.34, rnd(135, 165), 0.09);
+    Mn(0.3, 700, 0.8, 0.06);
+  };
+  const ping = () => {
+    const ctx = Ut.ctx;
+    if (!ctx || !Ut.master) return;
+    const t = ctx.currentTime;
+    for (const [f, g, d] of [[2300, 0.34, 0.16], [3450, 0.12, 0.1]]) {
+      const osc = ctx.createOscillator(), amp = ctx.createGain();
+      osc.frequency.value = f * rnd(0.98, 1.02);
+      amp.gain.setValueAtTime(g, t);
+      amp.gain.exponentialRampToValueAtTime(1e-4, t + d);
+      osc.connect(amp); amp.connect(Ut.master);
+      osc.start(t); osc.stop(t + d + 0.02);
+    }
+  };
+
+  // ---- Pools ------------------------------------------------------------
+  const mkPool = (n, geo, mat) => {
+    const a = [];
+    for (let i = 0; i < n; i++) {
+      const m = new Mesh(geo, mat);
+      m.visible = false; m.frustumCulled = false;
+      ue.add(m);
+      a.push({ m, t: 0, life: 0 });
+    }
+    return a;
+  };
+  const take = (pool) => pool.find((p) => p.life <= 0) || pool.reduce((a, b) => (a.t > b.t ? a : b));
+
+  const boltGeo = new Box(1, 1, 1);
+  const boltMat = new Basic({ color: 0xffe9a0, transparent: true, opacity: 0.9, depthWrite: false, blending: 2 });
+  const bolts = mkPool(14, boltGeo, boltMat).map((p) => Object.assign(p, { s: new V3(), e: new V3(), d: 0, T: 0, lf: 0, w: 0.05 }));
+
+  const shellGeo = new Box(1, 1, 1);
+  const brassMat = new Basic({ color: 0xd9a640 });
+  const redMat = new Basic({ color: 0xc03030 });
+  const shells = mkPool(16, shellGeo, brassMat).map((p) => Object.assign(p, { v: new V3(), spin: new V3() }));
+
+  const smokeGeo = new Sphere(1, 8, 6);
+  const smokeMat = new Basic({ color: 0xa8a8a8, transparent: true, opacity: 0.2, depthWrite: false });
+  const puffs = mkPool(10, smokeGeo, smokeMat).map((p) => Object.assign(p, { v: new V3() }));
+
+  const goreGeo = new Box(1, 1, 1);
+  const bloodMat = new Basic({ color: 0x6a1212 });
+  const bloodHotMat = new Basic({ color: 0xd21c1c });
+  const gore = mkPool(120, goreGeo, bloodMat).map((p) => Object.assign(p, { v: new V3() }));
+
+  // ---- Emitters ---------------------------------------------------------
+  const fwd = new V3(), right = new V3(), up = new V3(), back = new V3(), tmp = new V3();
+  const basis = () => {
+    right.set(1, 0, 0).applyQuaternion(Se.quaternion);
+    up.set(0, 1, 0).applyQuaternion(Se.quaternion);
+    back.set(0, 0, 1).applyQuaternion(Se.quaternion);
+  };
+  const bolt = (from, to, w) => {
+    const p = take(bolts);
+    p.s.copy(from); p.e.copy(to);
+    p.d = p.s.distanceTo(p.e);
+    if (p.d < 0.3) return;
+    p.T = Math.max(0.06, p.d / 220);
+    p.lf = Math.min(1, 3.2 / p.d);
+    p.w = w;
+    p.t = 0; p.life = 1;
+  };
+  const eject = (name) => {
+    const p = take(shells);
+    const big = name === 'SG';
+    p.m.material = big ? redMat : brassMat;
+    p.m.scale.set(big ? 0.03 : 0.018, big ? 0.03 : 0.018, big ? 0.07 : 0.05);
+    p.m.position.copy(fwd).addScaledVector(back, 0.22).addScaledVector(right, 0.03).addScaledVector(up, 0.02);
+    p.v.set(0, 0, 0)
+      .addScaledVector(right, rnd(1.4, 2.2))
+      .addScaledVector(up, rnd(1.3, 2.3))
+      .addScaledVector(back, rnd(0.2, 0.8));
+    p.spin.set(rnd(-18, 18), rnd(-18, 18), rnd(-18, 18));
+    p.m.visible = true; p.t = 0; p.life = 0.75;
+  };
+  let puffCount = 0;
+  const puff = (name) => {
+    if ((name === 'SMG' || name === 'MG') && (puffCount++ % 4)) return;
+    const p = take(puffs);
+    p.m.position.copy(fwd).addScaledVector(back, -0.12);
+    p.v.set(0, 0, 0).addScaledVector(back, -0.5).addScaledVector(up, 0.7)
+      .addScaledVector(right, rnd(-0.15, 0.15));
+    p.m.scale.setScalar(0.03);
+    p.m.visible = true; p.t = 0; p.life = 0.55;
+  };
+  const spray = (pt, dir, n, mat, speed, size) => {
+    for (let i = 0; i < n; i++) {
+      const p = take(gore);
+      p.m.material = mat;
+      p.m.position.copy(pt);
+      const k = size * rnd(0.6, 1.5);
+      p.m.scale.set(k, k, k * rnd(1, 2.2));
+      p.v.set(rnd(-1.5, 1.5), rnd(0.8, 2.8), rnd(-1.5, 1.5)).addScaledVector(dir, rnd(0.4, 1) * speed);
+      p.m.visible = true; p.t = 0; p.life = rnd(0.45, 0.8);
+    }
+  };
+
+  window.__gunFx = {
+    shot(muzzle, end, w, dir) {
+      basis();
+      fwd.copy(muzzle);
+      const name = w.n;
+      if (w.cone) {
+        for (let i = 0; i < 4; i++) {
+          tmp.copy(dir).add(new V3(rnd(-0.22, 0.22), rnd(-0.22, 0.22), rnd(-0.22, 0.22))).normalize();
+          const e2 = new V3().copy(muzzle).addScaledVector(tmp, rnd(5.5, 8.5));
+          bolt(muzzle, e2, 0.035);
+        }
+        c.shake = Math.max(c.shake || 0, 0.55);
+      } else {
+        bolt(muzzle, end, name === 'SMG' ? 0.035 : 0.05);
+        if (name === 'MG') c.shake = Math.max(c.shake || 0, 0.3);
+      }
+      eject(name);
+      puff(name);
+    },
+    hit(head, pt, zom, dir) {
+      const killed = !!zom.dead;
+      const n = killed ? (head ? 26 : 18) : (head ? 14 : 5);
+      spray(pt, dir, n, head ? bloodHotMat : bloodMat, killed ? 4.5 : 3, killed ? 0.085 : 0.065);
+      if (head) {
+        ping();
+        if (killed) window.__stopT = 0.05; // brief hit-stop on a manual headshot kill
+      }
+    },
+  };
+
+  // ---- Per-frame update -------------------------------------------------
+  let last = performance.now();
+  const fxTick = () => {
+    requestAnimationFrame(fxTick);
+    const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    for (const p of bolts) {
+      if (p.life <= 0) { p.m.visible = false; continue; }
+      p.t += dt;
+      const pr = p.t / p.T;
+      if (pr >= 1 + p.lf) { p.life = 0; p.m.visible = false; continue; }
+      const head = p.d * Math.min(1, pr), tail = p.d * Math.max(0, pr - p.lf);
+      tmp.copy(p.e).sub(p.s).normalize();
+      p.m.position.copy(p.s).addScaledVector(tmp, (head + tail) * 0.5);
+      p.m.scale.set(p.w, p.w, Math.max(0.05, head - tail));
+      p.m.lookAt(p.e);
+      p.m.visible = true;
+    }
+    for (const p of shells) {
+      if (p.life <= 0) continue;
+      p.t += dt;
+      if (p.t >= p.life) { p.life = 0; p.m.visible = false; continue; }
+      p.v.y -= 9.8 * dt;
+      p.m.position.addScaledVector(p.v, dt);
+      p.m.rotation.x += p.spin.x * dt; p.m.rotation.y += p.spin.y * dt; p.m.rotation.z += p.spin.z * dt;
+    }
+    for (const p of puffs) {
+      if (p.life <= 0) continue;
+      p.t += dt;
+      const k = p.t / p.life;
+      if (k >= 1) { p.life = 0; p.m.visible = false; continue; }
+      p.m.position.addScaledVector(p.v, dt);
+      p.v.multiplyScalar(Math.exp(-dt * 2.5));
+      p.m.scale.setScalar(0.03 + 0.09 * k);
+    }
+    for (const p of gore) {
+      if (p.life <= 0) continue;
+      p.t += dt;
+      if (p.t >= p.life) { p.life = 0; p.m.visible = false; continue; }
+      p.v.y -= 12 * dt;
+      p.m.position.addScaledVector(p.v, dt);
+    }
+  };
+  requestAnimationFrame(fxTick);
+}
