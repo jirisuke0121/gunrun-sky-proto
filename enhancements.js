@@ -269,25 +269,9 @@ let smokeGrenadeTemplate = null;
 let smokeCharges = 1;
 const SKILL_STATES = ['wallrun', 'slide', 'ledge', 'ladder', 'zip', 'hook'];
 let skillCount = 0, skillPrev = 'none';
-// Flow: finishing a skill move gives a short burst of speed. Chaining another
-// skill within 2.5 s raises the burst (up to 3 levels). The burst fades through
-// the game's own momentum decay, so it lasts about a second.
-let flowChain = 0, flowAt = -99;
-function flowBoost() {
-  const now = game.ceRef();
-  flowChain = now - flowAt < 2.5 ? Math.min(3, flowChain + 1) : 1;
-  flowAt = now;
-  const sp = Math.hypot(c.vel.x, c.vel.z);
-  const dx = sp > 1 ? c.vel.x / sp : -Math.sin(c.yaw), dz = sp > 1 ? c.vel.z / sp : -Math.cos(c.yaw);
-  const target = U.sprintSpeed + [0, 1.5, 2.5, 3.5][flowChain];
-  if (sp < target) { c.vel.x = dx * target; c.vel.z = dz * target; }
-  Tt.swish();
-  if (flowChain >= 2) game.rn(`流れ ×${flowChain}`);
-}
 function trackSkills() {
   const st = game.modeRef() === 'play' && !z.over ? c.state : 'none';
   if (st !== skillPrev) {
-    if (st === 'normal' && SKILL_STATES.includes(skillPrev)) flowBoost();
     if (SKILL_STATES.includes(st)) {
       skillCount = Math.min(3, skillCount + 1);
       if (skillCount >= 3 && smokeCharges < 2) {
@@ -381,8 +365,6 @@ function resetSmoke() {
   smokeCharges = 1;
   skillCount = 0;
   skillPrev = 'none';
-  flowChain = 0;
-  flowAt = -99;
   for (const cloud of smokeClouds) ue.remove(cloud.model);
   smokeClouds.length = 0;
 }
