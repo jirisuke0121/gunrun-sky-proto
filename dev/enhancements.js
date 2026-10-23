@@ -1402,3 +1402,103 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   };
   requestAnimationFrame(fxTick);
 }
+
+// ---------------------------------------------------------------------------
+// Wall-run walls: only the walls listed here can be run on, and each is marked
+// with yellow/black hazard bands so the player can tell at a glance.
+// ---------------------------------------------------------------------------
+{
+  const { WP, U, c, z, ue, jn, Geom } = game;
+  const { Box, Mesh, Basic } = Geom;
+  // [minX, maxX, minZ, maxZ] of the tall "mono" walls that are real movement routes.
+  const RUN_WALLS = [
+    [-14, -13, -14, -1.5], [-14, -13, 1.5, 14], [13, 14, -14, -1.5], [13, 14, 1.5, 14],   // central block, east/west sides
+    [-13, -1.5, -14, -13], [1.5, 13, -14, -13], [-13, -1.5, 13, 14], [1.5, 13, 13, 14],    // central block, north/south sides
+    [17, 35, -6, -1.5],     // east lane wall (the "wall run" lesson)
+    [40, 46, -12, -6],      // east plaza tower
+    [-37, -31, -19, -17.5], // west block
+    [23, 36, -27.4, -25.2], // north beam wall
+  ];
+  const near = (a, b) => Math.abs(a - b) < 0.06;
+  const runBoxes = [];
+  for (const b of jn) {
+    if (b.type !== 'mono') continue;
+    const hit = RUN_WALLS.some(([x0, x1, z0, z1]) => near(b.minX, x0) && near(b.maxX, x1) && near(b.minZ, z0) && near(b.maxZ, z1));
+    b.wr = hit;
+    if (hit) runBoxes.push(b);
+  }
+  window.__skyWallRun = { boxes: runBoxes };
+
+  // Borrow any textured material so we can make canvas textures that this renderer accepts.
+  let baseTex = null;
+  ue.traverse((o) => { if (!baseTex && o.isMesh && o.material && o.material.map && o.material.map.image) baseTex = o.material.map; });
+  const texCache = new Map();
+  const bandTex = (len) => {
+    if (!baseTex) return null;
+    const w = Math.max(64, Math.min(2048, Math.round(len * 40))), h = 32;
+    if (texCache.has(w)) return texCache.get(w);
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    const g = cv.getContext('2d');
+    g.fillStyle = '#16140c'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#ffc61a';
+    const pitch = 26;
+    for (let x = -h * 2; x < w + h * 2; x += pitch) {
+      g.beginPath();
+      g.moveTo(x, h); g.lineTo(x + pitch / 2, h); g.lineTo(x + pitch / 2 + h, 0); g.lineTo(x + h, 0);
+      g.closePath(); g.fill();
+    }
+    g.fillStyle = '#ffe680'; g.fillRect(0, 0, w, 3); g.fillRect(0, h - 3, w, 3);
+    const t = baseTex.clone();
+    t.source = new baseTex.source.constructor(cv);
+    t.repeat.set(1, 1); t.offset.set(0, 0);
+    t.wrapS = t.wrapT = 1001;
+    t.needsUpdate = true;
+    texCache.set(w, t);
+    return t;
+  };
+
+  const blocked = (x, y, zz) => {
+    for (const o of jn) if (o.solid !== false && !o.off && x > o.minX && x < o.maxX && zz > o.minZ && zz < o.maxZ && y > o.minY && y < o.maxY) return true;
+    return false;
+  };
+  const groups = [];
+  const faces = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  for (const b of runBoxes) {
+    const idx = jn.indexOf(b);
+    const base = Math.max(b.minY, 0), top = b.maxY;
+    for (const [nx, nz] of faces) {
+      const alongX = nz !== 0;
+      const L = alongX ? b.maxX - b.minX : b.maxZ - b.minZ;
+      if (L < 2) continue;
+      const fx = nx > 0 ? b.maxX : nx < 0 ? b.minX : 0, fz = nz > 0 ? b.maxZ : nz < 0 ? b.minZ : 0;
+      let open = 0, total = 0;
+      for (let s = 0.5; s < L; s += 1) {
+        const px = alongX ? b.minX + s : fx + nx * 0.4, pz = alongX ? fz + nz * 0.4 : b.minZ + s;
+        total++; if (!blocked(px, base + 1.6, pz)) open++;
+      }
+      if (!total || open / total < 0.6) continue;
+      const len = L - 0.8, tex = bandTex(len);
+      const mats = [];
+      for (let yc = base + 1.7; yc < top - 0.5; yc += 2.5) {
+        const m = new Basic(tex ? { map: tex, color: 0xffffff } : { color: 0xffc61a });
+        const mesh = new Mesh(alongX ? new Box(len, 0.8, 0.05) : new Box(0.05, 0.8, len), m);
+        const cx = alongX ? (b.minX + b.maxX) / 2 : fx + nx * 0.03, cz = alongX ? fz + nz * 0.03 : (b.minZ + b.maxZ) / 2;
+        mesh.position.set(cx, yc, cz);
+        ue.add(mesh); mats.push(m);
+      }
+      groups.push({ idx, mats });
+    }
+  }
+  // Idle shimmer; full brightness while running on that wall.
+  let t0 = performance.now();
+  (function wallGlowTick() {
+    requestAnimationFrame(wallGlowTick);
+    const t = (performance.now() - t0) / 1000;
+    const runIdx = c.state === 'wallrun' && c.wallKey ? parseInt(String(c.wallKey), 10) : -1;
+    for (const g of groups) {
+      const v = g.idx === runIdx ? 1 : 0.7 + 0.1 * Math.sin(t * 2 + g.idx);
+      for (const m of g.mats) m.color.setScalar(v);
+    }
+  })();
+}
