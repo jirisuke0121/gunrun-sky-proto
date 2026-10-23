@@ -15,6 +15,7 @@ if (knifeRule) {
   );
   knifeRule.insertAdjacentHTML('afterend', '<li><kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填。HG・SG・SMG・MGから武器を選べる</li>' +
     '<li>技（スライド・壁走り・縁つかみ・はしご・ジップライン・フック）を3回決めると煙幕+1（最大2個）</li>' +
+    '<li>少し高い壁に走って跳ぶと、壁を蹴って駆け上がる。日よけ布に落ちると大きく跳ねる</li>' +
     '<li><kbd>H</kbd> 自己ベストのときの走りを青い人影（ゴースト）で表示・非表示</li>');
 }
 
@@ -761,35 +762,306 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   window.__skyGhost = { get best() { return best; }, get rec() { return rec; }, ghost };
 }
 
-
-// Old-town decor: cloth awnings, a hanging banner and wooden poles in the
-// west district. Visual only — none of these are added to the collision list.
+// ---------------------------------------------------------------------------
+// Old town: houses dressed as a town (plaster, tiled roofs, windows, doors),
+// cloth awnings you can bounce on, a wall kick-up, a distant skyline and
+// speed effects (dust and speed lines). Everything here is visual or adjusts
+// the player's velocity; the collision boxes stay in the base game.
+// ---------------------------------------------------------------------------
 {
-  const cloth = {
+  const { Se: cam, BufferGeometry, Float32Attribute } = { Se: game.Se, ...Geom };
+  // Borrow an existing stone texture so plaster and roofs keep the grain.
+  let stoneTex = null;
+  ue.traverse((o) => { if (!stoneTex && o.isMesh && o.material && o.material.map && o.material.map.image) stoneTex = o.material.map; });
+  const canvasTex = (draw, size = 256) => {
+    if (!stoneTex) return null;
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = size;
+    draw(cv.getContext('2d'), size);
+    const t = stoneTex.clone();
+    // A clone shares its image source; give the copy its own so the stone stays stone.
+    t.source = new stoneTex.source.constructor(cv);
+    t.needsUpdate = true;
+    return t;
+  };
+  const tileTex = canvasTex((g, n) => {
+    g.fillStyle = '#9c4a2c'; g.fillRect(0, 0, n, n);
+    const rows = 8, cols = 6, rh = n / rows, cw = n / cols;
+    for (let r = 0; r < rows; r++) for (let k = -1; k <= cols; k++) {
+      const x = k * cw + (r % 2 ? cw / 2 : 0), y = r * rh;
+      const grd = g.createLinearGradient(x, 0, x + cw, 0);
+      const base = 150 + ((r * 7 + k * 13) % 5) * 9;
+      grd.addColorStop(0, `rgb(${base - 40},${base * 0.42 | 0},${base * 0.25 | 0})`);
+      grd.addColorStop(0.5, `rgb(${base + 20},${base * 0.55 | 0},${base * 0.33 | 0})`);
+      grd.addColorStop(1, `rgb(${base - 50},${base * 0.38 | 0},${base * 0.22 | 0})`);
+      g.fillStyle = grd;
+      g.beginPath(); g.ellipse(x + cw / 2, y + rh, cw / 2 - 1, rh, 0, Math.PI, 0); g.fill();
+      g.fillRect(x + 1, y + rh * 0.95, cw - 2, rh * 0.15);
+    }
+  });
+  const mat = {
+    plaster: [0xe8d9bb, 0xd9b98a, 0xe2c6a8, 0xcfae84].map((color) => new Standard({ color, map: stoneTex, roughness: 0.97 })),
+    tile: new Standard({ color: 0xffffff, map: tileTex, roughness: 0.85 }),
+    window: new Standard({ color: 0x1f1a16, roughness: 0.6 }),
+    wood: new Standard({ color: 0x5a4130, roughness: 0.9 }),
+    shutter: [0x2f5d6b, 0x6b3a2a, 0x4e5f34].map((color) => new Standard({ color, roughness: 0.85 })),
     red: new Standard({ color: 0x9a3328, roughness: 0.95, side: 2 }),
     ochre: new Standard({ color: 0xc28f45, roughness: 0.95, side: 2 }),
-    wood: new Standard({ color: 0x5a4130, roughness: 0.9 }),
   };
+
+  // Merge many boxes into one mesh per material to keep draw calls low.
+  const batches = new Map();
+  const addBox = (m, cx, cy, cz, w, h, d, uvScale = 0.5) => {
+    if (!batches.has(m)) batches.set(m, { p: [], n: [], u: [] });
+    const B = batches.get(m), hx = w / 2, hy = h / 2, hz = d / 2;
+    const faces = [
+      [[1, 0, 0], [[hx, -hy, hz], [hx, -hy, -hz], [hx, hy, -hz], [hx, hy, hz]], [d, h]],
+      [[-1, 0, 0], [[-hx, -hy, -hz], [-hx, -hy, hz], [-hx, hy, hz], [-hx, hy, -hz]], [d, h]],
+      [[0, 1, 0], [[-hx, hy, hz], [hx, hy, hz], [hx, hy, -hz], [-hx, hy, -hz]], [w, d]],
+      [[0, -1, 0], [[-hx, -hy, -hz], [hx, -hy, -hz], [hx, -hy, hz], [-hx, -hy, hz]], [w, d]],
+      [[0, 0, 1], [[-hx, -hy, hz], [hx, -hy, hz], [hx, hy, hz], [-hx, hy, hz]], [w, h]],
+      [[0, 0, -1], [[hx, -hy, -hz], [-hx, -hy, -hz], [-hx, hy, -hz], [hx, hy, -hz]], [w, h]],
+    ];
+    for (const [nrm, v, [su, sv]] of faces) {
+      const uv = [[0, 0], [su, 0], [su, sv], [0, sv]];
+      for (const i of [0, 1, 2, 0, 2, 3]) {
+        B.p.push(cx + v[i][0], cy + v[i][1], cz + v[i][2]);
+        B.n.push(...nrm);
+        B.u.push(uv[i][0] * uvScale, uv[i][1] * uvScale);
+      }
+    }
+  };
+  const addTris = (m, tris) => { // tris: array of [x,y,z] * 3 per triangle, flat normals
+    if (!batches.has(m)) batches.set(m, { p: [], n: [], u: [] });
+    const B = batches.get(m);
+    for (let i = 0; i < tris.length; i += 3) {
+      const [a, b, c2] = [tris[i], tris[i + 1], tris[i + 2]];
+      const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c2[0] - a[0], vy = c2[1] - a[1], vz = c2[2] - a[2];
+      let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+      const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l;
+      for (const q of [a, b, c2]) {
+        B.p.push(...q); B.n.push(nx, ny, nz);
+        B.u.push(Math.abs(nx) > 0.5 ? q[2] / 2 : q[0] / 2, Math.abs(ny) > 0.5 ? q[2] / 2 : q[1] / 2);
+      }
+    }
+  };
+
+  // [x0, z0, x1, z1, top] — mirrors the old-town boxes in index.html.
+  const houses = [
+    [-42, -12, -36.5, -5, 2.6], [-31.5, -12, -22, -6.5, 4.2], [-34, -1, -29, 5, 5.5], [-29, -1, -24, 5, 6.4],
+    [-32, 12, -25, 18, 2.8], [-20, 3, -16, 8, 7], [-70, -12, -64, -3, 3], [-61, -12, -55, -5.5, 4.2],
+    [-52, -12, -47, -5.5, 5], [-38, 12, -34.5, 18, 4], [-45, 13.5, -41, 18, 5], [-51, 11, -48, 18, 5.6],
+    [-57, 12, -54, 18, 4.4], [-63, 11, -60, 18, 5.5], [-70, 8, -66, 18, 6.5], [-70, 0, -65, 5, 5],
+    [-60, -1, -52, 6, 3.4], [41, -4, 46, 3, 3], [41, 5, 46, 14, 5], [34, 7, 38.5, 11.5, 2.6],
+  ];
+  const inside = (x, z, skip) => houses.some((h) => h !== skip && x > h[0] - 0.05 && x < h[2] + 0.05 && z > h[1] - 0.05 && z < h[3] + 0.05);
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  houses.forEach((h, idx) => {
+    const [x0, z0, x1, z1, top] = h, w = x1 - x0, d = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+    const plaster = mat.plaster[idx % mat.plaster.length], shutter = mat.shutter[idx % mat.shutter.length];
+    // Plaster skin and a tiled roof cap with a thin eave.
+    addBox(plaster, cx, top / 2, cz, w + 0.04, top - 0.02, d + 0.04);
+    addBox(mat.tile, cx, top + 0.025, cz, w + 0.02, 0.05, d + 0.02, 0.35);
+    addBox(mat.wood, cx, top - 0.12, cz, w + 0.3, 0.12, d + 0.3);
+    // Windows, shutters and a door on each outward face.
+    const faces = [
+      [x0, z0, x1, z0, 0, -1], [x0, z1, x1, z1, 0, 1], [x0, z0, x0, z1, -1, 0], [x1, z0, x1, z1, 1, 0],
+    ];
+    let doorDone = false;
+    for (const [ax, az, bx, bz, nx, nz] of faces) {
+      const len = Math.hypot(bx - ax, bz - az);
+      if (len < 2.5) continue;
+      const tx = (bx - ax) / len, tz = (bz - az) / len;
+      const floors = top > 4.6 ? [1.5, top - 1.7] : top > 2.4 ? [Math.min(1.5, top - 1.1)] : [];
+      const n = Math.max(1, Math.floor((len - 1) / 2.4));
+      for (let i = 0; i < n; i++) {
+        const t = (i + 0.5) * len / n, px = ax + tx * t + nx * 0.05, pz = az + tz * t + nz * 0.05;
+        if (inside(px + nx * 0.4, pz + nz * 0.4, h)) continue;
+        for (const fy of floors) {
+          if (!doorDone && fy === floors[0] && rnd() < 0.35) {
+            doorDone = true;
+            addBox(mat.wood, px, 0.95, pz, Math.abs(tx) * 1.05 + Math.abs(nx) * 0.08, 1.9, Math.abs(tz) * 1.05 + Math.abs(nz) * 0.08);
+            continue;
+          }
+          if (rnd() < 0.18) continue;
+          addBox(mat.window, px, fy, pz, Math.abs(tx) * 0.7 + Math.abs(nx) * 0.06, 0.95, Math.abs(tz) * 0.7 + Math.abs(nz) * 0.06);
+          for (const side of [-1, 1]) {
+            const sx = px + tx * side * 0.52, sz = pz + tz * side * 0.52;
+            addBox(shutter, sx + nx * 0.02, fy, sz + nz * 0.02, Math.abs(tx) * 0.3 + Math.abs(nx) * 0.05, 1.0, Math.abs(tz) * 0.3 + Math.abs(nz) * 0.05);
+          }
+          addBox(mat.wood, px + nx * 0.06, fy - 0.55, pz + nz * 0.06, Math.abs(tx) * 0.9 + Math.abs(nx) * 0.18, 0.08, Math.abs(tz) * 0.9 + Math.abs(nz) * 0.18);
+        }
+      }
+    }
+  });
+
+  // Sloped roofs: a solid gable under each slope (the base game hides its own
+  // fill), with tiles laid along the slope.
+  const slopes = [
+    { x0: -44, x1: -34, z0: -0.5, z1: 4.5, y0: 2.4, y1: 5.5, m: mat.plaster[1] },
+    { x0: 35, x1: 39.5, z0: 1.5, z1: 4.5, y0: 1.3, y1: 3, m: mat.plaster[2] },
+  ];
+  for (const sl of slopes) {
+    const { x0, x1, z0, z1, y0, y1, m } = sl, A = (x, z, y) => [x, y, z];
+    const b0 = A(x0, z0, 0), b1 = A(x1, z0, 0), b2 = A(x1, z1, 0), b3 = A(x0, z1, 0);
+    const t0 = A(x0, z0, y0 - 0.3), t1 = A(x1, z0, y1 - 0.3), t2 = A(x1, z1, y1 - 0.3), t3 = A(x0, z1, y0 - 0.3);
+    addTris(m, [b0, b1, t1, b0, t1, t0, b2, b3, t3, b2, t3, t2, b3, b0, t0, b3, t0, t3, b1, b2, t2, b1, t2, t1]);
+    const lift = 0.04, T = (x, z, y) => [x, y + lift, z];
+    addTris(mat.tile, [T(x0, z1, y0), T(x1, z1, y1), T(x1, z0, y1), T(x0, z1, y0), T(x1, z0, y1), T(x0, z0, y0)]);
+  }
+
+  // Awnings — also trampolines. [x0, x1, wallZ, outZ, yTop, yLow, colour]
+  const awnings = [
+    [-33.4, -29.6, -1, -3.4, 4.6, 3.6, 'red'], [-28.4, -25.6, 12, 10.4, 2.6, 2.2, 'ochre'],
+    [-41.6, -38.4, -5, -3.4, 2.4, 2.0, 'ochre'], [-51.5, -48, -5.5, -3.7, 2.8, 2.4, 'red'],
+    [-50.6, -48.4, 11, 9.4, 2.8, 2.4, 'ochre'], [-59.5, -55.5, -1, -2.6, 2.2, 1.9, 'red'],
+    [35.4, 38.4, 7, 5.9, 2.4, 2.0, 'red'], [42, 45, 5, 4.2, 2.6, 2.3, 'ochre'],
+  ];
   const decor = new Group();
-  // Awning: x0..x1 along the wall, sloping from (wallZ, yTop) out to (outZ, yLow).
-  const awning = (x0, x1, wallZ, outZ, yTop, yLow, mat) => {
-    const dz = outZ - wallZ, dy = yLow - yTop, len = Math.hypot(dz, dy);
-    const m = box(decor, x1 - x0, 0.05, len, mat, (x0 + x1) / 2, (yTop + yLow) / 2, (wallZ + outZ) / 2);
+  for (const [ax0, ax1, wz, oz, yt, yl, col] of awnings) {
+    const dz = oz - wz, dy = yl - yt, len = Math.hypot(dz, dy);
+    const m = box(decor, ax1 - ax0, 0.05, len, mat[col], (ax0 + ax1) / 2, (yt + yl) / 2, (wz + oz) / 2);
     m.rotation.x = Math.atan2(-dy, Math.abs(dz)) * Math.sign(dz);
-    for (const x of [x0 + 0.1, x1 - 0.1]) box(decor, 0.08, yLow, 0.08, cloth.wood, x, yLow / 2, outZ);
-  };
-  awning(-33.4, -29.6, -1, -3.4, 4.6, 3.6, cloth.red);     // 大通り、H3aの北面
-  awning(-28.4, -25.6, 12, 10.4, 2.6, 2.2, cloth.ochre);  // 南の家H7の北面
-  awning(-41.6, -38.4, -5, -6.6, 2.4, 2.0, cloth.ochre);   // 低い家H1の南面
-  // Hanging banner on H2's west face, beside the beam over the north alley.
-  box(decor, 0.04, 2.2, 1.6, cloth.red, -31.55, 2.6, -10.8);
-  box(decor, 0.1, 0.1, 1.9, cloth.wood, -31.6, 3.75, -10.8);
-  // Banner on the new tower H4, facing the jump from H3b.
-  box(decor, 0.04, 2.4, 1.4, cloth.ochre, -20.05, 4.6, 5.5);
-  // East district: banners on E2 and E1 facing the alley, awning over the slope.
-  box(decor, 0.04, 2.6, 1.6, cloth.red, 40.95, 3.2, 9.5);
-  box(decor, 0.04, 1.8, 1.4, cloth.ochre, 40.95, 1.7, -2.4);
-  awning(35.4, 38.4, 7, 5.9, 2.4, 2.0, cloth.red);         // 東の家E3の北面
-  decor.traverse((o) => { if (o.isMesh) o.receiveShadow = true; });
+    for (const x of [ax0 + 0.1, ax1 - 0.1]) addBox(mat.wood, x, yl / 2, oz, 0.08, yl, 0.08);
+  }
+  // Banners and wooden posts under the planks that cross alleys.
+  addBox(mat.red, -31.55, 2.6, -10.8, 0.04, 2.2, 1.6);
+  addBox(mat.ochre, -20.05, 4.6, 5.5, 0.04, 2.4, 1.4);
+  addBox(mat.red, 40.95, 3.2, 9.5, 0.04, 2.6, 1.6);
+  addBox(mat.red, -64.05, 1.9, -8, 0.04, 2.2, 1.4);
+  addBox(mat.ochre, -47.05, 3.2, 15, 0.04, 2.6, 1.4);
+  for (const [x, z, y] of [[-27, -6.3, 4.2], [-27, -1.2, 6.4], [-57, -5.3, 3.4], [-57, -1.2, 3.4], [-55.5, 6.2, 3.4], [-55.5, 11.8, 4.4]]) {
+    addBox(mat.wood, x, (y - 0.3) / 2, z, 0.16, y - 0.3, 0.16);
+  }
+  // Wooden handrails along the stairs.
+  for (const [x, za, zb, top] of [[-43.45, -4.6, -11.4, 2.6], [-62.75, 1.5, -2.9, 3]]) {
+    const L = Math.abs(zb - za), ang = Math.atan2(top, L);
+    const r = new Mesh(new Box(0.07, 0.07, Math.hypot(L, top)), mat.wood);
+    r.position.set(x, top / 2 + 0.95, (za + zb) / 2);
+    r.rotation.x = Math.sign(za - zb) * ang;
+    decor.add(r);
+    for (let k = 0; k <= 4; k++) addBox(mat.wood, x, (top * k / 4) / 2 + 0.5, za + (zb - za) * k / 4, 0.06, top * k / 4 + 1, 0.06);
+  }
+
+  for (const [m, B] of batches) {
+    const g = new BufferGeometry();
+    g.setAttribute('position', new Float32Attribute(new Float32Array(B.p), 3));
+    g.setAttribute('normal', new Float32Attribute(new Float32Array(B.n), 3));
+    g.setAttribute('uv', new Float32Attribute(new Float32Array(B.u), 2));
+    g.computeBoundingSphere();
+    const mesh = new Mesh(g, m);
+    mesh.castShadow = m !== mat.tile;
+    mesh.receiveShadow = true;
+    decor.add(mesh);
+  }
+
+  // Distant skyline: domes and minarets far beyond the play area, softened by fog.
+  const sky = { wall: new Standard({ color: 0xd9bf94, roughness: 1 }), dome: new Standard({ color: 0xc9a46a, roughness: 0.8 }) };
+  const city = [[150, 0.3], [170, 0.9], [140, 1.7], [165, 2.4], [150, 3.1], [175, 3.8], [145, 4.5], [160, 5.4]];
+  for (const [r, a] of city) {
+    const cx = Math.cos(a) * r, cz = Math.sin(a) * r, s = 0.8 + ((r * 7) % 5) / 10;
+    box(decor, 26 * s, 14 * s, 18 * s, sky.wall, cx, 7 * s - 6, cz);
+    const dome = new Mesh(new Geom.Sphere(8 * s, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), sky.dome);
+    dome.position.set(cx, 14 * s - 6, cz); decor.add(dome);
+    for (const k of [-1, 1]) {
+      cylinder(decor, 0.9 * s, 1.3 * s, 34 * s, sky.wall, cx + k * 15 * s, 17 * s - 6, cz + 6 * s, 8);
+      const cap = new Mesh(new Geom.Sphere(1.6 * s, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2), sky.dome);
+      cap.position.set(cx + k * 15 * s, 34 * s - 6, cz + 6 * s); decor.add(cap);
+    }
+  }
   ue.add(decor);
+
+  // --- Movement additions -------------------------------------------------
+  const solidTopAhead = (px, pz, feet) => {
+    let top = -1e9;
+    for (const b of jn) {
+      if (b.off || b.type === 'prop' || b.type === 'rail') continue;
+      if (px > b.minX && px < b.maxX && pz > b.minZ && pz < b.maxZ && b.minY < feet + 1.2 && b.maxY > feet + 0.4) top = Math.max(top, b.maxY);
+    }
+    return top;
+  };
+  let kickUsed = false, prevY = c.pos.y, wasGround = true, airMinVy = 0;
+  const awningY = (a, z) => a[4] + (a[5] - a[4]) * (z - a[2]) / (a[3] - a[2]);
+  const stats = { kicks: 0, bounces: 0 };
+
+  // Dust pool and speed lines.
+  const dustMat = new Basic({ color: 0xd8c7a4, transparent: true, opacity: 0.5, depthWrite: false });
+  const dust = [];
+  for (let i = 0; i < 28; i++) {
+    const m = new Mesh(new Geom.Sphere(0.18, 6, 4), dustMat.clone());
+    m.visible = false; ue.add(m); dust.push({ m, t: 0, vx: 0, vy: 0, vz: 0 });
+  }
+  let dustI = 0;
+  const puff = (n, spread, up) => {
+    for (let i = 0; i < n; i++) {
+      const p = dust[dustI++ % dust.length], a = Math.random() * Math.PI * 2;
+      p.t = 0.55; p.m.visible = true;
+      p.m.position.set(c.pos.x + Math.cos(a) * 0.3, c.pos.y + 0.1, c.pos.z + Math.sin(a) * 0.3);
+      p.vx = Math.cos(a) * spread * (0.5 + Math.random()); p.vz = Math.sin(a) * spread * (0.5 + Math.random()); p.vy = up * Math.random();
+    }
+  };
+  const lines = document.createElement('div');
+  lines.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;transition:opacity .12s;' +
+    'background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,250,235,.55) 0deg .6deg,transparent .6deg 7deg);' +
+    '-webkit-mask:radial-gradient(circle at 50% 50%,transparent 38%,#000 78%);mask:radial-gradient(circle at 50% 50%,transparent 38%,#000 78%)';
+  document.body.appendChild(lines);
+  let sprintDustT = 0, last = performance.now();
+
+  function oldTownTick() {
+    requestAnimationFrame(oldTownTick);
+    const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const playing = game.modeRef() === 'play' && !z.over;
+    const sp = Math.hypot(c.vel.x, c.vel.z);
+    lines.style.opacity = playing ? String(Math.max(0, Math.min(0.55, (sp - U.sprintSpeed - 0.4) / 5))) : '0';
+    for (const p of dust) {
+      if (p.t <= 0) continue;
+      p.t -= dt;
+      p.m.position.x += p.vx * dt; p.m.position.y += p.vy * dt; p.m.position.z += p.vz * dt;
+      p.m.scale.setScalar(1 + (0.55 - p.t) * 4);
+      p.m.material.opacity = Math.max(0, p.t) * 0.8;
+      if (p.t <= 0) p.m.visible = false;
+    }
+    if (!playing) { prevY = c.pos.y; return; }
+    const y = c.pos.y;
+    if (c.onGround) {
+      if (!wasGround && airMinVy < -7) { puff(8, 2.4, 0.8); c.landDip = Math.min(0.5, (c.landDip || 0) + 0.12); }
+      kickUsed = false; airMinVy = 0;
+      sprintDustT -= dt;
+      if (sp > U.sprintSpeed - 0.5 && sprintDustT <= 0) { sprintDustT = 0.12; puff(1, 0.6, 0.4); }
+    } else airMinVy = Math.min(airMinVy, c.vel.y);
+    wasGround = c.onGround;
+
+    if (c.state === 'normal' && !c.onGround) {
+      // Awning bounce: falling through the cloth throws you back up.
+      if (c.vel.y < -1.5) {
+        for (const a of awnings) {
+          const zMin = Math.min(a[2], a[3]), zMax = Math.max(a[2], a[3]);
+          if (c.pos.x < a[0] || c.pos.x > a[1] || c.pos.z < zMin || c.pos.z > zMax) continue;
+          const ay = awningY(a, c.pos.z);
+          if (prevY >= ay - 0.05 && y <= ay + 0.1) {
+            c.pos.y = ay + 0.05; c.vel.y = 10.5; kickUsed = false;
+            Tt.jump(); puff(5, 1.5, 0.3); stats.bounces++;
+            break;
+          }
+        }
+      }
+      // Wall kick-up: running into a wall a little too tall to grab.
+      if (!kickUsed && sp > 3.5 && c.vel.y > -2.5) {
+        const dx = c.vel.x / sp, dz = c.vel.z / sp;
+        const top = solidTopAhead(c.pos.x + dx * 0.6, c.pos.z + dz * 0.6, y);
+        const h = top - y;
+        if (h > U.mantleReach + 0.05 && h <= U.mantleReach + 1.6) {
+          kickUsed = true;
+          const need = h - U.mantleReach + 0.45;
+          c.vel.y = Math.max(c.vel.y, Math.sqrt(2 * U.gravity * need));
+          c.vel.x = dx * Math.min(sp, 3); c.vel.z = dz * Math.min(sp, 3);
+          Tt.wall(); stats.kicks++;
+        }
+      }
+    }
+    prevY = c.pos.y;
+  }
+  requestAnimationFrame(oldTownTick);
+  window.__skyOldTown = { stats, awnings, houses };
 }
