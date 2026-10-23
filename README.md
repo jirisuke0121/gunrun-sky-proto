@@ -43,3 +43,6 @@
 - ClaudeもCodexも、まず `dev/` を直して push → dev 版で確認 → `./promote.sh` で公開版に反映して push。
 - dev 版の記録はビルド名が `-dev` で終わるので、公開版と分けて集計できます。
 - `dev/` は `index.html`・`enhancements.js`・`assets/` の1セットで完結しています。
+
+## 容量チェック
+`./size_check.sh` で、公開版・dev版の合計容量とCrazyGamesの制限（初回50MB以内・スマホのトップ掲載20MB以内・全体250MB・1500ファイル）に対する使用率を表示します。Y8は上限を確認できていません。
