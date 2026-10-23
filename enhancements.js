@@ -850,18 +850,23 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   const houses = [
     [-42, -12, -36.5, -5, 2.6], [-31.5, -12, -22, -6.5, 4.2], [-34, -1, -29, 5, 5.5], [-29, -1, -24, 5, 6.4],
     [-32, 12, -25, 18, 2.8], [-20, 3, -16, 8, 7], [-70, -12, -64, -3, 3], [-61, -12, -55, -5.5, 4.2],
-    [-52, -12, -47, -5.5, 5], [-38, 12, -34.5, 18, 4], [-45, 13.5, -41, 18, 5], [-51, 11, -48, 18, 5.6],
-    [-57, 12, -54, 18, 4.4], [-63, 11, -60, 18, 5.5], [-70, 8, -66, 18, 6.5], [-70, 0, -65, 5, 5],
-    [-60, -1, -52, 6, 3.4], [41, -4, 46, 3, 3], [41, 5, 46, 14, 5], [34, 7, 38.5, 11.5, 2.6],
+    [-52, -12, -47, -5.5, 4.4], [-38, 12, -34.5, 18, 4], [-45, 13.5, -41, 18, 4.4], [-51, 11, -48, 18, 5],
+    [-58, 12, -53.5, 18, 4.4], [-63, 11, -60, 18, 5.5], [-70, 8, -66, 18, 6.5], [-70, 0, -65, 5, 4.4],
+    [-60, -1, -52, 6, 3.4, 0, 'hollow'], [41, -4, 46, 3, 3], [41, 5, 46, 14, 4.4], [34, 7, 38.5, 11.5, 2.6],
+    // roof sheds: [x0, z0, x1, z1, top, base, 'shed']
+    [-70, -12, -67, -8, 5.2, 3, 'shed'], [-61, -12, -58.5, -9.5, 6.4, 4.2, 'shed'],
+    [-25, -12, -22, -9.5, 6.4, 4.2, 'shed'], [-56, 1.5, -54.2, 3.5, 5.4, 3.4, 'shed'],
   ];
-  const inside = (x, z, skip) => houses.some((h) => h !== skip && x > h[0] - 0.05 && x < h[2] + 0.05 && z > h[1] - 0.05 && z < h[3] + 0.05);
+  const inside = (x, z, skip) => houses.some((h) => h !== skip && !h[6] && x > h[0] - 0.05 && x < h[2] + 0.05 && z > h[1] - 0.05 && z < h[3] + 0.05);
   let seed = 7;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   houses.forEach((h, idx) => {
-    const [x0, z0, x1, z1, top] = h, w = x1 - x0, d = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+    const [x0, z0, x1, z1, top, base = 0, kind = ''] = h, w = x1 - x0, d = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
     const plaster = mat.plaster[idx % mat.plaster.length], shutter = mat.shutter[idx % mat.shutter.length];
-    // Plaster skin and a tiled roof cap with a thin eave.
-    addBox(plaster, cx, top / 2, cz, w + 0.04, top - 0.02, d + 0.04);
+    // Plaster skin and a tiled roof cap with a thin eave. A hollow house keeps
+    // its doorways open, so it gets plaster only above the door height.
+    if (kind === 'hollow') addBox(plaster, cx, (top + 2.3) / 2, cz, w + 0.04, top - 2.3, d + 0.04);
+    else addBox(plaster, cx, (top + base) / 2, cz, w + 0.04, top - base - 0.02, d + 0.04);
     addBox(mat.tile, cx, top + 0.025, cz, w + 0.02, 0.05, d + 0.02, 0.35);
     addBox(mat.wood, cx, top - 0.12, cz, w + 0.3, 0.12, d + 0.3);
     // Windows, shutters and a door on each outward face.
@@ -869,6 +874,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       [x0, z0, x1, z0, 0, -1], [x0, z1, x1, z1, 0, 1], [x0, z0, x0, z1, -1, 0], [x1, z0, x1, z1, 1, 0],
     ];
     let doorDone = false;
+    if (kind) return;
     for (const [ax, az, bx, bz, nx, nz] of faces) {
       const len = Math.hypot(bx - ax, bz - az);
       if (len < 2.5) continue;
