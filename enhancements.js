@@ -14,7 +14,7 @@ if (knifeRule) {
     '銃は選んだ武器を持ち、調整画面でオフにもできる',
   );
   knifeRule.insertAdjacentHTML('afterend', '<li><kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填。HG・SG・SMG・MGから武器を選べる</li>' +
-    '<li>技（スライド・壁走り・縁つかみ・はしご・ジップライン・フック）を決めると一瞬速くなる。2.5秒以内に次の技をつなぐほど速い（最大3段）</li>' +
+    '<li>技（スライド・壁走り・縁つかみ・はしご・ジップライン・フック）を3回決めると煙幕+1（最大2個）</li>' +
     '<li><kbd>H</kbd> 自己ベストのときの走りを青い人影（ゴースト）で表示・非表示</li>');
 }
 
@@ -761,3 +761,35 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   window.__skyGhost = { get best() { return best; }, get rec() { return rec; }, ghost };
 }
 
+
+// Old-town decor: cloth awnings, a hanging banner and wooden poles in the
+// west district. Visual only — none of these are added to the collision list.
+{
+  const cloth = {
+    red: new Standard({ color: 0x9a3328, roughness: 0.95, side: 2 }),
+    ochre: new Standard({ color: 0xc28f45, roughness: 0.95, side: 2 }),
+    wood: new Standard({ color: 0x5a4130, roughness: 0.9 }),
+  };
+  const decor = new Group();
+  // Awning: x0..x1 along the wall, sloping from (wallZ, yTop) out to (outZ, yLow).
+  const awning = (x0, x1, wallZ, outZ, yTop, yLow, mat) => {
+    const dz = outZ - wallZ, dy = yLow - yTop, len = Math.hypot(dz, dy);
+    const m = box(decor, x1 - x0, 0.05, len, mat, (x0 + x1) / 2, (yTop + yLow) / 2, (wallZ + outZ) / 2);
+    m.rotation.x = Math.atan2(-dy, Math.abs(dz)) * Math.sign(dz);
+    for (const x of [x0 + 0.1, x1 - 0.1]) box(decor, 0.08, yLow, 0.08, cloth.wood, x, yLow / 2, outZ);
+  };
+  awning(-33.4, -29.6, -1, -3.4, 4.6, 3.6, cloth.red);     // 大通り、H3aの北面
+  awning(-28.4, -25.6, 12, 10.4, 2.6, 2.2, cloth.ochre);  // 南の家H7の北面
+  awning(-41.6, -38.4, -5, -6.6, 2.4, 2.0, cloth.ochre);   // 低い家H1の南面
+  // Hanging banner on H2's west face, beside the beam over the north alley.
+  box(decor, 0.04, 2.2, 1.6, cloth.red, -31.55, 2.6, -10.8);
+  box(decor, 0.1, 0.1, 1.9, cloth.wood, -31.6, 3.75, -10.8);
+  // Banner on the new tower H4, facing the jump from H3b.
+  box(decor, 0.04, 2.4, 1.4, cloth.ochre, -20.05, 4.6, 5.5);
+  // East district: banners on E2 and E1 facing the alley, awning over the slope.
+  box(decor, 0.04, 2.6, 1.6, cloth.red, 40.95, 3.2, 9.5);
+  box(decor, 0.04, 1.8, 1.4, cloth.ochre, 40.95, 1.7, -2.4);
+  awning(35.4, 38.4, 7, 5.9, 2.4, 2.0, cloth.red);         // 東の家E3の北面
+  decor.traverse((o) => { if (o.isMesh) o.receiveShadow = true; });
+  ue.add(decor);
+}
