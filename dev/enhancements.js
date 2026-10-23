@@ -1072,3 +1072,42 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   requestAnimationFrame(oldTownTick);
   window.__skyOldTown = { stats, awnings, houses };
 }
+
+// ---- iPhone (Safari) zoom guard ----------------------------------------
+// iOS Safari ignores user-scalable=no. A two-finger move (stick thumb + camera thumb drifting
+// together/apart) or a quick double tap zooms the whole page, and the zoom stays.
+// Block the pinch / double-tap gestures, and undo any zoom that still gets through.
+{
+  const meta = document.querySelector('meta[name="viewport"]');
+  const baseContent = meta ? meta.getAttribute('content') : '';
+  const style = document.createElement('style');
+  style.textContent = '*{touch-action:pan-y}html,body,#app,canvas#c,#hud,#touch,.tb{touch-action:none}input,textarea,select{font-size:16px}';
+  document.head.appendChild(style);
+  const opts = { passive: false, capture: true };
+  for (const t of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(t, (e) => e.preventDefault(), opts);
+  document.addEventListener('touchmove', (e) => { if (e.touches.length > 1 || (e.scale && e.scale !== 1)) e.preventDefault(); }, opts);
+  document.addEventListener('dblclick', (e) => e.preventDefault(), opts);
+  let lastEnd = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = performance.now();
+    // a second tap on the bare canvas within 350 ms is a double-tap zoom; buttons keep their clicks
+    if (now - lastEnd < 350 && e.target && e.target.id === 'c') e.preventDefault();
+    lastEnd = now;
+  }, opts);
+  const vv = window.visualViewport;
+  let resetting = false;
+  const unzoom = () => {
+    if (!vv || !meta || resetting || vv.scale <= 1.03) return;
+    resetting = true;
+    meta.setAttribute('content', baseContent.replace('initial-scale=1', 'initial-scale=1.0001'));
+    setTimeout(() => {
+      meta.setAttribute('content', baseContent);
+      window.scrollTo(0, 0);
+      resetting = false;
+    }, 60);
+  };
+  if (vv) vv.addEventListener('resize', unzoom);
+  window.addEventListener('orientationchange', () => setTimeout(unzoom, 300));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(unzoom, 200); });
+  window.__zoomGuard = { unzoom, scale: () => (vv ? vv.scale : 1) };
+}
