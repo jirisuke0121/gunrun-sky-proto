@@ -1123,75 +1123,103 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   const rnd = (a, b) => a + Math.random() * (b - a);
 
   // ---- Sound ------------------------------------------------------------
-  let wet = null;
-  const getWet = () => {
-    const ctx = Ut.ctx;
-    if (!ctx || !Ut.master) return null;
-    if (wet && wet.ctx === ctx) return wet.node;
-    const len = Math.floor(ctx.sampleRate * 0.32);
-    const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+  // The game's shared noise buffer (Ut.noise) is low-passed (about 115 Hz
+  // corner), so it cannot make a crack. Gunshots use their own white noise.
+  const whiteCache = new WeakMap();
+  const getWhite = (ctx) => {
+    let b = whiteCache.get(ctx);
+    if (!b) {
+      b = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 1.2), ctx.sampleRate);
+      const d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      whiteCache.set(ctx, b);
+    }
+    return b;
+  };
+  const busCache = new WeakMap();
+  const getBus = (ctx, out) => {
+    let bus = busCache.get(ctx);
+    if (bus) return bus;
+    const input = ctx.createGain();
+    input.gain.value = 0.6;
+    const shaper = ctx.createWaveShaper();
+    const curve = new Float32Array(1024);
+    for (let i = 0; i < curve.length; i++) { const x = (i / 511.5) - 1; curve[i] = Math.tanh(2.4 * x) / Math.tanh(2.4); }
+    shaper.curve = curve;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -22; comp.knee.value = 8; comp.ratio.value = 6;
+    comp.attack.value = 0.002; comp.release.value = 0.09;
+    const makeup = ctx.createGain(); makeup.gain.value = 1.45;
+    input.connect(shaper); shaper.connect(comp); comp.connect(makeup); makeup.connect(out);
+    // Room tail: a darkened, decaying noise impulse.
+    const len = Math.floor(ctx.sampleRate * 0.7);
+    const ir = ctx.createBuffer(2, len, ctx.sampleRate);
     for (let ch = 0; ch < 2; ch++) {
-      const d = buf.getChannelData(ch);
-      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      const d = ir.getChannelData(ch);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
     }
-    const conv = ctx.createConvolver();
-    conv.buffer = buf;
-    conv.connect(Ut.master);
-    wet = { ctx, node: conv };
-    return conv;
+    const conv = ctx.createConvolver(); conv.buffer = ir;
+    const dark = ctx.createBiquadFilter(); dark.type = 'lowpass'; dark.frequency.value = 3800;
+    conv.connect(dark); dark.connect(out);
+    // Slapback echo off a distant wall.
+    const slap = ctx.createDelay(0.5); slap.delayTime.value = 0.09;
+    const slapLp = ctx.createBiquadFilter(); slapLp.type = 'lowpass'; slapLp.frequency.value = 2600;
+    slap.connect(slapLp); slapLp.connect(out);
+    bus = { input, comp: makeup, conv, slap };
+    busCache.set(ctx, bus);
+    return bus;
   };
-  // Each report = a sharp crack + a body burst + two low thumps, all shifted by
-  // the same random pitch factor so no two shots are identical.
+  // [gain, startHz, endHz, seconds, Q, filterType] for noise layers,
+  // [gain, startHz, endHz, seconds] for the low thump.
   const REPORT = {
-    HG: { wet: 0.32,
-      noise: [[0.45, 5200, 0.8, 0.035, 'bandpass'], [0.7, 3200, 0.6, 0.16, 'bandpass']],
-      tone: [[0.55, 210, 0.13], [0.45, 85, 0.2]] },
-    SG: { wet: 0.4,
-      noise: [[0.5, 3000, 0.8, 0.05, 'bandpass'], [0.95, 900, 0.5, 0.38, 'lowpass']],
-      tone: [[0.8, 95, 0.3], [0.55, 55, 0.4]] },
-    SMG: { wet: 0.16,
-      noise: [[0.4, 5600, 0.9, 0.03, 'bandpass'], [0.42, 4200, 0.9, 0.06, 'bandpass']],
-      tone: [[0.28, 280, 0.05], [0.25, 120, 0.08]] },
-    MG: { wet: 0.2,
-      noise: [[0.4, 4200, 0.8, 0.035, 'bandpass'], [0.7, 2300, 0.6, 0.15, 'bandpass']],
-      tone: [[0.65, 130, 0.17], [0.4, 70, 0.22]] },
+    HG: { rev: 0.28, slap: 0.2, click: 0.9,
+      noise: [[0.8, 3800, 1400, 0.09, 1.2, 'bandpass'], [0.6, 4500, 600, 0.16, 0.8, 'lowpass']],
+      thump: [[0.6, 170, 60, 0.12]] },
+    SG: { rev: 0.45, slap: 0.3, click: 0.8,
+      noise: [[0.8, 2400, 700, 0.14, 0.9, 'bandpass'], [1.0, 3000, 250, 0.38, 0.7, 'lowpass']],
+      thump: [[1.0, 110, 35, 0.35]] },
+    SMG: { rev: 0.08, slap: 0, click: 1.0,
+      noise: [[0.7, 5200, 2200, 0.05, 1.4, 'bandpass'], [0.45, 5500, 900, 0.08, 0.8, 'lowpass']],
+      thump: [[0.35, 240, 110, 0.06]] },
+    MG: { rev: 0.14, slap: 0.1, click: 0.9,
+      noise: [[0.8, 3200, 1100, 0.1, 1.0, 'bandpass'], [0.8, 4000, 400, 0.22, 0.8, 'lowpass']],
+      thump: [[0.85, 140, 45, 0.2]] },
   };
-  const report = (spec) => {
-    const ctx = Ut.ctx;
-    if (!ctx || !Ut.noise || !Ut.master) return;
-    const t = ctx.currentTime, j = rnd(0.94, 1.06);
-    const dry = ctx.createGain();
-    dry.connect(Ut.master);
-    const conv = getWet();
-    if (conv) {
-      const send = ctx.createGain();
-      send.gain.value = spec.wet;
-      dry.connect(send); send.connect(conv);
-    }
-    for (const [g, f, q, d, type] of spec.noise) {
+  // Plays one report on `ctx` into `out`. Pitch and level change every shot.
+  const gunVoice = (ctx, out, name, when = ctx.currentTime) => {
+    const spec = REPORT[name] || REPORT.HG;
+    const bus = getBus(ctx, out), white = getWhite(ctx);
+    const t = when, j = rnd(0.92, 1.08), gv = rnd(0.9, 1.1);
+    const noise = (g, f0, f1, d, q, type) => {
       const src = ctx.createBufferSource(), flt = ctx.createBiquadFilter(), amp = ctx.createGain();
-      src.buffer = Ut.noise; src.playbackRate.value = 1.5;
-      flt.type = type; flt.frequency.value = f * j; flt.Q.value = q;
-      amp.gain.setValueAtTime(g, t);
+      src.buffer = white;
+      flt.type = type; flt.Q.value = q;
+      flt.frequency.setValueAtTime(f0 * j, t);
+      flt.frequency.exponentialRampToValueAtTime(Math.max(40, f1 * j), t + d);
+      amp.gain.setValueAtTime(g * gv, t);
       amp.gain.exponentialRampToValueAtTime(1e-4, t + d);
-      src.connect(flt); flt.connect(amp); amp.connect(dry);
-      src.start(t, Math.random() * 1.5); src.stop(t + d + 0.02);
-    }
-    for (const [g, f, d] of spec.tone) {
+      src.connect(flt); flt.connect(amp); amp.connect(bus.input);
+      src.start(t, Math.random() * 0.8); src.stop(t + d + 0.02);
+    };
+    noise(spec.click, 2500, 2500, 0.006, 0.7, 'highpass');
+    for (const n of spec.noise) noise(...n);
+    for (const [g, f0, f1, d] of spec.thump) {
       const osc = ctx.createOscillator(), amp = ctx.createGain();
-      osc.frequency.setValueAtTime(f * j, t);
-      osc.frequency.exponentialRampToValueAtTime(f * j * 0.4, t + d);
-      amp.gain.setValueAtTime(g, t);
+      osc.frequency.setValueAtTime(f0 * j, t);
+      osc.frequency.exponentialRampToValueAtTime(f1 * j, t + d);
+      amp.gain.setValueAtTime(g * gv, t);
       amp.gain.exponentialRampToValueAtTime(1e-4, t + d);
-      osc.connect(amp); amp.connect(dry);
+      osc.connect(amp); amp.connect(bus.input);
       osc.start(t); osc.stop(t + d + 0.02);
     }
+    if (spec.rev > 0) { const s = ctx.createGain(); s.gain.value = spec.rev; bus.comp.connect(s); s.connect(bus.conv); }
+    if (spec.slap > 0) { const s = ctx.createGain(); s.gain.value = spec.slap; bus.comp.connect(s); s.connect(bus.slap); }
   };
   Tt.hg = () => {
     const name = wpc().n;
     const st = window.__skyAudio;
     if (st) st.shots[name] = (st.shots[name] || 0) + 1;
-    report(REPORT[name] || REPORT.HG);
+    if (Ut.ctx && Ut.master) gunVoice(Ut.ctx, Ut.master, name);
   };
   // Body hit: a dull thud. Head hit adds a bright "ping" on top of it.
   let lastHitSound = 0;
