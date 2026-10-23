@@ -4,7 +4,7 @@
 // hidden, sense again after 4 s). Returns survival seconds per run.
 window.__sim = (opts = {}) => {
   const G = window.__game, N = G.NAV, I = window.__skyInternals, U = I.U, nodes = N.nodes, n = nodes.length;
-  const zs = U.zombieSpeed * 1.05, Jc = 9.2;
+  const zs = U.zombieSpeed * 1.05, Jc = U.sprintSpeed;
   const zc = e => e.kind === 6 ? Infinity : e.kind === 7 ? 1.4 + e.len / zs : e.kind === 5 ? (e.climb || 4) / (U.zombieLadder || 2) + .8 : e.kind === 1 ? .9 + e.climb * .45 + e.len / zs : e.kind === 3 ? e.len / (zs * .35) : e.len / zs;
   const pc = e => e.kind === 6 ? e.len / Jc + .15 : e.kind === 5 ? (e.climb || 4) / U.ladderSpeed + .3 : e.kind === 1 ? (e.climb <= U.mantleReach ? .35 : .6) + e.len / Jc : e.kind === 3 ? e.len / 7 : e.len / Jc;
   const J = I.jn.filter(b => !b.off && b.solid !== false);

@@ -8,7 +8,7 @@ p.on('pageerror',e=>console.log('ERR',e.message));
 await p.goto('http://localhost:8765/'+page);await p.waitForTimeout(6000);
 out[page]=await p.evaluate(()=>{
  const G=window.__game, N=G.NAV, U=window.__skyInternals.U, nodes=N.nodes, n=nodes.length;
- const zs=U.zombieSpeed*1.05, Jc=9.2;
+ const zs=U.zombieSpeed*1.05, Jc=U.sprintSpeed;
  const zc=e=>e.kind===6?Infinity:e.kind===7?1.4+e.len/zs:e.kind===5?(e.climb||4)/(U.zombieLadder||2)+.8:e.kind===1?.9+e.climb*.45+e.len/zs:e.kind===3?e.len/(zs*.35):e.len/zs;
  const pc=e=>e.kind===6?e.len/Jc+.15:e.kind===5?(e.climb||4)/U.ladderSpeed+.3:e.kind===1?(e.climb<=U.mantleReach?.35:.6)+e.len/Jc:e.kind===3?e.len/7:e.len/Jc;
  const zAdj=Array.from({length:n},()=>[]), pAdj=Array.from({length:n},()=>[]), pRev=Array.from({length:n},()=>[]);
