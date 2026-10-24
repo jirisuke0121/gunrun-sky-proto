@@ -1297,14 +1297,14 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   // room tail. Until the files finish decoding (or if they fail to load) the
   // fully synthesized report is used.
   const SAMPLES = {
-    HG: ['hg1', 'hg2', 'hg3', 'hg4', 'hg5'], SG: ['sg1', 'sg2', 'sg3', 'sg4'],
-    SMG: ['smg1', 'smg2', 'smg3', 'smg4', 'smg5', 'smg6'], MG: ['mg1', 'mg2', 'mg3', 'mg4', 'mg5', 'mg6'],
+    HG: ['hg1', 'hg2', 'hg3', 'hg4'], SG: ['sg1', 'sg2', 'sg3', 'sg4'],
+    SMG: ['smg1', 'smg2', 'smg3', 'smg4', 'smg5', 'smg6', 'smg7', 'smg8', 'smg9'], MG: ['mg1', 'mg2', 'mg3', 'mg4', 'mg5', 'mg6'],
   };
   // ?snd=full brings back the previous processing (synthetic sine thump, heavier saturation) for A/B listening.
   const SND_FULL = typeof location !== 'undefined' && /[?&]snd=full\b/.test(location.search || '');
   // Low end of the natural mode: the recording itself, an octave down and low-passed.
-  const SUB_GAIN = { HG: 1.0, SG: 0.8, SMG: 0.7, MG: 0.4 };
-  const SAMPLE_GAIN = { HG: 0.95, SG: 1.25, SMG: 0.55, MG: 1.0 };
+  const SUB_GAIN = { HG: 0.4, SG: 0.8, SMG: 0.7, MG: 0.4 };
+  const SAMPLE_GAIN = { HG: 0.72, SG: 1.25, SMG: 0.55, MG: 1.0 };
   const BODY_GAIN = { HG: 0.32, SG: 0.09, SMG: 0.3, MG: 0.25 };
   const ROOM = { HG: 0.3, SG: 0.42, SMG: 0.18, MG: 0.24 };
   const sampleBuf = {}, lastPick = {};
