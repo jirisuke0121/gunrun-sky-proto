@@ -1,6 +1,6 @@
 # 空中回廊の仮説検証用計測（devのみ）
 
-この作業版は `dev/index.html` のビルド `2026-10-24b-telemetry-dev` にだけ計測を追加する。ルートの公開ゲーム、Worker、D1スキーマは変更しない。公開やD1へのテスト送信は別途行う。
+ビルド `2026-10-24b-telemetry-dev` は [公開 dev 版](https://jirisuke0121.github.io/gunrun-sky-proto/dev/) に計測を追加する。ルートの公開ゲーム、Worker、D1スキーマは変更していない。
 
 ## 回収と再集計
 
@@ -43,4 +43,4 @@ python3 ../tools/telemetry/analyze_runs.py runs-export.json > runs-summary.json
 5. 同じ端末で序盤と終盤の `frames` を比較し、背景化・端末温度・読み込みの影響を分けること。
 6. 1プレイの送信JSONがWorker上限600KB以下で、イベント上限到達時は `truncated` が増えること。
 
-ローカルブラウザでは、送信先を空にしたQAコピーで開始・通常ジャンプ・フック開始・機会・エリア訪問・描画集計を確認した。物理iPhone、落下再現、D1送信、公開版への反映は未確認。
+ローカルブラウザでは、送信先を空にしたQAコピーで開始・通常ジャンプ・フック開始・機会・エリア訪問・描画集計を確認した。公開 dev 版では短いテストプレイを1件送信し、D1で `v:3`、`channel:"dev"`、`diagnostics.schema:3`、ジャンプ1件、フック1件、フレーム集計2件を確認した。物理iPhone、落下再現、記録オフ時の非送信は未確認。
