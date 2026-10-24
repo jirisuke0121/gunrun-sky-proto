@@ -1464,20 +1464,39 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   };
   const groups = [];
   const faces = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  // Highest solid (non-wall) surface at or below `ymax` at this point; null = nothing there (a gap).
+  const floorAt = (x, zz, ymax) => {
+    let best = null;
+    for (const o of jn) {
+      if (o.type === 'mono' || o.solid === false || o.off) continue;
+      if (x > o.minX && x < o.maxX && zz > o.minZ && zz < o.maxZ && o.maxY <= ymax + 0.01) best = best === null ? o.maxY : Math.max(best, o.maxY);
+    }
+    return best;
+  };
+  // A face is a real route only when you run it over a gap: it is open, at least 4 m long,
+  // and at least 60% of the ground beside it is missing. Faces above plain floor are useless.
+  const droppedFaces = [];
   for (const b of runBoxes) {
     const idx = jn.indexOf(b);
     const base = Math.max(b.minY, 0), top = b.maxY;
+    b.wf = {};
     for (const [nx, nz] of faces) {
       const alongX = nz !== 0;
       const L = alongX ? b.maxX - b.minX : b.maxZ - b.minZ;
-      if (L < 2) continue;
+      if (L < 4) continue;
       const fx = nx > 0 ? b.maxX : nx < 0 ? b.minX : 0, fz = nz > 0 ? b.maxZ : nz < 0 ? b.minZ : 0;
-      let open = 0, total = 0;
+      let open = 0, total = 0, gap = 0;
       for (let s = 0.5; s < L; s += 1) {
         const px = alongX ? b.minX + s : fx + nx * 0.4, pz = alongX ? fz + nz * 0.4 : b.minZ + s;
-        total++; if (!blocked(px, base + 1.6, pz)) open++;
+        total++;
+        if (blocked(px, base + 1.6, pz)) continue;
+        open++;
+        const gx = alongX ? px : fx + nx * 1.0, gz = alongX ? fz + nz * 1.0 : pz;
+        const f = floorAt(gx, gz, 4.0);
+        if (f === null || f < -0.3) gap++;
       }
-      if (!total || open / total < 0.6) continue;
+      if (!total || open / total < 0.6 || gap / Math.max(1, open) < 0.6) { droppedFaces.push([idx, nx, nz]); continue; }
+      b.wf[nx + ',' + nz] = true;
       const len = L - 0.8, tex = bandTex(len);
       const mats = [];
       for (let yc = base + 1.7; yc < top - 0.5; yc += 2.5) {
@@ -1490,6 +1509,8 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       groups.push({ idx, mats });
     }
   }
+  window.__skyWallRun.faces = groups.length;
+  window.__skyWallRun.dropped = droppedFaces;
   // Idle shimmer; full brightness while running on that wall.
   let t0 = performance.now();
   (function wallGlowTick() {
