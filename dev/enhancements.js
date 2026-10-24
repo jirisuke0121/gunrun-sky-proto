@@ -1302,7 +1302,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   };
   // ?snd=full brings back the previous processing (synthetic sine thump, heavier saturation) for A/B listening.
   // Default is "raw": the stereo recording as it is (a cosine fade at the end, a safety limiter, nothing else),
-  // which keeps the texture of the original files. ?snd=body = the earlier mono + body chain, ?snd=full = heavier.
+  // with its natural room tail (up to 0.8 s) kept wherever no strong echo/next shot follows; this keeps the texture of the original files. ?snd=body = the earlier mono + body chain, ?snd=full = heavier.
   const SND_MODE = (typeof location !== 'undefined' && (location.search || '').match(/[?&]snd=(\w+)/) || [])[1] || 'raw';
   const SND_FULL = SND_MODE === 'full';
   const RAW_GAIN = { HG: 0.9, SG: 1.0, SMG: 0.85, MG: 0.95 };
