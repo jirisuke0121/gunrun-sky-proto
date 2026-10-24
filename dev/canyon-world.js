@@ -111,7 +111,15 @@ window.buildSkyCanyon = function ({ ne, Mh, ld, us, jn, Ja }) {
                      barrel.x + 0.36, 1.12, barrel.z + 0.36, 'prop');
     block.shape = 'barrel';
     block.blastBarrel = barrel.id;
-    return { ...barrel, block };
+    // A wide cap and a low step make standing above the barrel deliberate and
+    // repeatable. The cap is part of the target and disappears on detonation.
+    const cap = ne(barrel.x - 0.7, 1.02, barrel.z - 0.7,
+                   barrel.x + 0.7, 1.12, barrel.z + 0.7, 'prop');
+    cap.blastBarrel = barrel.id;
+    const step = ne(barrel.x - 0.65, 0, barrel.z - 1.48,
+                    barrel.x + 0.65, 0.55, barrel.z - 0.72, 'prop');
+    step.canyonTier = 'G';
+    return { ...barrel, block, cap, step };
   });
   window.SKY_CANYON_MAP.world = { solids: jn.length, visual: Ja.length };
 };

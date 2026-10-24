@@ -22,3 +22,11 @@ middle deck without self-damage, the reaction settles, and the barrels reset.
 An isolated wall case confirms that an enemy behind a solid is not hit.
 Screenshots at impact, dust and tail phases were also inspected. This does not
 establish subjective sound quality or a live Unity-to-web visual match.
+
+The follow-up interaction adds a 0.55 m step and 1.4 m cap above each canyon
+barrel, with a visible aim ring and contextual hint. Standing on the cap and
+shooting down triggers a stronger nearby camera and screen impact. Both local
+pages and both barrels passed the full step, jump, top shot, launch, middle
+deck landing, and reset flow in automated Chromium. A browser click also
+reached the game's trigger and detonated a barrel. This is still not a human
+playtest or a live Unity comparison.
