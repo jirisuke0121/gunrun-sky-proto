@@ -1322,7 +1322,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     sampleCtx = ctx;
     for (const [name, ids] of Object.entries(SAMPLES)) {
       for (const id of ids) {
-        fetch(`./assets/sfx/${id}.wav`)
+        fetch(`./assets/sfx/${id}.wav?v=20261024-9`)
           .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
           .then((ab) => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
           .then((buf) => { buf.__id = id; (sampleBuf[name] = sampleBuf[name] || []).push(buf); })
