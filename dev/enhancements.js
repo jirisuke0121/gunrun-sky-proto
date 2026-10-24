@@ -1296,12 +1296,25 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   // recording through the body chain + a pitched low thump + a clean synthetic
   // room tail. Until the files finish decoding (or if they fail to load) the
   // fully synthesized report is used.
+  // Faithful takes: the recordings as they are (1.2 s with the natural room tail), plus short one-shot "heads"
+  // (smgh*, mgh*, about 93 ms) that are used for the next shots of a burst so tails do not pile up.
   const SAMPLES = {
-    HG: ['hg1', 'hg2', 'hg3', 'hg4'], SG: ['sg1', 'sg2', 'sg3', 'sg4'],
-    SMG: ['smg1', 'smg2', 'smg3', 'smg4', 'smg5', 'smg6', 'smg7', 'smg8', 'smg9'], MG: ['mg1', 'mg2', 'mg3', 'mg4', 'mg5', 'mg6'],
+    HG: ['hg1', 'hg2'], SG: ['sg1', 'sg2', 'sg3', 'sg4'],
+    SMG: ['smgh1', 'smgh2', 'smgh3', 'smgh4', 'smgh5', 'smgh6', 'smgh7', 'smgh8', 'smgh9', 'smgl1', 'smgl2'],
+    MG: ['mg1', 'mg2', 'mg3', 'mg4', 'mgh1', 'mgh2', 'mgh3', 'mgh4', 'mgh5', 'mgh6'],
   };
   // ?snd=full brings back the previous processing (synthetic sine thump, heavier saturation) for A/B listening.
-  const SND_FULL = typeof location !== 'undefined' && /[?&]snd=full\b/.test(location.search || '');
+  // Default: the stereo recording as it is (1.5 ms fade-in, cosine fade-out, a safety limiter, nothing else), with its
+  // natural room tail; this keeps the texture of the original files (the user preferred it to every processed version). ?snd=body = adds a low shelf and an octave-down layer, ?snd=full = the old heavy chain.
+  const SND_MODE = (typeof location !== 'undefined' && (location.search || '').match(/[?&]snd=(\w+)/) || [])[1] || 'raw';
+  const SND_FULL = SND_MODE === 'full';
+  const SND_DEBUG = typeof location !== 'undefined' && /[?&]snd_debug=1\b/.test(location.search || '');
+  const RAW_GAIN = { HG: 0.6, SG: 0.8, SMG: 0.8, MG: 0.85 };
+  // Weight for the raw mode (the library's recordings are high-passed, so they feel shallow): a gentle low shelf
+  // plus the same recording an octave down and low-passed, fading out. Linear, no compression or saturation.
+  // Only used with ?snd=body.
+  const RAW_BODY = { HG: { sub: 0.6, shelf: 2 }, SG: { sub: 0.6, shelf: 2 }, SMG: { sub: 1.5, shelf: 3 }, MG: { sub: 0.7, shelf: 2 } };
+  const rawLimiter = new WeakMap();
   // Low end of the natural mode: the recording itself, an octave down and low-passed.
   const SUB_GAIN = { HG: 0.4, SG: 0.8, SMG: 0.7, MG: 0.4 };
   const SAMPLE_GAIN = { HG: 0.72, SG: 1.25, SMG: 0.55, MG: 1.0 };
@@ -1310,16 +1323,26 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   const sampleBuf = {}, lastPick = {};
   window.__gunSamples = sampleBuf;
   let sampleCtx = null;
+  // The files are fetched as soon as this module loads (no audio context needed), so decoding is all that is
+  // left once the context exists; otherwise the first shots after starting could fall back to the synthetic sound.
+  const SFX_VER = '20261024-12';
+  const sfxBytes = {};
+  for (const ids of Object.values(SAMPLES)) {
+    for (const id of ids) {
+      sfxBytes[id] = fetch(`./assets/sfx/${id}.wav?v=${SFX_VER}`)
+        .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+        .catch(() => null);
+    }
+  }
   const loadSamples = () => {
     const ctx = Ut.ctx;
     if (!ctx || sampleCtx === ctx) return;
     sampleCtx = ctx;
     for (const [name, ids] of Object.entries(SAMPLES)) {
       for (const id of ids) {
-        fetch(`./assets/sfx/${id}.wav`)
-          .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
-          .then((ab) => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
-          .then((buf) => { (sampleBuf[name] = sampleBuf[name] || []).push(buf); })
+        sfxBytes[id]
+          .then((ab) => (ab ? new Promise((ok, no) => ctx.decodeAudioData(ab.slice(0), ok, no)) : null))
+          .then((buf) => { if (buf) { buf.__id = id; buf.__head = /^(smg|mg)h\d/.test(id); (sampleBuf[name] = sampleBuf[name] || []).push(buf); } })
           .catch(() => { /* keep the synthesized sound */ });
       }
     }
@@ -1333,10 +1356,46 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     r.push(i); if (r.length > Math.min(2, n - 1)) r.shift();
     return i;
   };
+  const lastShotAt = {};
   const playSample = (ctx, name, when = ctx.currentTime) => {
-    const list = sampleBuf[name];
-    if (!list || !list.length) return false;
-    const buf = list[pickTake(name, list.length)];
+    const all = sampleBuf[name];
+    if (!all || !all.length) return false;
+    // Burst shots (less than 0.2 s after the previous one) use the short heads when the weapon has them.
+    const heads = all.filter((b) => b.__head), longs = all.filter((b) => !b.__head);
+    const gap = when - (lastShotAt[name] === undefined ? -9 : lastShotAt[name]);
+    lastShotAt[name] = when;
+    const list = heads.length && longs.length ? (gap < 0.2 ? heads : longs) : all;
+    const buf = list[pickTake(name + (list === heads ? '/h' : ''), list.length)];
+    if (SND_DEBUG) {
+      let el = document.getElementById('sndDebug');
+      if (!el) { el = document.createElement('div'); el.id = 'sndDebug'; el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;font:700 14px monospace;color:#fff;background:#000a;padding:4px 8px;pointer-events:none'; document.body.appendChild(el); }
+      el.textContent = `${name} ${buf.__id}`;
+    }
+    if (SND_MODE === 'raw' || SND_MODE === 'pure' || SND_MODE === 'body') {
+      let lim = rawLimiter.get(ctx);
+      if (!lim) {
+        lim = ctx.createDynamicsCompressor();
+        lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.08;
+        lim.connect(Ut.master); rawLimiter.set(ctx, lim);
+      }
+      const src = ctx.createBufferSource(), g = ctx.createGain();
+      const r = name === 'HG' ? rnd(0.95, 1.05) : rnd(0.985, 1.015), gn = RAW_GAIN[name] * rnd(0.92, 1.05);
+      src.buffer = buf; src.playbackRate.value = r; g.gain.value = gn;
+      const body = SND_MODE === 'body' ? RAW_BODY[name] : null;
+      if (body) {
+        const sh = ctx.createBiquadFilter(); sh.type = 'lowshelf'; sh.frequency.value = 180; sh.gain.value = body.shelf;
+        src.connect(g); g.connect(sh); sh.connect(lim);
+        const s2 = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), g2 = ctx.createGain();
+        s2.buffer = buf; s2.playbackRate.value = r * 0.5;
+        lp.type = 'lowpass'; lp.frequency.value = 450; lp.Q.value = 0.6;
+        g2.gain.setValueAtTime(gn * body.sub, when);
+        g2.gain.exponentialRampToValueAtTime(1e-3, when + Math.min(buf.duration * 2, 0.5));
+        s2.connect(lp); lp.connect(g2); g2.connect(lim);
+        s2.start(when); s2.stop(when + Math.min(buf.duration * 2, 0.5) + 0.05);
+      } else { src.connect(g); g.connect(lim); }
+      src.start(when);
+      return true;
+    }
     const rate = rnd(0.97, 1.03), gain = SAMPLE_GAIN[name] * 0.9 * rnd(0.88, 1.08);
     playProcessed(ctx, Ut.master, buf, gain, rate, when, ROOM[name]);
     if (SND_FULL) bodyLayer(ctx, name, when, BODY_GAIN[name]);
@@ -1369,18 +1428,10 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     ni(0.34, rnd(135, 165), 0.09);
     Mn(0.3, 700, 0.8, 0.06);
   };
+  // Headshot cue: a short low "thock" on top of the body thud (the old high bell "kin" is gone).
   const ping = () => {
-    const ctx = Ut.ctx;
-    if (!ctx || !Ut.master) return;
-    const t = ctx.currentTime;
-    for (const [f, g, d] of [[2300, 0.34, 0.16], [3450, 0.12, 0.1]]) {
-      const osc = ctx.createOscillator(), amp = ctx.createGain();
-      osc.frequency.value = f * rnd(0.98, 1.02);
-      amp.gain.setValueAtTime(g, t);
-      amp.gain.exponentialRampToValueAtTime(1e-4, t + d);
-      osc.connect(amp); amp.connect(Ut.master);
-      osc.start(t); osc.stop(t + d + 0.02);
-    }
+    if (!Ut.ctx || !Ut.master) return;
+    ni(0.42, rnd(88, 100), 0.12);
   };
 
   // ---- Pools ------------------------------------------------------------
