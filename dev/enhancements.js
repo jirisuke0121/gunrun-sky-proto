@@ -1847,3 +1847,108 @@ if (/[?&]perf=1/.test(location.search)) {
     }
   } catch (e) { console.warn('static merge skipped', e); }
 }
+
+// ---- 2026-10-25: HG限定・ゾンビの見失い無効・ランキング ----
+{
+  const params = new URLSearchParams(location.search);
+
+  // 1) 武器はHGのみ。SG・SMG・MGのコードは残してあり、URLに ?allweapons=1 を付けると選べる。
+  if (!params.has('allweapons')) {
+    Object.defineProperty(U, 'weapon', { get: () => 0, set: () => {}, enumerable: true, configurable: true });
+    const selector = document.getElementById('wpSel');
+    if (selector) selector.style.display = 'none';
+    const slider = document.getElementById('s_weapon');
+    if (slider && slider.parentElement) slider.parentElement.style.display = 'none';
+    const weaponLine = [...document.querySelectorAll('#ovStart .rules .keys li')]
+      .find((item) => item.textContent.includes('から武器を選べる'));
+    if (weaponLine) weaponLine.innerHTML = '<kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填（武器はHG）';
+    window.__wpSync?.();
+  }
+
+  // 2) ゾンビの見失い・足音/銃声で気づく処理は重いので常にオフ。撒き点は経路コストで数える（index.html の shk2）。
+  Object.defineProperty(U, 'loseSight', { get: () => 0, set: () => {}, enumerable: true, configurable: true });
+  for (const key of ['loseSight', 'hearR', 'senseT', 'gunHearR']) {
+    const input = document.getElementById('s_' + key);
+    if (input && input.parentElement) input.parentElement.style.display = 'none';
+  }
+
+  // 3) ランキング（クリア有無→得点の順）。受け口は server/worker.js の GET /ranking。
+  const RANK_URL = 'https://gunrun-runs.jirisuke0121.workers.dev/ranking';
+  const style = document.createElement('style');
+  style.textContent = `
+.rankbox{margin:10px 0;padding:8px 12px;border-radius:8px;background:rgba(0,0,0,.38);font-size:13px;line-height:1.5;text-align:left}
+.rankbox:empty{display:none}
+.rankbox h3{margin:0 0 4px;font-size:13px;letter-spacing:.04em}
+.rankbox small{display:block;opacity:.7;margin-bottom:4px}
+.rankbox ol{margin:0;padding:0;list-style:none}
+.rankbox li{display:grid;grid-template-columns:2.6em 3.2em 1fr auto;gap:6px;padding:1px 0}
+.rankbox li.me{color:#ffd24a;font-weight:700}
+.rankbox .clear{color:#7be08b;font-weight:700}
+.rankbox .mine{margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,.2)}`;
+  document.head.appendChild(style);
+
+  const playerId = () => { try { return localStorage.getItem('gunrun-pid') || ''; } catch { return ''; } };
+  const esc = (v) => String(v).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  const status = (row) => (row.cleared ? '<span class="clear">クリア</span>' : `${row.t}秒`);
+
+  async function fetchRanking() {
+    const me = playerId();
+    const res = await fetch(RANK_URL + (me ? '?me=' + encodeURIComponent(me) : ''), { cache: 'no-store' });
+    if (!res.ok) throw new Error('ranking ' + res.status);
+    return res.json();
+  }
+
+  function renderRanking(box, data, limit) {
+    if (!data || !data.top || !data.top.length) { box.innerHTML = ''; return; }
+    const rows = data.top.slice(0, limit).map((row) =>
+      `<li class="${row.me ? 'me' : ''}"><span>${row.pos}位</span><span>${esc(row.tag)}</span><span>${status(row)}</span><span>${row.score}点</span></li>`).join('');
+    const inList = data.top.slice(0, limit).some((row) => row.me);
+    const mine = data.me && !inList
+      ? `<div class="mine">あなたの最高：${data.me.pos}位（${data.total}人中）　${status(data.me)}　${data.me.score}点</div>` : '';
+    box.innerHTML = `<h3>ランキング</h3><small>クリア（2分逃げ切り）が上、同じ場合は得点順。記録の送信がオンのプレイが対象です。</small><ol>${rows}</ol>${mine}`;
+  }
+
+  async function refresh(box, limit) {
+    try { renderRanking(box, await fetchRanking(), limit); } catch { box.innerHTML = ''; }
+  }
+
+  const startPanel = document.getElementById('ovStart');
+  const overPanel = document.getElementById('ovOver');
+  const titleBox = document.createElement('div');
+  titleBox.className = 'rankbox';
+  const mapSelect = startPanel && startPanel.querySelector('.map-select');
+  if (mapSelect) mapSelect.parentElement.insertBefore(titleBox, mapSelect);
+  const overBox = document.createElement('div');
+  overBox.className = 'rankbox';
+  const overStats = document.getElementById('oStats');
+  if (overStats) overStats.parentElement.insertBefore(overBox, overStats);
+
+  if (startPanel) {
+    new MutationObserver(() => { if (!startPanel.hidden) refresh(titleBox, 10); })
+      .observe(startPanel, { attributes: true, attributeFilter: ['hidden'] });
+    if (!startPanel.hidden) refresh(titleBox, 10);
+  }
+
+  let overToken = 0;
+  if (overPanel) {
+    new MutationObserver(async () => {
+      if (overPanel.hidden || z.mission || !z.final) return;
+      const token = ++overToken;
+      const total = z.final.total;
+      const cleared = z.reason === 'time';
+      overBox.innerHTML = '';
+      // 記録の送信が終わるまで待ち、自分の最高がこの回以上になったら表示する（最大3回）
+      for (const wait of [1200, 2000, 3500]) {
+        await new Promise((resolve) => setTimeout(resolve, wait));
+        if (token !== overToken || overPanel.hidden) return;
+        try {
+          const data = await fetchRanking();
+          const me = data.me;
+          const reflected = me && ((me.cleared ? 1 : 0) > (cleared ? 1 : 0) || ((me.cleared ? 1 : 0) === (cleared ? 1 : 0) && me.score >= total));
+          renderRanking(overBox, data, 5);
+          if (reflected) return;
+        } catch { overBox.innerHTML = ''; return; }
+      }
+    }).observe(overPanel, { attributes: true, attributeFilter: ['hidden'] });
+  }
+}
