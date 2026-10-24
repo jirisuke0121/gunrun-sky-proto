@@ -1572,6 +1572,32 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     p.m.visible = true; p.t = 0; p.life = 0.1;
   };
 
+  // Effects that stay hidden until the first shot (muzzle flash, tracers, brass,
+  // smoke, blood) make the browser build new shaders on the first shot, which
+  // stalls that frame. Fire one invisible-for-a-frame warm-up of each effect
+  // (visuals only, no sound) while the menu is up so the shaders exist already.
+  window.__gunFxWarm = () => {
+    try {
+      const w = game.WP && game.WP[0] || { n: 'HG', cone: 0 };
+      const p = new V3(0, -500, 0), q = new V3(0, -500, -3), d = new V3(0, 0, -1);
+      window.__gunFx.shot(p, q, w, d);
+      window.__gunFx.shot(p, q, { n: 'SG', cone: 0.4 }, d);
+      window.__gunFx.hit(true, p, { dead: true, m: null }, d);
+      const R = window.__game.debug.renderer;
+      // The world and the first-person gun/hands are separate passes (ue/Se and
+      // fo/za), and the muzzle flash lives in the second one.
+      for (const [scene, cam] of [[ue, Se], [game.fo, game.za]]) {
+        if (!scene || !cam) continue;
+        const hidden = [];
+        scene.traverse((o) => { if (!o.visible && o.material && !o.isSkinnedMesh) hidden.push(o); });
+        hidden.forEach((o) => { o.visible = true; });
+        R.compile(scene, cam);
+        hidden.forEach((o) => { o.visible = false; });
+      }
+    } catch (e) { /* optional warm-up */ }
+  };
+  setTimeout(window.__gunFxWarm, 3000);
+
   window.__gunFx = {
     shot(muzzle, end, w, dir) {
       basis();
