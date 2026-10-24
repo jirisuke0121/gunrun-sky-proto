@@ -1157,6 +1157,10 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     for (let ch = 0; ch < 2; ch++) {
       const d = ir.getChannelData(ch);
       for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
+      // A few discrete early reflections (walls and roofs) before the diffuse tail.
+      for (const [ts, g] of [[0.011, 0.9], [0.023, 0.7], [0.037, 0.55], [0.058, 0.45], [0.083, 0.3]]) {
+        d[Math.floor(ts * ctx.sampleRate) + ch * 9] += (Math.random() < 0.5 ? -1 : 1) * g;
+      }
     }
     const conv = ctx.createConvolver(); conv.buffer = ir;
     const dark = ctx.createBiquadFilter(); dark.type = 'lowpass'; dark.frequency.value = 3800;
@@ -1185,6 +1189,23 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       noise: [[0.8, 3200, 1100, 0.1, 1.0, 'bandpass'], [0.8, 4000, 400, 0.22, 0.8, 'lowpass']],
       thump: [[0.85, 140, 45, 0.2]] },
   };
+  // Spent brass hitting the ground a moment later: two or three quiet metal pings.
+  let clinkCount = 0;
+  const clink = (ctx, out, name, when) => {
+    if ((name === 'SMG' || name === 'MG') && (clinkCount++ % 3)) return;
+    const base = name === 'SG' ? 2300 : 5200;
+    let t = when + rnd(0.28, 0.42);
+    for (let i = 0; i < 3; i++) {
+      const osc = ctx.createOscillator(), amp = ctx.createGain();
+      osc.frequency.value = base * rnd(0.85, 1.2) * (1 - i * 0.07);
+      const g = 0.1 / (1 + i * 0.7);
+      amp.gain.setValueAtTime(g, t);
+      amp.gain.exponentialRampToValueAtTime(1e-4, t + 0.07);
+      osc.connect(amp); amp.connect(out);
+      osc.start(t); osc.stop(t + 0.09);
+      t += rnd(0.05, 0.1);
+    }
+  };
   // Plays one report on `ctx` into `out`. Pitch and level change every shot.
   const gunVoice = (ctx, out, name, when = ctx.currentTime) => {
     const spec = REPORT[name] || REPORT.HG;
@@ -1194,8 +1215,9 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       const src = ctx.createBufferSource(), flt = ctx.createBiquadFilter(), amp = ctx.createGain();
       src.buffer = white;
       flt.type = type; flt.Q.value = q;
-      flt.frequency.setValueAtTime(f0 * j, t);
-      flt.frequency.exponentialRampToValueAtTime(Math.max(40, f1 * j), t + d);
+      const lj = j * rnd(0.9, 1.1);
+      flt.frequency.setValueAtTime(f0 * lj, t);
+      flt.frequency.exponentialRampToValueAtTime(Math.max(40, f1 * lj), t + d * rnd(0.9, 1.15));
       amp.gain.setValueAtTime(g * gv, t);
       amp.gain.exponentialRampToValueAtTime(1e-4, t + d);
       src.connect(flt); flt.connect(amp); amp.connect(bus.input);
@@ -1212,6 +1234,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       osc.connect(amp); amp.connect(bus.input);
       osc.start(t); osc.stop(t + d + 0.02);
     }
+    clink(ctx, out, name, t);
     if (spec.rev > 0) { const s = ctx.createGain(); s.gain.value = spec.rev; bus.comp.connect(s); s.connect(bus.conv); }
     if (spec.slap > 0) { const s = ctx.createGain(); s.gain.value = spec.slap; bus.comp.connect(s); s.connect(bus.slap); }
   };
@@ -1245,6 +1268,8 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   };
 
   // ---- Pools ------------------------------------------------------------
+  // Sizes below are scaled by distance: a 7 cm cube 15 m away is about 2 px on
+  // a phone, so near-constant screen size is what makes the effects readable.
   const mkPool = (n, geo, mat) => {
     const a = [];
     for (let i = 0; i < n; i++) {
@@ -1258,22 +1283,66 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   const take = (pool) => pool.find((p) => p.life <= 0) || pool.reduce((a, b) => (a.t > b.t ? a : b));
 
   const boltGeo = new Box(1, 1, 1);
-  const boltMat = new Basic({ color: 0xffe9a0, transparent: true, opacity: 0.9, depthWrite: false, blending: 2 });
+  // Normal blending: the old additive pale streak vanished against the bright sand.
+  const boltMat = new Basic({ color: 0xff7a10 });
   const bolts = mkPool(14, boltGeo, boltMat).map((p) => Object.assign(p, { s: new V3(), e: new V3(), d: 0, T: 0, lf: 0, w: 0.05 }));
 
   const shellGeo = new Box(1, 1, 1);
-  const brassMat = new Basic({ color: 0xd9a640 });
-  const redMat = new Basic({ color: 0xc03030 });
+  const brassMat = new Basic({ color: 0xe0a830 });
+  const redMat = new Basic({ color: 0xd03030 });
   const shells = mkPool(16, shellGeo, brassMat).map((p) => Object.assign(p, { v: new V3(), spin: new V3() }));
 
   const smokeGeo = new Sphere(1, 8, 6);
-  const smokeMat = new Basic({ color: 0xa8a8a8, transparent: true, opacity: 0.2, depthWrite: false });
+  const smokeMat = new Basic({ color: 0xb8b8b8, transparent: true, opacity: 0.3, depthWrite: false });
   const puffs = mkPool(10, smokeGeo, smokeMat).map((p) => Object.assign(p, { v: new V3() }));
 
   const goreGeo = new Box(1, 1, 1);
-  const bloodMat = new Basic({ color: 0x6a1212 });
-  const bloodHotMat = new Basic({ color: 0xd21c1c });
-  const gore = mkPool(120, goreGeo, bloodMat).map((p) => Object.assign(p, { v: new V3() }));
+  const bloodMat = new Basic({ color: 0x9a1010 });
+  const bloodHotMat = new Basic({ color: 0xe01818 });
+  const gore = mkPool(140, goreGeo, bloodMat).map((p) => Object.assign(p, { v: new V3(), size: 0.1 }));
+
+  const popGeo = new Sphere(1, 8, 6);
+  const popMat = new Basic({ color: 0xfff0b0 });
+  const popHeadMat = new Basic({ color: 0xff5030 });
+  const pops = mkPool(8, popGeo, popMat).map((p) => Object.assign(p, { size: 0.2 }));
+
+  // The muzzle flash material is additive too; make it a solid warm yellow.
+  try {
+    const grp = game.vd.children.find((o) => o.children && o.children.length === 3 &&
+      o.children[0].material && o.children[0].material.blending === 2);
+    if (grp) {
+      const m = grp.children[0].material;
+      m.blending = 1; m.color.setHex(0xffe070); m.opacity = 0.9; m.needsUpdate = true;
+    }
+  } catch (e) { /* cosmetic only */ }
+  const style = document.createElement('style');
+  style.textContent = '.hitm.big{width:40px;height:40px;margin:-20px}';
+  document.head.appendChild(style);
+  const hitmEl = document.getElementById('hitm');
+
+  // Hit flash: the struck zombie glows red for 0.1 s. Materials are cloned per
+  // zombie on first hit so other zombies sharing the skin don't flash too.
+  const flashing = [];
+  const flashZombie = (zom) => {
+    try {
+      const root = zom.m && zom.m.root;
+      if (!root) return;
+      if (!zom._fxMats) {
+        zom._fxMats = [];
+        root.traverse((o) => {
+          if (!o.isMesh || !o.material) return;
+          const list = [].concat(o.material);
+          if (!list.every((m) => m.emissive && m.clone)) return;
+          const cloned = list.map((m) => m.clone());
+          o.material = Array.isArray(o.material) ? cloned : cloned[0];
+          for (const m of cloned) { m.userData._e = m.emissive.getHex(); zom._fxMats.push(m); }
+        });
+      }
+      for (const m of zom._fxMats) { m.emissive.setHex(0xff3a1a); m.emissiveIntensity = 1.4; }
+      zom._fxFlash = 0.1;
+      if (!flashing.includes(zom)) flashing.push(zom);
+    } catch (e) { /* cosmetic only */ }
+  };
 
   // ---- Emitters ---------------------------------------------------------
   const fwd = new V3(), right = new V3(), up = new V3(), back = new V3(), tmp = new V3();
@@ -1287,8 +1356,8 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     p.s.copy(from); p.e.copy(to);
     p.d = p.s.distanceTo(p.e);
     if (p.d < 0.3) return;
-    p.T = Math.max(0.06, p.d / 220);
-    p.lf = Math.min(1, 3.2 / p.d);
+    p.T = Math.max(0.07, p.d / 200);
+    p.lf = Math.min(1, 5 / p.d);
     p.w = w;
     p.t = 0; p.life = 1;
   };
@@ -1296,35 +1365,44 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     const p = take(shells);
     const big = name === 'SG';
     p.m.material = big ? redMat : brassMat;
-    p.m.scale.set(big ? 0.03 : 0.018, big ? 0.03 : 0.018, big ? 0.07 : 0.05);
-    p.m.position.copy(fwd).addScaledVector(back, 0.22).addScaledVector(right, 0.03).addScaledVector(up, 0.02);
-    p.v.set(0, 0, 0)
-      .addScaledVector(right, rnd(1.4, 2.2))
-      .addScaledVector(up, rnd(1.3, 2.3))
-      .addScaledVector(back, rnd(0.2, 0.8));
+    p.m.scale.set(big ? 0.04 : 0.024, big ? 0.04 : 0.024, big ? 0.09 : 0.06);
+    p.m.position.copy(fwd).addScaledVector(back, 0.1).addScaledVector(right, 0.02).addScaledVector(up, 0.03);
+    // Carry the player's own velocity so a running player doesn't leave the brass behind at once.
+    p.v.set(c.vel.x * 0.85, c.vel.y * 0.5, c.vel.z * 0.85)
+      .addScaledVector(right, rnd(0.9, 1.5))
+      .addScaledVector(up, rnd(1.2, 1.9))
+      .addScaledVector(back, rnd(0.1, 0.4));
     p.spin.set(rnd(-18, 18), rnd(-18, 18), rnd(-18, 18));
-    p.m.visible = true; p.t = 0; p.life = 0.75;
+    p.m.visible = true; p.t = 0; p.life = 0.8;
   };
   let puffCount = 0;
   const puff = (name) => {
     if ((name === 'SMG' || name === 'MG') && (puffCount++ % 4)) return;
     const p = take(puffs);
     p.m.position.copy(fwd).addScaledVector(back, -0.12);
-    p.v.set(0, 0, 0).addScaledVector(back, -0.5).addScaledVector(up, 0.7)
+    p.v.set(c.vel.x * 0.6, c.vel.y * 0.3, c.vel.z * 0.6).addScaledVector(back, -0.5).addScaledVector(up, 0.7)
       .addScaledVector(right, rnd(-0.15, 0.15));
-    p.m.scale.setScalar(0.03);
-    p.m.visible = true; p.t = 0; p.life = 0.55;
+    p.m.scale.setScalar(0.04);
+    p.m.visible = true; p.t = 0; p.life = 0.6;
   };
   const spray = (pt, dir, n, mat, speed, size) => {
     for (let i = 0; i < n; i++) {
       const p = take(gore);
       p.m.material = mat;
       p.m.position.copy(pt);
-      const k = size * rnd(0.6, 1.5);
-      p.m.scale.set(k, k, k * rnd(1, 2.2));
+      p.size = size * rnd(0.6, 1.4);
+      p.m.scale.set(p.size, p.size, p.size * rnd(1, 2.2));
       p.v.set(rnd(-1.5, 1.5), rnd(0.8, 2.8), rnd(-1.5, 1.5)).addScaledVector(dir, rnd(0.4, 1) * speed);
-      p.m.visible = true; p.t = 0; p.life = rnd(0.45, 0.8);
+      p.m.visible = true; p.t = 0; p.life = rnd(0.5, 0.85);
     }
+  };
+  const pop = (pt, dist, head, killed) => {
+    const p = take(pops);
+    p.m.material = head ? popHeadMat : popMat;
+    p.m.position.copy(pt);
+    p.size = Math.max(killed ? 0.3 : 0.18, dist * (killed ? 0.03 : 0.02));
+    p.m.scale.setScalar(p.size * 0.4);
+    p.m.visible = true; p.t = 0; p.life = 0.1;
   };
 
   window.__gunFx = {
@@ -1336,11 +1414,11 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
         for (let i = 0; i < 4; i++) {
           tmp.copy(dir).add(new V3(rnd(-0.22, 0.22), rnd(-0.22, 0.22), rnd(-0.22, 0.22))).normalize();
           const e2 = new V3().copy(muzzle).addScaledVector(tmp, rnd(5.5, 8.5));
-          bolt(muzzle, e2, 0.035);
+          bolt(muzzle, e2, 0.05);
         }
         c.shake = Math.max(c.shake || 0, 0.55);
       } else {
-        bolt(muzzle, end, name === 'SMG' ? 0.035 : 0.05);
+        bolt(muzzle, end, name === 'SMG' ? 0.045 : 0.06);
         if (name === 'MG') c.shake = Math.max(c.shake || 0, 0.3);
       }
       eject(name);
@@ -1348,21 +1426,23 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     },
     hit(head, pt, zom, dir) {
       const killed = !!zom.dead;
-      const n = killed ? (head ? 26 : 18) : (head ? 14 : 5);
-      spray(pt, dir, n, head ? bloodHotMat : bloodMat, killed ? 4.5 : 3, killed ? 0.085 : 0.065);
+      const dist = pt.distanceTo(Se.position);
+      const n = killed ? (head ? 32 : 22) : (head ? 16 : 8);
+      spray(pt, dir, n, head ? bloodHotMat : bloodMat, killed ? 5 : 3.4,
+        Math.max(killed ? 0.09 : 0.07, dist * (killed ? 0.013 : 0.009)));
+      pop(pt, dist, head, killed);
+      flashZombie(zom);
+      if (hitmEl) hitmEl.classList.toggle('big', killed);
       if (head) {
         ping();
         if (killed) window.__stopT = 0.05; // brief hit-stop on a manual headshot kill
       }
     },
+    step: null,
   };
 
   // ---- Per-frame update -------------------------------------------------
-  let last = performance.now();
-  const fxTick = () => {
-    requestAnimationFrame(fxTick);
-    const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000);
-    last = now;
+  const fxStep = (dt) => {
     for (const p of bolts) {
       if (p.life <= 0) { p.m.visible = false; continue; }
       p.t += dt;
@@ -1371,7 +1451,8 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       const head = p.d * Math.min(1, pr), tail = p.d * Math.max(0, pr - p.lf);
       tmp.copy(p.e).sub(p.s).normalize();
       p.m.position.copy(p.s).addScaledVector(tmp, (head + tail) * 0.5);
-      p.m.scale.set(p.w, p.w, Math.max(0.05, head - tail));
+      const w = Math.max(p.w, 0.02 * p.m.position.distanceTo(Se.position));
+      p.m.scale.set(w, w, Math.max(0.05, head - tail));
       p.m.lookAt(p.e);
       p.m.visible = true;
     }
@@ -1390,7 +1471,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       if (k >= 1) { p.life = 0; p.m.visible = false; continue; }
       p.m.position.addScaledVector(p.v, dt);
       p.v.multiplyScalar(Math.exp(-dt * 2.5));
-      p.m.scale.setScalar(0.03 + 0.09 * k);
+      p.m.scale.setScalar(0.04 + 0.13 * k);
     }
     for (const p of gore) {
       if (p.life <= 0) continue;
@@ -1399,6 +1480,29 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       p.v.y -= 12 * dt;
       p.m.position.addScaledVector(p.v, dt);
     }
+    for (const p of pops) {
+      if (p.life <= 0) continue;
+      p.t += dt;
+      if (p.t >= p.life) { p.life = 0; p.m.visible = false; continue; }
+      p.m.scale.setScalar(p.size * (0.4 + 0.6 * (p.t / p.life)));
+    }
+    for (let i = flashing.length - 1; i >= 0; i--) {
+      const zom = flashing[i];
+      zom._fxFlash -= dt;
+      if (zom._fxFlash <= 0) {
+        for (const m of zom._fxMats) { m.emissive.setHex(m.userData._e || 0); m.emissiveIntensity = 1; }
+        flashing.splice(i, 1);
+      }
+    }
+  };
+  window.__gunFx.step = fxStep;
+  let last = performance.now();
+  const fxTick = () => {
+    requestAnimationFrame(fxTick);
+    const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (window.__hold) return; // paused with the game
+    fxStep(dt);
   };
   requestAnimationFrame(fxTick);
 }
