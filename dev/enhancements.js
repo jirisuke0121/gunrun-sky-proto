@@ -1306,7 +1306,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   const SND_MODE = (typeof location !== 'undefined' && (location.search || '').match(/[?&]snd=(\w+)/) || [])[1] || 'raw';
   const SND_FULL = SND_MODE === 'full';
   const SND_DEBUG = typeof location !== 'undefined' && /[?&]snd_debug=1\b/.test(location.search || '');
-  const RAW_GAIN = { HG: 0.9, SG: 1.0, SMG: 0.85, MG: 0.95 };
+  const RAW_GAIN = { HG: 0.9, SG: 1.0, SMG: 0.8, MG: 0.78 };
   // Weight for the raw mode (the library's recordings are high-passed, so they feel shallow): a gentle low shelf
   // plus the same recording an octave down and low-passed, fading out. Linear, no compression or saturation.
   // ?snd=pure turns this off (the recording exactly as it is).
@@ -1320,16 +1320,26 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   const sampleBuf = {}, lastPick = {};
   window.__gunSamples = sampleBuf;
   let sampleCtx = null;
+  // The files are fetched as soon as this module loads (no audio context needed), so decoding is all that is
+  // left once the context exists; otherwise the first shots after starting could fall back to the synthetic sound.
+  const SFX_VER = '20261024-11';
+  const sfxBytes = {};
+  for (const ids of Object.values(SAMPLES)) {
+    for (const id of ids) {
+      sfxBytes[id] = fetch(`./assets/sfx/${id}.wav?v=${SFX_VER}`)
+        .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+        .catch(() => null);
+    }
+  }
   const loadSamples = () => {
     const ctx = Ut.ctx;
     if (!ctx || sampleCtx === ctx) return;
     sampleCtx = ctx;
     for (const [name, ids] of Object.entries(SAMPLES)) {
       for (const id of ids) {
-        fetch(`./assets/sfx/${id}.wav?v=20261024-10`)
-          .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
-          .then((ab) => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
-          .then((buf) => { buf.__id = id; (sampleBuf[name] = sampleBuf[name] || []).push(buf); })
+        sfxBytes[id]
+          .then((ab) => (ab ? new Promise((ok, no) => ctx.decodeAudioData(ab.slice(0), ok, no)) : null))
+          .then((buf) => { if (buf) { buf.__id = id; (sampleBuf[name] = sampleBuf[name] || []).push(buf); } })
           .catch(() => { /* keep the synthesized sound */ });
       }
     }
