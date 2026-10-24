@@ -1307,6 +1307,10 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   const SND_FULL = SND_MODE === 'full';
   const SND_DEBUG = typeof location !== 'undefined' && /[?&]snd_debug=1\b/.test(location.search || '');
   const RAW_GAIN = { HG: 0.9, SG: 1.0, SMG: 0.85, MG: 0.95 };
+  // Weight for the raw mode (the library's recordings are high-passed, so they feel shallow): a gentle low shelf
+  // plus the same recording an octave down and low-passed, fading out. Linear, no compression or saturation.
+  // ?snd=pure turns this off (the recording exactly as it is).
+  const RAW_BODY = { HG: { sub: 0.6, shelf: 2 }, SG: { sub: 0.6, shelf: 2 }, SMG: { sub: 1.5, shelf: 3 }, MG: { sub: 0.7, shelf: 2 } };
   const rawLimiter = new WeakMap();
   // Low end of the natural mode: the recording itself, an octave down and low-passed.
   const SUB_GAIN = { HG: 0.4, SG: 0.8, SMG: 0.7, MG: 0.4 };
@@ -1348,7 +1352,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       if (!el) { el = document.createElement('div'); el.id = 'sndDebug'; el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;font:700 14px monospace;color:#fff;background:#000a;padding:4px 8px;pointer-events:none'; document.body.appendChild(el); }
       el.textContent = `${name} ${buf.__id}`;
     }
-    if (SND_MODE === 'raw') {
+    if (SND_MODE === 'raw' || SND_MODE === 'pure') {
       let lim = rawLimiter.get(ctx);
       if (!lim) {
         lim = ctx.createDynamicsCompressor();
@@ -1356,8 +1360,21 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
         lim.connect(Ut.master); rawLimiter.set(ctx, lim);
       }
       const src = ctx.createBufferSource(), g = ctx.createGain();
-      src.buffer = buf; src.playbackRate.value = name === 'HG' ? rnd(0.95, 1.05) : rnd(0.985, 1.015); g.gain.value = RAW_GAIN[name] * rnd(0.92, 1.05);
-      src.connect(g); g.connect(lim); src.start(when);
+      const r = name === 'HG' ? rnd(0.95, 1.05) : rnd(0.985, 1.015), gn = RAW_GAIN[name] * rnd(0.92, 1.05);
+      src.buffer = buf; src.playbackRate.value = r; g.gain.value = gn;
+      const body = SND_MODE === 'pure' ? null : RAW_BODY[name];
+      if (body) {
+        const sh = ctx.createBiquadFilter(); sh.type = 'lowshelf'; sh.frequency.value = 180; sh.gain.value = body.shelf;
+        src.connect(g); g.connect(sh); sh.connect(lim);
+        const s2 = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), g2 = ctx.createGain();
+        s2.buffer = buf; s2.playbackRate.value = r * 0.5;
+        lp.type = 'lowpass'; lp.frequency.value = 450; lp.Q.value = 0.6;
+        g2.gain.setValueAtTime(gn * body.sub, when);
+        g2.gain.exponentialRampToValueAtTime(1e-3, when + Math.min(buf.duration * 2, 0.5));
+        s2.connect(lp); lp.connect(g2); g2.connect(lim);
+        s2.start(when); s2.stop(when + Math.min(buf.duration * 2, 0.5) + 0.05);
+      } else { src.connect(g); g.connect(lim); }
+      src.start(when);
       return true;
     }
     const rate = rnd(0.97, 1.03), gain = SAMPLE_GAIN[name] * 0.9 * rnd(0.88, 1.08);
