@@ -232,3 +232,7 @@
 
 ## 2026-10-24 後ろ向き・横移動を速くした（2026-10-24f-telemetry）
 - 後ろ移動が走る速さの72%（8 → 5.76 m/s）でゾンビ（5.6）とほぼ同じ速さ、横移動は85%だった。後ろ移動を92%（7.36 m/s）、横移動を95%（7.6 m/s）に変更。
+
+## 2026-10-24 岩壁渓谷（白箱）を公開版に反映
+- 別スレッドの dev 版（岩壁渓谷の白箱 `canyon.html`・`canyon-world.js`、PCで右ドラッグ視点 `desktop-look-fallback.js`、ジップライン双方向、タイトル画面のMAP切替）を公開版へ反映。`promote.sh` が `canyon.html`・`canyon-world.js`・`desktop-look-fallback.js` もコピーするようにした。
+- 白箱のため、2分生存は自動シミュレーションで未達（`dev/CANYON_WHITEBOX.md` 参照）。

@@ -4,7 +4,10 @@ set -e
 cd "$(dirname "$0")"
 cp dev/enhancements.js enhancements.js
 cp dev/telemetry-probe.js telemetry-probe.js
+cp dev/desktop-look-fallback.js desktop-look-fallback.js
+cp dev/canyon-world.js canyon-world.js
 rm -rf assets && cp -r dev/assets assets
 sed -e 's/var IM="\([^"]*\)-dev"/var IM="\1"/' -e 's#<title>【DEV】#<title>#' dev/index.html > index.html
+sed -e 's/var IM="\([^"]*\)-dev"/var IM="\1"/' -e 's#<title>【DEV】#<title>#' dev/canyon.html > canyon.html
 echo "公開版に反映しました。差分を確認して commit / push してください。"
 git status --short

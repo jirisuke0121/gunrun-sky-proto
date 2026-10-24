@@ -708,7 +708,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
 // Ghost of the best run on this course. The path is sampled every 0.1 s of
 // play and kept in this browser only. H shows or hides it.
 {
-  const KEY = 'gunrun-sky-ghost-v1', STEP = 0.1;
+  const KEY = window.SKY_CANYON_MAP ? 'gunrun-sky-ghost-rock-canyon-v1' : 'gunrun-sky-ghost-v1', STEP = 0.1;
   let best = null;
   try { best = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { best = null; }
   if (!best || !Array.isArray(best.p) || best.p.length < 8 || !(best.total > 0)) best = null;
@@ -977,7 +977,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       cap.position.set(cx + k * 15 * s, 34 * s - 6, cz + 6 * s); decor.add(cap);
     }
   }
-  ue.add(decor);
+  if (!window.SKY_CANYON_MAP) ue.add(decor);
 
   // --- Movement additions -------------------------------------------------
   const solidTopAhead = (px, pz, feet) => {
