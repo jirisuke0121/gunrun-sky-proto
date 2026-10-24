@@ -2,6 +2,8 @@
 
 `dev/canyon.html` で遊べます。`dev/index.html` のタイトル画面からも切り替えられます。公開版 `/index.html` はこの試作の対象外です。
 
+PCブラウザーでマウス固定が使えない場合は、ゲーム画面を右ドラッグして視点を動かせます。渓谷と旧市街の両方で使用できます。
+
 ## 設計データと実装
 
 - `canyon-world.js` 冒頭の `SKY_CANYON_MAP` は、提供された `map_geometry_v1.json` の値をそのまま収録しています。
