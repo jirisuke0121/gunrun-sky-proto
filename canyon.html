@@ -69,7 +69,7 @@ html.rot #rotate{display:none!important}#rotFlip{display:none;margin-top:10px}ht
         <li><kbd>クリック</kbd>/<kbd>F</kbd>/<kbd>右クリック</kbd> ナイフ：前のゾンビを押し返してよろけさせる（つかみも止まる）。背後からなら一撃。最初はナイフだけ（調整画面でハンドガンも持てる）</li>
         <li>走ってゾンビにスライディング → 足元をすり抜ける。走ってゾンビの目の前でジャンプ → 頭を踏んで高く跳び越える</li>
         <li>光る輪が見えたら <kbd>Q</kbd> → フックで一気に飛び移る（ゾンビは使えない）</li>
-        <li>ジップラインは上端・下端の近くで <kbd>Space</kbd> → 反対側へ移動。分岐では行きたいロープを向く。途中で再び <kbd>Space</kbd> → 離脱。<b>見ている方向</b>へ高く飛び出せるので、空中で別の足場を選べる</li>
+        <li>ジップラインは上端・下端の近くで <kbd>Space</kbd> → 反対側へ移動。分岐では行きたいロープを向く。途中で再び <kbd>Space</kbd> → 飛び上がって離脱。勢いを保ったまま空中で自分で操作できる</li>
         <li><kbd>G</kbd> 煙幕（最初1個）：投げた場所に煙を張り、ゾンビの視線を遮る。技を3回決めるごとに+1（最大2個）</li>
         <li>空中でゾンビの近くで <kbd>Space</kbd> → 飛び蹴り。ゾンビは吹き飛び、自分は跳ね返る。続けて次のゾンビも蹴れる</li>
         <li>得点 = 生き延びた時間 ＋ 撃破 ＋ 節目（30・60・90・120秒）。時間が進むほど1秒も1体も価値が上がる。奈落に落とした撃破は2倍。技を出しても点にはならない：その場に合う技で逃げ切った人が、結果として高得点になる</li>
@@ -7533,14 +7533,14 @@ void main() {
  let {n,dir}=best;
  window.skyTelemetryProbe.jumpAccepted(z.t,"zip_attach");
  c.state="zip";c.zip=n;c.zipDir=dir;c.zipT=dir>0?0:1;c.jumpBuf=0;c.wallKey=null;c.h=sn;
- ft.zips=(ft.zips||0)+1;(ft.zips<=3)&&Xd("ジャンプで途中離脱 — 見ている方向へ飛べる");Tt.wall();return !0
+ ft.zips=(ft.zips||0)+1;(ft.zips<=3)&&Xd("ジャンプで途中離脱 — 空中は自分で操作");Tt.wall();return !0
 }
 function q_(dt){
  let zip=c.zip,[ax,ay,az]=zip.a,[bx,by,bz]=zip.b,dir=c.zipDir||1,speed=U.zipSpeed;
  let vx=(bx-ax)/zip.len*dir,vy=(by-ay)/zip.len*dir,vz=(bz-az)/zip.len*dir;
  let finish=(jumped=false)=>{c.state="normal";c.setCD=.5;c.onGround=!1;let coast=dir<0&&!jumped?0:.85,lift=jumped?Math.min(4.5,Math.max(vy*speed,0)+1.5):1.5;c.vel.set(vx*speed*coast,lift,vz*speed*coast)};
  if(c.jumpBuf>0){window.skyTelemetryProbe.jumpAccepted(z.t,"zip_release");c.jumpBuf=0;
-  let hz=Math.hypot(vx,vz)||1,zx=vx/hz,zz=vz/hz,lx=-Math.sin(c.yaw),lz=-Math.cos(c.yaw),dp=lx*zx+lz*zz,k=dp>-.3?.65:0,mx=zx*(1-k)+lx*k,mz=zz*(1-k)+lz*k,ml=Math.hypot(mx,mz)||1,hs=Math.max(hz*speed,9);
+  let hz=Math.hypot(vx,vz)||1,zx=vx/hz,zz=vz/hz,hs=Math.max(hz*speed,9),mx=zx,mz=zz,ml=1;
   c.state="normal";c.setCD=.3;c.onGround=!1;c.airT=0;c.vel.set(mx/ml*hs,Math.min(9,U.jumpVel*.9+Math.max(vy*speed,0)*.5),mz/ml*hs);
   ft.zipjumps=(ft.zipjumps||0)+1;Tt.jump();return}
  c.zipT=ge(c.zipT+dir*speed*dt/zip.len,0,1);
