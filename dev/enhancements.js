@@ -1952,3 +1952,33 @@ if (/[?&]perf=1/.test(location.search)) {
     }).observe(overPanel, { attributes: true, attributeFilter: ['hidden'] });
   }
 }
+
+// Ziplines are one-way, top to bottom (2026-10-25). Riding from the low end is no
+// longer possible (see Y_ in the page). To make that readable, every line gets
+// orange chevrons pointing downhill along the rope, a glowing ring at the boarding
+// end, and a dark cap at the exit end. Visual only.
+{
+  try {
+    const { Mesh, Cylinder, Torus, Basic, Vector3: V3 } = game.Geom;
+    const orange = new Basic({ color: 0xff8a1f }), dark = new Basic({ color: 0x3a3a3a });
+    for (const z of zipLines) {
+      const [ax, ay, az] = z.a, [bx, by, bz] = z.b;
+      const dir = new V3(bx - ax, by - ay, bz - az), len = dir.length(); dir.normalize();
+      const put = (mesh, p) => { mesh.position.set(p[0], p[1], p[2]); ue.add(mesh); return mesh; };
+      // chevrons: cones with the tip toward the exit end
+      const n = Math.max(2, Math.floor(len / 2.5));
+      for (let i = 1; i <= n; i++) {
+        const t = i / (n + 1), m = new Mesh(new Cylinder(0, 0.26, 0.7, 8), orange);
+        m.quaternion.setFromUnitVectors(new V3(0, 1, 0), dir);
+        put(m, [ax + (bx - ax) * t, ay + (by - ay) * t - 0.02, az + (bz - az) * t]);
+      }
+      // boarding ring at the top end, facing along the rope
+      const ring = new Mesh(new Torus(0.9, 0.035, 8, 32), orange);
+      ring.quaternion.setFromUnitVectors(new V3(0, 0, 1), dir);
+      put(ring, [ax + dir.x * 1.2, ay + dir.y * 1.2 - 0.1, az + dir.z * 1.2]);
+      // exit cap
+      put(new Mesh(new Torus(0.4, 0.07, 6, 16), dark), [bx - dir.x * 0.3, by - dir.y * 0.3, bz - dir.z * 0.3]).quaternion.setFromUnitVectors(new V3(0, 0, 1), dir);
+    }
+    window.__zipVisual = zipLines.length;
+  } catch (e) { console.warn('zip visual skipped', e); }
+}

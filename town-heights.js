@@ -3,7 +3,7 @@
 // towers on the west side (where the run starts), each with its own way up and a
 // zipline back down to the central 8 m plaza:
 //   West tower  (14 m): roof -> ladder -> 9 m ledge -> ladder -> top.
-//   Plank       (14 m): 0.6 m wide beam from the west tower to the bell tower,
+//   Plank       (14 m): 6 m long, 0.6 m wide beam from the west tower to the bell tower,
 //                       over the alley, so the ground is visible below.
 //   Bell tower  (14 m): zipline down to the plaza.
 //   South tower (13 m): grapple anchor above its north edge (fast), ladder on the
@@ -16,15 +16,17 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us }) {
   // West tower on the 4.2 m building at x -61..-55, z -12..-5.5.
   box(-60.5, 4.2, -11.5, -56.5, 14, -7.5);           // tower body
   box(-60.5, 4.2, -7.5, -56.5, 9, -5.5);             // 9 m ledge (annex)
+  Mh(-55, -8.5, 1, 0, 0, 4.2);                       // alley -> roof (this building had no way up)
   Mh(-56.5, -6.5, 1, 0, 4.2, 9);                     // roof -> ledge (east face of annex)
   Mh(-58.5, -7.5, 0, 1, 9, 14);                      // ledge -> top (south face of tower)
 
   // Plank across the alley to the bell tower.
-  box(-56.5, 13.62, -9.8, -51.5, 14, -9.2, 'beam');
+  box(-56.5, 13.62, -9.8, -50.5, 14, -9.2, 'beam');
 
   // Bell tower on the 4.4 m building at x -52..-47, z -12..-5.5.
-  box(-51.5, 4.4, -11.5, -47.5, 14, -7.5);
-  ld([-49.5, 16.3, -9.5], [-13, 10.3, -9]);          // down to the plaza
+  box(-50.5, 4.4, -11.5, -47.5, 14, -7.5);            // clear of the existing ladder exit at x -52, z -11
+  Mh(-49, -7.5, 0, 1, 4.4, 14);                      // roof -> top (south face), zombies need a way up
+  ld([-49, 16.3, -9.5], [-13, 10.3, -9]);            // down to the plaza
 
   // South tower on the 4.4 m building at x -58..-53.5, z 12..18.
   box(-57.5, 4.4, 12.5, -54, 13, 15.5);
