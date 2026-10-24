@@ -53,6 +53,14 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo }) {
   box(-39.9, 0, -8, -37.5, 13.9, -5.6);
   box(-33.5, 0, -8, -31.1, 13.3, -5.6);
 
+  // Mid catwalk (11.9 m): leaves the top landing of the bell tower stairs and runs 16 m east,
+  // 1.5 m wide, north of the chain. Zombies walk it single file in full view of the pillars.
+  // Short stubs lead from it to the north face of each pillar (2.5 / 2.0 / 1.4 m mantles).
+  box(-47, 11.5, -12, -30.9, 11.9, -10.5, 'beam');
+  box(-46.3, 11.5, -10.5, -43.9, 11.9, -8, 'beam');   // stub to A
+  box(-39.9, 11.5, -10.5, -37.5, 11.9, -8, 'beam');   // stub to B
+  box(-33.5, 11.5, -10.5, -31.1, 11.9, -8, 'beam');   // stub to C
+
   // Sky network: the chain grows into a web so that the high ground is a place to play,
   // not a corridor. Every link keeps the height difference within 1 m (zombies leap the
   // same gaps people jump), gaps run from 2 to 4.1 m, and there are loops, so a fight on
