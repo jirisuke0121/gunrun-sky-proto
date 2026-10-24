@@ -1392,9 +1392,14 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     ni(0.34, rnd(135, 165), 0.09);
     Mn(0.3, 700, 0.8, 0.06);
   };
+  // Headshot cue: a short low "thock" on top of the body thud. (The old 2.3/3.45 kHz bell was removed:
+  // the handgun lands a headshot on nearly every hit, so it rang like a tiny bell with every shot.)
+  // ?snd_ping=1 brings the bell back for comparison.
+  const BELL = typeof location !== 'undefined' && /[?&]snd_ping=1\b/.test(location.search || '');
   const ping = () => {
     const ctx = Ut.ctx;
     if (!ctx || !Ut.master) return;
+    if (!BELL) { ni(0.42, rnd(88, 100), 0.12); return; }
     const t = ctx.currentTime;
     for (const [f, g, d] of [[2300, 0.34, 0.16], [3450, 0.12, 0.1]]) {
       const osc = ctx.createOscillator(), amp = ctx.createGain();
