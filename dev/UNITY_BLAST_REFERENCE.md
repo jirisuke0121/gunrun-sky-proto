@@ -30,3 +30,9 @@ pages and both barrels passed the full step, jump, top shot, launch, middle
 deck landing, and reset flow in automated Chromium. A browser click also
 reached the game's trigger and detonated a barrel. This is still not a human
 playtest or a live Unity comparison.
+
+The next input change lets players tap the visible barrel or cap directly,
+including from the ground or at a distance. The ray starts at the touched
+screen pixel and the first world collider must belong to an active barrel;
+opaque level geometry blocks the action. The interaction costs no ammunition.
+The existing gunshot path and blast presentation remain available.
