@@ -1297,14 +1297,15 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   // room tail. Until the files finish decoding (or if they fail to load) the
   // fully synthesized report is used.
   const SAMPLES = {
-    HG: ['hg1', 'hg2', 'hg3', 'hg4'], SG: ['sg1', 'sg2', 'sg3', 'sg4'],
-    SMG: ['smg1', 'smg2', 'smg3', 'smg4', 'smg5', 'smg6', 'smg7', 'smg8', 'smg9'], MG: ['mg1', 'mg2', 'mg3', 'mg4', 'mg5', 'mg6'],
+    HG: ['hg1', 'hg2', 'hg3', 'hg4'], SG: ['sg1', 'sg2'],
+    SMG: ['smg1', 'smg2', 'smg3', 'smg4', 'smg5', 'smg6', 'smg7', 'smg8', 'smg9'], MG: ['mg1', 'mg2', 'mg3', 'mg4'],
   };
   // ?snd=full brings back the previous processing (synthetic sine thump, heavier saturation) for A/B listening.
   // Default is "raw": the stereo recording as it is (a cosine fade at the end, a safety limiter, nothing else),
   // with its natural room tail (up to 0.8 s) kept wherever no strong echo/next shot follows; this keeps the texture of the original files. ?snd=body = the earlier mono + body chain, ?snd=full = heavier.
   const SND_MODE = (typeof location !== 'undefined' && (location.search || '').match(/[?&]snd=(\w+)/) || [])[1] || 'raw';
   const SND_FULL = SND_MODE === 'full';
+  const SND_DEBUG = typeof location !== 'undefined' && /[?&]snd_debug=1\b/.test(location.search || '');
   const RAW_GAIN = { HG: 0.9, SG: 1.0, SMG: 0.85, MG: 0.95 };
   const rawLimiter = new WeakMap();
   // Low end of the natural mode: the recording itself, an octave down and low-passed.
@@ -1324,7 +1325,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
         fetch(`./assets/sfx/${id}.wav`)
           .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
           .then((ab) => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
-          .then((buf) => { (sampleBuf[name] = sampleBuf[name] || []).push(buf); })
+          .then((buf) => { buf.__id = id; (sampleBuf[name] = sampleBuf[name] || []).push(buf); })
           .catch(() => { /* keep the synthesized sound */ });
       }
     }
@@ -1342,6 +1343,11 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     const list = sampleBuf[name];
     if (!list || !list.length) return false;
     const buf = list[pickTake(name, list.length)];
+    if (SND_DEBUG) {
+      let el = document.getElementById('sndDebug');
+      if (!el) { el = document.createElement('div'); el.id = 'sndDebug'; el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;font:700 14px monospace;color:#fff;background:#000a;padding:4px 8px;pointer-events:none'; document.body.appendChild(el); }
+      el.textContent = `${name} ${buf.__id}`;
+    }
     if (SND_MODE === 'raw') {
       let lim = rawLimiter.get(ctx);
       if (!lim) {
