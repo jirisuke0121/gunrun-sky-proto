@@ -1154,14 +1154,14 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     const makeup = ctx.createGain(); makeup.gain.value = 1.45;
     input.connect(shaper); shaper.connect(comp); comp.connect(makeup); makeup.connect(out);
     // Room tail: a darkened, decaying noise impulse.
-    const len = Math.floor(ctx.sampleRate * 0.7);
+    const len = Math.floor(ctx.sampleRate * 0.5);
     const ir = ctx.createBuffer(2, len, ctx.sampleRate);
     for (let ch = 0; ch < 2; ch++) {
       const d = ir.getChannelData(ch);
       for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
     }
     const conv = ctx.createConvolver(); conv.buffer = ir;
-    const dark = ctx.createBiquadFilter(); dark.type = 'lowpass'; dark.frequency.value = 3800;
+    const dark = ctx.createBiquadFilter(); dark.type = 'lowpass'; dark.frequency.value = 2600;
     conv.connect(dark); dark.connect(out);
     // Slapback echo off a distant wall.
     const slap = ctx.createDelay(0.5); slap.delayTime.value = 0.09;
@@ -1227,15 +1227,15 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     if (p) return p;
     if (!out) throw new Error('getProc needs the output node on first use');
     const input = ctx.createGain();
-    const shelf = ctx.createBiquadFilter(); shelf.type = 'lowshelf'; shelf.frequency.value = 180; shelf.gain.value = 4;
-    const mid = ctx.createBiquadFilter(); mid.type = 'peaking'; mid.frequency.value = 450; mid.Q.value = 0.8; mid.gain.value = 2;
+    const shelf = ctx.createBiquadFilter(); shelf.type = 'lowshelf'; shelf.frequency.value = 180; shelf.gain.value = 2.5;
+    const mid = ctx.createBiquadFilter(); mid.type = 'peaking'; mid.frequency.value = 450; mid.Q.value = 0.8; mid.gain.value = 0;
     const sat = ctx.createWaveShaper();
     const cv = new Float32Array(1024);
-    for (let i = 0; i < cv.length; i++) { const x = (i / 511.5) - 1; cv[i] = Math.tanh(1.8 * x) / Math.tanh(1.8); }
+    for (let i = 0; i < cv.length; i++) { const x = (i / 511.5) - 1; cv[i] = Math.tanh(1.25 * x) / Math.tanh(1.25); }
     sat.curve = cv;
     const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -24; comp.knee.value = 6; comp.ratio.value = 6; comp.attack.value = 0.001; comp.release.value = 0.16;
-    const makeup = ctx.createGain(); makeup.gain.value = 1.6;
+    comp.threshold.value = -20; comp.knee.value = 10; comp.ratio.value = 3; comp.attack.value = 0.001; comp.release.value = 0.16;
+    const makeup = ctx.createGain(); makeup.gain.value = 1.3;
     // Everything (sample, body layers, synth boom) meets in `mix`, then a limiter keeps the sum from clipping.
     const mix = ctx.createGain();
     const limit = ctx.createDynamicsCompressor();
@@ -1296,10 +1296,17 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   // recording through the body chain + a pitched low thump + a clean synthetic
   // room tail. Until the files finish decoding (or if they fail to load) the
   // fully synthesized report is used.
-  const SAMPLES = { HG: ['hg1', 'hg2'], SG: ['sg1', 'sg2'], SMG: ['smg1', 'smg2'], MG: ['mg1', 'mg2'] };
-  const SAMPLE_GAIN = { HG: 1.05, SG: 1.4, SMG: 0.55, MG: 1.15 };
+  const SAMPLES = {
+    HG: ['hg1', 'hg2', 'hg3', 'hg4', 'hg5'], SG: ['sg1', 'sg2', 'sg3', 'sg4'],
+    SMG: ['smg1', 'smg2', 'smg3', 'smg4', 'smg5', 'smg6'], MG: ['mg1', 'mg2', 'mg3', 'mg4', 'mg5', 'mg6'],
+  };
+  // ?snd=full brings back the previous processing (synthetic sine thump, heavier saturation) for A/B listening.
+  const SND_FULL = typeof location !== 'undefined' && /[?&]snd=full\b/.test(location.search || '');
+  // Low end of the natural mode: the recording itself, an octave down and low-passed.
+  const SUB_GAIN = { HG: 1.0, SG: 0.8, SMG: 0.7, MG: 0.4 };
+  const SAMPLE_GAIN = { HG: 0.95, SG: 1.25, SMG: 0.55, MG: 1.0 };
   const BODY_GAIN = { HG: 0.32, SG: 0.09, SMG: 0.3, MG: 0.25 };
-  const ROOM = { HG: 0.45, SG: 0.6, SMG: 0.28, MG: 0.35 };
+  const ROOM = { HG: 0.3, SG: 0.42, SMG: 0.18, MG: 0.24 };
   const sampleBuf = {}, lastPick = {};
   window.__gunSamples = sampleBuf;
   let sampleCtx = null;
@@ -1317,14 +1324,32 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       }
     }
   };
+  // Take picker: never the same take twice in a row, and not the one before that either.
+  const recent = {};
+  const pickTake = (name, n) => {
+    const r = recent[name] || (recent[name] = []);
+    let i, guard = 0;
+    do { i = Math.floor(Math.random() * n); } while (n > 2 && r.includes(i) && ++guard < 12);
+    r.push(i); if (r.length > Math.min(2, n - 1)) r.shift();
+    return i;
+  };
   const playSample = (ctx, name, when = ctx.currentTime) => {
     const list = sampleBuf[name];
     if (!list || !list.length) return false;
-    let i = Math.floor(Math.random() * list.length);
-    if (list.length > 1 && i === lastPick[name]) i = (i + 1) % list.length;
-    lastPick[name] = i;
-    playProcessed(ctx, Ut.master, list[i], SAMPLE_GAIN[name] * 0.9 * rnd(0.92, 1.05), rnd(0.96, 1.04), when, ROOM[name]);
-    bodyLayer(ctx, name, when, BODY_GAIN[name]);
+    const buf = list[pickTake(name, list.length)];
+    const rate = rnd(0.97, 1.03), gain = SAMPLE_GAIN[name] * 0.9 * rnd(0.88, 1.08);
+    playProcessed(ctx, Ut.master, buf, gain, rate, when, ROOM[name]);
+    if (SND_FULL) bodyLayer(ctx, name, when, BODY_GAIN[name]);
+    else {
+      const p = getProc(ctx, Ut.master);
+      const src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+      src.buffer = buf; src.playbackRate.value = rate * 0.5;
+      lp.type = 'lowpass'; lp.frequency.value = 520; lp.Q.value = 0.6;
+      g.gain.setValueAtTime(gain * SUB_GAIN[name], when);
+      g.gain.exponentialRampToValueAtTime(1e-3, when + buf.duration * 2.0);
+      src.connect(lp); lp.connect(g); g.connect(p.mix);
+      src.start(when);
+    }
     return true;
   };
   Tt.hg = () => {
