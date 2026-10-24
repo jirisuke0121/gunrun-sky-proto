@@ -84,6 +84,10 @@ window.buildSkyCanyon = function ({ ne, Mh, ld, us, jn, Ja }) {
     }
   }
 
+  // The two zips share an upper terminal south of the original upper spine.
+  // A short deck makes the uphill arrival walkable from the rest of the map.
+  deck([34, 14, 8], [34, 20, 8], 2.4, 'U');
+
   // Supports are narrow enough to retain the open ground chase loop.
   for (const [east, north, top] of [
     [24, 13, 4], [44, 13, 4], [24, 39, 4], [44, 39, 4],
