@@ -41,6 +41,15 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo }) {
   // Stepping stone between the 4.4 m and 5.5 m roofs: zombies leap gaps of up to 1 m in height, this one is 1.1 m.
   box(-60, 0, 16, -58, 4.95, 18);
 
+  // Sky chain: tall pillars standing in the street (from the ground, so nobody can climb them
+  // from below), reached by jumping from the bell tower top (15 m). Gaps are 3.4-4 m with a
+  // small drop, a sprint jump for people and a leap for zombies. The last pillar has a zipline
+  // down to the plaza.
+  box(-46.3, 0, -8, -43.9, 14.4, -5.6);
+  box(-39.9, 0, -8, -37.5, 13.9, -5.6);
+  box(-33.5, 0, -8, -31.1, 13.3, -5.6);
+  ld([-32.3, 15.6, -6.8], [-14, 10.3, -5]);
+
   // One low step beside the east end of the south roofs: the only entrance from the street.
   box(-34.5, 0, 15.6, -33.1, 2, 17);
 
