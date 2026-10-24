@@ -36,7 +36,7 @@
     if (!run) return;
     for (let i = run.jumps.length - 1; i >= 0; i--) {
       const item = run.jumps[i];
-      if (item.outcome === "pending" && t - item.t <= 0.5 && t >= item.t) {
+      if (item.outcome === "pending" && t - item.t <= 0.5 && t + 0.002 >= item.t) {
         item.outcome = kind === "jump" ? "accepted" : "consumed_" + kind;
         item.delayMs = Math.round((t - item.t) * 1000);
         return;

@@ -2,6 +2,7 @@
 //   POST /runs            ゲームが1プレイ分のJSONを送る（誰でも）
 //   GET  /runs            記録の一覧（要 ADMIN_TOKEN）  ?since=ISO&build=...&limit=200&full=1
 //   GET  /runs/<id>       1件の完全な記録（要 ADMIN_TOKEN）
+//   GET  /ranking         公開ランキング（誰でも）  ?me=<端末ID> で自分の順位も返す
 const MAX_BYTES = 600_000;       // 1プレイの上限（実測は 1.5万〜5万バイト程度）
 const MAX_PER_MINUTE = 20;       // 同じ端末IDからの送信上限
 
@@ -25,6 +26,7 @@ export default {
     try {
       if (url.pathname === "/runs" && req.method === "POST") return await receive(req, env, cors, origin, allowed);
       if (url.pathname === "/runs" && req.method === "GET") return await list(req, env, cors, url);
+      if (url.pathname === "/ranking" && req.method === "GET") return await ranking(env, cors, url);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
       if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs" }, 200, cors);
@@ -92,4 +94,26 @@ async function one(req, env, cors, id) {
   const r = await env.DB.prepare("SELECT json FROM runs WHERE id = ?").bind(id).first();
   if (!r) return json({ error: "not_found" }, 404, cors);
   return new Response(r.json, { status: 200, headers: { "content-type": "application/json; charset=utf-8", ...cors } });
+}
+
+// ランキング：端末ごとの最高記録で並べる。クリア（reason="time"＝2分逃げ切り）が上、同じなら得点順。
+// 対象は本番（map）の記録のみ（ミッションは score が null）。dev版（build が -dev で終わる）と途中終了（quit）は除く。
+const RANK_CTE = `
+WITH s AS (
+  SELECT player, score, t, (reason = 'time') AS cleared,
+         (CASE WHEN reason = 'time' THEN 1000000 ELSE 0 END) + score AS k
+  FROM runs
+  WHERE reason IN ('time','caught','fell') AND score IS NOT NULL AND (build IS NULL OR build NOT LIKE '%-dev')
+), b AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY player ORDER BY k DESC, t DESC) AS rn FROM s
+), r AS (
+  SELECT player, cleared, score, ROUND(t) AS t, RANK() OVER (ORDER BY k DESC) AS pos FROM b WHERE rn = 1
+)`;
+
+async function ranking(env, cors, url) {
+  const me = (url.searchParams.get("me") || "").slice(0, 40);
+  const top = await env.DB.prepare(RANK_CTE + " SELECT pos, substr(player,1,4) AS tag, cleared, score, t, (player = ?) AS me FROM r ORDER BY pos, score DESC LIMIT 20").bind(me).all();
+  const total = await env.DB.prepare(RANK_CTE + " SELECT COUNT(*) AS n FROM r").first();
+  const mine = me ? await env.DB.prepare(RANK_CTE + " SELECT pos, cleared, score, t FROM r WHERE player = ?").bind(me).first() : null;
+  return json({ total: total ? total.n : 0, me: mine || null, top: top.results }, 200, { ...cors, "cache-control": "no-store" });
 }
