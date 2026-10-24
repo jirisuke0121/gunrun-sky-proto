@@ -56,10 +56,29 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo }) {
   // Mid catwalk (11.9 m): leaves the top landing of the bell tower stairs and runs 16 m east,
   // 1.5 m wide, north of the chain. Zombies walk it single file in full view of the pillars.
   // Short stubs lead from it to the north face of each pillar (2.5 / 2.0 / 1.4 m mantles).
-  box(-47, 11.5, -12, -30.9, 11.9, -10.5, 'beam');
+  box(-47, 11.5, -12, -29.6, 11.9, -10.5, 'beam');
   box(-46.3, 11.5, -10.5, -43.9, 11.9, -8, 'beam');   // stub to A
   box(-39.9, 11.5, -10.5, -37.5, 11.9, -8, 'beam');   // stub to B
   box(-33.5, 11.5, -10.5, -31.1, 11.9, -8, 'beam');   // stub to C
+
+  // East connector and south catwalk (11.9 m): the north catwalk turns south at its east end
+  // and runs back west along the south face of the pillars D, B2 and E, with a stub to each
+  // (1.6 / 1.5 / 0.9 m mantles). It ends 1 m short of L1, which is a leap on to the southern pillars.
+  box(-31.1, 11.5, -12, -29.6, 11.9, 2, 'beam');
+  box(-47, 11.5, 0.5, -31.1, 11.9, 2, 'beam');
+  box(-46.3, 11.5, -1.1, -43.9, 11.9, 0.5, 'beam');   // stub to D
+  box(-39.9, 11.5, -1.1, -37.5, 11.9, 0.5, 'beam');   // stub to B2
+  box(-33.5, 11.5, -1.1, -31.1, 11.9, 0.5, 'beam');   // stub to E
+
+  // Mid ledges: 1.5 m decks hung on the side faces of the pillars, 2.4-2.5 m below their tops.
+  // Between two pillars they leave a 1 m gap, so the 4 m jump across the top can be split in
+  // two lower hops (a different route, not an easier one: you give up height and have to
+  // mantle back up). Ledges are on both rows.
+  const deck = (x0, x1, z0, z1, top) => box(x0, top - 0.4, z0, x1, top, z1, 'beam');
+  deck(-43.9, -42.4, -7.8, -5.8, 12.0);  deck(-41.4, -39.9, -7.8, -5.8, 11.5);   // A | B
+  deck(-37.5, -36.0, -7.8, -5.8, 11.4);  deck(-35.0, -33.5, -7.8, -5.8, 10.9);   // B | C
+  deck(-43.9, -42.4, -3.3, -1.3, 11.2);  deck(-41.4, -39.9, -3.3, -1.3, 11.0);   // D | B2
+  deck(-37.5, -36.0, -3.3, -1.3, 10.9);  deck(-35.0, -33.5, -3.3, -1.3, 10.4);   // B2 | E
 
   // Sky network: the chain grows into a web so that the high ground is a place to play,
   // not a corridor. Every link keeps the height difference within 1 m (zombies leap the
