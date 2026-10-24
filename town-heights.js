@@ -46,6 +46,19 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo }) {
   box(-39.9, 0, -8, -37.5, 13.9, -5.6);
   box(-33.5, 0, -8, -31.1, 13.3, -5.6);
 
+  // Sky network: the chain grows into a web so that the high ground is a place to play,
+  // not a corridor. Every link keeps the height difference within 1 m (zombies leap the
+  // same gaps people jump), gaps run from 2 to 4.1 m, and there are loops, so a fight on
+  // the pillars always has somewhere to go. Zombies arrive over the pillar steps and have
+  // to cross single file, which is where they can be shot off.
+  box(-46.3, 0, -3.5, -43.9, 13.5, -1.1);            // D  (south of A)
+  box(-39.9, 0, -3.5, -37.5, 13.4, -1.1);            // B2 (south of B)
+  box(-33.5, 0, -3.5, -31.1, 12.8, -1.1);            // E  (south of C)
+  box(-37.5, 12.8, -2.6, -33.5, 13.1, -2.0, 'beam'); // 0.6 m beam B2 - E (people only; zombies leap)
+  box(-47, 0, 3, -44.6, 13, 5.4);                 // L1, south link
+  box(-48.5, 0, 8.4, -46.1, 12.5, 10.8);             // L2
+  box(-51.5, 0, 12.8, -47.6, 12.0, 15.2);            // G  (next to the south tower)
+
   // One low step beside the east end of the south roofs: the only entrance from the street.
   box(-34.5, 0, 15.6, -33.1, 2, 17);
 
