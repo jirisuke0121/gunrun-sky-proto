@@ -1297,7 +1297,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   // room tail. Until the files finish decoding (or if they fail to load) the
   // fully synthesized report is used.
   const SAMPLES = {
-    HG: ['hg1', 'hg2', 'hg3', 'hg4'], SG: ['sg1', 'sg2'],
+    HG: ['hg1', 'hg2'], SG: ['sg1', 'sg2'],
     SMG: ['smg1', 'smg2', 'smg3', 'smg4', 'smg5', 'smg6', 'smg7', 'smg8', 'smg9'], MG: ['mg1', 'mg2', 'mg3', 'mg4'],
   };
   // ?snd=full brings back the previous processing (synthetic sine thump, heavier saturation) for A/B listening.
@@ -1322,7 +1322,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     sampleCtx = ctx;
     for (const [name, ids] of Object.entries(SAMPLES)) {
       for (const id of ids) {
-        fetch(`./assets/sfx/${id}.wav?v=20261024-9`)
+        fetch(`./assets/sfx/${id}.wav?v=20261024-10`)
           .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
           .then((ab) => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
           .then((buf) => { buf.__id = id; (sampleBuf[name] = sampleBuf[name] || []).push(buf); })
@@ -1356,7 +1356,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
         lim.connect(Ut.master); rawLimiter.set(ctx, lim);
       }
       const src = ctx.createBufferSource(), g = ctx.createGain();
-      src.buffer = buf; src.playbackRate.value = rnd(0.985, 1.015); g.gain.value = RAW_GAIN[name] * rnd(0.92, 1.05);
+      src.buffer = buf; src.playbackRate.value = name === 'HG' ? rnd(0.95, 1.05) : rnd(0.985, 1.015); g.gain.value = RAW_GAIN[name] * rnd(0.92, 1.05);
       src.connect(g); g.connect(lim); src.start(when);
       return true;
     }
