@@ -1702,60 +1702,22 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
 }
 
 
-// Dynamic resolution (2026-10-24): when the frame rate stays low (a phone with
-// many zombies and a machine gun going), drop the render resolution one step at a
-// time until it recovers; raise it again slowly once it has been smooth for a
-// while. The player's own "render scale" setting is the ceiling. A stable 30 fps
-// (iOS Low Power Mode caps the browser there) is not treated as "slow".
-// Add ?perf=1 to the URL to show the frame rate and the current scale.
-{
-  const dyn = window.__dynRes = { k: 1, base: null, failedK: 1, failedT: 0, good: 0, avg: 0, fps: 0 };
-  const MIN_K = 0.5, STEP = 0.1;
-  let wrapped = false, last = 0, sum = 0, sum2 = 0, n = 0, winStart = 0, hud = null;
-  const wrap = () => {
-    if (wrapped) return true;
-    const r = window.__game && window.__game.debug && window.__game.debug.renderer;
-    if (!r) return false;
-    const orig = r.setPixelRatio.bind(r);
-    dyn.base = r.getPixelRatio();
-    r.setPixelRatio = (v) => { dyn.base = v; orig(v * dyn.k); };
-    dyn.apply = () => orig(dyn.base * dyn.k);
-    wrapped = true;
-    return true;
-  };
-  if (/[?&]perf=1/.test(location.search)) {
-    hud = document.createElement('div');
-    hud.style.cssText = 'position:fixed;right:8px;bottom:4px;z-index:9;font:600 11px ui-monospace,monospace;color:#fff;background:#0007;padding:2px 6px;border-radius:4px;pointer-events:none';
-    document.body.appendChild(hud);
-  }
+
+// Frame-rate readout (2026-10-24): add ?perf=1 to the URL to show the current fps
+// at the bottom right. Read-only; it changes nothing in the game.
+if (/[?&]perf=1/.test(location.search)) {
+  const hud = document.createElement('div');
+  hud.style.cssText = 'position:fixed;right:8px;bottom:4px;z-index:9;font:600 11px ui-monospace,monospace;color:#fff;background:#0007;padding:2px 6px;border-radius:4px;pointer-events:none';
+  document.body.appendChild(hud);
+  let last = performance.now(), sum = 0, n = 0, worst = 0;
   const tick = (now) => {
     requestAnimationFrame(tick);
-    const dt = Math.min(250, now - last);
-    last = now;
-    if (!wrap()) return;
-    const playing = game.modeRef && game.modeRef() === 'play' && !window.__hold && !document.hidden;
-    if (!playing) { sum = sum2 = n = 0; winStart = now; return; }
-    sum += dt; sum2 += dt * dt; n++;
-    if (now - winStart < 1000) return;
-    const avg = sum / n, sd = Math.sqrt(Math.max(0, sum2 / n - avg * avg));
-    dyn.avg = avg; dyn.fps = 1000 / avg;
-    const capped30 = Math.abs(avg - 33.3) < 3 && sd < 3;
-    if (n >= 3 && avg > 21.5 && !capped30) {
-      if (dyn.k > MIN_K + 1e-6) {
-        dyn.failedK = dyn.k; dyn.failedT = now;
-        dyn.k = Math.max(MIN_K, +(dyn.k - STEP).toFixed(2));
-        dyn.apply();
-      }
-      dyn.good = 0;
-    } else if (avg < 18.5 && dyn.k < 1 - 1e-6) {
-      if (++dyn.good >= 10) {
-        const next = +(dyn.k + STEP).toFixed(2);
-        if (!(next >= dyn.failedK - 1e-6 && now - dyn.failedT < 45000)) { dyn.k = Math.min(1, next); dyn.apply(); }
-        dyn.good = 0;
-      }
-    } else dyn.good = 0;
-    if (hud) hud.textContent = Math.round(dyn.fps) + ' fps · 解像度 ×' + dyn.k.toFixed(1) + ' (' + (dyn.base * dyn.k).toFixed(2) + ')';
-    sum = sum2 = n = 0; winStart = now;
+    const dt = now - last; last = now;
+    sum += dt; n++; worst = Math.max(worst, dt);
+    if (sum >= 1000) {
+      hud.textContent = Math.round(n * 1000 / sum) + ' fps · 最大 ' + Math.round(worst) + ' ms';
+      sum = 0; n = 0; worst = 0;
+    }
   };
   requestAnimationFrame(tick);
 }
