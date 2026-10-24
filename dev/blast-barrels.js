@@ -53,15 +53,15 @@
         const onTop = player.onGround && Math.abs(player.pos.y - 1.12) < 0.16 &&
           Math.abs(player.pos.x - nearby.x) < 0.82 &&
           Math.abs(player.pos.z - nearby.z) < 0.82;
-        hint.textContent = onTop ? '真下の光る円を撃つと爆破ジャンプ！' :
-          '踏み台からドラム缶の上へジャンプ';
+        hint.textContent = onTop ? '画面のドラム缶をタップ / クリックで爆破ジャンプ！' :
+          'ドラム缶をタップ / クリックで爆破（踏み台から上にも乗れる）';
         hint.style.display = 'block';
       } else hint.style.display = 'none';
       requestAnimationFrame(updateGuide);
     };
     requestAnimationFrame(updateGuide);
 
-    let worldRaycast = null;
+    let worldRaycast = game.raycast;
     const shotBlock = (origin, direction, maxDistance, raycast) => {
       worldRaycast = raycast;
       const hit = raycast(origin.x, origin.y, origin.z,
@@ -352,6 +352,41 @@
       stats.blastLaunches = 0;
     }
 
-    window.skyBlastBarrels = { barrels, pickShot, aimedAt, detonate, reset };
+    // The first world collider under the touched pixel must be an active
+    // barrel. This keeps walls and the low step from becoming remote triggers.
+    function tapAt(clientX, clientY, touch = false) {
+      if (game.modeRef() !== 'play' || game.z.over) return false;
+      const canvas = document.getElementById('c');
+      const bounds = canvas.getBoundingClientRect();
+      if (clientX < bounds.left || clientX > bounds.right ||
+          clientY < bounds.top || clientY > bounds.bottom) return false;
+      game.Se.updateMatrixWorld();
+      const samples = touch ? [[0, 0], [14, 0], [-14, 0], [0, 14], [0, -14]] : [[0, 0]];
+      for (const [offsetX, offsetY] of samples) {
+        const x = clientX + offsetX, y = clientY + offsetY;
+        if (x < bounds.left || x > bounds.right ||
+            y < bounds.top || y > bounds.bottom) continue;
+        const point = new Vector3(
+          (x - bounds.left) / bounds.width * 2 - 1,
+          1 - (y - bounds.top) / bounds.height * 2,
+          0.5
+        ).unproject(game.Se);
+        const direction = point.sub(game.Se.position).normalize();
+        const hit = game.raycast(game.Se.position.x, game.Se.position.y,
+          game.Se.position.z, direction.x, direction.y, direction.z, 200);
+        const barrel = barrels.find(item => item.active &&
+          (item.block === hit?.b || item.cap === hit?.b));
+        if (barrel) return detonate(barrel);
+      }
+      return false;
+    }
+
+    document.getElementById('c').addEventListener('mousedown', event => {
+      if (event.button !== 0 || !tapAt(event.clientX, event.clientY)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, true);
+
+    window.skyBlastBarrels = { barrels, pickShot, aimedAt, detonate, reset, tapAt };
   });
 })();
