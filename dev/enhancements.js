@@ -1296,20 +1296,23 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   // recording through the body chain + a pitched low thump + a clean synthetic
   // room tail. Until the files finish decoding (or if they fail to load) the
   // fully synthesized report is used.
+  // Faithful takes: the recordings as they are (1.2 s with the natural room tail), plus short one-shot "heads"
+  // (smgh*, mgh*, about 93 ms) that are used for the next shots of a burst so tails do not pile up.
   const SAMPLES = {
-    HG: ['hg1', 'hg2'], SG: ['sg1', 'sg2'],
-    SMG: ['smg1', 'smg2', 'smg3', 'smg4', 'smg5', 'smg6', 'smg7', 'smg8', 'smg9'], MG: ['mg1', 'mg2', 'mg3', 'mg4'],
+    HG: ['hg1', 'hg2'], SG: ['sg1', 'sg2', 'sg3', 'sg4'],
+    SMG: ['smgh1', 'smgh2', 'smgh3', 'smgh4', 'smgh5', 'smgh6', 'smgh7', 'smgh8', 'smgh9', 'smgl1', 'smgl2'],
+    MG: ['mg1', 'mg2', 'mg3', 'mg4', 'mgh1', 'mgh2', 'mgh3', 'mgh4', 'mgh5', 'mgh6'],
   };
   // ?snd=full brings back the previous processing (synthetic sine thump, heavier saturation) for A/B listening.
-  // Default is "raw": the stereo recording as it is (a cosine fade at the end, a safety limiter, nothing else),
-  // with its natural room tail (up to 0.8 s) kept wherever no strong echo/next shot follows; this keeps the texture of the original files. ?snd=body = the earlier mono + body chain, ?snd=full = heavier.
+  // Default: the stereo recording as it is (1.5 ms fade-in, cosine fade-out, a safety limiter, nothing else), with its
+  // natural room tail; this keeps the texture of the original files (the user preferred it to every processed version). ?snd=body = adds a low shelf and an octave-down layer, ?snd=full = the old heavy chain.
   const SND_MODE = (typeof location !== 'undefined' && (location.search || '').match(/[?&]snd=(\w+)/) || [])[1] || 'raw';
   const SND_FULL = SND_MODE === 'full';
   const SND_DEBUG = typeof location !== 'undefined' && /[?&]snd_debug=1\b/.test(location.search || '');
-  const RAW_GAIN = { HG: 0.9, SG: 1.0, SMG: 0.8, MG: 0.78 };
+  const RAW_GAIN = { HG: 0.6, SG: 0.8, SMG: 0.8, MG: 0.85 };
   // Weight for the raw mode (the library's recordings are high-passed, so they feel shallow): a gentle low shelf
   // plus the same recording an octave down and low-passed, fading out. Linear, no compression or saturation.
-  // ?snd=pure turns this off (the recording exactly as it is).
+  // Only used with ?snd=body.
   const RAW_BODY = { HG: { sub: 0.6, shelf: 2 }, SG: { sub: 0.6, shelf: 2 }, SMG: { sub: 1.5, shelf: 3 }, MG: { sub: 0.7, shelf: 2 } };
   const rawLimiter = new WeakMap();
   // Low end of the natural mode: the recording itself, an octave down and low-passed.
@@ -1322,7 +1325,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   let sampleCtx = null;
   // The files are fetched as soon as this module loads (no audio context needed), so decoding is all that is
   // left once the context exists; otherwise the first shots after starting could fall back to the synthetic sound.
-  const SFX_VER = '20261024-11';
+  const SFX_VER = '20261024-12';
   const sfxBytes = {};
   for (const ids of Object.values(SAMPLES)) {
     for (const id of ids) {
@@ -1339,7 +1342,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       for (const id of ids) {
         sfxBytes[id]
           .then((ab) => (ab ? new Promise((ok, no) => ctx.decodeAudioData(ab.slice(0), ok, no)) : null))
-          .then((buf) => { if (buf) { buf.__id = id; (sampleBuf[name] = sampleBuf[name] || []).push(buf); } })
+          .then((buf) => { if (buf) { buf.__id = id; buf.__head = /^(smg|mg)h\d/.test(id); (sampleBuf[name] = sampleBuf[name] || []).push(buf); } })
           .catch(() => { /* keep the synthesized sound */ });
       }
     }
@@ -1353,16 +1356,22 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     r.push(i); if (r.length > Math.min(2, n - 1)) r.shift();
     return i;
   };
+  const lastShotAt = {};
   const playSample = (ctx, name, when = ctx.currentTime) => {
-    const list = sampleBuf[name];
-    if (!list || !list.length) return false;
-    const buf = list[pickTake(name, list.length)];
+    const all = sampleBuf[name];
+    if (!all || !all.length) return false;
+    // Burst shots (less than 0.2 s after the previous one) use the short heads when the weapon has them.
+    const heads = all.filter((b) => b.__head), longs = all.filter((b) => !b.__head);
+    const gap = when - (lastShotAt[name] === undefined ? -9 : lastShotAt[name]);
+    lastShotAt[name] = when;
+    const list = heads.length && longs.length ? (gap < 0.2 ? heads : longs) : all;
+    const buf = list[pickTake(name + (list === heads ? '/h' : ''), list.length)];
     if (SND_DEBUG) {
       let el = document.getElementById('sndDebug');
       if (!el) { el = document.createElement('div'); el.id = 'sndDebug'; el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;font:700 14px monospace;color:#fff;background:#000a;padding:4px 8px;pointer-events:none'; document.body.appendChild(el); }
       el.textContent = `${name} ${buf.__id}`;
     }
-    if (SND_MODE === 'raw' || SND_MODE === 'pure') {
+    if (SND_MODE === 'raw' || SND_MODE === 'pure' || SND_MODE === 'body') {
       let lim = rawLimiter.get(ctx);
       if (!lim) {
         lim = ctx.createDynamicsCompressor();
@@ -1372,7 +1381,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       const src = ctx.createBufferSource(), g = ctx.createGain();
       const r = name === 'HG' ? rnd(0.95, 1.05) : rnd(0.985, 1.015), gn = RAW_GAIN[name] * rnd(0.92, 1.05);
       src.buffer = buf; src.playbackRate.value = r; g.gain.value = gn;
-      const body = SND_MODE === 'pure' ? null : RAW_BODY[name];
+      const body = SND_MODE === 'body' ? RAW_BODY[name] : null;
       if (body) {
         const sh = ctx.createBiquadFilter(); sh.type = 'lowshelf'; sh.frequency.value = 180; sh.gain.value = body.shelf;
         src.connect(g); g.connect(sh); sh.connect(lim);

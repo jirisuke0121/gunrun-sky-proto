@@ -15,11 +15,9 @@ for f in sorted(glob.glob(d+'/*.wav')):
     flags=[]
     if first>0.01: flags.append('START-CLICK')
     if last>0.003: flags.append('END-CLICK')
-    if late: flags.append('LATE-PULSE')
-    if hf: flags.append('LATE-HF')
-    if abs(db)>1.5: flags.append('LR-IMBAL')
-    if corr<0.3: flags.append('LOW-CORR')
     if np.abs(x).max()>0.95: flags.append('HOT')
+    # Faithful takes keep the recording's own echoes, clacks and stereo image, so these are notes, not errors.
+    notes=[n for n,c in (('late-pulse',late),('late-hf',hf),('lr-imbalance',abs(db)>1.5),('low-corr',corr<0.3)) if c]
     bad+=bool(flags)
-    print(f'{os.path.basename(f)[:-4]:5s} {len(m)/sr*1000:4.0f}ms peak@{pkidx:4.1f}ms first {first:.4f} last {last:.4f} L/R {db:+.1f} corr {corr:.2f} late {late} hf {hf}',flags)
+    print(f'{os.path.basename(f)[:-4]:5s} {len(m)/sr*1000:4.0f}ms peak@{pkidx:4.1f}ms first {first:.4f} last {last:.4f} L/R {db:+.1f} corr {corr:.2f} late {late} hf {hf}',flags,('notes:'+','.join(notes)) if notes else '')
 print('takes with flags:',bad)

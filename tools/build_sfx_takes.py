@@ -1,4 +1,4 @@
-# Rebuilds dev/assets/sfx/*.wav from "The Free Firearm Sound Library" (CC0; the "Prepared SFX Library" folder).
+# FAITHFUL version: rebuilds dev/assets/sfx/*.wav from "The Free Firearm Sound Library" (CC0; the "Prepared SFX Library" folder).
 # Usage: python3 tools/build_sfx_takes.py OUTDIR [LIBRARY_DIR]   then   python3 tools/audit_sfx.py OUTDIR   then copy into dev/assets/sfx.
 # HG=1917/B_24P, SG=Model 12/K_22P, MG=AK-47/C_28P, SMG=Carl Gustav M45/G_35P (heads of a burst). Needs numpy and scipy.
 # Each take starts where the envelope leaves 2% of its peak (not mid-attack), gets a 1.5 ms fade-in, L/R level equalised,
@@ -29,7 +29,8 @@ def onsets(x,sr):
         else: i+=1
     return out
 
-REL=0.2
+
+SECS=1.2   # length of the long takes (natural room tail kept, faded over the last 0.3 s)
 def env(m,sr,ms=0.5):
     h=max(1,int(sr*ms/1000)); return np.sqrt(np.convolve(m**2,np.ones(h)/h,'same'))
 def true_start(m,sr,pk_i):
@@ -37,48 +38,41 @@ def true_start(m,sr,pk_i):
     e=env(m,sr,0.3); pk=e[pk_i]; i=pk_i; lim=pk_i-int(sr*0.02)
     while i>max(lim,1) and e[i]>0.02*pk: i-=1
     return max(0,i-int(sr*0.001))
-def cut_long(m,sr,p,peak,maxs=0.8,mn=0.12):
-    e=env(m,sr,3); run=e[p+int(sr*0.04)]
-    for i in range(p+int(sr*0.04),min(len(m)-1,p+int(sr*maxs))):
-        run=min(run*1.0008+1e-9,e[i])
-        if e[i]>max(run*2.5,REL*peak) and i>p+int(sr*mn): return i-int(sr*0.004)
-    return min(len(m)-1,p+int(sr*maxs))
-def finish(name,seg,sr,fade_out,width,mg_dip=False):
+def finish(name,seg,sr,fade_out):
+    """resample to 44.1 kHz, 1.5 ms fade-in, cosine fade-out, normalise to 0.9. Stereo image and tone are left as recorded."""
     y=resample_poly(seg,SR,sr,axis=0).astype(np.float32)
-    fi=int(SR*0.0015); y[:fi]*=(0.5-0.5*np.cos(np.linspace(0,np.pi,fi)))[:,None]          # 1.5 ms fade-in
+    fi=int(SR*0.0015); y[:fi]*=(0.5-0.5*np.cos(np.linspace(0,np.pi,fi)))[:,None]
     fo=min(len(y),int(SR*fade_out)); y[-fo:]*=(0.5+0.5*np.cos(np.linspace(0,np.pi,fo)))[:,None]
-    n=int(0.08*SR); rl,rr=np.sqrt((y[:n,0]**2).mean()),np.sqrt((y[:n,1]**2).mean()); g=np.sqrt(rl*rr); y[:,0]*=g/rl; y[:,1]*=g/rr
-    m=(y[:,0]+y[:,1])/2; s=(y[:,0]-y[:,1])/2*width; y=np.stack([m+s,m-s],1)
-    if mg_dip:   # AK action "clack" at ~70-110 ms: low-pass that window (<1.5 kHz) with smooth crossfades
-        lp=sosfiltfilt(butter(4,1500,'lp',fs=SR,output='sos'),y,axis=0); a,b=int(.070*SR),int(.110*SR); w=np.zeros(len(y)); 
-        ramp=int(.012*SR); w[a:b]=1; w[a-ramp:a]=np.linspace(0,1,ramp); w[b:b+ramp]=np.linspace(1,0,ramp); y=y*(1-w)[:,None]+lp*w[:,None]
     y*=0.9/np.abs(y).max()
     o=wave.open(f'{OUT}/{name}.wav','wb'); o.setnchannels(2); o.setsampwidth(2); o.setframerate(SR); o.writeframes((y*32767).astype('<i2').tobytes()); o.close(); return len(y)/SR
-def shots(f):
-    x,sr=load2(L+f); m=x.mean(1); out=[]
-    for t,a,pre in onsets(m,sr):
-        if pre>0.02: continue
-        out.append(int(t*sr))
-    return x,m,sr,out
-# HG: B_24P two isolated shots, end 142 ms after the peak
+def isolated(f):
+    x,sr=load2(L+f); m=x.mean(1); return x,m,sr,[int(t*sr) for t,a,pre in onsets(m,sr) if pre<=0.02]
+def burst(f):
+    x,sr=load2(L+f); m=x.mean(1); e=env(m,sr,1); th=0.25*e.max(); ons=[]; i=0
+    while i<len(e):
+        if e[i]>th: p=i+int(e[i:i+int(sr*0.01)].argmax()); ons.append(p); i=p+int(sr*0.04)
+        else: i+=1
+    return x,m,sr,ons
+def long_take(name,x,m,sr,pk,secs=SECS):
+    s=true_start(m,sr,pk); return finish(name,x[s:s+int(sr*secs)],sr,0.3)
+def head_take(name,x,m,sr,ons,k):
+    pk=ons[k]; s=true_start(m,sr,pk); c=min(ons[k+1]-int(sr*0.006),s+int(sr*0.093)) if k+1<len(ons) else s+int(sr*0.093)
+    return finish(name,x[s:c],sr,0.012)
+# HG: Springfield 1917 B_16P (mid distance) -- the file the user compared and preferred; 2 isolated shots, long
+x,m,sr,pks=isolated('1917/B_16P.wav')
+for n,pk in enumerate(pks,1): print('hg',n,'%.2fs'%long_take(f'hg{n}',x,m,sr,pk))
+# SG: Model 12, K_22P (near) + K_17P (mid): 4 long takes
 n=0
-x,m,sr,pk=shots('1917/B_24P.wav')
-for i in pk:
-    n+=1; s=true_start(m,sr,i); print('hg',n,'start %.1f ms before peak'%((i-s)/sr*1000)); finish(f'hg{n}',x[s:i+int(sr*0.142)],sr,0.06,0.25)
-# SG: K_22P two shots, 0.8 s or until a strong echo
-n=0
-x,m,sr,pk=shots('Model 12/K_22P.wav')
-for i in pk:
-    n+=1; s=true_start(m,sr,i); c=cut_long(m,sr,i,float(np.abs(m[i-int(sr*.01):i+int(sr*.01)]).max())); print('sg',n,'start %.1f ms before peak'%((i-s)/sr*1000),'len %.2f'%((c-s)/sr)); finish(f'sg{n}',x[s:c],sr,min(0.12,(c-s)/sr*0.4),0.6)
-# MG: C_28P four shots
-n=0
-x,m,sr,pk=shots('AK-47/C_28P.wav')
-for i in pk:
-    n+=1; s=true_start(m,sr,i); c=cut_long(m,sr,i,float(np.abs(m[i-int(sr*.01):i+int(sr*.01)]).max())); print('mg',n,'start %.1f ms before peak'%((i-s)/sr*1000),'len %.2f'%((c-s)/sr)); finish(f'mg{n}',x[s:c],sr,min(0.12,(c-s)/sr*0.4),0.6,mg_dip=True)
-# SMG: G_35P burst heads
-x,sr=load2(L+'Carl Gustav M45/G_35P.wav'); m=x.mean(1); e=env(m,sr,1); th=0.25*e.max(); ons=[]; i=0
-while i<len(e):
-    if e[i]>th: p=i+int(e[i:i+int(sr*0.01)].argmax()); ons.append(p); i=p+int(sr*0.04)
-    else: i+=1
-for n,k in enumerate([0,2,4,6,9,11,13,15,18],1):
-    pk=ons[k]; s=true_start(m,sr,pk); c=min(ons[k+1]-int(sr*0.006),s+int(sr*0.093)); print('smg',n,'start %.1f ms before peak'%((pk-s)/sr*1000),'len %.0f ms'%((c-s)/sr*1000)); finish(f'smg{n}',x[s:c],sr,0.012,0.6)
+for f in ['Model 12/K_22P.wav','Model 12/K_17P.wav']:
+    x,m,sr,pks=isolated(f)
+    for pk in pks: n+=1; print('sg',n,'%.2fs'%long_take(f'sg{n}',x,m,sr,pk))
+# MG: AK-47 C_28P: 4 long takes; heads from the C_27P long burst (cut before the next shot)
+x,m,sr,pks=isolated('AK-47/C_28P.wav')
+for n,pk in enumerate(pks,1): print('mg',n,'%.2fs'%long_take(f'mg{n}',x,m,sr,pk))
+x,m,sr,ons=burst('AK-47/C_27P.wav')
+for n,k in enumerate([0,2,4,6,8,10],1): print('mgh',n,'%.3fs'%head_take(f'mgh{n}',x,m,sr,ons,k))
+# SMG: Carl Gustav G_35P: heads of the burst; the last shot of each burst keeps its natural tail
+x,m,sr,ons=burst('Carl Gustav M45/G_35P.wav')
+for n,k in enumerate([0,2,4,6,9,11,13,15,18],1): print('smgh',n,'%.3fs'%head_take(f'smgh{n}',x,m,sr,ons,k))
+last=[8,len(ons)-1]
+for n,k in enumerate(last,1): print('smgl',n,'%.2fs'%long_take(f'smgl{n}',x,m,sr,ons[k]))
