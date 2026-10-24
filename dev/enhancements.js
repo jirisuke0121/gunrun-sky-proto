@@ -1301,7 +1301,12 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     SMG: ['smg1', 'smg2', 'smg3', 'smg4', 'smg5', 'smg6', 'smg7', 'smg8', 'smg9'], MG: ['mg1', 'mg2', 'mg3', 'mg4', 'mg5', 'mg6'],
   };
   // ?snd=full brings back the previous processing (synthetic sine thump, heavier saturation) for A/B listening.
-  const SND_FULL = typeof location !== 'undefined' && /[?&]snd=full\b/.test(location.search || '');
+  // Default is "raw": the stereo recording as it is (a cosine fade at the end, a safety limiter, nothing else),
+  // which keeps the texture of the original files. ?snd=body = the earlier mono + body chain, ?snd=full = heavier.
+  const SND_MODE = (typeof location !== 'undefined' && (location.search || '').match(/[?&]snd=(\w+)/) || [])[1] || 'raw';
+  const SND_FULL = SND_MODE === 'full';
+  const RAW_GAIN = { HG: 0.9, SG: 1.0, SMG: 0.85, MG: 0.95 };
+  const rawLimiter = new WeakMap();
   // Low end of the natural mode: the recording itself, an octave down and low-passed.
   const SUB_GAIN = { HG: 0.4, SG: 0.8, SMG: 0.7, MG: 0.4 };
   const SAMPLE_GAIN = { HG: 0.72, SG: 1.25, SMG: 0.55, MG: 1.0 };
@@ -1337,6 +1342,18 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     const list = sampleBuf[name];
     if (!list || !list.length) return false;
     const buf = list[pickTake(name, list.length)];
+    if (SND_MODE === 'raw') {
+      let lim = rawLimiter.get(ctx);
+      if (!lim) {
+        lim = ctx.createDynamicsCompressor();
+        lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.08;
+        lim.connect(Ut.master); rawLimiter.set(ctx, lim);
+      }
+      const src = ctx.createBufferSource(), g = ctx.createGain();
+      src.buffer = buf; src.playbackRate.value = rnd(0.985, 1.015); g.gain.value = RAW_GAIN[name] * rnd(0.92, 1.05);
+      src.connect(g); g.connect(lim); src.start(when);
+      return true;
+    }
     const rate = rnd(0.97, 1.03), gain = SAMPLE_GAIN[name] * 0.9 * rnd(0.88, 1.08);
     playProcessed(ctx, Ut.master, buf, gain, rate, when, ROOM[name]);
     if (SND_FULL) bodyLayer(ctx, name, when, BODY_GAIN[name]);
