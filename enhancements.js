@@ -1721,3 +1721,88 @@ if (/[?&]perf=1/.test(location.search)) {
   };
   requestAnimationFrame(tick);
 }
+
+// Shadow map refresh every other frame (2026-10-24). The shadow pass redraws every
+// shadow caster (about 80% of all draw calls on the canyon map). The static world
+// does not change and zombies move little in 1/60 s, so refreshing the map on
+// alternate frames is not visible but removes about half of that work.
+{
+  let frame = 0, wrapped = false;
+  const tick = () => {
+    requestAnimationFrame(tick);
+    const r = window.__game && window.__game.debug && window.__game.debug.renderer;
+    if (!r) return;
+    if (!wrapped) { r.shadowMap.autoUpdate = false; wrapped = true; }
+    // The game renders once per rAF; flag the next render to refresh on even frames only.
+    r.shadowMap.needsUpdate = (frame++ & 1) === 0;
+  };
+  requestAnimationFrame(tick);
+}
+
+// Static world merge (2026-10-24). The level is built from one mesh per collision
+// box (300-430 of them), each drawn once for the picture and again for the shadow
+// map. Boxes that share a material and sit in the same 32 m cell are merged into
+// one mesh, so the picture and the shadows cost a few dozen draw calls instead of
+// hundreds. Collision data is separate and untouched. Doors (which show/hide),
+// hidden meshes, skinned meshes and anything that updates its own matrix are left
+// alone. ?nomerge=1 turns this off, for comparison.
+{
+  try {
+    if (!/[?&]nomerge=1/.test(location.search)) {
+      const { BufferGeometry, Float32Attribute, Mesh, Vector3: V3 } = game.Geom;
+      const scene = ue;
+      const doors = new Set(game.jn.filter((n) => n.type === 'door' && n.mesh).map((n) => n.mesh));
+      scene.updateMatrixWorld(true);
+      const CELL = 32, buckets = new Map(), victims = [], v = new V3();
+      scene.traverse((o) => {
+        if (!o.isMesh || o.isSkinnedMesh || o.matrixAutoUpdate || !o.visible || doors.has(o)) return;
+        if (o.parent !== scene || Array.isArray(o.material)) return;
+        const g = o.geometry, a = g.attributes;
+        if (!a.position || !a.normal || !a.uv || a.position.isInterleavedBufferAttribute) return;
+        if (!g.boundingBox) g.computeBoundingBox();
+        g.boundingBox.getCenter(v).applyMatrix4(o.matrixWorld);
+        const key = o.material.uuid + '|' + o.castShadow + '|' + o.receiveShadow + '|' + Math.floor(v.x / CELL) + ',' + Math.floor(v.z / CELL);
+        let b = buckets.get(key);
+        if (!b) buckets.set(key, b = { material: o.material, cast: o.castShadow, recv: o.receiveShadow, items: [] });
+        b.items.push(o); victims.push(o);
+      });
+      let made = 0;
+      for (const b of buckets.values()) {
+        if (b.items.length < 2) { b.items.forEach((o) => victims.splice(victims.indexOf(o), 1)); continue; }
+        let nv = 0, ni = 0;
+        for (const o of b.items) { nv += o.geometry.attributes.position.count; ni += o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count; }
+        const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), uv = new Float32Array(nv * 2), idx = new Uint32Array(ni);
+        let vo = 0, io = 0;
+        for (const o of b.items) {
+          const g = o.geometry, m = o.matrixWorld.elements, P = g.attributes.position, N = g.attributes.normal, U = g.attributes.uv;
+          for (let i = 0; i < P.count; i++) {
+            const x = P.getX(i), y = P.getY(i), z = P.getZ(i), nx = N.getX(i), ny = N.getY(i), nz = N.getZ(i);
+            const k = (vo + i) * 3;
+            pos[k] = m[0] * x + m[4] * y + m[8] * z + m[12];
+            pos[k + 1] = m[1] * x + m[5] * y + m[9] * z + m[13];
+            pos[k + 2] = m[2] * x + m[6] * y + m[10] * z + m[14];
+            const tx = m[0] * nx + m[4] * ny + m[8] * nz, ty = m[1] * nx + m[5] * ny + m[9] * nz, tz = m[2] * nx + m[6] * ny + m[10] * nz;
+            const l = Math.hypot(tx, ty, tz) || 1;
+            nor[k] = tx / l; nor[k + 1] = ty / l; nor[k + 2] = tz / l;
+            uv[(vo + i) * 2] = U.getX(i); uv[(vo + i) * 2 + 1] = U.getY(i);
+          }
+          if (g.index) for (let i = 0; i < g.index.count; i++) idx[io++] = g.index.getX(i) + vo;
+          else for (let i = 0; i < P.count; i++) idx[io++] = vo + i;
+          vo += P.count;
+        }
+        const geo = new BufferGeometry();
+        geo.setAttribute('position', new Float32Attribute(pos, 3));
+        geo.setAttribute('normal', new Float32Attribute(nor, 3));
+        geo.setAttribute('uv', new Float32Attribute(uv, 2));
+        geo.setIndex(Array.from(idx));
+        const mesh = new Mesh(geo, b.material);
+        mesh.castShadow = b.cast; mesh.receiveShadow = b.recv; mesh.matrixAutoUpdate = false;
+        mesh.name = 'Merged static world';
+        scene.add(mesh);
+        made++;
+      }
+      for (const o of victims) { o.parent && o.parent.remove(o); o.geometry.dispose(); }
+      window.__staticMerge = { merged: victims.length, meshes: made };
+    }
+  } catch (e) { console.warn('static merge skipped', e); }
+}
