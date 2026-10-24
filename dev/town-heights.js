@@ -2,10 +2,10 @@
 // few points above 10 m, so rooftop running never felt high. This adds three
 // towers on the west side (where the run starts), each with its own way up.
 // No new ziplines (the three original ones are the only ones):
-//   West tower  (15 m): pillar steps (no ladders anywhere).
-//   Plank       (15 m): 0.6 m wide beam from the west tower to the bell tower,
+//   West tower  (14.2 m): a 6-step staircase beside it (no ladders anywhere).
+//   Plank       (14.2 m): 0.6 m wide beam from the west tower to the bell tower,
 //                       over the alley, so the ground is visible below.
-//   Bell tower  (15 m): the start of the sky chain.
+//   Bell tower  (14.2 m): the start of the sky chain.
 //   South tower (11.6 m): grapple anchor above its north edge (fast), two pillar steps
 //                       (slow, zombies use them too).
 // Coordinates are Three.js (x east, y up, z south). Collision boxes are the same
@@ -13,22 +13,29 @@
 window.buildSkyTowers = function ({ ne, Mh, ld, us, mo }) {
   const box = (x0, y0, z0, x1, y1, z1, type = 'slab') => ne(x0, y0, z0, x1, y1, z1, type);
 
-  // Each tower stands on the back half of its roof. A column of 2 m wide pillars next
-  // to it (2.4 m rises) is the slow way up: it costs a mantle per step, so the plank,
-  // the grapple and the sky chain are faster. Pillars are 2 m wide so that zombies
-  // (1 m path grid, mantle up to 3.5 m) can use them as well.
-  const col = (x0, x1, zs, base, rise) => zs.forEach(([z0, z1], i) => box(x0, base, z0, x1, base + rise * (i + 1), z1));
+  // Each tower stands on the back half of its roof, with a staircase beside it: six steps
+  // (1.25 m rises, 1.08 m treads, 1.5 m wide, a 2.5 m landing at the top), so anything going up, people or zombies,
+  // goes up in single file. The plank, the grapple and the sky chain are the fast ways.
+  // The steps are 1 m treads so the zombie path grid (1 m) has a node on every step.
+  const stairs = (x0, x1, base, wide) => {
+    for (let i = 0; i < 6; i++) box(x0, base, -5.5 - 1.083 * (i + 1), i === 5 ? x1 : x0 + wide, base + 1.25 * (i + 1), -5.5 - 1.083 * i);
+  };
+  // Small crate stacks on the roofs: cover, and 1.2 m / 2.4 m hops.
+  const crates = (list) => list.forEach(([x0, z0, x1, z1, h]) => box(x0, 0, z0, x1, h, z1, 'prop'));
 
-  // West tower (15 m) on the 4.2 m building at x -61..-55, z -12..-5.5.
-  box(-58.5, 4.2, -11.5, -55.5, 15, -7.5);
-  col(-61, -58.5, [[-7.5, -5.5], [-9.5, -7.5], [-12, -9.5]], 4.2, 2.5);   // pillars 6.7 / 9.2 / 11.7
+  // West tower (14.2 m) on the 4.2 m building at x -61..-55, z -12..-5.5.
+  box(-58.5, 4.2, -12, -55.5, 14.2, -7.5);
+  stairs(-61, -58.5, 4.2, 1.5);                                                  // up to 11.7 m, then a 2.5 m mantle onto the tower
 
   // Plank across the alley to the bell tower (3.5 m gap, 0.6 m wide, ground visible below).
-  box(-55.5, 14.62, -9.8, -52, 15, -9.2, 'beam');
+  box(-55.5, 13.82, -9.8, -52, 14.2, -9.2, 'beam');
 
-  // Bell tower (15 m) on the 4.4 m building at x -52..-47, z -12..-5.5.
-  box(-52, 4.4, -11.5, -49.5, 15, -7.5);
-  col(-49.5, -47, [[-7.5, -5.5], [-9.5, -7.5], [-12, -9.5]], 4.4, 2.5);     // 6.9 / 9.4 / 11.9
+  // Bell tower (14.2 m) on the 4.4 m building at x -52..-47, z -12..-5.5.
+  box(-52, 4.4, -12, -49.5, 14.2, -7.5);
+  stairs(-49.5, -47, 4.4, 1.5);                                                  // up to 11.9 m
+
+  crates([[-57.5, -7.5, -55.5, -5.5, 5.4], [-57, -7, -55.5, -5.5, 6.6],    // west roof
+          [-52, -7.5, -50, -5.5, 5.6], [-51.5, -7, -50, -5.5, 6.8]]);      // bell roof
 
   // South tower (11.6 m) on the 4.4 m building at x -58..-53.5, z 12..18.
   box(-57.5, 4.4, 12, -54, 11.6, 14);
