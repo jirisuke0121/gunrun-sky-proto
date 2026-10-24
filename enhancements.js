@@ -1703,20 +1703,61 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
 
 
 
-// Frame-rate readout (2026-10-24): add ?perf=1 to the URL to show the current fps
-// at the bottom right. Read-only; it changes nothing in the game.
+// Frame-rate readout (2026-10-24): add ?perf=1 to the URL to show the current fps,
+// the CPU time spent in the draw calls, draw-call and triangle counts, plus switches
+// (left edge) that turn one cost off at a time, to find what is slow on a device.
 if (/[?&]perf=1/.test(location.search)) {
   const hud = document.createElement('div');
-  hud.style.cssText = 'position:fixed;right:8px;bottom:4px;z-index:9;font:600 11px ui-monospace,monospace;color:#fff;background:#0007;padding:2px 6px;border-radius:4px;pointer-events:none';
+  hud.style.cssText = 'position:fixed;right:8px;bottom:4px;z-index:2147483000;font:600 11px ui-monospace,monospace;color:#fff;background:#0007;padding:2px 6px;border-radius:4px;pointer-events:none;white-space:pre';
   document.body.appendChild(hud);
-  let last = performance.now(), sum = 0, n = 0, worst = 0;
+  const flags = { shadow: true, zombie: true, gun: true, fx: true, res: false };
+  const panel = document.createElement('div');
+  panel.style.cssText = 'position:fixed;left:6px;top:38%;z-index:2147483000;display:flex;flex-direction:column;gap:4px';
+  const btns = {};
+  const labels = { shadow: '影', zombie: 'ゾンビ', gun: '手前の銃', fx: '煙・光', res: '低解像度' };
+  for (const k of Object.keys(labels)) {
+    const bt = document.createElement('button');
+    bt.style.cssText = 'font:600 11px sans-serif;color:#fff;background:#0a7a;border:1px solid #fff6;border-radius:4px;padding:3px 6px;min-width:64px;touch-action:manipulation';
+    const paint = () => { bt.textContent = labels[k] + (k === 'res' ? (flags[k] ? ' ON' : ' OFF') : (flags[k] ? ' 表示' : ' 消す')); bt.style.background = (k === 'res' ? flags[k] : !flags[k]) ? '#c33a' : '#0a7a'; };
+    paint();
+    for (const ev of ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'click']) bt.addEventListener(ev, (e) => e.stopPropagation());
+    bt.addEventListener('click', () => {
+      flags[k] = !flags[k]; paint();
+      const g = window.__game, r = g && g.debug && g.debug.renderer;
+      if (k === 'shadow' && r) { for (const o of game.ue.children) if (o.isLight && o.shadow) o.castShadow = flags.shadow; game.ue.traverse((o) => { if (o.material) { const m = Array.isArray(o.material) ? o.material : [o.material]; m.forEach((x) => (x.needsUpdate = true)); } }); }
+      if (k === 'res' && r) { if (!r.__pr0) r.__pr0 = r.getPixelRatio(); r.setPixelRatio(flags.res ? r.__pr0 * 0.5 : r.__pr0); }
+    });
+    btns[k] = bt; panel.appendChild(bt);
+  }
+  document.body.appendChild(panel);
+  let last = performance.now(), sum = 0, n = 0, worst = 0, cpu = 0, calls = 0, tris = 0, wrapped = false;
   const tick = (now) => {
     requestAnimationFrame(tick);
+    const g = window.__game, r = g && g.debug && g.debug.renderer;
+    if (r && !wrapped) {
+      wrapped = true;
+      const orig = r.render.bind(r);
+      r.render = (scene, cam) => {
+        if (scene === game.fo && !flags.gun) return;
+        const hidden = [];
+        if (scene === game.ue && (!flags.zombie || !flags.fx)) {
+          scene.traverse((o) => {
+            if (!o.visible) return;
+            if ((!flags.zombie && o.isSkinnedMesh) || (!flags.fx && (o.isPoints || o.isSprite || o.isLine))) { o.visible = false; hidden.push(o); }
+          });
+        }
+        const t0 = performance.now();
+        orig(scene, cam);
+        cpu += performance.now() - t0;
+        calls += r.info.render.calls; tris += r.info.render.triangles;
+        for (const o of hidden) o.visible = true;
+      };
+    }
     const dt = now - last; last = now;
     sum += dt; n++; worst = Math.max(worst, dt);
     if (sum >= 1000) {
-      hud.textContent = Math.round(n * 1000 / sum) + ' fps · 最大 ' + Math.round(worst) + ' ms';
-      sum = 0; n = 0; worst = 0;
+      hud.textContent = Math.round(n * 1000 / sum) + ' fps · 最大 ' + Math.round(worst) + ' ms\nCPU描画 ' + (cpu / n).toFixed(1) + ' ms · 命令 ' + Math.round(calls / n) + ' · ' + Math.round(tris / n / 1000) + 'k tri';
+      sum = 0; n = 0; worst = 0; cpu = 0; calls = 0; tris = 0;
     }
   };
   requestAnimationFrame(tick);
