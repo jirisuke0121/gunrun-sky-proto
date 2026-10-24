@@ -1238,11 +1238,51 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     if (spec.rev > 0) { const s = ctx.createGain(); s.gain.value = spec.rev; bus.comp.connect(s); s.connect(bus.conv); }
     if (spec.slap > 0) { const s = ctx.createGain(); s.gain.value = spec.slap; bus.comp.connect(s); s.connect(bus.slap); }
   };
+  // Recorded shots: four weapons, two takes each, cut from "The Free Firearm
+  // Sound Library" (CC0, no credit required; Walther PPQ, Winchester Model 12,
+  // Carl Gustav M45, AK-47). About 0.5 MB in total. Until they finish decoding
+  // (or if they fail to load) the synthesized report above is used.
+  const SAMPLES = { HG: ['hg1', 'hg2'], SG: ['sg1', 'sg2'], SMG: ['smg1', 'smg2'], MG: ['mg1', 'mg2'] };
+  const SAMPLE_GAIN = { HG: 0.95, SG: 1.0, SMG: 0.75, MG: 0.85 };
+  const sampleBuf = {}, lastPick = {};
+  window.__gunSamples = sampleBuf;
+  let sampleCtx = null;
+  const loadSamples = () => {
+    const ctx = Ut.ctx;
+    if (!ctx || sampleCtx === ctx) return;
+    sampleCtx = ctx;
+    for (const [name, ids] of Object.entries(SAMPLES)) {
+      for (const id of ids) {
+        fetch(`./assets/sfx/${id}.wav`)
+          .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+          .then((ab) => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
+          .then((buf) => { (sampleBuf[name] = sampleBuf[name] || []).push(buf); })
+          .catch(() => { /* keep the synthesized sound */ });
+      }
+    }
+  };
+  const playSample = (ctx, name) => {
+    const list = sampleBuf[name];
+    if (!list || !list.length) return false;
+    let i = Math.floor(Math.random() * list.length);
+    if (list.length > 1 && i === lastPick[name]) i = (i + 1) % list.length;
+    lastPick[name] = i;
+    const src = ctx.createBufferSource(), g = ctx.createGain();
+    src.buffer = list[i];
+    src.playbackRate.value = rnd(0.96, 1.04);
+    g.gain.value = SAMPLE_GAIN[name] * rnd(0.92, 1.05);
+    src.connect(g); g.connect(Ut.master);
+    src.start();
+    clink(ctx, Ut.master, name, ctx.currentTime);
+    return true;
+  };
   Tt.hg = () => {
     const name = wpc().n;
     const st = window.__skyAudio;
     if (st) st.shots[name] = (st.shots[name] || 0) + 1;
-    if (Ut.ctx && Ut.master) gunVoice(Ut.ctx, Ut.master, name);
+    if (!Ut.ctx || !Ut.master) return;
+    loadSamples();
+    if (!playSample(Ut.ctx, name)) gunVoice(Ut.ctx, Ut.master, name);
   };
   // Body hit: a dull thud. Head hit adds a bright "ping" on top of it.
   let lastHitSound = 0;
@@ -1501,6 +1541,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     requestAnimationFrame(fxTick);
     const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000);
     last = now;
+    if (Ut.ctx) loadSamples(); // start fetching the recordings as soon as audio is unlocked
     if (window.__hold) return; // paused with the game
     fxStep(dt);
   };

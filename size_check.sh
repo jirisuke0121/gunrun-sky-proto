@@ -8,8 +8,8 @@ check() {
   label="$1"; dir="$2"
   [ -f "$dir/index.html" ] || return
   raw=$(( $(stat -c%s "$dir/index.html") + $(stat -c%s "$dir/enhancements.js") + $(du -sb "$dir/assets" | cut -f1) ))
-  gz=$( (cat "$dir/index.html" "$dir/enhancements.js" "$dir"/assets/*) | gzip -9 | wc -c)
-  files=$(( 2 + $(ls "$dir/assets" | wc -l) ))
+  gz=$( (cat "$dir/index.html" "$dir/enhancements.js"; find "$dir/assets" -type f -exec cat {} +) | gzip -9 | wc -c)
+  files=$(( 2 + $(find "$dir/assets" -type f | wc -l) ))
   echo "■ $label ($dir)"
   echo "  合計 $(mb $raw) MB（圧縮後の目安 $(mb $gz) MB）／ ファイル数 $files"
   echo "  内訳: index.html $(mb $(stat -c%s "$dir/index.html")) MB / enhancements.js $(mb $(stat -c%s "$dir/enhancements.js")) MB / assets $(mb $(du -sb "$dir/assets" | cut -f1)) MB"
