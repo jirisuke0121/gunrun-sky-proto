@@ -1138,7 +1138,9 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   };
   const busCache = new WeakMap();
   const getBus = (ctx, out) => {
-    let bus = busCache.get(ctx);
+    let byOut = busCache.get(ctx);
+    if (!byOut) { byOut = new Map(); busCache.set(ctx, byOut); }
+    let bus = byOut.get(out);
     if (bus) return bus;
     const input = ctx.createGain();
     input.gain.value = 0.6;
@@ -1170,7 +1172,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     const slapLp = ctx.createBiquadFilter(); slapLp.type = 'lowpass'; slapLp.frequency.value = 2600;
     slap.connect(slapLp); slapLp.connect(out);
     bus = { input, comp: makeup, conv, slap };
-    busCache.set(ctx, bus);
+    byOut.set(out, bus);
     return bus;
   };
   // [gain, startHz, endHz, seconds, Q, filterType] for noise layers,
@@ -1207,10 +1209,10 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     }
   };
   // Plays one report on `ctx` into `out`. Pitch and level change every shot.
-  const gunVoice = (ctx, out, name, when = ctx.currentTime) => {
+  const gunVoice = (ctx, out, name, when = ctx.currentTime, lvl = 1, lowOnly = false) => {
     const spec = REPORT[name] || REPORT.HG;
     const bus = getBus(ctx, out), white = getWhite(ctx);
-    const t = when, j = rnd(0.92, 1.08), gv = rnd(0.9, 1.1);
+    const t = when, j = rnd(0.92, 1.08), gv = rnd(0.9, 1.1) * lvl;
     const noise = (g, f0, f1, d, q, type) => {
       const src = ctx.createBufferSource(), flt = ctx.createBiquadFilter(), amp = ctx.createGain();
       src.buffer = white;
@@ -1223,8 +1225,8 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       src.connect(flt); flt.connect(amp); amp.connect(bus.input);
       src.start(t, Math.random() * 0.8); src.stop(t + d + 0.02);
     };
-    noise(spec.click, 2500, 2500, 0.006, 0.7, 'highpass');
-    for (const n of spec.noise) noise(...n);
+    if (!lowOnly) noise(spec.click, 2500, 2500, 0.006, 0.7, 'highpass');
+    for (const n of (lowOnly ? spec.noise.slice(1) : spec.noise)) noise(...n);
     for (const [g, f0, f1, d] of spec.thump) {
       const osc = ctx.createOscillator(), amp = ctx.createGain();
       osc.frequency.setValueAtTime(f0 * j, t);
@@ -1234,16 +1236,88 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       osc.connect(amp); amp.connect(bus.input);
       osc.start(t); osc.stop(t + d + 0.02);
     }
-    clink(ctx, out, name, t);
+    if (!lowOnly) clink(ctx, out, name, t);
     if (spec.rev > 0) { const s = ctx.createGain(); s.gain.value = spec.rev; bus.comp.connect(s); s.connect(bus.conv); }
     if (spec.slap > 0) { const s = ctx.createGain(); s.gain.value = spec.slap; bus.comp.connect(s); s.connect(bus.slap); }
   };
+  // Recorded shots go through a small "body" chain: low shelf for weight,
+  // soft saturation for harmonics, then a fast compressor so the tail and
+  // low end come up (a raw recording peaks hard and sounds thin by comparison).
+  const procCache = new WeakMap();
+  const getProc = (ctx, out) => {
+    let p = procCache.get(ctx);
+    if (p) return p;
+    if (!out) throw new Error('getProc needs the output node on first use');
+    const input = ctx.createGain();
+    const shelf = ctx.createBiquadFilter(); shelf.type = 'lowshelf'; shelf.frequency.value = 180; shelf.gain.value = 7;
+    const mid = ctx.createBiquadFilter(); mid.type = 'peaking'; mid.frequency.value = 450; mid.Q.value = 0.8; mid.gain.value = 2;
+    const sat = ctx.createWaveShaper();
+    const cv = new Float32Array(1024);
+    for (let i = 0; i < cv.length; i++) { const x = (i / 511.5) - 1; cv[i] = Math.tanh(1.8 * x) / Math.tanh(1.8); }
+    sat.curve = cv;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -30; comp.knee.value = 6; comp.ratio.value = 10; comp.attack.value = 0.001; comp.release.value = 0.16;
+    const makeup = ctx.createGain(); makeup.gain.value = 1.9;
+    // Everything (sample, body layers, synth boom) meets in `mix`, then a limiter keeps the sum from clipping.
+    const mix = ctx.createGain();
+    const limit = ctx.createDynamicsCompressor();
+    limit.threshold.value = -7; limit.knee.value = 2; limit.ratio.value = 20; limit.attack.value = 0.001; limit.release.value = 0.12;
+    input.connect(shelf); shelf.connect(mid); mid.connect(sat); sat.connect(comp); comp.connect(makeup); makeup.connect(mix);
+    const trim = ctx.createGain(); trim.gain.value = 0.7;
+    mix.connect(limit); limit.connect(trim); trim.connect(out);
+    p = { input, mix };
+    procCache.set(ctx, p);
+    return p;
+  };
+  const playProcessed = (ctx, out, buf, gain, rate, when) => {
+    const p = getProc(ctx, out);
+    const src = ctx.createBufferSource(), g = ctx.createGain();
+    src.buffer = buf; src.playbackRate.value = rate; g.gain.value = gain;
+    src.connect(g); g.connect(p.input);
+    src.start(when);
+  };
+
+  // Low "body" layer: the library's recordings are high-passed (almost nothing
+  // under 300 Hz), so the weight of the shot comes from this pitched thump.
+  // It starts at 100-300 Hz (phone speakers can't play much lower) and is
+  // saturated so its harmonics carry the weight on small speakers too.
+  const BODY = {
+    HG: [[0.85, 230, 85, 0.16]],
+    SG: [[1.0, 140, 50, 0.38], [0.5, 280, 110, 0.2]],
+    SMG: [[0.7, 260, 105, 0.13]],
+    MG: [[0.9, 190, 75, 0.2]],
+  };
+  let bodySat = new WeakMap();
+  const bodyLayer = (ctx, name, when, k) => {
+    const p = getProc(ctx, Ut.master);
+    let sat = bodySat.get(ctx);
+    if (!sat) {
+      sat = ctx.createWaveShaper();
+      const cv = new Float32Array(1024);
+      for (let i = 0; i < cv.length; i++) { const x = (i / 511.5) - 1; cv[i] = Math.tanh(2.6 * x) / Math.tanh(2.6); }
+      sat.curve = cv; sat.connect(p.mix); bodySat.set(ctx, sat);
+    }
+    const j = rnd(0.94, 1.06);
+    for (const [g, f0, f1, d] of (BODY[name] || BODY.HG)) {
+      const osc = ctx.createOscillator(), amp = ctx.createGain();
+      osc.frequency.setValueAtTime(f0 * j, when);
+      osc.frequency.exponentialRampToValueAtTime(f1 * j, when + d);
+      amp.gain.setValueAtTime(g * k, when);
+      amp.gain.exponentialRampToValueAtTime(1e-4, when + d);
+      osc.connect(amp); amp.connect(sat);
+      osc.start(when); osc.stop(when + d + 0.02);
+    }
+  };
+
   // Recorded shots: four weapons, two takes each, cut from "The Free Firearm
   // Sound Library" (CC0, no credit required; Walther PPQ, Winchester Model 12,
-  // Carl Gustav M45, AK-47). About 0.5 MB in total. Until they finish decoding
-  // (or if they fail to load) the synthesized report above is used.
+  // Carl Gustav M45, AK-47), about 0.5 MB in total. Each shot = the recording
+  // through the body chain + a pitched low thump + a little of the synthesized
+  // boom. Until the files finish decoding (or if they fail to load) the
+  // synthesized report is used on its own.
   const SAMPLES = { HG: ['hg1', 'hg2'], SG: ['sg1', 'sg2'], SMG: ['smg1', 'smg2'], MG: ['mg1', 'mg2'] };
-  const SAMPLE_GAIN = { HG: 0.95, SG: 1.0, SMG: 0.75, MG: 0.85 };
+  const SAMPLE_GAIN = { HG: 0.95, SG: 1.0, SMG: 0.55, MG: 0.85 };
+  const BODY_GAIN = { HG: 4.0, SG: 2.4, SMG: 5.0, MG: 4.2 };
   const sampleBuf = {}, lastPick = {};
   window.__gunSamples = sampleBuf;
   let sampleCtx = null;
@@ -1261,19 +1335,17 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       }
     }
   };
-  const playSample = (ctx, name) => {
+  const playSample = (ctx, name, when = ctx.currentTime) => {
     const list = sampleBuf[name];
     if (!list || !list.length) return false;
     let i = Math.floor(Math.random() * list.length);
     if (list.length > 1 && i === lastPick[name]) i = (i + 1) % list.length;
     lastPick[name] = i;
-    const src = ctx.createBufferSource(), g = ctx.createGain();
-    src.buffer = list[i];
-    src.playbackRate.value = rnd(0.96, 1.04);
-    g.gain.value = SAMPLE_GAIN[name] * rnd(0.92, 1.05);
-    src.connect(g); g.connect(Ut.master);
-    src.start();
-    clink(ctx, Ut.master, name, ctx.currentTime);
+    const p = getProc(ctx, Ut.master);
+    playProcessed(ctx, Ut.master, list[i], SAMPLE_GAIN[name] * 0.55 * rnd(0.92, 1.05), rnd(0.96, 1.04), when);
+    bodyLayer(ctx, name, when, BODY_GAIN[name]);
+    gunVoice(ctx, p.mix, name, when, 0.5, true);
+    clink(ctx, Ut.master, name, when);
     return true;
   };
   Tt.hg = () => {
