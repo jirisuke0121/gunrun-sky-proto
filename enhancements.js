@@ -1111,3 +1111,566 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(unzoom, 200); });
   window.__zoomGuard = { unzoom, scale: () => (vv ? vv.scale : 1) };
 }
+
+// Gun feel (2026-10-24): layered gunshots with pitch jitter and a short tail,
+// separate body / head / kill feedback, moving tracers, ejected brass, muzzle
+// smoke and a small screen kick for SG and MG. The base game calls
+// window.__gunFx.shot / .hit from its fire routine. All sound is synthesized
+// and all meshes are pooled, so this adds no download weight.
+{
+  const { Ut, Tt, ni, Mn, wpc, c, Se, ue, Geom } = game;
+  const { Box, Sphere, Mesh, Basic, Vector3: V3 } = Geom;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+
+  // ---- Sound ------------------------------------------------------------
+  // The game's shared noise buffer (Ut.noise) is low-passed (about 115 Hz
+  // corner), so it cannot make a crack. Gunshots use their own white noise.
+  const whiteCache = new WeakMap();
+  const getWhite = (ctx) => {
+    let b = whiteCache.get(ctx);
+    if (!b) {
+      b = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 1.2), ctx.sampleRate);
+      const d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      whiteCache.set(ctx, b);
+    }
+    return b;
+  };
+  const busCache = new WeakMap();
+  const getBus = (ctx, out) => {
+    let byOut = busCache.get(ctx);
+    if (!byOut) { byOut = new Map(); busCache.set(ctx, byOut); }
+    let bus = byOut.get(out);
+    if (bus) return bus;
+    const input = ctx.createGain();
+    input.gain.value = 0.6;
+    const shaper = ctx.createWaveShaper();
+    const curve = new Float32Array(1024);
+    for (let i = 0; i < curve.length; i++) { const x = (i / 511.5) - 1; curve[i] = Math.tanh(2.4 * x) / Math.tanh(2.4); }
+    shaper.curve = curve;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -22; comp.knee.value = 8; comp.ratio.value = 6;
+    comp.attack.value = 0.002; comp.release.value = 0.09;
+    const makeup = ctx.createGain(); makeup.gain.value = 1.45;
+    input.connect(shaper); shaper.connect(comp); comp.connect(makeup); makeup.connect(out);
+    // Room tail: a darkened, decaying noise impulse.
+    const len = Math.floor(ctx.sampleRate * 0.5);
+    const ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = ir.getChannelData(ch);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
+    }
+    const conv = ctx.createConvolver(); conv.buffer = ir;
+    const dark = ctx.createBiquadFilter(); dark.type = 'lowpass'; dark.frequency.value = 2600;
+    conv.connect(dark); dark.connect(out);
+    // Slapback echo off a distant wall.
+    const slap = ctx.createDelay(0.5); slap.delayTime.value = 0.09;
+    const slapLp = ctx.createBiquadFilter(); slapLp.type = 'lowpass'; slapLp.frequency.value = 2600;
+    slap.connect(slapLp); slapLp.connect(out);
+    bus = { input, comp: makeup, conv, slap };
+    byOut.set(out, bus);
+    return bus;
+  };
+  // [gain, startHz, endHz, seconds, Q, filterType] for noise layers,
+  // [gain, startHz, endHz, seconds] for the low thump.
+  const REPORT = {
+    HG: { rev: 0.28, slap: 0.2, click: 0.9,
+      noise: [[0.8, 3800, 1400, 0.09, 1.2, 'bandpass'], [0.6, 4500, 600, 0.16, 0.8, 'lowpass']],
+      thump: [[0.6, 170, 60, 0.12]] },
+    SG: { rev: 0.45, slap: 0.3, click: 0.8,
+      noise: [[0.8, 2400, 700, 0.14, 0.9, 'bandpass'], [1.0, 3000, 250, 0.38, 0.7, 'lowpass']],
+      thump: [[1.0, 110, 35, 0.35]] },
+    SMG: { rev: 0.08, slap: 0, click: 1.0,
+      noise: [[0.7, 5200, 2200, 0.05, 1.4, 'bandpass'], [0.45, 5500, 900, 0.08, 0.8, 'lowpass']],
+      thump: [[0.35, 240, 110, 0.06]] },
+    MG: { rev: 0.14, slap: 0.1, click: 0.9,
+      noise: [[0.8, 3200, 1100, 0.1, 1.0, 'bandpass'], [0.8, 4000, 400, 0.22, 0.8, 'lowpass']],
+      thump: [[0.85, 140, 45, 0.2]] },
+  };
+  // Plays one report on `ctx` into `out`. Pitch and level change every shot.
+  const gunVoice = (ctx, out, name, when = ctx.currentTime, lvl = 1, lowOnly = false) => {
+    const spec = REPORT[name] || REPORT.HG;
+    const bus = getBus(ctx, out), white = getWhite(ctx);
+    const t = when, j = rnd(0.92, 1.08), gv = rnd(0.9, 1.1) * lvl;
+    const noise = (g, f0, f1, d, q, type) => {
+      const src = ctx.createBufferSource(), flt = ctx.createBiquadFilter(), amp = ctx.createGain();
+      src.buffer = white;
+      flt.type = type; flt.Q.value = q;
+      const lj = j * rnd(0.9, 1.1);
+      flt.frequency.setValueAtTime(f0 * lj, t);
+      flt.frequency.exponentialRampToValueAtTime(Math.max(40, f1 * lj), t + d * rnd(0.9, 1.15));
+      amp.gain.setValueAtTime(g * gv, t);
+      amp.gain.exponentialRampToValueAtTime(1e-4, t + d);
+      src.connect(flt); flt.connect(amp); amp.connect(bus.input);
+      src.start(t, Math.random() * 0.8); src.stop(t + d + 0.02);
+    };
+    if (!lowOnly) noise(spec.click, 2500, 2500, 0.006, 0.7, 'highpass');
+    for (const n of (lowOnly ? spec.noise.slice(1) : spec.noise)) noise(...n);
+    for (const [g, f0, f1, d] of spec.thump) {
+      const osc = ctx.createOscillator(), amp = ctx.createGain();
+      osc.frequency.setValueAtTime(f0 * j, t);
+      osc.frequency.exponentialRampToValueAtTime(f1 * j, t + d);
+      amp.gain.setValueAtTime(g * gv, t);
+      amp.gain.exponentialRampToValueAtTime(1e-4, t + d);
+      osc.connect(amp); amp.connect(bus.input);
+      osc.start(t); osc.stop(t + d + 0.02);
+    }
+    if (spec.rev > 0) { const s = ctx.createGain(); s.gain.value = spec.rev; bus.comp.connect(s); s.connect(bus.conv); }
+    if (spec.slap > 0) { const s = ctx.createGain(); s.gain.value = spec.slap; bus.comp.connect(s); s.connect(bus.slap); }
+  };
+  // Recorded shots go through a small "body" chain: low shelf for weight,
+  // soft saturation for harmonics, then a fast compressor so the tail and
+  // low end come up (a raw recording peaks hard and sounds thin by comparison).
+  const procCache = new WeakMap();
+  const getProc = (ctx, out) => {
+    let p = procCache.get(ctx);
+    if (p) return p;
+    if (!out) throw new Error('getProc needs the output node on first use');
+    const input = ctx.createGain();
+    const shelf = ctx.createBiquadFilter(); shelf.type = 'lowshelf'; shelf.frequency.value = 180; shelf.gain.value = 2.5;
+    const mid = ctx.createBiquadFilter(); mid.type = 'peaking'; mid.frequency.value = 450; mid.Q.value = 0.8; mid.gain.value = 0;
+    const sat = ctx.createWaveShaper();
+    const cv = new Float32Array(1024);
+    for (let i = 0; i < cv.length; i++) { const x = (i / 511.5) - 1; cv[i] = Math.tanh(1.25 * x) / Math.tanh(1.25); }
+    sat.curve = cv;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -20; comp.knee.value = 10; comp.ratio.value = 3; comp.attack.value = 0.001; comp.release.value = 0.16;
+    const makeup = ctx.createGain(); makeup.gain.value = 1.3;
+    // Everything (sample, body layers, synth boom) meets in `mix`, then a limiter keeps the sum from clipping.
+    const mix = ctx.createGain();
+    const limit = ctx.createDynamicsCompressor();
+    limit.threshold.value = -7; limit.knee.value = 2; limit.ratio.value = 20; limit.attack.value = 0.001; limit.release.value = 0.12;
+    input.connect(shelf); shelf.connect(mid); mid.connect(sat); sat.connect(comp); comp.connect(makeup); makeup.connect(mix);
+    const trim = ctx.createGain(); trim.gain.value = 0.9;
+    mix.connect(limit); limit.connect(trim); trim.connect(out);
+    p = { input, mix };
+    procCache.set(ctx, p);
+    return p;
+  };
+  const playProcessed = (ctx, out, buf, gain, rate, when, rev = 0) => {
+    const p = getProc(ctx, out);
+    const src = ctx.createBufferSource(), g = ctx.createGain();
+    src.buffer = buf; src.playbackRate.value = rate; g.gain.value = gain;
+    src.connect(g); g.connect(p.input);
+    if (rev > 0) { const send = ctx.createGain(); send.gain.value = rev; g.connect(send); send.connect(getBus(ctx, p.mix).conv); }
+    src.start(when);
+  };
+
+  // Low "body" layer: the library's recordings are high-passed (almost nothing
+  // under 300 Hz), so the weight of the shot comes from this pitched thump.
+  // It starts at 100-300 Hz (phone speakers can't play much lower) and is
+  // saturated so its harmonics carry the weight on small speakers too.
+  const BODY = {
+    HG: [[0.85, 230, 85, 0.16]],
+    SG: [[1.0, 140, 50, 0.38], [0.5, 280, 110, 0.2]],
+    SMG: [[0.7, 260, 105, 0.13]],
+    MG: [[0.9, 190, 75, 0.2]],
+  };
+  let bodySat = new WeakMap();
+  const bodyLayer = (ctx, name, when, k) => {
+    const p = getProc(ctx, Ut.master);
+    let sat = bodySat.get(ctx);
+    if (!sat) {
+      sat = ctx.createWaveShaper();
+      const cv = new Float32Array(1024);
+      for (let i = 0; i < cv.length; i++) { const x = (i / 511.5) - 1; cv[i] = Math.tanh(2.6 * x) / Math.tanh(2.6); }
+      sat.curve = cv; sat.connect(p.mix); bodySat.set(ctx, sat);
+    }
+    const j = rnd(0.94, 1.06);
+    for (const [g, f0, f1, d] of (BODY[name] || BODY.HG)) {
+      const osc = ctx.createOscillator(), amp = ctx.createGain();
+      osc.frequency.setValueAtTime(f0 * j, when);
+      osc.frequency.exponentialRampToValueAtTime(f1 * j, when + d);
+      amp.gain.setValueAtTime(g * k, when);
+      amp.gain.exponentialRampToValueAtTime(1e-4, when + d);
+      osc.connect(amp); amp.connect(sat);
+      osc.start(when); osc.stop(when + d + 0.02);
+    }
+  };
+
+  // Recorded shots: four weapons, two takes each, cut from "The Free Firearm
+  // Sound Library" (CC0, no credit required; Walther PPQ, Winchester Model 12,
+  // Carl Gustav M45, AK-47), about 0.1 MB in total. The recordings are cut
+  // dry, just before the range echo that follows every shot (0.07-0.16 s), so
+  // no stray reflections or handling noise are heard. Each shot = the dry
+  // recording through the body chain + a pitched low thump + a clean synthetic
+  // room tail. Until the files finish decoding (or if they fail to load) the
+  // fully synthesized report is used.
+  // Faithful takes: the recordings as they are (1.2 s with the natural room tail), plus short one-shot "heads"
+  // (smgh*, mgh*, about 93 ms) that are used for the next shots of a burst so tails do not pile up.
+  const SAMPLES = {
+    HG: ['hg1', 'hg2'], SG: ['sg1', 'sg2', 'sg3', 'sg4'],
+    SMG: ['smgh1', 'smgh2', 'smgh3', 'smgh4', 'smgh5', 'smgh6', 'smgh7', 'smgh8', 'smgh9', 'smgl1', 'smgl2'],
+    MG: ['mg1', 'mg2', 'mg3', 'mg4', 'mgh1', 'mgh2', 'mgh3', 'mgh4', 'mgh5', 'mgh6'],
+  };
+  // ?snd=full brings back the previous processing (synthetic sine thump, heavier saturation) for A/B listening.
+  // Default: the stereo recording as it is (1.5 ms fade-in, cosine fade-out, a safety limiter, nothing else), with its
+  // natural room tail; this keeps the texture of the original files (the user preferred it to every processed version). ?snd=body = adds a low shelf and an octave-down layer, ?snd=full = the old heavy chain.
+  const SND_MODE = (typeof location !== 'undefined' && (location.search || '').match(/[?&]snd=(\w+)/) || [])[1] || 'raw';
+  const SND_FULL = SND_MODE === 'full';
+  const SND_DEBUG = typeof location !== 'undefined' && /[?&]snd_debug=1\b/.test(location.search || '');
+  const RAW_GAIN = { HG: 0.6, SG: 0.8, SMG: 0.8, MG: 0.85 };
+  // Weight for the raw mode (the library's recordings are high-passed, so they feel shallow): a gentle low shelf
+  // plus the same recording an octave down and low-passed, fading out. Linear, no compression or saturation.
+  // Only used with ?snd=body.
+  const RAW_BODY = { HG: { sub: 0.6, shelf: 2 }, SG: { sub: 0.6, shelf: 2 }, SMG: { sub: 1.5, shelf: 3 }, MG: { sub: 0.7, shelf: 2 } };
+  const rawLimiter = new WeakMap();
+  // Low end of the natural mode: the recording itself, an octave down and low-passed.
+  const SUB_GAIN = { HG: 0.4, SG: 0.8, SMG: 0.7, MG: 0.4 };
+  const SAMPLE_GAIN = { HG: 0.72, SG: 1.25, SMG: 0.55, MG: 1.0 };
+  const BODY_GAIN = { HG: 0.32, SG: 0.09, SMG: 0.3, MG: 0.25 };
+  const ROOM = { HG: 0.3, SG: 0.42, SMG: 0.18, MG: 0.24 };
+  const sampleBuf = {}, lastPick = {};
+  window.__gunSamples = sampleBuf;
+  let sampleCtx = null;
+  // The files are fetched as soon as this module loads (no audio context needed), so decoding is all that is
+  // left once the context exists; otherwise the first shots after starting could fall back to the synthetic sound.
+  const SFX_VER = '20261024-12';
+  const sfxBytes = {};
+  for (const ids of Object.values(SAMPLES)) {
+    for (const id of ids) {
+      sfxBytes[id] = fetch(`./assets/sfx/${id}.wav?v=${SFX_VER}`)
+        .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+        .catch(() => null);
+    }
+  }
+  const loadSamples = () => {
+    const ctx = Ut.ctx;
+    if (!ctx || sampleCtx === ctx) return;
+    sampleCtx = ctx;
+    for (const [name, ids] of Object.entries(SAMPLES)) {
+      for (const id of ids) {
+        sfxBytes[id]
+          .then((ab) => (ab ? new Promise((ok, no) => ctx.decodeAudioData(ab.slice(0), ok, no)) : null))
+          .then((buf) => { if (buf) { buf.__id = id; buf.__head = /^(smg|mg)h\d/.test(id); (sampleBuf[name] = sampleBuf[name] || []).push(buf); } })
+          .catch(() => { /* keep the synthesized sound */ });
+      }
+    }
+  };
+  // Take picker: never the same take twice in a row, and not the one before that either.
+  const recent = {};
+  const pickTake = (name, n) => {
+    const r = recent[name] || (recent[name] = []);
+    let i, guard = 0;
+    do { i = Math.floor(Math.random() * n); } while (n > 2 && r.includes(i) && ++guard < 12);
+    r.push(i); if (r.length > Math.min(2, n - 1)) r.shift();
+    return i;
+  };
+  const lastShotAt = {};
+  const playSample = (ctx, name, when = ctx.currentTime) => {
+    const all = sampleBuf[name];
+    if (!all || !all.length) return false;
+    // Burst shots (less than 0.2 s after the previous one) use the short heads when the weapon has them.
+    const heads = all.filter((b) => b.__head), longs = all.filter((b) => !b.__head);
+    const gap = when - (lastShotAt[name] === undefined ? -9 : lastShotAt[name]);
+    lastShotAt[name] = when;
+    const list = heads.length && longs.length ? (gap < 0.2 ? heads : longs) : all;
+    const buf = list[pickTake(name + (list === heads ? '/h' : ''), list.length)];
+    if (SND_DEBUG) {
+      let el = document.getElementById('sndDebug');
+      if (!el) { el = document.createElement('div'); el.id = 'sndDebug'; el.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;font:700 14px monospace;color:#fff;background:#000a;padding:4px 8px;pointer-events:none'; document.body.appendChild(el); }
+      el.textContent = `${name} ${buf.__id}`;
+    }
+    if (SND_MODE === 'raw' || SND_MODE === 'pure' || SND_MODE === 'body') {
+      let lim = rawLimiter.get(ctx);
+      if (!lim) {
+        lim = ctx.createDynamicsCompressor();
+        lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.08;
+        lim.connect(Ut.master); rawLimiter.set(ctx, lim);
+      }
+      const src = ctx.createBufferSource(), g = ctx.createGain();
+      const r = name === 'HG' ? rnd(0.95, 1.05) : rnd(0.985, 1.015), gn = RAW_GAIN[name] * rnd(0.92, 1.05);
+      src.buffer = buf; src.playbackRate.value = r; g.gain.value = gn;
+      const body = SND_MODE === 'body' ? RAW_BODY[name] : null;
+      if (body) {
+        const sh = ctx.createBiquadFilter(); sh.type = 'lowshelf'; sh.frequency.value = 180; sh.gain.value = body.shelf;
+        src.connect(g); g.connect(sh); sh.connect(lim);
+        const s2 = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), g2 = ctx.createGain();
+        s2.buffer = buf; s2.playbackRate.value = r * 0.5;
+        lp.type = 'lowpass'; lp.frequency.value = 450; lp.Q.value = 0.6;
+        g2.gain.setValueAtTime(gn * body.sub, when);
+        g2.gain.exponentialRampToValueAtTime(1e-3, when + Math.min(buf.duration * 2, 0.5));
+        s2.connect(lp); lp.connect(g2); g2.connect(lim);
+        s2.start(when); s2.stop(when + Math.min(buf.duration * 2, 0.5) + 0.05);
+      } else { src.connect(g); g.connect(lim); }
+      src.start(when);
+      return true;
+    }
+    const rate = rnd(0.97, 1.03), gain = SAMPLE_GAIN[name] * 0.9 * rnd(0.88, 1.08);
+    playProcessed(ctx, Ut.master, buf, gain, rate, when, ROOM[name]);
+    if (SND_FULL) bodyLayer(ctx, name, when, BODY_GAIN[name]);
+    else {
+      const p = getProc(ctx, Ut.master);
+      const src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+      src.buffer = buf; src.playbackRate.value = rate * 0.5;
+      lp.type = 'lowpass'; lp.frequency.value = 520; lp.Q.value = 0.6;
+      g.gain.setValueAtTime(gain * SUB_GAIN[name], when);
+      g.gain.exponentialRampToValueAtTime(1e-3, when + buf.duration * 2.0);
+      src.connect(lp); lp.connect(g); g.connect(p.mix);
+      src.start(when);
+    }
+    return true;
+  };
+  Tt.hg = () => {
+    const name = wpc().n;
+    const st = window.__skyAudio;
+    if (st) st.shots[name] = (st.shots[name] || 0) + 1;
+    if (!Ut.ctx || !Ut.master) return;
+    loadSamples();
+    if (!playSample(Ut.ctx, name)) gunVoice(Ut.ctx, Ut.master, name);
+  };
+  // Body hit: a dull thud. Head hit adds a bright "ping" on top of it.
+  let lastHitSound = 0;
+  Tt.hit = () => {
+    const now = performance.now();
+    if (now - lastHitSound < 35) return; // shotgun pellets hit several zombies at once
+    lastHitSound = now;
+    ni(0.34, rnd(135, 165), 0.09);
+    Mn(0.3, 700, 0.8, 0.06);
+  };
+  // Headshot cue: a short low "thock" on top of the body thud (the old high bell "kin" is gone).
+  const ping = () => {
+    if (!Ut.ctx || !Ut.master) return;
+    ni(0.42, rnd(88, 100), 0.12);
+  };
+
+  // ---- Pools ------------------------------------------------------------
+  // Sizes below are scaled by distance: a 7 cm cube 15 m away is about 2 px on
+  // a phone, so near-constant screen size is what makes the effects readable.
+  const mkPool = (n, geo, mat) => {
+    const a = [];
+    for (let i = 0; i < n; i++) {
+      const m = new Mesh(geo, mat);
+      m.visible = false; m.frustumCulled = false;
+      ue.add(m);
+      a.push({ m, t: 0, life: 0 });
+    }
+    return a;
+  };
+  const take = (pool) => pool.find((p) => p.life <= 0) || pool.reduce((a, b) => (a.t > b.t ? a : b));
+
+  const boltGeo = new Box(1, 1, 1);
+  // Normal blending: the old additive pale streak vanished against the bright sand.
+  const boltMat = new Basic({ color: 0xff7a10 });
+  const bolts = mkPool(14, boltGeo, boltMat).map((p) => Object.assign(p, { s: new V3(), e: new V3(), d: 0, T: 0, lf: 0, w: 0.05 }));
+
+  const shellGeo = new Box(1, 1, 1);
+  const brassMat = new Basic({ color: 0xe0a830 });
+  const redMat = new Basic({ color: 0xd03030 });
+  const shells = mkPool(16, shellGeo, brassMat).map((p) => Object.assign(p, { v: new V3(), spin: new V3() }));
+
+  const smokeGeo = new Sphere(1, 8, 6);
+  const smokeMat = new Basic({ color: 0xb8b8b8, transparent: true, opacity: 0.3, depthWrite: false });
+  const puffs = mkPool(10, smokeGeo, smokeMat).map((p) => Object.assign(p, { v: new V3() }));
+
+  const goreGeo = new Box(1, 1, 1);
+  const bloodMat = new Basic({ color: 0x9a1010 });
+  const bloodHotMat = new Basic({ color: 0xe01818 });
+  const gore = mkPool(140, goreGeo, bloodMat).map((p) => Object.assign(p, { v: new V3(), size: 0.1 }));
+
+  const popGeo = new Sphere(1, 8, 6);
+  const popMat = new Basic({ color: 0xfff0b0 });
+  const popHeadMat = new Basic({ color: 0xff5030 });
+  const pops = mkPool(8, popGeo, popMat).map((p) => Object.assign(p, { size: 0.2 }));
+
+  // The muzzle flash material is additive too; make it a solid warm yellow.
+  try {
+    const grp = game.vd.children.find((o) => o.children && o.children.length === 3 &&
+      o.children[0].material && o.children[0].material.blending === 2);
+    if (grp) {
+      const m = grp.children[0].material;
+      m.blending = 1; m.color.setHex(0xffe070); m.opacity = 0.9; m.needsUpdate = true;
+    }
+  } catch (e) { /* cosmetic only */ }
+  const style = document.createElement('style');
+  style.textContent = '.hitm.big{width:40px;height:40px;margin:-20px}';
+  document.head.appendChild(style);
+  const hitmEl = document.getElementById('hitm');
+
+  // Hit flash: the struck zombie glows red for 0.1 s. Materials are cloned per
+  // zombie on first hit so other zombies sharing the skin don't flash too.
+  const flashing = [];
+  const flashZombie = (zom) => {
+    try {
+      const root = zom.m && zom.m.root;
+      if (!root) return;
+      if (!zom._fxMats) {
+        zom._fxMats = [];
+        root.traverse((o) => {
+          if (!o.isMesh || !o.material) return;
+          const list = [].concat(o.material);
+          if (!list.every((m) => m.emissive && m.clone)) return;
+          const cloned = list.map((m) => m.clone());
+          o.material = Array.isArray(o.material) ? cloned : cloned[0];
+          for (const m of cloned) { m.userData._e = m.emissive.getHex(); zom._fxMats.push(m); }
+        });
+      }
+      for (const m of zom._fxMats) { m.emissive.setHex(0xff3a1a); m.emissiveIntensity = 1.4; }
+      zom._fxFlash = 0.1;
+      if (!flashing.includes(zom)) flashing.push(zom);
+    } catch (e) { /* cosmetic only */ }
+  };
+
+  // ---- Emitters ---------------------------------------------------------
+  const fwd = new V3(), right = new V3(), up = new V3(), back = new V3(), tmp = new V3();
+  const basis = () => {
+    right.set(1, 0, 0).applyQuaternion(Se.quaternion);
+    up.set(0, 1, 0).applyQuaternion(Se.quaternion);
+    back.set(0, 0, 1).applyQuaternion(Se.quaternion);
+  };
+  const bolt = (from, to, w) => {
+    const p = take(bolts);
+    p.s.copy(from); p.e.copy(to);
+    p.d = p.s.distanceTo(p.e);
+    if (p.d < 0.3) return;
+    p.T = Math.max(0.07, p.d / 200);
+    p.lf = Math.min(1, 5 / p.d);
+    p.w = w;
+    p.t = 0; p.life = 1;
+  };
+  const eject = (name) => {
+    const p = take(shells);
+    const big = name === 'SG';
+    p.m.material = big ? redMat : brassMat;
+    p.m.scale.set(big ? 0.04 : 0.024, big ? 0.04 : 0.024, big ? 0.09 : 0.06);
+    p.m.position.copy(fwd).addScaledVector(back, 0.1).addScaledVector(right, 0.02).addScaledVector(up, 0.03);
+    // Carry the player's own velocity so a running player doesn't leave the brass behind at once.
+    p.v.set(c.vel.x * 0.85, c.vel.y * 0.5, c.vel.z * 0.85)
+      .addScaledVector(right, rnd(0.9, 1.5))
+      .addScaledVector(up, rnd(1.2, 1.9))
+      .addScaledVector(back, rnd(0.1, 0.4));
+    p.spin.set(rnd(-18, 18), rnd(-18, 18), rnd(-18, 18));
+    p.m.visible = true; p.t = 0; p.life = 0.8;
+  };
+  let puffCount = 0;
+  const puff = (name) => {
+    if ((name === 'SMG' || name === 'MG') && (puffCount++ % 4)) return;
+    const p = take(puffs);
+    p.m.position.copy(fwd).addScaledVector(back, -0.12);
+    p.v.set(c.vel.x * 0.6, c.vel.y * 0.3, c.vel.z * 0.6).addScaledVector(back, -0.5).addScaledVector(up, 0.7)
+      .addScaledVector(right, rnd(-0.15, 0.15));
+    p.m.scale.setScalar(0.04);
+    p.m.visible = true; p.t = 0; p.life = 0.6;
+  };
+  const spray = (pt, dir, n, mat, speed, size) => {
+    for (let i = 0; i < n; i++) {
+      const p = take(gore);
+      p.m.material = mat;
+      p.m.position.copy(pt);
+      p.size = size * rnd(0.6, 1.4);
+      p.m.scale.set(p.size, p.size, p.size * rnd(1, 2.2));
+      p.v.set(rnd(-1.5, 1.5), rnd(0.8, 2.8), rnd(-1.5, 1.5)).addScaledVector(dir, rnd(0.4, 1) * speed);
+      p.m.visible = true; p.t = 0; p.life = rnd(0.5, 0.85);
+    }
+  };
+  const pop = (pt, dist, head, killed) => {
+    const p = take(pops);
+    p.m.material = head ? popHeadMat : popMat;
+    p.m.position.copy(pt);
+    p.size = Math.max(killed ? 0.3 : 0.18, dist * (killed ? 0.03 : 0.02));
+    p.m.scale.setScalar(p.size * 0.4);
+    p.m.visible = true; p.t = 0; p.life = 0.1;
+  };
+
+  window.__gunFx = {
+    shot(muzzle, end, w, dir) {
+      basis();
+      fwd.copy(muzzle);
+      const name = w.n;
+      if (w.cone) {
+        for (let i = 0; i < 4; i++) {
+          tmp.copy(dir).add(new V3(rnd(-0.22, 0.22), rnd(-0.22, 0.22), rnd(-0.22, 0.22))).normalize();
+          const e2 = new V3().copy(muzzle).addScaledVector(tmp, rnd(5.5, 8.5));
+          bolt(muzzle, e2, 0.05);
+        }
+        c.shake = Math.max(c.shake || 0, 0.55);
+      } else {
+        bolt(muzzle, end, name === 'SMG' ? 0.045 : 0.06);
+        if (name === 'MG') c.shake = Math.max(c.shake || 0, 0.3);
+      }
+      eject(name);
+      puff(name);
+    },
+    hit(head, pt, zom, dir) {
+      const killed = !!zom.dead;
+      const dist = pt.distanceTo(Se.position);
+      const n = killed ? (head ? 32 : 22) : (head ? 16 : 8);
+      spray(pt, dir, n, head ? bloodHotMat : bloodMat, killed ? 5 : 3.4,
+        Math.max(killed ? 0.09 : 0.07, dist * (killed ? 0.013 : 0.009)));
+      pop(pt, dist, head, killed);
+      flashZombie(zom);
+      if (hitmEl) hitmEl.classList.toggle('big', killed);
+      if (head) {
+        ping();
+        if (killed) window.__stopT = 0.05; // brief hit-stop on a manual headshot kill
+      }
+    },
+    step: null,
+  };
+
+  // ---- Per-frame update -------------------------------------------------
+  const fxStep = (dt) => {
+    for (const p of bolts) {
+      if (p.life <= 0) { p.m.visible = false; continue; }
+      p.t += dt;
+      const pr = p.t / p.T;
+      if (pr >= 1 + p.lf) { p.life = 0; p.m.visible = false; continue; }
+      const head = p.d * Math.min(1, pr), tail = p.d * Math.max(0, pr - p.lf);
+      tmp.copy(p.e).sub(p.s).normalize();
+      p.m.position.copy(p.s).addScaledVector(tmp, (head + tail) * 0.5);
+      const w = Math.max(p.w, 0.02 * p.m.position.distanceTo(Se.position));
+      p.m.scale.set(w, w, Math.max(0.05, head - tail));
+      p.m.lookAt(p.e);
+      p.m.visible = true;
+    }
+    for (const p of shells) {
+      if (p.life <= 0) continue;
+      p.t += dt;
+      if (p.t >= p.life) { p.life = 0; p.m.visible = false; continue; }
+      p.v.y -= 9.8 * dt;
+      p.m.position.addScaledVector(p.v, dt);
+      p.m.rotation.x += p.spin.x * dt; p.m.rotation.y += p.spin.y * dt; p.m.rotation.z += p.spin.z * dt;
+    }
+    for (const p of puffs) {
+      if (p.life <= 0) continue;
+      p.t += dt;
+      const k = p.t / p.life;
+      if (k >= 1) { p.life = 0; p.m.visible = false; continue; }
+      p.m.position.addScaledVector(p.v, dt);
+      p.v.multiplyScalar(Math.exp(-dt * 2.5));
+      p.m.scale.setScalar(0.04 + 0.13 * k);
+    }
+    for (const p of gore) {
+      if (p.life <= 0) continue;
+      p.t += dt;
+      if (p.t >= p.life) { p.life = 0; p.m.visible = false; continue; }
+      p.v.y -= 12 * dt;
+      p.m.position.addScaledVector(p.v, dt);
+    }
+    for (const p of pops) {
+      if (p.life <= 0) continue;
+      p.t += dt;
+      if (p.t >= p.life) { p.life = 0; p.m.visible = false; continue; }
+      p.m.scale.setScalar(p.size * (0.4 + 0.6 * (p.t / p.life)));
+    }
+    for (let i = flashing.length - 1; i >= 0; i--) {
+      const zom = flashing[i];
+      zom._fxFlash -= dt;
+      if (zom._fxFlash <= 0) {
+        for (const m of zom._fxMats) { m.emissive.setHex(m.userData._e || 0); m.emissiveIntensity = 1; }
+        flashing.splice(i, 1);
+      }
+    }
+  };
+  window.__gunFx.step = fxStep;
+  let last = performance.now();
+  const fxTick = () => {
+    requestAnimationFrame(fxTick);
+    const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (Ut.ctx) loadSamples(); // start fetching the recordings as soon as audio is unlocked
+    if (window.__hold) return; // paused with the game
+    fxStep(dt);
+  };
+  requestAnimationFrame(fxTick);
+}
