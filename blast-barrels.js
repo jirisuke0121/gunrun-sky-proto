@@ -70,14 +70,70 @@
       requestAnimationFrame(tick);
     }
 
+    const blastRate = 44100;
+    let blastSamples = null, blastSound = null;
+    function prepareBlastSound() {
+      if (blastSamples) return;
+      const rate = blastRate;
+      const length = Math.ceil(rate * 1.05);
+      const data = new Float32Array(length);
+      let seed = 73129, low = 0, previous = 0, phase = 0;
+      let crackEnv = 1, rumbleEnv = 1, bassEnv = 1, debrisEnv = 1, pitchEnv = 1;
+      const crackStep = Math.exp(-75 / rate);
+      const rumbleStep = Math.exp(-4.7 / rate);
+      const bassStep = Math.exp(-5.2 / rate);
+      const debrisStep = Math.exp(-6 / rate);
+      const pitchStep = Math.exp(-5 / rate);
+      const random = () => ((seed = (1664525 * seed + 1013904223) >>> 0) / 0x80000000) - 1;
+      for (let i = 0; i < length; i++) {
+        const noise = random();
+        low += (noise - low) * 0.035;
+        const crack = (noise - previous) * crackEnv * 0.34;
+        const rumble = low * rumbleEnv * 1.9;
+        phase += 2 * Math.PI * (42 + 95 * pitchEnv) / rate;
+        const bass = Math.sin(phase) * bassEnv * 0.34;
+        const debris = noise * debrisEnv * 0.06;
+        data[i] = Math.tanh((crack + rumble + bass + debris) * 1.45) * 0.82;
+        previous = noise;
+        crackEnv *= crackStep;
+        rumbleEnv *= rumbleStep;
+        bassEnv *= bassStep;
+        debrisEnv *= debrisStep;
+        pitchEnv *= pitchStep;
+      }
+      blastSamples = data;
+    }
+    if (window.requestIdleCallback) window.requestIdleCallback(prepareBlastSound, { timeout: 1000 });
+    else setTimeout(prepareBlastSound, 0);
+
+    function playBlastSound(barrel) {
+      const distance = Math.hypot(game.c.pos.x - barrel.x, game.c.pos.z - barrel.z);
+      const volume = Math.max(0.18, 1 - distance / 28);
+      const { ctx, master } = game.Ut;
+      if (!ctx || !master) return;
+      if (ctx.state === 'suspended') ctx.resume();
+      if (!blastSamples) prepareBlastSound();
+      if (!blastSound) {
+        blastSound = ctx.createBuffer(1, blastSamples.length, blastRate);
+        blastSound.copyToChannel(blastSamples, 0);
+      }
+      const source = ctx.createBufferSource();
+      const gain = ctx.createGain();
+      source.buffer = blastSound;
+      gain.gain.value = volume * 0.8;
+      source.connect(gain);
+      gain.connect(master);
+      source.onended = () => { source.disconnect(); gain.disconnect(); };
+      source.start();
+    }
+
     function detonate(barrel) {
       if (!barrel?.active) return false;
       barrel.active = false;
       barrel.block.off = true;
       if (barrel.block.mesh) barrel.block.mesh.visible = false;
       game.c.shake = Math.max(game.c.shake || 0, 0.38);
-      game.Mn(0.65, 300, 0.8, 0.3);
-      game.ni(0.45, 110, 0.28);
+      playBlastSound(barrel);
       stats.blasts = (stats.blasts || 0) + 1;
       flash(barrel);
 
@@ -91,6 +147,9 @@
         const horizontal = Math.hypot(dx, dz) || 1;
         zombie.hurt(distance < 2.6 ? 4 : 2, dx / horizontal, dz / horizontal,
                     1.25, 9 * (1 - distance / 7));
+        zombie.blastT = 0.72;
+        zombie.blastSide = Math.cos(zombie.yaw) * dx - Math.sin(zombie.yaw) * dz < 0 ? -1 : 1;
+        zombie.vel.y = Math.max(zombie.vel.y, 2.7 + 1.8 * (1 - distance / 5.2));
       }
 
       const player = game.c;
