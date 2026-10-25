@@ -1956,24 +1956,10 @@ if (/[?&]perf=1/.test(location.search)) {
   } catch (e) { console.warn('static merge skipped', e); }
 }
 
-// ---- 2026-10-25: HG限定・ゾンビの見失い無効・ランキング ----
+// ---- 2026-10-25: 全武器を公開・ゾンビの見失い無効・ランキング ----
 {
-  const params = new URLSearchParams(location.search);
-
-  // 1) 武器はHGのみ。SG・SMG・MGのコードは残してあり、URLに ?allweapons=1 を付けると選べる。
-  if (!params.has('allweapons')) {
-    Object.defineProperty(U, 'weapon', { get: () => 0, set: () => {}, enumerable: true, configurable: true });
-    const selector = document.getElementById('wpSel');
-    if (selector) selector.style.display = 'none';
-    const slider = document.getElementById('s_weapon');
-    if (slider && slider.parentElement) slider.parentElement.style.display = 'none';
-    const weaponLine = [...document.querySelectorAll('#ovStart .rules .keys li')]
-      .find((item) => item.textContent.includes('から武器を選べる'));
-    if (weaponLine) weaponLine.innerHTML = '<kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填（武器はHG）';
-    window.__wpSync?.();
-  }
-
-  // 2) ゾンビの見失い・足音/銃声で気づく処理は重いので常にオフ。撒き点は経路コストで数える（index.html の shk2）。
+  // 武器12種はURLフラグなしでホーム画面から選べる。
+  // 1) ゾンビの見失い・足音/銃声で気づく処理は重いので常にオフ。撒き点は経路コストで数える（index.html の shk2）。
   Object.defineProperty(U, 'loseSight', { get: () => 0, set: () => {}, enumerable: true, configurable: true });
   for (const key of ['loseSight', 'hearR', 'senseT', 'gunHearR']) {
     const input = document.getElementById('s_' + key);
