@@ -89,7 +89,7 @@ export function createEasyWeaponPort(game) {
         hits += +hitEnemy({ z: enemy, point: new Vector3(enemy.pos.x, enemy.pos.y + 1.1, enemy.pos.z) }, w.dmg * falloff, direction, knock * falloff, stats, z.t, particles, hitFeedback);
       }
       const explosionSoundPlayed = markBlast(point, w, hits, direction);
-      particles(point.x, point.y, point.z, 24, 'dust', 4, 0.6);
+      // The Unity-style burst owns its dust layer; the older burst obscured it.
       if (!explosionSoundPlayed) game.Tt.bang(2);
     } else if (hit) hitEnemy(hit, w.dmg, direction, knock, stats, z.t, particles, hitFeedback);
     else particles(point.x, point.y, point.z, 6, 'dust', 2.2, 0.35);
