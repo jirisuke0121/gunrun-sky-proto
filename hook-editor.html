@@ -15,7 +15,7 @@
   <main>
     <canvas id="map" aria-label="回転と拡大ができる旧市街の立体図"></canvas>
     <div class="mapbar"><button id="add" class="active">＋ 置く</button><button id="testPoint">◎ 試射地点</button><button id="focusPoint">◎ ここへ寄る</button><button id="fit">全体表示</button><button id="topView">真上</button><button id="obliqueView">斜め</button><button id="zoomIn">＋</button><button id="zoomOut">−</button></div>
-    <div class="mapnote">左ドラッグで視点を回転、右ドラッグで平行移動、ホイールでその場所へ接近。「ここへ寄る」で場所をクリック。足場をクリックして配置、番号をドラッグして移動。</div>
+    <div class="mapnote">左ドラッグで上下左右に360度回転、右ドラッグで平行移動。ホイールでズームし続けられます。「ここへ寄る」で場所をクリック。足場をクリックして配置、番号をドラッグして移動。</div>
   </main>
   <aside>
     <section class="panel"><h2>配置</h2><p id="loadState">旧市街の地形を読み込み中…</p><div class="row"><button id="save">このブラウザに保存</button><button id="reset">初期配置に戻す</button></div><p>保存すると、このブラウザで開く旧市街のゲームにも反映されます。他の人の配置は変わりません。</p></section>
@@ -26,6 +26,6 @@
   </aside>
 </div>
 <iframe id="source" src="./index.html?hook_editor=1" title="旧市街の地形データ"></iframe>
-<script type="module" src="./hook-editor.js?v=20261025-orbit-v1"></script>
+<script type="module" src="./hook-editor.js?v=20261025-free-orbit-v2"></script>
 </body>
 </html>

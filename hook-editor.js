@@ -2,11 +2,14 @@
 // model is needed: the editor and the game use the same solids and hook list.
 const $ = (id) => document.getElementById(id);
 const canvas = $('map'), ctx = canvas.getContext('2d'), iframe = $('source');
-const FOV = Math.PI / 3, NEAR = 0.2;
+const FOV = Math.PI / 3;
 let game, api, internals, solids = [], layout = [], defaults = [], selected = -1;
 let tool = 'add', dirty = false, drag = null, hover = null, booted = false;
 let launch = {x: -42, y: 0, z: 8};
 const camera = {target: {x: 0, y: 4, z: 0}, distance: 180, yaw: Math.PI / 4, pitch: 0.67};
+// Keep the clipping plane proportional to the view distance so close-up views
+// remain visible without imposing a fixed zoom stop.
+const nearClip = () => Math.max(1e-7, camera.distance * 1e-4);
 
 function status(message, bad = false) {
   $('status').textContent = message;
@@ -36,7 +39,7 @@ const dot = (a,b) => a.x*b.x+a.y*b.y+a.z*b.z;
 function project(x,y,z,b=basis()) {
   const relative = {x:x-b.eye.x,y:y-b.eye.y,z:z-b.eye.z};
   const depth = dot(relative,b.forward);
-  if (depth <= NEAR) return null;
+  if (depth <= nearClip()) return null;
   return {
     x:canvas.clientWidth/2+dot(relative,b.right)*b.focal/depth,
     y:canvas.clientHeight/2-dot(relative,b.up)*b.focal/depth,
@@ -61,7 +64,8 @@ function boxDistance(origin,dir,b) {
     near=Math.max(near,a);far=Math.min(far,c);
     if (near>far) return null;
   }
-  return near>NEAR?near:far>NEAR?far:null;
+  const clip=nearClip();
+  return near>clip?near:far>clip?far:null;
 }
 function pick(sx,sy) {
   const {origin,dir}=ray(sx,sy);
@@ -71,20 +75,28 @@ function pick(sx,sy) {
     if (distance!==null&&distance<best) {best=distance;solid=b;}
   }
   if (!solid) {
+    if (Math.abs(dir.y)<1e-10) return null;
     const t=(0-origin.y)/dir.y;
-    if (t<=NEAR) return null;
+    if (!Number.isFinite(t)||t<=nearClip()) return null;
     best=t;
   }
   return {x:origin.x+dir.x*best,y:origin.y+dir.y*best,z:origin.z+dir.z*best,solid};
 }
-function planeHit(sx,sy,height) {
-  const {origin,dir}=ray(sx,sy),t=(height-origin.y)/dir.y;
-  return t>NEAR?{x:origin.x+dir.x*t,y:height,z:origin.z+dir.z*t}:null;
-}
-function polygon(points,fill,stroke) {
-  if (points.some(p=>!p)) return;
-  ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
-  for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
+function polygon(points,b,fill,stroke) {
+  // Clip faces against the near plane instead of dropping an entire building
+  // face when a close camera crosses one of its corners.
+  const clip=nearClip();
+  const vertices=points.map(p=>{const relative={x:p.x-b.eye.x,y:p.y-b.eye.y,z:p.z-b.eye.z};return{x:dot(relative,b.right),y:dot(relative,b.up),depth:dot(relative,b.forward)};});
+  const visible=[];
+  for(let i=0;i<vertices.length;i++){
+    const a=vertices[(i+vertices.length-1)%vertices.length],c=vertices[i];
+    const ain=a.depth>=clip,cin=c.depth>=clip;
+    if(ain!==cin){const t=(clip-a.depth)/(c.depth-a.depth);visible.push({x:a.x+(c.x-a.x)*t,y:a.y+(c.y-a.y)*t,depth:clip});}
+    if(cin)visible.push(c);
+  }
+  if(visible.length<3)return;
+  ctx.beginPath();ctx.moveTo(canvas.clientWidth/2+visible[0].x*b.focal/visible[0].depth,canvas.clientHeight/2-visible[0].y*b.focal/visible[0].depth);
+  for(let i=1;i<visible.length;i++)ctx.lineTo(canvas.clientWidth/2+visible[i].x*b.focal/visible[i].depth,canvas.clientHeight/2-visible[i].y*b.focal/visible[i].depth);
   ctx.closePath();ctx.fillStyle=fill;ctx.fill();
   if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}
 }
@@ -101,14 +113,15 @@ function drawLine(a,b,color='#66818a44') {
 }
 function drawBox(box,b) {
   const {minX:x0,maxX:x1,minY,maxY:y1,minZ:z0,maxZ:z1}=box;
-  const y0=Math.max(-2,minY),c=color(box),p=(x,y,z)=>project(x,y,z,b);
-  // Draw the two side faces looking toward the camera, followed by the roof.
+  const y0=Math.max(-2,minY),c=color(box),p=(x,y,z)=>({x,y,z});
+  // Draw the two side faces looking toward the camera, then the roof or underside.
   const xNear=b.eye.x>(x0+x1)/2?x1:x0, zNear=b.eye.z>(z0+z1)/2?z1:z0;
   if (y1-y0>.04) {
-    polygon([p(xNear,y1,z0),p(xNear,y1,z1),p(xNear,y0,z1),p(xNear,y0,z0)],shade(c,xNear===x1?.62:.7),'#14202880');
-    polygon([p(x0,y1,zNear),p(x1,y1,zNear),p(x1,y0,zNear),p(x0,y0,zNear)],shade(c,zNear===z1?.77:.67),'#14202880');
+    polygon([p(xNear,y1,z0),p(xNear,y1,z1),p(xNear,y0,z1),p(xNear,y0,z0)],b,shade(c,xNear===x1?.62:.7),'#14202880');
+    polygon([p(x0,y1,zNear),p(x1,y1,zNear),p(x1,y0,zNear),p(x0,y0,zNear)],b,shade(c,zNear===z1?.77:.67),'#14202880');
   }
-  if (b.eye.y>y1) polygon([p(x0,y1,z0),p(x1,y1,z0),p(x1,y1,z1),p(x0,y1,z1)],c,'#142028aa');
+  if (b.eye.y>y1) polygon([p(x0,y1,z0),p(x1,y1,z0),p(x1,y1,z1),p(x0,y1,z1)],b,c,'#142028aa');
+  if (b.eye.y<y0) polygon([p(x0,y0,z0),p(x1,y0,z0),p(x1,y0,z1),p(x0,y0,z1)],b,shade(c,.5),'#142028aa');
 }
 function draw() {
   const w=canvas.clientWidth,h=canvas.clientHeight;
@@ -138,7 +151,22 @@ function fit(){const items=visibleSolids();if(!items.length)return;
   draw();
 }
 function focus(point){camera.target={x:point.x,y:point.y,z:point.z};camera.distance=Math.min(camera.distance,38);draw();}
-function zoom(ratio,sx=canvas.clientWidth/2,sy=canvas.clientHeight/2){const before=pick(sx,sy);camera.distance=Math.max(8,Math.min(400,camera.distance*ratio));const after=before&&planeHit(sx,sy,before.y);if(before&&after){camera.target.x+=before.x-after.x;camera.target.z+=before.z-after.z;}draw();}
+function zoom(ratio,sx=canvas.clientWidth/2,sy=canvas.clientHeight/2){
+  const before=pick(sx,sy),next=camera.distance*ratio;
+  if(!Number.isFinite(next)||next<=1e-7)return;
+  camera.distance=next;
+  if(before){
+    // Hold the picked point beneath the cursor at every camera angle.
+    const b=basis(),{origin,dir}=ray(sx,sy,b);
+    const distance=dot({x:before.x-origin.x,y:before.y-origin.y,z:before.z-origin.z},b.forward)/dot(dir,b.forward);
+    if(Number.isFinite(distance)&&distance>nearClip()){
+      camera.target.x+=before.x-(origin.x+dir.x*distance);
+      camera.target.y+=before.y-(origin.y+dir.y*distance);
+      camera.target.z+=before.z-(origin.z+dir.z*distance);
+    }
+  }
+  draw();
+}
 function hitMarker(x,y){let best=-1,depth=Infinity;layout.forEach((q,i)=>{const p=project(...q);if(p&&Math.hypot(x-p.x,y-p.y)<15&&p.depth<depth){best=i;depth=p.depth;}});return best;}
 function pointFromEvent(e){const b=canvas.getBoundingClientRect();return{x:e.clientX-b.left,y:e.clientY-b.top};}
 function setTool(value){tool=value;for(const id of ['add','move','testPoint','focusPoint'])$(id).classList.toggle('active',id===value);draw();}
@@ -150,10 +178,10 @@ function refresh(){draw();$('count').textContent=`${layout.length}個`;$('loadSt
 canvas.addEventListener('pointerdown',e=>{if(!api)return;const p=pointFromEvent(e),marker=hitMarker(p.x,p.y);canvas.setPointerCapture(e.pointerId);selected=marker>=0?marker:selected;drag={kind:marker>=0&&e.button===0?'marker':e.button===2||e.shiftKey?'pan':'orbit',x:p.x,y:p.y,moved:false,startYaw:camera.yaw,startPitch:camera.pitch,startTarget:{...camera.target}};if(marker>=0)refresh();});
 canvas.addEventListener('pointermove',e=>{if(!api)return;const p=pointFromEvent(e);if(!drag){hover=pick(p.x,p.y);draw();return;}const dx=p.x-drag.x,dy=p.y-drag.y;if(Math.hypot(dx,dy)>4)drag.moved=true;if(!drag.moved)return;hover=null;
   if(drag.kind==='marker'){const hit=pick(p.x,p.y);if(!hit)return;layout[selected]=[+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];preview();}
-  else if(drag.kind==='orbit'){camera.yaw=drag.startYaw-dx*.007;camera.pitch=Math.max(.14,Math.min(1.52,drag.startPitch+dy*.005));draw();}
+  else if(drag.kind==='orbit'){camera.yaw=drag.startYaw-dx*.007;camera.pitch=drag.startPitch+dy*.007;draw();}
   else {const b=basis(),scale=camera.distance*2*Math.tan(FOV/2)/canvas.clientHeight;camera.target={x:drag.startTarget.x+(-b.right.x*dx+b.up.x*dy)*scale,y:drag.startTarget.y+(-b.right.y*dx+b.up.y*dy)*scale,z:drag.startTarget.z+(-b.right.z*dx+b.up.z*dy)*scale};draw();}
 });
-canvas.addEventListener('pointerup',e=>{if(!drag||!api)return;const p=pointFromEvent(e),moved=drag.moved,kind=drag.kind;drag=null;if(moved||kind==='marker'||e.button!==0)return;const hit=pick(p.x,p.y);if(!hit)return;if(tool==='focusPoint'){focus(hit);return;}if(tool==='testPoint'){launch={x:hit.x,y:hit.y,z:hit.z};refresh();return;}const point=[+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];if(tool==='move'&&selected>=0)layout[selected]=point;else{layout.push(point);selected=layout.length-1;}preview();});
+canvas.addEventListener('pointerup',e=>{if(!drag||!api)return;const p=pointFromEvent(e),moved=drag.moved,kind=drag.kind;drag=null;camera.yaw%=Math.PI*2;camera.pitch%=Math.PI*2;if(moved||kind==='marker'||e.button!==0)return;const hit=pick(p.x,p.y);if(!hit)return;if(tool==='focusPoint'){focus(hit);return;}if(tool==='testPoint'){launch={x:hit.x,y:hit.y,z:hit.z};refresh();return;}const point=[+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];if(tool==='move'&&selected>=0)layout[selected]=point;else{layout.push(point);selected=layout.length-1;}preview();});
 canvas.addEventListener('pointercancel',()=>{drag=null;});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('wheel',e=>{e.preventDefault();const p=pointFromEvent(e);zoom(e.deltaY<0?.81:1.23,p.x,p.y);},{passive:false});
@@ -168,5 +196,5 @@ $('reset').onclick=()=>{layout=defaults.map(p=>[...p]);selected=-1;api.reset();d
 $('export').onclick=()=>{const data={format:'gunrun-old-town-hooks-v1',map:'old-town',hooks:layout};const blob=new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='gunrun-old-town-hooks.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status('配置JSONを書き出しました。');};
 $('import').onclick=()=>$('importFile').click();$('importFile').onchange=async()=>{const file=$('importFile').files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(data.format!=='gunrun-old-town-hooks-v1'||data.map!=='old-town'||!Array.isArray(data.hooks)||data.hooks.length>64||!data.hooks.every(finitePoint))throw Error('形式または座標が正しくありません');layout=data.hooks.map(p=>[...p]);selected=-1;preview();status('JSONを読み込みました。確認してから保存してください。');}catch(e){status('読み込めませんでした：'+e.message,true);}finally{$('importFile').value='';}};
 new ResizeObserver(resize).observe(canvas);
-async function boot(){if(booted)return;booted=true;try{const w=iframe.contentWindow;for(let i=0;i<250&&!w.skyHookEditor;i++)await new Promise(r=>setTimeout(r,80));api=w.skyHookEditor;game=w.__game;internals=w.__skyInternals;if(!api||!game?.solids)throw Error('ゲームの地形を読み込めませんでした');w.__hold=true;solids=game.solids;defaults=api.defaults();layout=api.current();fit();resize();refresh();status('左ドラッグで回転、ホイールで近づけます。');}catch(e){status(e.message,true);$('loadState').textContent='読み込みに失敗しました。HTTPまたは公開URLで開いてください。';}}
+async function boot(){if(booted)return;booted=true;try{const w=iframe.contentWindow;for(let i=0;i<250&&!w.skyHookEditor;i++)await new Promise(r=>setTimeout(r,80));api=w.skyHookEditor;game=w.__game;internals=w.__skyInternals;if(!api||!game?.solids)throw Error('ゲームの地形を読み込めませんでした');w.__hold=true;solids=game.solids;defaults=api.defaults();layout=api.current();fit();resize();refresh();status('上下左右に一周回転できます。ホイールで必要なだけ近づけます。');}catch(e){status(e.message,true);$('loadState').textContent='読み込みに失敗しました。HTTPまたは公開URLで開いてください。';}}
 if(iframe.contentDocument?.readyState==='complete')boot();else iframe.addEventListener('load',boot,{once:true});
