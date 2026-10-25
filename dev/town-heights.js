@@ -34,6 +34,16 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo }) {
   box(-52, 4.4, -12, -49.5, 14.2, -7.5);
   stairs(-49.5, -47, 4.4, 1.5);                                                  // up to 11.9 m
 
+  // West ring (11.7 m): a loop of 1.5 m decks leaving the top landing of the west stairs,
+  // around an open 6 x 7 m well, with an island pillar in the middle (2-2.5 m gaps from every
+  // side, 0.9 m above the ring). A place to fight on a lane that zombies have to walk round.
+  const ring = (x0, x1, z0, z1) => box(x0, 11.3, z0, x1, 11.7, z1, 'beam');
+  ring(-70, -61, -12, -10.5);       // north side, from the stairs landing
+  ring(-70, -68.5, -10.5, -2);      // west side
+  ring(-70, -61, -3.5, -2);         // south side
+  ring(-62.5, -61, -10.5, -3.5);    // east side
+  box(-66.5, 0, -8, -64.5, 12.6, -6);   // island pillar
+
   crates([[-57.5, -7.5, -55.5, -5.5, 5.4], [-57, -7, -55.5, -5.5, 6.6],    // west roof
           [-52, -7.5, -50, -5.5, 5.6], [-51.5, -7, -50, -5.5, 6.8]]);      // bell roof
 
