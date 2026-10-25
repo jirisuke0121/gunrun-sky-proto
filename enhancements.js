@@ -1,4 +1,4 @@
-import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261025f';
+import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261025-blast-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -557,12 +557,6 @@ function updateEquipment(now) {
     if (weapon === 4) {
       pistolSlideTime = PISTOL_SLIDE_TIME;
       if (Et.ammo === 0) pistolSlideLocked = true;
-    }
-    if (weapon >= 9 && window.__skyBlastFx) {
-      try {
-        const blast = JSON.parse(document.body.dataset.skyBlast || '{}');
-        if (blast.weapon === WP[weapon].n && Array.isArray(blast.point)) window.__skyBlastFx(blast.point, blast.radius);
-      } catch { /* visual effect only */ }
     }
   }
   lastMotionShots = shots;
@@ -1572,6 +1566,31 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     document.body.dataset.skyGunSound = file;
     return true;
   };
+  // The explosion recording is downloaded only when an explosive weapon is
+  // selected. The shared synthesized bang remains the fallback while it loads.
+  let explosionBytes = null, explosionBuffer = null, explosionCtx = null;
+  const warmExplosionSound = () => {
+    if (!explosionBytes) explosionBytes = fetch('./assets/sfx/easy-weapons/explosion_2.wav?v=20261025-blast-v1')
+      .then((r) => r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status))))
+      .catch(() => null);
+    if (!Ut.ctx || explosionCtx === Ut.ctx) return;
+    const ctx = Ut.ctx;
+    explosionCtx = ctx;
+    explosionBuffer = null;
+    explosionBytes.then((bytes) => bytes ? new Promise((ok, no) => ctx.decodeAudioData(bytes.slice(0), ok, no)) : null)
+      .then((buffer) => { if (explosionCtx === ctx) explosionBuffer = buffer; })
+      .catch(() => {});
+  };
+  const playExplosionSound = () => {
+    warmExplosionSound();
+    if (!Ut.ctx || !Ut.master || !explosionBuffer) return false;
+    const source = Ut.ctx.createBufferSource(), gain = Ut.ctx.createGain();
+    source.buffer = explosionBuffer;
+    gain.gain.value = 0.62;
+    source.connect(gain); gain.connect(Ut.master); source.start();
+    document.body.dataset.skyExplosionSound = 'explosion_2.wav';
+    return true;
+  };
   let beamSource = null, beamGain = null;
   const playBeamSound = () => {
     if (beamSource) return true;
@@ -1782,24 +1801,43 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   const popHeadMat = new Basic({ color: 0xff5030 });
   const pops = mkPool(8, popGeo, popMat).map((p) => Object.assign(p, { size: 0.2 }));
   const blastFx = Array.from({ length: 6 }, () => {
-    const ring = new Mesh(new Torus(1, 0.055, 6, 24),
-      new Basic({ color: 0xffa02f, transparent: true, opacity: 0, depthWrite: false }));
+    const ring = new Mesh(new Torus(1, 0.08, 6, 28),
+      new Basic({ color: 0xffc165, transparent: true, opacity: 0, depthWrite: false, depthTest: false }));
     const core = new Mesh(new Sphere(1, 8, 6),
-      new Basic({ color: 0xffd06a, transparent: true, opacity: 0, depthWrite: false }));
-    ring.visible = core.visible = false;
-    ue.add(ring, core);
-    return { ring, core, t: 1, radius: 0 };
+      new Basic({ color: 0xff9b2f, transparent: true, opacity: 0, depthWrite: false, depthTest: false }));
+    const smoke = new Mesh(new Sphere(1, 8, 6),
+      new Basic({ color: 0x393e40, transparent: true, opacity: 0, depthWrite: false, depthTest: false }));
+    const sparks = Array.from({ length: 7 }, () => {
+      const mesh = new Mesh(new Sphere(0.075, 5, 4),
+        new Basic({ color: 0xffcf68, transparent: true, opacity: 0, depthWrite: false, depthTest: false }));
+      mesh.visible = false;
+      ue.add(mesh);
+      return { mesh, velocity: new V3() };
+    });
+    ring.visible = core.visible = smoke.visible = false;
+    ue.add(ring, core, smoke);
+    return { ring, core, smoke, sparks, origin: new V3(), t: 2, radius: 0 };
   });
   let blastFxNext = 0;
-  window.__skyBlastFx = (point, radius) => {
+  window.__skyBlastFx = (point, radius, direction = [0, 0, -1], weapon = '') => {
     const effect = blastFx[blastFxNext++ % blastFx.length];
     effect.t = 0;
     effect.radius = Math.min(5, Math.max(2, radius || 3));
-    effect.ring.position.set(...point);
-    effect.core.position.set(...point);
+    // Pull the flash off the impact surface so the wall does not swallow it.
+    const along = new V3(...direction).normalize();
+    effect.origin.set(...point).addScaledVector(along, -0.38);
+    effect.ring.position.copy(effect.origin);
+    effect.core.position.copy(effect.origin);
+    effect.smoke.position.copy(effect.origin);
     effect.ring.lookAt(Se.position);
-    effect.ring.visible = effect.core.visible = true;
-    document.body.dataset.skyBlastEffect = JSON.stringify({ point, radius: effect.radius });
+    effect.ring.visible = effect.core.visible = effect.smoke.visible = true;
+    for (const spark of effect.sparks) {
+      spark.velocity.set(rnd(-4, 4), rnd(1.5, 5), rnd(-4, 4));
+      spark.mesh.position.copy(effect.origin);
+      spark.mesh.visible = true;
+    }
+    document.body.dataset.skyBlastEffect = JSON.stringify({ point, radius: effect.radius, weapon });
+    return playExplosionSound();
   };
 
   // The muzzle flash material is additive too; make it a solid warm yellow.
@@ -1966,14 +2004,28 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   // ---- Per-frame update -------------------------------------------------
   const fxStep = (dt) => {
     for (const effect of blastFx) {
-      if (effect.t >= 0.38) continue;
-      effect.t = Math.min(0.38, effect.t + dt);
-      const k = effect.t / 0.38, fade = (1 - k) ** 2;
-      effect.ring.scale.setScalar(0.16 + effect.radius * 0.55 * k);
-      effect.core.scale.setScalar(0.06 + effect.radius * 0.18 * k);
-      effect.ring.material.opacity = 0.85 * fade;
-      effect.core.material.opacity = 0.42 * fade;
-      effect.ring.visible = effect.core.visible = k < 1;
+      if (effect.t >= 1.05) continue;
+      effect.t = Math.min(1.05, effect.t + dt);
+      const t = effect.t, ringK = Math.min(1, t / 0.55), coreK = Math.min(1, t / 0.42);
+      effect.ring.scale.setScalar(0.18 + effect.radius * 0.85 * ringK);
+      effect.core.scale.setScalar(0.12 + effect.radius * 0.35 * coreK);
+      effect.smoke.scale.setScalar(0.15 + effect.radius * 0.5 * Math.min(1, t / 0.9));
+      effect.smoke.position.copy(effect.origin); effect.smoke.position.y += t * 0.6;
+      effect.ring.material.opacity = 0.95 * (1 - ringK) ** 1.3;
+      effect.core.material.opacity = 0.88 * (1 - coreK) ** 1.2;
+      effect.smoke.material.opacity = 0.34 * Math.sin(Math.PI * Math.min(1, t / 1.05));
+      effect.ring.visible = ringK < 1;
+      effect.core.visible = coreK < 1;
+      effect.smoke.visible = t < 1.05;
+      for (const spark of effect.sparks) {
+        const alive = t < 0.65;
+        spark.mesh.visible = alive;
+        if (!alive) continue;
+        spark.mesh.position.copy(effect.origin).addScaledVector(spark.velocity, t);
+        spark.mesh.position.y -= 4 * t * t;
+        spark.mesh.material.opacity = 0.9 * (1 - t / 0.65);
+        spark.mesh.scale.setScalar(0.8 + 1.5 * t);
+      }
     }
     for (const p of bolts) {
       if (p.life <= 0) { p.m.visible = false; continue; }
@@ -2034,6 +2086,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     if (Ut.ctx) loadSamples(); // start fetching the recordings as soon as audio is unlocked
+    if ((U.weapon | 0) >= 9) warmExplosionSound();
     if (window.__hold) return; // paused with the game
     fxStep(dt);
   };

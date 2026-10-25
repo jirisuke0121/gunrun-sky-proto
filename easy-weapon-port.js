@@ -64,10 +64,10 @@ export function createEasyWeaponPort(game) {
     game.Tt.hit();
     return true;
   };
-  const markBlast = (p, w, hits) => {
+  const markBlast = (p, w, hits, direction) => {
     const point = [p.x, p.y, p.z].map((value) => +value.toFixed(2));
     document.body.dataset.skyBlast = JSON.stringify({ weapon: w.n, radius: w.explosive, hits, point });
-    window.__skyBlastFx?.(point, w.explosive);
+    return window.__skyBlastFx?.(point, w.explosive, direction.toArray(), w.n) || false;
   };
   const impact = (shot, hit, barrel) => {
     const { w, position: point, direction, ctx } = shot;
@@ -88,9 +88,9 @@ export function createEasyWeaponPort(game) {
         const falloff = 1 - 0.55 * distance / w.explosive;
         hits += +hitEnemy({ z: enemy, point: new Vector3(enemy.pos.x, enemy.pos.y + 1.1, enemy.pos.z) }, w.dmg * falloff, direction, knock * falloff, stats, z.t, particles, hitFeedback);
       }
-      markBlast(point, w, hits);
+      const explosionSoundPlayed = markBlast(point, w, hits, direction);
       particles(point.x, point.y, point.z, 24, 'dust', 4, 0.6);
-      game.Tt.bang(2);
+      if (!explosionSoundPlayed) game.Tt.bang(2);
     } else if (hit) hitEnemy(hit, w.dmg, direction, knock, stats, z.t, particles, hitFeedback);
     else particles(point.x, point.y, point.z, 6, 'dust', 2.2, 0.35);
     document.body.dataset.skyProjectile = JSON.stringify({ weapon: w.n, impact: point.toArray(), hits: stats.hits });
