@@ -168,6 +168,27 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
   box(-50.4, 0, -5.5, -48.8, 2.8, -4, 'slab', SKY.green);
   box(-48.8, 0, -5.5, -47.2, 4.0, -4.2, 'slab', SKY.red);
 
+  // ---- Blast barrels (2026-10-25n): escape tools. ----
+  // The canyon's one-use blast barrel, moved here (blast-barrels.js does the work). Shoot one
+  // and everything within 5 m is thrown back; if you stand on the barrel (a 0.55 m step and a
+  // wide cap make that easy) the blast throws you about 5 m up, onto the roof beside it, and the
+  // zombies below lose you. Each stands 1.5-3 m from a wall of 4.4-6.5 m, on open ground.
+  window.SKY_CANYON_BLAST_BARRELS = [
+    { id: 'start', x: -48.0, z: 7.2 },     // beside the start, hut roof 6.2 m (north)
+    { id: 'plaza', x: -43.5, z: 11.5 },    // south building roof 4.4 m (south)
+    { id: 'street', x: -59.5, z: -3.0 },   // west tower base 4.2 m (north)
+    { id: 'alley', x: -64.7, z: 15.5 },    // west building roof 6.5 m (west)
+    { id: 'east', x: -26.5, z: 7.5 },      // east block roof 6.4 m (north)
+  ].map(b => {
+    const block = ne(b.x - 0.36, 0, b.z - 0.36, b.x + 0.36, 1.12, b.z + 0.36, 'prop');
+    block.shape = 'barrel';
+    block.blastBarrel = b.id;
+    const cap = ne(b.x - 0.7, 1.02, b.z - 0.7, b.x + 0.7, 1.12, b.z + 0.7, 'prop');
+    cap.blastBarrel = b.id;
+    const step = ne(b.x - 0.65, 0, b.z - 1.48, b.x + 0.65, 0.55, b.z - 0.72, 'prop');
+    return { ...b, y: 0, block, cap, step };
+  });
+
   // Equal footing (2026-10-25). The player must not be able to climb from below
   // anywhere on the parkour route, so the west district has no ladders at all.
   // Zombies would be stuck on the ground, so inside this district they jump gaps and
