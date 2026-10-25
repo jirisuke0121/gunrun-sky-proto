@@ -136,6 +136,23 @@ for (const view of [unityHgView, ...easyWeaponViews]) {
   view.position.set(0.38, -0.45, -0.62);
   view.rotation.set(-0.12, -0.72, 0);
 }
+// The exported weapon GLBs contain meshes only, so animate their first-person
+// mount and add a brief muzzle flash in the browser build.
+const easyFlashDepth = [-0.42, -0.70, -0.76, -0.82, -0.76, -0.87, -1.02, -0.73];
+const easyFlashes = [];
+for (let index = 4; index < weaponViews.length; index++) {
+  const flash = new Group();
+  flash.name = 'Sky weapon muzzle flash';
+  flash.userData.skyFlash = true;
+  flash.position.set(0, 0.1, easyFlashDepth[index - 4]);
+  const core = new Mesh(new Sphere(0.085, 8, 6), new Basic({ color: 0xffd578, transparent: true, opacity: 0.9, depthWrite: false }));
+  const flare = new Mesh(new Box(0.025, 0.025, 0.3), new Basic({ color: 0xffa83b, transparent: true, opacity: 0.8, depthWrite: false }));
+  flare.position.z = -0.12;
+  flash.add(core, flare);
+  flash.visible = false;
+  weaponViews[index].add(flash);
+  easyFlashes[index] = flash;
+}
 
 // A compact wrist-mounted hook launcher and the knife share the animated hands.
 const hookLauncher = new Group();
@@ -457,7 +474,8 @@ function updateKnifeCue() {
   knifeHint.style.display = near ? 'block' : 'none';
 }
 
-let lastFrame = performance.now(), lastWeapon = -1;
+let lastFrame = performance.now(), lastWeapon = -1, lastMotionShots = window.__game?.stats?.shots || 0;
+let easyKick = 0, easyFlashTime = 0;
 function updateEquipment(now) {
   requestAnimationFrame(updateEquipment);
   const dt = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000));
@@ -479,6 +497,33 @@ function updateEquipment(now) {
     lastWeapon = weapon;
   }
   weaponViews.forEach((view, index) => { view.visible = U.gunOn && c.state !== 'ladder' && index === weapon; });
+  const shots = window.__game?.stats?.shots || 0;
+  if (shots < lastMotionShots) lastMotionShots = shots;
+  if (shots > lastMotionShots && weapon >= 4) {
+    easyKick = Math.min(1, easyKick + (weapon >= 9 ? 1 : weapon === 5 ? 0.85 : 0.65));
+    easyFlashTime = 0.095;
+    if (weapon >= 9 && window.__skyBlastFx) {
+      try {
+        const blast = JSON.parse(document.body.dataset.skyBlast || '{}');
+        if (blast.weapon === WP[weapon].n && Array.isArray(blast.point)) window.__skyBlastFx(blast.point, blast.radius);
+      } catch { /* visual effect only */ }
+    }
+  }
+  lastMotionShots = shots;
+  easyKick *= Math.exp(-dt * 13);
+  easyFlashTime = Math.max(0, easyFlashTime - dt);
+  if (weapon >= 4) {
+    const reload = Et.reloadT > 0 && Et.reloadLen > 0
+      ? Math.sin(Math.PI * Math.min(1, 1 - Et.reloadT / Et.reloadLen)) : 0;
+    const speed = Math.hypot(c.vel.x, c.vel.z);
+    const bob = mode === 'play' && c.onGround ? Math.sin(c.bob) * Math.min(0.016, speed * 0.002) : 0;
+    const view = weaponViews[weapon];
+    view.position.set(0.38 + bob, -0.45 - 0.18 * reload - 0.035 * easyKick, -0.62 + 0.15 * easyKick);
+    view.rotation.set(-0.12 + 0.2 * easyKick - 0.3 * reload, -0.72 + 0.12 * reload, -0.12 * reload);
+    easyFlashes[weapon].visible = easyFlashTime > 0 && U.gunOn && mode === 'play' && c.state !== 'ladder';
+    document.body.dataset.skyWeaponMotion = JSON.stringify({ weapon, kick: +easyKick.toFixed(3), reload: +reload.toFixed(3), flash: easyFlashes[weapon].visible });
+  }
+  for (let index = 4; index < easyFlashes.length; index++) if (index !== weapon) easyFlashes[index].visible = false;
   document.getElementById('hSmoke').textContent = String(smokeCharges);
   smokeButton?.classList.toggle('empty', smokeCharges === 0);
   smokeButton && (smokeButton.textContent = `煙幕 ${smokeCharges}（技${skillCount}/3）`);
@@ -550,7 +595,7 @@ if (window.T2?.GLTFLoader) {
     root.rotation.y = 0;
     root.position.set(0, -0.02, -0.13);
     unityHgView.add(root);
-    for (const child of unityHgView.children) if (child !== root) child.visible = false;
+    for (const child of unityHgView.children) if (child !== root && !child.userData.skyFlash) child.visible = false;
   });
   const easyAssets = [
     ['easyShotgun', 5, 'easy-weapons-shotgun.glb', 2],
@@ -568,7 +613,7 @@ if (window.T2?.GLTFLoader) {
       root.rotation.y = 0;
       root.position.set(0, -0.02, index >= 9 ? -0.17 : -0.13);
       easyWeaponViews[index - 5].add(root);
-      for (const child of easyWeaponViews[index - 5].children) if (child !== root) child.visible = false;
+      for (const child of easyWeaponViews[index - 5].children) if (child !== root && !child.userData.skyFlash) child.visible = false;
     });
   }
   loadDetail('hook', 'hook-launcher-meshy-low.glb', (root) => {
@@ -1191,7 +1236,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
 // and all meshes are pooled, so this adds no download weight.
 {
   const { Ut, Tt, ni, Mn, wpc, c, Se, ue, Geom } = game;
-  const { Box, Sphere, Mesh, Basic, Vector3: V3 } = Geom;
+  const { Box, Sphere, Torus, Mesh, Basic, Vector3: V3 } = Geom;
   const rnd = (a, b) => a + Math.random() * (b - a);
 
   // ---- Sound ------------------------------------------------------------
@@ -1601,6 +1646,26 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   const popMat = new Basic({ color: 0xfff0b0 });
   const popHeadMat = new Basic({ color: 0xff5030 });
   const pops = mkPool(8, popGeo, popMat).map((p) => Object.assign(p, { size: 0.2 }));
+  const blastFx = Array.from({ length: 6 }, () => {
+    const ring = new Mesh(new Torus(1, 0.055, 6, 24),
+      new Basic({ color: 0xffa02f, transparent: true, opacity: 0, depthWrite: false }));
+    const core = new Mesh(new Sphere(1, 8, 6),
+      new Basic({ color: 0xffd06a, transparent: true, opacity: 0, depthWrite: false }));
+    ring.visible = core.visible = false;
+    ue.add(ring, core);
+    return { ring, core, t: 1, radius: 0 };
+  });
+  let blastFxNext = 0;
+  window.__skyBlastFx = (point, radius) => {
+    const effect = blastFx[blastFxNext++ % blastFx.length];
+    effect.t = 0;
+    effect.radius = Math.min(5, Math.max(2, radius || 3));
+    effect.ring.position.set(...point);
+    effect.core.position.set(...point);
+    effect.ring.lookAt(Se.position);
+    effect.ring.visible = effect.core.visible = true;
+    document.body.dataset.skyBlastEffect = JSON.stringify({ point, radius: effect.radius });
+  };
 
   // The muzzle flash material is additive too; make it a solid warm yellow.
   try {
@@ -1743,7 +1808,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
         bolt(muzzle, end, name === 'SMG' ? 0.045 : 0.06);
         if (name === 'MG') c.shake = Math.max(c.shake || 0, 0.3);
       }
-      eject(name);
+      if (!w.explosive && !/Rail Gun|Beam Gun/.test(name)) eject(name);
       puff(name);
     },
     hit(head, pt, zom, dir) {
@@ -1765,6 +1830,16 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
 
   // ---- Per-frame update -------------------------------------------------
   const fxStep = (dt) => {
+    for (const effect of blastFx) {
+      if (effect.t >= 0.38) continue;
+      effect.t = Math.min(0.38, effect.t + dt);
+      const k = effect.t / 0.38, fade = (1 - k) ** 2;
+      effect.ring.scale.setScalar(0.16 + effect.radius * 0.55 * k);
+      effect.core.scale.setScalar(0.06 + effect.radius * 0.18 * k);
+      effect.ring.material.opacity = 0.85 * fade;
+      effect.core.material.opacity = 0.42 * fade;
+      effect.ring.visible = effect.core.visible = k < 1;
+    }
     for (const p of bolts) {
       if (p.life <= 0) { p.m.visible = false; continue; }
       p.t += dt;
