@@ -238,7 +238,7 @@ function updateWorldWeapon(third) {
   }
 }
 function update(dt) {
-  const third = choice === 'unity' && view === 'third' && !!holder && sky.modeRef() !== 'menu' && !window.skySettings?.beforeRun;
+  const third = choice === 'unity' && view === 'third' && !!holder && sky.modeRef() !== 'menu' && sky.modeRef() !== 'replay' && !window.skySettings?.beforeRun;
   if (holder) {
     holder.visible = third;
     const sliding = third && c.state === 'slide';
