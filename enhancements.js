@@ -1686,24 +1686,36 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     ni(0.34, rnd(135, 165), 0.09);
     Mn(0.3, 700, 0.8, 0.06);
   };
-  // The GunRun headshot clip is fetched on demand so normal startup has no extra audio download.
-  let headshotBuffer = null, headshotRequested = false;
-  const ping = () => {
-    if (!Ut.ctx || !Ut.master) return;
-    if (!headshotRequested) {
-      headshotRequested = true;
+  // Start the small download when play begins; a very early first hit waits for it.
+  let headshotBuffer = null, headshotLoading = null;
+  const loadHeadshot = () => {
+    if (!Ut.ctx) return Promise.resolve(null);
+    if (headshotBuffer) return Promise.resolve(headshotBuffer);
+    if (!headshotLoading) {
       const ctx = Ut.ctx;
-      fetch('./assets/sfx/gunrun-headshot.mp3')
+      headshotLoading = fetch('./assets/sfx/gunrun-headshot.mp3')
         .then((r) => r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status))))
         .then((ab) => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
-        .then((buffer) => { headshotBuffer = buffer; })
-        .catch(() => {});
+        .then((buffer) => { headshotBuffer = buffer; return buffer; })
+        .catch(() => { headshotLoading = null; return null; });
     }
-    if (!headshotBuffer) { ni(0.42, rnd(88, 100), 0.12); return; }
+    return headshotLoading;
+  };
+  document.getElementById('bStart')?.addEventListener('click', loadHeadshot);
+  const playHeadshot = () => {
+    if (!Ut.ctx || !Ut.master || !headshotBuffer) return;
     const src = Ut.ctx.createBufferSource(), gain = Ut.ctx.createGain();
     src.buffer = headshotBuffer;
     gain.gain.value = 0.42;
     src.connect(gain); gain.connect(Ut.master); src.start();
+  };
+  const ping = () => {
+    if (!Ut.ctx || !Ut.master) return;
+    if (headshotBuffer) { playHeadshot(); return; }
+    loadHeadshot().then((buffer) => {
+      if (buffer) playHeadshot();
+      else ni(0.42, rnd(88, 100), 0.12);
+    });
   };
 
   // ---- Pools ------------------------------------------------------------
