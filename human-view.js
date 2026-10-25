@@ -251,7 +251,7 @@ function update(dt) {
     else { lastAmmo = sky.Et.ammo; shotTime = 1; jumpTime = 0; landTime = 0; wasGrounded = !!c.onGround; }
   }
   updateWorldWeapon(third);
-  if (!third) return;
+  if (!third) { window.skyFirstPersonView?.update(dt, false); return; }
   // Match Unity's over-shoulder distance while keeping the player in frame.
   pivot.set(c.pos.x, c.camY === undefined ? c.pos.y + c.eye : c.camY, c.pos.z);
   forward.set(0, 0, -1).applyQuaternion(camera.quaternion);
@@ -274,6 +274,7 @@ function update(dt) {
   for (const arm of mr) arm.root.visible = close && !!sky.U.showBody;
   document.body.dataset.skyHumanView = close ? 'first-collision' : 'third';
   document.body.dataset.skyHumanCameraClearance = safe.toFixed(2);
+  window.skyFirstPersonView?.update(dt, !close);
 }
 window.skyHumanView = { update, select, get choice() { return choice; }, get view() { return view; } };
 sync();

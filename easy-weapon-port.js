@@ -130,8 +130,9 @@ export function createEasyWeaponPort(game) {
       const hit = zombieRay(origin, direction, range);
       const length = hit ? hit.t : range;
       const end = origin.clone().addScaledVector(direction, length);
+      const visualOrigin = window.skyFirstPersonView?.getMuzzleWorld() || origin;
       const positions = beamGeometry.getAttribute('position');
-      positions.setXYZ(0, origin.x, origin.y, origin.z);
+      positions.setXYZ(0, visualOrigin.x, visualOrigin.y, visualOrigin.z);
       positions.setXYZ(1, end.x, end.y, end.z);
       positions.needsUpdate = true;
       beam.visible = true; beamLife = 0.14;
@@ -150,10 +151,12 @@ export function createEasyWeaponPort(game) {
     const color = weapon === 7 ? 0x8ceaff : weapon === 9 ? 0xffa44d : 0xffd271;
     const model = new Mesh(new Sphere(radius, 8, 6), new Basic({ color, transparent: true, opacity: 0.95 }));
     const position = origin.clone();
-    model.position.copy(position).addScaledVector(direction, 0.5);
+    const visualOrigin = window.skyFirstPersonView?.getMuzzleWorld() || position.clone().addScaledVector(direction, .5);
+    const visualOffset = visualOrigin.clone().sub(position);
+    model.position.copy(visualOrigin);
     ue.add(model);
     const velocity = direction.clone().multiplyScalar(config.speed * power);
-    missiles.push({ w, config, model, position, velocity, direction: direction.clone(), ctx, distance: 0, life: 4, barrel });
+    missiles.push({ w, config, model, position, visualOffset, velocity, direction: direction.clone(), ctx, distance: 0, life: 4, barrel });
     document.body.dataset.skyProjectile = JSON.stringify({ weapon: w.n, spawned: position.toArray(), speed: +velocity.length().toFixed(1) });
     chargeFraction = 1;
     return { handled: true, suppressTracer: true };
@@ -181,6 +184,7 @@ export function createEasyWeaponPort(game) {
     }
     beamLife = Math.max(0, beamLife - dt);
     if (!beamLife) beam.visible = false;
+    if (weapon === 8) document.body.dataset.skyBeam = JSON.stringify({ heat: +beamHeat.toFixed(2), cooling: +beamCooling.toFixed(2), visible: beam.visible });
     if (weapon === 11) document.body.dataset.skyWarmup = (chargeStarted ? Math.min(1.5, (performance.now() - chargeStarted) / 1000) : 0).toFixed(2);
     for (let index = missiles.length - 1; index >= 0; index--) {
       const shot = missiles[index];
@@ -198,8 +202,8 @@ export function createEasyWeaponPort(game) {
       const reached = barrelHit || target || wall;
       const travel = barrelHit ? barrel.t : target ? target.t : wall ? wall.t : distance;
       shot.position.addScaledVector(dir, travel);
-      shot.model.position.copy(shot.position);
       shot.distance += travel; shot.life -= step;
+      shot.model.position.copy(shot.position).addScaledVector(shot.visualOffset, Math.max(0, 1 - shot.distance / 2));
       if (reached || shot.distance >= shot.w.range || shot.life <= 0) {
         impact(shot, barrelHit ? null : target, barrelHit ? barrel : null);
         ue.remove(shot.model); shot.model.geometry.dispose(); shot.model.material.dispose();

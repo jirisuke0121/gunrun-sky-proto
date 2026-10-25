@@ -1,5 +1,6 @@
-import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261025-blast-v2';
+import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261025-fp-weapons-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
+import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261025-fp-weapons-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -900,6 +901,7 @@ if (window.T2?.GLTFLoader) {
 }
 requestAnimationFrame(updateEquipment);
 window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeCharges() { return smokeCharges; }, weaponViews, trolleyViews };
+window.skyFirstPersonView = createFirstPersonWeapons(game, weaponViews, loaded, [tl, uh, hookLauncher]);
 
 // Ghost of the best run on this course. The path is sampled every 0.1 s of
 // play and kept in this browser only. H shows or hides it.
