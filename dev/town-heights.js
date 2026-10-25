@@ -15,7 +15,7 @@
 // green / blue / red containers and yellow crates = the piles. The page's render loop asks
 // window.skyTint(colour, baseMaterial) for the material of any collision box that has .tint.
 const SKY = { steel: 0x8ea4bd, plank: 0x5d6b7a, stair: 0xe39a4a, hall: 0xb5604a, hallTop: 0x8f4a3a,
-              green: 0x5f9c6c, blue: 0x5b88c2, red: 0xc2624e, crate: 0xe3b84a };
+              green: 0x5f9c6c, blue: 0x5b88c2, red: 0xc2624e, crate: 0xe3b84a, beam: 0xf0c53c };
 const skyMats = {};
 window.skyTint = function (hex, base) {
   const k = hex + ':' + (base && base.uuid);
@@ -149,11 +149,11 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
 
   // ---- Container piles in the open ground (2026-10-25m): the 1-5 m band between street and roof. ----
   // Every step is at least 1.5 m wide so zombies stand on them too. Heights differ from step to
-  // step (1.3 / 1.4 / 2.6 / 2.7 / 2.8 / 4.1 / 4.2), so there is no single rhythm.
-  // Centre pile, next to the start: a 4.1 m top with three ways on (west crate, east crates, south crate).
+  // step (1.3 / 1.4 / 2.6 / 2.7 / 2.8 / 4.2 / 4.4), so there is no single rhythm.
+  // Centre pile, next to the start: a 4.4 m top with three ways on (west crate, east crates, south crate).
   clearProps(-42, 5, -32, 12);
   box(-40, 0, 6.5, -36.6, 2.6, 9.6, 'slab', SKY.green);
-  box(-39, 2.6, 7.4, -37, 4.1, 9, 'slab', SKY.blue);
+  box(-39, 2.6, 7.4, -37, 4.4, 9, 'slab', SKY.blue);
   box(-41.4, 0, 8, -40, 1.3, 9.6, 'slab', SKY.crate);
   box(-36.6, 0, 6.5, -34.8, 1.3, 8.3, 'slab', SKY.crate);
   box(-38, 0, 9.6, -36.4, 1.3, 11.2, 'slab', SKY.crate);
@@ -167,6 +167,25 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
   box(-52, 0, -5.5, -50.4, 1.4, -3.9, 'slab', SKY.crate);
   box(-50.4, 0, -5.5, -48.8, 2.8, -4, 'slab', SKY.green);
   box(-48.8, 0, -5.5, -47.2, 4.0, -4.2, 'slab', SKY.red);
+
+  // ---- Beam road (2026-10-25o): the escape route made of narrow footholds. ----
+  // 0.6 m beams at 4.4 m over the plaza, joined by two 1.6 m pads and the top of the centre pile.
+  // People run them at full speed (a slip drops you 4.4 m into the plaza, no damage, but you lose
+  // the lead). Zombies can walk them too (each beam is centred on a grid line, so the path graph
+  // has a node every metre), but at 35% speed and without pushing each other, so a chaser falls
+  // behind and a crowd queues up on the beam in single file. Beams: west from the centre pile to
+  // pad J1, east to pad J2 (which touches the east steps), a branch north from the middle of the
+  // west beam (a T-turn on 0.6 m, ending 1.4 m above the lean-to roof), and south from J1 to the
+  // roof of the south building.
+  const beams = [];
+  window.skyBeams = beams;
+  const beam = (x0, z0, x1, z1) => { const b = box(x0, 4.0, z0, x1, 4.4, z1, 'beam', SKY.beam); beams.push(b); return b; };
+  box(-45.8, 0, 7.2, -44.2, 4.4, 8.8, 'slab', SKY.blue);       // pad J1
+  box(-31.8, 0, 6.6, -30.2, 4.4, 8.4, 'slab', SKY.blue);       // pad J2 (touches the east steps)
+  beam(-44.2, 7.7, -39, 8.3);       // west of the centre pile, along z = 8
+  beam(-37, 7.7, -31.8, 8.3);       // east of the centre pile, along z = 8
+  beam(-45.3, 8.8, -44.7, 13.5);    // south from J1, along x = -45, to the south building roof
+  beam(-42.3, 4.6, -41.7, 7.7);     // branch north from the west beam, along x = -42
 
   // ---- Blast barrels (2026-10-25n): escape tools. ----
   // The canyon's one-use blast barrel, moved here (blast-barrels.js does the work). Shoot one
@@ -233,4 +252,16 @@ window.skyPounce = function (z, u, d, p, x, H) {
   H.ur(px, y + 0.05, pz, 8, 'dust', 1.4, 0.45);
   H.Tt.thud(0.8, H.wn(px, pz));
   return true;
+};
+
+// Zombies on a beam: slower (35%, applied in the page) and no pushing each other off it.
+window.skyOnBeam = function (z) {
+  const bs = window.skyBeams;
+  if (!bs) return false;
+  const x = z.pos.x, p = z.pos.z, y = z.pos.y;
+  for (let i = 0; i < bs.length; i++) {
+    const b = bs[i];
+    if (x > b.minX - 0.1 && x < b.maxX + 0.1 && p > b.minZ - 0.1 && p < b.maxZ + 0.1 && Math.abs(y - b.maxY) < 0.3) return true;
+  }
+  return false;
 };
