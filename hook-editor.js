@@ -4,8 +4,10 @@ const $ = (id) => document.getElementById(id);
 const canvas = $('map'), ctx = canvas.getContext('2d'), iframe = $('source');
 const FOV = Math.PI / 3;
 let game, api, internals, solids = [], layout = [], defaults = [], selected = -1;
-let tool = 'add', dirty = false, drag = null, hover = null, booted = false;
+let wallJumps = [], selectedWallJump = -1, mode = 'hook';
+let tool = 'add', dirty = {hook:false,walljump:false}, drag = null, hover = null, booted = false;
 let launch = {x: -42, y: 0, z: 8};
+const WALL_JUMP_STORAGE_KEY = 'gunrun-old-town-walljumps-v1';
 const camera = {target: {x: 0, y: 4, z: 0}, distance: 180, yaw: Math.PI / 4, pitch: 0.67};
 // Keep the clipping plane proportional to the view distance so close-up views
 // remain visible without imposing a fixed zoom stop.
@@ -18,6 +20,11 @@ function status(message, bad = false) {
 function finitePoint(p) {
   return Array.isArray(p) && p.length === 3 && p.every(n => typeof n === 'number' && Number.isFinite(n)) &&
     Math.abs(p[0]) <= 150 && p[1] >= -20 && p[1] <= 100 && Math.abs(p[2]) <= 150;
+}
+function finiteWallJump(p) {
+  return Array.isArray(p) && p.length === 5 && p.slice(0,3).every(Number.isFinite) &&
+    Math.abs(p[0]) <= 150 && p[1] >= -20 && p[1] <= 100 && Math.abs(p[2]) <= 150 &&
+    ((Math.abs(p[3]) === 1 && p[4] === 0) || (p[3] === 0 && Math.abs(p[4]) === 1));
 }
 function visibleSolids() {
   return solids.filter(b => !b.off && b.maxY >= -6 && b.maxX-b.minX < 110 && b.maxZ-b.minZ < 110);
@@ -82,6 +89,35 @@ function pick(sx,sy) {
   }
   return {x:origin.x+dir.x*best,y:origin.y+dir.y*best,z:origin.z+dir.z*best,solid};
 }
+function wallJumpPoint(hit) {
+  const b=hit?.solid;
+  if(!b||hit.y<b.minY+.05||hit.y>b.maxY-.05)return null;
+  const faces=[
+    {d:Math.abs(hit.x-b.minX),x:-1,z:0},
+    {d:Math.abs(hit.x-b.maxX),x:1,z:0},
+    {d:Math.abs(hit.z-b.minZ),x:0,z:-1},
+    {d:Math.abs(hit.z-b.maxZ),x:0,z:1},
+  ].sort((a,c)=>a.d-c.d);
+  const face=faces[0];
+  if(face.d>.08)return null;
+  const x=face.x<0?b.minX:face.x>0?b.maxX:hit.x;
+  const z=face.z<0?b.minZ:face.z>0?b.maxZ:hit.z;
+  return [+x.toFixed(2),+hit.y.toFixed(2),+z.toFixed(2),face.x,face.z];
+}
+function wallJumpPointAt(x,y,z) {
+  let best=null,distance=.08;
+  for(const b of visibleSolids()){
+    if(y<b.minY+.05||y>b.maxY-.05)continue;
+    const faces=[
+      {d:Math.abs(x-b.minX),x:b.minX,z,nx:-1,nz:0,inside:z>=b.minZ-.08&&z<=b.maxZ+.08},
+      {d:Math.abs(x-b.maxX),x:b.maxX,z,nx:1,nz:0,inside:z>=b.minZ-.08&&z<=b.maxZ+.08},
+      {d:Math.abs(z-b.minZ),x,y,z:b.minZ,nx:0,nz:-1,inside:x>=b.minX-.08&&x<=b.maxX+.08},
+      {d:Math.abs(z-b.maxZ),x,y,z:b.maxZ,nx:0,nz:1,inside:x>=b.minX-.08&&x<=b.maxX+.08},
+    ];
+    for(const face of faces)if(face.inside&&face.d<distance){distance=face.d;best=[+face.x.toFixed(2),+y.toFixed(2),+face.z.toFixed(2),face.nx,face.nz];}
+  }
+  return best;
+}
 function polygon(points,b,fill,stroke) {
   // Clip faces against the near plane instead of dropping an entire building
   // face when a close camera crosses one of its corners.
@@ -138,7 +174,8 @@ function draw() {
   for(const solid of items)drawBox(solid,b);
   const start=project(launch.x,launch.y+1.6,launch.z,b);
   if(start){ctx.fillStyle='#7ce4f2';ctx.beginPath();ctx.arc(start.x,start.y,7,0,Math.PI*2);ctx.fill();ctx.font='11px system-ui';ctx.fillText('試射地点',start.x+9,start.y-8);}
-  layout.forEach(([x,y,z],i)=>{const p=project(x,y,z,b);if(!p)return;ctx.beginPath();ctx.arc(p.x,p.y,i===selected?12:9,0,Math.PI*2);ctx.fillStyle=i===selected?'#ffdb84':'#e9a745';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#40260b';ctx.stroke();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 11px system-ui';ctx.fillStyle='#292218';ctx.fillText(String(i+1),p.x,p.y);});
+  layout.forEach(([x,y,z],i)=>{const p=project(x,y,z,b);if(!p)return;ctx.beginPath();ctx.arc(p.x,p.y,mode==='hook'&&i===selected?12:8,0,Math.PI*2);ctx.fillStyle=mode==='hook'&&i===selected?'#ffdb84':'#e9a745';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#40260b';ctx.stroke();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 11px system-ui';ctx.fillStyle='#292218';ctx.fillText(String(i+1),p.x,p.y);});
+  wallJumps.forEach(([x,y,z,nx,nz],i)=>{const p=project(x,y,z,b);if(!p)return;const tip=project(x+nx*1.8,y,z+nz*1.8,b);ctx.beginPath();ctx.arc(p.x,p.y,mode==='walljump'&&i===selectedWallJump?12:8,0,Math.PI*2);ctx.fillStyle=mode==='walljump'&&i===selectedWallJump?'#a8f4ed':'#52d6c7';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#083b3a';ctx.stroke();if(tip){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(tip.x,tip.y);ctx.strokeStyle='#b8fff4';ctx.lineWidth=2;ctx.stroke();}ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 11px system-ui';ctx.fillStyle='#073432';ctx.fillText(String(i+1),p.x,p.y);});
   ctx.textAlign='left';ctx.textBaseline='alphabetic';
   if(hover&&tool!=='testPoint'){const p=project(hover.x,hover.y+1.5,hover.z,b);if(p){ctx.beginPath();ctx.arc(p.x,p.y,10,0,Math.PI*2);ctx.strokeStyle='#a6f3c3';ctx.lineWidth=2;ctx.stroke();}}
 }
@@ -167,34 +204,49 @@ function zoom(ratio,sx=canvas.clientWidth/2,sy=canvas.clientHeight/2){
   }
   draw();
 }
-function hitMarker(x,y){let best=-1,depth=Infinity;layout.forEach((q,i)=>{const p=project(...q);if(p&&Math.hypot(x-p.x,y-p.y)<15&&p.depth<depth){best=i;depth=p.depth;}});return best;}
+function hitMarker(x,y){let best=-1,depth=Infinity;const points=mode==='hook'?layout:wallJumps;points.forEach((q,i)=>{const p=project(q[0],q[1],q[2]);if(p&&Math.hypot(x-p.x,y-p.y)<15&&p.depth<depth){best=i;depth=p.depth;}});return best;}
 function pointFromEvent(e){const b=canvas.getBoundingClientRect();return{x:e.clientX-b.left,y:e.clientY-b.top};}
 function setTool(value){tool=value;for(const id of ['add','move','testPoint','focusPoint'])$(id).classList.toggle('active',id===value);draw();}
-function preview(){if(!api.apply(layout))return status('座標が有効な範囲を外れています。',true);dirty=true;refresh();}
-function refresh(){draw();$('count').textContent=`${layout.length}個`;$('loadState').textContent=dirty?'未保存の変更があります。保存してゲームへ反映してください。':`地形 ${solids.length} 箱 / フック ${layout.length} 個を表示中`;$('save').disabled=!dirty;const p=layout[selected];for(const [k,i] of [['x',0],['y',1],['z',2]])$(k).value=p?Number(p[i].toFixed(2)):'';$('remove').disabled=!p;$('move').disabled=!p;$('focusSelected').disabled=!p;
-  $('points').replaceChildren(...layout.map((q,i)=>{const button=document.createElement('button');button.className='point'+(i===selected?' selected':'');button.innerHTML=`<span>● ${i+1}</span><em>${q.map(n=>n.toFixed(1)).join(' / ')}</em>`;button.onclick=()=>{selected=i;refresh();};return button;}));
-  if(!p){$('reach').textContent='フックを選択してください。';return;}const start=[launch.x,launch.y+1.6,launch.z],d=[p[0]-start[0],p[1]-start[1],p[2]-start[2]],range=Math.hypot(...d),max=game.S.hookRange;let label=range<2.5?'近すぎます':range>max?'射程外':`射程内（${range.toFixed(1)} / ${max}）`;if(range>=2.5&&range<=max&&internals?.raycast){const block=internals.raycast(...start,...d.map(v=>v/range),range-.6);label+=block?'・途中に障害物あり':'・見通しあり';}$('reach').textContent='試射地点から：'+label+'。実際の使用には照準合わせも必要です。';
+function setMode(value){mode=value;tool='add';$('hookMode').classList.toggle('active',mode==='hook');$('wallJumpMode').classList.toggle('active',mode==='walljump');$('testPoint').hidden=mode==='walljump';refresh();setTool('add');}
+function preview(){if(!api.apply(layout))return status('座標が有効な範囲を外れています。',true);dirty.hook=true;refresh();}
+function markWallJumpDirty(){dirty.walljump=true;refresh();}
+function refresh(){
+  draw();const isWall=mode==='walljump',points=isWall?wallJumps:layout,index=isWall?selectedWallJump:selected,p=points[index];
+  $('selectedTitle').textContent=isWall?'選択中の壁ジャンプ地点':'選択中のフック';$('pointsTitle').firstChild.textContent=isWall?'壁ジャンプ地点 ':'配置済み ';$('count').textContent=`${points.length}個`;
+  $('reset').textContent=isWall?'すべて削除':'初期配置に戻す';$('saveNote').textContent=isWall?'このブラウザーに設計データを保存します。壁ジャンプの動作範囲は変わりません。':'フックを保存すると、このブラウザーで開く旧市街のゲームにも反映されます。他の人の配置は変わりません。';
+  $('normalField').style.display=isWall?'block':'none';$('mapnote').textContent=isWall?'縦の壁面をクリックして壁ジャンプ地点を登録。壁の法線は面から自動判定します。番号をドラッグして別の壁面へ移動。':'左ドラッグで上下左右に360度回転、右ドラッグで平行移動。ホイールでズーム。「ここへ寄る」で場所をクリック。足場をクリックしてフックを配置、番号をドラッグして移動。';
+  $('handoffNote').textContent=isWall?'壁ジャンプ地点JSONは設計データとして書き出されます。ゲーム動作へ反映するには、JSONをゲームのソースへ組み込みます。':'全プレイヤー向けの公開配置にする場合は、書き出したJSONをゲームのソースへ反映します。';
+  $('loadState').textContent=dirty[mode]?'未保存の変更があります。保存してください。':`地形 ${solids.length} 箱 / ${isWall?'壁ジャンプ地点':'フック'} ${points.length} 個を表示中`;$('save').disabled=!dirty[mode];
+  for(const [k,i] of [['x',0],['y',1],['z',2]])$(k).value=p?Number(p[i].toFixed(2)):'';
+  if(isWall&&p)$('normal').value=`${p[3]},${p[4]}`;
+  $('remove').disabled=!p;$('move').disabled=!p;$('focusSelected').disabled=!p;
+  $('points').replaceChildren(...points.map((q,i)=>{const button=document.createElement('button');button.className='point'+(i===index?' selected':'');const suffix=isWall?` / ${q[3]===1?'東':q[3]===-1?'西':q[4]===1?'南':'北'}面`:'';button.innerHTML=`<span>● ${i+1}</span><em>${q.slice(0,3).map(n=>n.toFixed(1)).join(' / ')}${suffix}</em>`;button.onclick=()=>{if(isWall)selectedWallJump=i;else selected=i;refresh();};return button;}));
+  if(!p){$('reach').textContent=isWall?'壁ジャンプ地点を選択してください。':'フックを選択してください。';return;}
+  if(isWall){$('reach').textContent=`壁の向き：${p[3]===1?'東':p[3]===-1?'西':p[4]===1?'南':'北'}向き。ゲーム内の壁ジャンプは現在、壁走り中の入力で発生します。`;return;}
+  const start=[launch.x,launch.y+1.6,launch.z],d=[p[0]-start[0],p[1]-start[1],p[2]-start[2]],range=Math.hypot(...d),max=game.S.hookRange;let label=range<2.5?'近すぎます':range>max?'射程外':`射程内（${range.toFixed(1)} / ${max}）`;if(range>=2.5&&range<=max&&internals?.raycast){const block=internals.raycast(...start,...d.map(v=>v/range),range-.6);label+=block?'・途中に障害物あり':'・見通しあり';}$('reach').textContent='試射地点から：'+label+'。実際の使用には照準合わせも必要です。';
 }
-canvas.addEventListener('pointerdown',e=>{if(!api)return;const p=pointFromEvent(e),marker=hitMarker(p.x,p.y);canvas.setPointerCapture(e.pointerId);selected=marker>=0?marker:selected;drag={kind:marker>=0&&e.button===0?'marker':e.button===2||e.shiftKey?'pan':'orbit',x:p.x,y:p.y,moved:false,startYaw:camera.yaw,startPitch:camera.pitch,startTarget:{...camera.target}};if(marker>=0)refresh();});
+canvas.addEventListener('pointerdown',e=>{if(!api)return;const p=pointFromEvent(e),marker=hitMarker(p.x,p.y);canvas.setPointerCapture(e.pointerId);if(marker>=0){if(mode==='hook')selected=marker;else selectedWallJump=marker;}drag={kind:marker>=0&&e.button===0?'marker':e.button===2||e.shiftKey?'pan':'orbit',x:p.x,y:p.y,moved:false,startYaw:camera.yaw,startPitch:camera.pitch,startTarget:{...camera.target}};if(marker>=0)refresh();});
 canvas.addEventListener('pointermove',e=>{if(!api)return;const p=pointFromEvent(e);if(!drag){hover=pick(p.x,p.y);draw();return;}const dx=p.x-drag.x,dy=p.y-drag.y;if(Math.hypot(dx,dy)>4)drag.moved=true;if(!drag.moved)return;hover=null;
-  if(drag.kind==='marker'){const hit=pick(p.x,p.y);if(!hit)return;layout[selected]=[+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];preview();}
+  if(drag.kind==='marker'){const hit=pick(p.x,p.y);if(!hit)return;if(mode==='hook'){layout[selected]=[+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];preview();}else{const point=wallJumpPoint(hit);if(!point)return;wallJumps[selectedWallJump]=point;markWallJumpDirty();}}
   else if(drag.kind==='orbit'){camera.yaw=drag.startYaw-dx*.007;camera.pitch=drag.startPitch+dy*.007;draw();}
   else {const b=basis(),scale=camera.distance*2*Math.tan(FOV/2)/canvas.clientHeight;camera.target={x:drag.startTarget.x+(-b.right.x*dx+b.up.x*dy)*scale,y:drag.startTarget.y+(-b.right.y*dx+b.up.y*dy)*scale,z:drag.startTarget.z+(-b.right.z*dx+b.up.z*dy)*scale};draw();}
 });
-canvas.addEventListener('pointerup',e=>{if(!drag||!api)return;const p=pointFromEvent(e),moved=drag.moved,kind=drag.kind;drag=null;camera.yaw%=Math.PI*2;camera.pitch%=Math.PI*2;if(moved||kind==='marker'||e.button!==0)return;const hit=pick(p.x,p.y);if(!hit)return;if(tool==='focusPoint'){focus(hit);return;}if(tool==='testPoint'){launch={x:hit.x,y:hit.y,z:hit.z};refresh();return;}const point=[+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];if(tool==='move'&&selected>=0)layout[selected]=point;else{layout.push(point);selected=layout.length-1;}preview();});
+canvas.addEventListener('pointerup',e=>{if(!drag||!api)return;const p=pointFromEvent(e),moved=drag.moved,kind=drag.kind;drag=null;camera.yaw%=Math.PI*2;camera.pitch%=Math.PI*2;if(moved||kind==='marker'||e.button!==0)return;const hit=pick(p.x,p.y);if(!hit)return;if(tool==='focusPoint'){focus(hit);return;}if(mode==='hook'&&tool==='testPoint'){launch={x:hit.x,y:hit.y,z:hit.z};refresh();return;}if(mode==='walljump'){const point=wallJumpPoint(hit);if(!point)return status('壁ジャンプ地点は縦の壁面に置いてください。',true);if(tool==='move'&&selectedWallJump>=0)wallJumps[selectedWallJump]=point;else{wallJumps.push(point);selectedWallJump=wallJumps.length-1;}markWallJumpDirty();return;}const point=[+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];if(tool==='move'&&selected>=0)layout[selected]=point;else{layout.push(point);selected=layout.length-1;}preview();});
 canvas.addEventListener('pointercancel',()=>{drag=null;});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('wheel',e=>{e.preventDefault();const p=pointFromEvent(e);zoom(e.deltaY<0?.81:1.23,p.x,p.y);},{passive:false});
 for(const id of ['add','move','testPoint','focusPoint'])$(id).onclick=()=>setTool(id);
+$('hookMode').onclick=()=>setMode('hook');$('wallJumpMode').onclick=()=>setMode('walljump');
 $('fit').onclick=fit;$('zoomIn').onclick=()=>zoom(.75);$('zoomOut').onclick=()=>zoom(1.33);
 $('topView').onclick=()=>{camera.pitch=1.52;draw();};$('obliqueView').onclick=()=>{camera.pitch=.67;draw();};
-$('focusSelected').onclick=()=>{if(selected>=0)focus({x:layout[selected][0],y:layout[selected][1],z:layout[selected][2]});};
-for(const [k,i] of [['x',0],['y',1],['z',2]])$(k).addEventListener('change',()=>{if(selected<0)return;const value=Number($(k).value);if(!Number.isFinite(value))return;layout[selected][i]=value;preview();});
-$('remove').onclick=()=>{if(selected<0)return;layout.splice(selected,1);selected=Math.min(selected,layout.length-1);preview();};
-$('save').onclick=()=>{if(!api.apply(layout,true))return status('保存できませんでした。ブラウザの保存設定を確認してください。',true);dirty=false;refresh();status('このブラウザに保存しました。ゲームを開き直すと配置が反映されます。');};
-$('reset').onclick=()=>{layout=defaults.map(p=>[...p]);selected=-1;api.reset();dirty=false;refresh();status('初期配置に戻しました。');};
-$('export').onclick=()=>{const data={format:'gunrun-old-town-hooks-v1',map:'old-town',hooks:layout};const blob=new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='gunrun-old-town-hooks.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status('配置JSONを書き出しました。');};
-$('import').onclick=()=>$('importFile').click();$('importFile').onchange=async()=>{const file=$('importFile').files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(data.format!=='gunrun-old-town-hooks-v1'||data.map!=='old-town'||!Array.isArray(data.hooks)||data.hooks.length>64||!data.hooks.every(finitePoint))throw Error('形式または座標が正しくありません');layout=data.hooks.map(p=>[...p]);selected=-1;preview();status('JSONを読み込みました。確認してから保存してください。');}catch(e){status('読み込めませんでした：'+e.message,true);}finally{$('importFile').value='';}};
+$('focusSelected').onclick=()=>{const p=mode==='hook'?layout[selected]:wallJumps[selectedWallJump];if(p)focus({x:p[0],y:p[1],z:p[2]});};
+for(const [k,i] of [['x',0],['y',1],['z',2]])$(k).addEventListener('change',()=>{const index=mode==='hook'?selected:selectedWallJump,points=mode==='hook'?layout:wallJumps;if(index<0)return;const value=Number($(k).value);if(!Number.isFinite(value))return;if(mode==='hook'){points[index][i]=value;preview();return;}const next=points[index].slice(0,3);next[i]=value;const wall=wallJumpPointAt(...next);if(!wall){refresh();return status('壁ジャンプ地点は縦の壁面上に置いてください。',true);}wallJumps[index]=wall;markWallJumpDirty();});
+$('normal').addEventListener('change',()=>{if(mode!=='walljump'||selectedWallJump<0)return;const [nx,nz]=$('normal').value.split(',').map(Number);wallJumps[selectedWallJump][3]=nx;wallJumps[selectedWallJump][4]=nz;markWallJumpDirty();});
+$('remove').onclick=()=>{if(mode==='hook'){if(selected<0)return;layout.splice(selected,1);selected=Math.min(selected,layout.length-1);preview();}else{if(selectedWallJump<0)return;wallJumps.splice(selectedWallJump,1);selectedWallJump=Math.min(selectedWallJump,wallJumps.length-1);markWallJumpDirty();}};
+$('save').onclick=()=>{if(mode==='hook'){if(!api.apply(layout,true))return status('保存できませんでした。ブラウザの保存設定を確認してください。',true);dirty.hook=false;refresh();status('フック配置をこのブラウザに保存しました。ゲームを開き直すと反映されます。');return;}try{localStorage.setItem(WALL_JUMP_STORAGE_KEY,JSON.stringify(wallJumps));dirty.walljump=false;refresh();status('壁ジャンプ地点をこのブラウザに保存しました。');}catch{status('保存できませんでした。ブラウザの保存設定を確認してください。',true);}};
+$('reset').onclick=()=>{if(mode==='hook'){layout=defaults.map(p=>[...p]);selected=-1;api.reset();dirty.hook=false;refresh();status('フック配置を初期配置に戻しました。');return;}wallJumps=[];selectedWallJump=-1;try{localStorage.removeItem(WALL_JUMP_STORAGE_KEY);}catch{}dirty.walljump=false;refresh();status('壁ジャンプ地点をすべて削除しました。');};
+$('export').onclick=()=>{const isWall=mode==='walljump',data=isWall?{format:'gunrun-old-town-walljumps-v1',map:'old-town',wallJumps:wallJumps.map(([x,y,z,nx,nz])=>({at:[x,y,z],normal:[nx,nz]}))}:{format:'gunrun-old-town-hooks-v1',map:'old-town',hooks:layout};const blob=new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=isWall?'gunrun-old-town-walljumps.json':'gunrun-old-town-hooks.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status(isWall?'壁ジャンプ地点JSONを書き出しました。':'フック配置JSONを書き出しました。');};
+$('import').onclick=()=>$('importFile').click();$('importFile').onchange=async()=>{const file=$('importFile').files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(mode==='hook'){if(data.format!=='gunrun-old-town-hooks-v1'||data.map!=='old-town'||!Array.isArray(data.hooks)||data.hooks.length>64||!data.hooks.every(finitePoint))throw Error('形式または座標が正しくありません');layout=data.hooks.map(p=>[...p]);selected=-1;preview();}else{if(data.format!=='gunrun-old-town-walljumps-v1'||data.map!=='old-town'||!Array.isArray(data.wallJumps)||data.wallJumps.length>128||!data.wallJumps.every(p=>Array.isArray(p?.at)&&Array.isArray(p?.normal)&&finiteWallJump([...p.at,...p.normal])))throw Error('形式または座標が正しくありません');wallJumps=data.wallJumps.map(p=>[...p.at,...p.normal]);selectedWallJump=-1;markWallJumpDirty();}status('JSONを読み込みました。確認してから保存してください。');}catch(e){status('読み込めませんでした：'+e.message,true);}finally{$('importFile').value='';}};
 new ResizeObserver(resize).observe(canvas);
-async function boot(){if(booted)return;booted=true;try{const w=iframe.contentWindow;for(let i=0;i<250&&!w.skyHookEditor;i++)await new Promise(r=>setTimeout(r,80));api=w.skyHookEditor;game=w.__game;internals=w.__skyInternals;if(!api||!game?.solids)throw Error('ゲームの地形を読み込めませんでした');w.__hold=true;solids=game.solids;defaults=api.defaults();layout=api.current();fit();resize();refresh();status('上下左右に一周回転できます。ホイールで必要なだけ近づけます。');}catch(e){status(e.message,true);$('loadState').textContent='読み込みに失敗しました。HTTPまたは公開URLで開いてください。';}}
+async function boot(){if(booted)return;booted=true;try{const w=iframe.contentWindow;for(let i=0;i<250&&!w.skyHookEditor;i++)await new Promise(r=>setTimeout(r,80));api=w.skyHookEditor;game=w.__game;internals=w.__skyInternals;if(!api||!game?.solids)throw Error('ゲームの地形を読み込めませんでした');w.__hold=true;solids=game.solids;defaults=api.defaults();layout=api.current();try{const stored=localStorage.getItem(WALL_JUMP_STORAGE_KEY);if(stored){const parsed=JSON.parse(stored);if(Array.isArray(parsed)&&parsed.length<=128&&parsed.every(finiteWallJump))wallJumps=parsed;}}catch{}fit();resize();refresh();status('上下左右に一周回転できます。ホイールで必要なだけ近づけます。');}catch(e){status(e.message,true);$('loadState').textContent='読み込みに失敗しました。HTTPまたは公開URLで開いてください。';}}
 if(iframe.contentDocument?.readyState==='complete')boot();else iframe.addEventListener('load',boot,{once:true});
