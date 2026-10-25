@@ -279,17 +279,76 @@ if (window.T2?.GLTFLoader) {
 
 // Complete the existing traversable structures with low polygon route cues.
 const anchors = [];
-for (const [x, y, z0] of us) {
-  const anchor = new Group();
+function makeAnchor(x, y, z0) {
+  // Clone a loaded model when the editor adds a point after GLB loading.
+  const anchor = anchors.length && anchors[0].children.some((child) => child.name === 'Meshy grapple anchor mobile LOD')
+    ? anchors[0].clone(true) : new Group();
   anchor.name = 'Sky grapple anchor';
   anchor.position.set(x, y, z0);
-  const rim = ring(anchor, 0.38, 0.055, palette.amber);
-  rim.rotation.x = Math.PI / 2;
-  box(anchor, 0.22, 0.06, 0.22, palette.steel, 0, -0.09, 0);
-  for (const dx of [-0.08, 0.08]) for (const dz of [-0.08, 0.08]) cylinder(anchor, 0.014, 0.014, 0.03, palette.silver, dx, -0.045, dz, 6);
+  if (!anchor.children.length) {
+    const rim = ring(anchor, 0.38, 0.055, palette.amber);
+    rim.rotation.x = Math.PI / 2;
+    box(anchor, 0.22, 0.06, 0.22, palette.steel, 0, -0.09, 0);
+    for (const dx of [-0.08, 0.08]) for (const dz of [-0.08, 0.08]) cylinder(anchor, 0.014, 0.014, 0.03, palette.silver, dx, -0.045, dz, 6);
+  }
   ue.add(anchor);
   anchors.push(anchor);
 }
+for (const [x, y, z0] of us) makeAnchor(x, y, z0);
+
+const HOOK_LAYOUT_KEY = 'gunrun-old-town-hook-layout-v1';
+const builtInHooks = us.map(([x, y, z0]) => [x, y, z0]);
+// The original game also creates two small meshes per built-in anchor. Hide
+// those static copies so a moved or deleted anchor leaves no marker behind.
+for (const [x, y, z0] of builtInHooks) {
+  for (const object of ue.children) {
+    if (!object.isMesh || Math.abs(object.position.x - x) > 0.001 || Math.abs(object.position.z - z0) > 0.001) continue;
+    const ringShape = object.geometry?.type === 'TorusGeometry' && Math.abs(object.position.y - y) < 0.001;
+    const boxShape = object.geometry?.type === 'BoxGeometry' && Math.abs(object.position.y - y - 0.35) < 0.001 &&
+      Math.abs((object.geometry.parameters?.width || 0) - 0.08) < 0.001;
+    if (ringShape || boxShape) object.visible = false;
+  }
+}
+function validHookLayout(value) {
+  if (!Array.isArray(value) || value.length > 64) return false;
+  return value.every((point) => Array.isArray(point) && point.length === 3 &&
+    point.every((n) => typeof n === 'number' && Number.isFinite(n)) &&
+    Math.abs(point[0]) <= 150 && point[1] >= -20 && point[1] <= 100 && Math.abs(point[2]) <= 150);
+}
+function applyHookLayout(points, persist = false) {
+  if (!validHookLayout(points)) return false;
+  const next = points.map(([x, y, z0]) => [x, y, z0]);
+  while (anchors.length > next.length) ue.remove(anchors.pop());
+  next.forEach(([x, y, z0], i) => {
+    if (i < anchors.length) anchors[i].position.set(x, y, z0);
+    else makeAnchor(x, y, z0);
+  });
+  us.splice(0, us.length, ...next);
+  if (persist) {
+    try { localStorage.setItem(HOOK_LAYOUT_KEY, JSON.stringify(next)); }
+    catch { return false; }
+  }
+  return true;
+}
+window.skyHookEditor = {
+  key: HOOK_LAYOUT_KEY,
+  defaults: () => builtInHooks.map((point) => [...point]),
+  current: () => us.map((point) => [...point]),
+  apply: applyHookLayout,
+  reset: () => {
+    try { localStorage.removeItem(HOOK_LAYOUT_KEY); } catch { /* private browsing */ }
+    return applyHookLayout(builtInHooks);
+  },
+};
+try {
+  const stored = localStorage.getItem(HOOK_LAYOUT_KEY);
+  if (stored) applyHookLayout(JSON.parse(stored));
+} catch { /* Corrupt or unavailable storage: keep the built-in points. */ }
+window.addEventListener('storage', (event) => {
+  if (event.key !== HOOK_LAYOUT_KEY) return;
+  try { applyHookLayout(event.newValue ? JSON.parse(event.newValue) : builtInHooks); }
+  catch { /* Keep the current layout. */ }
+});
 for (const ladder of mo) {
   const marker = new Group();
   marker.name = 'Sky ladder access';
