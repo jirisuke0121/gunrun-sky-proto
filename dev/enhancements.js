@@ -13,13 +13,21 @@ if (knifeRule) {
     '最初はナイフだけ（調整画面でハンドガンも持てる）',
     '銃は選んだ武器を持ち、調整画面でオフにもできる',
   );
-  knifeRule.insertAdjacentHTML('afterend', '<li><kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填。HG・SG・SMG・MGから武器を選べる</li>' +
+  knifeRule.insertAdjacentHTML('afterend', '<li><kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填。HG・SG・SMG・MGとEasy Weaponsの8種から選べる</li>' +
     '<li>技（スライド・壁走り・縁つかみ・はしご・ジップライン・フック）を3回決めると煙幕+1（最大2個）</li>' +
     '<li>少し高い壁に走って跳ぶと、壁を蹴って駆け上がる。日よけ布に落ちると大きく跳ねる</li>' +
     '<li><kbd>H</kbd> 自己ベストのときの走りを青い人影（ゴースト）で表示・非表示</li>');
 }
 
 const { WP, U, Jn, Et, ri, Tt, c, z, ue, tl, vd, uh, mr, us, mo, $a: zipLines, jn, Geom } = game;
+// Apply the new run-speed default once for players who already saved the former default.
+try {
+  const speedMigration = 'gunrun-run-speed-20261025';
+  if (!localStorage.getItem(speedMigration)) {
+    if (U.sprintSpeed === 8) { U.sprintSpeed = 6; Ua(); }
+    localStorage.setItem(speedMigration, '1');
+  }
+} catch {}
 const { Box, Cylinder, Torus, Sphere, Mesh, Group, Standard, Basic, Vector3 } = Geom;
 const palette = {
   steel: new Standard({ color: 0x292d31, metalness: 0.72, roughness: 0.48 }),
@@ -107,6 +115,20 @@ makeWeapon('MG', (g) => {
   for (const side of [-1, 1]) box(g, 0.018, 0.11, 0.018, palette.silver, side * 0.058, -0.04, -0.60).rotation.x = side * 0.23;
   box(g, 0.025, 0.024, 0.10, palette.amber, 0, 0.155, -0.21);
 });
+const unityHgView = makeWeapon('Unity HG', (g) => {
+  box(g, 0.115, 0.072, 0.25, palette.steel, 0, 0.055, -0.13);
+  box(g, 0.118, 0.037, 0.24, palette.silver, 0, 0.104, -0.13);
+  box(g, 0.07, 0.15, 0.074, palette.grip, 0, -0.065, -0.012).rotation.x = -0.22;
+});
+const easyWeaponViews = [
+  makeWeapon('Easy Shotgun', (g) => { box(g, .13, .11, .34, palette.steel, 0, .04, -.14); cylinder(g, .032, .032, .44, palette.dark, 0, .06, -.37).rotation.x = Math.PI / 2; box(g, .10, .13, .26, palette.grip, 0, -.02, .16); }),
+  makeWeapon('Easy M4', (g) => { box(g, .14, .12, .34, palette.steel, 0, .06, -.16); cylinder(g, .022, .022, .46, palette.dark, 0, .07, -.43).rotation.x = Math.PI / 2; box(g, .07, .21, .07, palette.dark, 0, -.08, -.12); box(g, .10, .10, .30, palette.grip, 0, -.02, .17); }),
+  makeWeapon('Easy Rail Gun', (g) => { box(g, .17, .16, .36, palette.dark, 0, .06, -.16); box(g, .12, .07, .38, palette.silver, 0, .12, -.47); cylinder(g, .055, .055, .12, palette.amber, 0, .12, -.69).rotation.x = Math.PI / 2; box(g, .09, .17, .08, palette.grip, 0, -.06, .02); }),
+  makeWeapon('Easy Beam Gun', (g) => { box(g, .15, .12, .32, palette.dark, 0, .06, -.14); cylinder(g, .045, .045, .40, palette.amber, 0, .07, -.40).rotation.x = Math.PI / 2; box(g, .10, .17, .08, palette.grip, 0, -.05, .01); }),
+  makeWeapon('Easy Cluster Launcher', (g) => { box(g, .18, .15, .34, palette.steel, 0, .06, -.14); cylinder(g, .06, .06, .46, palette.dark, 0, .07, -.44).rotation.x = Math.PI / 2; box(g, .12, .17, .09, palette.grip, 0, -.06, .04); }),
+  makeWeapon('Easy Rocket Launcher', (g) => { cylinder(g, .085, .085, .72, palette.dark, 0, .07, -.28).rotation.x = Math.PI / 2; cylinder(g, .10, .10, .10, palette.amber, 0, .07, -.67).rotation.x = Math.PI / 2; box(g, .12, .18, .12, palette.grip, 0, -.04, .12); }),
+  makeWeapon('Easy M79', (g) => { box(g, .17, .15, .29, palette.steel, 0, .06, -.12); cylinder(g, .06, .06, .36, palette.dark, 0, .07, -.39).rotation.x = Math.PI / 2; box(g, .11, .2, .1, palette.grip, 0, -.07, .1); }),
+];
 
 // A compact wrist-mounted hook launcher and the knife share the animated hands.
 const hookLauncher = new Group();
@@ -124,7 +146,7 @@ blade.rotation.x = -0.06;
 box(uh, 0.014, 0.016, 0.06, palette.amber, 0, 0.009, -0.39);
 
 // Optimized Meshy assets use the procedural viewmodels as load-error fallbacks.
-const loaded = { hg: false, sg: false, smg: false, mg: false, glove: false, knife: false, ladder: false, hook: false, anchor: false, trolley: false, smoke: false, error: '' };
+const loaded = { hg: false, sg: false, smg: false, mg: false, unityHg: false, easyShotgun: false, easyM4: false, easyRail: false, easyBeam: false, easyCluster: false, easyRocket: false, easyM79: false, glove: false, knife: false, ladder: false, hook: false, anchor: false, trolley: false, smoke: false, error: '' };
 function recordAssetLoaded(key) {
   loaded[key] = true;
   document.body.dataset.skyModels = JSON.stringify(loaded);
@@ -248,12 +270,26 @@ for (const block of jn) {
 // MG uses the existing shooting, aiming, reload, score and hit systems.
 WP.push({ n: 'MG', mag: 60, res: 60, cd: 0.105, rl: 3.0, dmg: 0.65,
   head: 3, knock: 3.1, stun: 0.38, range: 70, cone: 0, auto: 1 });
-Jn.weapon = Math.max(0, Math.min(3, Jn.weapon));
-U.weapon = Math.max(0, Math.min(3, U.weapon | 0));
+// Easy Weapons Pistol prefab: semi-auto raycast, 12 rounds/sec, 16-round magazine, 1.6-second reload.
+// Keep damage and hit feedback on Air Corridor's existing combat path.
+WP.push({ n: 'EW Pistol', mag: 16, res: 36, cd: 1 / 12, rl: 1.6, dmg: 1,
+  head: 1, knock: 6.5, stun: 0.6, range: 90, cone: 0.05 });
+// Easy Weapons prefab settings adapted to the existing hitscan combat loop.
+WP.push(
+  { n: 'Easy Shotgun', mag: 12, res: 24, cd: 0.5, rl: 2.1, dmg: 1.2, head: 1, knock: 9, stun: 0.9, range: 12, cone: 0.3 },
+  { n: 'Easy M4', mag: 70, res: 140, cd: 1 / 12, rl: 2, dmg: 0.72, head: 1.5, knock: 4.5, stun: 0.45, range: 85, cone: 0, auto: 1 },
+  { n: 'Easy Rail Gun', mag: 16, res: 32, cd: 1 / 3.5, rl: 1.6, dmg: 2.1, head: 1, knock: 9, stun: 0.9, range: 110, cone: 0, auto: 1 },
+  { n: 'Easy Beam Gun', mag: 50, res: 100, cd: 0.1, rl: 2, dmg: 0.7, head: 1, knock: 3.2, stun: 0.35, range: 90, cone: 0, auto: 1 },
+  { n: 'Easy Cluster', mag: 6, res: 18, cd: 0.5, rl: 2.4, dmg: 1.8, head: 1, knock: 8, stun: 0.8, range: 80, cone: 0.08, auto: 1 },
+  { n: 'Easy Rocket', mag: 6, res: 18, cd: 0.5, rl: 2.4, dmg: 2, head: 1, knock: 9, stun: 0.9, range: 90, cone: 0.06, auto: 1 },
+  { n: 'Easy M79', mag: 6, res: 18, cd: 1 / 3, rl: 2, dmg: 1.8, head: 1, knock: 8, stun: 0.8, range: 80, cone: 0.08 },
+);
+Jn.weapon = Math.max(0, Math.min(11, Jn.weapon));
+U.weapon = Math.max(0, Math.min(11, U.weapon | 0));
 const weaponSlider = document.getElementById('s_weapon');
 if (weaponSlider) {
-  weaponSlider.max = '3';
-  weaponSlider.parentElement.querySelector('label').textContent = '武器（0=HG 1=SG 2=SMG 3=MG）';
+  weaponSlider.max = '11';
+  weaponSlider.parentElement.querySelector('label').textContent = '武器（0=HG 1=SG 2=SMG 3=MG 4=EW Pistol 5=EW Shotgun 6=EW M4 7=Rail 8=Beam 9=Cluster 10=Rocket 11=M79）';
 }
 window.__wpSync?.();
 const originalGunSound = Tt.hg;
@@ -424,7 +460,7 @@ function updateEquipment(now) {
   const weapon = U.weapon | 0;
   if (weapon !== lastWeapon) {
     weaponViews.forEach((view, index) => { view.visible = U.gunOn && index === weapon; });
-    vd.position.z = [-0.25, -0.62, -0.34, -0.82][weapon] ?? -0.25;
+    vd.position.z = [-0.25, -0.62, -0.34, -0.82, -0.25, -0.62, -0.72, -0.82, -0.72, -0.82, -0.9, -0.72][weapon] ?? -0.25;
     if (mode === 'play' && lastWeapon >= 0) {
       const profile = WP[weapon];
       Et.mag = profile.mag;
@@ -497,6 +533,29 @@ if (window.T2?.GLTFLoader) {
       root.position.set(0, -0.02, forward);
       view.add(root);
       for (const child of view.children) if (child !== root) child.visible = false;
+    });
+  }
+  loadDetail('unityHg', 'easy-weapons-pistol.glb', (root) => {
+    root.name = 'Easy Weapons Pistol';
+    root.position.set(0, -0.02, -0.13);
+    unityHgView.add(root);
+    for (const child of unityHgView.children) if (child !== root) child.visible = false;
+  });
+  const easyAssets = [
+    ['easyShotgun', 5, 'easy-weapons-shotgun.glb'],
+    ['easyM4', 6, 'easy-weapons-m4.glb'],
+    ['easyRail', 7, 'easy-weapons-rail-gun.glb'],
+    ['easyBeam', 8, 'easy-weapons-beam-gun.glb'],
+    ['easyCluster', 9, 'easy-weapons-cluster-launcher.glb'],
+    ['easyRocket', 10, 'easy-weapons-rocket-launcher.glb'],
+    ['easyM79', 11, 'easy-weapons-m79-launcher.glb'],
+  ];
+  for (const [key, index, filename] of easyAssets) {
+    loadDetail(key, filename, (root) => {
+      root.name = `Easy Weapons ${WP[index].n} model`;
+      root.position.set(0, -0.02, index >= 9 ? -0.17 : -0.13);
+      easyWeaponViews[index - 5].add(root);
+      for (const child of easyWeaponViews[index - 5].children) if (child !== root) child.visible = false;
     });
   }
   loadDetail('hook', 'hook-launcher-meshy-low.glb', (root) => {
@@ -1327,6 +1386,43 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   // left once the context exists; otherwise the first shots after starting could fall back to the synthetic sound.
   const SFX_VER = '20261024-12';
   const sfxBytes = {};
+  const EASY_FIRE = {
+    4: ['pistol_fire_1.wav', 0.50],
+    5: ['shotgun_fire_1.wav', 0.56],
+    6: ['rifle_fire_1.wav', 0.48],
+    7: ['laser_fire_1.wav', 0.50],
+    8: ['deep_beam.mp3', 0.56],
+    9: ['rocket_launch_2.wav', 0.52],
+    10: ['rocket_launch_1.wav', 0.52],
+    11: ['rocket_launch_2.wav', 0.52],
+  };
+  const easySoundFiles = [...new Set([...Object.values(EASY_FIRE).map(([file]) => file), 'reload_1.wav'])];
+  const easySoundBytes = Object.fromEntries(easySoundFiles.map((file) => [file,
+    fetch(`./assets/sfx/easy-weapons/${file}?v=ew-20261025-1`)
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+      .catch(() => null),
+  ]));
+  const easySoundBuffers = {};
+  let easySoundCtx = null;
+  const loadEasySounds = () => {
+    const ctx = Ut.ctx;
+    if (!ctx || easySoundCtx === ctx) return;
+    easySoundCtx = ctx;
+    for (const file of easySoundFiles) {
+      easySoundBytes[file]
+        .then((ab) => (ab ? new Promise((ok, no) => ctx.decodeAudioData(ab.slice(0), ok, no)) : null))
+        .then((buffer) => { if (buffer) easySoundBuffers[file] = buffer; })
+        .catch(() => {});
+    }
+  };
+  const playEasySound = (file, gain) => {
+    if (!Ut.ctx || !Ut.master || !easySoundBuffers[file]) return false;
+    const ctx = Ut.ctx, src = ctx.createBufferSource(), amp = ctx.createGain();
+    src.buffer = easySoundBuffers[file];
+    amp.gain.value = gain;
+    src.connect(amp); amp.connect(Ut.master); src.start();
+    return true;
+  };
   for (const ids of Object.values(SAMPLES)) {
     for (const id of ids) {
       sfxBytes[id] = fetch(`./assets/sfx/${id}.wav?v=${SFX_VER}`)
@@ -1338,6 +1434,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     const ctx = Ut.ctx;
     if (!ctx || sampleCtx === ctx) return;
     sampleCtx = ctx;
+    loadEasySounds();
     for (const [name, ids] of Object.entries(SAMPLES)) {
       for (const id of ids) {
         sfxBytes[id]
@@ -1413,11 +1510,22 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   };
   Tt.hg = () => {
     const name = wpc().n;
+    const weaponIndex = U.weapon | 0;
     const st = window.__skyAudio;
     if (st) st.shots[name] = (st.shots[name] || 0) + 1;
     if (!Ut.ctx || !Ut.master) return;
     loadSamples();
-    if (!playSample(Ut.ctx, name)) gunVoice(Ut.ctx, Ut.master, name);
+    if (weaponIndex >= 4) {
+      const [file, gain] = EASY_FIRE[weaponIndex] || EASY_FIRE[4];
+      if (!playEasySound(file, gain)) gunVoice(Ut.ctx, Ut.master, 'HG');
+    } else if (!playSample(Ut.ctx, name)) gunVoice(Ut.ctx, Ut.master, name);
+  };
+  const previousReloadSound = Tt.reload;
+  Tt.reload = () => {
+    if ((U.weapon | 0) >= 4) {
+      loadEasySounds();
+      if (!playEasySound('reload_1.wav', 0.46)) Mn(0.18, 1700, 0.8, 0.06, 'bandpass');
+    } else if (typeof previousReloadSound === 'function') previousReloadSound();
   };
   // Body hit: a dull thud. Head hit adds a bright "ping" on top of it.
   let lastHitSound = 0;
