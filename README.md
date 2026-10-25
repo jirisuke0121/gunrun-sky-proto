@@ -4,6 +4,11 @@
 
 **遊ぶ：** https://jirisuke0121.github.io/gunrun-sky-proto/ （iPhone は横向き、PC はブラウザで）
 
+## 現在の公開版（2026-10-25）
+- タイトル画面で12種類の武器を選べます。従来のHG・SG・SMG・MGに加え、Unity Easy Weapons の Pistol・Shotgun・M4・Rail Gun・Beam Gun・Cluster Launcher・Rocket Launcher・M79 を搭載しています。
+- 選んだ武器の手元モデル、弾数、連射速度、装填、銃声がプレイ中に切り替わります。Cluster・Rocket・M79 は着弾地点に範囲ダメージを与えます。
+- プレイの入口はリポジトリ直下の `index.html` と `canyon.html`。`dev/` は廃止済みです。
+
 ## 操作
 - PC：WASD 移動 / Space ジャンプ / C スライド / Q フック / G 煙幕 / クリックか F でナイフ / Esc 一時停止
 - 武器：タイトル画面か設定で選べます。HG（精密・遠くまで）/ SG（近距離・扇状に押し流す）/ SMG（連射・足止め）/ MG（60発装填・長いリロード）。どれも走る・跳ぶ・スライド中に撃てて、動きながら撃つと押し返しが1.25倍になります
