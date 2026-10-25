@@ -5,6 +5,18 @@ const panel=document.getElementById('ovPause');
 const heading=panel.querySelector('h2');
 const resume=document.getElementById('bResume');
 const restart=document.getElementById('bRestart');
+// Keep the controls in the physical viewport, outside the rotated game canvas.
+document.body.append(button,panel);
+const jumpGroup=document.getElementById('s_jumpGunUp').closest('.set-group');
+document.getElementById('setGrid').prepend(jumpGroup);
+const heightHint=document.createElement('p');
+heightHint.className='note';heightHint.id='jumpGunHeightHint';jumpGroup.append(heightHint);
+function updateHeightHint(){
+  const height=game.U.jumpGunUp**2/(2*Math.max(1,game.U.gravity));
+  heightHint.textContent=`真下に撃ったときの目安：約${height.toFixed(1)}m（天井などで変わります）`;
+}
+document.getElementById('setGrid').addEventListener('input',updateHeightHint);
+document.getElementById('bReset').addEventListener('click',updateHeightHint);
 let lastMode=game.modeRef(),returnMode='play';
 function modeChanged(mode) {
   if(mode==='pause' && lastMode!=='pause')returnMode=lastMode==='menu'?'menu':'play';
@@ -19,6 +31,7 @@ function modeChanged(mode) {
   button.hidden=!['menu','play','pause'].includes(mode);
   button.setAttribute('aria-expanded',String(mode==='pause'));
   button.setAttribute('aria-label',mode==='pause'?'調整を閉じる':'メニュー・調整を開く');
+  updateHeightHint();
   document.body.dataset.skySettings=JSON.stringify({mode,open:mode==='pause',returnMode});
 }
 function close() {

@@ -32,10 +32,12 @@ export function createJumpGun(game) {
       report('no-floor');return {handled:true,suppressTracer:true};
     }
     spent=true;launchTime=z.t;
+    const up=Number.isFinite(U.jumpGunUp)?Math.max(4,Math.min(20,U.jumpGunUp)):11.2;
+    const push=Number.isFinite(U.jumpGunPush)?Math.max(0,Math.min(14,U.jumpGunPush)):8;
     c.state='normal';c.ledge=null;c.ladder=null;c.wallKey=null;
     c.onGround=false;c.coyote=0;c.airT=0;c.jumpBuf=0;
-    c.vel.y=Math.max(c.vel.y,Math.max(8.2,-direction.y*11.2));
-    c.vel.x-=direction.x*8;c.vel.z-=direction.z*8;
+    c.vel.y=Math.max(c.vel.y,Math.max(up*(8.2/11.2),-direction.y*up));
+    c.vel.x-=direction.x*push;c.vel.z-=direction.z*push;
     const speed=Math.hypot(c.vel.x,c.vel.z);
     if(speed>14){c.vel.x*=14/speed;c.vel.z*=14/speed;}
     c.shake=Math.max(c.shake||0,.22);
@@ -45,7 +47,7 @@ export function createJumpGun(game) {
     game.Tt.bang(.6);
     stats.jumpGunLaunches=(stats.jumpGunLaunches||0)+1;
     game.rn('反動ジャンプ！ 空中で進路を調整');
-    report('launched',{point:point.toArray(),velocity:c.vel.toArray(),life:c.life});
+    report('launched',{point:point.toArray(),velocity:c.vel.toArray(),life:c.life,up,push});
     return {handled:true,suppressTracer:true};
   }
   function tick(dt) {
