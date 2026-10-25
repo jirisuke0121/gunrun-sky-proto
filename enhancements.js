@@ -1,3 +1,5 @@
+import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261025f';
+
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
 if (!game) throw new Error('Air-corridor base game did not initialize');
@@ -29,6 +31,8 @@ try {
   }
 } catch {}
 const { Box, Cylinder, Torus, Sphere, Mesh, Group, Standard, Basic, Vector3 } = Geom;
+const easyPort = createEasyWeaponPort(game);
+window.__easyWeaponPort = easyPort;
 const palette = {
   steel: new Standard({ color: 0x292d31, metalness: 0.72, roughness: 0.48 }),
   dark: new Standard({ color: 0x171b1f, metalness: 0.42, roughness: 0.65 }),
@@ -136,10 +140,39 @@ for (const view of [unityHgView, ...easyWeaponViews]) {
   view.position.set(0.38, -0.45, -0.62);
   view.rotation.set(-0.12, -0.72, 0);
 }
-// The exported weapon GLBs contain meshes only, so animate their first-person
-// mount and add a brief muzzle flash in the browser build.
+// The exported weapon GLBs have no animation clips. The M4 and shotgun keep
+// separate magazine meshes, which the reload clock can drive in the browser.
 const easyFlashDepth = [-0.42, -0.70, -0.76, -0.82, -0.76, -0.87, -1.02, -0.73];
 const easyFlashes = [];
+const easyMagazines = new Map();
+const hgReloadMagazine = box(unityHgView, 0.064, 0.29, 0.09, palette.dark, 0, -0.2, -0.03);
+hgReloadMagazine.name = 'HG reload magazine (GunRunReloadMotion)';
+hgReloadMagazine.visible = false;
+function bindEasyMagazine(index, root) {
+  const name = index === 5 ? 'shotgun_magazine' : 'M4_Magazine';
+  const magazine = root.getObjectByName(name);
+  if (!magazine) return;
+  root.updateMatrixWorld(true);
+  const scale = Math.max(0.001, magazine.parent.getWorldScale(new Vector3()).y);
+  easyMagazines.set(index, { magazine, y: magazine.position.y, rotation: magazine.rotation.x, scale });
+}
+function animateEasyMagazine(index, progress) {
+  if (index === 4) {
+    hgReloadMagazine.visible = progress >= 0.12 && progress < 0.48;
+    if (hgReloadMagazine.visible) {
+      const reach = progress < 0.26 ? (progress - 0.12) / 0.14 : progress < 0.4 ? 1 : 1 - (progress - 0.4) / 0.08;
+      hgReloadMagazine.position.set(0, -0.2 - Math.max(0, reach) * 0.13, -0.03 + Math.max(0, reach) * 0.08);
+    }
+  } else hgReloadMagazine.visible = false;
+  for (const [weapon, part] of easyMagazines) {
+    const p = weapon === index ? progress : 0;
+    const pull = p < 0.15 ? 0 : p < 0.31 ? (p - 0.15) / 0.16 : p < 0.43 ? 1 : p < 0.59 ? 1 - (p - 0.43) / 0.16 : 0;
+    part.magazine.position.y = part.y - Math.max(0, pull) * 0.17 / part.scale;
+    part.magazine.rotation.x = part.rotation + Math.max(0, pull) * 0.18;
+  }
+  const selected = easyMagazines.get(index);
+  document.body.dataset.skyMagazine = JSON.stringify({ weapon: index, name: selected?.magazine.name || (index === 4 ? hgReloadMagazine.name : null), offset: selected ? +((selected.y - selected.magazine.position.y) * selected.scale).toFixed(3) : 0, visible: index === 4 ? hgReloadMagazine.visible : !!selected });
+}
 for (let index = 4; index < weaponViews.length; index++) {
   const flash = new Group();
   flash.name = 'Sky weapon muzzle flash';
@@ -308,6 +341,8 @@ WP.push(
   { n: 'Easy Rocket', mag: 6, res: 18, cd: 0.5, rl: 2.4, dmg: 6, head: 1, knock: 9, stun: 0.9, range: 90, cone: 0, explosive: 4, auto: 1 },
   { n: 'Easy M79', mag: 6, res: 18, cd: 1 / 3, rl: 2, dmg: 4.5, head: 1, knock: 8, stun: 0.8, range: 80, cone: 0, explosive: 3.2 },
 );
+// Match the prefab's Semi/Full setting. The M79 is fired on charge release.
+for (const [index, source] of Object.entries(UNITY_WEAPONS)) WP[+index].auto = source.trigger === 'full' ? 1 : 0;
 Jn.weapon = Math.max(0, Math.min(11, Jn.weapon));
 U.weapon = Math.max(0, Math.min(11, U.weapon | 0));
 const weaponSlider = document.getElementById('s_weapon');
@@ -475,24 +510,33 @@ function updateKnifeCue() {
 }
 
 let lastFrame = performance.now(), lastWeapon = -1, lastMotionShots = window.__game?.stats?.shots || 0;
+const weaponAmmo = new Map();
+let lastRunClock = 0;
 let easyKick = 0, easyFlashTime = 0;
 function updateEquipment(now) {
   requestAnimationFrame(updateEquipment);
   const dt = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000));
   lastFrame = now;
+  easyPort.tick(dt);
   updateKnifeCue();
   const mode = game.modeRef();
   const weapon = U.weapon | 0;
+  if (mode === 'menu' || (mode === 'play' && z.t + 0.5 < lastRunClock)) weaponAmmo.clear();
+  if (mode === 'play') lastRunClock = z.t;
   if (weapon !== lastWeapon) {
     weaponViews.forEach((view, index) => { view.visible = U.gunOn && c.state !== 'ladder' && index === weapon; });
     document.body.dataset.skyWeaponView = JSON.stringify({ weapon, name: WP[weapon]?.n, visible: weaponViews.filter((view) => view.visible).map((view) => view.name), parent: weaponViews[weapon]?.parent?.type, position: weaponViews[weapon]?.position.toArray(), scale: weaponViews[weapon]?.scale.toArray() });
     vd.position.z = [-0.25, -0.62, -0.34, -0.82, -0.25, -0.62, -0.72, -0.82, -0.72, -0.82, -0.9, -0.72][weapon] ?? -0.25;
-    if (mode === 'play' && lastWeapon >= 0) {
+    if ((mode === 'play' || mode === 'pause') && lastWeapon >= 0) {
+      weaponAmmo.set(lastWeapon, { ammo: Et.ammo, reserve: Et.reserve, reloadT: Et.reloadT });
       const profile = WP[weapon];
+      const saved = weaponAmmo.get(weapon);
       Et.mag = profile.mag;
       Et.reloadLen = profile.rl;
-      Et.ammo = Math.min(Et.ammo, profile.mag);
-      Et.reserve = U.reserveAmmo >= 99 ? 99 : profile.res;
+      Et.ammo = Math.min(saved?.ammo ?? profile.mag, profile.mag);
+      Et.reserve = U.reserveAmmo >= 99 ? 99 : saved?.reserve ?? profile.res;
+      Et.reloadT = saved?.reloadT ?? 0;
+      Et.autoReload = 0;
     }
     lastWeapon = weapon;
   }
@@ -513,15 +557,23 @@ function updateEquipment(now) {
   easyKick *= Math.exp(-dt * 13);
   easyFlashTime = Math.max(0, easyFlashTime - dt);
   if (weapon >= 4) {
-    const reload = Et.reloadT > 0 && Et.reloadLen > 0
-      ? Math.sin(Math.PI * Math.min(1, 1 - Et.reloadT / Et.reloadLen)) : 0;
+    const progress = Et.reloadT > 0 && Et.reloadLen > 0
+      ? Math.max(0, Math.min(1, 1 - Et.reloadT / Et.reloadLen)) : 0;
+    const reload = progress > 0 ? reloadLowered(progress) : 0;
+    animateEasyMagazine(weapon, progress);
     const speed = Math.hypot(c.vel.x, c.vel.z);
     const bob = mode === 'play' && c.onGround ? Math.sin(c.bob) * Math.min(0.016, speed * 0.002) : 0;
     const view = weaponViews[weapon];
-    view.position.set(0.38 + bob, -0.45 - 0.18 * reload - 0.035 * easyKick, -0.62 + 0.15 * easyKick);
-    view.rotation.set(-0.12 + 0.2 * easyKick - 0.3 * reload, -0.72 + 0.12 * reload, -0.12 * reload);
+    // Bring the receiver into frame while the magazine is out.
+    view.position.set(0.38 - 0.08 * reload + bob, -0.45 + 0.12 * reload - 0.035 * easyKick, -0.62 + 0.15 * easyKick);
+    view.rotation.set(-0.12 + 0.2 * easyKick + 0.08 * reload, -0.72 + 0.12 * reload, -0.1 * reload);
     easyFlashes[weapon].visible = easyFlashTime > 0 && U.gunOn && mode === 'play' && c.state !== 'ladder';
     document.body.dataset.skyWeaponMotion = JSON.stringify({ weapon, kick: +easyKick.toFixed(3), reload: +reload.toFixed(3), flash: easyFlashes[weapon].visible });
+  }
+  if (weapon === 8 && mode === 'play') {
+    const heat = easyPort.state;
+    document.getElementById('hAmmo').textContent = heat.beamCooling > 0 ? '冷却' : `${Math.max(0, Math.round((1 - heat.beamHeat / 2) * 100))}%`;
+    document.getElementById('hRes').textContent = heat.beamCooling > 0 ? ` ${heat.beamCooling.toFixed(1)}秒 Easy Beam Gun` : ' 熱ゲージ Easy Beam Gun';
   }
   for (let index = 4; index < easyFlashes.length; index++) if (index !== weapon) easyFlashes[index].visible = false;
   document.getElementById('hSmoke').textContent = String(smokeCharges);
@@ -595,7 +647,7 @@ if (window.T2?.GLTFLoader) {
     root.rotation.y = 0;
     root.position.set(0, -0.02, -0.13);
     unityHgView.add(root);
-    for (const child of unityHgView.children) if (child !== root && !child.userData.skyFlash) child.visible = false;
+    for (const child of unityHgView.children) if (child !== root && child !== hgReloadMagazine && !child.userData.skyFlash) child.visible = false;
   });
   const easyAssets = [
     ['easyShotgun', 5, 'easy-weapons-shotgun.glb', 2],
@@ -613,6 +665,7 @@ if (window.T2?.GLTFLoader) {
       root.rotation.y = 0;
       root.position.set(0, -0.02, index >= 9 ? -0.17 : -0.13);
       easyWeaponViews[index - 5].add(root);
+      if (index === 5 || index === 6) bindEasyMagazine(index, root);
       for (const child of easyWeaponViews[index - 5].children) if (child !== root && !child.userData.skyFlash) child.visible = false;
     });
   }
@@ -1478,15 +1531,40 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     else requestAnimationFrame(warmEasySounds);
   };
   requestAnimationFrame(warmEasySounds);
-  const playEasySound = (file, gain) => {
+  const playEasySound = (file, gain, duration = 0) => {
     if (!Ut.ctx || !Ut.master || !easySoundBuffers[file]) return false;
     const ctx = Ut.ctx, src = ctx.createBufferSource(), amp = ctx.createGain();
     src.buffer = easySoundBuffers[file];
+    if (duration > 0) src.playbackRate.value = Math.max(0.5, Math.min(2, src.buffer.duration / duration));
     amp.gain.value = gain;
     src.connect(amp); amp.connect(Ut.master); src.start();
     document.body.dataset.skyGunSound = file;
     return true;
   };
+  let beamSource = null, beamGain = null;
+  const playBeamSound = () => {
+    if (beamSource) return true;
+    if (!Ut.ctx || !Ut.master || !easySoundBuffers['deep_beam.mp3']) return false;
+    beamSource = Ut.ctx.createBufferSource();
+    beamGain = Ut.ctx.createGain();
+    beamSource.buffer = easySoundBuffers['deep_beam.mp3'];
+    beamSource.loop = true;
+    beamGain.gain.value = 0.48;
+    beamSource.connect(beamGain); beamGain.connect(Ut.master);
+    beamSource.start();
+    document.body.dataset.skyGunSound = 'deep_beam.mp3 (loop)';
+    return true;
+  };
+  const syncBeamSound = () => {
+    if (beamSource && ((U.weapon | 0) !== 8 || !Et.held || game.modeRef() !== 'play' || easyPort.state.beamCooling > 0)) {
+      beamGain.gain.setTargetAtTime(0, Ut.ctx.currentTime, 0.025);
+      beamSource.stop(Ut.ctx.currentTime + 0.12);
+      beamSource = null;
+      beamGain = null;
+    }
+    requestAnimationFrame(syncBeamSound);
+  };
+  requestAnimationFrame(syncBeamSound);
   for (const ids of Object.values(SAMPLES)) {
     for (const id of ids) {
       sfxBytes[id] = fetch(`./assets/sfx/${id}.wav?v=${SFX_VER}`)
@@ -1582,7 +1660,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     loadSamples();
     if (weaponIndex >= 4) {
       const [file, gain] = EASY_FIRE[weaponIndex] || EASY_FIRE[4];
-      if (!playEasySound(file, gain)) gunVoice(Ut.ctx, Ut.master,
+      if (!(weaponIndex === 8 ? playBeamSound() : playEasySound(file, gain))) gunVoice(Ut.ctx, Ut.master,
         ({ 4: 'HG', 5: 'SG', 6: 'MG', 7: 'HG', 8: 'SMG', 9: 'SG', 10: 'SG', 11: 'SG' })[weaponIndex]);
     } else if (!playSample(Ut.ctx, name)) gunVoice(Ut.ctx, Ut.master, name);
   };
@@ -1590,7 +1668,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   Tt.reload = () => {
     if ((U.weapon | 0) >= 4) {
       loadEasySounds();
-      if (!playEasySound('reload_1.wav', 0.46)) Mn(0.18, 1700, 0.8, 0.06, 'bandpass');
+      if (!playEasySound('reload_1.wav', 0.46, Et.reloadLen)) Mn(0.18, 1700, 0.8, 0.06, 'bandpass');
     } else if (typeof previousReloadSound === 'function') previousReloadSound();
   };
   // Body hit: a dull thud. Head hit adds a bright "ping" on top of it.
@@ -1724,7 +1802,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   };
   const eject = (name) => {
     const p = take(shells);
-    const big = name === 'SG';
+    const big = name === 'SG' || name === 'Easy Shotgun';
     p.m.material = big ? redMat : brassMat;
     p.m.scale.set(big ? 0.04 : 0.024, big ? 0.04 : 0.024, big ? 0.09 : 0.06);
     p.m.position.copy(fwd).addScaledVector(back, 0.1).addScaledVector(right, 0.02).addScaledVector(up, 0.03);
@@ -1798,7 +1876,7 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
       fwd.copy(muzzle);
       const name = w.n;
       if (w.cone) {
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < (name === 'Easy Shotgun' ? 6 : 4); i++) {
           tmp.copy(dir).add(new V3(rnd(-0.22, 0.22), rnd(-0.22, 0.22), rnd(-0.22, 0.22))).normalize();
           const e2 = new V3().copy(muzzle).addScaledVector(tmp, rnd(5.5, 8.5));
           bolt(muzzle, e2, 0.05);
