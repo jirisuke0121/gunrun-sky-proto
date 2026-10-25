@@ -19,12 +19,12 @@ if (knifeRule) {
     '<li><kbd>H</kbd> 自己ベストのときの走りを青い人影（ゴースト）で表示・非表示</li>');
 }
 
-const { WP, U, Jn, Et, ri, Tt, c, z, ue, tl, vd, uh, mr, us, mo, $a: zipLines, jn, Geom } = game;
+const { WP, U, Jn, Et, ri, Tt, c, z, ue, fo, tl, vd, uh, mr, us, mo, $a: zipLines, jn, Geom } = game;
 // Apply the new run-speed default once for players who already saved the former default.
 try {
   const speedMigration = 'gunrun-run-speed-20261025';
   if (!localStorage.getItem(speedMigration)) {
-    if (U.sprintSpeed === 8) { U.sprintSpeed = 6; Ua(); }
+    if (U.sprintSpeed === 8) { U.sprintSpeed = 6; game.Ua(); }
     localStorage.setItem(speedMigration, '1');
   }
 } catch {}
@@ -129,6 +129,13 @@ const easyWeaponViews = [
   makeWeapon('Easy Rocket Launcher', (g) => { cylinder(g, .085, .085, .72, palette.dark, 0, .07, -.28).rotation.x = Math.PI / 2; cylinder(g, .10, .10, .10, palette.amber, 0, .07, -.67).rotation.x = Math.PI / 2; box(g, .12, .18, .12, palette.grip, 0, -.04, .12); }),
   makeWeapon('Easy M79', (g) => { box(g, .17, .15, .29, palette.steel, 0, .06, -.12); cylinder(g, .06, .06, .36, palette.dark, 0, .07, -.39).rotation.x = Math.PI / 2; box(g, .11, .2, .1, palette.grip, 0, -.07, .1); }),
 ];
+for (const view of [unityHgView, ...easyWeaponViews]) {
+  tl.remove(view);
+  fo.add(view);
+  view.scale.setScalar(0.75);
+  view.position.set(0.38, -0.45, -0.62);
+  view.rotation.set(-0.12, -0.72, 0);
+}
 
 // A compact wrist-mounted hook launcher and the knife share the animated hands.
 const hookLauncher = new Group();
@@ -280,9 +287,9 @@ WP.push(
   { n: 'Easy M4', mag: 70, res: 140, cd: 1 / 12, rl: 2, dmg: 0.72, head: 1.5, knock: 4.5, stun: 0.45, range: 85, cone: 0, auto: 1 },
   { n: 'Easy Rail Gun', mag: 16, res: 32, cd: 1 / 3.5, rl: 1.6, dmg: 2.1, head: 1, knock: 9, stun: 0.9, range: 110, cone: 0, auto: 1 },
   { n: 'Easy Beam Gun', mag: 50, res: 100, cd: 0.1, rl: 2, dmg: 0.7, head: 1, knock: 3.2, stun: 0.35, range: 90, cone: 0, auto: 1 },
-  { n: 'Easy Cluster', mag: 6, res: 18, cd: 0.5, rl: 2.4, dmg: 1.8, head: 1, knock: 8, stun: 0.8, range: 80, cone: 0.08, auto: 1 },
-  { n: 'Easy Rocket', mag: 6, res: 18, cd: 0.5, rl: 2.4, dmg: 2, head: 1, knock: 9, stun: 0.9, range: 90, cone: 0.06, auto: 1 },
-  { n: 'Easy M79', mag: 6, res: 18, cd: 1 / 3, rl: 2, dmg: 1.8, head: 1, knock: 8, stun: 0.8, range: 80, cone: 0.08 },
+  { n: 'Easy Cluster', mag: 6, res: 18, cd: 0.5, rl: 2.4, dmg: 5.2, head: 1, knock: 8, stun: 0.8, range: 80, cone: 0, explosive: 4.8, auto: 1 },
+  { n: 'Easy Rocket', mag: 6, res: 18, cd: 0.5, rl: 2.4, dmg: 6, head: 1, knock: 9, stun: 0.9, range: 90, cone: 0, explosive: 4, auto: 1 },
+  { n: 'Easy M79', mag: 6, res: 18, cd: 1 / 3, rl: 2, dmg: 4.5, head: 1, knock: 8, stun: 0.8, range: 80, cone: 0, explosive: 3.2 },
 );
 Jn.weapon = Math.max(0, Math.min(11, Jn.weapon));
 U.weapon = Math.max(0, Math.min(11, U.weapon | 0));
@@ -459,7 +466,8 @@ function updateEquipment(now) {
   const mode = game.modeRef();
   const weapon = U.weapon | 0;
   if (weapon !== lastWeapon) {
-    weaponViews.forEach((view, index) => { view.visible = U.gunOn && index === weapon; });
+    weaponViews.forEach((view, index) => { view.visible = U.gunOn && c.state !== 'ladder' && index === weapon; });
+    document.body.dataset.skyWeaponView = JSON.stringify({ weapon, name: WP[weapon]?.n, visible: weaponViews.filter((view) => view.visible).map((view) => view.name), parent: weaponViews[weapon]?.parent?.type, position: weaponViews[weapon]?.position.toArray(), scale: weaponViews[weapon]?.scale.toArray() });
     vd.position.z = [-0.25, -0.62, -0.34, -0.82, -0.25, -0.62, -0.72, -0.82, -0.72, -0.82, -0.9, -0.72][weapon] ?? -0.25;
     if (mode === 'play' && lastWeapon >= 0) {
       const profile = WP[weapon];
@@ -470,7 +478,7 @@ function updateEquipment(now) {
     }
     lastWeapon = weapon;
   }
-  weaponViews.forEach((view, index) => { view.visible = U.gunOn && index === weapon; });
+  weaponViews.forEach((view, index) => { view.visible = U.gunOn && c.state !== 'ladder' && index === weapon; });
   document.getElementById('hSmoke').textContent = String(smokeCharges);
   smokeButton?.classList.toggle('empty', smokeCharges === 0);
   smokeButton && (smokeButton.textContent = `煙幕 ${smokeCharges}（技${skillCount}/3）`);
@@ -537,22 +545,27 @@ if (window.T2?.GLTFLoader) {
   }
   loadDetail('unityHg', 'easy-weapons-pistol.glb', (root) => {
     root.name = 'Easy Weapons Pistol';
+    // The GLB's parent node already converts Unity units to metres.
+    root.scale.setScalar(1.4);
+    root.rotation.y = 0;
     root.position.set(0, -0.02, -0.13);
     unityHgView.add(root);
     for (const child of unityHgView.children) if (child !== root) child.visible = false;
   });
   const easyAssets = [
-    ['easyShotgun', 5, 'easy-weapons-shotgun.glb'],
-    ['easyM4', 6, 'easy-weapons-m4.glb'],
-    ['easyRail', 7, 'easy-weapons-rail-gun.glb'],
-    ['easyBeam', 8, 'easy-weapons-beam-gun.glb'],
-    ['easyCluster', 9, 'easy-weapons-cluster-launcher.glb'],
-    ['easyRocket', 10, 'easy-weapons-rocket-launcher.glb'],
-    ['easyM79', 11, 'easy-weapons-m79-launcher.glb'],
+    ['easyShotgun', 5, 'easy-weapons-shotgun.glb', 2],
+    ['easyM4', 6, 'easy-weapons-m4.glb', 2.2],
+    ['easyRail', 7, 'easy-weapons-rail-gun.glb', 2],
+    ['easyBeam', 8, 'easy-weapons-beam-gun.glb', 2],
+    ['easyCluster', 9, 'easy-weapons-cluster-launcher.glb', 2],
+    ['easyRocket', 10, 'easy-weapons-rocket-launcher.glb', 2.2],
+    ['easyM79', 11, 'easy-weapons-m79-launcher.glb', 2],
   ];
-  for (const [key, index, filename] of easyAssets) {
+  for (const [key, index, filename, scale] of easyAssets) {
     loadDetail(key, filename, (root) => {
       root.name = `Easy Weapons ${WP[index].n} model`;
+      root.scale.setScalar(scale);
+      root.rotation.y = 0;
       root.position.set(0, -0.02, index >= 9 ? -0.17 : -0.13);
       easyWeaponViews[index - 5].add(root);
       for (const child of easyWeaponViews[index - 5].children) if (child !== root) child.visible = false;
@@ -1415,12 +1428,18 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
         .catch(() => {});
     }
   };
+  const warmEasySounds = () => {
+    if (Ut.ctx) loadEasySounds();
+    else requestAnimationFrame(warmEasySounds);
+  };
+  requestAnimationFrame(warmEasySounds);
   const playEasySound = (file, gain) => {
     if (!Ut.ctx || !Ut.master || !easySoundBuffers[file]) return false;
     const ctx = Ut.ctx, src = ctx.createBufferSource(), amp = ctx.createGain();
     src.buffer = easySoundBuffers[file];
     amp.gain.value = gain;
     src.connect(amp); amp.connect(Ut.master); src.start();
+    document.body.dataset.skyGunSound = file;
     return true;
   };
   for (const ids of Object.values(SAMPLES)) {
@@ -1511,13 +1530,15 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
   Tt.hg = () => {
     const name = wpc().n;
     const weaponIndex = U.weapon | 0;
+    document.body.dataset.skyGunSound = '';
     const st = window.__skyAudio;
     if (st) st.shots[name] = (st.shots[name] || 0) + 1;
     if (!Ut.ctx || !Ut.master) return;
     loadSamples();
     if (weaponIndex >= 4) {
       const [file, gain] = EASY_FIRE[weaponIndex] || EASY_FIRE[4];
-      if (!playEasySound(file, gain)) gunVoice(Ut.ctx, Ut.master, 'HG');
+      if (!playEasySound(file, gain)) gunVoice(Ut.ctx, Ut.master,
+        ({ 4: 'HG', 5: 'SG', 6: 'MG', 7: 'HG', 8: 'SMG', 9: 'SG', 10: 'SG', 11: 'SG' })[weaponIndex]);
     } else if (!playSample(Ut.ctx, name)) gunVoice(Ut.ctx, Ut.master, name);
   };
   const previousReloadSound = Tt.reload;
