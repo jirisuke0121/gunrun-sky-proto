@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>旧市街 フック配置エディター | 空中回廊</title>
+<style>
+:root{font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;color:#eceddf;background:#111a20}
+*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer;border:1px solid #53616c;border-radius:7px;background:#26343d;color:#f2f0dc;padding:8px 11px}button:hover{background:#364b56}button.active{background:#b88132;border-color:#dfb15d;color:#151b1d}button:disabled{opacity:.45;cursor:not-allowed}input[type=number]{width:100%;border:1px solid #53616c;border-radius:6px;background:#1b282f;color:#fff;padding:8px}header{height:62px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 18px;background:#19272d;border-bottom:1px solid #40535b}header strong{font-size:18px}header small{color:#a4b6b8}header a{color:#e6ba74}.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;height:calc(100dvh - 62px)}main{position:relative;min-height:380px;overflow:hidden;background:radial-gradient(circle at 45% 40%,#30454e,#192830 72%)}canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}.mapbar{position:absolute;top:13px;left:13px;display:flex;gap:6px;flex-wrap:wrap}.mapnote{position:absolute;left:13px;bottom:12px;max-width:min(640px,calc(100% - 26px));padding:7px 10px;border-radius:6px;background:#101c22d9;font-size:12px;line-height:1.5;color:#d6e2dc;pointer-events:none}aside{overflow:auto;padding:17px;background:#18252c;border-left:1px solid #40535b}.panel{padding-bottom:17px;margin-bottom:17px;border-bottom:1px solid #40535b}.panel h2{font-size:15px;margin:0 0 10px}.panel p{font-size:12px;color:#b9c7c3;line-height:1.6;margin:8px 0}.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.row button{flex:1}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.grid label{font-size:11px;color:#bdccca}.grid input{margin-top:4px}.points{display:grid;gap:5px;max-height:28vh;overflow:auto}.point{width:100%;text-align:left;display:flex;justify-content:space-between;gap:8px;font-size:12px}.point.selected{border-color:#efb558;background:#55452d}.point em{font-style:normal;color:#b2c4c2}.status{font-size:12px;color:#d8bd83;min-height:2.5em}.danger{color:#ffb4a3}.good{color:#9de0b4}#source{position:absolute;left:-100px;top:-100px;width:8px;height:8px;opacity:0;pointer-events:none}#importFile{display:none}@media(max-width:850px){header{height:auto;min-height:62px}.layout{grid-template-columns:1fr;height:auto}main{height:62vh}aside{border-left:0;border-top:1px solid #40535b}.points{max-height:190px}}
+</style>
+</head>
+<body>
+<header><div><strong>旧市街｜フック配置エディター</strong><br><small>ゲームの当たり判定から立体図を生成</small></div><a href="./index.html" target="_blank" rel="noopener">ゲームを開く ↗</a></header>
+<div class="layout">
+  <main>
+    <canvas id="map" aria-label="旧市街の俯瞰立体図"></canvas>
+    <div class="mapbar"><button id="add" class="active">＋ 置く</button><button id="testPoint">◎ 試射地点</button><button id="fit">全体表示</button><button id="zoomIn">＋</button><button id="zoomOut">−</button></div>
+    <div class="mapnote">屋根や足場をクリックして配置。番号を選んでドラッグすると移動できます。空白をドラッグすると図を動かせます。ホイールで拡大・縮小。</div>
+  </main>
+  <aside>
+    <section class="panel"><h2>配置</h2><p id="loadState">旧市街の地形を読み込み中…</p><div class="row"><button id="save">このブラウザに保存</button><button id="reset">初期配置に戻す</button></div><p>保存すると、このブラウザで開く旧市街のゲームにも反映されます。他の人の配置は変わりません。</p></section>
+    <section class="panel"><h2>選択中のフック</h2><div class="grid"><label>X 東西<input id="x" type="number" step="0.1"></label><label>Y 高さ<input id="y" type="number" step="0.1"></label><label>Z 南北<input id="z" type="number" step="0.1"></label></div><div class="row" style="margin-top:9px"><button id="remove">削除</button><button id="move">選択点を移動</button></div><p id="reach">フックを選択してください。</p></section>
+    <section class="panel"><h2>配置済み <span id="count"></span></h2><div id="points" class="points"></div></section>
+    <section class="panel"><h2>受け渡し</h2><div class="row"><button id="export">JSONを書き出す</button><button id="import">JSONを読み込む</button><input id="importFile" type="file" accept="application/json,.json"></div><p>全プレイヤー向けの公開配置にする場合は、書き出したJSONをゲームのソースへ反映します。</p></section>
+    <div id="status" class="status" role="status"></div>
+  </aside>
+</div>
+<iframe id="source" src="./index.html?hook_editor=1" title="旧市街の地形データ"></iframe>
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const canvas = $('map'), ctx = canvas.getContext('2d');
+const iframe = $('source');
+const ISO_X = Math.sqrt(3) / 2, ISO_Z = 0.5, ISO_Y = 1.17;
+let game, api, internals, solids = [], layout = [], defaults = [], faces = [];
+let selected = -1, tool = 'add', drag = null, dirty = false;
+let launch = {x: -42, y: 0, z: 8};
+const view = {scale: 5, cx: 0, cy: 0};
+function status(message, bad = false) { $('status').textContent = message; $('status').className = bad ? 'status danger' : 'status'; }
+function finitePoint(p) { return Array.isArray(p) && p.length === 3 && p.every(n => typeof n === 'number' && Number.isFinite(n)) && Math.abs(p[0]) <= 150 && p[1] >= -20 && p[1] <= 100 && Math.abs(p[2]) <= 150; }
+function proj(x,y,z) { return {x:view.cx + (x-z)*ISO_X*view.scale, y:view.cy + ((x+z)*ISO_Z-y*ISO_Y)*view.scale}; }
+function unproj(sx,sy,y) { const u=(sx-view.cx)/view.scale, v=(sy-view.cy)/view.scale+y*ISO_Y; return {x:(u/ISO_X+v/ISO_Z)/2,z:(v/ISO_Z-u/ISO_X)/2}; }
+function polygon(points,fill,stroke) { ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();} }
+function pointInPoly(x,y,p){let inside=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[i],b=p[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}return inside;}
+function color(b){if(b.tint!=null)return '#'+Number(b.tint).toString(16).padStart(6,'0');return {beam:'#b7a676',slab:'#d1c59e',mono:'#9b967f',prop:'#c5875d',door:'#668991'}[b.type]||'#9daeb0';}
+function shade(hex, factor){const h=hex.slice(1);return '#'+[0,2,4].map(i=>Math.max(0,Math.min(255,Math.round(parseInt(h.slice(i,i+2),16)*factor))).toString(16).padStart(2,'0')).join('');}
+function visibleSolids(){return solids.filter(b=>!b.off&&b.maxY>=-6&&b.maxX-b.minX<110&&b.maxZ-b.minZ<110);}
+function fit(){const pts=[];for(const b of visibleSolids()){for(const x of [b.minX,b.maxX])for(const z of [b.minZ,b.maxZ])pts.push([(x-z)*ISO_X,(x+z)*ISO_Z-b.maxY*ISO_Y]);}if(!pts.length)return;const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),w=canvas.clientWidth,h=canvas.clientHeight;const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);view.scale=Math.max(1.6,Math.min((w-90)/(maxX-minX),(h-95)/(maxY-minY)));view.cx=w/2-(minX+maxX)*view.scale/2;view.cy=h/2-(minY+maxY)*view.scale/2;draw();}
+function resize(){const dpr=Math.min(devicePixelRatio||1,2),w=canvas.clientWidth,h=canvas.clientHeight;canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);draw();}
+function draw(){const w=canvas.clientWidth,h=canvas.clientHeight;ctx.clearRect(0,0,w,h);ctx.fillStyle='#1b2c34';ctx.fillRect(0,0,w,h);if(!solids.length)return;
+  // Every box is drawn from the game's current collision data, not a hand-made image.
+  ctx.lineWidth=1;for(let i=-120;i<=120;i+=10){let a=proj(i,-2,-120),b=proj(i,-2,120);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle='#66818a28';ctx.stroke();a=proj(-120,-2,i);b=proj(120,-2,i);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+  faces=[];const items=visibleSolids().sort((a,b)=>((a.minX+a.maxX+a.minZ+a.maxZ)/2)-((b.minX+b.maxX+b.minZ+b.maxZ)/2));
+  for(const b of items){const lo=Math.max(-2,b.minY),hi=b.maxY,top=[proj(b.minX,hi,b.minZ),proj(b.maxX,hi,b.minZ),proj(b.maxX,hi,b.maxZ),proj(b.minX,hi,b.maxZ)];const base=[proj(b.minX,lo,b.minZ),proj(b.maxX,lo,b.minZ),proj(b.maxX,lo,b.maxZ),proj(b.minX,lo,b.maxZ)];const c=color(b);if(hi-lo>.05){polygon([top[1],top[2],base[2],base[1]],shade(c,.58),'#14202855');polygon([top[2],top[3],base[3],base[2]],shade(c,.76),'#14202855');}polygon(top,c,'#14202888');faces.push({box:b,poly:top});}
+  const start=proj(launch.x,launch.y+1.6,launch.z);ctx.fillStyle='#7ce4f2';ctx.beginPath();ctx.arc(start.x,start.y,7,0,Math.PI*2);ctx.fill();ctx.font='11px system-ui';ctx.fillText('試射地点',start.x+9,start.y-8);
+  layout.forEach(([x,y,z],i)=>{const p=proj(x,y,z);ctx.beginPath();ctx.arc(p.x,p.y,i===selected?12:9,0,Math.PI*2);ctx.fillStyle=i===selected?'#ffdb84':'#e9a745';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#40260b';ctx.stroke();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 11px system-ui';ctx.fillStyle='#292218';ctx.fillText(String(i+1),p.x,p.y);});ctx.textAlign='left';ctx.textBaseline='alphabetic';
+}
+function hitSurface(x,y){for(let i=faces.length-1;i>=0;i--)if(pointInPoly(x,y,faces[i].poly)){const b=faces[i].box,p=unproj(x,y,b.maxY);if(p.x>=b.minX-.3&&p.x<=b.maxX+.3&&p.z>=b.minZ-.3&&p.z<=b.maxZ+.3)return{x:p.x,y:b.maxY,z:p.z};}const p=unproj(x,y,0);return{x:p.x,y:0,z:p.z};}
+function hitMarker(x,y){for(let i=layout.length-1;i>=0;i--){const p=proj(...layout[i]);if(Math.hypot(x-p.x,y-p.y)<15)return i;}return -1;}
+function pointFromEvent(e){const b=canvas.getBoundingClientRect();return{x:e.clientX-b.left,y:e.clientY-b.top};}
+function setTool(value){tool=value;for(const id of ['add','move','testPoint'])$(id).classList.toggle('active',id===value);}
+function preview(){if(!api.apply(layout))return status('座標が有効な範囲を外れています。',true);dirty=true;refresh();}
+function refresh(){draw();$('count').textContent=`${layout.length}個`;$('loadState').textContent=dirty?'未保存の変更があります。保存してゲームへ反映してください。':`地形 ${solids.length} 箱 / フック ${layout.length} 個を表示中`;$('save').disabled=!dirty;const p=layout[selected];for(const [k,i] of [['x',0],['y',1],['z',2]])$(k).value=p?Number(p[i].toFixed(2)):'';$('remove').disabled=!p;$('move').disabled=!p;
+  $('points').replaceChildren(...layout.map((q,i)=>{const b=document.createElement('button');b.className='point'+(i===selected?' selected':'');b.innerHTML=`<span>● ${i+1}</span><em>${q.map(n=>n.toFixed(1)).join(' / ')}</em>`;b.onclick=()=>{selected=i;refresh();};return b;}));
+  if(!p){$('reach').textContent='フックを選択してください。';return;}const start=[launch.x,launch.y+1.6,launch.z],d=[p[0]-start[0],p[1]-start[1],p[2]-start[2]],range=Math.hypot(...d),max=game.S.hookRange;let label=range<2.5?'近すぎます':range>max?'射程外':`射程内（${range.toFixed(1)} / ${max}）`;if(range>=2.5&&range<=max&&internals?.raycast){const block=internals.raycast(...start,...d.map(v=>v/range),range-.6);if(block)label+='・途中に障害物あり';else label+='・見通しあり';}$('reach').textContent='試射地点から：'+label+'。実際の使用には照準合わせも必要です。';
+}
+canvas.addEventListener('pointerdown',e=>{if(!api)return;const p=pointFromEvent(e),marker=hitMarker(p.x,p.y);canvas.setPointerCapture(e.pointerId);if(marker>=0){selected=marker;drag={kind:'marker',x:p.x,y:p.y,moved:false};refresh();return;}drag={kind:'map',x:p.x,y:p.y,cx:view.cx,cy:view.cy,moved:false};});
+canvas.addEventListener('pointermove',e=>{if(!drag||!api)return;const p=pointFromEvent(e);if(Math.hypot(p.x-drag.x,p.y-drag.y)>4)drag.moved=true;if(!drag.moved)return;if(drag.kind==='marker'){const hit=hitSurface(p.x,p.y);layout[selected][0]=+hit.x.toFixed(2);layout[selected][2]=+hit.z.toFixed(2);preview();}else{view.cx=drag.cx+p.x-drag.x;view.cy=drag.cy+p.y-drag.y;draw();}});
+canvas.addEventListener('pointerup',e=>{if(!drag||!api)return;const p=pointFromEvent(e),moved=drag.moved,kind=drag.kind;drag=null;if(moved||kind==='marker')return;const hit=hitSurface(p.x,p.y);if(tool==='testPoint'){launch=hit;refresh();return;}const point=[+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];if(tool==='move'&&selected>=0)layout[selected]=point;else {layout.push(point);selected=layout.length-1;}preview();});
+canvas.addEventListener('wheel',e=>{e.preventDefault();const p=pointFromEvent(e),ratio=e.deltaY<0?1.12:1/1.12;view.cx=p.x+(view.cx-p.x)*ratio;view.cy=p.y+(view.cy-p.y)*ratio;view.scale=Math.max(1,Math.min(32,view.scale*ratio));draw();},{passive:false});
+for(const id of ['add','move','testPoint'])$(id).onclick=()=>setTool(id);
+$('fit').onclick=fit;$('zoomIn').onclick=()=>{view.scale=Math.min(32,view.scale*1.25);draw();};$('zoomOut').onclick=()=>{view.scale=Math.max(1,view.scale/1.25);draw();};
+for(const [k,i] of [['x',0],['y',1],['z',2]])$(k).addEventListener('change',()=>{if(selected<0)return;const value=Number($(k).value);if(!Number.isFinite(value))return;layout[selected][i]=value;preview();});
+$('remove').onclick=()=>{if(selected<0)return;layout.splice(selected,1);selected=Math.min(selected,layout.length-1);preview();};
+$('save').onclick=()=>{if(!api.apply(layout,true))return status('保存できませんでした。ブラウザの保存設定を確認してください。',true);dirty=false;refresh();status('このブラウザに保存しました。ゲームを開き直すと配置が反映されます。');};
+$('reset').onclick=()=>{layout=defaults.map(p=>[...p]);selected=-1;api.reset();dirty=false;refresh();status('初期配置に戻しました。');};
+$('export').onclick=()=>{const data={format:'gunrun-old-town-hooks-v1',map:'old-town',hooks:layout};const blob=new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='gunrun-old-town-hooks.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status('配置JSONを書き出しました。');};
+$('import').onclick=()=>$('importFile').click();$('importFile').onchange=async()=>{const file=$('importFile').files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(data.format!=='gunrun-old-town-hooks-v1'||data.map!=='old-town'||!Array.isArray(data.hooks)||data.hooks.length>64||!data.hooks.every(finitePoint))throw Error('形式または座標が正しくありません');layout=data.hooks.map(p=>[...p]);selected=-1;preview();status('JSONを読み込みました。確認してから保存してください。');}catch(e){status('読み込めませんでした：'+e.message,true);}finally{$('importFile').value='';}};
+new ResizeObserver(resize).observe(canvas);
+async function boot(){try{const w=iframe.contentWindow;for(let i=0;i<250&&!w.skyHookEditor;i++)await new Promise(r=>setTimeout(r,80));api=w.skyHookEditor;game=w.__game;internals=w.__skyInternals;if(!api||!game?.solids)throw Error('ゲームの地形を読み込めませんでした');w.__hold=true;solids=game.solids;defaults=api.defaults();layout=api.current();dirty=false;fit();resize();refresh();status('足場をクリックするとフックを追加できます。');}catch(e){status(e.message,true);$('loadState').textContent='読み込みに失敗しました。HTTPまたは公開URLで開いてください。';}}
+iframe.addEventListener('load',boot,{once:true});
+</script>
+</body>
+</html>
