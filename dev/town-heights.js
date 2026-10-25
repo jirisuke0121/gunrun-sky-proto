@@ -10,25 +10,49 @@
 //                       (slow, zombies use them too).
 // Coordinates are Three.js (x east, y up, z south). Collision boxes are the same
 // kind the rest of the town uses, so the zombie path graph picks them up.
-window.buildSkyTowers = function ({ ne, Mh, ld, us, mo }) {
-  const box = (x0, y0, z0, x1, y1, z1, type = 'slab') => ne(x0, y0, z0, x1, y1, z1, type);
+// Colours (2026-10-25m): everything this file builds is tinted so that places can be read at a glance.
+// Steel blue = catwalks, decks, the ring; orange = stairs; rust = the warehouse hall;
+// green / blue / red containers and yellow crates = the piles. The page's render loop asks
+// window.skyTint(colour, baseMaterial) for the material of any collision box that has .tint.
+const SKY = { steel: 0x8ea4bd, plank: 0x5d6b7a, stair: 0xe39a4a, hall: 0xb5604a, hallTop: 0x8f4a3a,
+              green: 0x5f9c6c, blue: 0x5b88c2, red: 0xc2624e, crate: 0xe3b84a };
+const skyMats = {};
+window.skyTint = function (hex, base) {
+  const k = hex + ':' + (base && base.uuid);
+  if (!skyMats[k]) { const m = base.clone(); m.color.setHex(hex); skyMats[k] = m; }
+  return skyMats[k];
+};
+
+window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
+  const box = (x0, y0, z0, x1, y1, z1, type = 'slab', tint) => {
+    const b = ne(x0, y0, z0, x1, y1, z1, type);
+    if (tint == null && type === 'beam') tint = SKY.steel;
+    if (tint != null) b.tint = tint;
+    return b;
+  };
+  const clearProps = (x0, z0, x1, z1) => {
+    for (let i = jn.length - 1; i >= 0; i--) {
+      const b = jn[i];
+      if (b.type === 'prop' && !b.tint && b.maxX > x0 && b.minX < x1 && b.maxZ > z0 && b.minZ < z1) jn.splice(i, 1);
+    }
+  };
 
   // Each tower stands on the back half of its roof, with a staircase beside it: six steps
   // (1.25 m rises, 1.08 m treads, 1.5 m wide, a 2.5 m landing at the top), so anything going up, people or zombies,
   // goes up in single file. The plank, the grapple and the sky chain are the fast ways.
   // The steps are 1 m treads so the zombie path grid (1 m) has a node on every step.
   const stairs = (x0, x1, base, wide) => {
-    for (let i = 0; i < 6; i++) box(x0, base, -5.5 - 1.083 * (i + 1), i === 5 ? x1 : x0 + wide, base + 1.25 * (i + 1), -5.5 - 1.083 * i);
+    for (let i = 0; i < 6; i++) box(x0, base, -5.5 - 1.083 * (i + 1), i === 5 ? x1 : x0 + wide, base + 1.25 * (i + 1), -5.5 - 1.083 * i, 'slab', SKY.stair);
   };
   // Small crate stacks on the roofs: cover, and 1.2 m / 2.4 m hops.
-  const crates = (list) => list.forEach(([x0, z0, x1, z1, h]) => box(x0, 0, z0, x1, h, z1, 'prop'));
+  const crates = (list) => list.forEach(([x0, z0, x1, z1, h]) => box(x0, 0, z0, x1, h, z1, 'prop', SKY.crate));
 
   // West tower (14.2 m) on the 4.2 m building at x -61..-55, z -12..-5.5.
   box(-58.5, 4.2, -12, -55.5, 14.2, -7.5);
   stairs(-61, -58.5, 4.2, 1.5);                                                  // up to 11.7 m, then a 2.5 m mantle onto the tower
 
   // Plank across the alley to the bell tower (3.5 m gap, 0.6 m wide, ground visible below).
-  box(-55.5, 13.82, -9.8, -52, 14.2, -9.2, 'beam');
+  box(-55.5, 13.82, -9.8, -52, 14.2, -9.2, 'beam', SKY.plank);
 
   // Bell tower (14.2 m) on the 4.4 m building at x -52..-47, z -12..-5.5.
   box(-52, 4.4, -12, -49.5, 14.2, -7.5);
@@ -106,6 +130,44 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo }) {
   // One low step beside the east end of the south roofs: the only entrance from the street.
   box(-34.5, 0, 15.6, -33.1, 2, 17);
 
+  // ---- Warehouse hall (2026-10-25m): a real corridor with walls and a ceiling. ----
+  // 14.5 m long, 2 m wide inside, 2.9 m to the ceiling, open at both ends. The walls are 4.6 m,
+  // above the 3.5 m mantle limit, so nobody gets in except through the two mouths, and a shooter
+  // at one mouth sees the whole lane. The roof is reached over the pile at its north-west corner
+  // or from the south roofs. Ledges on the roof give 1.4-1.6 m hops.
+  clearProps(-66, 7, -49, 13.5);
+  box(-64.5, 0, 7.5, -50, 4.6, 9, 'slab', SKY.hall);          // north wall
+  box(-64.5, 0, 11, -50, 4.6, 13, 'slab', SKY.hall);          // south wall
+  box(-64.5, 2.9, 9, -50, 4.6, 11, 'slab', SKY.hallTop);      // ceiling
+  box(-63.5, 4.6, 7.5, -60, 6.0, 9.5, 'slab', SKY.blue);      // roof ledges
+  box(-57, 4.6, 7.5, -53, 6.2, 9, 'slab', SKY.red);
+  box(-52.5, 4.6, 11, -50.5, 5.8, 13, 'slab', SKY.green);
+  // Pile at the north-west corner of the hall: 1.3 / 2.7 / 4.0 m steps up to the roof (4.6 m).
+  box(-64.2, 0, 5.0, -62.4, 1.3, 7.5, 'slab', SKY.crate);
+  box(-62.4, 0, 6.0, -60.7, 2.7, 7.5, 'slab', SKY.green);
+  box(-60.7, 0, 6.0, -59.0, 4.0, 7.5, 'slab', SKY.red);
+
+  // ---- Container piles in the open ground (2026-10-25m): the 1-5 m band between street and roof. ----
+  // Every step is at least 1.5 m wide so zombies stand on them too. Heights differ from step to
+  // step (1.3 / 1.4 / 2.6 / 2.7 / 2.8 / 4.1 / 4.2), so there is no single rhythm.
+  // Centre pile, next to the start: a 4.1 m top with three ways on (west crate, east crates, south crate).
+  clearProps(-42, 5, -32, 12);
+  box(-40, 0, 6.5, -36.6, 2.6, 9.6, 'slab', SKY.green);
+  box(-39, 2.6, 7.4, -37, 4.1, 9, 'slab', SKY.blue);
+  box(-41.4, 0, 8, -40, 1.3, 9.6, 'slab', SKY.crate);
+  box(-36.6, 0, 6.5, -34.8, 1.3, 8.3, 'slab', SKY.crate);
+  box(-38, 0, 9.6, -36.4, 1.3, 11.2, 'slab', SKY.crate);
+  box(-34, 0, 9, -32.4, 1.3, 10.6, 'slab', SKY.crate);        // lone hop, 1.4 m from the east steps
+  // East steps, along the south face of the 5.5 m east block: 1.4 / 2.8 / 4.2 m.
+  // (The slope north of here is the original lean-to roof; piles stay clear of it.)
+  box(-34, 0, 5, -32.4, 1.4, 6.6, 'slab', SKY.crate);
+  box(-32.4, 0, 5, -30.8, 2.8, 6.6, 'slab', SKY.green);
+  box(-30.8, 0, 5, -29.2, 4.2, 6.6, 'slab', SKY.red);
+  // Bell tower south face: 1.4 / 2.8 / 4.0 m up to the 4.4 m roof.
+  box(-52, 0, -5.5, -50.4, 1.4, -3.9, 'slab', SKY.crate);
+  box(-50.4, 0, -5.5, -48.8, 2.8, -4, 'slab', SKY.green);
+  box(-48.8, 0, -5.5, -47.2, 4.0, -4.2, 'slab', SKY.red);
+
   // Equal footing (2026-10-25). The player must not be able to climb from below
   // anywhere on the parkour route, so the west district has no ladders at all.
   // Zombies would be stuck on the ground, so inside this district they jump gaps and
@@ -123,4 +185,31 @@ window.skyLeapOK = function (edge) {
   if (!N) return false;
   const a = N.nodes[edge.from];
   return a.x < -30 && a.x > -72 && a.z > -14 && a.z < 20;
+};
+
+// Pounce (2026-10-25m). In the west district about three zombies in ten crouch for 0.35 s
+// when you are 3.2-6.5 m away on the same level with a clear, flat run-up, then lunge to where
+// you were standing (not where you are going). Sidestep, jump, or shoot them in the air: a hit
+// cancels the lunge like any other hit. Each zombie does it once every 7-11 s.
+window.skyPounce = function (z, u, d, p, x, H) {
+  if (z.stalker || z.dead || z.stun > 0 || z.spawnT > 0 || !z.onGround) return false;
+  if (z.pz === undefined) { z.pz = Math.random() < 0.3; z.pzNext = H.ce; }
+  if (!z.pz || H.ce < z.pzNext) return false;
+  const px = z.pos.x, pz = z.pos.z;
+  if (!(px < -30 && px > -72 && pz > -14 && pz < 20)) return false;
+  if (x < 3.2 || x > 6.5 || Math.abs(p) > 0.6) return false;
+  const dx = u / x, dz = d / x, L = x - 1.1, y = z.pos.y;
+  for (let k = 1; k <= 6; k++) {
+    const sx = px + dx * L * k / 6, sz = pz + dz * L * k / 6;
+    // oe() is true when the capsule is free, so: head-height must be free, and just below the feet must not be
+    if (!H.oe(sx, y + 0.05, sz, 0.3, 1.8) || H.oe(sx, y - 0.4, sz, 0.3, 0.3)) { z.pzNext = H.ce + 1; return false; }
+  }
+  z.pzNext = H.ce + 7 + Math.random() * 4;
+  z.act = { kind: 'leap', sx: px, sy: y, sz: pz, tx: px + dx * L, ty: y + 0.002, tz: pz + dz * L,
+            t: 0, dur: 0.28, arc: 0.7, wait: 0.35 };
+  z.vel.set(0, 0, 0); z.atkT = 0; z.edge = -1;
+  z.yaw = Math.atan2(-dx, -dz);
+  H.ur(px, y + 0.05, pz, 8, 'dust', 1.4, 0.45);
+  H.Tt.thud(0.8, H.wn(px, pz));
+  return true;
 };
