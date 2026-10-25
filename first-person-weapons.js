@@ -13,6 +13,7 @@ export const FIRST_PERSON_WEAPONS = [
   { length:.83, position:[.33,-.20,-.32], grip:[0,-.15,-.40], support:[-.06,-.09,-.54], kick:.090, pitch:.16, reload:'breech' },
   { length:1.02,position:[.37,-.15,-.30], grip:[0,-.12,-.50], support:[-.035,-.07,-.67], kick:.105, pitch:.17, reload:'rocket' },
   { length:.78, position:[.30,-.19,-.32], grip:[0,-.13,-.35], support:[-.045,-.08,-.51], kick:.085, pitch:.16, reload:'breech' },
+  { length:.68, position:[.30,-.18,-.34], grip:[0,-.13,-.24], support:[-.045,-.08,-.43], kick:.14, pitch:.25, reload:'cell' },
 ];
 
 const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
@@ -100,7 +101,7 @@ export function createFirstPersonWeapons(game, prototypes, loaded, excludedHandP
     clone.position.set(0,0,0);clone.rotation.set(0,0,0);clone.scale.setScalar(1);clone.visible=true;
     clone.traverse(node=>{if(node.userData.skyFlash || node.name.includes('reload magazine')) node.visible=false;});
     const axis=new Group(); axis.add(clone);
-    if(weapon>=4) axis.rotation.y=Math.PI; // Unity's exports point +Z; the view camera looks -Z.
+    if(weapon>=4 && weapon<=11) axis.rotation.y=Math.PI; // Unity exports point +Z.
     const box=bounds(axis),size=new Vector3().subVectors(box.max,box.min);
     if(!Number.isFinite(size.z) || size.z<.001) return;
     const scale=FIRST_PERSON_WEAPONS[weapon].length/size.z;
@@ -135,7 +136,7 @@ export function createFirstPersonWeapons(game, prototypes, loaded, excludedHandP
     lastShots=shots;shotClock+=dt;
     kick*=Math.exp(-dt*(weapon===1||weapon>=9?10:16));flashT=Math.max(0,flashT-dt);
     const freeHands=['ladder','ledge','zip','hook'].includes(c.state) || game.nn.t>0;
-    active=!!model && !!U.gunOn && !!U.showBody && game.modeRef()!=='menu' && !thirdPerson && !freeHands;
+    active=!!model && !!U.gunOn && !!U.showBody && game.modeRef()!=='menu' && !window.skySettings?.beforeRun && !thirdPerson && !freeHands;
     rig.visible=active;
     for(const prototype of prototypes) prototype.visible=false;
     if(!active) {
