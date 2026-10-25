@@ -35,10 +35,10 @@
       barrel.target = target;
     }
     const hint = document.createElement('div');
-    Object.assign(hint.style, { position: 'fixed', left: '50%', bottom: '84px',
+    Object.assign(hint.style, { position: 'fixed', left: '50%', top: '118px',
       transform: 'translateX(-50%)', zIndex: '21', pointerEvents: 'none',
-      padding: '7px 12px', borderRadius: '8px', background: 'rgba(24,20,14,.82)',
-      color: '#ffe4a1', font: 'bold 14px sans-serif', textAlign: 'center',
+      padding: '4px 10px', borderRadius: '8px', background: 'rgba(24,20,14,.6)',
+      color: '#ffe4a1', font: 'bold 12px sans-serif', textAlign: 'center',
       whiteSpace: 'nowrap', display: 'none' });
     document.body.appendChild(hint);
     const updateGuide = () => {
@@ -53,8 +53,8 @@
         const onTop = player.onGround && Math.abs(player.pos.y - 1.12) < 0.16 &&
           Math.abs(player.pos.x - nearby.x) < 0.82 &&
           Math.abs(player.pos.z - nearby.z) < 0.82;
-        hint.textContent = onTop ? '画面のドラム缶をタップ / クリックで爆破ジャンプ！' :
-          'ドラム缶をタップ / クリックで爆破（踏み台から上にも乗れる）';
+        hint.textContent = onTop ? 'ドラム缶をタップで爆破ジャンプ！' :
+          'ドラム缶をタップで爆破';
         hint.style.display = 'block';
       } else hint.style.display = 'none';
       requestAnimationFrame(updateGuide);
@@ -372,7 +372,7 @@
           0.5
         ).unproject(game.Se);
         const direction = point.sub(game.Se.position).normalize();
-        const hit = game.raycast(game.Se.position.x, game.Se.position.y,
+        const hit = (game.raycast || worldRaycast)(game.Se.position.x, game.Se.position.y,
           game.Se.position.z, direction.x, direction.y, direction.z, 200);
         const barrel = barrels.find(item => item.active &&
           (item.block === hit?.b || item.cap === hit?.b));

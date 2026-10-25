@@ -22,6 +22,12 @@ if (knifeRule) {
 }
 
 const { WP, U, Jn, Et, ri, Tt, c, z, ue, fo, tl, vd, uh, mr, us, mo, $a: zipLines, jn, Geom } = game;
+// Local trial runs should not be mixed into the published run records.
+if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
+  U.sendLog = false;
+  const recNote = document.getElementById('recNote');
+  if (recNote) recNote.hidden = true;
+}
 // Apply the new run-speed default once for players who already saved the former default.
 try {
   const speedMigration = 'gunrun-run-speed-20261025';
@@ -1680,10 +1686,24 @@ window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeC
     ni(0.34, rnd(135, 165), 0.09);
     Mn(0.3, 700, 0.8, 0.06);
   };
-  // Headshot cue: a short low "thock" on top of the body thud (the old high bell "kin" is gone).
+  // The GunRun headshot clip is fetched on demand so normal startup has no extra audio download.
+  let headshotBuffer = null, headshotRequested = false;
   const ping = () => {
     if (!Ut.ctx || !Ut.master) return;
-    ni(0.42, rnd(88, 100), 0.12);
+    if (!headshotRequested) {
+      headshotRequested = true;
+      const ctx = Ut.ctx;
+      fetch('./assets/sfx/gunrun-headshot.mp3')
+        .then((r) => r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status))))
+        .then((ab) => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
+        .then((buffer) => { headshotBuffer = buffer; })
+        .catch(() => {});
+    }
+    if (!headshotBuffer) { ni(0.42, rnd(88, 100), 0.12); return; }
+    const src = Ut.ctx.createBufferSource(), gain = Ut.ctx.createGain();
+    src.buffer = headshotBuffer;
+    gain.gain.value = 0.42;
+    src.connect(gain); gain.connect(Ut.master); src.start();
   };
 
   // ---- Pools ------------------------------------------------------------
