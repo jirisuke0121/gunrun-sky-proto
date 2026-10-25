@@ -151,6 +151,8 @@ for (const view of [unityHgView, ...easyWeaponViews]) {
 const easyFlashDepth = [-0.42, -0.70, -0.76, -0.82, -0.76, -0.87, -1.02, -0.73];
 const easyFlashes = [];
 const easyMagazines = new Map();
+let pistolSlide = null, pistolSlideRestZ = 0, pistolSlideTime = 0, pistolSlideLocked = false;
+const PISTOL_SLIDE_TIME = 0.15, PISTOL_SLIDE_TRAVEL = 0.65;
 const hgReloadMagazine = box(unityHgView, 0.064, 0.29, 0.09, palette.dark, 0, -0.2, -0.03);
 hgReloadMagazine.name = 'HG reload magazine (GunRunReloadMotion)';
 hgReloadMagazine.visible = false;
@@ -552,6 +554,10 @@ function updateEquipment(now) {
   if (shots > lastMotionShots && weapon >= 4) {
     easyKick = Math.min(1, easyKick + (weapon >= 9 ? 1 : weapon === 5 ? 0.85 : 0.65));
     easyFlashTime = 0.095;
+    if (weapon === 4) {
+      pistolSlideTime = PISTOL_SLIDE_TIME;
+      if (Et.ammo === 0) pistolSlideLocked = true;
+    }
     if (weapon >= 9 && window.__skyBlastFx) {
       try {
         const blast = JSON.parse(document.body.dataset.skyBlast || '{}');
@@ -561,12 +567,28 @@ function updateEquipment(now) {
   }
   lastMotionShots = shots;
   easyKick *= Math.exp(-dt * 13);
+  pistolSlideTime = Math.max(0, pistolSlideTime - dt);
   easyFlashTime = Math.max(0, easyFlashTime - dt);
   if (weapon >= 4) {
     const progress = Et.reloadT > 0 && Et.reloadLen > 0
       ? Math.max(0, Math.min(1, 1 - Et.reloadT / Et.reloadLen)) : 0;
     const reload = progress > 0 ? reloadLowered(progress) : 0;
     animateEasyMagazine(weapon, progress);
+    if (pistolSlide) {
+      if (weapon === 4 && Et.reloadT <= 0 && Et.ammo > 0) pistolSlideLocked = false;
+      const phase = 1 - pistolSlideTime / PISTOL_SLIDE_TIME;
+      const shotTravel = weapon === 4 && pistolSlideTime > 0 ? Math.sin(Math.PI * phase) : 0;
+      const lockTravel = weapon === 4 && pistolSlideLocked
+        ? progress < 0.78 ? 1 : Math.max(0, 1 - (progress - 0.78) / 0.17) : 0;
+      const rackTravel = weapon === 4 && progress > 0.78 && progress < 0.95
+        ? Math.sin(Math.PI * (progress - 0.78) / 0.17) * 0.5 : 0;
+      const travel = Math.max(shotTravel, lockTravel, rackTravel) * PISTOL_SLIDE_TRAVEL;
+      pistolSlide.position.z = pistolSlideRestZ - travel;
+      if (weapon === 4) document.body.dataset.skySlide = JSON.stringify({
+        name: pistolSlide.name, travel: +travel.toFixed(3), reload: +progress.toFixed(3),
+        locked: pistolSlideLocked, localZ: +pistolSlide.position.z.toFixed(3),
+      });
+    }
     const speed = Math.hypot(c.vel.x, c.vel.z);
     const bob = mode === 'play' && c.onGround ? Math.sin(c.bob) * Math.min(0.016, speed * 0.002) : 0;
     const view = weaponViews[weapon];
@@ -646,12 +668,15 @@ if (window.T2?.GLTFLoader) {
       for (const child of view.children) if (child !== root) child.visible = false;
     });
   }
-  loadDetail('unityHg', 'easy-weapons-pistol.glb', (root) => {
+  loadDetail('unityHg', 'easy-weapons-pistol-slide.glb', (root) => {
     root.name = 'Easy Weapons Pistol';
     // The GLB's parent node already converts Unity units to metres.
     root.scale.setScalar(1.4);
     root.rotation.y = 0;
     root.position.set(0, -0.02, -0.13);
+    pistolSlide = root.getObjectByName('Pistol_Slide');
+    if (!pistolSlide) throw new Error('Pistol slide mesh missing');
+    pistolSlideRestZ = pistolSlide.position.z;
     unityHgView.add(root);
     for (const child of unityHgView.children) if (child !== root && child !== hgReloadMagazine && !child.userData.skyFlash) child.visible = false;
   });
