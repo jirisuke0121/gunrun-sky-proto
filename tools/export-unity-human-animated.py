@@ -8,6 +8,7 @@ import textwrap
 from pathlib import Path
 from mathutils import Matrix
 import io_scene_fbx.import_fbx as fbx_import
+from math import pi, sin
 
 # Blender 5.2 importer assumes every legacy Max mesh has an armature_setup.
 source = textwrap.dedent(inspect.getsource(fbx_import.FbxImportHelperNode.link_hierarchy))
@@ -26,10 +27,16 @@ clips = {
     'runLeft': animation / 'Move_the_character/Character@Run_Left_Weapons_Up.FBX',
     'runRight': animation / 'Move_the_character/Character@Run_Right_Weapons_Up.FBX',
     'walkForward': animation / 'Move_the_character/Character@Walk_weapons_up.FBX',
+    'walkBack': animation / 'Move_the_character/Character@Walk_Back_weapons_Up.FBX',
+    'walkLeft': animation / 'Move_the_character/Character@Walk_left_weapons_up.FBX',
+    'walkRight': animation / 'Move_the_character/Character@Walk_right_weapons_up.FBX',
     'jump': animation / 'Character@Jump.FBX',
     # The pack has no dedicated slide. Its armed crouch walk provides the low
     # moving pose used while the browser game's slide physics are active.
     'slide': animation / 'Move_the_character/Character@Walk_Sit_weapons_Up.FBX',
+    # No ladder clip is supplied by the Unity pack. Bake a climbing cycle from
+    # its unarmed walk rig, driving hands and feet to alternating rungs with IK.
+    'ladder': animation / 'Move_the_character/Character@Walk.FBX',
     'shoot': animation / 'Character@shooting.FBX',
     'reload': animation / 'Character@recharge.FBX',
 }
@@ -92,16 +99,39 @@ for clip_name, clip_path in clips.items():
     start = max(0, int(start))
     end = int(end)
     # Keep the on-demand download small; the GPU interpolates between samples.
-    target = {'idle': 10, 'walkForward': 8, 'jump': 10, 'slide': 8, 'shoot': 10, 'reload': 12}.get(clip_name, 6)
+    target = {'idle': 10, 'walkForward': 8, 'walkBack': 8, 'walkLeft': 8,
+              'walkRight': 8, 'jump': 10, 'slide': 8, 'ladder': 10,
+              'shoot': 10, 'reload': 12}.get(clip_name, 6)
     frames = sorted({round(start + (end - start) * i / (target - 1)) for i in range(target)})
     metadata[clip_name] = {'frames': [], 'times': [], 'duration': (end - start) / 30, 'source': clip_path.name}
     grips[clip_name] = []
     root_bone = rig.pose.bones.get('CATRigHub001')
     if not root_bone: raise RuntimeError(f'No pelvis root: {clip_name}')
+    ik_targets = []
+    if clip_name == 'ladder':
+        for side in ('L', 'R'):
+            for kind, end_bone in (('hand', f'CATRig{side}Arm22'), ('foot', f'CATRig{side}LegAnkle')):
+                target_obj = bpy.data.objects.new(f'ladder_{side}_{kind}', None)
+                bpy.context.collection.objects.link(target_obj)
+                ik = rig.pose.bones[end_bone].constraints.new('IK')
+                ik.target = target_obj
+                ik.chain_count = 3
+                ik_targets.append((side, kind, target_obj))
     bpy.context.scene.frame_set(frames[0])
     root_anchor = rig.matrix_world @ root_bone.matrix.translation
-    for frame in frames:
+    for sample_index, frame in enumerate(frames):
         bpy.context.scene.frame_set(frame)
+        if ik_targets:
+            phase = 2 * pi * sample_index / (len(frames) - 1)
+            for side, kind, target_obj in ik_targets:
+                stride = sin(phase + (pi if side == 'R' else 0))
+                if kind == 'hand':
+                    target_obj.location = ((.34 if side == 'L' else -.34), -.66,
+                                           1.78 + .27 * stride)
+                else:
+                    target_obj.location = ((.17 if side == 'L' else -.17), -.39,
+                                           .35 - .28 * stride)
+            bpy.context.view_layer.update()
         depsgraph = bpy.context.evaluated_depsgraph_get()
         root_offset = (rig.matrix_world @ root_bone.matrix.translation) - root_anchor
         key_name = f'{clip_name}_{frame:03d}'
@@ -128,6 +158,8 @@ for clip_name, clip_path in clips.items():
     print('CLIP', clip_name, 'range', tuple(action.frame_range), 'samples', len(frames), 'grip', grips[clip_name][0])
     for obj in imported:
         bpy.data.objects.remove(obj, do_unlink=True)
+    for _, _, target_obj in ik_targets:
+        bpy.data.objects.remove(target_obj, do_unlink=True)
 
 for obj in bpy.data.objects:
     obj.select_set(obj in result_meshes.values())

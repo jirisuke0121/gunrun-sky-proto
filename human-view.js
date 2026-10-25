@@ -31,8 +31,8 @@ function readBounds(object) {
 async function readAnimatedHuman() {
   if (!window.DecompressionStream) throw new Error('gzip decompression is unavailable');
   const [response, details] = await Promise.all([
-    fetch('./assets/human-gunrun-animated.glb.gz?v=20261025-slide-v1'),
-    fetch('./assets/human-gunrun-animated.json?v=20261025-slide-v1').then(r => { if (!r.ok) throw new Error('motion metadata'); return r.json(); })
+    fetch('./assets/human-gunrun-animated.glb.gz?v=20261025-parkour-v2'),
+    fetch('./assets/human-gunrun-animated.json?v=20261025-parkour-v2').then(r => { if (!r.ok) throw new Error('motion metadata'); return r.json(); })
   ]);
   if (!response.ok) throw new Error('animated human GLB');
   const bytes = await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
@@ -140,17 +140,22 @@ function updateMotion(dt, speed) {
   const front = c.vel.x * forward.x + c.vel.z * forward.z;
   const side = c.vel.x * right.x + c.vel.z * right.z;
   let next = 'idle';
-  if (!grounded) next = 'jump';
+  const walking = speed < (sky.U.walkSpeed + sky.U.sprintSpeed) / 2;
+  if (c.state === 'ladder') next = 'ladder';
   else if (c.state === 'slide') next = 'slide';
-  else if (landTime > 0) next = 'jump';
-  else if (reload > 0) next = 'reload';
+  else if (!grounded || landTime > 0 || c.state === 'ledge') next = 'jump';
+  else if (speed > .2) {
+    const pace = walking ? 'walk' : 'run';
+    if (Math.abs(side) > Math.abs(front) * .8) next = `${pace}${side > 0 ? 'Right' : 'Left'}`;
+    else next = `${pace}${front < -.1 ? 'Back' : 'Forward'}`;
+  } else if (reload > 0) next = 'reload';
   else if (shotTime < .24) next = 'shoot';
-  else if (speed > .2) next = Math.abs(side) > Math.abs(front) * 1.1 ? (side > 0 ? 'runRight' : 'runLeft') : front < -.1 ? 'runBack' : speed < 2.2 ? 'walkForward' : 'runForward';
   if (next !== activeClip) {
     activeClip = next;
     clipTime = 0;
     if (next === 'jump') document.body.dataset.skyHumanJumpSeen = 'true';
     if (next === 'slide') document.body.dataset.skyHumanSlideSeen = 'true';
+    if (next === 'ladder') document.body.dataset.skyHumanLadderSeen = 'true';
   }
   const info = motion.clips[next];
   if (!info) return;
@@ -166,8 +171,13 @@ function updateMotion(dt, speed) {
     const descent = c.vel.y < 0 ? .43 + .43 * Math.min(1, -c.vel.y / Math.max(1, sky.U.jumpVel)) : 0;
     clipTime = info.duration * (grounded ? .86 + .14 * (1 - landTime / .14) : Math.max(riseAndFall, descent));
   } else if (next === 'slide') clipTime = Math.min(info.duration * .99, (c.slideT || 0) * info.duration / 1.2);
-  else clipTime += dt * (next === 'idle' ? 1 : Math.max(.75, Math.min(1.35, speed / 3.28)));
-  const time = next === 'jump' || next === 'slide' || next === 'reload' || next === 'shoot' ? Math.min(info.duration, clipTime) : clipTime % info.duration;
+  else if (next === 'ladder') clipTime += c.vel.y * dt * info.duration / 1.5;
+  else {
+    const baseSpeed = next.startsWith('walk') ? sky.U.walkSpeed : next.startsWith('run') ? sky.U.sprintSpeed : 1;
+    clipTime += dt * (next === 'idle' ? 1 : Math.max(.6, Math.min(1.5, speed / baseSpeed)));
+  }
+  const looping = next === 'ladder' || next === 'idle' || next.startsWith('walk') || next.startsWith('run');
+  const time = looping ? ((clipTime % info.duration) + info.duration) % info.duration : Math.min(info.duration, clipTime);
   let hi = info.times.findIndex(t => t >= time);
   if (hi < 0) hi = info.times.length - 1;
   const lo = Math.max(0, hi - 1);
@@ -201,7 +211,7 @@ function updateWorldWeapon(third) {
     }
   }
   if (!worldWeapon) { if (muzzleFlash) muzzleFlash.visible = false; return; }
-  worldWeapon.visible = third && !!sky.U.gunOn;
+  worldWeapon.visible = third && !!sky.U.gunOn && c.state !== 'ladder';
   if (!worldWeapon.visible) { if (muzzleFlash) muzzleFlash.visible = false; return; }
   forward.set(-Math.sin(c.yaw), 0, -Math.cos(c.yaw));
   right.set(Math.cos(c.yaw), 0, -Math.sin(c.yaw));
@@ -231,10 +241,11 @@ function update(dt) {
   const third = choice === 'unity' && view === 'third' && !!holder && sky.modeRef() !== 'menu';
   if (holder) {
     holder.visible = third;
-    const sliding = third && c.state === 'slide' && !!c.onGround;
+    const sliding = third && c.state === 'slide';
     slidePose += ((sliding ? 1 : 0) - slidePose) * (1 - Math.exp(-dt * (sliding ? 20 : 14)));
     holder.position.set(c.pos.x, c.pos.y - .13 * slidePose, c.pos.z);
-    holder.rotation.set(.38 * slidePose, c.yaw + Math.PI, 0, 'YXZ');
+    const ladderYaw = c.ladder ? Math.atan2(-c.ladder.nx, -c.ladder.nz) : c.yaw + Math.PI;
+    holder.rotation.set(.38 * slidePose + (c.state === 'ladder' ? .09 : 0), c.state === 'ladder' ? ladderYaw : c.yaw + Math.PI, 0, 'YXZ');
     const speed = Math.hypot(c.vel.x, c.vel.z);
     if (third) updateMotion(dt, speed);
     else { lastAmmo = sky.Et.ammo; shotTime = 1; jumpTime = 0; landTime = 0; wasGrounded = !!c.onGround; }
