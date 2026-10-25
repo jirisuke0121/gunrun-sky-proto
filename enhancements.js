@@ -1,3 +1,4 @@
+import { createGhostReplay } from './ghost-replay.js?v=20261026-feedback-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261025-jump-tune-portrait-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261025-jump-tune-portrait-v1';
@@ -972,62 +973,9 @@ requestAnimationFrame(updateEquipment);
 window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeCharges() { return smokeCharges; }, weaponViews, trolleyViews };
 window.skyFirstPersonView = createFirstPersonWeapons(game, weaponViews, loaded, [tl, uh, hookLauncher]);
 
-// Ghost of the best run on this course. The path is sampled every 0.1 s of
-// play and kept in this browser only. H shows or hides it.
-{
-  const KEY = window.SKY_CANYON_MAP ? 'gunrun-sky-ghost-rock-canyon-v1' : 'gunrun-sky-ghost-v1', STEP = 0.1;
-  let best = null;
-  try { best = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { best = null; }
-  if (!best || !Array.isArray(best.p) || best.p.length < 8 || !(best.total > 0)) best = null;
-  let rec = [], lastZt = 0, saved = false, show = true;
-  const mat = new Basic({ color: 0x7fd8ff, transparent: true, opacity: 0.45, depthWrite: false, fog: false });
-  const ghost = new Group();
-  ghost.name = 'Best-run ghost';
-  const body = new Mesh(new Cylinder(0.2, 0.2, 1.0, 10), mat);
-  body.position.y = 0.95;
-  const head = new Mesh(new Sphere(0.14, 10, 8), mat);
-  head.position.y = 1.62;
-  const legs = new Mesh(new Cylinder(0.17, 0.12, 0.5, 10), mat);
-  legs.position.y = 0.25;
-  ghost.add(body, head, legs);
-  ghost.visible = false;
-  ue.add(ghost);
-  const chip = document.createElement('div');
-  chip.style.cssText = 'position:fixed;left:12px;bottom:56px;padding:2px 9px;border-radius:12px;background:rgba(40,110,150,.55);' +
-    'color:#fff;font:600 12px system-ui,sans-serif;pointer-events:none;display:none;z-index:6';
-  document.body.appendChild(chip);
-  document.addEventListener('keydown', (event) => {
-    if (event.code === 'KeyH' && !event.repeat && game.modeRef() === 'play') show = !show;
-  });
-  const round = (v) => Math.round(v * 100) / 100;
-  function ghostTick() {
-    requestAnimationFrame(ghostTick);
-    const playing = game.modeRef() === 'play' && !z.mission;
-    if (!playing) { ghost.visible = false; chip.style.display = 'none'; return; }
-    if (z.t < lastZt - 0.5 || (z.t < 0.2 && lastZt >= 0.2)) { rec = []; saved = false; }
-    lastZt = z.t;
-    if (!z.over) {
-      while (rec.length / 4 * STEP <= z.t) rec.push(round(c.pos.x), round(c.pos.y), round(c.pos.z), round(c.yaw));
-    } else if (!saved && z.final && z.final.total > 0) {
-      saved = true;
-      if (z.final.total > (best ? best.total : 0) && rec.length >= 8) {
-        best = { total: z.final.total, p: rec.slice() };
-        try { localStorage.setItem(KEY, JSON.stringify(best)); } catch {}
-      }
-    }
-    if (!best || !show || z.over) { ghost.visible = false; chip.style.display = best && !z.over ? 'block' : 'none'; chip.textContent = `ゴースト 非表示（H）`; return; }
-    const n = best.p.length / 4, f = z.t / STEP, i0 = Math.floor(f);
-    if (i0 >= n - 1) { ghost.visible = false; chip.style.display = 'none'; return; }
-    const k = f - i0, a = i0 * 4, b = a + 4, p = best.p;
-    ghost.position.set(p[a] + (p[b] - p[a]) * k, p[a + 1] + (p[b + 1] - p[a + 1]) * k, p[a + 2] + (p[b + 2] - p[a + 2]) * k);
-    const near = Math.hypot(ghost.position.x - c.pos.x, ghost.position.z - c.pos.z) < 1.2 && Math.abs(ghost.position.y - c.pos.y) < 2;
-    ghost.visible = !near;
-    chip.style.display = 'block';
-    chip.textContent = `ゴースト ベスト ${best.total}点（H で切替）`;
-  }
-  requestAnimationFrame(ghostTick);
-  window.__skyGhost = { get best() { return best; }, get rec() { return rec; }, ghost };
-}
+// Recording is shared by the local best ghost and the ranking viewer.
+window.skyReplay = createGhostReplay(game);
+window.__skyGhost = window.skyReplay;
 
 // ---------------------------------------------------------------------------
 // Old town: houses dressed as a town (plaster, tiled roofs, windows, doors),
@@ -2275,7 +2223,7 @@ if (/[?&]perf=1/.test(location.search)) {
 .rankbox small{display:block;opacity:.7;margin-bottom:4px}
 .rankbox ol{margin:0;padding:0;list-style:none}
 .rankbox li{display:grid;grid-template-columns:2.6em 3.2em 1fr auto;gap:6px;padding:1px 0}
-.rankbox li.me{color:#ffd24a;font-weight:700}
+.rankbox .ghost-button{grid-column:2/-1;justify-self:start;font-size:12px;padding:6px 10px;min-height:38px;margin:2px 0 6px}.rankbox li.me{color:#ffd24a;font-weight:700}
 .rankbox .clear{color:#7be08b;font-weight:700}
 .rankbox .mine{margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,.2)}`;
   document.head.appendChild(style);
@@ -2286,7 +2234,7 @@ if (/[?&]perf=1/.test(location.search)) {
 
   async function fetchRanking() {
     const me = playerId();
-    const res = await fetch(RANK_URL + (me ? '?me=' + encodeURIComponent(me) : ''), { cache: 'no-store' });
+    const res = await fetch(RANK_URL + '?map=' + (window.SKY_CANYON_MAP ? 'rock-canyon' : 'old-town') + (me ? '&me=' + encodeURIComponent(me) : ''), { cache: 'no-store' });
     if (!res.ok) throw new Error('ranking ' + res.status);
     return res.json();
   }
@@ -2294,12 +2242,17 @@ if (/[?&]perf=1/.test(location.search)) {
   function renderRanking(box, data, limit) {
     if (!data || !data.top || !data.top.length) { box.innerHTML = ''; return; }
     const rows = data.top.slice(0, limit).map((row) =>
-      `<li class="${row.me ? 'me' : ''}"><span>${row.pos}位</span><span>${esc(row.tag)}</span><span>${status(row)}</span><span>${row.score}点</span></li>`).join('');
+      `<li class="${row.me ? 'me' : ''}"><span>${row.pos}位</span><span>${esc(row.tag)}</span><span>${status(row)}</span><span>${row.score}点</span>${row.replayId ? `<button type="button" class="ghost-button" data-replay="${esc(row.replayId)}">ゴーストを見る</button>` : '<small style="grid-column:2/-1">ゴースト記録なし</small>'}</li>`).join('');
     const inList = data.top.slice(0, limit).some((row) => row.me);
     const mine = data.me && !inList
       ? `<div class="mine">あなたの最高：${data.me.pos}位（${data.total}人中）　${status(data.me)}　${data.me.score}点</div>` : '';
-    box.innerHTML = `<h3>ランキング</h3><small>クリア（2分逃げ切り）が上、同じ場合は得点順。記録の送信がオンのプレイが対象です。</small><ol>${rows}</ol>${mine}`;
+    box.innerHTML = `<h3>ランキング</h3><small>クリア（2分逃げ切り）が上、同じ場合は得点順。このマップの記録を表示。記録の送信がオンのプレイが対象です。</small><ol>${rows}</ol>${mine}`;
   }
+
+  document.addEventListener('click', event => {
+    const button = event.target.closest('.ghost-button[data-replay]');
+    if (button) window.skyReplay.open(button.dataset.replay, button);
+  });
 
   async function refresh(box, limit) {
     try { renderRanking(box, await fetchRanking(), limit); } catch { box.innerHTML = ''; }
