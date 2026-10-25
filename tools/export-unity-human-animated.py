@@ -6,7 +6,7 @@ import json
 import sys
 import textwrap
 from pathlib import Path
-from mathutils import Matrix
+from mathutils import Matrix, Quaternion
 import io_scene_fbx.import_fbx as fbx_import
 from math import pi, sin
 
@@ -31,8 +31,8 @@ clips = {
     'walkLeft': animation / 'Move_the_character/Character@Walk_left_weapons_up.FBX',
     'walkRight': animation / 'Move_the_character/Character@Walk_right_weapons_up.FBX',
     'jump': animation / 'Character@Jump.FBX',
-    # The pack has no dedicated slide. Its armed crouch walk provides the low
-    # moving pose used while the browser game's slide physics are active.
+    # The pack has no dedicated slide. Use its armed crouch walk as a base and
+    # bake a low seated glide with one leg extended in travel direction.
     'slide': animation / 'Move_the_character/Character@Walk_Sit_weapons_Up.FBX',
     # No ladder clip is supplied by the Unity pack. Bake a climbing cycle from
     # its unarmed walk rig, driving hands and feet to alternating rungs with IK.
@@ -108,9 +108,10 @@ for clip_name, clip_path in clips.items():
     root_bone = rig.pose.bones.get('CATRigHub001')
     if not root_bone: raise RuntimeError(f'No pelvis root: {clip_name}')
     ik_targets = []
-    if clip_name == 'ladder':
+    if clip_name in ('ladder', 'slide'):
         for side in ('L', 'R'):
-            for kind, end_bone in (('hand', f'CATRig{side}Arm22'), ('foot', f'CATRig{side}LegAnkle')):
+            joints = (('hand', f'CATRig{side}Arm22'), ('foot', f'CATRig{side}LegAnkle')) if clip_name == 'ladder' else (('foot', f'CATRig{side}LegAnkle'),)
+            for kind, end_bone in joints:
                 target_obj = bpy.data.objects.new(f'ladder_{side}_{kind}', None)
                 bpy.context.collection.objects.link(target_obj)
                 ik = rig.pose.bones[end_bone].constraints.new('IK')
@@ -121,19 +122,29 @@ for clip_name, clip_path in clips.items():
     root_anchor = rig.matrix_world @ root_bone.matrix.translation
     for sample_index, frame in enumerate(frames):
         bpy.context.scene.frame_set(frame)
-        if ik_targets:
-            phase = 2 * pi * sample_index / (len(frames) - 1)
-            for side, kind, target_obj in ik_targets:
-                stride = sin(phase + (pi if side == 'R' else 0))
-                if kind == 'hand':
-                    target_obj.location = ((.34 if side == 'L' else -.34), -.66,
-                                           1.78 + .27 * stride)
-                else:
-                    target_obj.location = ((.17 if side == 'L' else -.17), -.39,
-                                           .35 - .28 * stride)
-            bpy.context.view_layer.update()
-        depsgraph = bpy.context.evaluated_depsgraph_get()
+        # Capture authored root travel before adjusting the slide pelvis. The
+        # procedural lowering must remain in the exported vertices and grip.
         root_offset = (rig.matrix_world @ root_bone.matrix.translation) - root_anchor
+        if clip_name == 'slide':
+            root_bone.location.x -= 17
+            root_bone.rotation_quaternion = root_bone.rotation_quaternion @ Quaternion((0, 0, 1), .65)
+            for side, _, target_obj in ik_targets:
+                target_obj.location = ((.20 if side == 'L' else -.20),
+                                       -1.25 if side == 'L' else .20, .12)
+            bpy.context.view_layer.update()
+        if ik_targets:
+            if clip_name == 'ladder':
+                phase = 2 * pi * sample_index / (len(frames) - 1)
+                for side, kind, target_obj in ik_targets:
+                    stride = sin(phase + (pi if side == 'R' else 0))
+                    if kind == 'hand':
+                        target_obj.location = ((.34 if side == 'L' else -.34), -.66,
+                                               1.78 + .27 * stride)
+                    else:
+                        target_obj.location = ((.17 if side == 'L' else -.17), -.39,
+                                               .35 - .28 * stride)
+                bpy.context.view_layer.update()
+        depsgraph = bpy.context.evaluated_depsgraph_get()
         key_name = f'{clip_name}_{frame:03d}'
         for name in deform_names:
             src = meshes[name]

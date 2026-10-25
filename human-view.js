@@ -31,8 +31,8 @@ function readBounds(object) {
 async function readAnimatedHuman() {
   if (!window.DecompressionStream) throw new Error('gzip decompression is unavailable');
   const [response, details] = await Promise.all([
-    fetch('./assets/human-gunrun-animated.glb.gz?v=20261025-parkour-v2'),
-    fetch('./assets/human-gunrun-animated.json?v=20261025-parkour-v2').then(r => { if (!r.ok) throw new Error('motion metadata'); return r.json(); })
+    fetch('./assets/human-gunrun-animated.glb.gz?v=20261025-slide-pose-v5'),
+    fetch('./assets/human-gunrun-animated.json?v=20261025-slide-pose-v5').then(r => { if (!r.ok) throw new Error('motion metadata'); return r.json(); })
   ]);
   if (!response.ok) throw new Error('animated human GLB');
   const bytes = await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
@@ -243,9 +243,9 @@ function update(dt) {
     holder.visible = third;
     const sliding = third && c.state === 'slide';
     slidePose += ((sliding ? 1 : 0) - slidePose) * (1 - Math.exp(-dt * (sliding ? 20 : 14)));
-    holder.position.set(c.pos.x, c.pos.y - .13 * slidePose, c.pos.z);
+    holder.position.set(c.pos.x, c.pos.y - .12 * slidePose, c.pos.z);
     const ladderYaw = c.ladder ? Math.atan2(-c.ladder.nx, -c.ladder.nz) : c.yaw + Math.PI;
-    holder.rotation.set(.38 * slidePose + (c.state === 'ladder' ? .09 : 0), c.state === 'ladder' ? ladderYaw : c.yaw + Math.PI, 0, 'YXZ');
+    holder.rotation.set(c.state === 'ladder' ? .09 : 0, c.state === 'ladder' ? ladderYaw : c.yaw + Math.PI + 1.25 * slidePose, 0, 'YXZ');
     const speed = Math.hypot(c.vel.x, c.vel.z);
     if (third) updateMotion(dt, speed);
     else { lastAmmo = sky.Et.ammo; shotTime = 1; jumpTime = 0; landTime = 0; wasGrounded = !!c.onGround; }
