@@ -27,6 +27,9 @@ clips = {
     'runRight': animation / 'Move_the_character/Character@Run_Right_Weapons_Up.FBX',
     'walkForward': animation / 'Move_the_character/Character@Walk_weapons_up.FBX',
     'jump': animation / 'Character@Jump.FBX',
+    # The pack has no dedicated slide. Its armed crouch walk provides the low
+    # moving pose used while the browser game's slide physics are active.
+    'slide': animation / 'Move_the_character/Character@Walk_Sit_weapons_Up.FBX',
     'shoot': animation / 'Character@shooting.FBX',
     'reload': animation / 'Character@recharge.FBX',
 }
@@ -89,7 +92,7 @@ for clip_name, clip_path in clips.items():
     start = max(0, int(start))
     end = int(end)
     # Keep the on-demand download small; the GPU interpolates between samples.
-    target = {'idle': 10, 'walkForward': 8, 'jump': 10, 'shoot': 10, 'reload': 12}.get(clip_name, 6)
+    target = {'idle': 10, 'walkForward': 8, 'jump': 10, 'slide': 8, 'shoot': 10, 'reload': 12}.get(clip_name, 6)
     frames = sorted({round(start + (end - start) * i / (target - 1)) for i in range(target)})
     metadata[clip_name] = {'frames': [], 'times': [], 'duration': (end - start) / 30, 'source': clip_path.name}
     grips[clip_name] = []

@@ -6,7 +6,7 @@ const choiceButtons = [...document.querySelectorAll('#humanSel button')];
 const status = document.getElementById('humanStatus');
 const loader = new T2.GLTFLoader();
 let asset = null, holder = null, model = null, motion = null, grip = null, morphMeshes = [], worldWeapon = null, worldWeaponIndex = -1, view = 'first';
-let loading = null, activeClip = '', clipTime = 0, jumpTime = 0, shotTime = 1, lastAmmo = null;
+let loading = null, activeClip = '', clipTime = 0, jumpTime = 0, landTime = 0, wasGrounded = true, shotTime = 1, lastAmmo = null, slidePose = 0;
 let gripPoint = new Vector3(), muzzleFlash = null;
 const savedChoice = (() => { try { return sessionStorage.getItem('gunrun-human-trial') || 'existing'; } catch { return 'existing'; } })();
 let choice = savedChoice === 'unity' ? 'unity' : 'existing';
@@ -31,8 +31,8 @@ function readBounds(object) {
 async function readAnimatedHuman() {
   if (!window.DecompressionStream) throw new Error('gzip decompression is unavailable');
   const [response, details] = await Promise.all([
-    fetch('./assets/human-gunrun-animated.glb.gz'),
-    fetch('./assets/human-gunrun-animated.json').then(r => { if (!r.ok) throw new Error('motion metadata'); return r.json(); })
+    fetch('./assets/human-gunrun-animated.glb.gz?v=20261025-slide-v1'),
+    fetch('./assets/human-gunrun-animated.json?v=20261025-slide-v1').then(r => { if (!r.ok) throw new Error('motion metadata'); return r.json(); })
   ]);
   if (!response.ok) throw new Error('animated human GLB');
   const bytes = await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
@@ -126,26 +126,48 @@ function updateMotion(dt, speed) {
   lastAmmo = ammo;
   shotTime += dt;
   const grounded = !!c.onGround;
-  if (grounded) jumpTime = 0; else jumpTime += dt;
+  if (grounded) {
+    if (!wasGrounded && jumpTime > .16) landTime = .14;
+    jumpTime = 0;
+    landTime = Math.max(0, landTime - dt);
+  } else {
+    jumpTime += dt;
+    landTime = 0;
+  }
+  wasGrounded = grounded;
   forward.set(-Math.sin(c.yaw), 0, -Math.cos(c.yaw));
   right.set(Math.cos(c.yaw), 0, -Math.sin(c.yaw));
   const front = c.vel.x * forward.x + c.vel.z * forward.z;
   const side = c.vel.x * right.x + c.vel.z * right.z;
   let next = 'idle';
-  if (reload > 0) next = 'reload';
+  if (!grounded) next = 'jump';
+  else if (c.state === 'slide') next = 'slide';
+  else if (landTime > 0) next = 'jump';
+  else if (reload > 0) next = 'reload';
   else if (shotTime < .24) next = 'shoot';
-  else if (!grounded) next = 'jump';
   else if (speed > .2) next = Math.abs(side) > Math.abs(front) * 1.1 ? (side > 0 ? 'runRight' : 'runLeft') : front < -.1 ? 'runBack' : speed < 2.2 ? 'walkForward' : 'runForward';
-  if (next !== activeClip) { activeClip = next; clipTime = 0; }
+  if (next !== activeClip) {
+    activeClip = next;
+    clipTime = 0;
+    if (next === 'jump') document.body.dataset.skyHumanJumpSeen = 'true';
+    if (next === 'slide') document.body.dataset.skyHumanSlideSeen = 'true';
+  }
   const info = motion.clips[next];
   if (!info) return;
   if (next === 'reload') {
     const total = Math.max(.1, sky.wpc().rl || 1.5);
     clipTime = info.duration * Math.max(0, Math.min(1, 1 - reload / total));
   } else if (next === 'shoot') clipTime = info.duration * (.40 + .48 * Math.min(1, shotTime / .24));
-  else if (next === 'jump') clipTime = Math.min(info.duration, jumpTime);
+  else if (next === 'jump') {
+    // The Unity clip is 1.7s, while a normal game jump lasts about 0.7s.
+    // Reach the airborne poses before landing and show its final frames on touchdown.
+    const flight = Math.max(.45, Math.min(1.4, 2 * sky.U.jumpVel / sky.U.gravity));
+    const riseAndFall = Math.min(.86, jumpTime / flight * .86);
+    const descent = c.vel.y < 0 ? .43 + .43 * Math.min(1, -c.vel.y / Math.max(1, sky.U.jumpVel)) : 0;
+    clipTime = info.duration * (grounded ? .86 + .14 * (1 - landTime / .14) : Math.max(riseAndFall, descent));
+  } else if (next === 'slide') clipTime = Math.min(info.duration * .99, (c.slideT || 0) * info.duration / 1.2);
   else clipTime += dt * (next === 'idle' ? 1 : Math.max(.75, Math.min(1.35, speed / 3.28)));
-  const time = next === 'jump' || next === 'reload' || next === 'shoot' ? Math.min(info.duration, clipTime) : clipTime % info.duration;
+  const time = next === 'jump' || next === 'slide' || next === 'reload' || next === 'shoot' ? Math.min(info.duration, clipTime) : clipTime % info.duration;
   let hi = info.times.findIndex(t => t >= time);
   if (hi < 0) hi = info.times.length - 1;
   const lo = Math.max(0, hi - 1);
@@ -209,11 +231,13 @@ function update(dt) {
   const third = choice === 'unity' && view === 'third' && !!holder && sky.modeRef() !== 'menu';
   if (holder) {
     holder.visible = third;
-    holder.position.set(c.pos.x, c.pos.y, c.pos.z);
-    holder.rotation.y = c.yaw + Math.PI;
+    const sliding = third && c.state === 'slide' && !!c.onGround;
+    slidePose += ((sliding ? 1 : 0) - slidePose) * (1 - Math.exp(-dt * (sliding ? 20 : 14)));
+    holder.position.set(c.pos.x, c.pos.y - .13 * slidePose, c.pos.z);
+    holder.rotation.set(.38 * slidePose, c.yaw + Math.PI, 0, 'YXZ');
     const speed = Math.hypot(c.vel.x, c.vel.z);
     if (third) updateMotion(dt, speed);
-    else { lastAmmo = sky.Et.ammo; shotTime = 1; }
+    else { lastAmmo = sky.Et.ammo; shotTime = 1; jumpTime = 0; landTime = 0; wasGrounded = !!c.onGround; }
   }
   updateWorldWeapon(third);
   if (!third) return;
