@@ -1,5 +1,5 @@
-# FAITHFUL version: rebuilds dev/assets/sfx/*.wav from "The Free Firearm Sound Library" (CC0; the "Prepared SFX Library" folder).
-# Usage: python3 tools/build_sfx_takes.py OUTDIR [LIBRARY_DIR]   then   python3 tools/audit_sfx.py OUTDIR   then copy into dev/assets/sfx.
+# FAITHFUL version: rebuilds assets/sfx/*.wav from "The Free Firearm Sound Library" (CC0; the "Prepared SFX Library" folder).
+# Usage: python3 tools/build_sfx_takes.py OUTDIR [LIBRARY_DIR]   then   python3 tools/audit_sfx.py OUTDIR   then copy into assets/sfx.
 # HG=1917/B_24P, SG=Model 12/K_22P, MG=AK-47/C_28P, SMG=Carl Gustav M45/G_35P (heads of a burst). Needs numpy and scipy.
 # Each take starts where the envelope leaves 2% of its peak (not mid-attack), gets a 1.5 ms fade-in, L/R level equalised,
 # stereo width narrowed (M/S), and is normalised to 0.9. MG takes get the AK action "clack" (70-110 ms) low-passed.

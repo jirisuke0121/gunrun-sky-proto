@@ -1,8 +1,8 @@
-# Checks every take in dev/assets/sfx before it ships: first/last sample (clicks), late pulses and high-frequency clacks, L/R balance and correlation, peak.
+# Checks every take in assets/sfx before it ships: first/last sample (clicks), late pulses and high-frequency clacks, L/R balance and correlation, peak.
 # Usage: python3 tools/audit_sfx.py [dir]   (needs numpy, scipy). Run it after every change to the sound files.
 import sys,wave,numpy as np,glob,os
 from scipy.signal import find_peaks, butter, sosfilt
-d=sys.argv[1] if len(sys.argv)>1 else 'dev/assets/sfx'; sr=44100; bad=0
+d=sys.argv[1] if len(sys.argv)>1 else 'assets/sfx'; sr=44100; bad=0
 for f in sorted(glob.glob(d+'/*.wav')):
     w=wave.open(f); assert w.getframerate()==sr and w.getnchannels()==2
     x=np.frombuffer(w.readframes(w.getnframes()),'<i2').astype(np.float32).reshape(-1,2)/32768; m=x.mean(1)

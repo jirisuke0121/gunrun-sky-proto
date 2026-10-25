@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-for (const file of ['canyon.html', 'dev/canyon.html']) {
+for (const file of ['canyon.html']) {
   const html = fs.readFileSync(file, 'utf8');
   const start = html.indexOf('const flankDoorRefs=');
   const end = html.indexOf('function go()', start);
