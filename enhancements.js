@@ -1,6 +1,6 @@
-import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261025-fp-weapons-v1';
+import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261025-jump-menu-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
-import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261025-fp-weapons-v1';
+import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261025-jump-menu-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -141,7 +141,16 @@ const easyWeaponViews = [
   makeWeapon('Easy Rocket Launcher', (g) => { cylinder(g, .085, .085, .72, palette.dark, 0, .07, -.28).rotation.x = Math.PI / 2; cylinder(g, .10, .10, .10, palette.amber, 0, .07, -.67).rotation.x = Math.PI / 2; box(g, .12, .18, .12, palette.grip, 0, -.04, .12); }),
   makeWeapon('Easy M79', (g) => { box(g, .17, .15, .29, palette.steel, 0, .06, -.12); cylinder(g, .06, .06, .36, palette.dark, 0, .07, -.39).rotation.x = Math.PI / 2; box(g, .11, .2, .1, palette.grip, 0, -.07, .1); }),
 ];
-for (const view of [unityHgView, ...easyWeaponViews]) {
+const jumpGunView=makeWeapon('Jump Gun',g=>{
+  const cyan=new Standard({color:0x57ddeb,roughness:.45,metalness:.5});
+  box(g,.16,.13,.28,palette.steel,0,.05,-.12);
+  cylinder(g,.065,.065,.38,palette.dark,0,.065,-.40,12).rotation.x=Math.PI/2;
+  for(const depth of [-.27,-.43,-.57])cylinder(g,.077,.077,.035,cyan,0,.065,depth,12).rotation.x=Math.PI/2;
+  box(g,.085,.17,.08,palette.grip,0,-.08,-.06);
+  box(g,.075,.11,.10,palette.grip,0,-.05,-.35);
+  box(g,.025,.025,.06,cyan,0,.14,-.16);
+});
+for (const view of [unityHgView, ...easyWeaponViews, jumpGunView]) {
   tl.remove(view);
   fo.add(view);
   view.scale.setScalar(0.75);
@@ -150,7 +159,7 @@ for (const view of [unityHgView, ...easyWeaponViews]) {
 }
 // The exported weapon GLBs have no animation clips. The M4 and shotgun keep
 // separate magazine meshes, which the reload clock can drive in the browser.
-const easyFlashDepth = [-0.42, -0.70, -0.76, -0.82, -0.76, -0.87, -1.02, -0.73];
+const easyFlashDepth = [-0.42, -0.70, -0.76, -0.82, -0.76, -0.87, -1.02, -0.73, -0.62];
 const easyFlashes = [];
 const easyMagazines = new Map();
 let pistolSlide = null, pistolSlideRestZ = 0, pistolSlideTime = 0, pistolSlideLocked = false;
@@ -409,15 +418,16 @@ WP.push(
   { n: 'Easy Cluster', mag: 6, res: 18, cd: 0.5, rl: 2.4, dmg: 5.2, head: 1, knock: 8, stun: 0.8, range: 80, cone: 0, explosive: 4.8, auto: 1 },
   { n: 'Easy Rocket', mag: 6, res: 18, cd: 0.5, rl: 2.4, dmg: 6, head: 1, knock: 9, stun: 0.9, range: 90, cone: 0, explosive: 4, auto: 1 },
   { n: 'Easy M79', mag: 6, res: 18, cd: 1 / 3, rl: 2, dmg: 4.5, head: 1, knock: 8, stun: 0.8, range: 80, cone: 0, explosive: 3.2 },
+  { n: 'Jump Gun', mag:1, res:99, cd:.55, rl:.8, dmg:0, head:0, knock:0, stun:0, range:4.5, cone:0, auto:0, jumpGun:true },
 );
 // Match the prefab's Semi/Full setting. The M79 is fired on charge release.
 for (const [index, source] of Object.entries(UNITY_WEAPONS)) WP[+index].auto = source.trigger === 'full' ? 1 : 0;
-Jn.weapon = Math.max(0, Math.min(11, Jn.weapon));
-U.weapon = Math.max(0, Math.min(11, U.weapon | 0));
+Jn.weapon = Math.max(0, Math.min(12, Jn.weapon));
+U.weapon = Math.max(0, Math.min(12, U.weapon | 0));
 const weaponSlider = document.getElementById('s_weapon');
 if (weaponSlider) {
-  weaponSlider.max = '11';
-  weaponSlider.parentElement.querySelector('label').textContent = '武器（0=HG 1=SG 2=SMG 3=MG 4=EW Pistol 5=EW Shotgun 6=EW M4 7=Rail 8=Beam 9=Cluster 10=Rocket 11=M79）';
+  weaponSlider.max = '12';
+  weaponSlider.parentElement.querySelector('label').textContent = '武器（0=HG 1=SG 2=SMG 3=MG 4=Pistol 5=Shotgun 6=M4 7=Rail 8=Beam 9=Cluster 10=Rocket 11=M79 12=Jump Gun）';
 }
 window.__wpSync?.();
 const originalGunSound = Tt.hg;

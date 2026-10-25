@@ -113,7 +113,7 @@ document.addEventListener('keydown', event => {
 });
 
 const pivot = new Vector3(), wanted = new Vector3(), delta = new Vector3(), probe = new Vector3(), forward = new Vector3(), right = new Vector3();
-const weaponNames = ['Sky HG','Sky SG','Sky SMG','Sky MG','Sky Unity HG','Sky Easy Shotgun','Sky Easy M4','Sky Easy Rail Gun','Sky Easy Beam Gun','Sky Easy Cluster Launcher','Sky Easy Rocket Launcher','Sky Easy M79'];
+const weaponNames = ['Sky HG','Sky SG','Sky SMG','Sky MG','Sky Unity HG','Sky Easy Shotgun','Sky Easy M4','Sky Easy Rail Gun','Sky Easy Beam Gun','Sky Easy Cluster Launcher','Sky Easy Rocket Launcher','Sky Easy M79','Sky Jump Gun'];
 const blendedGrip = new Vector3();
 let previousWeapon = -1;
 function updateMotion(dt, speed) {
@@ -238,7 +238,7 @@ function updateWorldWeapon(third) {
   }
 }
 function update(dt) {
-  const third = choice === 'unity' && view === 'third' && !!holder && sky.modeRef() !== 'menu';
+  const third = choice === 'unity' && view === 'third' && !!holder && sky.modeRef() !== 'menu' && !window.skySettings?.beforeRun;
   if (holder) {
     holder.visible = third;
     const sliding = third && c.state === 'slide';

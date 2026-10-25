@@ -1,5 +1,6 @@
 // Browser adaptation of the weapon modes in Easy Weapons/Weapon.cs.
 // Unity prefabs provide the mode and timing; Air Corridor keeps its own damage scale.
+import { createJumpGun } from './jump-gun.js?v=20261025-jump-menu-v1';
 export const UNITY_WEAPONS = Object.freeze({
   4: { kind: 'raycast', trigger: 'semi', rof: 12, pellets: 1, accuracy: 70, drop: 5, recovery: 3.5 },
   5: { kind: 'raycast', trigger: 'semi', rof: 2, pellets: 6, accuracy: 55, drop: 10, recovery: 1.5 },
@@ -22,6 +23,8 @@ export function reloadLowered(progress) {
 }
 
 export function createEasyWeaponPort(game) {
+  const jumpGun=createJumpGun(game);
+  window.skyJumpGun=jumpGun;
   const { U, Et, z, Jt, ue, Se, Geom } = game;
   const { Vector3, Mesh, Sphere, Basic, Line, BufferGeometry, Float32Attribute } = Geom;
   const missiles = [];
@@ -98,6 +101,7 @@ export function createEasyWeaponPort(game) {
 
   const fire = (ctx) => {
     const { weapon, w, origin, direction, raycast, zombieRay, barrel, stats, time, particles, hitFeedback, knock } = ctx;
+    if(weapon===12)return jumpGun.fire(ctx);
     const config = UNITY_WEAPONS[weapon];
     if (!config) return null;
     if (config.kind === 'raycast' && weapon !== 5) return null;
@@ -163,6 +167,7 @@ export function createEasyWeaponPort(game) {
   };
 
   const tick = (dt) => {
+    jumpGun.tick(dt);
     const weapon = U.weapon | 0;
     if (weapon !== lastWeapon) {
       chargeStarted = 0;
