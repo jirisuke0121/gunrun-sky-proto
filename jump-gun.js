@@ -1,6 +1,19 @@
+import { playGearSound } from './gear-audio.js?v=20261026-gear-polish-v1';
+export const JUMP_GUN = Object.freeze({ up: 16, push: 10, maxUp: 24, maxPush: 14 });
+
+export function migrateJumpGunSettings(settings, storage) {
+  if (storage.getItem('gunrun-jumpgun-power-20261026')) return false;
+  let changed = false;
+  if (settings.jumpGunUp === 11.2) { settings.jumpGunUp = JUMP_GUN.up; changed = true; }
+  if (settings.jumpGunPush === 8) { settings.jumpGunPush = JUMP_GUN.push; changed = true; }
+  storage.setItem('gunrun-jumpgun-power-20261026', '1');
+  return changed;
+}
+
 // A movement weapon: one floor-powered impulse per flight, rearmed on landing.
 export function createJumpGun(game) {
   const { c, U, Et, z, ue, Geom } = game;
+  try { if (migrateJumpGunSettings(U, localStorage)) { game.Ua(); game.nl(); } } catch {}
   const { Vector3, Mesh, Torus, Basic } = Geom;
   const material = new Basic({ color:0x7ceaff, transparent:true, opacity:0, depthWrite:false });
   const ring = new Mesh(new Torus(.20,.025,6,24),material);
@@ -32,8 +45,8 @@ export function createJumpGun(game) {
       report('no-floor');return {handled:true,suppressTracer:true};
     }
     spent=true;launchTime=z.t;
-    const up=Number.isFinite(U.jumpGunUp)?Math.max(4,Math.min(20,U.jumpGunUp)):11.2;
-    const push=Number.isFinite(U.jumpGunPush)?Math.max(0,Math.min(14,U.jumpGunPush)):8;
+    const up=Number.isFinite(U.jumpGunUp)?Math.max(4,Math.min(JUMP_GUN.maxUp,U.jumpGunUp)):JUMP_GUN.up;
+    const push=Number.isFinite(U.jumpGunPush)?Math.max(0,Math.min(JUMP_GUN.maxPush,U.jumpGunPush)):JUMP_GUN.push;
     c.state='normal';c.ledge=null;c.ladder=null;c.wallKey=null;
     c.onGround=false;c.coyote=0;c.airT=0;c.jumpBuf=0;
     c.vel.y=Math.max(c.vel.y,Math.max(up*(8.2/11.2),-direction.y*up));
@@ -44,7 +57,6 @@ export function createJumpGun(game) {
     pulsePoint.copy(point);pulsePoint.y+=.035;
     ring.position.copy(pulsePoint);ring.scale.setScalar(1);ring.visible=true;ringLife=.42;
     particles(point.x,point.y+.06,point.z,12,'dust',2,.3);
-    game.Tt.bang(.6);
     stats.jumpGunLaunches=(stats.jumpGunLaunches||0)+1;
     game.rn('反動ジャンプ！ 空中で進路を調整');
     report('launched',{point:point.toArray(),velocity:c.vel.toArray(),life:c.life,up,push});
@@ -69,5 +81,5 @@ export function createJumpGun(game) {
       document.getElementById('tFire').textContent='床撃ち';
     }
   }
-  return {fire,tick,blockShot,reset,get ready(){return !spent;}};
+  return {fire,tick,blockShot,reset,playSound(){ document.body.dataset.skyGunSound='Jump Gun pressure pulse'; return playGearSound(game,'jump'); },get ready(){return !spent;}};
 }

@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 (async () => {
   const source = fs.readFileSync('flashbang.js', 'utf8');
-  const { FLASHBANG: config, flashCanReach } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+  const { FLASHBANG: config, flashCanReach } = await import('../flashbang.js');
   const origin = {x:0,y:1.1,z:0};
   const enemy = (x,y,z) => ({pos:{x,y,z},h:1.8,dead:false});
   let rays = [];
