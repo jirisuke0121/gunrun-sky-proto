@@ -1,3 +1,4 @@
+import { createFlashbang } from './flashbang.js?v=20261026-flashbang-v1';
 import { createGhostReplay } from './ghost-replay.js?v=20261026-feedback-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261025-jump-tune-portrait-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
@@ -19,7 +20,7 @@ if (knifeRule) {
     '銃は選んだ武器を持ち、調整画面でオフにもできる',
   );
   knifeRule.insertAdjacentHTML('afterend', '<li><kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填。HG・SG・SMG・MGとEasy Weaponsの8種から選べる</li>' +
-    '<li>技（スライド・壁走り・縁つかみ・はしご・ジップライン・フック）を3回決めると煙幕+1（最大2個）</li>' +
+    '<li>技（スライド・壁走り・縁つかみ・はしご・ジップライン・フック）を3回決めると閃光弾+1（最大2個）</li>' +
     '<li>少し高い壁に走って跳ぶと、壁を蹴って駆け上がる。日よけ布に落ちると大きく跳ねる</li>' +
     '<li><kbd>H</kbd> 自己ベストのときの走りを青い人影（ゴースト）で表示・非表示</li>');
 }
@@ -49,7 +50,6 @@ const palette = {
   amber: new Standard({ color: 0xffb95e, emissive: 0x9a5415, emissiveIntensity: 0.35, roughness: 0.55 }),
   silver: new Standard({ color: 0x9ba5a9, metalness: 0.78, roughness: 0.33 }),
   cloth: new Standard({ color: 0x343b40, roughness: 0.98 }),
-  smoke: new Basic({ color: 0xaeb8b7, transparent: true, opacity: 0.18, depthWrite: false }),
 };
 
 function box(parent, w, h, d, mat, x = 0, y = 0, z0 = 0) {
@@ -223,7 +223,7 @@ blade.rotation.x = -0.06;
 box(uh, 0.014, 0.016, 0.06, palette.amber, 0, 0.009, -0.39);
 
 // Optimized Meshy assets use the procedural viewmodels as load-error fallbacks.
-const loaded = { hg: false, sg: false, smg: false, mg: false, unityHg: false, easyShotgun: false, easyM4: false, easyRail: false, easyBeam: false, easyCluster: false, easyRocket: false, easyM79: false, glove: false, knife: false, ladder: false, hook: false, anchor: false, trolley: false, smoke: false, error: '' };
+const loaded = { hg: false, sg: false, smg: false, mg: false, unityHg: false, easyShotgun: false, easyM4: false, easyRail: false, easyBeam: false, easyCluster: false, easyRocket: false, easyM79: false, glove: false, knife: false, ladder: false, hook: false, anchor: false, trolley: false, flashbang: false, error: '' };
 function recordAssetLoaded(key) {
   loaded[key] = true;
   document.body.dataset.skyModels = JSON.stringify(loaded);
@@ -437,119 +437,8 @@ Tt.hg = () => {
   if (U.weapon === 3) Tt.thud(0.11, 0);
 };
 
-// Smoke: one charge at the start of a run. Every 3 skill moves refills one
-// (max 2). Smoke blocks enemy sight along the segment from enemy to player;
-// collision and gravity continue to use the original AI.
-const smokeClouds = [];
-let smokeGrenadeTemplate = null;
-let smokeCharges = 1;
-const SKILL_STATES = ['wallrun', 'slide', 'ledge', 'ladder', 'zip', 'hook'];
-let skillCount = 0, skillPrev = 'none';
-function trackSkills() {
-  const st = game.modeRef() === 'play' && !z.over ? c.state : 'none';
-  if (st !== skillPrev) {
-    if (SKILL_STATES.includes(st)) {
-      skillCount = Math.min(3, skillCount + 1);
-      if (skillCount >= 3 && smokeCharges < 2) {
-        skillCount = 0;
-        smokeCharges++;
-        game.rn('技で煙幕+1');
-      }
-    }
-    skillPrev = st;
-  }
-}
-function smokeBlocks(enemy) {
-  for (const cloud of smokeClouds) {
-    if (cloud.ttl <= 0 || Math.abs(enemy.pos.y - cloud.y) > 3.5 || Math.abs(c.pos.y - cloud.y) > 3.5) continue;
-    const dx = c.pos.x - enemy.pos.x, dz = c.pos.z - enemy.pos.z;
-    const len2 = dx * dx + dz * dz || 1;
-    const u = Math.max(0, Math.min(1, ((cloud.x - enemy.pos.x) * dx + (cloud.z - enemy.pos.z) * dz) / len2));
-    const px = enemy.pos.x + dx * u, pz = enemy.pos.z + dz * u;
-    if (Math.hypot(px - cloud.x, pz - cloud.z) < cloud.radius) return true;
-  }
-  return false;
-}
-const oldEnemyUpdate = ri.prototype.update;
-ri.prototype.update = function updateWithSmoke(dt) {
-  if (!this.dead && smokeBlocks(this)) {
-    this.stun = Math.max(this.stun, dt + 0.08);
-    this.atkT = 0;
-  }
-  return oldEnemyUpdate.call(this, dt);
-};
-const oldTouching = ri.prototype.touching;
-ri.prototype.touching = function touchingWithSmoke(distance) {
-  return !smokeBlocks(this) && oldTouching.call(this, distance);
-};
-function groundAt(x, z0, maxY) {
-  let best = -Infinity;
-  for (const block of jn) {
-    if (block.off || x < block.minX || x > block.maxX || z0 < block.minZ || z0 > block.maxZ) continue;
-    if (block.maxY <= maxY && block.maxY > best) best = block.maxY;
-  }
-  return Number.isFinite(best) ? best : c.pos.y;
-}
-function throwSmoke() {
-  if (game.modeRef() !== 'play' || z.over || smokeCharges <= 0) return false;
-  const speed = Math.hypot(c.vel.x, c.vel.z);
-  const backX = speed > 1 ? -c.vel.x / speed : Math.sin(c.yaw);
-  const backZ = speed > 1 ? -c.vel.z / speed : Math.cos(c.yaw);
-  const x = c.pos.x + backX * 1.5;
-  const z0 = c.pos.z + backZ * 1.5;
-  const y = groundAt(x, z0, c.pos.y + 2);
-  const model = new Group();
-  model.name = 'Sky smoke grenade and cloud';
-  model.position.set(x, y, z0);
-  if (smokeGrenadeTemplate) {
-    const grenade = smokeGrenadeTemplate.clone(true);
-    grenade.scale.setScalar(0.12);
-    grenade.position.y = 0.13;
-    model.add(grenade);
-  } else {
-    cylinder(model, 0.09, 0.09, 0.23, palette.dark, 0, 0.13, 0);
-    cylinder(model, 0.06, 0.06, 0.035, palette.amber, 0, 0.25, 0);
-  }
-  for (let i = 0; i < 9; i++) {
-    const puff = new Mesh(new Sphere(1, 7, 5), palette.smoke.clone());
-    const angle = i * Math.PI * 2 / 9;
-    puff.position.set(Math.cos(angle) * (0.45 + i % 3 * 0.22), 0.65 + i % 3 * 0.38, Math.sin(angle) * (0.45 + i % 3 * 0.22));
-    puff.scale.set(0.9, 0.65, 0.9);
-    model.add(puff);
-  }
-  ue.add(model);
-  smokeClouds.push({ x, y, z: z0, radius: 3.2, ttl: 7, model });
-  smokeCharges--;
-  Tt.swish();
-  game.rn('煙幕展開');
-  return true;
-}
-document.addEventListener('keydown', (event) => {
-  if (event.code === 'KeyG' && !event.repeat && game.modeRef() === 'play') {
-    event.preventDefault();
-    throwSmoke();
-  }
-});
-const smokeButton = document.getElementById('tSmoke');
-smokeButton?.addEventListener('pointerdown', (event) => {
-  event.preventDefault();
-  event.stopPropagation();
-  throwSmoke();
-});
-
-function resetSmoke() {
-  smokeCharges = 1;
-  skillCount = 0;
-  skillPrev = 'none';
-  for (const cloud of smokeClouds) ue.remove(cloud.model);
-  smokeClouds.length = 0;
-}
-for (const id of ['bStart', 'bRestart', 'bRetry']) {
-  document.getElementById(id)?.addEventListener('click', resetSmoke, true);
-}
-document.addEventListener('keydown', (event) => {
-  if (event.code === 'KeyR' && !event.repeat && game.modeRef() === 'over') resetSmoke();
-}, true);
+// Flashbang effects and zombie reactions run on the base simulation clock.
+const flashbang = window.skyFlashbang = createFlashbang(game);
 
 // Knife readability: a white slash streak across the view during the swing,
 // and a small prompt when a zombie is in knife range.
@@ -670,19 +559,6 @@ function updateEquipment(now) {
     document.getElementById('hRes').textContent = heat.beamCooling > 0 ? ` ${heat.beamCooling.toFixed(1)}秒 Easy Beam Gun` : ' 熱ゲージ Easy Beam Gun';
   }
   for (let index = 4; index < easyFlashes.length; index++) if (index !== weapon) easyFlashes[index].visible = false;
-  document.getElementById('hSmoke').textContent = String(smokeCharges);
-  smokeButton?.classList.toggle('empty', smokeCharges === 0);
-  smokeButton && (smokeButton.textContent = `煙幕 ${smokeCharges}（技${skillCount}/3）`);
-  for (let i = smokeClouds.length - 1; i >= 0; i--) {
-    const cloud = smokeClouds[i];
-    if (mode === 'play' && !z.over) cloud.ttl -= dt;
-    cloud.model.children.forEach((child, index) => {
-      if (!child.isMesh || index < 2) return;
-      child.position.y += dt * (0.06 + index % 3 * 0.02);
-      child.material.opacity = 0.18 * Math.min(1, cloud.ttl / 1.2);
-    });
-    if (cloud.ttl <= 0) { ue.remove(cloud.model); smokeClouds.splice(i, 1); }
-  }
   for (const { line, trolley } of trolleyViews) {
     const active = mode === 'play' && c.state === 'zip' && c.zip === line;
     trolley.position.set(active ? c.pos.x : line.a[0], active ? c.pos.y + 1.8 : line.a[1] - 0.22, active ? c.pos.z : line.a[2]);
@@ -793,9 +669,9 @@ if (window.T2?.GLTFLoader) {
       for (const child of trolley.children) if (child !== model) child.visible = false;
     }
   });
-  loadDetail('smoke', 'smoke-grenade-meshy-low.glb', (root) => {
-    root.name = 'Meshy smoke grenade mobile LOD';
-    smokeGrenadeTemplate = root;
+  loadDetail('flashbang', 'smoke-grenade-meshy-low.glb', (root) => {
+    root.name = 'Flashbang grenade mobile LOD';
+    flashbang.setGrenadeTemplate(root);
   });
 }
 // Sleeve colour: the base game's olive forearm clashed with the detailed Meshy gear.
@@ -812,7 +688,7 @@ if (window.T2?.GLTFLoader) {
 // Sound coverage, full-auto support and control hints (2026-10-21).
 {
   const { Ut, Mn, ni, wpc, modeRef } = game;
-  const audioStats = { zip: 0, hook: 0, ladder: 0, smoke: 0, wallStep: 0, bgm: 0, shots: {} };
+  const audioStats = { zip: 0, hook: 0, ladder: 0, flashbang: 0, wallStep: 0, bgm: 0, shots: {} };
   window.__skyAudio = audioStats;
   const tone = (type, freq, gain, dur, endFreq) => {
     const ctx = Ut.ctx;
@@ -863,7 +739,6 @@ if (window.T2?.GLTFLoader) {
     return { filter, osc, amp };
   };
   let loops = null, prevState = 'none', rung = 0, wallStepT = 0, lastNow = performance.now();
-  let cloudCount = smokeClouds.length;
   let bgmNodes = null, bgmPulseT = 0;
   const makeBgm = () => {
     const ctx = Ut.ctx, out = ctx.createGain();
@@ -909,7 +784,6 @@ if (window.T2?.GLTFLoader) {
     lastNow = now;
     const mode = modeRef();
     if (mode !== prevMode) { if (mode === 'play') setHints(); prevMode = mode; }
-    trackSkills();
     if (!Ut.ctx || !Ut.noise) return;
     if (!loops) loops = { zip: makeLoop(1500, 3), reel: makeLoop(900, 5) };
     const t = Ut.ctx.currentTime;
@@ -960,17 +834,12 @@ if (window.T2?.GLTFLoader) {
       wallStepT -= dt;
       if (wallStepT <= 0) { wallStepT = 0.19; Tt.step(0.7); audioStats.wallStep++; }
     } else wallStepT = 0;
-    if (smokeClouds.length > cloudCount) {
-      Mn(0.45, 600, 0.7, 0.12); tone('triangle', 300, 0.15, 0.08, 180);
-      hiss(0.16, 3.2, 2500);
-      audioStats.smoke++;
-    }
-    cloudCount = smokeClouds.length;
+
   };
   requestAnimationFrame(audioTick);
 }
 requestAnimationFrame(updateEquipment);
-window.__skyUpgrade = { knifeStreak, smokeClouds, loaded, throwSmoke, get smokeCharges() { return smokeCharges; }, weaponViews, trolleyViews };
+window.__skyUpgrade = { knifeStreak, flashbang, loaded, weaponViews, trolleyViews };
 window.skyFirstPersonView = createFirstPersonWeapons(game, weaponViews, loaded, [tl, uh, hookLauncher]);
 
 // Recording is shared by the local best ghost and the ranking viewer.
