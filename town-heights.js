@@ -131,13 +131,28 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
   box(-34.5, 0, 15.6, -33.1, 2, 17);
 
   // ---- Warehouse hall (2026-10-25m): a real corridor with walls and a ceiling. ----
-  // 14.5 m long, 2 m wide inside, 2.9 m to the ceiling, open at both ends. The walls are 4.6 m,
-  // above the 3.5 m mantle limit, so nobody gets in except through the two mouths, and a shooter
-  // at one mouth sees the whole lane. The roof is reached over the pile at its north-west corner
+  // 14.5 m long, 2 m wide inside, 2.9 m to the ceiling. Staggered side exits break
+  // up the lane so a blocked mouth still leaves a way to the surrounding streets.
+  // The 4.6 m walls retain the roof route, reached over the pile at its north-west corner
   // or from the south roofs. Ledges on the roof give 1.4-1.6 m hops.
   clearProps(-66, 7, -49, 13.5);
-  box(-64.5, 0, 7.5, -50, 4.6, 9, 'slab', SKY.hall);          // north wall
-  box(-64.5, 0, 11, -50, 4.6, 13, 'slab', SKY.hall);          // south wall
+  const sideExit = (id, z0, z1, left, right) => {
+    box(-64.5, 0, z0, left, 4.6, z1, 'slab', SKY.hall);
+    box(right, 0, z0, -50, 4.6, z1, 'slab', SKY.hall);
+    const lintel = box(left, 2.5, z0, right, 4.6, z1, 'slab', SKY.stair);
+    lintel.indoorExit = id;
+  };
+  sideExit('warehouse-north', 7.5, 9, -58.5, -56.1);          // 2.4 m wide, to the lane behind the low house
+  sideExit('warehouse-south', 11, 13, -53.5, -51.5);         // 2 m wide, between the south buildings to the outer street
+  // The original ground ends at z=18. Complete a walkable loop around the
+  // neighbouring building instead of leading the side exit into empty space.
+  box(-54.5, -0.4, 18, -45.8, 0, 20, 'slab', SKY.steel);
+  box(-54.5, 0, 19.85, -45.8, 0.9, 20, 'beam', SKY.plank);
+  box(-54.5, 0, 18, -54.35, 0.9, 20, 'beam', SKY.plank);
+  window.skyIndoorExits = [
+    { id: 'warehouse-north', width: 2.4, height: 2.5, from: [-57.3, 0, 10], to: [-57.3, 0, 6.7], route: [[-57.3, 0, 6.7], [-49.2, 0, 6.7]] },
+    { id: 'warehouse-south', width: 2, height: 2.5, from: [-52.5, 0, 10], to: [-52.5, 0, 19], route: [[-52.5, 0, 19], [-46.5, 0, 19], [-46.5, 0, 11.5]] },
+  ];
   box(-64.5, 2.9, 9, -50, 4.6, 11, 'slab', SKY.hallTop);      // ceiling
   box(-63.5, 4.6, 7.5, -60, 6.0, 9.5, 'slab', SKY.blue);      // roof ledges
   box(-57, 4.6, 7.5, -53, 6.2, 9, 'slab', SKY.red);
