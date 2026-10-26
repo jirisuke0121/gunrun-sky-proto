@@ -1,0 +1,234 @@
+{
+  "sourceCommit": "00a564abc506effe56c954712069927b33f224ba",
+  "measuredAt": "2026-10-26T12:17:51.808Z",
+  "groups": {
+    "base": {
+      "n": 6,
+      "mean": {
+        "fps": 48.071251449880556,
+        "p95": 38.90000000000024,
+        "p99": 116.70000000000073,
+        "over50": 4.236396658353352,
+        "totalMs": 7.168494774840566,
+        "physicsMs": 0.013580550374696819,
+        "worldMs": 5.646055599374418,
+        "enemyMs": 1.5605524781833156,
+        "refreshMs": 4.022264501759713,
+        "searchMs": 5.012774474625532,
+        "renderMs": 1.226127162665792,
+        "presentMs": 1.4954340013434229,
+        "fireMs": 0.031900295924801106,
+        "calls": 218.1042834494042,
+        "triangles": 91211.2082833852,
+        "enemies": 10,
+        "visible": 4.365531608903488,
+        "searchCalls": 123.5,
+        "shots": 285.6666666666667,
+        "uniqueNodes": 11
+      },
+      "fpsRange": [
+        47.50190007600303,
+        48.797945068029485
+      ]
+    },
+    "rounded": {
+      "n": 3,
+      "mean": {
+        "fps": 60.00240009600384,
+        "p95": 16.733333333336002,
+        "p99": 16.800000000001393,
+        "over50": 0,
+        "totalMs": 2.5892037029840327,
+        "physicsMs": 0.014148148541097288,
+        "worldMs": 1.0179814798964395,
+        "enemyMs": 0.6162592576168201,
+        "refreshMs": 0.34072222215157966,
+        "searchMs": 0.4144814814240844,
+        "renderMs": 1.2725370368251094,
+        "presentMs": 1.544444444797657,
+        "fireMs": 0.026259259360807915,
+        "calls": 225.7761111111111,
+        "triangles": 86057.6012962963,
+        "enemies": 10,
+        "visible": 4.9238888888888885,
+        "searchCalls": 141.33333333333334,
+        "shots": 286,
+        "uniqueNodes": 11
+      },
+      "fpsRange": [
+        60.00240009600384,
+        60.00240009600384
+      ]
+    },
+    "no-shadow": {
+      "n": 3,
+      "mean": {
+        "fps": 48.19982169907563,
+        "p95": 38.90000000000085,
+        "p99": 116.70000000000043,
+        "over50": 4.1733332871938575,
+        "totalMs": 7.057859849141959,
+        "physicsMs": 0.014824183687103936,
+        "worldMs": 5.698442866944948,
+        "enemyMs": 1.4974094120805679,
+        "refreshMs": 4.133345078349724,
+        "searchMs": 5.012835827915669,
+        "renderMs": 1.0549362674574096,
+        "presentMs": 1.3300889755806165,
+        "fireMs": 0.03223553762179179,
+        "calls": 185.36496494631942,
+        "triangles": 73714.90829672555,
+        "enemies": 10,
+        "visible": 4.093058071774678,
+        "searchCalls": 124,
+        "shots": 286,
+        "uniqueNodes": 11
+      },
+      "fpsRange": [
+        47.96858541008307,
+        48.52895561018074
+      ]
+    },
+    "half-resolution": {
+      "n": 3,
+      "mean": {
+        "fps": 48.35759771598983,
+        "p95": 27.76666666666885,
+        "p99": 116.70000000000073,
+        "over50": 3.9753106576958497,
+        "totalMs": 7.023905904956867,
+        "physicsMs": 0.01466613123662833,
+        "worldMs": 5.575217158894978,
+        "enemyMs": 1.4198815026374267,
+        "refreshMs": 4.091423002752667,
+        "searchMs": 4.932910332657758,
+        "renderMs": 1.156020592694162,
+        "presentMs": 1.4195650107068265,
+        "fireMs": 0.0318285371652027,
+        "calls": 210.89997332500698,
+        "triangles": 90519.28508243257,
+        "enemies": 10,
+        "visible": 4.161081711619549,
+        "searchCalls": 123.66666666666667,
+        "shots": 286,
+        "uniqueNodes": 11
+      },
+      "fpsRange": [
+        48.00192007680307,
+        48.702110424785076
+      ]
+    }
+  },
+  "validation": {
+    "trials": 15,
+    "expected": 15,
+    "noInvalidTrials": true,
+    "enemyCount10": true,
+    "shotRange": [
+      285,
+      286
+    ],
+    "nodeCounts": [
+      11
+    ],
+    "baselineDrift": [
+      {
+        "repeat": 1,
+        "fpsDriftPercent": 1.8043025676613602
+      },
+      {
+        "repeat": 2,
+        "fpsDriftPercent": 1.116538729937215
+      },
+      {
+        "repeat": 3,
+        "fpsDriftPercent": 1.6030716599794985
+      }
+    ],
+    "pageErrors": [],
+    "dynamicFieldChecks": {
+      "canyon.html": {
+        "comparisons": 144,
+        "mismatches": 0
+      },
+      "index.html": {
+        "comparisons": 144,
+        "mismatches": 0
+      }
+    },
+    "baselineLongIntervals": {
+      "count": 366,
+      "afterSearchOver8ms": 365
+    }
+  },
+  "micro": {
+    "canyon": {
+      "checks": 54,
+      "distinctTargets": 9,
+      "fieldMismatches": 0,
+      "original": {
+        "meanMs": 33.850000006181226,
+        "medianMs": 44.0,
+        "pops": 2262795,
+        "edgeVisits": 78483024,
+        "unchangedPushes": 2017656
+      },
+      "rounded": {
+        "meanMs": 3.585185179003963,
+        "medianMs": 4.399999976158142,
+        "pops": 245139,
+        "edgeVisits": 4266534,
+        "unchangedPushes": 0
+      }
+    },
+    "city": {
+      "checks": 54,
+      "distinctTargets": 9,
+      "fieldMismatches": 0,
+      "original": {
+        "meanMs": 2.164814820996037,
+        "medianMs": 2.0,
+        "pops": 273780,
+        "edgeVisits": 1729044,
+        "unchangedPushes": 17037
+      },
+      "rounded": {
+        "meanMs": 2.0111111071374683,
+        "medianMs": 2.0,
+        "pops": 256764,
+        "edgeVisits": 1606284,
+        "unchangedPushes": 0
+      }
+    }
+  },
+  "provenance": {
+    "canyon": {
+      "match": true,
+      "sourceSha256": "2098be8bead753ee9f8ffd3aa1c633d94b31d6e33d74d9121f4afd034edc8c5e",
+      "publicSha256": "2098be8bead753ee9f8ffd3aa1c633d94b31d6e33d74d9121f4afd034edc8c5e"
+    },
+    "index": {
+      "match": true,
+      "sourceSha256": "92be7b8c1cb4badbf28d538d038c73c9a519418c09b58d05f4de606e26f6ff9a",
+      "publicSha256": "92be7b8c1cb4badbf28d538d038c73c9a519418c09b58d05f4de606e26f6ff9a"
+    }
+  },
+  "method": {
+    "browser": "Chrome 155 headless / Apple M1 Pro ANGLE Metal",
+    "scenario": "canyon 3F lookdown; automatic +/-5m traversal; 10 existing zombies; MG every 0.105s; reload omitted; game time held at 5s",
+    "durationSec": 30,
+    "repeats": 3,
+    "baselineRepeats": 6,
+    "viewport": [
+      1280,
+      720
+    ],
+    "dpr": 2,
+    "physicalIPhoneMeasured": false,
+    "notes": [
+      "CPU renderer calls do not measure GPU duration.",
+      "Full player physics, enemy updates, HUD and rendering run through the game frame function.",
+      "Game build and test wrapper are based on the source commit recorded in sourceCommit."
+    ]
+  }
+}
