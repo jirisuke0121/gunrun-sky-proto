@@ -1,4 +1,5 @@
 // Local Unity human trial for the old town and canyon maps.
+import { addParkourRun, sampleClip, strideAdvance, runningBlend } from './human-running.js?v=20261027-run-v1';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
 const { Group, Vector3 } = Geom;
@@ -8,6 +9,9 @@ const loader = new T2.GLTFLoader();
 let asset = null, holder = null, model = null, motion = null, grip = null, morphMeshes = [], worldWeapon = null, worldWeaponIndex = -1, view = 'first';
 let loading = null, activeClip = '', clipTime = 0, jumpTime = 0, landTime = 0, wasGrounded = true, shotTime = 1, lastAmmo = null, slidePose = 0;
 let gripPoint = new Vector3(), muzzleFlash = null;
+let gaitPhase = 0, runPose = 0, gripPitch = 0, bodyYawOffset = 0, turnBank = 0;
+let motionPosition = null, lastTravelYaw = null;
+let parkourRunEnabled = true;
 const savedChoice = (() => { try { return sessionStorage.getItem('gunrun-human-trial') || 'existing'; } catch { return 'existing'; } })();
 let choice = savedChoice === 'unity' ? 'unity' : 'existing';
 if (choice === 'unity') view = 'third';
@@ -61,6 +65,7 @@ function loadHuman() {
       holder.add(corrected);
       world.add(holder);
       model.traverse(node => { if (node.isMesh) { node.castShadow = true; node.frustumCulled = false; } });
+      if (motion) document.body.dataset.skyHumanRunStyle = addParkourRun(model, motion, Geom.Float32Attribute) ? 'parkour' : 'existing';
       morphMeshes = [];
       model.traverse(node => { if (node.isMesh && node.morphTargetDictionary) morphMeshes.push(node); });
       grip = model.getObjectByName('GunRunRightHandGrip');
@@ -139,6 +144,29 @@ function updateMotion(dt, speed) {
   right.set(Math.cos(c.yaw), 0, -Math.sin(c.yaw));
   const front = c.vel.x * forward.x + c.vel.z * forward.z;
   const side = c.vel.x * right.x + c.vel.z * right.z;
+  const normalGround = grounded && c.state === 'normal';
+  const distance = motionPosition ? Math.hypot(c.pos.x - motionPosition.x, c.pos.z - motionPosition.z) : 0;
+  const teleported = distance > Math.max(1.5, speed * dt * 3);
+  if (!motionPosition) motionPosition = new Vector3();
+  motionPosition.copy(c.pos);
+  if (teleported) { gaitPhase = 0; runPose = 0; bodyYawOffset = 0; turnBank = 0; lastTravelYaw = null; }
+  const firing = !!sky.U.gunOn && (reload > 0 || shotTime < .28);
+  const runTarget = parkourRunEnabled && normalGround && front > speed * .6 && !firing && motion.clips.parkourRun
+    ? runningBlend(speed, sky.U.walkSpeed, sky.U.sprintSpeed) : 0;
+  runPose += (runTarget - runPose) * (1 - Math.exp(-dt * (firing ? 30 : 16)));
+  if (normalGround && !teleported && speed > .2) gaitPhase = strideAdvance(gaitPhase, distance, speed < sky.U.walkSpeed + .15 ? 1.8 : 3.36);
+  if (normalGround && speed > .5) {
+    const yaw = Math.atan2(c.vel.x, c.vel.z);
+    const angle = yaw - (c.yaw + Math.PI);
+    const offset = Math.max(-1.05, Math.min(1.05, Math.atan2(Math.sin(angle), Math.cos(angle)))) * runPose;
+    bodyYawOffset += (offset - bodyYawOffset) * (1 - Math.exp(-dt * 14));
+    const change = lastTravelYaw === null ? 0 : Math.atan2(Math.sin(yaw - lastTravelYaw), Math.cos(yaw - lastTravelYaw));
+    const bank = Math.max(-.20, Math.min(.20, -change / Math.max(.001, dt) * .075)) * runPose;
+    turnBank += (bank - turnBank) * (1 - Math.exp(-dt * 12));
+    lastTravelYaw = yaw;
+  } else {
+    bodyYawOffset *= Math.exp(-dt * 18); turnBank *= Math.exp(-dt * 18); lastTravelYaw = null;
+  }
   let next = 'idle';
   const walking = speed < (sky.U.walkSpeed + sky.U.sprintSpeed) / 2;
   if (c.state === 'ladder') next = 'ladder';
@@ -152,7 +180,8 @@ function updateMotion(dt, speed) {
   else if (shotTime < .24) next = 'shoot';
   if (next !== activeClip) {
     activeClip = next;
-    clipTime = 0;
+    // Changing speed or direction must not restart the same foot at phase zero.
+    if (!(next.startsWith('walk') || next.startsWith('run'))) clipTime = 0;
     if (next === 'jump') document.body.dataset.skyHumanJumpSeen = 'true';
     if (next === 'slide') document.body.dataset.skyHumanSlideSeen = 'true';
     if (next === 'ladder') document.body.dataset.skyHumanLadderSeen = 'true';
@@ -172,6 +201,7 @@ function updateMotion(dt, speed) {
     clipTime = info.duration * (grounded ? .86 + .14 * (1 - landTime / .14) : Math.max(riseAndFall, descent));
   } else if (next === 'slide') clipTime = Math.min(info.duration * .99, (c.slideT || 0) * info.duration / 1.2);
   else if (next === 'ladder') clipTime += c.vel.y * dt * info.duration / 1.5;
+  else if (next.startsWith('walk') || next.startsWith('run')) clipTime = gaitPhase * info.duration;
   else {
     const baseSpeed = next.startsWith('walk') ? sky.U.walkSpeed : next.startsWith('run') ? sky.U.sprintSpeed : 1;
     clipTime += dt * (next === 'idle' ? 1 : Math.max(.6, Math.min(1.5, speed / baseSpeed)));
@@ -185,6 +215,15 @@ function updateMotion(dt, speed) {
   const fraction = span > .0001 ? (time - info.times[lo]) / span : 0;
   const targets = { [info.frames[lo]]: 1 - fraction };
   targets[info.frames[hi]] = (targets[info.frames[hi]] || 0) + fraction;
+  let runSample = null;
+  if (runPose > .0001 && motion.clips.parkourRun) {
+    const run = motion.clips.parkourRun;
+    runSample = sampleClip(run, gaitPhase);
+    for (const name of Object.keys(targets)) targets[name] *= 1 - runPose;
+    for (const [index, weight] of [[runSample.lo, 1 - runSample.fraction], [runSample.hi, runSample.fraction]]) {
+      const name = run.frames[index]; targets[name] = (targets[name] || 0) + weight * runPose;
+    }
+  }
   const smooth = 1 - Math.exp(-dt * 18);
   for (const mesh of morphMeshes) {
     const weights = mesh.morphTargetInfluences, names = mesh.morphTargetDictionary;
@@ -192,8 +231,19 @@ function updateMotion(dt, speed) {
   }
   const a = motion.grips[next][lo], b = motion.grips[next][hi];
   blendedGrip.set(a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction, a[2] + (b[2] - a[2]) * fraction);
+  let wantedPitch = 0;
+  if (runSample) {
+    const { lo, hi, fraction } = runSample, grips = motion.grips.parkourRun, pitches = motion.gripPitches.parkourRun;
+    blendedGrip.x += (grips[lo][0] + (grips[hi][0] - grips[lo][0]) * fraction - blendedGrip.x) * runPose;
+    blendedGrip.y += (grips[lo][1] + (grips[hi][1] - grips[lo][1]) * fraction - blendedGrip.y) * runPose;
+    blendedGrip.z += (grips[lo][2] + (grips[hi][2] - grips[lo][2]) * fraction - blendedGrip.z) * runPose;
+    wantedPitch = (pitches[lo] + (pitches[hi] - pitches[lo]) * fraction) * runPose;
+  }
   gripPoint.lerp(blendedGrip, smooth);
+  gripPitch += (wantedPitch - gripPitch) * smooth;
   document.body.dataset.skyHumanClip = next;
+  document.body.dataset.skyHumanRunBlend = runPose.toFixed(3);
+  document.body.dataset.skyHumanGaitPhase = gaitPhase.toFixed(3);
 }
 function updateWorldWeapon(third) {
   const index = sky.U.weapon | 0;
@@ -225,7 +275,7 @@ function updateWorldWeapon(third) {
     grip.getWorldPosition(worldWeapon.position);
     worldWeapon.position.addScaledVector(forward, .07);
   } else worldWeapon.position.set(c.pos.x, c.pos.y + 1.2, c.pos.z).addScaledVector(right, .25).addScaledVector(forward, .2);
-  worldWeapon.rotation.set(c.pitch * .45, c.yaw, 0, 'YXZ');
+  worldWeapon.rotation.set(c.pitch * .45 * (1 - runPose) + gripPitch, c.yaw + bodyYawOffset, turnBank, 'YXZ');
   if (shotTime < .12) worldWeapon.position.addScaledVector(forward, -.06 * (1 - shotTime / .12));
   if (sky.Et.reloadT > 0) worldWeapon.rotation.z = Math.sin(Math.min(1, sky.Et.reloadT / Math.max(.1, sky.wpc().rl || 1.5)) * Math.PI) * .2;
   if (!muzzleFlash && T2.SphereGeometry && T2.MeshBasicMaterial) {
@@ -241,14 +291,17 @@ function update(dt) {
   const third = choice === 'unity' && view === 'third' && !!holder && sky.modeRef() !== 'menu' && sky.modeRef() !== 'replay' && !window.skySettings?.beforeRun;
   if (holder) {
     holder.visible = third;
+    const speed = Math.hypot(c.vel.x, c.vel.z);
+    if (third && sky.modeRef() === 'play') updateMotion(dt, speed);
+    else if (!third) {
+      lastAmmo = sky.Et.ammo; shotTime = 1; jumpTime = 0; landTime = 0; wasGrounded = !!c.onGround;
+      motionPosition = null; lastTravelYaw = null; runPose = 0; gaitPhase = 0; gripPitch = 0; bodyYawOffset = 0; turnBank = 0;
+    }
     const sliding = third && c.state === 'slide';
     slidePose += ((sliding ? 1 : 0) - slidePose) * (1 - Math.exp(-dt * (sliding ? 20 : 14)));
     holder.position.set(c.pos.x, c.pos.y - .12 * slidePose, c.pos.z);
     const ladderYaw = c.ladder ? Math.atan2(-c.ladder.nx, -c.ladder.nz) : c.yaw + Math.PI;
-    holder.rotation.set(c.state === 'ladder' ? .09 : 0, c.state === 'ladder' ? ladderYaw : c.yaw + Math.PI + 1.25 * slidePose, 0, 'YXZ');
-    const speed = Math.hypot(c.vel.x, c.vel.z);
-    if (third) updateMotion(dt, speed);
-    else { lastAmmo = sky.Et.ammo; shotTime = 1; jumpTime = 0; landTime = 0; wasGrounded = !!c.onGround; }
+    holder.rotation.set(c.state === 'ladder' ? .09 : 0, c.state === 'ladder' ? ladderYaw : c.yaw + Math.PI + bodyYawOffset + 1.25 * slidePose, turnBank, 'YXZ');
   }
   updateWorldWeapon(third);
   if (!third) { window.skyFirstPersonView?.update(dt, false); return; }
@@ -276,6 +329,8 @@ function update(dt) {
   document.body.dataset.skyHumanCameraClearance = safe.toFixed(2);
   window.skyFirstPersonView?.update(dt, !close);
 }
-window.skyHumanView = { update, select, get choice() { return choice; }, get view() { return view; } };
+window.skyHumanView = { update, select, get choice() { return choice; }, get view() { return view; },
+  get runStyle() { return parkourRunEnabled ? 'parkour' : 'existing'; },
+  set runStyle(value) { parkourRunEnabled = value !== 'existing'; } };
 sync();
 if (choice === 'unity') loadHuman();
