@@ -1,6 +1,7 @@
-import { createFlashbang } from './flashbang.js?v=20261026-flashbang-v1';
-import { createGhostReplay } from './ghost-replay.js?v=20261026-feedback-v1';
-import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261025-jump-tune-portrait-v1';
+import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
+import { createFlashbang } from './flashbang.js?v=20261026-gear-polish-v1';
+import { createGhostReplay } from './ghost-replay.js?v=20261026-gear-polish-v1';
+import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261026-gear-polish-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261025-jump-tune-portrait-v1';
 
@@ -1596,6 +1597,7 @@ window.__skyGhost = window.skyReplay;
     const st = window.__skyAudio;
     if (st) st.shots[name] = (st.shots[name] || 0) + 1;
     if (!Ut.ctx || !Ut.master) return;
+    if (weaponIndex === 12) { window.skyJumpGun.playSound(); return; }
     loadSamples();
     if (weaponIndex >= 4) {
       const [file, gain] = EASY_FIRE[weaponIndex] || EASY_FIRE[4];
@@ -2092,7 +2094,7 @@ if (/[?&]perf=1/.test(location.search)) {
 .rankbox small{display:block;opacity:.7;margin-bottom:4px}
 .rankbox ol{margin:0;padding:0;list-style:none}
 .rankbox li{display:grid;grid-template-columns:2.6em 3.2em 1fr auto;gap:6px;padding:1px 0}
-.rankbox .ghost-button{grid-column:2/-1;justify-self:start;font-size:12px;padding:6px 10px;min-height:38px;margin:2px 0 6px}.rankbox li.me{color:#ffd24a;font-weight:700}
+.rankbox .rank-time{grid-column:2/-1;font-size:12px;color:#cbd7df;margin:0}.rankbox .ghost-button{grid-column:2/-1;justify-self:start;font-size:12px;padding:6px 10px;min-height:38px;margin:2px 0 6px}.rankbox li.me{color:#ffd24a;font-weight:700}
 .rankbox .clear{color:#7be08b;font-weight:700}
 .rankbox .mine{margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,.2)}`;
   document.head.appendChild(style);
@@ -2111,10 +2113,10 @@ if (/[?&]perf=1/.test(location.search)) {
   function renderRanking(box, data, limit) {
     if (!data || !data.top || !data.top.length) { box.innerHTML = ''; return; }
     const rows = data.top.slice(0, limit).map((row) =>
-      `<li class="${row.me ? 'me' : ''}"><span>${row.pos}位</span><span>${esc(row.tag)}</span><span>${status(row)}</span><span>${row.score}点</span>${row.replayId ? `<button type="button" class="ghost-button" data-replay="${esc(row.replayId)}">ゴーストを見る</button>` : '<small style="grid-column:2/-1">ゴースト記録なし</small>'}</li>`).join('');
+      `<li class="${row.me ? 'me' : ''}"><span>${row.pos}位</span><span>${esc(row.tag)}</span><span>${status(row)}</span><span>${row.score}点</span><time class="rank-time"${row.playedAt ? ` datetime="${esc(row.playedAt)}"` : ""}>記録 ${esc(formatReplayTime(row.playedAt))}${row.playedAt ? "（日本時間）" : ""}</time>${row.replayId ? `<button type="button" class="ghost-button" data-replay="${esc(row.replayId)}">ゴーストを見る</button>` : '<small style="grid-column:2/-1">ゴースト記録なし</small>'}</li>`).join('');
     const inList = data.top.slice(0, limit).some((row) => row.me);
     const mine = data.me && !inList
-      ? `<div class="mine">あなたの最高：${data.me.pos}位（${data.total}人中）　${status(data.me)}　${data.me.score}点</div>` : '';
+      ? `<div class="mine">あなたの最高：${data.me.pos}位（${data.total}人中）　${status(data.me)}　${data.me.score}点<br>記録 ${esc(formatReplayTime(data.me.playedAt))}${data.me.playedAt ? "（日本時間）" : ""}</div>` : '';
     box.innerHTML = `<h3>ランキング</h3><small>クリア（2分逃げ切り）が上、同じ場合は得点順。このマップの記録を表示。記録の送信がオンのプレイが対象です。</small><ol>${rows}</ol>${mine}`;
   }
 

@@ -1,3 +1,4 @@
+import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 import { MAP_VERSIONS, REPLAY_LIMIT, REPLAY_STEP, REPLAY_STATES, sampleReplay, validateGhost } from './replay-data.js?v=20261026-feedback-v1';
 
 export function createGhostReplay(game) {
@@ -42,17 +43,17 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
 #ghostReplay{position:fixed;inset:0;z-index:80;pointer-events:none;color:#fff;text-shadow:0 1px 3px #000;font:14px system-ui}
 #ghostReplay[hidden]{display:none}#ghostReplay .replay-panel{pointer-events:auto;background:#191e25eb;padding:10px 14px;border-radius:12px;box-sizing:border-box}
 #ghostReplay .replay-top{position:absolute;top:max(8px,env(safe-area-inset-top));left:8px;right:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-#ghostReplay h2{font-size:17px;margin:0;flex:1}#ghostReplay .replay-bottom{position:absolute;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom))}
+#replayDate{flex-basis:100%;margin:0;font-size:12px;color:#cad9e3}#ghostReplay h2{font-size:17px;margin:0;flex:1}#ghostReplay .replay-bottom{position:absolute;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom))}
 #ghostReplay .replay-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}#ghostReplay button,#ghostReplay select{min-height:42px;font:600 14px system-ui;color:#fff;background:#344353;border:1px solid #8194a8;border-radius:7px;padding:7px 10px}
 #ghostReplay input{width:100%;margin:8px 0;min-height:28px;touch-action:pan-x}#ghostReplay p{font-size:12px;margin:4px 0;line-height:1.45}#ghostReplay output{font-variant-numeric:tabular-nums}
 #ghostBest{position:fixed;left:12px;bottom:56px;padding:3px 9px;border-radius:12px;background:#286e96a8;color:white;font:12px system-ui;pointer-events:none;z-index:6}
-@media(max-width:600px){#ghostReplay .replay-panel{padding:7px 10px}#ghostReplay h2{font-size:14px}#ghostReplay .replay-controls{gap:5px}#ghostReplay button,#ghostReplay select{font-size:12px;padding:6px 8px}}
+@media(max-width:600px){#ghostReplay .replay-panel{padding:7px 10px}#replayDate{flex-basis:100%;margin:0;font-size:12px;color:#cad9e3}#ghostReplay h2{font-size:14px}#ghostReplay .replay-controls{gap:5px}#ghostReplay button,#ghostReplay select{font-size:12px;padding:6px 8px}}
 `;
   document.head.append(style);
   const chip = document.createElement('div'); chip.id = 'ghostBest'; chip.hidden = true; document.body.append(chip);
   const overlay = document.createElement('section');
   overlay.id = 'ghostReplay'; overlay.hidden = true; overlay.setAttribute('aria-label', 'ゴースト閲覧');
-  overlay.innerHTML = `<div class="replay-panel replay-top"><h2 id="replayTitle">ゴースト</h2><button id="replayClose" type="button">ランキングに戻る</button></div>
+  overlay.innerHTML = `<div class="replay-panel replay-top"><h2 id="replayTitle">ゴースト</h2><button id="replayClose" type="button">ランキングに戻る</button><p id="replayDate"></p></div>
 <div class="replay-panel replay-bottom"><p id="replayNote" role="status"></p><input id="replaySeek" aria-label="再生位置" type="range" min="0" max="1" step="0.01" value="0">
 <div class="replay-controls"><button id="replayToggle" type="button">一時停止</button><button id="replayRestart" type="button">最初から</button><select id="replaySpeed" aria-label="再生速度"><option value="0.5">0.5倍速</option><option value="1" selected>1倍速</option><option value="2">2倍速</option></select><select id="replayView" aria-label="再生視点"><option value="follow">追従視点</option><option value="first">本人視点</option></select><output id="replayClock"></output></div></div>`;
   document.body.append(overlay);
@@ -113,7 +114,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     for (const [object] of visibility) object.visible = false;
     chip.hidden = true; overlay.hidden = false; document.body.classList.add('sky-replaying'); window.dispatchEvent(new Event('resize'));
     el('replayNote').textContent = 'ゴーストを読み込み中…'; el('replayTitle').textContent = 'ゴースト';
-    el('replayClock').textContent = ''; controls.forEach(control => { control.disabled = true; }); el('replayClose').focus();
+    el('replayDate').textContent = ''; el('replayClock').textContent = ''; controls.forEach(control => { control.disabled = true; }); el('replayClose').focus();
     try {
       const response = await fetch(`https://gunrun-runs.jirisuke0121.workers.dev/ghosts/${encodeURIComponent(id)}?map=${map}`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
       if (!response.ok) throw new Error('unavailable');
@@ -123,6 +124,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
       if (!Array.isArray(data.ghost.samples) || data.ghost.samples.length < 2) throw new Error('empty');
       active.ghost = data.ghost; active.time = data.ghost.samples[0][0];
       el('replayTitle').textContent = `${data.tag} のゴースト · ${data.score}点`;
+      el('replayDate').textContent = `記録 ${formatReplayTime(data.playedAt)}${data.playedAt ? '（日本時間）' : ''}`;
       el('replayNote').textContent = data.ghost.source === 'legacy-trail' ? '旧記録：1秒間隔の軌跡からの再生です。動き・向きは目安で、敵は再現しません。' : '記録した移動・視点を再生します。敵は再現しません。';
       el('replayView').querySelector('[value="first"]').disabled = data.ghost.source === 'legacy-trail';
       el('replayView').value = 'follow'; el('replaySpeed').value = '1';

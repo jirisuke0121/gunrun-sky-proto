@@ -1,3 +1,4 @@
+import { playGearSound } from './gear-audio.js?v=20261026-gear-polish-v1';
 // Defensive flashbang. Simulation time owns the fuse and stun, including pause.
 export const FLASHBANG = Object.freeze({ radius: 6, duration: 3, fuse: 0.22, maxCharges: 2 });
 
@@ -10,22 +11,44 @@ export function flashCanReach(origin, enemy, raycast) {
 
 export function createFlashbang(game) {
   const { c, z, U, ri, Jt, ue, Geom, raycast, Tt, rn } = game;
-  const { Group, Mesh, Sphere, Torus, Cylinder, Box, Basic, Sprite, SpriteMaterial, CanvasTexture, Vector3 } = Geom;
+  const { Group, Mesh, Sphere, Torus, Cylinder, Box, Basic, Sprite, SpriteMaterial, CanvasTexture, Vector3, PointLight, Line, BufferGeometry, Float32Attribute } = Geom;
   const root = new Group(); root.name = 'Flashbang effects'; ue.add(root);
   const grenades = [], bursts = [], affected = new Map();
   const stats = { thrown: 0, detonated: 0, affected: 0 };
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const light = new PointLight(0xbceeff, 0, 10, 2); light.castShadow = false; root.add(light);
   const materials = {
     yellow: new Basic({ color: 0xffd453, fog: false }),
     dark: new Basic({ color: 0x192c35 }),
     white: new Basic({ color: 0xfff5bc, transparent: true, opacity: 1, depthWrite: false, fog: false }),
   };
-  const sphere = new Sphere(1, 10, 6), ring = new Torus(1, 0.025, 5, 40), box = new Box(1, 1, 1);
+  const ring = new Torus(1, 0.025, 5, 40), box = new Box(1, 1, 1);
+  function glowTexture(star = false) {
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
+    const ctx = canvas.getContext('2d'), gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gradient.addColorStop(0, '#ffffff'); gradient.addColorStop(0.12, '#e5ffff');
+    gradient.addColorStop(0.32, '#81dbffb0'); gradient.addColorStop(1, '#429bff00');
+    ctx.fillStyle = gradient; ctx.fillRect(0, 0, 128, 128);
+    if (star) {
+      ctx.clearRect(0, 0, 128, 128); ctx.shadowColor = '#8eeaff'; ctx.shadowBlur = 7;
+      ctx.fillStyle = '#efffff'; ctx.beginPath();
+      for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8, r = i % 2 ? 7 : i % 4 ? 28 : 59; ctx.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); }
+      ctx.closePath(); ctx.fill();
+    }
+    return new CanvasTexture(canvas);
+  }
+  const haloTexture = glowTexture(), starTexture = glowTexture(true);
+  const haloMaterial = new SpriteMaterial({ map: haloTexture, color: 0xd1faff, transparent: true, opacity: 1, depthWrite: false, blending: 2, fog: false, toneMapped: false });
+  const starMaterial = new SpriteMaterial({ map: starTexture, color: 0xe6faff, depthWrite: false, blending: 2, fog: false, toneMapped: false });
+  const glow = document.createElement('div'); glow.id = 'flashGlow'; glow.setAttribute('aria-hidden', 'true');
+  glow.style.cssText = 'position:absolute;inset:0;pointer-events:none;opacity:0;z-index:7;mix-blend-mode:screen';
+  document.getElementById('app').appendChild(glow);
   const can = new Cylinder(0.08, 0.08, 0.23, 8);
   let charges = 1, skills = 0, previousSkill = 'none', grenadeTemplate = null;
   const button = document.getElementById('tFlash'), count = document.getElementById('hFlash');
   const notice = document.createElement('div');
   notice.id = 'flashNotice'; notice.setAttribute('role', 'status');
-  notice.style.cssText = 'position:absolute;left:50%;top:25%;transform:translateX(-50%);padding:9px 18px;border:1px solid #ffe080;border-radius:8px;background:#182631e8;color:#ffe080;font:bold 17px sans-serif;pointer-events:none;white-space:nowrap;display:none;z-index:16';
+  notice.style.cssText = 'position:absolute;left:50%;top:auto;bottom:20%;transform:translateX(-50%);padding:9px 18px;border:1px solid #ffe080;border-radius:8px;background:#182631e8;color:#ffe080;font:bold 17px sans-serif;pointer-events:none;white-space:nowrap;display:none;z-index:16';
   document.getElementById('app').appendChild(notice);
   let noticeTime = 0;
   const playing = () => game.modeRef() === 'play' && !z.over;
@@ -40,8 +63,9 @@ export function createFlashbang(game) {
   }
   function message(text, seconds = 1.3) { notice.textContent = text; noticeTime = seconds; notice.style.display = ''; }
   function removeEffect(effect) {
-    root.remove(effect.model);
+    root.remove(effect.model); if (effect.aura) root.remove(effect.aura);
     for (const mat of effect.ownedMaterials || []) mat.dispose();
+    if (effect.trail) { root.remove(effect.trail); effect.trail.geometry.dispose(); }
   }
   function restorePose(state) {
     for (const [bone, quaternion] of state.pose || []) bone.quaternion.copy(quaternion);
@@ -52,7 +76,7 @@ export function createFlashbang(game) {
     affected.clear();
     for (const effect of [...grenades, ...bursts]) removeEffect(effect);
     grenades.length = bursts.length = 0;
-    notice.style.display = 'none'; noticeTime = 0;
+    notice.style.display = 'none'; noticeTime = 0; glow.style.opacity = '0'; light.intensity = 0;
   }
   function reset() { clear(); charges = 1; skills = 0; previousSkill = 'none'; hud(); }
   function marker(enemy) {
@@ -63,24 +87,32 @@ export function createFlashbang(game) {
     const label = new Sprite(mat); label.scale.set(1.1, 0.344, 1); label.position.y = 0.4; model.add(label);
     const bar = new Mesh(box, materials.yellow); bar.scale.set(1.2, 0.07, 0.06); model.add(bar);
     const stars = [];
-    for (let i = 0; i < 3; i++) {
-      const star = new Mesh(box, materials.yellow); star.scale.set(0.12, 0.12, 0.06); model.add(star); stars.push(star);
+    for (let i = 0; i < 4; i++) {
+      const star = new Sprite(starMaterial); star.scale.setScalar(0.23); model.add(star); stars.push(star);
     }
-    return { model, canvas, texture, bar, stars, remaining: FLASHBANG.duration, labelTime: -1, pose: [], ownedMaterials: [mat] };
+    const halo = new Mesh(ring, materials.yellow); halo.scale.setScalar(0.46); halo.rotation.x = Math.PI / 2; model.add(halo);
+    const auraMaterial = haloMaterial.clone(); auraMaterial.opacity = 0.2;
+    const aura = new Sprite(auraMaterial); aura.scale.set(1.25, enemy.h * 1.4, 1); root.add(aura);
+    return { model, canvas, texture, bar, stars, halo, aura, remaining: FLASHBANG.duration, labelTime: -1, pose: [], ownedMaterials: [mat, auraMaterial], auraMaterial };
   }
+
   function updateMarker(enemy, state) {
     state.model.position.set(enemy.pos.x, enemy.pos.y + enemy.h + 0.45, enemy.pos.z);
+    state.aura.position.set(enemy.pos.x, enemy.pos.y + enemy.h * 0.5, enemy.pos.z);
+    const elapsed = FLASHBANG.duration - state.remaining;
+    state.auraMaterial.opacity = (0.08 + 0.2 * Math.exp(-elapsed * 5)) * Math.min(1, state.remaining / 0.3);
+    state.halo.rotation.z = elapsed * 1.6;
     state.model.quaternion.copy(game.Se.quaternion); // legible from any camera angle, depth tested behind walls
     state.bar.scale.x = 1.2 * state.remaining / FLASHBANG.duration;
     state.bar.position.x = -0.6 + state.bar.scale.x / 2;
     const phase = (FLASHBANG.duration - state.remaining) * 3;
-    state.stars.forEach((star, i) => { const a = phase + i * Math.PI * 2 / 3; star.position.set(Math.cos(a) * 0.55, -0.2 + Math.sin(a) * 0.09, 0); star.rotation.z = a + Math.PI / 4; });
+    state.stars.forEach((star, i) => { const a = phase + i * Math.PI * 2 / 4; star.position.set(Math.cos(a) * 0.55, -0.2 + Math.sin(a) * 0.09, 0);  });
     const tenth = Math.ceil(state.remaining * 10 - 1e-6);
     if (tenth !== state.labelTime) {
       state.labelTime = tenth;
       const ctx = state.canvas.getContext('2d'); ctx.clearRect(0, 0, 256, 80);
-      ctx.fillStyle = '#182631'; ctx.fillRect(0, 0, 256, 80);
-      ctx.strokeStyle = '#ffda65'; ctx.lineWidth = 5; ctx.strokeRect(3, 3, 250, 74);
+      ctx.fillStyle = '#142936'; ctx.fillRect(0, 0, 256, 80);
+      ctx.strokeStyle = '#91eaff'; ctx.lineWidth = 5; ctx.strokeRect(3, 3, 250, 74);
       ctx.fillStyle = '#ffe080'; ctx.font = 'bold 37px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(`停止 ${(tenth / 10).toFixed(1)}秒`, 128, 40); state.texture.needsUpdate = true;
     }
@@ -88,12 +120,18 @@ export function createFlashbang(game) {
   function detonate(grenade) {
     stats.detonated++;
     const center = grenade.end, model = new Group(); model.name = 'Flashbang burst'; model.position.copy(center); root.add(model);
-    const flashMat = materials.white.clone(), ringMat = materials.white.clone(); ringMat.color.setHex(0xffd453);
-    const core = new Mesh(sphere, flashMat); model.add(core);
+    const flashMat = starMaterial.clone(), ringMat = materials.white.clone(); ringMat.color.setHex(0x9deeff); ringMat.toneMapped = false;
+    const core = new Sprite(flashMat); model.add(core);
+    const haloMat = haloMaterial.clone(), halo = new Sprite(haloMat); model.add(halo);
     const wave = new Mesh(ring, ringMat); wave.rotation.x = Math.PI / 2; model.add(wave);
+    const vertical = new Mesh(ring, ringMat); vertical.quaternion.copy(game.Se.quaternion); model.add(vertical);
     const rays = [];
-    for (let i = 0; i < 12; i++) { const ray = new Mesh(box, ringMat); ray.rotation.y = i * Math.PI / 6; model.add(ray); rays.push(ray); }
-    bursts.push({ model, core, wave, rays, age: 0, ownedMaterials: [flashMat, ringMat] });
+    for (let i = 0; i < 16; i++) {
+      const a = i * Math.PI * 2 / 16, direction = new Vector3(Math.cos(a), Math.sin(a * 3) * 0.4, Math.sin(a)).normalize();
+      const ray = new Mesh(box, ringMat); ray.quaternion.setFromUnitVectors(new Vector3(0, 0, 1), direction); ray.userData.direction = direction; model.add(ray); rays.push(ray);
+    }
+    bursts.push({ model, core, halo, wave, vertical, rays, age: 0, ownedMaterials: [flashMat, haloMat, ringMat] });
+    light.position.copy(center); light.intensity = 6;
     let hits = 0;
     for (const enemy of Jt) {
       if (!flashCanReach(center, enemy, raycast)) continue;
@@ -109,8 +147,7 @@ export function createFlashbang(game) {
     }
     stats.affected += hits;
     message(hits ? `閃光！ ${hits}体が3秒停止` : '閃光！ 命中なし');
-    // One short report, with no long smoke hiss or player screen whiteout.
-    if (game.Ut.ctx) { game.Mn(0.5, 2600, 0.7, 0.1, 'bandpass'); game.ni(0.45, 170, 0.1); }
+    playGearSound(game, 'flash');
     if (window.__skyAudio) window.__skyAudio.flashbang++;
   }
   function throwFlashbang() {
@@ -124,7 +161,11 @@ export function createFlashbang(game) {
     if (grenadeTemplate) { const detail = grenadeTemplate.clone(true); detail.scale.setScalar(0.12); model.add(detail); }
     else model.add(new Mesh(can, materials.dark));
     const stripe = new Mesh(can, materials.yellow); stripe.scale.set(1.1, 0.22, 1.1); model.add(stripe);
-    root.add(model); grenades.push({ model, start, end, age: 0 });
+    const beacon = new Sprite(haloMaterial); beacon.scale.setScalar(0.6); model.add(beacon);
+    const trailGeometry = new BufferGeometry(); trailGeometry.setAttribute('position', new Float32Attribute(new Float32Array(18), 3));
+    const trailMaterial = new Basic({ color: 0x8feaff, transparent: true, opacity: 0.75, depthWrite: false, fog: false, toneMapped: false });
+    const trail = new Line(trailGeometry, trailMaterial); trail.frustumCulled = false; root.add(trail);
+    root.add(model); grenades.push({ model, start, end, trail, age: 0, ownedMaterials: [trailMaterial] });
     charges--; stats.thrown++; Tt.swish(); hud(); return true;
   }
   const skillStates = ['wallrun', 'slide', 'ledge', 'ladder', 'zip', 'hook'];
@@ -148,19 +189,33 @@ export function createFlashbang(game) {
     }
     for (let i = bursts.length - 1; i >= 0; i--) {
       const effect = bursts[i]; effect.age += dt;
-      if (effect.age >= 0.55) { removeEffect(effect); bursts.splice(i, 1); continue; }
-      const p = effect.age / 0.55;
-      effect.core.scale.setScalar(0.2 + Math.min(1, p * 5));
-      effect.core.material.opacity = Math.max(0, 1 - p * 4);
-      const radius = 0.2 + p * FLASHBANG.radius;
-      effect.wave.scale.setScalar(radius); effect.wave.material.opacity = (1 - p) * 0.9;
-      effect.rays.forEach((ray, i) => { const a = i * Math.PI / 6; ray.position.set(Math.sin(a) * radius * 0.6, 0, Math.cos(a) * radius * 0.6); ray.scale.set(0.045, 0.045, radius * 0.6); });
+      if (effect.age >= 0.72) { removeEffect(effect); bursts.splice(i, 1); continue; }
+      const p = effect.age / 0.72;
+      effect.core.scale.setScalar(1.5 + Math.min(1, effect.age / 0.09) * 4);
+      effect.core.material.opacity = Math.max(0, 1 - effect.age / 0.18);
+      effect.halo.scale.setScalar(2 + p * 11); effect.halo.material.opacity = Math.exp(-p * 6) * 0.8;
+      const radius = 0.25 + Math.min(1, effect.age / 0.45) * FLASHBANG.radius;
+      effect.wave.scale.setScalar(radius); effect.vertical.scale.setScalar(radius * 0.85); effect.wave.material.opacity = (1 - p) * 0.85;
+      effect.rays.forEach(ray => { ray.position.copy(ray.userData.direction).multiplyScalar(0.2 + p * 7); ray.scale.set(0.012 * (1 - p), 0.012 * (1 - p), 0.2 + (1 - p) * 0.7); });
     }
+    const newest = bursts.at(-1);
+    light.intensity = newest ? 6 * Math.exp(-newest.age * 22) : 0;
+    if (newest && newest.age < 0.23) {
+      const point = newest.model.position.clone().project(game.Se), x = Math.max(5, Math.min(95, (point.x + 1) * 50)), y = Math.max(5, Math.min(95, (1 - point.y) * 50));
+      glow.style.background = `radial-gradient(ellipse at ${x}% ${y}%,#eaffff 0%,#8bdfffaa 22%,#7dbaff00 72%)`;
+      glow.style.opacity = String((reducedMotion ? 0.12 : 0.28) * Math.max(0, 1 - newest.age / 0.23));
+    } else glow.style.opacity = '0';
     for (let i = grenades.length - 1; i >= 0; i--) {
       const grenade = grenades[i]; grenade.age += dt;
       const p = Math.min(1, grenade.age / FLASHBANG.fuse);
       grenade.model.position.copy(grenade.start).lerp(grenade.end, p); grenade.model.position.y += Math.sin(p * Math.PI) * 0.35;
       grenade.model.rotation.x += dt * 14;
+      const positions = grenade.trail.geometry.attributes.position;
+      for (let j = 0; j < 6; j++) {
+        const t = Math.max(0, p - j * 0.065), point = grenade.start.clone().lerp(grenade.end, t); point.y += Math.sin(t * Math.PI) * 0.35;
+        positions.setXYZ(j, point.x, point.y, point.z);
+      }
+      positions.needsUpdate = true;
       if (p === 1) { detonate(grenade); removeEffect(grenade); grenades.splice(i, 1); }
     }
   }

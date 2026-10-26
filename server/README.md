@@ -5,8 +5,8 @@
 
 ## 2026-10-26：ランキングからのゴースト閲覧
 
-- `GET /ranking?map=old-town` / `map=rock-canyon` はマップごとの最高記録と、再生可能な記録の `replayId` を返します。省略時は旧市街です。
-- `GET /ghosts/<replayId>?map=...` はランキングに採用されたそのプレイの移動だけを返します。完全な診断記録を読む `/runs` は引き続き管理者専用です。
+- `GET /ranking?map=old-town` / `map=rock-canyon` はマップごとの最高記録と、再生可能な記録の `replayId` と記録日時 `playedAt`（ISO 8601）を返します。省略時は旧市街です。
+- `GET /ghosts/<replayId>?map=...` はランキングに採用されたそのプレイの移動だけを返します。記録日時 `playedAt` も返します。以前の記録に日時がない・不正な場合は受信日時を使います。完全な診断記録を読む `/runs` は引き続き管理者専用です。
 - 今後のプレイでは位置・向き・上下の視線・移動状態・ライフ・復帰時の切れ目を最大20回/秒で保存します。既存のJSON列を使い、テーブルの変更はありません。
 - 以前の記録は保存済みの1秒間隔の `trail` から、おおまかな軌跡として再生します。表示で精度の違いを知らせます。
 - 更新は `node bench/ranked-ghost.test.cjs`（リポジトリ直下）、`cd server && npx wrangler deploy`。Workerを先に更新し、その後ゲームを公開します。
