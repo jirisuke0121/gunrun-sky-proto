@@ -35,7 +35,8 @@ async function fixture() {
 }
 
 if (require.main === module) (async () => {
-  const { addParkourRun, sampleClip, strideAdvance, runningBlend, runningVertex } = await import('../human-running.js');
+  const { addParkourRun, sampleClip, strideAdvance, runningBlend, runningVertex, armWeight } = await import('../human-running.js');
+  assert.equal(armWeight([-.55, .94, -.05]), 1, 'the fingertips must follow the hand instead of staying in the armed pose');
   assert.ok(Math.abs(strideAdvance(.2, 0) - .2) < 1e-9);
   assert.ok(Math.abs(strideAdvance(.2, 3.36) - .2) < 1e-9);
   let p = 0; for (let i = 0; i < 60; i++) p = strideAdvance(p, 6 / 60);

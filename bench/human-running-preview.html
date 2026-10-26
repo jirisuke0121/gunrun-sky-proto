@@ -15,25 +15,28 @@
 <nav><button id="pause">一時停止</button><button id="shot">射撃姿勢</button><label><input id="weapon" type="checkbox">銃を表示</label><label><input id="original" type="checkbox">従来の走りと比較</label></nav>
 <label>見る方向 <input id="angle" type="range" min="-180" max="180" value="70"><output id="degrees">70°</output></label>
 <iframe id="game" title="人間モデルの動き" sandbox="allow-same-origin allow-scripts" src="about:blank"></iframe>
+<img id="fallback" hidden src="./human-running-preview.gif" alt="同じ人間モデルの形状データから生成した走行プレビュー" style="max-width:100%;margin:auto">
 <p id="result">準備中…</p>
 </main>
 <script type="module">
 const frame = document.querySelector('#game'), result = document.querySelector('#result');
-let move = 'run', paused = false, t = 0, last = null, ready = false;
+let move = 'run', paused = false, t = 0, last = null;
 const buttons = [...document.querySelectorAll('[data-move]')];
 buttons.forEach(button => button.onclick = () => { move = button.dataset.move; buttons.forEach(b => b.setAttribute('aria-pressed', String(b === button))); });
 document.querySelector('#pause').onclick = event => { paused = !paused; event.target.textContent = paused ? '再生' : '一時停止'; };
 document.querySelector('#angle').oninput = event => { document.querySelector('#degrees').textContent = `${event.target.value}°`; };
 // Install the network/storage guard before any game scripts can run.
-const source = await fetch('../index.html').then(r => { if (!r.ok) throw Error('game source'); return r.text(); });
 const base = new URL('../', location.href).href;
 const guard = `<base href="${base}"><script>window.__hold=true;
 const request=window.fetch.bind(window);window.fetch=(url,options)=>/gunrun-runs\\./.test(String(url))?Promise.resolve(new Response('{}',{status:200,headers:{'content-type':'application/json'}})):request(url,options);
 Storage.prototype.setItem=()=>{};Storage.prototype.removeItem=()=>{};Storage.prototype.clear=()=>{};
 <\/script>`;
-frame.srcdoc = source.replace('<head>', `<head>${guard}`);
 const wait = () => new Promise(resolve => setTimeout(resolve, 50));
 try {
+  const probe = document.createElement('canvas');
+  if (!probe.getContext('webgl2') && !probe.getContext('webgl')) throw Error('このブラウザーではWebGLを利用できません。下は実モデルの形状データから生成したプレビューです（ゲームの描画画面ではありません）。');
+  const source = await fetch('../index.html').then(r => { if (!r.ok) throw Error('game source'); return r.text(); });
+  frame.srcdoc = source.replace('<head>', `<head>${guard}`);
   for (let i = 0; i < 400 && !frame.contentWindow.skyHumanView; i++) await wait();
   const w = frame.contentWindow;
   if (!w.skyHumanView) throw Error('ゲームの表示処理を読み込めませんでした');
@@ -51,7 +54,6 @@ try {
   // Hide the gameplay HUD in this isolated animation viewer.
   for (const id of ['hud','touch','hookMark','menuLauncher']) { const node = w.document.getElementById(id); if(node) node.style.setProperty('display','none','important'); }
   document.querySelector('#shot').onclick = () => { g.S.gunOn = true; document.querySelector('#weapon').checked = true; sky.Et.ammo--; };
-  ready = true;
   function animate(now) {
     requestAnimationFrame(animate);
     const dt = last === null ? 1 / 60 : Math.min(.05, (now - last) / 1000); last = now;
@@ -80,6 +82,10 @@ try {
     result.textContent = `読込完了 / ${data.skyHumanRunStyle} / ${data.skyHumanClip}\n走りの混合: ${data.skyHumanRunBlend} / 足運び: ${data.skyHumanGaitPhase}${paused ? ' / 一時停止' : ''}`;
   }
   requestAnimationFrame(animate);
-} catch (error) { result.textContent = `確認ページの準備に失敗: ${error.message}`; }
+} catch (error) {
+  frame.hidden = true; frame.style.display = 'none'; document.querySelector('#fallback').hidden = false;
+  document.querySelectorAll('button,input').forEach(node => node.disabled = true);
+  result.textContent = error.message;
+}
 </script>
 </html>

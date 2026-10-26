@@ -47,6 +47,11 @@ const { fixture } = require('./human-running.test.cjs');
   sky.Et.ammo--; update(6); assert.ok(+dataset.skyHumanRunBlend < .1);
   update(40); assert.ok(+dataset.skyHumanRunBlend > .99);
   sky.Et.reloadT = 1; update(6); assert.ok(+dataset.skyHumanRunBlend < .1); sky.Et.reloadT = 0;
+  update(40);
+  for (let i = 0; i < 30; i++) { c.yaw += .015; c.vel.set(-Math.sin(c.yaw) * 6, 0, -Math.cos(c.yaw) * 6); update(); }
+  const holder = sky.ue.children.find(o => o.name === 'Unity challenge human');
+  assert.ok(holder.rotation.z < -.02 && holder.rotation.z >= -.2, 'body banks inside a continuous turn');
+  c.yaw = 0;
   // Walking and strafing keep their original clips with a continuous foot phase.
   c.vel.set(0, 0, -4.6); const beforeWalk = +dataset.skyHumanGaitPhase; update();
   assert.equal(dataset.skyHumanClip, 'walkForward'); assert.notEqual(+dataset.skyHumanGaitPhase, 0); assert.notEqual(+dataset.skyHumanGaitPhase, beforeWalk);
