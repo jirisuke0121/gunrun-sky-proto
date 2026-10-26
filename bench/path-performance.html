@@ -1,0 +1,13 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>空中回廊・経路探索の比較計測</title>
+<style>body{margin:0;background:#f2f0e6;color:#302c24;font:16px/1.7 system-ui,sans-serif}main{max-width:1000px;margin:auto;padding:24px}h1{font-size:24px}button,select{font:inherit;padding:8px 12px;margin:4px}button{cursor:pointer}#game{width:100%;aspect-ratio:16/9;border:0;background:#d9ccab}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}td,th{padding:8px;border-bottom:1px solid #ccc;text-align:right;white-space:nowrap}td:first-child,th:first-child{text-align:left}.scroll{overflow:auto}body.running #game{position:fixed;inset:0;width:100vw;height:100vh;z-index:2}body.running #progress{position:fixed;top:0;left:0;right:0;padding:6px 12px;color:white;background:#222c;z-index:3}#stop{display:none}body.running #stop{display:inline-block}a{color:#8b3e29}small{display:block}</style>
+<main><h1>空中回廊・経路探索の比較計測</h1>
+<p>岩壁渓谷の見下ろしで自動往復し、現行の探索・以前の探索・影なし・描画倍率50%を比べます。iPhoneは横向きで、タブを開いたまま測定してください。</p>
+<p>敵10体、MG連射、装填待ちなしの負荷比較です。実際の操作感は別に確認します。このページのプレイ記録と得点は保存・送信しません。</p>
+<label>1試行 <select id="duration"><option value="30">30秒</option><option value="10">10秒</option><option value="5">5秒（動作確認）</option></select></label>
+<label>反復 <select id="repeats"><option value="3">3回</option><option value="1">1回</option></select></label>
+<button id="start">比較を開始</button><button id="export" disabled>結果JSONを保存</button>
+<small>標準は15試行で約8〜10分。読み込み後に同じ配置から開始し、各組の前後に以前の探索を測ります。画面の回転やタブ移動があった試行は無効です。測定前の通常設定は変更しません。</small>
+<p id="progress"><span id="status">準備できています</span> <button id="stop">中止</button></p>
+<iframe id="game" title="計測中の岩壁渓谷"></iframe>
+<div class="scroll"><table><thead><tr><th>条件</th><th>FPS</th><th>p99 ms</th><th>50ms超 %</th><th>探索CPU ms/枚</th><th>発射数</th></tr></thead><tbody id="rows"></tbody></table></div>
+<p><a href="../canyon.html">通常の岩壁渓谷へ戻る</a></p></main><script type="module" src="./path-performance.js"></script></html>
