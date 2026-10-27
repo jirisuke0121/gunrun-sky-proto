@@ -17,7 +17,7 @@ window.buildSwingCourse = function ({ ne }) {
   box('pad-return-step-3', [-17.5, 4, -9.4], [-15.8, 4.9, -7.3]);
   const bars = [
     { id: 'west-bar-1', at: [-12.5, 8.2, -6], direction: [1, 0], width: 2.6 },
-    { id: 'west-bar-2', at: [-6.6, 9.6, -6], direction: [1, 0], width: 2.6 },
+    { id: 'west-bar-2', at: [-8, 9.4, -6], direction: [1, 0], width: 2.6 },
   ];
   // Uprights flank the flight lane; the graspable crosspiece is a visual tube,
   // not a full collision box that would stop the player's head on approach.

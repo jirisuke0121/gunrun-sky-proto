@@ -9,12 +9,12 @@ export function pendulumPoint(bar, direction, angle, length = SWING_LENGTH) {
 export function releaseVelocity(direction, angle, omega, jumpVelocity) {
   // Keep the signed tangent velocity. A press adds a fixed jump impulse;
   // neither the next bar nor a desired arrival height influences this launch.
-  const horizontal = SWING_LENGTH * omega * Math.cos(angle) + 3;
-  const vertical = SWING_LENGTH * omega * Math.sin(angle) + jumpVelocity * .72;
+  const horizontal = SWING_LENGTH * omega * Math.cos(angle) + 4;
+  const vertical = SWING_LENGTH * omega * Math.sin(angle) + jumpVelocity * .5;
   return [direction[0] * horizontal, vertical, direction[1] * horizontal];
 }
 export function isLaunchWindow(angle, omega) {
-  return angle >= .2 && angle <= .65 && omega > 1.1;
+  return angle >= -.08 && angle <= .6 && omega > 1.1;
 }
 export function createSwing(sky, game, course) {
   if (!course) return { step: () => false, frame() {}, reset() {}, active: null, course };
@@ -25,7 +25,7 @@ export function createSwing(sky, game, course) {
   function press() {
     if (active && sky.modeRef() === 'play' && !z.over) jumpPressed = true;
   }
-  const jumpButton = document.getElementById('tJump');
+  const jumpButton = document.getElementById('tJump'), jumpLabel=jumpButton?.textContent;
   addEventListener('keydown', e => {
     if (e.code !== 'Space' || e.repeat || jumpHeld) return;
     jumpHeld = true; press();
@@ -61,7 +61,7 @@ export function createSwing(sky, game, course) {
     label('SWING / 8m', [-17.9,6.5,-10.5], .7);
     label('SWING / 8m', [-17.9,7,-2], .7);
     function arrow(x,y,z,dx,dz) {
-      const chevron = new T.Group(); chevron.position.set(x,y,z); chevron.rotation.y=Math.atan2(dx,dz);
+      const chevron = new T.Group(); chevron.position.set(x,y,z); chevron.rotation.y=Math.atan2(dx,dz)+Math.PI;
       for(const side of [-1,1]) {
         const stroke=new T.Mesh(new T.Box(.08,.025,.62),orange);
         stroke.position.set(side*.19,0,0);stroke.rotation.y=side*.72;chevron.add(stroke);
@@ -95,6 +95,7 @@ export function createSwing(sky, game, course) {
     hint.hidden = true;
     jumpHeld = touchHeld = jumpPressed = false;
     delete jumpButton?.dataset.swingReady;
+    if(jumpButton)jumpButton.textContent=jumpLabel;
   }
   function detach(drop = false) {
     const a = active;
@@ -107,6 +108,7 @@ export function createSwing(sky, game, course) {
     if (!drop) { window.skyTelemetryProbe?.jumpAccepted(z.t, 'bar_release'); game.stats.barJumps = (game.stats.barJumps || 0) + 1; sky.Tt.jump?.(); }
     active = null; jumpPressed = false; previous = c.pos.toArray(); hint.hidden = true;
     delete jumpButton?.dataset.swingReady;
+    if(jumpButton)jumpButton.textContent=jumpLabel;
   }
   function attach(bar, nearest) {
     const direction = [...bar.direction];
@@ -115,7 +117,8 @@ export function createSwing(sky, game, course) {
     if (into < -.5) { direction[0] *= -1; direction[1] *= -1; }
     const along = (c.pos.x - nearest[0]) * direction[0] + (c.pos.z - nearest[2]) * direction[1];
     const angle = clamp(Math.atan2(along, bar.at[1] - c.pos.y), -.9, .65);
-    const omega = clamp((Math.abs(into) * Math.cos(angle) + c.vel.y * Math.sin(angle)) / SWING_LENGTH, 1.8, 4.1);
+    const tangent = Math.abs(into) * Math.cos(angle) + c.vel.y * Math.sin(angle);
+    const omega = clamp(Math.max(tangent,Math.abs(into)*1.05+1.2)/SWING_LENGTH, 2.8, 5.4);
     const pivot = [...nearest];
     const p = pendulumPoint(pivot, direction, angle);
     if (Math.hypot(...p.map((v,k)=>v-c.pos.getComponent(k))) > .85 || !sky.oe(p[0], p[1] + .03, p[2], c.r, 1.75)) return false;
@@ -157,7 +160,7 @@ export function createSwing(sky, game, course) {
       hint.hidden = false; hint.dataset.ready = String(ready);
       hint.textContent = ready ? `鉄棒 ${chain}/2　今！ジャンプで次へ` : `鉄棒 ${chain}/2　前へ振れたらジャンプ / 下で離す`;
       if (a.age >= MAX_GRIP_SECONDS - 2) hint.textContent += ` / 手が離れるまで ${Math.ceil(MAX_GRIP_SECONDS - a.age)}秒`;
-      if (jumpButton) jumpButton.dataset.swingReady = String(ready);
+      if (jumpButton) {jumpButton.dataset.swingReady = String(ready);jumpButton.textContent='跳び移る';}
       document.body.dataset.skySwing = JSON.stringify({ bar: a.bar.id, angle: a.angle, chain, age: a.age });
       previous = c.pos.toArray(); return true;
     }
@@ -180,8 +183,9 @@ export function createSwing(sky, game, course) {
     if (sky.modeRef() !== 'play' || z.over) {
       jumpHeld = touchHeld = jumpPressed = false;
       c.jumpBuf = 0; delete jumpButton?.dataset.swingReady;
+    if(jumpButton)jumpButton.textContent=jumpLabel;
     }
     if (!active) delete document.body.dataset.skySwing;
   }
-  return { step, frame, reset, get active() { return active; }, get course() { return course; } };
+  return { step, frame, reset, get active() { return active; }, get course() { return course; }, get cameraSpeed() { return active ? Math.max(6,SWING_LENGTH*Math.abs(active.omega)) : 0; } };
 }

@@ -1,4 +1,4 @@
-import { pickupNodes, segmentDistance } from './dash-boost.js?v=20261027-jump-items-v1';
+import { pickupNodes, segmentDistance } from './dash-boost.js?v=20261028-playground-v1';
 
 export const JUMP_DROP_FIRST = 8;
 export const JUMP_DROP_RESPAWN = 24;
@@ -30,10 +30,10 @@ export function createJumpPickups(sky, game) {
   let time = 0, previous = null;
   function reset() {
     time = 0; previous = null; game.stats.jumpGunPickups = 0;
-    items.forEach(item => { item.cooldown = JUMP_DROP_FIRST + item.id * 10; item.drop = 0; item.group.visible = false; });
+    items.forEach(item => { item.cooldown = window.skyPracticeMode ? 0 : JUMP_DROP_FIRST + item.id * 10; item.drop = 0; item.group.visible = false; });
   }
   function placePickups(position, yaw) {
-    const selected = pickupNodes(game.NAV, position, yaw, n =>
+    const selected = window.skyPracticeMode ? window.skyPracticeCourse.jumpPositions.map(([x,y,z],id)=>({x,y,z,id})) : pickupNodes(game.NAV, position, yaw, n =>
       !window.skyDash.pickups.some(p => Math.hypot(p.position[0] - n.x, p.position[1] - n.y, p.position[2] - n.z) < 3) &&
       [[0, 0], [.48, 0], [-.48, 0], [0, .48], [0, -.48]].every(([x, dz]) => sky.oe(n.x + x, n.y + .05, n.z + dz, .28, 3.6)), [9, 25]);
     items.forEach((item, i) => {
@@ -60,7 +60,7 @@ export function createJumpPickups(sky, game) {
       const a = (teleported ? to : from).map((v, k) => v + (k === 1 ? .9 : 0));
       const b = to.map((v, k) => v + (k === 1 ? .9 : 0));
       if (segmentDistance(point, a, b) < 1 && window.skyJumpGun.grant()) {
-        item.cooldown = JUMP_DROP_RESPAWN; item.group.visible = false;
+        item.cooldown = window.skyPracticeMode ? 3 : JUMP_DROP_RESPAWN; item.group.visible = false;
         game.stats.jumpGunPickups = (game.stats.jumpGunPickups || 0) + 1;
         sky.Tt.mark?.();
       }

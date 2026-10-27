@@ -1,13 +1,13 @@
-import { createSwing } from './parkour-swing.js?v=20261028-timed-swing-v2';
+import { createSwing } from './parkour-swing.js?v=20261028-playground-v1';
 import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
 import { createFlashbang } from './flashbang.js?v=20261028-touch-layout-v1';
-import { createGhostReplay } from './ghost-replay.js?v=20261028-touch-layout-v1';
+import { createGhostReplay } from './ghost-replay.js?v=20261028-playground-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261027-jump-power-v2';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261027-swing-v1';
-import { createJumpPickups } from './jump-pickups.js?v=20261028-weapon-drops-v1';
-import { createWeaponDrops } from './weapon-drops.js?v=20261028-weapon-drops-v1';
-import { createDash } from './dash-boost.js?v=20261027-jump-items-v1';
+import { createJumpPickups } from './jump-pickups.js?v=20261028-playground-v1';
+import { createWeaponDrops } from './weapon-drops.js?v=20261028-playground-v1';
+import { createDash } from './dash-boost.js?v=20261028-playground-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -40,7 +40,7 @@ if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
 // Apply the new run-speed default once for players who already saved the former default.
 try {
   const speedMigration = 'gunrun-run-speed-20261025';
-  if (!localStorage.getItem(speedMigration)) {
+  if (!window.skyPracticeMode && !localStorage.getItem(speedMigration)) {
     if (U.sprintSpeed === 8) { U.sprintSpeed = 6; game.Ua(); }
     localStorage.setItem(speedMigration, '1');
   }
@@ -2050,5 +2050,5 @@ if (/[?&]perf=1/.test(location.search)) {
     if (input && input.parentElement) input.parentElement.style.display = 'none';
   }
 
-  installRanking(game);
+  if(!window.skyPracticeMode)installRanking(game);
 }
