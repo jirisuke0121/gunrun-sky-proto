@@ -26,9 +26,15 @@ jobs:
       - name: Install browser
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
-          npx playwright install --with-deps chromium
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
       - name: Render and exercise both maps
-        run: node bench/human-running-browser.cjs
+        run: |
+          node bench/human-running-browser.cjs
+          node bench/human-aim-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

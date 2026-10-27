@@ -1,5 +1,6 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor } from './human-running.js?v=20261027-actions-v1';
+import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor } from './human-running.js?v=20261027-aim-v1';
+import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261027-aim-v1';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
 const { Group, Vector3 } = Geom;
@@ -13,6 +14,7 @@ let gaitPhase = 0, runPose = 0, gripPitch = 0, bodyYawOffset = 0, turnBank = 0;
 let motionPosition = null, lastTravelYaw = null;
 let parkourRunEnabled = true;
 let contactFrame = null, trackedLedge = null, handAnchor = null;
+let aimRig = null, heldWeapon = null, aimBlend = 0, shotTarget = null;
 const contactOffset = new Vector3(), contactWorld = new Vector3();
 const savedChoice = (() => { try { return sessionStorage.getItem('gunrun-human-trial') || 'existing'; } catch { return 'existing'; } })();
 let choice = savedChoice === 'unity' ? 'unity' : 'existing';
@@ -68,6 +70,7 @@ function loadHuman() {
       world.add(holder);
       model.traverse(node => { if (node.isMesh) { node.castShadow = true; node.frustumCulled = false; } });
       if (motion) document.body.dataset.skyHumanRunStyle = addParkourRun(model, motion, Geom.Float32Attribute) ? 'parkour' : 'existing';
+      if (motion) aimRig = createHumanAim(model, motion, Geom);
       morphMeshes = [];
       model.traverse(node => { if (node.isMesh && node.morphTargetDictionary) morphMeshes.push(node); });
       grip = model.getObjectByName('GunRunRightHandGrip');
@@ -266,7 +269,49 @@ function updateMotion(dt, speed) {
   document.body.dataset.skyHumanRunBlend = runPose.toFixed(3);
   document.body.dataset.skyHumanGaitPhase = gaitPhase.toFixed(3);
 }
-function updateWorldWeapon(third) {
+const aimPoint = new Vector3(), aimDirection = new Vector3(), aimHand = new Vector3(), aimSupport = new Vector3(), aimPalm = new Vector3();
+const bore = new Vector3(), gunMuzzle = new Vector3(), actualDirection = new Vector3();
+function previewAim() {
+  aimDirection.set(0, 0, -1).applyQuaternion(camera.quaternion);
+  const range = sky.wpc().range || 90;
+  const lock = sky.U.aimAuto && !sky.wpc().jumpGun && !window.skyBlastBarrels?.aimedAt(camera, sky.raycast) ? sky.aimTarget?.() : null;
+  if (lock) return aimPoint.set(lock.pos.x, lock.pos.y + 1.1, lock.pos.z);
+  const hit = sky.raycast?.(camera.position.x, camera.position.y, camera.position.z, aimDirection.x, aimDirection.y, aimDirection.z, range);
+  return aimPoint.copy(camera.position).addScaledVector(aimDirection, hit ? hit.t : range);
+}
+function aimWeaponAt(target) {
+  const carryPosition=worldWeapon.position.clone(),carryRotation=worldWeapon.quaternion.clone();
+  const roots = aimRig.shoulders().map(p => model.localToWorld(new Vector3(...p)));
+  const centre = roots[0].clone().add(roots[1]).multiplyScalar(.5);
+  aimDirection.copy(target).sub(centre).normalize();
+  right.set(Math.cos(c.yaw), 0, -Math.sin(c.yaw));
+  // Keep both wrists within reach, including the support grip of long weapons.
+  aimHand.copy(centre).addScaledVector(right, .075).addScaledVector(aimDirection, .24);
+  aimHand.y -= .075;
+  // Re-anchor the gun's trigger grip after solving its direction.
+  const handGoal=aimHand.clone();
+  bore.set(...heldWeapon.grip).applyQuaternion(worldWeapon.quaternion);
+  worldWeapon.position.copy(handGoal).sub(bore);
+  // Refine orientation and position together without moving the desired hand.
+  for(let i=0;i<8;i++){
+    aimDirection.copy(target).sub(worldWeapon.position).normalize();
+    worldWeapon.rotation.set(Math.atan2(aimDirection.y,Math.hypot(aimDirection.x,aimDirection.z)),Math.atan2(-aimDirection.x,-aimDirection.z),0,'YXZ');
+    bore.set(...heldWeapon.grip).applyQuaternion(worldWeapon.quaternion);worldWeapon.position.copy(handGoal).sub(bore);
+  }
+  if(aimBlend<1){worldWeapon.position.lerpVectors(carryPosition,worldWeapon.position,aimBlend);worldWeapon.quaternion.slerpQuaternions(carryRotation,worldWeapon.quaternion,aimBlend);}
+  worldWeapon.updateMatrixWorld(true);
+  aimHand.set(...heldWeapon.grip);worldWeapon.localToWorld(aimHand);model.worldToLocal(aimHand);
+  aimSupport.set(...heldWeapon.support);worldWeapon.localToWorld(aimSupport);model.worldToLocal(aimSupport);
+  aimPalm.set(0,-1,0).applyQuaternion(worldWeapon.quaternion).transformDirection(model.matrixWorld.clone().invert());
+  const error=aimRig.apply([aimHand.toArray(),aimSupport.toArray()],aimPalm.toArray(),aimBlend);
+  gunMuzzle.copy(heldWeapon.muzzle);worldWeapon.localToWorld(gunMuzzle);
+  actualDirection.set(0,0,-1).applyQuaternion(worldWeapon.quaternion);
+  aimDirection.copy(target).sub(gunMuzzle).normalize();
+  document.body.dataset.skyHumanAimError=Math.acos(Math.max(-1,Math.min(1,actualDirection.dot(aimDirection)))).toFixed(7);
+  document.body.dataset.skyHumanGripError=(error*holder.scale.x).toFixed(4);
+  document.body.dataset.skyHumanAimBlend=aimBlend.toFixed(3);
+}
+function updateWorldWeapon(third, dt = 0) {
   const index = sky.U.weapon | 0;
   const prototype = (index < 4 ? tl : fo).getObjectByName(weaponNames[index]);
   if (index !== worldWeaponIndex || (prototype && worldWeapon?.userData.sourceChildren !== prototype.children.length)) {
@@ -274,16 +319,17 @@ function updateWorldWeapon(third) {
     worldWeapon = null;
     worldWeaponIndex = index;
     if (prototype) {
-      worldWeapon = prototype.clone(true);
-      worldWeapon.name = 'Unity human held weapon';
-      worldWeapon.userData.sourceChildren = prototype.children.length;
-      worldWeapon.scale.setScalar(index < 4 ? 1.45 : 1.0);
+      heldWeapon = buildHeldWeapon(prototype, index, Geom);
+      worldWeapon = heldWeapon.root;
       world.add(worldWeapon);
     }
   }
-  if (!worldWeapon) { if (muzzleFlash) muzzleFlash.visible = false; return; }
+  if (!worldWeapon) { aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
   worldWeapon.visible = third && !!sky.U.gunOn && c.state !== 'ladder' && c.state !== 'ledge';
-  if (!worldWeapon.visible) { if (muzzleFlash) muzzleFlash.visible = false; return; }
+  if (!worldWeapon.visible) { aimBlend=0;aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
+  const aiming=aimRig && sky.Et.reloadT<=0 && (shotTime<.28 || (c.onGround && c.state==='normal' && runPose<.01));
+  // A shot must already have a matching pose on its first visible frame.
+  aimBlend=shotTime<.28&&aiming?1:aimBlend+((aiming?1:0)-aimBlend)*(1-Math.exp(-dt*18));
   forward.set(-Math.sin(c.yaw), 0, -Math.cos(c.yaw));
   right.set(Math.cos(c.yaw), 0, -Math.sin(c.yaw));
   if (motion && model && holder) {
@@ -297,15 +343,17 @@ function updateWorldWeapon(third) {
     worldWeapon.position.addScaledVector(forward, .07);
   } else worldWeapon.position.set(c.pos.x, c.pos.y + 1.2, c.pos.z).addScaledVector(right, .25).addScaledVector(forward, .2);
   worldWeapon.rotation.set(c.pitch * .45 * (1 - runPose) + gripPitch, c.yaw + bodyYawOffset, turnBank, 'YXZ');
-  if (shotTime < .12) worldWeapon.position.addScaledVector(forward, -.06 * (1 - shotTime / .12));
+  // Position the normalized trigger at the animated palm in a lowered carry.
+  bore.set(...heldWeapon.grip).applyQuaternion(worldWeapon.quaternion);worldWeapon.position.sub(bore);
   if (sky.Et.reloadT > 0) worldWeapon.rotation.z = Math.sin(Math.min(1, sky.Et.reloadT / Math.max(.1, sky.wpc().rl || 1.5)) * Math.PI) * .2;
+  if(aimBlend>.0001)aimWeaponAt(shotTarget&&shotTime<.12?shotTarget:previewAim());else aimRig?.reset();
   if (!muzzleFlash && T2.SphereGeometry && T2.MeshBasicMaterial) {
     muzzleFlash = new T2.Mesh(new T2.SphereGeometry(.055, 5, 4), new T2.MeshBasicMaterial({ color: 0xffcd69, transparent: true, opacity: .85, depthWrite: false }));
     world.add(muzzleFlash);
   }
   if (muzzleFlash) {
     muzzleFlash.visible = third && shotTime < .06;
-    if (muzzleFlash.visible) muzzleFlash.position.copy(worldWeapon.position).addScaledVector(forward, .5);
+    if (muzzleFlash.visible) { worldWeapon.updateMatrixWorld(true); muzzleFlash.position.copy(heldWeapon.muzzle);worldWeapon.localToWorld(muzzleFlash.position); }
   }
 }
 function update(dt) {
@@ -318,6 +366,7 @@ function update(dt) {
       lastAmmo = sky.Et.ammo; shotTime = 1; jumpTime = 0; landTime = 0; wasGrounded = !!c.onGround;
       motionPosition = null; lastTravelYaw = null; runPose = 0; gaitPhase = 0; gripPitch = 0; bodyYawOffset = 0; turnBank = 0;
       contactFrame = null; trackedLedge = null; handAnchor = null; contactOffset.set(0, 0, 0);
+      aimRig?.reset();aimBlend=0;shotTarget=null;
     }
     const sliding = third && c.state === 'slide';
     slidePose += ((sliding ? 1 : 0) - slidePose) * (1 - Math.exp(-dt * (sliding ? 20 : 14)));
@@ -336,8 +385,7 @@ function update(dt) {
       document.body.dataset.skyHumanHandError = Math.hypot(contactWorld.x - contactFrame.anchor.x, contactWorld.y - contactFrame.anchor.y, contactWorld.z - contactFrame.anchor.z).toFixed(4);
     } else delete document.body.dataset.skyHumanHandError;
   }
-  updateWorldWeapon(third);
-  if (!third) { window.skyFirstPersonView?.update(dt, false); return; }
+  if (!third) { updateWorldWeapon(false,dt);window.skyFirstPersonView?.update(dt, false); return; }
   // Match Unity's over-shoulder distance while keeping the player in frame.
   pivot.set(c.pos.x, c.camY === undefined ? c.pos.y + c.eye : c.camY, c.pos.z);
   if (c.state === 'ledge' && holder) pivot.y = holder.position.y + Math.min(c.eye, 1.5);
@@ -355,6 +403,7 @@ function update(dt) {
   camera.position.copy(pivot).addScaledVector(delta, safe);
   camera.updateMatrixWorld();
   const close = safe <= .28;
+  updateWorldWeapon(!close,dt);
   if (holder) holder.visible = !close;
   if (worldWeapon && close) worldWeapon.visible = false;
   if (ls) ls.root.visible = close && !!sky.U.showBody;
@@ -363,7 +412,19 @@ function update(dt) {
   document.body.dataset.skyHumanCameraClearance = safe.toFixed(2);
   window.skyFirstPersonView?.update(dt, !close);
 }
-window.skyHumanView = { update, select, get choice() { return choice; }, get view() { return view; },
+function getMuzzleWorld() {
+  if(choice!=='unity'||view!=='third'||!worldWeapon?.visible||!holder?.visible)return null;
+  worldWeapon.updateMatrixWorld(true);return worldWeapon.localToWorld(heldWeapon.muzzle.clone());
+}
+function prepareShot(origin,direction,distance) {
+  if(choice!=='unity'||view!=='third'||!holder?.visible||!aimRig)return null;
+  shotTarget=origin.clone().addScaledVector(direction,distance);shotTime=0;update(0);
+  const muzzle=getMuzzleWorld();if(!muzzle)return null;
+  const corrected=shotTarget.clone().sub(muzzle).normalize();
+  document.body.dataset.skyHumanShot=JSON.stringify({origin:muzzle.toArray(),direction:corrected.toArray(),target:shotTarget.toArray(),gripError:+document.body.dataset.skyHumanGripError,aimError:+document.body.dataset.skyHumanAimError});
+  return {origin:muzzle,direction:corrected};
+}
+window.skyHumanView = { update, select, getMuzzleWorld, prepareShot, get choice() { return choice; }, get view() { return view; },
   get runStyle() { return parkourRunEnabled ? 'parkour' : 'existing'; },
   set runStyle(value) { parkourRunEnabled = value !== 'existing'; } };
 sync();

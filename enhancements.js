@@ -1,7 +1,7 @@
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 import { createFlashbang } from './flashbang.js?v=20261026-gear-polish-v1';
 import { createGhostReplay } from './ghost-replay.js?v=20261026-gear-polish-v1';
-import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261026-gear-polish-v1';
+import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261027-aim-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261025-jump-tune-portrait-v1';
 

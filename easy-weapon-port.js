@@ -134,7 +134,7 @@ export function createEasyWeaponPort(game) {
       const hit = zombieRay(origin, direction, range);
       const length = hit ? hit.t : range;
       const end = origin.clone().addScaledVector(direction, length);
-      const visualOrigin = window.skyFirstPersonView?.getMuzzleWorld() || origin;
+      const visualOrigin = window.skyHumanView?.getMuzzleWorld?.() || window.skyFirstPersonView?.getMuzzleWorld() || origin;
       const positions = beamGeometry.getAttribute('position');
       positions.setXYZ(0, visualOrigin.x, visualOrigin.y, visualOrigin.z);
       positions.setXYZ(1, end.x, end.y, end.z);
@@ -155,7 +155,7 @@ export function createEasyWeaponPort(game) {
     const color = weapon === 7 ? 0x8ceaff : weapon === 9 ? 0xffa44d : 0xffd271;
     const model = new Mesh(new Sphere(radius, 8, 6), new Basic({ color, transparent: true, opacity: 0.95 }));
     const position = origin.clone();
-    const visualOrigin = window.skyFirstPersonView?.getMuzzleWorld() || position.clone().addScaledVector(direction, .5);
+    const visualOrigin = window.skyHumanView?.getMuzzleWorld?.() || window.skyFirstPersonView?.getMuzzleWorld() || position.clone().addScaledVector(direction, .5);
     const visualOffset = visualOrigin.clone().sub(position);
     model.position.copy(visualOrigin);
     ue.add(model);
