@@ -5,7 +5,8 @@ import { createGhostReplay } from './ghost-replay.js?v=20261028-result-stars-v1'
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261027-jump-power-v2';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261027-swing-v1';
-import { createJumpPickups } from './jump-pickups.js?v=20261027-jump-items-v1';
+import { createJumpPickups } from './jump-pickups.js?v=20261028-weapon-drops-v1';
+import { createWeaponDrops } from './weapon-drops.js?v=20261028-weapon-drops-v1';
 import { createDash } from './dash-boost.js?v=20261027-jump-items-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
@@ -21,9 +22,9 @@ const knifeRule = [...document.querySelectorAll('#ovStart .rules .keys li')]
 if (knifeRule) {
   knifeRule.innerHTML = knifeRule.innerHTML.replace(
     '最初はナイフだけ（調整画面でハンドガンも持てる）',
-    '銃は選んだ武器を持ち、調整画面でオフにもできる',
+    'HGで開始。SG・SMG・MGはステージ内の補給箱で取得する',
   );
-  knifeRule.insertAdjacentHTML('afterend', '<li><kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填。HG・SG・SMG・MGとEasy Weaponsの8種から選べる</li>' +
+  knifeRule.insertAdjacentHTML('afterend', '<li><kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填。HGで開始。SG・SMG・MGは10秒ごとに屋根・上層へ補給される（最大5個）</li>' +
     '<li>技（スライド・壁走り・縁つかみ・はしご・ジップライン・フック）を3回決めると閃光弾+1（最大2個）</li>' +
     '<li>少し高い壁に走って跳ぶと、壁を蹴って駆け上がる。日よけ布に落ちると大きく跳ねる</li>' +
     '<li><kbd>H</kbd> 自己ベストのときの走りを青い人影（ゴースト）で表示・非表示</li>');
@@ -420,7 +421,7 @@ WP.push(
 );
 // Match the prefab's Semi/Full setting. The M79 is fired on charge release.
 for (const [index, source] of Object.entries(UNITY_WEAPONS)) WP[+index].auto = source.trigger === 'full' ? 1 : 0;
-// Only the HG ships; the other weapons are kept in pool/.
+// Runs start with HG; SG/SMG/MG are equipped only by in-stage supplies.
 Jn.weapon = 0;
 U.weapon = 0;
 const weaponSlider = document.getElementById('s_weapon');
@@ -498,6 +499,10 @@ function syncWeapon(weapon) {
 // Temporary pickups use the same ammo cache as manual equipment changes.
 game.equipWeapon=weapon=>{U.weapon=weapon;syncWeapon(weapon);};
 let lastRunClock = 0;
+game.resetWeaponRun=()=>{
+  weaponAmmo.clear();game.equipWeapon(0);weaponAmmo.clear();lastRunClock=0;
+};
+window.skyWeaponDrops=createWeaponDrops(game,window.__game);
 let easyKick = 0, easyFlashTime = 0;
 function updateEquipment(now) {
   requestAnimationFrame(updateEquipment);
@@ -600,7 +605,7 @@ if (window.T2?.GLTFLoader) {
       gloveFallbacks[index].forEach((part) => { part.visible = false; });
     }
   });
-  for (const [key, index, scale, forward] of [['hg', 0, 0.25, -0.16]]) {
+  for (const [key, index, scale, forward] of [['hg', 0, 0.25, -0.16], ['sg', 1, 0.47, -0.13], ['smg', 2, 0.36, -0.13], ['mg', 3, 0.70, -0.10]]) {
     loadDetail(key, `${key}-meshy-low.glb`, (root) => {
       const view = weaponViews[index];
       root.name = `Meshy ${key.toUpperCase()} mobile LOD`;
@@ -1352,7 +1357,9 @@ window.__skyGhost = window.skyReplay;
   // Faithful takes: the recordings as they are (1.2 s with the natural room tail), plus short one-shot "heads"
   // (smgh*, mgh*, about 93 ms) that are used for the next shots of a burst so tails do not pile up.
   const SAMPLES = {
-    HG: ['hg1', 'hg2'],
+    HG: ['hg1', 'hg2'], SG: ['sg1', 'sg2', 'sg3', 'sg4'],
+    SMG: ['smgh1', 'smgh2', 'smgh3', 'smgh4', 'smgh5', 'smgh6', 'smgh7', 'smgh8', 'smgh9', 'smgl1', 'smgl2'],
+    MG: ['mg1', 'mg2', 'mg3', 'mg4', 'mgh1', 'mgh2', 'mgh3', 'mgh4', 'mgh5', 'mgh6'],
   };
 
   // ?snd=full brings back the previous processing (synthetic sine thump, heavier saturation) for A/B listening.

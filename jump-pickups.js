@@ -82,5 +82,7 @@ export function createJumpPickups(sky, game) {
       items: items.filter(i => i.node).map(i => ({ position: [i.node.x, i.node.y, i.node.z], cooldown: +i.cooldown.toFixed(2), dropping: i.drop > 0 }))
     });
   }
-  return { step, frame, reset, placePickups };
+  return { step, frame, reset, placePickups,
+    get pickups() { return items.filter(i => i.node).map(i => ({ position: [i.node.x, i.node.y, i.node.z] })); }
+  };
 }
