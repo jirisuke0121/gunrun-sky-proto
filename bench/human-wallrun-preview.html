@@ -80,8 +80,24 @@ async function boot(map){
         check(!entered,'非許可の壁面では発動しない #'+index+' '+n.x+','+n.z);denied++;
       }
     }
-    check(allowed.length===4,'許可する壁面はショートカット4面だけ');
+    check(allowed.length===5,'許可する壁面はショートカット5面だけ');
     check(denied>=8,'複数の非許可壁面を実際の移動処理で確認');
+    check(w.skyWallRunGuides?.routes.length===allowed.length,'許可面すべてに目印を表示');
+    for(const guide of w.skyWallRunGuides.routes){
+      const b=guide.wall,{x:nx,z:nz}=guide.normal;
+      const plane=nx?(nx>0?b.maxX:b.minX):(nz>0?b.maxZ:b.minZ);
+      check(Math.abs(plane-(nx?guide.at[0]:guide.at[2]))<.05,'目印が地点と同じ壁面 '+guide.name);
+      let inside=true;
+      for(const mesh of [guide.band,guide.launch]){
+        mesh.updateMatrixWorld(true);const vertices=mesh.geometry.getAttribute('position');
+        for(let i=0;i<vertices.count;i++){
+          const p=new sky.Geom.Vector3().fromBufferAttribute(vertices,i).applyMatrix4(mesh.matrixWorld);
+          p.x-=nx*.1;p.z-=nz*.1;
+          inside&&=p.x>b.minX&&p.x<b.maxX&&p.y>b.minY&&p.y<b.maxY&&p.z>b.minZ&&p.z<b.maxZ;
+        }
+      }
+      check(inside,'目印の全頂点が実際の壁面内 '+guide.name);
+    }
     for(const {at:[x,y,z],normal:[nx,nz]} of w.__skyWallRunSpots){
       const route=window.skyWallJumpCandidates.find(route=>route.status==='ok'&&route.at[0]===x&&route.at[2]===z);
       const finish=route.path.at(-1),start=route.path[0],sign=(-nz*(x-start[0])+nx*(z-start[2]))<0?-1:1;
@@ -96,6 +112,23 @@ async function boot(map){
       }
       check(landed&&c.life===life&&Math.hypot(c.pos.x-finish[0],c.pos.z-finish[2])<2&&Math.abs(c.pos.y-finish[1])<.65,
         'ショートカット先へ着地 '+route.title+' '+JSON.stringify({pos:c.pos.toArray(),target:finish,life:c.life}));
+      if(route.label==='⑤'){
+        reset({x:x+nx*(c.r+.04),y:0,z:3,normal:{x:nx,z:nz}},sign);
+        c.vel.set(0,0,0);c.onGround=true;c.airT=0;c.coyote=.1;c.jumpBuf=.18;
+        let ran=false,jumped=false,arrived=false;const before=g.stats.walljumps||0;
+        for(let i=0;i<240;i++){
+          if(!jumped&&c.state==='wallrun'){
+            ran=true;
+            if(c.pos.z>=6.3&&w.__skyCanWallJumpAtSpot(c,(px,py,pz)=>g.solids.find(b=>b.type==='mono'&&px>b.minX&&px<b.maxX&&py>b.minY&&py<b.maxY&&pz>b.minZ&&pz<b.maxZ),c.wallN))c.jumpBuf=.18;
+          }
+          if(jumped)c.yaw=Math.atan2(c.pos.x-finish[0],c.pos.z-finish[2]);
+          step(1/60);
+          jumped||=(g.stats.walljumps||0)>before;
+          if(jumped&&c.onGround){arrived=true;break;}
+        }
+        check(ran&&jumped&&arrived&&c.life===life&&Math.hypot(c.pos.x-finish[0],c.pos.z-finish[2])<2,
+          '写真の入口から助走・壁走り・壁ジャンプで着地 '+JSON.stringify({pos:c.pos.toArray(),ran,jumped,arrived,life:c.life}));
+      }
     }
     scenario=findScenario();const before=g.stats.wallruns;
     for(const sign of [1,-1]){

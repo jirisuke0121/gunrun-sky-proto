@@ -25,10 +25,11 @@ const {chromium}=require('playwright');
         assert.equal(await page.evaluate(()=>document.body.dataset.result),'passed',result);
         assert.deepEqual(errors,[]);
         if(map==='old'){
-          assert.equal((result.match(/PASS ショートカット先へ着地/g)||[]).length,4);
+          assert.equal((result.match(/PASS ショートカット先へ着地/g)||[]).length,5);
+          assert.equal((result.match(/PASS 目印の全頂点が実際の壁面内/g)||[]).length,5);
           assert.ok((result.match(/PASS 非許可の壁面では発動しない/g)||[]).length>=8);
         }
-        console.log(`PASS ${id}: ${map==='old'?'four shortcut landings, approved faces only, wall animation/shooting/exit':'existing canyon movement and rendering'}`);
+        console.log(`PASS ${id}: ${map==='old'?'five shortcut landings, paint contained on its own wall, approved faces only, wall animation/shooting/exit':'existing canyon movement and rendering'}`);
       }finally{await context.close();}
     }
   }finally{await browser?.close();server?.kill();}
