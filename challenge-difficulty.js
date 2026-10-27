@@ -1,7 +1,7 @@
 // Unity Challenge pacing, adapted to the 120-second aerial-corridor course.
 // Source settings and intentional adaptations are documented in CHALLENGE_DIFFICULTY.md.
 (() => {
-  const version = 'corridor-v2', storage = 'gunrun-challenge-difficulty-v1';
+  const version = 'corridor-score-v3', storage = 'gunrun-challenge-difficulty-v1';
   const levels = [
     { id: 'easy', name: 'Easy', note: '走って距離を取り、技を練習', startSpeed: 4.3, maxSpeed: 5.4, counts: [3, 5, 7], initial: 3, interval: 2.2, flank: .05, ahead: .1, drop: 0, lull: 5, quiet: 0, lead: 6, warn: 2.5 },
     { id: 'normal', name: 'Normal', note: '後半は走るだけでは少しずつ追いつかれる', startSpeed: 5.2, maxSpeed: 6.4, counts: [5, 8, 12], initial: 4, interval: 1.7, flank: .2, ahead: .25, drop: .1, lull: 4, quiet: 22, lead: 5, warn: 2.5 },

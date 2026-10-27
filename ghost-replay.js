@@ -85,7 +85,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     const ghost = snapshot();
     if (ghost && z.final && z.final.total > 0) {
       const cleared = z.reason === 'time';
-      if (!best || Number(cleared) > Number(best.cleared) || (cleared === best.cleared && z.final.total > best.total)) {
+      if (!best || (window.skyChallengeScore?.enabled() ? z.final.total > best.total : Number(cleared) > Number(best.cleared) || (cleared === best.cleared && z.final.total > best.total))) {
         best = { total: z.final.total, cleared, ghost };
         try { localStorage.setItem(key, JSON.stringify(best)); } catch {}
       }

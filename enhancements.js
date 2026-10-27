@@ -1,6 +1,6 @@
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 import { createFlashbang } from './flashbang.js?v=20261026-gear-polish-v1';
-import { createGhostReplay } from './ghost-replay.js?v=20261027-corridor-v2';
+import { createGhostReplay } from './ghost-replay.js?v=20261027-score-v3';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261027-aim-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261025-jump-tune-portrait-v1';
@@ -2086,7 +2086,7 @@ if (/[?&]perf=1/.test(location.search)) {
     if (input && input.parentElement) input.parentElement.style.display = 'none';
   }
 
-  // 3) ランキング（クリア有無→得点の順）。受け口は server/worker.js の GET /ranking。
+  // 3) ランキング（Unity得点版は得点順、旧版・自由調整はクリア有無→得点）。受け口は server/worker.js の GET /ranking。
   const RANK_URL = 'https://gunrun-runs.jirisuke0121.workers.dev/ranking';
   const style = document.createElement('style');
   style.textContent = `
@@ -2153,6 +2153,9 @@ if (/[?&]perf=1/.test(location.search)) {
   if (overPanel) {
     new MutationObserver(async () => {
       if (overPanel.hidden || z.mission || !z.final) return;
+      const customRanking = document.getElementById('unityScoreRanking');
+      if (window.skyChallengeScore?.enabled() && customRanking) customRanking.append(overBox);
+      else if (overStats) overStats.parentElement.insertBefore(overBox, overStats);
       const token = ++overToken;
       const total = z.final.total;
       const cleared = z.reason === 'time';
@@ -2164,7 +2167,7 @@ if (/[?&]perf=1/.test(location.search)) {
         try {
           const data = await fetchRanking();
           const me = data.me;
-          const reflected = me && ((me.cleared ? 1 : 0) > (cleared ? 1 : 0) || ((me.cleared ? 1 : 0) === (cleared ? 1 : 0) && me.score >= total));
+          const reflected = me && (window.skyChallengeScore?.enabled() ? me.score >= total : ((me.cleared ? 1 : 0) > (cleared ? 1 : 0) || ((me.cleared ? 1 : 0) === (cleared ? 1 : 0) && me.score >= total)));
           renderRanking(overBox, data, 5);
           if (reflected) return;
         } catch { overBox.innerHTML = ''; return; }

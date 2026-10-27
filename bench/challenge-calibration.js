@@ -1,3 +1,4 @@
+document.body.classList.toggle('presentation',new URLSearchParams(location.search).has('presentation'));
 const $ = id => document.getElementById(id), frame = $('game');
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 const round = n => Number(n.toFixed(3));
@@ -20,6 +21,9 @@ async function load(map) {
     const w = frame.contentWindow;
     if (w?.__calibrationToken === token && w.__game && w.skyChallenge && w.__skyInternals && !w.document.getElementById('bStart').disabled) {
       w.__game.runlogUse(null); w.__game.RL.on = false;
+      w.document.addEventListener('click', () => w.__game.frameOnce(0));
+      const gl = w.__game.debug.renderer.getContext(), info = gl.getExtension('WEBGL_debug_renderer_info');
+      frame.dataset.renderer = gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
       return w;
     }
     await wait(100);
@@ -226,6 +230,131 @@ $('forecast').addEventListener('click', async () => {
       result.maps.push(data); publish(); await wait(0);
     }
     $('status').textContent = '包囲予測の測定完了';
+  } catch (e) { result.error = String(e.stack || e); $('status').textContent = '測定エラー'; publish(); }
+  finally { busy = false; }
+});
+function eliminate(w, q, fall = false) {
+  const e = spawn(w, q);
+  if (fall) e.die(true);
+  else { e.gunT = w.__game.GAME.t; e.hurt(100, 0, 0, .1, 0); }
+  return e;
+}
+$('score').addEventListener('click', async () => {
+  if (busy) return; busy = true;
+  result = { kind: 'controlled actual game score/kill/pause/end/retry paths; no published records', maps: [] }; publish();
+  try {
+    for (const map of ['index.html', 'canyon.html']) {
+      const w = await load(map), q = lane(w), data = { map, levels: [] }; result.maps.push(data);
+      for (const id of ['easy', 'normal', 'hard', 'expert', 'master', 'ultra', 'legacy']) {
+        $('status').textContent = `${map} ${id} 得点`;
+        const g = setup(w, id, 30), score = w.skyChallengeScore;
+        place(g, { x: q.x + q.dx * 8, y: q.y, z: q.z + q.dz * 8 }, q.dx, q.dz);
+        const row = { id, at30: { ...g.calcScore() } }; data.levels.push(row);
+        eliminate(w, q); row.gunKill = { ...g.calcScore() };
+        g.GAME.t = 40; const dead = eliminate(w, q, true); dead.die(true);
+        row.afterRepeatedDeath = { kills: g.stats.kills, drops: g.stats.drops, score: { ...g.calcScore() } };
+        g.setMode('pause'); const pause = g.GAME.t; g.advance(1);
+        row.pause = { before: pause, after: g.GAME.t };
+        g.setMode('play'); g.GAME.t = 60; row.at60 = { ...g.calcScore() };
+        g.GAME.t = 120; g.endGame('time'); g.frameOnce(1.5);
+        row.final = { ...g.GAME.final };
+        await wait(1100);
+        row.display = { unity: score.enabled(), complete: w.document.getElementById('unityResultCard').dataset.complete,
+          total: w.document.getElementById('unityResultTotal').textContent,
+          retryEnabled: !w.document.getElementById('unityRetry').disabled };
+        if (!score.enabled()) {
+          const entry = [...w.document.querySelectorAll('#oStats dt')].find(e => e.textContent.trim() === '得点');
+          row.display = { unity: false, total: String(parseInt(entry.nextElementSibling.textContent,10)),
+            classicVisible: w.getComputedStyle(w.document.querySelector('#ovOver>.plate')).display !== 'none',
+            retryEnabled: !w.document.getElementById('bRetry').disabled };
+        }
+        if (score.enabled()) {
+          g.GAME.t = 125; g.stats.kills = 100; g.frameOnce(0);
+          row.frozen = { ...g.calcScore() };
+          w.document.getElementById('unityRetry').click(); g.frameOnce(0);
+          row.retry = { mode: g.mode, time: g.GAME.t, kills: g.stats.kills, score: { ...g.calcScore() } };
+        }
+        publish(); await wait(0);
+      }
+    }
+    $('status').textContent = '得点・結果・再挑戦の確認完了';
+  } catch (e) { result.error = String(e.stack || e); $('status').textContent = '測定エラー'; publish(); }
+  finally { busy = false; }
+});
+async function previewScore(failed) {
+  if (busy) return; busy = true;
+  try {
+    const w = await load('index.html'), q = lane(w), g = setup(w, failed ? 'hard' : 'normal', failed ? 88 : 120);
+    for (let i = 0; i < 18; i++) eliminate(w, q);
+    if (failed) g.P.life = 0;
+    g.endGame(failed ? 'caught' : 'time'); g.frameOnce(1.5);
+    $('status').textContent = failed ? 'Hard・88秒・18撃破の条件プレビュー' : 'Normal・120秒・18撃破の条件プレビュー';
+  } finally { busy = false; }
+}
+$('scoreFail').addEventListener('click', () => previewScore(true));
+$('scoreClear').addEventListener('click', () => previewScore(false));
+$('scorePerf').addEventListener('click', async () => {
+  if (busy) return; busy = true;
+  result = { kind: 'controlled score HUD CPU/DOM work, 1000 unchanged updates; rAF-paced CPU frame submission at 28 live enemies, not physical device FPS', maps: [] }; publish();
+  try {
+    for (const map of ['index.html', 'canyon.html']) {
+      const w = await load(map), q = lane(w), g = setup(w, 'ultra', 100);
+      place(g, { x: q.x + q.dx * 8, y: q.y, z: q.z + q.dz * 8 }, q.dx, q.dz); g.frameOnce(0);
+      let mutations = 0;
+      const observer = new w.MutationObserver(m => mutations += m.length);
+      observer.observe(w.document.body, { attributes: true, attributeFilter: ['class'] });
+      observer.observe(w.document.getElementById('unityScoreHud'), { childList: true, subtree: true });
+      const begin = performance.now(); for (let i = 0; i < 1000; i++) w.skyChallengeScore.sync();
+      const ms = performance.now() - begin; await wait(0); observer.disconnect();
+      const nodes = g.NAV.nodes.filter(n => Math.abs(n.y) < .1 && Math.hypot(n.x - g.P.pos.x, n.z - g.P.pos.z) > 9);
+      for (let i = 0; i < 28; i++) spawn(w, nodes[Math.floor(i * nodes.length / 28)]);
+      const frames = [], cold = [];
+      for (let i = 0; i < 105; i++) {
+        await new Promise(resolve => w.requestAnimationFrame(resolve));
+        const programs = g.debug.renderer.info.programs.length, before = performance.now(); g.frameOnce(1 / 60);
+        const ms = performance.now() - before;
+        if (i < 45) cold.push({ frame: i, ms: round(ms), newPrograms: g.debug.renderer.info.programs.length - programs });
+        else frames.push(ms);
+        if (i % 10 === 0) await wait(0);
+      }
+      frames.sort((a,b) => a-b);
+      result.maps.push({ map, thousandUpdatesMs: round(ms), unchangedDOMMutations: mutations, enemies: g.zombies.filter(e => !e.dead).length,
+        frameCpuMs: { median: round(frames[30]), p95: round(frames[57]), max: round(frames[59]) }, cold }); publish();
+    }
+    $('status').textContent = '得点表示の負荷測定完了';
+  } catch (e) { result.error = String(e.stack || e); $('status').textContent = '測定エラー'; publish(); }
+  finally { busy = false; }
+});
+$('population').addEventListener('click', async () => {
+  if (busy) return; busy = true;
+  result = { kind: 'controlled population profile, 60 warmup + 60 rAF-paced measured CPU frame submissions; not device FPS', maps: [] }; publish();
+  try {
+    for (const map of ['index.html', 'canyon.html']) {
+      const w = await load(map), q = lane(w), data = { map, counts: [] }; result.maps.push(data);
+      for (const count of [12,20,28]) {
+        $('status').textContent = `${map} ${count}体 負荷`;
+        const g = setup(w, 'ultra', 100);
+        place(g, { x: q.x + q.dx * 8, y: q.y, z: q.z + q.dz * 8 }, q.dx, q.dz);
+        const nodes = g.NAV.nodes.filter(n => Math.abs(n.y) < .1 && Math.hypot(n.x - g.P.pos.x, n.z - g.P.pos.z) > 9);
+        let aiMs = 0, renderMs = 0;
+        for (let i = 0; i < count; i++) {
+          const e = spawn(w, nodes[Math.floor(i * nodes.length / count)]), update = e.update;
+          e.update = function(dt) { const t = performance.now(); update.call(this, dt); aiMs += performance.now()-t; };
+        }
+        const renderer = g.debug.renderer, render = renderer.render;
+        renderer.render = function(...args) { const t = performance.now(); render.apply(this,args); renderMs += performance.now()-t; };
+        const frames = [];
+        for (let i = 0; i < 120; i++) {
+          await new Promise(resolve => w.requestAnimationFrame(resolve));
+          aiMs = renderMs = 0; const before = performance.now(); g.frameOnce(1/60);
+          if (i >= 60) frames.push({ ms: performance.now()-before, ai: aiMs, render: renderMs, triangles: renderer.info.render.triangles });
+          if (i % 10 === 0) await wait(0);
+        }
+        renderer.render = render; frames.sort((a,b)=>a.ms-b.ms);
+        data.counts.push({ count, median: frames[30], p95: frames[57], max: frames[59] }); publish(); await wait(0);
+      }
+    }
+    $('status').textContent = '人数別の負荷測定完了';
   } catch (e) { result.error = String(e.stack || e); $('status').textContent = '測定エラー'; publish(); }
   finally { busy = false; }
 });

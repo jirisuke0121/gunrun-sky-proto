@@ -1,0 +1,72 @@
+[
+  {
+    "source": "Resources/ChallengeResultC/panel.png",
+    "sourceSHA256": "f76fb790664ea5c8a9bf9d5908e9e445e6bacc58867fd6a319103a72f121547d",
+    "output": "panel.webp",
+    "size": 231234,
+    "dimensions": [
+      1448,
+      1086
+    ]
+  },
+  {
+    "source": "Resources/InfectionResultC/medals.png",
+    "sourceSHA256": "83c2f71b41bb4e7ab5398b1feb19ca92ce941d3dc211b8fc81b686619f041fcd",
+    "output": "clock-medal.webp",
+    "size": 21312,
+    "dimensions": [
+      256,
+      256
+    ]
+  },
+  {
+    "source": "Resources/InfectionResultC/medals.png",
+    "sourceSHA256": "83c2f71b41bb4e7ab5398b1feb19ca92ce941d3dc211b8fc81b686619f041fcd",
+    "output": "skull-medal.webp",
+    "size": 21542,
+    "dimensions": [
+      256,
+      256
+    ]
+  },
+  {
+    "source": "Resources/InfectionResultC/medals.png",
+    "sourceSHA256": "83c2f71b41bb4e7ab5398b1feb19ca92ce941d3dc211b8fc81b686619f041fcd",
+    "output": "silver-medal.webp",
+    "size": 26060,
+    "dimensions": [
+      256,
+      256
+    ]
+  },
+  {
+    "source": "Script/ChallengeUI/Resources/ChallengeScoreIcons/Clock.png",
+    "sourceSHA256": "0e8bde1b620e19ed3425b5f50006d5d1f272a7e5d6469bcc67b5871d574e89d9",
+    "output": "clock.webp",
+    "size": 6324,
+    "dimensions": [
+      128,
+      128
+    ]
+  },
+  {
+    "source": "Script/ChallengeUI/Resources/ChallengeScoreIcons/Skull.png",
+    "sourceSHA256": "2593401fbf39189eda31f16720189573e526583721a56dc1d06e18bccd635257",
+    "output": "skull.webp",
+    "size": 7052,
+    "dimensions": [
+      128,
+      128
+    ]
+  },
+  {
+    "source": "Script/ChallengeUI/Resources/ChallengeScoreIcons/ScoreStar.png",
+    "sourceSHA256": "404abc6fd8bc6d7981438b61f073849b1a86088cf4a71bea07981af758569ea7",
+    "output": "star.webp",
+    "size": 3618,
+    "dimensions": [
+      128,
+      128
+    ]
+  }
+]
