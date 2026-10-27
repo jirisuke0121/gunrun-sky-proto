@@ -1,6 +1,6 @@
 // Aim the baked (non-skeletal) human without replacing its legs or parkour poses.
 import { solveLimb, boneMap } from './human-actions.js?v=20261027-aim-v1';
-import { armWeight } from './human-running.js?v=20261027-aim-v1';
+import { armWeight } from './human-running.js?v=20261027-dash-v1';
 import { FIRST_PERSON_WEAPONS } from './first-person-weapons.js?v=20261025-jump-tune-portrait-v1';
 const smooth = (a,b,x) => { const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t); };
 const mix = (a,b,t) => a.map((v,k)=>v+(b[k]-v)*t);

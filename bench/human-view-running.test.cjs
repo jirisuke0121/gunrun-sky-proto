@@ -50,6 +50,9 @@ const { fixture } = require('./human-running.test.cjs');
   assert.ok(phase > .65 && phase < .9, 'actual covered distance drives the running phase');
   const weights = body.morphTargetInfluences;
   assert.ok(Math.abs(weights.reduce((a, b) => a + b, 0) - 1) < .001);
+  context.window.skyDash={boost:1,camera:{distance:5.05,shoulder:.24,height:-.19}};update(30,false);
+  assert.equal(dataset.skyHumanRunClip,'parkourDash');
+  context.window.skyDash=null;update(30,false);
 
   // Pause while still holding forward: feet and animation must freeze together.
   mode = 'pause'; const paused = [...weights]; update(30, false);
