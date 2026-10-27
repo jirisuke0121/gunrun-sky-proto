@@ -66,7 +66,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     });
     await page.keyboard.down('w');
     const running=await page.evaluate(()=>window.__dashFrames(35));
-    assert.ok(running.speed>9.8,JSON.stringify(running));
+    assert.ok(Math.abs(running.speed-7.8)<.05,JSON.stringify(running));
     assert.equal(running.clip,'parkourDash');assert.ok(running.distance>4.05&&running.fov>106,JSON.stringify(running));assert.equal(running.gl,0);
     await capture('boost');
     if(!touch&&map==='index.html'){

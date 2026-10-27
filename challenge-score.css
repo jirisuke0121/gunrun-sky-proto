@@ -1,0 +1,62 @@
+/* Unity's header, pause breakdown and C result artwork, fitted to the app viewport. */
+#unityScoreHud,#unityScorePause,#unityScoreResult{display:none}
+.unity-score-rule{display:none}.unity-challenge-score .unity-score-rule{display:block}.unity-challenge-score .legacy-score-rule{display:none}
+.unity-challenge-score .legacy-score-setting{display:none}
+.unity-challenge-score #unityScoreHud:not([hidden]){display:grid}
+.unity-challenge-score #unityScorePause{display:block}
+.unity-challenge-score #unityScoreResult{display:block}
+.unity-challenge-score #hud .hud-tc,.unity-challenge-score #hStars,.unity-challenge-score #hStarNext,.unity-challenge-score #ovOver>.plate{display:none!important}
+#unityScoreHud{position:absolute;top:13px;left:50%;transform:translateX(-50%);width:min(650px,calc(100% - 380px));grid-template-columns:1fr 1fr 1.25fr;gap:8px;color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 1px 3px #000,1px 0 2px #000}
+#unityDifficulty{position:absolute;top:78px;left:0;font-size:13px;color:#e4d2aa}
+.unity-counter{display:grid;grid-template-columns:32px auto auto;grid-template-rows:42px 25px;align-items:center;gap:0 6px;min-width:0}
+.unity-counter>img{width:32px;height:32px;object-fit:contain;filter:drop-shadow(0 1px 1px #000)}
+.unity-counter>b{font-size:34px;line-height:1;transform-origin:left center;white-space:nowrap}
+.unity-counter>small{font-size:15px;align-self:end;padding-bottom:5px}
+.unity-counter>span{grid-column:2/-1;font-size:13px;color:#d1e5ee;white-space:nowrap}
+.unity-counter strong{font-weight:500;margin-left:3px}.unity-score>b{grid-column:2/-1;color:#ff4b2b}
+.unity-challenge-score .hud-tr{top:105px;max-width:250px;line-height:1.6}
+#unityScorePause{padding:14px 18px;margin:10px 0 18px;background:#faf8f0;border-top:3px solid #d6232a;color:#252c31;text-shadow:none;font-variant-numeric:tabular-nums}
+#unityScorePause h3{margin:0 0 8px;font-size:20px}#unityScorePause p{margin:4px 0}#unityScorePause small{display:block;margin-top:8px;color:#5a6066}
+.unity-challenge-score #ovOver{padding:0;overflow:auto;background:rgba(3,5,7,.45)}
+.unity-challenge-score #ovOver:not([hidden]){animation:unity-result-shade .25s linear}
+@keyframes unity-result-shade{from{background:transparent}to{background:rgba(3,5,7,.45)}}
+#unityResultCard{position:relative;box-sizing:border-box;background:url('./assets/challenge-score/panel.webp') center/100% 100% no-repeat;color:#efe6c9;text-shadow:0 1px 2px #000,1px 0 1px #000;font-variant-numeric:tabular-nums;--card-scale:1;flex-shrink:0}
+#unityResultCard>*{position:absolute;box-sizing:border-box;margin:0}
+#unityResultCard img{object-fit:contain;pointer-events:none}
+#unityResultBadge{left:5.94%;top:5.34%;width:9.12%;height:12.15%}
+.uc-caption{left:15.88%;top:6.08%;width:52.5%;font-size:clamp(14px,calc(65px * var(--card-scale)),65px);white-space:nowrap}
+#unityResultTitle{left:69.4%;top:7.09%;width:25.2%;font-size:clamp(12px,calc(42px * var(--card-scale)),42px);color:#ffbd4d;text-align:center;white-space:nowrap}
+#unityResultCard[data-failed=true] #unityResultTitle{color:#ff4933}
+.uc-english{left:67.33%;top:12.62%;width:27.28%;font-size:clamp(9px,calc(28px * var(--card-scale)),28px);text-align:center;white-space:nowrap}
+.uc-score-label{left:7.25%;top:19.34%;font-size:clamp(12px,calc(35px * var(--card-scale)),35px)}
+.uc-silver{left:11.88%;top:22.84%;width:20.03%;height:26.7%}
+.uc-star{left:16.92%;top:29.65%;width:10%;height:13.35%;filter:sepia(1) saturate(2.5)}
+#unityResultBest{left:6.56%;top:44.01%;width:32.11%;text-align:center;font-size:clamp(13px,calc(44px * var(--card-scale)),44px)}
+.uc-total-label{left:7.94%;top:49.17%;width:29.28%;text-align:center;font-size:clamp(11px,calc(29px * var(--card-scale)),29px)}
+.uc-total{left:6.14%;top:52.3%;width:33.15%;text-align:center;color:#ffdb7c;white-space:nowrap}
+.uc-total b{font-size:clamp(28px,calc(110px * var(--card-scale)),110px);line-height:1.15}.uc-total small{font-size:clamp(13px,calc(46px * var(--card-scale)),46px)}
+#unityResultContent,#unityResultActions{inset:0;pointer-events:none}
+#unityResultContent>*{position:absolute;margin:0;box-sizing:border-box}
+.uc-record-label{left:43.16%;top:20.44%;width:33%;font-size:clamp(13px,calc(38px * var(--card-scale)),38px)}
+.uc-summary{left:44.89%;top:29.1%;width:46%;font-size:clamp(12px,calc(38px * var(--card-scale)),38px);line-height:1.65}
+.uc-summary p{margin:0 0 .2em}.uc-summary small{font-size:clamp(10px,calc(28px * var(--card-scale)),28px)}
+#unityResultEquation{margin-top:.6em;font-size:clamp(12px,calc(31px * var(--card-scale)),31px)}
+.uc-breakdown-label{left:6.7%;top:65.29%;font-size:clamp(11px,calc(28px * var(--card-scale)),28px)}
+.uc-clock-medal{left:9.12%;top:68.69%;width:7.8%;height:10.4%}.uc-skull-medal{left:53.66%;top:68.69%;width:7.8%;height:10.4%}
+.uc-survival-label{left:18.3%;top:68.97%}.uc-kill-label{left:62.85%;top:68.97%}
+.uc-survival-label,.uc-kill-label{font-size:clamp(12px,calc(30px * var(--card-scale)),30px)}
+#unityResultSurvival{left:18.3%;top:72.74%}#unityResultKill{left:62.85%;top:72.74%}
+#unityResultSurvival,#unityResultKill{font-size:clamp(15px,calc(48px * var(--card-scale)),48px)}
+#unitySurvivalFormula{left:28.31%;top:69.9%;width:18.99%}#unityKillFormula{left:72.86%;top:69.9%;width:18.99%}
+#unitySurvivalFormula,#unityKillFormula{font-size:clamp(10px,calc(23px * var(--card-scale)),23px);text-align:right;white-space:nowrap}
+.uc-note{left:6.56%;top:78.4%;line-height:1;font-size:clamp(9px,calc(20px * var(--card-scale)),20px)}
+#unityResultCard[data-compact=true] .uc-note{display:none}
+#unityResultActions>button{position:absolute;top:80.76%;height:11.05%;min-height:44px;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:#efe6c9;font-weight:700;font-size:clamp(16px,calc(51px * var(--card-scale)),51px);text-shadow:0 1px 2px #000;pointer-events:auto}
+#unityResultActions>button:hover{background:#fff2}#unityResultActions>button:disabled{pointer-events:none;opacity:.7}#unityResultActions>button:focus-visible{outline:3px solid #ffd36d;outline-offset:2px}
+#unityRetry{left:11.95%;width:35.77%}#unityMenu{left:52.35%;width:35.84%}
+#unityResultActions>#unityMore{left:80%;top:17.5%;width:14%;height:6%;font-size:clamp(12px,calc(27px * var(--card-scale)),27px);border:1px solid #bdb19670;border-radius:5px}
+#unityScoreDetails{position:absolute;inset:3%;overflow:auto;z-index:2;background:#1e2022f5;padding:20px;color:#f3e8cd;text-shadow:none;border:1px solid #bcb094;border-radius:8px}
+#unityScoreDetails[hidden]{display:none}#unityScoreDetails button{min-height:44px}#unityScoreRanking:empty:after{content:'このルールのランキング記録はまだありません。';color:#c5bcaa;font-size:13px}
+@media(max-width:1000px){#unityScoreHud{left:145px;right:85px;transform:none;width:auto;max-width:650px}.unity-counter{grid-template-columns:22px auto auto;gap:0 4px}.unity-counter>img{width:22px;height:22px}.unity-counter>b{font-size:28px}.unity-counter>span{font-size:11px}.unity-challenge-score .hud-tl{font-size:11px;max-width:135px}.unity-challenge-score .hud-tr{display:none}#unityDifficulty{top:68px}}
+@media(max-width:650px){.unity-counter>img{display:none}.unity-counter{grid-template-columns:auto auto;grid-template-rows:34px 22px}.unity-counter>span{grid-column:1/-1}.unity-counter>b{font-size:25px}.unity-score>b{grid-column:1/-1}#unityScoreHud{gap:4px}.unity-counter strong{margin-left:0}}
+@media(prefers-reduced-motion:reduce){#unityResultCard{transform:none!important}.unity-challenge-score #ovOver{animation:none!important}}
