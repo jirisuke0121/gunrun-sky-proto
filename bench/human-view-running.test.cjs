@@ -95,9 +95,24 @@ const { fixture } = require('./human-running.test.cjs');
     mode = 'pause'; const pausedPosition = holder.position.toArray(); update(1, false); assert.ok(holder.position.toArray().every((v, i) => Math.abs(v - pausedPosition[i]) < 1e-10)); mode = 'play';
   }
   c.state = 'normal'; c.ledge = null; c.onGround = true; update(30, false);
+  // Wall pose uses the wall normal and tangential travel, independently of aim.
+  for (const normal of [{x:1,z:0},{x:-1,z:0},{x:0,z:1},{x:0,z:-1}]) {
+    c.state='wallrun';c.onGround=false;c.wallN=normal;c.vel.set(-normal.z*8,0,normal.x*8);c.yaw=.7;
+    update(20);
+    assert.equal(dataset.skyHumanClip,'wallrun');
+    assert.ok(['parkourWallLeft','parkourWallRight'].includes(dataset.skyHumanAction));
+    const yaw=holder.rotation.y, phase=+dataset.skyHumanWallPhase;
+    assert.ok(Math.abs(Math.sin(yaw)*normal.x+Math.cos(yaw)*normal.z)<1e-9,'body faces along wall');
+    c.yaw-=1.1;update(1,false);
+    assert.ok(Math.abs(Math.atan2(Math.sin(holder.rotation.y-yaw),Math.cos(holder.rotation.y-yaw)))<1e-9,'looking around cannot turn feet into wall');
+    assert.equal(+dataset.skyHumanWallPhase,phase,'blocked player does not tread in place');
+    mode='pause';const frozen=[...weights];update(5,false);assert.deepEqual([...weights],frozen);mode='play';
+    c.state='normal';c.vel.y=6;update(10);assert.equal(dataset.skyHumanAction,'parkourJump');
+    c.onGround=true;c.vel.set(0,0,-6);update(30);assert.equal(dataset.skyHumanClip,'runForward');
+  }
   // Real barrel/arm alignment must hold on the first shot, not only after the
   // run has faded out. Use an off-axis target as automatic aim can select one.
-  for(const state of ['normal','jump','slide'])for(const pitch of [-1.45,-.6,0,.7,1.45])for(const yaw of [-2.4,0,2.4]){
+  for(const state of ['normal','jump','slide','wallrun'])for(const pitch of [-1.45,-.6,0,.7,1.45])for(const yaw of [-2.4,0,2.4]){
     c.state=state==='jump'?'normal':state;c.onGround=state!=='jump';c.pitch=pitch;c.yaw=yaw;
     c.vel.set(0,state==='jump'?3:0,-6);c.slideT=.5;sky.Se.rotation.set(pitch,yaw,0,'YXZ');update(1,false);
     const origin=sky.Se.position.clone(),direction=new Vector3(.18,.02,-1).normalize().applyQuaternion(sky.Se.quaternion);
@@ -137,5 +152,5 @@ const { fixture } = require('./human-running.test.cjs');
   keys.get('keydown')({ code: 'KeyV', repeat: false }); c.pos.z -= 100; c.vel.z = -6; update(1, false);
   assert.equal(+dataset.skyHumanGaitPhase, 0);
   assert.ok(body.morphTargetInfluences.every(Number.isFinite));
-  console.log('PASS actual human-view integration: moving/blocked feet, walk/run/strafe/back, firing/reload, pause, jump/slide/ladder, ledge contacts, view switch/respawn; 45 first-shot barrel/ray, visible chest direction, foot preservation and actual deformed wrist contacts');
+  console.log('PASS actual human-view integration: moving/blocked feet, walk/run/strafe/back, firing/reload, pause, jump/slide/ladder, ledge contacts, wall run/look/pause/exit, view switch/respawn; 60 first-shot barrel/ray, visible chest direction, foot preservation and actual deformed wrist contacts');
 })().catch(error => { console.error(error); process.exitCode = 1; });
