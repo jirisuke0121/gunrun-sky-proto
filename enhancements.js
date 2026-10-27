@@ -1,9 +1,10 @@
+import { createSwing } from './parkour-swing.js?v=20261027-swing-v1';
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 import { createFlashbang } from './flashbang.js?v=20261026-gear-polish-v1';
-import { createGhostReplay } from './ghost-replay.js?v=20261027-score-v3';
+import { createGhostReplay } from './ghost-replay.js?v=20261027-swing-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261027-jump-power-v2';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
-import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261025-jump-tune-portrait-v1';
+import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261027-swing-v1';
 import { createJumpPickups } from './jump-pickups.js?v=20261027-jump-items-v1';
 import { createDash } from './dash-boost.js?v=20261027-jump-items-v1';
 
@@ -45,6 +46,7 @@ try {
 } catch {}
 const { Box, Cylinder, Torus, Sphere, Mesh, Group, Standard, Basic, Vector3 } = Geom;
 window.skyDash = createDash(game, window.__game);
+window.skySwing = createSwing(game, window.__game, window.skySwingCourse);
 const easyPort = createEasyWeaponPort(game);
 window.__easyWeaponPort = easyPort;
 window.skyJumpPickups = createJumpPickups(game, window.__game);
@@ -488,7 +490,7 @@ const weaponAmmo = new Map();
 function syncWeapon(weapon) {
   const mode=game.modeRef();
   if(weapon===lastWeapon)return;
-  weaponViews.forEach((view,index)=>{view.visible=U.gunOn && c.state!=='ladder' && index===weapon;});
+  weaponViews.forEach((view,index)=>{view.visible=U.gunOn && c.state!=='ladder' && c.state!=='swing' && index===weapon;});
   vd.position.z=[-.25,-.62,-.34,-.82,-.25,-.62,-.72,-.82,-.72,-.82,-.9,-.72][weapon]??-.25;
   if((mode==='play'||mode==='pause') && lastWeapon>=0) {
     weaponAmmo.set(lastWeapon,{ammo:Et.ammo,reserve:Et.reserve,reloadT:Et.reloadT});
@@ -516,7 +518,7 @@ function updateEquipment(now) {
   if (mode === 'menu' || (mode === 'play' && z.t + 0.5 < lastRunClock)) weaponAmmo.clear();
   if (mode === 'play') lastRunClock = z.t;
   syncWeapon(weapon);
-  weaponViews.forEach((view, index) => { view.visible = U.gunOn && c.state !== 'ladder' && index === weapon; });
+  weaponViews.forEach((view, index) => { view.visible = U.gunOn && c.state !== 'ladder' && c.state !== 'swing' && index === weapon; });
   const shots = window.__game?.stats?.shots || 0;
   if (shots < lastMotionShots) lastMotionShots = shots;
   if (shots > lastMotionShots && weapon >= 4) {
@@ -557,7 +559,7 @@ function updateEquipment(now) {
     // Bring the receiver into frame while the magazine is out.
     view.position.set(0.38 - 0.08 * reload + bob, -0.45 + 0.12 * reload - 0.035 * easyKick, -0.62 + 0.15 * easyKick);
     view.rotation.set(-0.12 + 0.2 * easyKick + 0.08 * reload, -0.72 + 0.12 * reload, -0.1 * reload);
-    easyFlashes[weapon].visible = easyFlashTime > 0 && U.gunOn && mode === 'play' && c.state !== 'ladder';
+    easyFlashes[weapon].visible = easyFlashTime > 0 && U.gunOn && mode === 'play' && c.state !== 'ladder' && c.state !== 'swing';
     document.body.dataset.skyWeaponMotion = JSON.stringify({ weapon, kick: +easyKick.toFixed(3), reload: +reload.toFixed(3), flash: easyFlashes[weapon].visible });
   }
   if (weapon === 8 && mode === 'play') {

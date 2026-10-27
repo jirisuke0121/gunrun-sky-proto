@@ -1,7 +1,7 @@
 // Running style for the existing, baked Unity human. No new model download.
 // Asset-space metres: +Y up, +Z forward, the right hand is on -X.
-import { actionPose } from './human-actions.js?v=20261027-aim-v1';
-export { jumpPhase, ledgeAnchor } from './human-actions.js?v=20261027-aim-v1';
+import { actionPose } from './human-actions.js?v=20261027-swing-v1';
+export { jumpPhase, ledgeAnchor } from './human-actions.js?v=20261027-swing-v1';
 export const RUN_STRIDE = 3.36;
 export const RUN_SAMPLES = 24;
 const TAU = Math.PI * 2;
@@ -135,7 +135,7 @@ export function addParkourRun(model, motion, Attribute) {
     pitches.push(clamp(-(-1.42 - .10 - .78 * Math.cos(phase * TAU) + .42 + Math.PI / 2), -1.35, .6));
   }
   const actionClips = {}, actionGrips = {}, actionHands = {};
-  for (const kind of ['parkourJump', 'parkourVault', 'parkourMantle', 'parkourCatch']) {
+  for (const kind of ['parkourJump', 'parkourVault', 'parkourMantle', 'parkourCatch', 'parkourSwing']) {
     const names = [], seconds = [], rightHands = [], bothHands = [];
     for (let i = 0; i <= 12; i++) {
       const phase = i / 12, pose = actionPose(kind, phase), name = `${kind}_${String(i).padStart(3, '0')}`;

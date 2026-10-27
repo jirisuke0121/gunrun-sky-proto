@@ -70,7 +70,7 @@ globalThis.SkyHookAssist = {
 
   function matchingPoint(player, getWall, wallNormal) {
     const radius = player.r + 0.55;
-    return points.find(({ at, normal }) => {
+    return (globalThis.skySwingCourse ? [globalThis.skySwingCourse.wall] : points).find(({ at, normal }) => {
       const [x, y, z] = at;
       const [nx, nz] = normal;
       if (wallNormal && wallNormal.x * nx + wallNormal.z * nz < 0.8) return false;

@@ -1,5 +1,5 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor } from './human-running.js?v=20261027-dash-v1';
+import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor } from './human-running.js?v=20261027-swing-v1';
 import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261027-torso-v1';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
@@ -11,6 +11,7 @@ let asset = null, holder = null, model = null, motion = null, grip = null, morph
 let loading = null, activeClip = '', clipTime = 0, jumpTime = 0, landTime = 0, wasGrounded = true, shotTime = 1, lastAmmo = null, slidePose = 0;
 let gripPoint = new Vector3(), muzzleFlash = null;
 let gaitPhase = 0, runPose = 0, gripPitch = 0, bodyYawOffset = 0, turnBank = 0;
+let swingLean = 0;
 let motionPosition = null, lastTravelYaw = null;
 let parkourRunEnabled = true;
 let contactFrame = null, trackedLedge = null, handAnchor = null;
@@ -174,7 +175,8 @@ function updateMotion(dt, speed) {
   }
   let next = 'idle';
   const walking = speed < (sky.U.walkSpeed + sky.U.sprintSpeed) / 2;
-  if (c.state === 'ladder') next = 'ladder';
+  if (c.state === 'swing' && c.swing && motion.clips.parkourSwing) next = 'swing';
+  else if (c.state === 'ladder') next = 'ladder';
   else if (c.state === 'slide') next = 'slide';
   else if (c.state === 'ledge' && c.ledge && parkourRunEnabled && motion.clips.parkourMantle) next = c.ledge.kind === 'vault' ? 'vault' : c.ledge.kind === 'catch' ? 'catch' : 'mantle';
   else if (!grounded || landTime > 0 || c.state === 'ledge') next = 'jump';
@@ -192,13 +194,14 @@ function updateMotion(dt, speed) {
     if (next === 'slide') document.body.dataset.skyHumanSlideSeen = 'true';
     if (next === 'ladder') document.body.dataset.skyHumanLadderSeen = 'true';
   }
-  const special = { vault: 'parkourVault', mantle: 'parkourMantle', catch: 'parkourCatch', jump: 'parkourJump' }[next];
-  const selected = parkourRunEnabled && motion.clips[special] ? special : next;
-  const ledgeAction = next === 'vault' || next === 'mantle' || next === 'catch';
+  const special = { vault: 'parkourVault', mantle: 'parkourMantle', catch: 'parkourCatch', jump: 'parkourJump', swing: 'parkourSwing' }[next];
+  const selected = (next === 'swing' || parkourRunEnabled) && motion.clips[special] ? special : next;
+  const ledgeAction = next === 'swing' || next === 'vault' || next === 'mantle' || next === 'catch';
   if (ledgeAction) runPose = 0;
   const info = motion.clips[selected];
   if (!info) return;
-  if (next === 'vault' || next === 'mantle' || next === 'catch') clipTime = info.duration * Math.max(0, Math.min(1, c.ledge.t));
+  if (next === 'swing') clipTime = info.duration * Math.max(0, Math.min(1, (c.swing.angle + .9) / 1.85));
+  else if (next === 'vault' || next === 'mantle' || next === 'catch') clipTime = info.duration * Math.max(0, Math.min(1, c.ledge.t));
   else if (next === 'reload') {
     const total = Math.max(.1, sky.wpc().rl || 1.5);
     clipTime = info.duration * Math.max(0, Math.min(1, 1 - reload / total));
@@ -257,7 +260,11 @@ function updateMotion(dt, speed) {
   gripPoint.lerp(blendedGrip, smooth);
   gripPitch += (wantedPitch - gripPitch) * smooth;
   contactFrame = null;
-  if (ledgeAction) {
+  if (next === 'swing') {
+    const handA = motion.hands[selected][lo], handB = motion.hands[selected][hi];
+    const middle = [0,1,2].map(k => ((handA.left[k]+handA.right[k])*(1-fraction)+(handB.left[k]+handB.right[k])*fraction)/2);
+    contactFrame = { middle, anchor: {x:c.swing.pivot[0],y:c.swing.pivot[1],z:c.swing.pivot[2]}, weight:1 };
+  } else if (ledgeAction) {
     if (trackedLedge !== c.ledge) { trackedLedge = c.ledge; handAnchor = ledgeAnchor(c.ledge, sky.jn); }
     const handA = motion.hands[selected][lo], handB = motion.hands[selected][hi];
     const middle = [0, 1, 2].map(k => ((handA.left[k] + handA.right[k]) * (1 - fraction) + (handB.left[k] + handB.right[k]) * fraction) / 2);
@@ -331,7 +338,7 @@ function updateWorldWeapon(third, dt = 0) {
     }
   }
   if (!worldWeapon) { aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
-  worldWeapon.visible = third && !!sky.U.gunOn && c.state !== 'ladder' && c.state !== 'ledge';
+  worldWeapon.visible = third && !!sky.U.gunOn && c.state !== 'ladder' && c.state !== 'ledge' && c.state !== 'swing';
   if (!worldWeapon.visible) { aimBlend=0;aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
   const aiming=aimRig && sky.Et.reloadT<=0 && (shotTime<.28 || (c.onGround && c.state==='normal' && runPose<.01));
   // A shot must already have a matching pose on its first visible frame.
@@ -371,6 +378,7 @@ function update(dt) {
     else if (!third) {
       lastAmmo = sky.Et.ammo; shotTime = 1; jumpTime = 0; landTime = 0; wasGrounded = !!c.onGround;
       motionPosition = null; lastTravelYaw = null; runPose = 0; gaitPhase = 0; gripPitch = 0; bodyYawOffset = 0; turnBank = 0;
+      swingLean = 0;
       contactFrame = null; trackedLedge = null; handAnchor = null; contactOffset.set(0, 0, 0);
       aimRig?.reset();aimBlend=0;shotTarget=null;
     }
@@ -379,7 +387,10 @@ function update(dt) {
     holder.position.set(c.pos.x, c.pos.y - .12 * slidePose, c.pos.z);
     const ladderYaw = c.ladder ? Math.atan2(-c.ladder.nx, -c.ladder.nz) : c.yaw + Math.PI;
     const ledgeYaw = c.state === 'ledge' && c.ledge ? Math.atan2(c.ledge.dx, c.ledge.dz) : null;
-    holder.rotation.set(c.state === 'ladder' ? .09 : 0, c.state === 'ladder' ? ladderYaw : ledgeYaw ?? c.yaw + Math.PI + bodyYawOffset + 1.25 * slidePose, ledgeYaw === null ? turnBank : 0, 'YXZ');
+    const swinging = c.state === 'swing' && c.swing;
+    const swingYaw = swinging ? Math.atan2(c.swing.direction[0],c.swing.direction[1]) : null;
+    if (sky.modeRef() === 'play') swingLean = swinging ? -c.swing.angle : swingLean * Math.exp(-dt * 18);
+    holder.rotation.set(c.state === 'ladder' ? .09 : swingLean, c.state === 'ladder' ? ladderYaw : swingYaw ?? ledgeYaw ?? c.yaw + Math.PI + bodyYawOffset + 1.25 * slidePose, ledgeYaw === null ? turnBank : 0, 'YXZ');
     if (third && contactFrame) {
       holder.updateMatrixWorld(true);
       contactWorld.set(...contactFrame.middle); model.localToWorld(contactWorld);
