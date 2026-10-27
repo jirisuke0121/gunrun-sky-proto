@@ -20,7 +20,7 @@ fs.mkdirSync(output, { recursive: true });
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
-    browser = await chromium.launch({ headless: true, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+    browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
     for (const device of ['desktop', 'touch-landscape']) for (const map of ['index.html', 'canyon.html']) {
       const id = `${device}-${map.split('.')[0]}`;
       const context = await browser.newContext({ viewport: device === 'desktop' ? { width: 1280, height: 720 } : { width: 844, height: 390 }, hasTouch: device !== 'desktop', isMobile: device !== 'desktop', deviceScaleFactor: 1 });

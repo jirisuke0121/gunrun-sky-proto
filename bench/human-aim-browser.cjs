@@ -8,7 +8,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
  let server,browser;const results=[];
  try{
   if(!process.env.RUNNING_QA_URL){server=spawn('python3',['-m','http.server','8772','--bind','127.0.0.1'],{stdio:'ignore'});for(let i=0;i<100;i++){if(await fetch(base).then(r=>r.ok,()=>false))break;await new Promise(r=>setTimeout(r,100));}}
-  browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   for(const touch of [false,true])for(const map of ['index.html','canyon.html']){
    const id=`aim-${touch?'touch':'desktop'}-${map.split('.')[0]}`;
    const context=await browser.newContext({viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch,deviceScaleFactor:1});
