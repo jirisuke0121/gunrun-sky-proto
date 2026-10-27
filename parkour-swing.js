@@ -42,11 +42,11 @@ export function createSwing(sky, game, course) {
     label(b.id.endsWith('1') ? '1  SWING >' : '2  > UPPER', [b.at[0],b.at[1]+.7,b.at[2]], .7);
   }
   if (course) {
-    label('WALL > JUMP > SWING', [course.wall.at[0]-.25,course.wall.at[1]+2.4,course.wall.at[2]]);
+    label('WALL > JUMP > SWING', [-20.2,9.15,course.wall.at[2]],.85);
     // Both directions on the existing ring see the optional shortcut before
     // reaching its wall. Painted chevrons carry the eye to the take-off pad.
-    label('SWING > 8m', [-19.8,5.5,-10.5], .85);
-    label('SWING > 8m', [-19.8,5.5,-1.5], .85);
+    label('SWING / 8m', [-17.9,6.5,-10.5], .7);
+    label('SWING / 8m', [-17.9,7,-2], .7);
     function arrow(x,y,z,dx,dz) {
       const chevron = new T.Group(); chevron.position.set(x,y,z); chevron.rotation.y=Math.atan2(dx,dz);
       for(const side of [-1,1]) {

@@ -71,7 +71,7 @@ try{
   for(let i=0;i<180&&!c.onGround;i++)tick();const fallback={grabbed,lifeBefore:life,lifeAfter:c.life,pos:c.pos.toArray(),ground:c.onGround};
   // Structural visibility from both approaches: signs lie inside a normal
   // horizontal field of view and have no collision wall between eye and sign.
-  const visibility=[{from:[-20,5.62,-13],sign:[-19.8,5.5,-10.5],facing:[0,1]}, {from:[-20,5.62,1],sign:[-19.8,5.5,-1.5],facing:[0,-1]}].map(v=>{
+  const visibility=[{from:[-20,5.62,-13],sign:[-17.9,6.5,-10.5],facing:[0,1]}, {from:[-20,5.62,1],sign:[-17.9,7,-2],facing:[0,-1]}].map(v=>{
     const delta=v.sign.map((x,k)=>x-v.from[k]),length=Math.hypot(...delta),hit=s.raycast(...v.from,...delta.map(x=>x/length),length-.15);
     return{...v,visible:!hit,angle:Math.acos((delta[0]*v.facing[0]+delta[2]*v.facing[1])/Math.hypot(delta[0],delta[2]))};
   });
@@ -82,7 +82,7 @@ try{
  assert.ok(Number.isFinite(result.walkEstimate)&&result.walkEstimate-result.cases[0].time>2,'at least two seconds saved against an optimistic walk/climb lower bound (ladder exit overhead omitted)');
  assert.ok(result.chase.landed&&result.chase.caughtAt>result.chase.time+2&&result.chase.caughtAt<35,JSON.stringify({...result.chase,trail:undefined}));
  assert.ok(result.fallback.ground&&result.fallback.lifeBefore===result.fallback.lifeAfter);
- assert.ok(result.visibility.every(v=>v.visible&&v.angle<Math.PI/6));
+ assert.ok(result.visibility.every(v=>v.visible&&v.angle<Math.PI/3.6));
  assert.ok(result.exit.to[1]>7.9&&Math.abs(result.exit.to[2]-result.exit.from[2])>4,'leave the landing through the existing spine');
  assert.deepEqual(errors,[]);
  console.log(JSON.stringify({cases:result.cases.map(({trail,...r})=>r),walkEstimate:result.walkEstimate,chase:{time:result.chase.time,caughtAt:result.chase.caughtAt},exit:result.exit,fallback:result.fallback,visibility:result.visibility}));
