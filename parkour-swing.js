@@ -1,5 +1,6 @@
 // Pendulum traversal is a movement state, not a camera-only animation.
 export const SWING_LENGTH = 2.15;
+export const MAX_GRIP_SECONDS = 8;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export function pendulumPoint(bar, direction, angle, length = SWING_LENGTH) {
   return [bar[0] + direction[0] * length * Math.sin(angle), bar[1] - length * Math.cos(angle),
@@ -139,7 +140,7 @@ export function createSwing(sky, game, course) {
       // fresh press made while attached is consumed, at this exact swing phase.
       c.jumpBuf = 0;
       if (jumpPressed) { detach(); return true; }
-      if (input.fwdIn < -.55 || c.crouchPressed) { c.crouchPressed = false; detach(true); return true; }
+      if (input.fwdIn < -.55 || c.crouchPressed || a.age >= MAX_GRIP_SECONDS) { c.crouchPressed = false; detach(true); return true; }
       // Pump in the direction of motion, below a bounded swing energy. This
       // lets a missed window come round again without an automatic launch.
       const energy = .5 * SWING_LENGTH ** 2 * a.omega ** 2 + U.gravity * SWING_LENGTH * (1 - Math.cos(a.angle));
@@ -155,6 +156,7 @@ export function createSwing(sky, game, course) {
       const ready = isLaunchWindow(a.angle, a.omega);
       hint.hidden = false; hint.dataset.ready = String(ready);
       hint.textContent = ready ? `鉄棒 ${chain}/2　今！ジャンプで次へ` : `鉄棒 ${chain}/2　前へ振れたらジャンプ / 下で離す`;
+      if (a.age >= MAX_GRIP_SECONDS - 2) hint.textContent += ` / 手が離れるまで ${Math.ceil(MAX_GRIP_SECONDS - a.age)}秒`;
       if (jumpButton) jumpButton.dataset.swingReady = String(ready);
       document.body.dataset.skySwing = JSON.stringify({ bar: a.bar.id, angle: a.angle, chain, age: a.age });
       previous = c.pos.toArray(); return true;

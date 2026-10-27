@@ -109,6 +109,16 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
         skySwing.reset();return{grabbed,before,paused,dropped,reset:c.state,ammo,heldAmmo};
       });
       assert.ok(lifecycle.grabbed);assert.deepEqual(lifecycle.before,lifecycle.paused);assert.equal(lifecycle.dropped,'normal');assert.equal(lifecycle.reset,'normal');assert.equal(lifecycle.ammo,lifecycle.heldAmmo);
+      const gripLimit=await p.evaluate(()=>{
+        startSwingQA([-12.9,6.05,-6]);const c=__game.P;c.onGround=false;c.vel.x=5;stepSwing(1,false);
+        const before=__game.stats.barJumps||0;let warning=false,elapsed=0;
+        while(skySwing.active&&elapsed<9){
+          stepSwing(1,false);elapsed+=1/30;
+          if(elapsed>6.5&&skySwing.active)warning=/手が離れるまで/.test(document.getElementById('swingHint').textContent);
+        }
+        return{elapsed,warning,active:!!skySwing.active,jumps:(__game.stats.barJumps||0)-before};
+      });
+      assert.ok(gripLimit.elapsed>=7.8&&gripLimit.elapsed<8.1&&gripLimit.warning&&!gripLimit.active&&gripLimit.jumps===0,JSON.stringify(gripLimit));
       const nav=await p.evaluate(()=>{
         const g=__game.NAV,nearest=p=>g.nodes.reduce((best,n)=>Math.hypot(n.x-p[0],n.y-p[1],n.z-p[2])<Math.hypot(g.nodes[best].x-p[0],g.nodes[best].y-p[1],g.nodes[best].z-p[2])?n.id:best,0);
         const visited=new Set(),q=[nearest(skySwingCourse.approach)];visited.add(q[0]);
@@ -121,7 +131,7 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
     // The shared movement hook must remain inert in the old town.
     const p=await browser.newPage();await p.addInitScript(()=>window.__hold=true);await p.route('https://**/*',r=>r.abort());await p.goto(base+'index.html');await p.waitForFunction(()=>window.skySwing);
     assert.equal(await p.evaluate(()=>skySwing.course),undefined);await p.close();
-    console.log('PASS: wall kick → pad → two actual bar catches/releases → upper spine, grip contact, PC/touch widths, pause/drop/reset, unchanged old town');
+    console.log('PASS: wall kick → pad → two actual bar catches/releases → upper spine, grip contact, PC/touch widths, pause/drop/reset, grip timeout, unchanged old town');
   } finally {
     fs.writeFileSync(`${output}/results.json`,JSON.stringify(results,null,2));
     await browser?.close();server?.kill();
