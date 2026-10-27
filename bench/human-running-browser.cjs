@@ -27,24 +27,30 @@ fs.mkdirSync(output, { recursive: true });
       // Keep test records out of the ranking, including requests made on exit.
       await context.route('**/*', route => {
         const url = route.request().url();
+        if (new URL(url).hostname === 'gunrun-runs.jirisuke0121.workers.dev') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ top: [], total: 0, me: null, ok: true }) });
+        if (new URL(url).pathname === '/favicon.ico') return route.fulfill({ status: 204, body: '' });
         return url.startsWith(base) || /^(data|blob):/.test(url) ? route.continue() : route.abort();
       });
       const page = await context.newPage(), errors = [];
       page.on('pageerror', error => errors.push(error.message));
-      page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+      page.on('console', message => { if (message.type() === 'error') errors.push(`${message.text()} ${message.location().url}`); });
       try {
         await page.goto(new URL(map, base).href, { waitUntil: 'load' });
-        await page.waitForFunction(() => window.__game && window.skyHumanView, { timeout: 60000 });
+        await page.waitForFunction(() => window.__game && window.skyHumanView, null, { timeout: 60000 });
         await page.locator('#humanSel [data-human="unity"]').click();
-        await page.waitForFunction(() => document.body.dataset.skyHumanLoaded === 'true', { timeout: 60000 });
+        await page.waitForFunction(() => document.body.dataset.skyHumanLoaded === 'true', null, { timeout: 60000 });
         assert.equal(await page.evaluate(() => document.body.dataset.skyHumanRunStyle), 'parkour');
         await page.locator('#bStart').click();
         await page.waitForFunction(() => window.__game.mode === 'play');
         // Exercise the real start/input/physics loop before isolating poses.
         await page.keyboard.down('w');
+        const ammo = await page.evaluate(() => window.__skyInternals.Et.ammo);
+        await page.keyboard.down('e');
         await page.waitForTimeout(700);
+        await page.keyboard.up('e');
         await page.keyboard.up('w');
         assert.equal(await page.evaluate(() => window.__game.mode), 'play');
+        assert.ok(await page.evaluate(() => window.__skyInternals.Et.ammo) < ammo, 'real shooting input consumes ammunition');
         await page.screenshot({ path: path.join(output, `${id}-play.png`) });
 
         await page.evaluate(() => {
