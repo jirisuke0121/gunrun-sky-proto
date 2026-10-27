@@ -42,8 +42,8 @@ fs.mkdirSync(output, { recursive: true });
       try {
         await page.goto(new URL(map, base).href, { waitUntil: 'load' });
         await page.waitForFunction(() => window.__game && window.skyHumanView, null, { timeout: 60000 });
-        await page.locator('#humanSel [data-human="unity"]').click();
-        await page.waitForFunction(() => document.body.dataset.skyHumanLoaded === 'true', null, { timeout: 60000 });
+        if(await page.locator('#humanSel [data-human="unity"]').count()) await page.locator('#humanSel [data-human="unity"]').click();
+        await page.waitForFunction(() => window.skyHumanView.choice === 'unity' && document.body.dataset.skyHumanLoaded === 'true', null, { timeout: 60000 });
         assert.equal(await page.evaluate(() => document.body.dataset.skyHumanRunStyle), 'parkour');
         await page.locator('#bStart').click();
         await page.waitForFunction(() => window.__game.mode === 'play');

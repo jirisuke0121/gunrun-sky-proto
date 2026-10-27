@@ -5,7 +5,7 @@
 
 ## 2026-10-27：チャレンジ難易度別の記録
 
-`GET /ranking?map=old-town&difficulty=normal&rules=corridor-score-v3` と `GET /ghosts/<id>?map=old-town&difficulty=normal&rules=corridor-score-v3` は同じ難易度の記録に絞ります。`easy` / `normal` / `hard` / `expert` / `master` / `ultra` は指定した `challenge.version` の記録が対象です。`rules` は `corridor-score-v3`、`corridor-v2`、前案の `unity-v1` に対応し、省略時は前案互換の `unity-v1`。`legacy` または難易度省略では従来の記録・自由調整の記録を返します。過去の記録を新しいNormalへ移すことはありません。
+`GET /ranking?map=old-town&difficulty=normal&rules=corridor-cap12-v4` と `GET /ghosts/<id>?map=old-town&difficulty=normal&rules=corridor-cap12-v4` は同じ難易度の記録に絞ります。`easy` / `normal` / `hard` / `expert` / `master` / `ultra` は指定した `challenge.version` の記録が対象です。`rules` は `corridor-cap12-v4`、`corridor-score-v3`、`corridor-v2`、前案の `unity-v1` に対応し、省略時は前案互換の `unity-v1`。`legacy` または難易度省略では従来の記録・自由調整の記録を返します。過去の記録を新しいNormalへ移すことはありません。
 
 記録JSONの `challenge: {id, version}` を既存のJSON列へ保存し、DBスキーマ変更はありません。Workerを先に更新してからゲームを公開します。
 
@@ -63,4 +63,4 @@ Claudeに分析させるときは、この出力のJSONを渡してください�
 - 1回の送信は600KBまで。同じ端末IDからは1分に20回まで
 - 無料枠で足りる量：1プレイ1.5万〜5万バイト、D1の無料枠は5GB。10万プレイ程度までは余裕
 
-`corridor-score-v3` の6難易度はUnityの得点順（score降順）で比較します。クリア状態は別表示です。旧ルールと自由調整は従来のクリア優先順を維持します。
+`corridor-cap12-v4` / `corridor-score-v3` の6難易度はUnityの得点順（score降順）で比較します。クリア状態は別表示です。旧ルールと自由調整は従来のクリア優先順を維持します。

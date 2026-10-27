@@ -18,9 +18,10 @@ fs.mkdirSync('browser-evidence',{recursive:true});
    page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
    try{
     await page.goto(new URL(map,base).href);await page.waitForFunction(()=>window.__game&&window.skyHumanView);
-    await page.locator('#humanSel [data-human="unity"]').click();await page.waitForFunction(()=>document.body.dataset.skyHumanLoaded==='true');
-    // Use the real asynchronously loaded exports, including reversed Unity axes.
-    await page.waitForFunction(()=>{const m=JSON.parse(document.body.dataset.skyModels||'{}');return ['hg','sg','smg','mg','unityHg','easyShotgun','easyM4','easyRail','easyBeam','easyCluster','easyRocket','easyM79'].every(k=>m[k]);},null,{timeout:60000});
+    if(await page.locator('#humanSel [data-human="unity"]').count()) await page.locator('#humanSel [data-human="unity"]').click();await page.waitForFunction(()=>window.skyHumanView.choice==='unity'&&document.body.dataset.skyHumanLoaded==='true');
+    // HG is the shipped export. The pooled weapons retain their fallback-axis
+    // coverage below, but their GLBs are intentionally no longer loaded.
+    await page.waitForFunction(()=>JSON.parse(document.body.dataset.skyModels||'{}').hg,null,{timeout:60000});
     await page.locator('#bStart').click();await page.waitForFunction(()=>window.__game.mode==='play');
     await page.evaluate(async()=>{
      const sky=window.__skyInternals,g=window.__game,T=sky.Geom,c=sky.c;
