@@ -1,7 +1,7 @@
 // Lightweight sprint camera, collectible boost and pooled world effects.
 export const DASH_SECONDS = 5;
-export const DASH_MULTIPLIER = 1.7;
-export const DASH_RESPAWN = 18;
+export const DASH_MULTIPLIER = 1.3;
+export const DASH_RESPAWN = 36;
 const clamp = x => Math.max(0, Math.min(1, x));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 const ease = (from, to, dt, rate) => from + (to - from) * (1 - Math.exp(-dt * rate));
@@ -17,7 +17,7 @@ export function segmentDistance(point, from, to) {
 
 // Select connected, uncrowded floor nodes. Never put an item over an arbitrary
 // x/z coordinate where the actual map may contain a roof, a wall or a gap.
-export function pickupNodes(graph, spawn, yaw, clear) {
+export function pickupNodes(graph, spawn, yaw, clear, targets = [6, 20, 36, 52]) {
   const nodes = graph.nodes;
   if (!nodes.length) return [];
   let start = 0, best = Infinity;
@@ -33,7 +33,7 @@ export function pickupNodes(graph, spawn, yaw, clear) {
   }
   const forward = [-Math.sin(yaw), -Math.cos(yaw)], chosen = [];
   const candidates = nodes.filter(n => steps[n.id] >= 3 && (graph.out[n.id] || []).filter(e => graph.E[e].kind === 0).length >= 3);
-  for (const target of [6, 20, 36, 52]) {
+  for (const target of targets) {
     let pick = null, score = Infinity;
     for (const n of candidates) {
       const dx = n.x - spawn.x, dz = n.z - spawn.z, d = Math.hypot(dx, dz);
@@ -63,7 +63,7 @@ export function createDash(sky, game) {
     context.strokeText('DASH', 128, 56); context.fillText('DASH', 128, 56);
     labelMaterial = new T.SpriteMaterial({ map: new T.CanvasTexture(canvas), transparent: true, depthWrite: false });
   }
-  const items = Array.from({ length: 4 }, (_, id) => {
+  const items = Array.from({ length: 2 }, (_, id) => {
     const group = new Group(), ring = new Mesh(ringGeometry, cyan), core = new Mesh(coreGeometry, white);
     const halo = new Mesh(ringGeometry, cyan); halo.rotation.y = Math.PI / 2; halo.scale.setScalar(.72);
     core.rotation.z = Math.PI / 4; group.add(ring, halo, core); root.add(group); group.visible = false;
@@ -86,7 +86,7 @@ export function createDash(sky, game) {
   const status = document.createElement('div'); status.id = 'dashStatus'; status.hidden = true;
   const label = document.createElement('span'), meter = document.createElement('i'); status.append(label, meter); document.body.appendChild(status);
   const rule = document.querySelector('#ovStart .rules .keys');
-  if (rule) { const li = document.createElement('li'); li.textContent = '青いDASHリングを取ると5秒間加速。前に走るだけで使える'; rule.appendChild(li); }
+  if (rule) { const li = document.createElement('li'); li.textContent = '青いDASHリングを取ると5秒間、速度が1.3倍。再出現は36秒後'; rule.appendChild(li); }
   let remaining = 0, age = 0, time = 0, pulse = 0, run = 0, boost = 0, aimTime = 0, shots = game.stats.shots || 0;
   let previous = null, previousFactor = 1;
   const trail = [], forward = new Vector3(), right = new Vector3(), centre = new Vector3();
@@ -100,7 +100,7 @@ export function createDash(sky, game) {
   }
   function placePickups(position, yaw) {
     const selected = pickupNodes(game.NAV, position, yaw, n => [[0, 0], [.48, 0], [-.48, 0], [0, .48], [0, -.48]].every(([x, z]) => sky.oe(n.x + x, n.y + .05, n.z + z, .28, 1.8)));
-    items.forEach((item, i) => { item.node = selected[i] || null; if (item.node) item.group.position.set(item.node.x, item.node.y + 1.05, item.node.z); item.group.visible = false; });
+    items.forEach((item, i) => { item.node = selected[i * 2] || selected[i] || null; if (item.node) item.group.position.set(item.node.x, item.node.y + 1.05, item.node.z); item.group.visible = false; });
   }
   function collect(item) {
     const refreshing = remaining > 0;
@@ -123,7 +123,7 @@ export function createDash(sky, game) {
       if (segmentDistance(p, a, b) < .72) collect(item);
     }
     previous = to;
-    const factor = 1 + .7 * boostEnvelope(remaining, age), speed = Math.hypot(c.vel.x, c.vel.z);
+    const factor = 1 + (DASH_MULTIPLIER - 1) * boostEnvelope(remaining, age), speed = Math.hypot(c.vel.x, c.vel.z);
     // Smoothly remove only the speed granted by this item. Do not cap a hook,
     // slide, explosion or any other source of momentum.
     if (factor < previousFactor && c.onGround && c.state === 'normal' && speed <= U.sprintSpeed * previousFactor + .15 && speed > U.sprintSpeed * factor) {
@@ -151,7 +151,7 @@ export function createDash(sky, game) {
     lines.style.opacity = String((reduced ? .16 : .38) * run * (.35 + .65 * boost));
     flash.style.opacity = String(reduced ? 0 : .13 * pulse / .42);
     status.hidden = remaining <= 0;
-    label.textContent = `DASH ×1.7　${remaining.toFixed(1)}秒`;
+    label.textContent = `DASH ×${DASH_MULTIPLIER}　${remaining.toFixed(1)}秒`;
     meter.style.transform = `scaleX(${remaining / DASH_SECONDS})`;
     for (const item of items) {
       item.group.visible = !!item.node && item.cooldown <= 0;
@@ -180,10 +180,10 @@ export function createDash(sky, game) {
     });
     burst.visible = pulse > 0 && !reduced;
     burst.scale.setScalar(1 + (1 - pulse / .42) * 5); burst.material.opacity = pulse / .42 * .65;
-    document.body.dataset.skyDash = JSON.stringify({ remaining: +remaining.toFixed(3), factor: +(1 + .7 * boostEnvelope(remaining, age)).toFixed(3), run: +run.toFixed(3), boost: +boost.toFixed(3), distance: +camera.distance.toFixed(3), pickups: items.filter(i => i.node && i.cooldown <= 0).length });
+    document.body.dataset.skyDash = JSON.stringify({ remaining: +remaining.toFixed(3), factor: +(1 + (DASH_MULTIPLIER - 1) * boostEnvelope(remaining, age)).toFixed(3), run: +run.toFixed(3), boost: +boost.toFixed(3), distance: +camera.distance.toFixed(3), pickups: items.filter(i => i.node && i.cooldown <= 0).length });
   }
   return { step, frame, reset, placePickups, camera,
-    speed: base => base * (1 + .7 * boostEnvelope(remaining, age)),
+    speed: base => base * (1 + (DASH_MULTIPLIER - 1) * boostEnvelope(remaining, age)),
     fov: original => Math.min(122, Math.max(original, U.fov + U.fovKick * .8 * run + 7 * boost * run)),
     get boost() { return boost; }, get remaining() { return remaining; },
     get pickups() { return items.filter(i => i.node).map(i => ({ id: i.id, nodeId: i.node.id, position: [i.node.x, i.node.y, i.node.z], cooldown: i.cooldown })); }
