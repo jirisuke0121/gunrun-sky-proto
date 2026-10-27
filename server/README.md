@@ -3,6 +3,12 @@
 ゲームが1プレイ終わるごとに、記録（結果・操作・画面サイズなど）をここへ送ります。
 個人名・メールなどは送りません。端末ごとのランダムID（`gunrun-pid`）だけが付きます。
 
+## 2026-10-27：チャレンジ難易度別の記録
+
+`GET /ranking?map=old-town&difficulty=normal` と `GET /ghosts/<id>?map=old-town&difficulty=normal` は同じ難易度の記録に絞ります。`easy` / `normal` / `hard` / `expert` / `master` / `ultra` は `challenge.version = unity-v1` の記録が対象です。`legacy` または難易度省略では従来の記録・自由調整の記録を返します。過去の記録を新しいNormalへ移すことはありません。
+
+記録JSONの `challenge: {id, version}` を既存のJSON列へ保存し、DBスキーマ変更はありません。Workerを先に更新してからゲームを公開します。
+
 ## 2026-10-26：ランキングからのゴースト閲覧
 
 - `GET /ranking?map=old-town` / `map=rock-canyon` はマップごとの最高記録と、再生可能な記録の `replayId` と記録日時 `playedAt`（ISO 8601）を返します。省略時は旧市街です。

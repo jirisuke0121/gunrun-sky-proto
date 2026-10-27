@@ -32,7 +32,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-10-26-gear-polish-v1" }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-10-27-challenge-v1" }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
@@ -116,6 +116,8 @@ WITH s AS (
     AND COALESCE(json_extract(json, '$.channel'), 'production') != 'dev'
     AND (CASE WHEN json_extract(json, '$.map.id') = 'rock_canyon_v1' OR json_extract(json, '$.mapVersion') = 'rock-canyon-v1'
               THEN 'rock-canyon' ELSE 'old-town' END) = ?
+    AND COALESCE(json_extract(json, '$.challenge.id'), 'legacy') = ?
+    AND (? = 'legacy' OR json_extract(json, '$.challenge.version') = 'unity-v1')
 ), b AS (
   SELECT *, ROW_NUMBER() OVER (PARTITION BY player ORDER BY k DESC, t DESC, received_at DESC, id DESC) AS rn FROM s
 ), r AS (
@@ -133,22 +135,28 @@ function publicTime(row) {
   return result;
 }
 
+const DIFFICULTIES = ['easy', 'normal', 'hard', 'expert', 'master', 'ultra', 'legacy'];
+
 async function ranking(env, cors, url) {
+  const difficulty = url.searchParams.get('difficulty') || 'legacy';
+  if (!DIFFICULTIES.includes(difficulty)) return json({ error: 'bad_difficulty' }, 400, cors);
   const map = url.searchParams.get("map") || "old-town";
   if (!["old-town", "rock-canyon"].includes(map)) return json({ error: "bad_map" }, 400, cors);
   const me = (url.searchParams.get("me") || "").slice(0, 40);
-  const top = await env.DB.prepare(RANK_CTE + " SELECT pos, substr(player,1,4) AS tag, cleared, score, t, (player = ?) AS me, CASE WHEN replay THEN id ELSE NULL END AS replayId, played_at AS playedAt, received_at AS receivedAt FROM r ORDER BY pos, score DESC, id LIMIT 20").bind(map, me).all();
-  const total = await env.DB.prepare(RANK_CTE + " SELECT COUNT(*) AS n FROM r").bind(map).first();
-  const mine = me ? await env.DB.prepare(RANK_CTE + " SELECT pos, cleared, score, t, played_at AS playedAt, received_at AS receivedAt FROM r WHERE player = ?").bind(map, me).first() : null;
-  return json({ map, total: total ? total.n : 0, me: mine ? publicTime(mine) : null, top: top.results.map(publicTime) }, 200, { ...cors, "cache-control": "no-store" });
+  const top = await env.DB.prepare(RANK_CTE + " SELECT pos, substr(player,1,4) AS tag, cleared, score, t, (player = ?) AS me, CASE WHEN replay THEN id ELSE NULL END AS replayId, played_at AS playedAt, received_at AS receivedAt FROM r ORDER BY pos, score DESC, id LIMIT 20").bind(map, difficulty, difficulty, me).all();
+  const total = await env.DB.prepare(RANK_CTE + " SELECT COUNT(*) AS n FROM r").bind(map, difficulty, difficulty).first();
+  const mine = me ? await env.DB.prepare(RANK_CTE + " SELECT pos, cleared, score, t, played_at AS playedAt, received_at AS receivedAt FROM r WHERE player = ?").bind(map, difficulty, difficulty, me).first() : null;
+  return json({ map, difficulty, total: total ? total.n : 0, me: mine ? publicTime(mine) : null, top: top.results.map(publicTime) }, 200, { ...cors, "cache-control": "no-store" });
 }
 
 async function publicGhost(env, cors, url, id) {
+  const difficulty = url.searchParams.get('difficulty') || 'legacy';
+  if (!DIFFICULTIES.includes(difficulty)) return json({ error: 'bad_difficulty' }, 400, cors);
   const map = url.searchParams.get("map") || "old-town";
   if (!["old-town", "rock-canyon"].includes(map)) return json({ error: "bad_map" }, 400, cors);
   // Publish only the ranking's selected run and its movement. Full diagnostic
   // records, device IDs and settings remain administrator-only. Recorded-at time is public.
-  const ranked = await env.DB.prepare(RANK_CTE + " SELECT id FROM r WHERE id = ? AND replay = 1").bind(map, id).first();
+  const ranked = await env.DB.prepare(RANK_CTE + " SELECT id FROM r WHERE id = ? AND replay = 1").bind(map, difficulty, difficulty, id).first();
   if (!ranked) return json({ error: "not_found" }, 404, cors);
   const row = await env.DB.prepare("SELECT player, score, json, played_at AS playedAt, received_at AS receivedAt FROM runs WHERE id = ?").bind(id).first();
   if (!row) return json({ error: "not_found" }, 404, cors);

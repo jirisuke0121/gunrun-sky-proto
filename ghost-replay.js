@@ -5,24 +5,30 @@ export function createGhostReplay(game) {
   const { c, z, U, Geom, ue, Se: camera } = game;
   const map = window.SKY_CANYON_MAP ? 'rock-canyon' : 'old-town';
   const mapVersion = MAP_VERSIONS[map];
-  const key = `gunrun-ranked-ghost-v1-${map}`;
+  const baseKey = `gunrun-ranked-ghost-v1-${map}`;
+  let key;
   let samples = [], recording = false, best = null, showBest = true, active = null, fetchToken = 0;
-  try { const data = JSON.parse(localStorage.getItem(key)); if (validateGhost(data?.ghost, map, 300)) best = data; } catch {}
-  // Keep the previous browser-only best available after this upgrade.
-  if (!best) try {
-    const oldKey = map === 'rock-canyon' ? 'gunrun-sky-ghost-rock-canyon-v1' : 'gunrun-sky-ghost-v1';
-    const old = JSON.parse(localStorage.getItem(oldKey));
-    if (old?.total > 0 && Array.isArray(old.p) && old.p.length >= 8 && old.p.length <= REPLAY_LIMIT * 4 && old.p.length % 4 === 0) {
-      const converted = [];
-      for (let i = 0; i < old.p.length; i += 4) {
-        const [x, y, z, yaw] = old.p.slice(i, i + 4), last = converted.at(-1);
-        const cut = last && Math.hypot(x - last[1], y - last[2], z - last[3]) > 6 ? 1 : 0;
-        converted.push([i / 4 * 0.1, x, y, z, yaw, 0, 0, 3, cut]);
+  function loadBest() {
+    key = window.skyChallenge.key(baseKey); best = null;
+    try { const data = JSON.parse(localStorage.getItem(key)); if (validateGhost(data?.ghost, map, 300)) best = data; } catch {}
+    // Keep the previous browser-only best available after this upgrade.
+    if (!best && !window.skyChallenge.debug && window.skyChallenge.id === 'legacy') try {
+      const oldKey = map === 'rock-canyon' ? 'gunrun-sky-ghost-rock-canyon-v1' : 'gunrun-sky-ghost-v1';
+      const old = JSON.parse(localStorage.getItem(oldKey));
+      if (old?.total > 0 && Array.isArray(old.p) && old.p.length >= 8 && old.p.length <= REPLAY_LIMIT * 4 && old.p.length % 4 === 0) {
+        const converted = [];
+        for (let i = 0; i < old.p.length; i += 4) {
+          const [x, y, z, yaw] = old.p.slice(i, i + 4), last = converted.at(-1);
+          const cut = last && Math.hypot(x - last[1], y - last[2], z - last[3]) > 6 ? 1 : 0;
+          converted.push([i / 4 * 0.1, x, y, z, yaw, 0, 0, 3, cut]);
+        }
+        const ghost = validateGhost({ v: 1, map, mapVersion, samples: converted }, map, 300);
+        if (ghost) best = { total: old.total, cleared: false, ghost };
       }
-      const ghost = validateGhost({ v: 1, map, mapVersion, samples: converted }, map, 300);
-      if (ghost) best = { total: old.total, cleared: false, ghost };
-    }
-  } catch {}
+    } catch {}
+  }
+  loadBest();
+  document.addEventListener('sky-difficulty-change', loadBest);
   const material = new Geom.Basic({ color: 0x7fd8ff, transparent: true, opacity: 0.65, depthWrite: false });
   const avatar = new Geom.Group();
   avatar.name = 'Recorded player ghost';
@@ -68,7 +74,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     const cut = last && (c.life < last[7] || Math.hypot(c.pos.x - last[1], c.pos.y - last[2], c.pos.z - last[3]) > 6) ? 1 : 0;
     samples.push([t, round(c.pos.x), round(c.pos.y), round(c.pos.z), round(c.yaw), round(c.pitch), Math.max(0, REPLAY_STATES.indexOf(state)), Math.max(0, c.life), cut]);
   }
-  function start() { samples = []; recording = !z.mission; capture(true); }
+  function start() { loadBest(); samples = []; recording = !z.mission; capture(true); }
   function snapshot() {
     if (z.mission || !recording) return null;
     capture(true);
@@ -116,7 +122,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     el('replayNote').textContent = 'ゴーストを読み込み中…'; el('replayTitle').textContent = 'ゴースト';
     el('replayDate').textContent = ''; el('replayClock').textContent = ''; controls.forEach(control => { control.disabled = true; }); el('replayClose').focus();
     try {
-      const response = await fetch(`https://gunrun-runs.jirisuke0121.workers.dev/ghosts/${encodeURIComponent(id)}?map=${map}`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+      const response = await fetch(`https://gunrun-runs.jirisuke0121.workers.dev/ghosts/${encodeURIComponent(id)}?map=${map}&difficulty=${window.skyChallenge.id}`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
       if (!response.ok) throw new Error('unavailable');
       const data = await response.json();
       if (token !== fetchToken || !active) return;

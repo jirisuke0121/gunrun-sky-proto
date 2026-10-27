@@ -1,6 +1,6 @@
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 import { createFlashbang } from './flashbang.js?v=20261026-gear-polish-v1';
-import { createGhostReplay } from './ghost-replay.js?v=20261026-gear-polish-v1';
+import { createGhostReplay } from './ghost-replay.js?v=20261027-challenge-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261027-aim-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261025-jump-tune-portrait-v1';
@@ -2107,19 +2107,19 @@ if (/[?&]perf=1/.test(location.search)) {
 
   async function fetchRanking() {
     const me = playerId();
-    const res = await fetch(RANK_URL + '?map=' + (window.SKY_CANYON_MAP ? 'rock-canyon' : 'old-town') + (me ? '&me=' + encodeURIComponent(me) : ''), { cache: 'no-store' });
+    const res = await fetch(RANK_URL + '?difficulty=' + window.skyChallenge.id + '&map=' + (window.SKY_CANYON_MAP ? 'rock-canyon' : 'old-town') + (me ? '&me=' + encodeURIComponent(me) : ''), { cache: 'no-store' });
     if (!res.ok) throw new Error('ranking ' + res.status);
     return res.json();
   }
 
   function renderRanking(box, data, limit) {
-    if (!data || !data.top || !data.top.length) { box.innerHTML = ''; return; }
+    if (!data || data.difficulty !== window.skyChallenge.id || !data.top || !data.top.length) { box.innerHTML = ''; return; }
     const rows = data.top.slice(0, limit).map((row) =>
       `<li class="${row.me ? 'me' : ''}"><span>${row.pos}位</span><span>${esc(row.tag)}</span><span>${status(row)}</span><span>${row.score}点</span><time class="rank-time"${row.playedAt ? ` datetime="${esc(row.playedAt)}"` : ""}>記録 ${esc(formatReplayTime(row.playedAt))}${row.playedAt ? "（日本時間）" : ""}</time>${row.replayId ? `<button type="button" class="ghost-button" data-replay="${esc(row.replayId)}">ゴーストを見る</button>` : '<small style="grid-column:2/-1">ゴースト記録なし</small>'}</li>`).join('');
     const inList = data.top.slice(0, limit).some((row) => row.me);
     const mine = data.me && !inList
       ? `<div class="mine">あなたの最高：${data.me.pos}位（${data.total}人中）　${status(data.me)}　${data.me.score}点<br>記録 ${esc(formatReplayTime(data.me.playedAt))}${data.me.playedAt ? "（日本時間）" : ""}</div>` : '';
-    box.innerHTML = `<h3>ランキング</h3><small>クリア（2分逃げ切り）が上、同じ場合は得点順。このマップの記録を表示。記録の送信がオンのプレイが対象です。</small><ol>${rows}</ol>${mine}`;
+    box.innerHTML = `<h3>${esc(window.skyChallenge.name)} ランキング</h3><small>クリア（2分逃げ切り）が上、同じ場合は得点順。このマップ・難易度の記録を表示。記録の送信がオンのプレイが対象です。</small><ol>${rows}</ol>${mine}`;
   }
 
   document.addEventListener('click', event => {
@@ -2148,6 +2148,7 @@ if (/[?&]perf=1/.test(location.search)) {
     if (!startPanel.hidden) refresh(titleBox, 10);
   }
 
+  document.addEventListener('sky-difficulty-change', () => { titleBox.innerHTML = ''; refresh(titleBox, 10); });
   let overToken = 0;
   if (overPanel) {
     new MutationObserver(async () => {
