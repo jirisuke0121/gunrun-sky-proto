@@ -67,7 +67,7 @@ export function createFlashbang(game) {
     if (button) {
       button.innerHTML = `閃光弾<small>×${charges}　技${skills}/3</small>`;
       button.classList.toggle('empty', charges === 0);
-      button.setAttribute('aria-label', `閃光弾 残り${charges}個 周囲${FLASHBANG.radius}mのゾンビを${FLASHBANG.duration}秒停止`);
+      button.setAttribute('aria-label', `閃光弾 残り${charges}個 周囲${FLASHBANG.radius}mのゾンビを${FLASHBANG.duration}秒停止。離すと使用、外へずらすと取消`);
     }
   }
   function message(text, seconds = 1.3) { notice.textContent = text; noticeTime = seconds; notice.style.display = ''; }
@@ -81,6 +81,7 @@ export function createFlashbang(game) {
     state.pose = [];
   }
   function clear() {
+    cancelPress();
     for (const state of affected.values()) { restorePose(state); removeEffect(state); state.texture.dispose(); }
     affected.clear();
     for (const effect of [...grenades, ...bursts]) removeEffect(effect);
@@ -288,10 +289,45 @@ export function createFlashbang(game) {
   document.addEventListener('keydown', event => {
     if (event.code === 'KeyG' && !event.repeat && playing()) { event.preventDefault(); throwFlashbang(); }
   });
-  button?.addEventListener('pointerdown', event => { event.preventDefault(); event.stopPropagation(); throwFlashbang(); });
+  // A consumable fires on release. A camera drag that starts here can leave
+  // the button or move 14px to cancel, without spending a charge.
+  let press = null;
+  function cancelPress() {
+    const pointer = press?.id; press = null;
+    button?.classList.remove('armed');
+    if (pointer !== undefined && button?.hasPointerCapture(pointer)) button.releasePointerCapture(pointer);
+  }
+  function inside(event) {
+    const rect = button.getBoundingClientRect();
+    return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+  }
+  button?.addEventListener('pointerdown', event => {
+    event.preventDefault(); event.stopPropagation();
+    if (press || event.button !== 0 || !playing() || charges <= 0) return;
+    press = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    button.setPointerCapture(event.pointerId); button.classList.add('armed');
+  });
+  button?.addEventListener('pointermove', event => {
+    if (press?.id === event.pointerId && (!inside(event) || Math.hypot(event.clientX - press.x, event.clientY - press.y) > 14)) cancelPress();
+  });
+  button?.addEventListener('pointerup', event => {
+    event.preventDefault(); event.stopPropagation();
+    if (press?.id !== event.pointerId) return;
+    const confirmed = inside(event) && Math.hypot(event.clientX - press.x, event.clientY - press.y) <= 14;
+    cancelPress();
+    if (confirmed) throwFlashbang();
+  });
+  button?.addEventListener('pointercancel', cancelPress);
+  button?.addEventListener('lostpointercapture', cancelPress);
+  button?.addEventListener('contextmenu', event => event.preventDefault());
+  // Keyboard / assistive activation produces a click without a pointer press.
+  button?.addEventListener('click', event => { if (event.detail === 0) { event.preventDefault(); throwFlashbang(); } });
+  window.addEventListener('blur', cancelPress);
+  window.addEventListener('resize', cancelPress);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) cancelPress(); });
   hud();
   return { tick, reset, clear, throw: throwFlashbang, stats, grenades, bursts, affected, blinded, config: FLASHBANG,
     get charges() { return charges; }, get skillCount() { return skills; }, setGrenadeTemplate(template) { grenadeTemplate = template; },
-    modeChanged(mode) { if (mode === 'menu' || mode === 'over') clear(); }
+    modeChanged(mode) { if (mode !== 'play') cancelPress(); if (mode === 'menu' || mode === 'over') clear(); }
   };
 }

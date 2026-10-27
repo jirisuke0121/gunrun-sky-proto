@@ -42,13 +42,10 @@
 #hud{transition:opacity .2s}
 #app:has(#ovOver:not([hidden])) #hud,#app:has(#ovPause:not([hidden])) #hud{opacity:0}
 
-/* touch: tidy right-hand button cluster */
-html.touch .ammo{top:62px;bottom:auto}
+/* Touch positioning lives in touch-controls.css. */
 .tb{color:var(--hud-ink);border-color:rgba(239,230,201,.62);text-shadow:var(--hud-shadow)}
 .tb small{display:block;margin-top:1px;font-size:10px;font-weight:600;color:var(--hud-sub);letter-spacing:0}
 #tFlash,#tFlash.empty{line-height:1.15;white-space:normal;text-align:center}
-#tFlash{width:64px;height:64px;right:calc(max(24px,env(safe-area-inset-right)) + 208px);bottom:122px}
-@media(max-width:700px){#tFlash{right:calc(max(24px,env(safe-area-inset-right)) + 208px);bottom:122px}}
 
 /* hint text must not run under the key list (top-right) or the status card (top-left) */
 .hint{white-space:normal;width:max-content;max-width:calc(100vw - 520px);text-align:center;line-height:1.5}
