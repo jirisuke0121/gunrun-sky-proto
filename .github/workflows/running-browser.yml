@@ -20,6 +20,7 @@ jobs:
           node bench/human-running.test.cjs
           node bench/human-actions.test.cjs
           node bench/human-view-running.test.cjs
+          node bench/dash-boost.test.cjs
           node bench/gear-polish.test.cjs
           node bench/ranked-ghost.test.cjs
           node bench/path-distance-rounding.test.cjs
@@ -35,6 +36,12 @@ jobs:
         run: |
           node bench/human-running-browser.cjs
           node bench/human-aim-browser.cjs
+          node bench/dash-browser.cjs
+      - name: Encode dash motion evidence
+        run: |
+          if [ -d browser-evidence/dash-motion ]; then
+            ffmpeg -v error -framerate 30 -i browser-evidence/dash-motion/%03d.png -c:v libx264 -pix_fmt yuv420p browser-evidence/dash-motion.mp4
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:

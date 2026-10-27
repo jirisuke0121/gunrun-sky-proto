@@ -52,6 +52,8 @@ if (require.main === module) (async () => {
   assert.equal(addParkourRun(gltf.scene, motion, body.geometry.attributes.position.constructor), true);
   const elapsed = performance.now() - start;
   const clip = motion.clips.parkourRun;
+  const dash = motion.clips.parkourDash;
+  assert.equal(dash.frames.length,25);
   assert.equal(clip.frames.length, 25); assert.equal(clip.duration, .56);
   for (const mesh of meshes) {
     const geometry = mesh.geometry, names = mesh.morphTargetDictionary;
@@ -66,6 +68,9 @@ if (require.main === module) (async () => {
     const last = geometry.morphAttributes.position[names[clip.frames.at(-1)]].array;
     assert.ok(first.every((value, i) => Math.abs(value - last[i]) < .0001), `${mesh.name}: seamless loop`);
     assert.ok(geometry.morphAttributes.normal.every(a => a.array.every(Number.isFinite)));
+    for(const name of dash.frames) assert.ok(geometry.morphAttributes.position[names[name]].array.every(Number.isFinite));
+    assert.ok(geometry.morphAttributes.position.length<=256,'boost remains within the minimum WebGL2 array-layer limit');
+    assert.deepEqual(Array.from(geometry.morphAttributes.position[names[dash.frames[0]]].array),Array.from(geometry.morphAttributes.position[names[dash.frames.at(-1)]] .array),'seamless boost run loop');
     if(mesh.name.startsWith('Eyes')||mesh.name.startsWith('Gaz_mask')){
       const slide=geometry.morphAttributes.position[names[motion.clips.slide.frames[0]]];
       assert.ok(slide,`${mesh.name}: face equipment follows original slide`);

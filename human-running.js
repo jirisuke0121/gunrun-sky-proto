@@ -59,6 +59,12 @@ export function runningVertex(run, unarmed, phase) {
   return leanTorso(p, phase);
 }
 
+export function dashVertex(p, unarmed) {
+  const tilted = rotateX(p, [0, 1.28, -.045], .18);
+  const weight = Math.max(smoothstep(1.05, 1.64, unarmed[1]), armWeight(unarmed));
+  return p.map((v, k) => mix(v, tilted[k], weight));
+}
+
 export function strideAdvance(phase, distance, stride = RUN_STRIDE) {
   return ((phase + Math.max(0, distance) / stride) % 1 + 1) % 1;
 }
@@ -140,6 +146,13 @@ export function addParkourRun(model, motion, Attribute) {
     actionClips[kind] = { frames: names, times: seconds, duration: 1, source: 'reference-inspired two-bone limb poses' };
     actionGrips[kind] = rightHands; actionHands[kind] = bothHands;
   }
+  const dashNames = [], dashGrips = [];
+  for (let i = 0; i <= RUN_SAMPLES; i++) {
+    const name = `parkourDash_${String(i).padStart(3, '0')}`;
+    dashNames.push(name); frames.push(name);
+    bodyFrames.push(bodyFrames[i].map((p, k) => dashVertex(p, bodyUnarmed[k])));
+    dashGrips.push(rotateX(grips[i], [0, 1.28, -.045], .18));
+  }
   for (const mesh of meshes) {
     const geometry = mesh.geometry, base = geometry.attributes.position, matrix = matrices.get(mesh);
     const inverse = matrix.clone().invert().elements;
@@ -195,6 +208,9 @@ export function addParkourRun(model, motion, Attribute) {
   motion.clips.parkourRun = { frames: frames.slice(0, RUN_SAMPLES + 1), times, duration: .56, source: 'procedural reference run over existing Unity run legs' };
   motion.grips.parkourRun = grips;
   motion.gripPitches = { ...motion.gripPitches, parkourRun: pitches };
+  motion.clips.parkourDash = { frames: dashNames, times: [...times], duration: .56, source: 'boosted forward lean over distance-synchronised run' };
+  motion.grips.parkourDash = dashGrips;
+  motion.gripPitches.parkourDash = pitches.map(p => p - .18);
   Object.assign(motion.clips, actionClips); Object.assign(motion.grips, actionGrips);
   motion.hands = { ...motion.hands, ...actionHands };
   return true;

@@ -1,6 +1,6 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor } from './human-running.js?v=20261027-aim-v1';
-import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261027-aim-v1';
+import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor } from './human-running.js?v=20261027-dash-v1';
+import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261027-dash-v1';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
 const { Group, Vector3 } = Geom;
@@ -230,8 +230,9 @@ function updateMotion(dt, speed) {
   const targets = { [info.frames[lo]]: 1 - fraction };
   targets[info.frames[hi]] = (targets[info.frames[hi]] || 0) + fraction;
   let runSample = null;
+  const runName = window.skyDash?.boost > .12 && motion.clips.parkourDash ? 'parkourDash' : 'parkourRun';
   if (runPose > .0001 && motion.clips.parkourRun) {
-    const run = motion.clips.parkourRun;
+    const run = motion.clips[runName];
     runSample = sampleClip(run, gaitPhase);
     for (const name of Object.keys(targets)) targets[name] *= 1 - runPose;
     for (const [index, weight] of [[runSample.lo, 1 - runSample.fraction], [runSample.hi, runSample.fraction]]) {
@@ -247,7 +248,7 @@ function updateMotion(dt, speed) {
   blendedGrip.set(a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction, a[2] + (b[2] - a[2]) * fraction);
   let wantedPitch = 0;
   if (runSample) {
-    const { lo, hi, fraction } = runSample, grips = motion.grips.parkourRun, pitches = motion.gripPitches.parkourRun;
+    const { lo, hi, fraction } = runSample, grips = motion.grips[runName], pitches = motion.gripPitches[runName];
     blendedGrip.x += (grips[lo][0] + (grips[hi][0] - grips[lo][0]) * fraction - blendedGrip.x) * runPose;
     blendedGrip.y += (grips[lo][1] + (grips[hi][1] - grips[lo][1]) * fraction - blendedGrip.y) * runPose;
     blendedGrip.z += (grips[lo][2] + (grips[hi][2] - grips[lo][2]) * fraction - blendedGrip.z) * runPose;
@@ -267,6 +268,7 @@ function updateMotion(dt, speed) {
   document.body.dataset.skyHumanAction = selected;
   if (selected === 'parkourJump') document.body.dataset.skyHumanJumpPhase = (clipTime / info.duration).toFixed(3);
   document.body.dataset.skyHumanRunBlend = runPose.toFixed(3);
+  document.body.dataset.skyHumanRunClip = runSample ? runName : 'existing';
   document.body.dataset.skyHumanGaitPhase = gaitPhase.toFixed(3);
 }
 const aimPoint = new Vector3(), aimDirection = new Vector3(), aimHand = new Vector3(), aimSupport = new Vector3(), aimPalm = new Vector3();
@@ -391,8 +393,9 @@ function update(dt) {
   if (c.state === 'ledge' && holder) pivot.y = holder.position.y + Math.min(c.eye, 1.5);
   forward.set(0, 0, -1).applyQuaternion(camera.quaternion);
   right.set(1, 0, 0).applyQuaternion(camera.quaternion);
-  wanted.copy(pivot).addScaledVector(forward, -3.6).addScaledVector(right, .62);
-  wanted.y += .18;
+  const chase = window.skyDash?.camera || { distance: 3.6, shoulder: .62, height: .18 };
+  wanted.copy(pivot).addScaledVector(forward, -chase.distance).addScaledVector(right, chase.shoulder);
+  wanted.y += chase.height;
   // The maps expose the same solid-field query used by player movement.
   delta.copy(wanted).sub(pivot);
   let safe = 1;
@@ -425,6 +428,7 @@ function prepareShot(origin,direction,distance) {
   return {origin:muzzle,direction:corrected};
 }
 window.skyHumanView = { update, select, getMuzzleWorld, prepareShot, get choice() { return choice; }, get view() { return view; },
+  get isFiring() { return shotTime < .28; },
   get runStyle() { return parkourRunEnabled ? 'parkour' : 'existing'; },
   set runStyle(value) { parkourRunEnabled = value !== 'existing'; } };
 sync();

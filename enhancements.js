@@ -4,6 +4,7 @@ import { createGhostReplay } from './ghost-replay.js?v=20261026-gear-polish-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261027-aim-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261025-jump-tune-portrait-v1';
+import { createDash } from './dash-boost.js?v=20261027-dash-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -42,6 +43,7 @@ try {
   }
 } catch {}
 const { Box, Cylinder, Torus, Sphere, Mesh, Group, Standard, Basic, Vector3 } = Geom;
+window.skyDash = createDash(game, window.__game);
 const easyPort = createEasyWeaponPort(game);
 window.__easyWeaponPort = easyPort;
 const palette = {
@@ -1105,7 +1107,7 @@ window.__skyGhost = window.skyReplay;
     const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
     const playing = game.modeRef() === 'play' && !z.over;
     const sp = Math.hypot(c.vel.x, c.vel.z);
-    lines.style.opacity = playing ? String(Math.max(0, Math.min(0.55, (sp - U.sprintSpeed - 0.4) / 5))) : '0';
+    lines.style.opacity = window.skyDash ? '0' : playing ? String(Math.max(0, Math.min(0.55, (sp - U.sprintSpeed - 0.4) / 5))) : '0';
     for (const p of dust) {
       if (p.t <= 0) continue;
       p.t -= dt;
