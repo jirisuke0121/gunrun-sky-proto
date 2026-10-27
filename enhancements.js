@@ -1,10 +1,11 @@
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 import { createFlashbang } from './flashbang.js?v=20261026-gear-polish-v1';
 import { createGhostReplay } from './ghost-replay.js?v=20261027-score-v3';
-import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261027-aim-v1';
+import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261027-jump-power-v2';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261025-jump-tune-portrait-v1';
-import { createDash } from './dash-boost.js?v=20261027-dash-v1';
+import { createJumpPickups } from './jump-pickups.js?v=20261027-jump-items-v1';
+import { createDash } from './dash-boost.js?v=20261027-jump-items-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -46,6 +47,7 @@ const { Box, Cylinder, Torus, Sphere, Mesh, Group, Standard, Basic, Vector3 } = 
 window.skyDash = createDash(game, window.__game);
 const easyPort = createEasyWeaponPort(game);
 window.__easyWeaponPort = easyPort;
+window.skyJumpPickups = createJumpPickups(game, window.__game);
 const palette = {
   steel: new Standard({ color: 0x292d31, metalness: 0.72, roughness: 0.48 }),
   dark: new Standard({ color: 0x171b1f, metalness: 0.42, roughness: 0.65 }),
@@ -426,12 +428,12 @@ WP.push(
 );
 // Match the prefab's Semi/Full setting. The M79 is fired on charge release.
 for (const [index, source] of Object.entries(UNITY_WEAPONS)) WP[+index].auto = source.trigger === 'full' ? 1 : 0;
-Jn.weapon = Math.max(0, Math.min(12, Jn.weapon));
-U.weapon = Math.max(0, Math.min(12, U.weapon | 0));
+Jn.weapon = Math.max(0, Math.min(11, Jn.weapon));
+U.weapon = (U.weapon|0)===12?0:Math.max(0, Math.min(11, U.weapon | 0));
 const weaponSlider = document.getElementById('s_weapon');
 if (weaponSlider) {
-  weaponSlider.max = '12';
-  weaponSlider.parentElement.querySelector('label').textContent = '武器（0=HG 1=SG 2=SMG 3=MG 4=Pistol 5=Shotgun 6=M4 7=Rail 8=Beam 9=Cluster 10=Rocket 11=M79 12=Jump Gun）';
+  weaponSlider.max = '11';
+  weaponSlider.parentElement.querySelector('label').textContent = '武器（0=HG 1=SG 2=SMG 3=MG 4=Pistol 5=Shotgun 6=M4 7=Rail 8=Beam 9=Cluster 10=Rocket 11=M79）';
 }
 window.__wpSync?.();
 const originalGunSound = Tt.hg;
@@ -483,6 +485,24 @@ function updateKnifeCue() {
 
 let lastFrame = performance.now(), lastWeapon = -1, lastMotionShots = window.__game?.stats?.shots || 0;
 const weaponAmmo = new Map();
+function syncWeapon(weapon) {
+  const mode=game.modeRef();
+  if(weapon===lastWeapon)return;
+  weaponViews.forEach((view,index)=>{view.visible=U.gunOn && c.state!=='ladder' && index===weapon;});
+  vd.position.z=[-.25,-.62,-.34,-.82,-.25,-.62,-.72,-.82,-.72,-.82,-.9,-.72][weapon]??-.25;
+  if((mode==='play'||mode==='pause') && lastWeapon>=0) {
+    weaponAmmo.set(lastWeapon,{ammo:Et.ammo,reserve:Et.reserve,reloadT:Et.reloadT});
+    const profile=WP[weapon],saved=weaponAmmo.get(weapon);
+    Et.mag=profile.mag;Et.reloadLen=profile.rl;
+    Et.ammo=Math.min(saved?.ammo??profile.mag,profile.mag);
+    Et.reserve=U.reserveAmmo>=99?99:saved?.reserve??profile.res;
+    Et.reloadT=saved?.reloadT??0;Et.autoReload=0;
+  }
+  lastWeapon=weapon;
+  document.body.dataset.skyWeaponView=JSON.stringify({weapon,name:WP[weapon]?.n,visible:weaponViews.filter(v=>v.visible).map(v=>v.name),parent:weaponViews[weapon]?.parent?.type,position:weaponViews[weapon]?.position.toArray(),scale:weaponViews[weapon]?.scale.toArray()});
+}
+// Temporary pickups use the same ammo cache as manual equipment changes.
+game.equipWeapon=weapon=>{U.weapon=weapon;syncWeapon(weapon);};
 let lastRunClock = 0;
 let easyKick = 0, easyFlashTime = 0;
 function updateEquipment(now) {
@@ -495,23 +515,7 @@ function updateEquipment(now) {
   const weapon = U.weapon | 0;
   if (mode === 'menu' || (mode === 'play' && z.t + 0.5 < lastRunClock)) weaponAmmo.clear();
   if (mode === 'play') lastRunClock = z.t;
-  if (weapon !== lastWeapon) {
-    weaponViews.forEach((view, index) => { view.visible = U.gunOn && c.state !== 'ladder' && index === weapon; });
-    document.body.dataset.skyWeaponView = JSON.stringify({ weapon, name: WP[weapon]?.n, visible: weaponViews.filter((view) => view.visible).map((view) => view.name), parent: weaponViews[weapon]?.parent?.type, position: weaponViews[weapon]?.position.toArray(), scale: weaponViews[weapon]?.scale.toArray() });
-    vd.position.z = [-0.25, -0.62, -0.34, -0.82, -0.25, -0.62, -0.72, -0.82, -0.72, -0.82, -0.9, -0.72][weapon] ?? -0.25;
-    if ((mode === 'play' || mode === 'pause') && lastWeapon >= 0) {
-      weaponAmmo.set(lastWeapon, { ammo: Et.ammo, reserve: Et.reserve, reloadT: Et.reloadT });
-      const profile = WP[weapon];
-      const saved = weaponAmmo.get(weapon);
-      Et.mag = profile.mag;
-      Et.reloadLen = profile.rl;
-      Et.ammo = Math.min(saved?.ammo ?? profile.mag, profile.mag);
-      Et.reserve = U.reserveAmmo >= 99 ? 99 : saved?.reserve ?? profile.res;
-      Et.reloadT = saved?.reloadT ?? 0;
-      Et.autoReload = 0;
-    }
-    lastWeapon = weapon;
-  }
+  syncWeapon(weapon);
   weaponViews.forEach((view, index) => { view.visible = U.gunOn && c.state !== 'ladder' && index === weapon; });
   const shots = window.__game?.stats?.shots || 0;
   if (shots < lastMotionShots) lastMotionShots = shots;

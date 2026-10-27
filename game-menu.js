@@ -13,7 +13,7 @@ const heightHint=document.createElement('p');
 heightHint.className='note';heightHint.id='jumpGunHeightHint';jumpGroup.append(heightHint);
 function updateHeightHint(){
   const height=game.U.jumpGunUp**2/(2*Math.max(1,game.U.gravity));
-  heightHint.textContent=`真下に撃ったときの目安：約${height.toFixed(1)}m（天井などで変わります）`;
+  heightHint.textContent=`足元への自動射撃での目安：約${height.toFixed(1)}m（天井などで変わります）`;
 }
 document.getElementById('setGrid').addEventListener('input',updateHeightHint);
 document.getElementById('bReset').addEventListener('click',updateHeightHint);
