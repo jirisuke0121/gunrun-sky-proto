@@ -256,9 +256,14 @@ $('score').addEventListener('click', async () => {
         g.setMode('pause'); const pause = g.GAME.t; g.advance(1);
         row.pause = { before: pause, after: g.GAME.t };
         g.setMode('play'); g.GAME.t = 60; row.at60 = { ...g.calcScore() };
+        const records = [];
+        g.runlogUse({ collection: () => ({ doc: () => ({ set: value => { records.push(JSON.parse(JSON.stringify(value))); return Promise.resolve(); } }) }) });
+        g.RL.on = true; g.RL.saved = false;
         g.GAME.t = 120; g.endGame('time'); g.frameOnce(1.5);
         row.final = { ...g.GAME.final };
         await wait(1100);
+        g.endGame('time');
+        row.record = { writes: records.length, score: records[0]?.score, challenge: records[0]?.challenge, reason: records[0]?.reason };
         row.display = { unity: score.enabled(), complete: w.document.getElementById('unityResultCard').dataset.complete,
           total: w.document.getElementById('unityResultTotal').textContent,
           retryEnabled: !w.document.getElementById('unityRetry').disabled };
