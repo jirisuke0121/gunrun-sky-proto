@@ -22,9 +22,25 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     // Use the real asynchronously loaded exports, including reversed Unity axes.
     await page.waitForFunction(()=>{const m=JSON.parse(document.body.dataset.skyModels||'{}');return ['hg','sg','smg','mg','unityHg','easyShotgun','easyM4','easyRail','easyBeam','easyCluster','easyRocket','easyM79'].every(k=>m[k]);},null,{timeout:60000});
     await page.locator('#bStart').click();await page.waitForFunction(()=>window.__game.mode==='play');
-    await page.evaluate(()=>{
+    await page.evaluate(async()=>{
      const sky=window.__skyInternals,g=window.__game,T=sky.Geom,c=sky.c;
      g.S.sendLog=false;g.S.gunOn=true;
+     const human=sky.ue.children.find(o=>o.name==='Unity challenge human'),originals=new Map();let body;
+     human.traverse(o=>{if(o.isMesh){originals.set(o,o.geometry.attributes.position.array.slice());if(o.name.startsWith('Body_mesh'))body=o;}});
+     const rawPoint=(mesh,i,original=false)=>{
+      const p=new T.Vector3().fromArray(original?originals.get(mesh):mesh.geometry.attributes.position.array,i*3);
+      mesh.morphTargetInfluences.forEach((w,k)=>p.addScaledVector(new T.Vector3().fromBufferAttribute(mesh.geometry.morphAttributes.position[k],i),w));
+      return p.applyMatrix4(mesh.matrixWorld);
+     };
+     // Select geometric chest/foot landmarks from the unarmed model, independently
+     // of the aim solver's diagnostics. Asset target names are read from metadata.
+     const meta=await fetch(new URL('assets/human-gunrun-animated.json',location.href)).then(r=>r.json());
+     const unarmed=body.geometry.morphAttributes.position[body.morphTargetDictionary[meta.clips.jump.frames[0]]];
+     human.updateMatrixWorld(true);
+     const bodyToModel=human.children[0].matrixWorld.clone().invert().multiply(body.matrixWorld);
+     const neutralPoints=Array.from({length:body.geometry.attributes.position.count},(_,i)=>new T.Vector3().fromArray(originals.get(body),i*3).add(new T.Vector3().fromBufferAttribute(unarmed,i)).applyMatrix4(bodyToModel));
+     const closest=goal=>neutralPoints.reduce((best,p,i)=>p.distanceTo(new T.Vector3(...goal))<neutralPoints[best].distanceTo(new T.Vector3(...goal))?i:best,0);
+     const chestMarkers=[[0,1.8,.14],[0,1.8,-.23]].map(closest),head=closest([0,2.2,.1]),feet=neutralPoints.flatMap((p,i)=>p.y<.5?[i]:[]);
      const fire=window.__easyWeaponPort.fire;
      window.__easyWeaponPort.fire=ctx=>{window.__aimShot={origin:ctx.origin.toArray(),direction:ctx.direction.toArray()};return fire(ctx);};
      const fx=window.__gunFx.shot;window.__gunFx.shot=(m,...args)=>{window.__aimTracer=m.toArray();return fx(m,...args);};
@@ -45,13 +61,22 @@ fs.mkdirSync('browser-evidence',{recursive:true});
       const dot=ray?bore.dot(new T.Vector3(...ray.direction)):0;
       // Render this exact shot pose, then an independent side view for review.
       window.__gunFx.step(1/60);g.debug.renderer.clear();g.debug.renderer.render(sky.ue,sky.Se);
-      const data={weapon,pitch,yaw,state,auto,shots:g.stats.shots-before,ray,record,dot,muzzleError:ray?muzzle.distanceTo(new T.Vector3(...ray.origin)):Infinity,tracerError:window.__aimTracer?muzzle.distanceTo(new T.Vector3(...window.__aimTracer)):null,gripError:+document.body.dataset.skyHumanGripError,glError:g.debug.renderer.getContext().getError(),models:JSON.parse(document.body.dataset.skyModels||'{}')};
+      human.updateMatrixWorld(true);
+      const chest=chestMarkers.map(i=>rawPoint(body,i)),chestForward=chest[0].clone().sub(chest[1]).normalize();
+      const targetDirection=new T.Vector3(...record.target).sub(chest[0].clone().add(chest[1]).multiplyScalar(.5)).normalize();
+      const torsoDot=chestForward.dot(targetDirection),footError=Math.max(...feet.map(i=>rawPoint(body,i).distanceTo(rawPoint(body,i,true))));
+      const headNow=rawPoint(body,head),headBefore=rawPoint(body,head,true);let equipmentError=0;
+      for(const name of ['Eyes_mesh001','Gaz_mask_mesh001001','Hood_mesh001']){
+       const item=human.getObjectByName(name);
+       for(const i of [0,Math.floor(item.geometry.attributes.position.count/2),item.geometry.attributes.position.count-1])equipmentError=Math.max(equipmentError,Math.abs(rawPoint(item,i).distanceTo(headNow)-rawPoint(item,i,true).distanceTo(headBefore)));
+      }
+      const data={torsoDot,chestForward:chestForward.toArray(),footError,equipmentError,weapon,pitch,yaw,state,auto,shots:g.stats.shots-before,ray,record,dot,muzzleError:ray?muzzle.distanceTo(new T.Vector3(...ray.origin)):Infinity,tracerError:window.__aimTracer?muzzle.distanceTo(new T.Vector3(...window.__aimTracer)):null,gripError:+document.body.dataset.skyHumanGripError,glError:g.debug.renderer.getContext().getError(),models:JSON.parse(document.body.dataset.skyModels||'{}')};
       if(auto)data.autoError=new T.Vector3(...record.target).distanceTo(new T.Vector3(-8,202.1,-12));
       return data;
      };
      window.__aimSide=()=>{sky.Se.position.set(2.8,201.5,2.8);sky.Se.lookAt(0,201,0);sky.Se.updateMatrixWorld(true);g.debug.renderer.clear();g.debug.renderer.render(sky.ue,sky.Se);};
     });
-    const cases=[{state:'normal',pitch:0},{state:'normal',pitch:1.2},{state:'normal',pitch:-1.2},{state:'run',pitch:.5,yaw:1.1},{state:'air',pitch:.6},{state:'air',pitch:-.8},{state:'slide',pitch:.4},{state:'normal',auto:true},...[1,2,3,4,5,6,7,8,9,10,11,12].map(weapon=>({weapon,pitch:.35,yaw:-.4}))];
+    const cases=[{state:'normal',pitch:0},{state:'normal',pitch:1.2},{state:'normal',pitch:-1.2},{state:'run',pitch:.5,yaw:1.1},{state:'air',pitch:.6},{state:'air',pitch:-.8},{state:'slide',pitch:.4},{state:'normal',auto:true},{state:'slide',pitch:-.7},{state:'run',pitch:-.7},{state:'air',pitch:1.1},...[1,2,3,4,5,6,7,8,9,10,11,12].map(weapon=>({weapon,pitch:.35,yaw:-.4}))];
     for(let i=0;i<cases.length;i++){
      const result=await page.evaluate(config=>window.__aimCase(config),cases[i]);results.push({id,...result});
      assert.equal(result.shots,1,JSON.stringify(result));assert.ok(result.ray,JSON.stringify(result));
@@ -60,15 +85,18 @@ fs.mkdirSync('browser-evidence',{recursive:true});
      assert.ok(result.gripError<.045,`hands reach grips ${JSON.stringify(result)}`);
      if(result.tracerError!==null)assert.ok(result.tracerError<.0001,'tracer starts at muzzle');
      if(result.auto)assert.ok(result.autoError<1,`auto-aim target ${JSON.stringify(result)}`);
+     assert.ok(result.torsoDot>.84,`visible chest follows target ${JSON.stringify(result)}`);
+     assert.ok(result.footError<.00001,`visible feet retain movement pose ${JSON.stringify(result)}`);
+     assert.ok(result.equipmentError<.001,`mask/eyes/hood stay with head ${JSON.stringify(result)}`);
      assert.equal(result.glError,0);
-     if(i<8||[4,6,10,12].includes(result.weapon)){
+     if(i<11||[4,6,10,12].includes(result.weapon)){
       await page.screenshot({path:`browser-evidence/${id}-${i}-rear.png`});await page.evaluate(()=>window.__aimSide());await page.screenshot({path:`browser-evidence/${id}-${i}-side.png`});
      }
     }
     await page.keyboard.press('v');
     const first=await page.evaluate(()=>{const s=window.__skyInternals;window.__game.cam(1/60);window.skyHumanView.update(1/60);return window.skyHumanView.prepareShot(s.Se.position,new s.Geom.Vector3(0,0,-1),20);});
     assert.equal(first,null,'first-person fire path is unchanged');assert.deepEqual(errors,[]);
-    console.log(`PASS ${id}: ${cases.length} actual shots; upward/downward, running, airborne, slide, auto-aim, all 13 weapon axes, barrel/ray/muzzle/tracer/grip, first-person regression`);
+    console.log(`PASS ${id}: ${cases.length} actual shots; upward/downward, running, airborne, slide, auto-aim, all 13 weapon axes, visible chest/feet/head equipment, barrel/ray/muzzle/tracer/grip, first-person regression`);
    }catch(e){await page.screenshot({path:`browser-evidence/${id}-failure.png`}).catch(()=>{});throw e;}finally{await context.close();}
   }
  }finally{fs.writeFileSync('browser-evidence/aim-results.json',JSON.stringify(results,null,2));await browser?.close();server?.kill();}
