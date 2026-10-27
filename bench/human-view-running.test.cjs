@@ -62,6 +62,14 @@ const { fixture } = require('./human-running.test.cjs');
   c.state = 'slide'; c.onGround = true; update(10); assert.equal(dataset.skyHumanClip, 'slide');
   c.state = 'ladder'; c.vel.set(0, 4.2, 0); update(10); assert.equal(dataset.skyHumanClip, 'ladder');
   c.state = 'normal'; c.vel.set(0, 0, 0); update(30); assert.equal(dataset.skyHumanClip, 'idle'); assert.ok(+dataset.skyHumanRunBlend < .01);
+  for (const kind of ['vault', 'mantle', 'catch']) {
+    c.state = 'ledge'; c.onGround = false;
+    c.ledge = { kind, sx: c.pos.x, sy: c.pos.y, sz: c.pos.z, tx: c.pos.x, ty: c.pos.y + 1.5, tz: c.pos.z - .8, dx: 0, dz: -1, t: .3, dur: .5 };
+    c.vel.set(0, 0, 0); update(1, false);
+    assert.equal(dataset.skyHumanClip, kind); assert.ok(+dataset.skyHumanHandError < .001, 'hands pinned to the ledge during support');
+    mode = 'pause'; const pausedPosition = holder.position.toArray(); update(1, false); assert.ok(holder.position.toArray().every((v, i) => Math.abs(v - pausedPosition[i]) < 1e-10)); mode = 'play';
+  }
+  c.state = 'normal'; c.ledge = null; c.onGround = true; update(30, false);
   // Return from first person or a respawn without accumulating an old distance.
   keys.get('keydown')({ code: 'KeyV', repeat: false }); update(1, false); assert.equal(dataset.skyHumanView, 'first');
   keys.get('keydown')({ code: 'KeyV', repeat: false }); c.pos.z -= 100; c.vel.z = -6; update(1, false);

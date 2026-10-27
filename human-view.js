@@ -1,5 +1,5 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend } from './human-running.js?v=20261027-run-v1';
+import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor } from './human-running.js?v=20261027-actions-v1';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
 const { Group, Vector3 } = Geom;
@@ -12,6 +12,8 @@ let gripPoint = new Vector3(), muzzleFlash = null;
 let gaitPhase = 0, runPose = 0, gripPitch = 0, bodyYawOffset = 0, turnBank = 0;
 let motionPosition = null, lastTravelYaw = null;
 let parkourRunEnabled = true;
+let contactFrame = null, trackedLedge = null, handAnchor = null;
+const contactOffset = new Vector3(), contactWorld = new Vector3();
 const savedChoice = (() => { try { return sessionStorage.getItem('gunrun-human-trial') || 'existing'; } catch { return 'existing'; } })();
 let choice = savedChoice === 'unity' ? 'unity' : 'existing';
 if (choice === 'unity') view = 'third';
@@ -171,6 +173,7 @@ function updateMotion(dt, speed) {
   const walking = speed < (sky.U.walkSpeed + sky.U.sprintSpeed) / 2;
   if (c.state === 'ladder') next = 'ladder';
   else if (c.state === 'slide') next = 'slide';
+  else if (c.state === 'ledge' && c.ledge && parkourRunEnabled && motion.clips.parkourMantle) next = c.ledge.kind === 'vault' ? 'vault' : c.ledge.kind === 'catch' ? 'catch' : 'mantle';
   else if (!grounded || landTime > 0 || c.state === 'ledge') next = 'jump';
   else if (speed > .2) {
     const pace = walking ? 'walk' : 'run';
@@ -186,19 +189,27 @@ function updateMotion(dt, speed) {
     if (next === 'slide') document.body.dataset.skyHumanSlideSeen = 'true';
     if (next === 'ladder') document.body.dataset.skyHumanLadderSeen = 'true';
   }
-  const info = motion.clips[next];
+  const special = { vault: 'parkourVault', mantle: 'parkourMantle', catch: 'parkourCatch', jump: 'parkourJump' }[next];
+  const selected = parkourRunEnabled && motion.clips[special] ? special : next;
+  const ledgeAction = next === 'vault' || next === 'mantle' || next === 'catch';
+  if (ledgeAction) runPose = 0;
+  const info = motion.clips[selected];
   if (!info) return;
-  if (next === 'reload') {
+  if (next === 'vault' || next === 'mantle' || next === 'catch') clipTime = info.duration * Math.max(0, Math.min(1, c.ledge.t));
+  else if (next === 'reload') {
     const total = Math.max(.1, sky.wpc().rl || 1.5);
     clipTime = info.duration * Math.max(0, Math.min(1, 1 - reload / total));
   } else if (next === 'shoot') clipTime = info.duration * (.40 + .48 * Math.min(1, shotTime / .24));
   else if (next === 'jump') {
+    if (selected === 'parkourJump') clipTime = info.duration * jumpPhase(c.vel.y, sky.U.jumpVel, grounded ? landTime : 0);
+    else {
     // The Unity clip is 1.7s, while a normal game jump lasts about 0.7s.
     // Reach the airborne poses before landing and show its final frames on touchdown.
     const flight = Math.max(.45, Math.min(1.4, 2 * sky.U.jumpVel / sky.U.gravity));
     const riseAndFall = Math.min(.86, jumpTime / flight * .86);
     const descent = c.vel.y < 0 ? .43 + .43 * Math.min(1, -c.vel.y / Math.max(1, sky.U.jumpVel)) : 0;
     clipTime = info.duration * (grounded ? .86 + .14 * (1 - landTime / .14) : Math.max(riseAndFall, descent));
+    }
   } else if (next === 'slide') clipTime = Math.min(info.duration * .99, (c.slideT || 0) * info.duration / 1.2);
   else if (next === 'ladder') clipTime += c.vel.y * dt * info.duration / 1.5;
   else if (next.startsWith('walk') || next.startsWith('run')) clipTime = gaitPhase * info.duration;
@@ -224,12 +235,12 @@ function updateMotion(dt, speed) {
       const name = run.frames[index]; targets[name] = (targets[name] || 0) + weight * runPose;
     }
   }
-  const smooth = 1 - Math.exp(-dt * 18);
+  const smooth = ledgeAction ? 1 : 1 - Math.exp(-dt * 18);
   for (const mesh of morphMeshes) {
     const weights = mesh.morphTargetInfluences, names = mesh.morphTargetDictionary;
     for (const [name, index] of Object.entries(names)) weights[index] += ((targets[name] || 0) - weights[index]) * smooth;
   }
-  const a = motion.grips[next][lo], b = motion.grips[next][hi];
+  const a = motion.grips[selected][lo], b = motion.grips[selected][hi];
   blendedGrip.set(a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction, a[2] + (b[2] - a[2]) * fraction);
   let wantedPitch = 0;
   if (runSample) {
@@ -241,7 +252,17 @@ function updateMotion(dt, speed) {
   }
   gripPoint.lerp(blendedGrip, smooth);
   gripPitch += (wantedPitch - gripPitch) * smooth;
+  contactFrame = null;
+  if (ledgeAction) {
+    if (trackedLedge !== c.ledge) { trackedLedge = c.ledge; handAnchor = ledgeAnchor(c.ledge, sky.jn); }
+    const handA = motion.hands[selected][lo], handB = motion.hands[selected][hi];
+    const middle = [0, 1, 2].map(k => ((handA.left[k] + handA.right[k]) * (1 - fraction) + (handB.left[k] + handB.right[k]) * fraction) / 2);
+    const phase = Math.max(0, Math.min(1, c.ledge.t)), release = Math.max(0, Math.min(1, (phase - .72) / .22));
+    contactFrame = { middle, anchor: handAnchor, weight: 1 - release * release * (3 - 2 * release) };
+  } else { trackedLedge = null; handAnchor = null; }
   document.body.dataset.skyHumanClip = next;
+  document.body.dataset.skyHumanAction = selected;
+  if (selected === 'parkourJump') document.body.dataset.skyHumanJumpPhase = (clipTime / info.duration).toFixed(3);
   document.body.dataset.skyHumanRunBlend = runPose.toFixed(3);
   document.body.dataset.skyHumanGaitPhase = gaitPhase.toFixed(3);
 }
@@ -261,7 +282,7 @@ function updateWorldWeapon(third) {
     }
   }
   if (!worldWeapon) { if (muzzleFlash) muzzleFlash.visible = false; return; }
-  worldWeapon.visible = third && !!sky.U.gunOn && c.state !== 'ladder';
+  worldWeapon.visible = third && !!sky.U.gunOn && c.state !== 'ladder' && c.state !== 'ledge';
   if (!worldWeapon.visible) { if (muzzleFlash) muzzleFlash.visible = false; return; }
   forward.set(-Math.sin(c.yaw), 0, -Math.cos(c.yaw));
   right.set(Math.cos(c.yaw), 0, -Math.sin(c.yaw));
@@ -296,17 +317,30 @@ function update(dt) {
     else if (!third) {
       lastAmmo = sky.Et.ammo; shotTime = 1; jumpTime = 0; landTime = 0; wasGrounded = !!c.onGround;
       motionPosition = null; lastTravelYaw = null; runPose = 0; gaitPhase = 0; gripPitch = 0; bodyYawOffset = 0; turnBank = 0;
+      contactFrame = null; trackedLedge = null; handAnchor = null; contactOffset.set(0, 0, 0);
     }
     const sliding = third && c.state === 'slide';
     slidePose += ((sliding ? 1 : 0) - slidePose) * (1 - Math.exp(-dt * (sliding ? 20 : 14)));
     holder.position.set(c.pos.x, c.pos.y - .12 * slidePose, c.pos.z);
     const ladderYaw = c.ladder ? Math.atan2(-c.ladder.nx, -c.ladder.nz) : c.yaw + Math.PI;
-    holder.rotation.set(c.state === 'ladder' ? .09 : 0, c.state === 'ladder' ? ladderYaw : c.yaw + Math.PI + bodyYawOffset + 1.25 * slidePose, turnBank, 'YXZ');
+    const ledgeYaw = c.state === 'ledge' && c.ledge ? Math.atan2(c.ledge.dx, c.ledge.dz) : null;
+    holder.rotation.set(c.state === 'ladder' ? .09 : 0, c.state === 'ladder' ? ladderYaw : ledgeYaw ?? c.yaw + Math.PI + bodyYawOffset + 1.25 * slidePose, ledgeYaw === null ? turnBank : 0, 'YXZ');
+    if (third && contactFrame) {
+      holder.updateMatrixWorld(true);
+      contactWorld.set(...contactFrame.middle); model.localToWorld(contactWorld);
+      contactOffset.set(contactFrame.anchor.x - contactWorld.x, contactFrame.anchor.y - contactWorld.y, contactFrame.anchor.z - contactWorld.z).multiplyScalar(contactFrame.weight);
+    } else if (sky.modeRef() === 'play') contactOffset.multiplyScalar(Math.exp(-dt * 22));
+    holder.position.add(contactOffset);
+    if (contactFrame) {
+      holder.updateMatrixWorld(true); contactWorld.set(...contactFrame.middle); model.localToWorld(contactWorld);
+      document.body.dataset.skyHumanHandError = Math.hypot(contactWorld.x - contactFrame.anchor.x, contactWorld.y - contactFrame.anchor.y, contactWorld.z - contactFrame.anchor.z).toFixed(4);
+    } else delete document.body.dataset.skyHumanHandError;
   }
   updateWorldWeapon(third);
   if (!third) { window.skyFirstPersonView?.update(dt, false); return; }
   // Match Unity's over-shoulder distance while keeping the player in frame.
   pivot.set(c.pos.x, c.camY === undefined ? c.pos.y + c.eye : c.camY, c.pos.z);
+  if (c.state === 'ledge' && holder) pivot.y = holder.position.y + Math.min(c.eye, 1.5);
   forward.set(0, 0, -1).applyQuaternion(camera.quaternion);
   right.set(1, 0, 0).applyQuaternion(camera.quaternion);
   wanted.copy(pivot).addScaledVector(forward, -3.6).addScaledVector(right, .62);

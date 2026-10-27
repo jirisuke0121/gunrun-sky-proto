@@ -80,6 +80,8 @@ fs.mkdirSync(output, { recursive: true });
               if (action === 'side') c.vel.set(6, 0, 0);
               if (action === 'back') c.vel.set(0, 0, 6);
               if (action === 'jump') { c.onGround = false; c.vel.y = 7.2; }
+              if (action === 'apex') { c.onGround = false; c.vel.y = 0; }
+              if (action === 'fall') { c.onGround = false; c.vel.y = -5; }
               if (action === 'slide') { c.state = 'slide'; c.slideT = .5; }
               if (action === 'ladder') { c.state = 'ladder'; c.vel.set(0, 1.5, 0); }
               c.pos.addScaledVector(c.vel, 1 / 60);
@@ -91,6 +93,21 @@ fs.mkdirSync(output, { recursive: true });
             return { dataset: { ...document.body.dataset }, visible: holder.visible, bank: holder.rotation.z,
               calls: r.info.render.calls, triangles: r.info.render.triangles, error: gl.getError(),
               renderer: extension ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER) };
+          };
+          window.__runningQALedge = (kind, phase) => {
+            const sky = window.__skyInternals, T = sky.Geom;
+            if (window.__qaLedgeBox) { const old = window.__qaLedgeBox; sky.ue.remove(old.mesh); old.mesh.geometry.dispose(); old.mesh.material.dispose(); sky.jn.splice(sky.jn.indexOf(old.solid), 1); }
+            const height = kind === 'vault' ? .9 : 1.8;
+            const solid = { minX: -1, maxX: 1, minY: 200, maxY: 200 + height, minZ: -2.2, maxZ: -.2, solid: true, type: 'box' };
+            const mesh = new T.Mesh(new T.Box(2, height, 2), new T.Standard({ color: 0x507d89 }));
+            mesh.position.set(0, 200 + height / 2, -1.2); sky.ue.add(mesh); sky.jn.push(solid); window.__qaLedgeBox = { mesh, solid };
+            c.pos.set(0, 200, .6); c.vel.set(0, 0, 0); c.yaw = 0; c.pitch = -.12; c.camY = 201.62; c.onGround = false;
+            c.state = 'ledge'; c.ledge = { kind, sx: 0, sy: 200, sz: .6, tx: 0, ty: 200 + height + .002, tz: -.7, dx: 0, dz: -1, speed: 6, low: false, t: 0, dur: kind === 'vault' ? .3 : .6 };
+            // playerStep runs the game's actual ledge interpolation (B_), not a
+            // copied animation clock. The blue block is a test-only fixture.
+            g.playerStep(c.ledge.dur * phase); g.cam(1 / 60); window.skyHumanView.update(1 / 60); g.frameOnce(0);
+            const weapon = sky.ue.children.find(o => o.name === 'Unity human held weapon');
+            return { ...document.body.dataset, weaponVisible: weapon?.visible, error: g.debug.renderer.getContext().getError() };
           };
         });
         const run = (action, count) => page.evaluate(([a, n]) => window.__runningQA(a, n), [action, count]);
@@ -108,6 +125,17 @@ fs.mkdirSync(output, { recursive: true });
         state = await run('side', 30); assert.equal(state.dataset.skyHumanClip, 'runRight');
         state = await run('back', 30); assert.equal(state.dataset.skyHumanClip, 'runBack');
         state = await run('jump', 20); assert.equal(state.dataset.skyHumanClip, 'jump');
+        assert.equal(state.dataset.skyHumanAction, 'parkourJump');
+        await capture('jump-rise');
+        state = await run('apex', 12); assert.ok(+state.dataset.skyHumanJumpPhase > .45); await capture('jump-apex');
+        state = await run('fall', 12); assert.ok(+state.dataset.skyHumanJumpPhase > .6); await capture('jump-fall');
+        for (const kind of ['vault', 'mantle', 'catch']) for (const phase of [.25, .5, .85]) {
+          const action = await page.evaluate(([kind, phase]) => window.__runningQALedge(kind, phase), [kind, phase]);
+          assert.equal(action.skyHumanClip, kind); assert.equal(action.error, 0); assert.equal(action.weaponVisible, false);
+          if (phase < .7) assert.ok(+action.skyHumanHandError < .002, `${kind}: hand contact ${action.skyHumanHandError}`);
+          await capture(`${kind}-${phase}`);
+        }
+        await page.evaluate(() => { const sky = window.__skyInternals, box = window.__qaLedgeBox; sky.ue.remove(box.mesh); sky.jn.splice(sky.jn.indexOf(box.solid), 1); box.mesh.geometry.dispose(); box.mesh.material.dispose(); window.__game.P.ledge = null; });
         state = await run('slide', 20); assert.equal(state.dataset.skyHumanClip, 'slide');
         state = await run('ladder', 20); assert.equal(state.dataset.skyHumanClip, 'ladder');
         state = await run('stop', 30); assert.equal(state.dataset.skyHumanClip, 'idle'); assert.ok(+state.dataset.skyHumanRunBlend < .01);
@@ -122,7 +150,7 @@ fs.mkdirSync(output, { recursive: true });
         await capture('return');
         assert.deepEqual(errors, [], 'browser console/page errors');
         results.push({ id, status: 'passed', renderer, checks: 16 });
-        console.log(`PASS ${id}: real WebGL, start/input, run/turn, firing/reload, walking/side/back, existing actions, pause, stop, view switch; ${renderer}`);
+        console.log(`PASS ${id}: real WebGL, start/input, run/turn, firing/reload, rise/apex/fall, actual ledge interpolation, vault/mantle/catch hand contact, existing actions, pause, stop, view switch; ${renderer}`);
       } catch (error) {
         await capture('failure').catch(() => {});
         results.push({ id, status: 'failed', error: error.message, browserErrors: errors });

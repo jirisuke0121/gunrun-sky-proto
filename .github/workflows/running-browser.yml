@@ -18,6 +18,7 @@ jobs:
       - name: Model and behavior checks
         run: |
           node bench/human-running.test.cjs
+          node bench/human-actions.test.cjs
           node bench/human-view-running.test.cjs
           node bench/gear-polish.test.cjs
           node bench/ranked-ghost.test.cjs
