@@ -4,7 +4,9 @@ from pathlib import Path
 import gzip
 
 root = Path(__file__).resolve().parent
-files = [root / "index.html", root / "canyon.html", root / "enhancements.js", root / "human-view.js", root / "human-running.js", root / "human-actions.js", root / "human-aim.js", root / "dash-boost.js", root / "zombie-near.js", root / "telemetry-probe.js", root / "desktop-look-fallback.js", root / "canyon-world.js", root / "town-heights.js", root / "blast-barrels.js"]
+# Every game script/page at the top level ships; the editor-only files and the pool/ folder do not.
+EDITOR_ONLY = {"hook-editor.html", "hook-editor.js", "wall-jump-candidates.js"}
+files = [p for p in sorted(root.glob("*.html")) + sorted(root.glob("*.js")) if p.name not in EDITOR_ONLY]
 files += [p for p in (root / "assets").rglob("*") if p.is_file()]
 files = [p for p in files if p.is_file()]
 raw = sum(p.stat().st_size for p in files)

@@ -18,8 +18,8 @@ let parkourRunEnabled = true;
 let contactFrame = null, trackedLedge = null, handAnchor = null;
 let aimRig = null, heldWeapon = null, aimBlend = 0, shotTarget = null;
 const contactOffset = new Vector3(), contactWorld = new Vector3();
-const savedChoice = (() => { try { return sessionStorage.getItem('gunrun-human-trial') || 'existing'; } catch { return 'existing'; } })();
-let choice = savedChoice === 'unity' ? 'unity' : 'existing';
+// The conventional first-person body is kept only as a load-failure fallback.
+let choice = 'unity';
 if (choice === 'unity') view = 'third';
 
 function readBounds(object) {
