@@ -319,7 +319,14 @@ $('score').addEventListener('click', async () => {
         g.RL.on = true; g.RL.saved = false;
         g.GAME.t = 120; g.endGame('time'); g.frameOnce(1.5);
         row.final = { ...g.GAME.final };
-        await wait(1100);
+        // A background/loaded browser may deliver rAF after the nominal 0.9s.
+        // Read the finished result and enabled button, not an intermediate count.
+        const until = performance.now() + 15000;
+        while (score.enabled() && w.document.getElementById('unityResultCard').dataset.complete !== 'true') {
+          if (performance.now() >= until) throw Error(`${map} ${id}: result animation did not finish`);
+          await wait(50);
+        }
+        await wait(0);
         g.endGame('time');
         row.record = { writes: records.length, score: records[0]?.score, challenge: records[0]?.challenge, reason: records[0]?.reason };
         row.display = { unity: score.enabled(), complete: w.document.getElementById('unityResultCard').dataset.complete,
