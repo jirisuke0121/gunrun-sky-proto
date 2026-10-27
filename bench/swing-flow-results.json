@@ -1,15 +1,309 @@
 {
+  "cases": [
+    {
+      "landed": true,
+      "pad": true,
+      "bars": [
+        "west-bar-1",
+        "west-bar-2"
+      ],
+      "offset": 0,
+      "yaw": 0,
+      "angle": 0.35,
+      "waitCycle": false,
+      "backward": false,
+      "input": 5,
+      "time": 2.7833333333333283,
+      "at": [
+        2.4866419460365194,
+        8.0001,
+        -6
+      ],
+      "caughtAt": null,
+      "enemyPath": []
+    },
+    {
+      "landed": true,
+      "pad": true,
+      "bars": [
+        "west-bar-1",
+        "west-bar-2"
+      ],
+      "offset": 0,
+      "yaw": 0,
+      "angle": 0.2,
+      "waitCycle": false,
+      "backward": false,
+      "input": 5,
+      "time": 2.533333333333329,
+      "at": [
+        0.8396723342044415,
+        8.0001,
+        -6
+      ],
+      "caughtAt": null,
+      "enemyPath": []
+    },
+    {
+      "landed": true,
+      "pad": true,
+      "bars": [
+        "west-bar-1",
+        "west-bar-2"
+      ],
+      "offset": 0,
+      "yaw": 0,
+      "angle": 0.55,
+      "waitCycle": false,
+      "backward": false,
+      "input": 5,
+      "time": 3.0666666666666607,
+      "at": [
+        3.185945986464519,
+        8.0001,
+        -6
+      ],
+      "caughtAt": null,
+      "enemyPath": []
+    },
+    {
+      "landed": true,
+      "pad": true,
+      "bars": [
+        "west-bar-1",
+        "west-bar-2"
+      ],
+      "offset": 0,
+      "yaw": 0,
+      "angle": 0.35,
+      "waitCycle": true,
+      "backward": false,
+      "input": 5,
+      "time": 7.333333333333313,
+      "at": [
+        0.9728022354030539,
+        8.0001,
+        -6
+      ],
+      "caughtAt": null,
+      "enemyPath": []
+    },
+    {
+      "landed": true,
+      "pad": true,
+      "bars": [
+        "west-bar-1",
+        "west-bar-2"
+      ],
+      "offset": 0.35,
+      "yaw": 0.06,
+      "angle": 0.35,
+      "waitCycle": false,
+      "backward": false,
+      "input": 5,
+      "time": 2.7833333333333283,
+      "at": [
+        2.486570650914181,
+        8.0001,
+        -5.721463681376814
+      ],
+      "caughtAt": null,
+      "enemyPath": []
+    },
+    {
+      "landed": true,
+      "pad": true,
+      "bars": [
+        "west-bar-1",
+        "west-bar-2"
+      ],
+      "offset": -0.35,
+      "yaw": -0.06,
+      "angle": 0.35,
+      "waitCycle": false,
+      "backward": false,
+      "input": 5,
+      "time": 2.7833333333333283,
+      "at": [
+        2.486570650914181,
+        8.0001,
+        -6.278536318623186
+      ],
+      "caughtAt": null,
+      "enemyPath": []
+    }
+  ],
+  "mistimed": [
+    {
+      "landed": false,
+      "pad": true,
+      "bars": [
+        "west-bar-1"
+      ],
+      "offset": 0,
+      "yaw": 0,
+      "angle": -1,
+      "waitCycle": false,
+      "backward": false,
+      "input": 4,
+      "time": 2.1333333333333306,
+      "at": [
+        -3.475946123109716,
+        0.0001,
+        -6
+      ],
+      "caughtAt": null,
+      "enemyPath": []
+    },
+    {
+      "landed": false,
+      "pad": true,
+      "bars": [
+        "west-bar-1"
+      ],
+      "offset": 0,
+      "yaw": 0,
+      "angle": 0.35,
+      "waitCycle": false,
+      "backward": true,
+      "input": 4,
+      "time": 2.966666666666661,
+      "at": [
+        -4.26489405775433,
+        0.0001,
+        -6
+      ],
+      "caughtAt": null,
+      "enemyPath": []
+    }
+  ],
+  "chase": {
+    "landed": true,
+    "pad": true,
+    "bars": [
+      "west-bar-1",
+      "west-bar-2"
+    ],
+    "offset": 0,
+    "yaw": 0,
+    "angle": 0.35,
+    "waitCycle": false,
+    "backward": false,
+    "input": 5,
+    "time": 2.7833333333333283,
+    "at": [
+      2.4866419460365194,
+      8.0001,
+      -6
+    ],
+    "caughtAt": 13.03333333333356,
+    "enemyPath": [
+      {
+        "t": 2.799999999999995,
+        "pos": [
+          -17.48835797285031,
+          5.2001,
+          -7.472363733523126
+        ]
+      },
+      {
+        "t": 3.7999999999999914,
+        "pos": [
+          -18.76950770863741,
+          4.0001,
+          -11.439665375285902
+        ]
+      },
+      {
+        "t": 4.799999999999988,
+        "pos": [
+          -13.91058899616787,
+          4.0001,
+          -11.995849305215202
+        ]
+      },
+      {
+        "t": 5.799999999999985,
+        "pos": [
+          -8.794492167034813,
+          4.0001,
+          -11.999975555992675
+        ]
+      },
+      {
+        "t": 6.799999999999981,
+        "pos": [
+          -4.018792158788778,
+          4.0001,
+          -12.89602351577289
+        ]
+      },
+      {
+        "t": 7.799999999999978,
+        "pos": [
+          -0.14838878310363854,
+          4.000038888888889,
+          -13.638676066474844
+        ],
+        "state": "ladder"
+      },
+      {
+        "t": 8.800000000000017,
+        "pos": [
+          0,
+          4.971666666666668,
+          -13.4
+        ],
+        "state": "ladder"
+      },
+      {
+        "t": 9.800000000000066,
+        "pos": [
+          0,
+          6.071666666666664,
+          -13.4
+        ],
+        "state": "ladder"
+      },
+      {
+        "t": 10.800000000000116,
+        "pos": [
+          0,
+          7.17166666666666,
+          -13.4
+        ],
+        "state": "ladder"
+      },
+      {
+        "t": 11.800000000000166,
+        "pos": [
+          0,
+          8.001975757575758,
+          -12.2145454545455
+        ],
+        "state": "ladder"
+      },
+      {
+        "t": 12.800000000000216,
+        "pos": [
+          1.1439699892200985,
+          8.0001,
+          -8.134777956824786
+        ]
+      }
+    ]
+  },
   "walkEstimate": 5.804534656879648,
   "exit": {
     "from": [
-      -0.04576917486433185,
+      2.4866419460365194,
       8.0001,
       -6
     ],
     "to": [
-      1.1130644236720681,
+      1.1794845988625593,
       8.0001,
-      -11.740317550944743
+      -10.998777493848811
     ],
     "ground": true
   },
@@ -66,233 +360,5 @@
     "difficulty": "normal",
     "sprint": 6
   },
-  "note": "Synthetic controller, stationary landing target for chase arrival; not a human fun study.",
-  "cases": [
-    {
-      "landed": true,
-      "pad": true,
-      "bars": [
-        "west-bar-1",
-        "west-bar-2"
-      ],
-      "offset": 0,
-      "yaw": 0,
-      "delay": 0.15,
-      "hold": false,
-      "input": 5,
-      "time": 2.716666666666662,
-      "at": [
-        0.044909066088945654,
-        8.0001,
-        -6
-      ],
-      "caughtAt": null
-    },
-    {
-      "landed": true,
-      "pad": true,
-      "bars": [
-        "west-bar-1",
-        "west-bar-2"
-      ],
-      "offset": 0,
-      "yaw": 0,
-      "delay": 0,
-      "hold": false,
-      "input": 5,
-      "time": 2.6999999999999953,
-      "at": [
-        -0.04576917486433185,
-        8.0001,
-        -6
-      ],
-      "caughtAt": null
-    },
-    {
-      "landed": true,
-      "pad": true,
-      "bars": [
-        "west-bar-1",
-        "west-bar-2"
-      ],
-      "offset": 0,
-      "yaw": 0,
-      "delay": 0.35,
-      "hold": false,
-      "input": 4,
-      "time": 2.9999999999999942,
-      "at": [
-        0.05974141645489098,
-        8.0001,
-        -6
-      ],
-      "caughtAt": null
-    },
-    {
-      "landed": true,
-      "pad": true,
-      "bars": [
-        "west-bar-1",
-        "west-bar-2"
-      ],
-      "offset": 0,
-      "yaw": 0,
-      "delay": 0.15,
-      "hold": true,
-      "input": 3,
-      "time": 2.6999999999999953,
-      "at": [
-        -0.04576917486433185,
-        8.0001,
-        -6
-      ],
-      "caughtAt": null
-    },
-    {
-      "landed": true,
-      "pad": true,
-      "bars": [
-        "west-bar-1",
-        "west-bar-2"
-      ],
-      "offset": 0.35,
-      "yaw": 0.06,
-      "delay": 0.15,
-      "hold": true,
-      "input": 3,
-      "time": 2.6999999999999953,
-      "at": [
-        -0.04596362376789989,
-        8.0001,
-        -5.713334250390925
-      ],
-      "caughtAt": null
-    },
-    {
-      "landed": true,
-      "pad": true,
-      "bars": [
-        "west-bar-1",
-        "west-bar-2"
-      ],
-      "offset": -0.35,
-      "yaw": -0.06,
-      "delay": 0.15,
-      "hold": true,
-      "input": 3,
-      "time": 2.6999999999999953,
-      "at": [
-        -0.04596362376789989,
-        8.0001,
-        -6.286665749609075
-      ],
-      "caughtAt": null
-    }
-  ],
-  "chase": {
-    "landed": true,
-    "pad": true,
-    "bars": [
-      "west-bar-1",
-      "west-bar-2"
-    ],
-    "offset": 0,
-    "yaw": 0,
-    "delay": 0.15,
-    "hold": true,
-    "input": 3,
-    "time": 2.6999999999999953,
-    "at": [
-      -0.04576917486433185,
-      8.0001,
-      -6
-    ],
-    "caughtAt": 12.350000000000193,
-    "enemyPath": [
-      {
-        "t": 2.716666666666662,
-        "pos": [
-          -18.91540710422764,
-          4.583433333333333,
-          -8.969001498351384
-        ]
-      },
-      {
-        "t": 3.7166666666666583,
-        "pos": [
-          -16.912211818500275,
-          4.0001,
-          -12.0736125009235
-        ]
-      },
-      {
-        "t": 4.716666666666655,
-        "pos": [
-          -11.83990290790394,
-          4.0001,
-          -12.000374160263755
-        ]
-      },
-      {
-        "t": 5.716666666666652,
-        "pos": [
-          -6.745373892222392,
-          4.0001,
-          -12.000000895224625
-        ]
-      },
-      {
-        "t": 6.716666666666648,
-        "pos": [
-          -1.7280062796218663,
-          4.0001,
-          -12.250681831190048
-        ]
-      },
-      {
-        "t": 7.716666666666645,
-        "pos": [
-          0,
-          4.33,
-          -13.4
-        ],
-        "state": "ladder"
-      },
-      {
-        "t": 8.71666666666668,
-        "pos": [
-          0,
-          5.43,
-          -13.4
-        ],
-        "state": "ladder"
-      },
-      {
-        "t": 9.716666666666729,
-        "pos": [
-          0,
-          6.529999999999996,
-          -13.4
-        ],
-        "state": "ladder"
-      },
-      {
-        "t": 10.716666666666779,
-        "pos": [
-          0,
-          7.629999999999992,
-          -13.4
-        ],
-        "state": "ladder"
-      },
-      {
-        "t": 11.716666666666828,
-        "pos": [
-          0,
-          8.0001,
-          -10.599035768889816
-        ]
-      }
-    ]
-  }
+  "note": "Synthetic controller, stationary landing target for chase arrival; not a human fun study."
 }

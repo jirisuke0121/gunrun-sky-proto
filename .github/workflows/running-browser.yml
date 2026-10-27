@@ -20,6 +20,7 @@ jobs:
           node bench/human-running.test.cjs
           node bench/human-wallrun.test.cjs
           node bench/wallrun-permissions.test.cjs
+          node bench/swing-timing.test.cjs
           node bench/human-actions.test.cjs
           node bench/human-view-running.test.cjs
           node bench/dash-boost.test.cjs

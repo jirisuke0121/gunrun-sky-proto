@@ -1,4 +1,4 @@
-import { createSwing } from './parkour-swing.js?v=20261027-swing-v1';
+import { createSwing } from './parkour-swing.js?v=20261028-timed-swing-v2';
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 import { createFlashbang } from './flashbang.js?v=20261027-hud-unify-v1';
 import { createGhostReplay } from './ghost-replay.js?v=20261027-swing-v1';
