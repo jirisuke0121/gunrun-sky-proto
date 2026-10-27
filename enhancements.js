@@ -281,17 +281,7 @@ if (window.T2?.GLTFLoader) {
     for (const child of uh.children) if (child !== pivot && child.isMesh) child.visible = false;
     recordAssetLoaded('knife');
   }, undefined, (error) => { loaded.error = String(error); });
-  new T2.GLTFLoader().load('./assets/smg-meshy-low.glb', (gltf) => {
-    const root = gltf.scene;
-    root.name = 'Meshy SMG mobile LOD';
-    root.rotation.y = -Math.PI / 2;
-    root.scale.setScalar(0.34);
-    root.position.set(0, -0.02, -0.13);
-    root.traverse((child) => { if (child.isMesh) child.castShadow = false; });
-    smgFallback.add(root);
-    for (const child of smgFallback.children) if (child !== root) child.visible = false;
-    recordAssetLoaded('smg');
-  }, undefined, (error) => { loaded.error = String(error); });
+  // SMG / SG / MG / Easy Weapons models and their sounds live in pool/ (not shipped); only HG is loaded.
 }
 
 // Complete the existing traversable structures with low polygon route cues.
@@ -430,12 +420,14 @@ WP.push(
 );
 // Match the prefab's Semi/Full setting. The M79 is fired on charge release.
 for (const [index, source] of Object.entries(UNITY_WEAPONS)) WP[+index].auto = source.trigger === 'full' ? 1 : 0;
-Jn.weapon = Math.max(0, Math.min(11, Jn.weapon));
-U.weapon = (U.weapon|0)===12?0:Math.max(0, Math.min(11, U.weapon | 0));
+// Only the HG ships; the other weapons are kept in pool/.
+Jn.weapon = 0;
+U.weapon = 0;
 const weaponSlider = document.getElementById('s_weapon');
 if (weaponSlider) {
-  weaponSlider.max = '11';
-  weaponSlider.parentElement.querySelector('label').textContent = '武器（0=HG 1=SG 2=SMG 3=MG 4=Pistol 5=Shotgun 6=M4 7=Rail 8=Beam 9=Cluster 10=Rocket 11=M79）';
+  weaponSlider.max = '0';
+  weaponSlider.value = '0';
+  weaponSlider.parentElement.style.display = 'none';
 }
 window.__wpSync?.();
 const originalGunSound = Tt.hg;
@@ -608,7 +600,7 @@ if (window.T2?.GLTFLoader) {
       gloveFallbacks[index].forEach((part) => { part.visible = false; });
     }
   });
-  for (const [key, index, scale, forward] of [['hg', 0, 0.25, -0.16], ['sg', 1, 0.47, -0.13], ['mg', 3, 0.70, -0.10]]) {
+  for (const [key, index, scale, forward] of [['hg', 0, 0.25, -0.16]]) {
     loadDetail(key, `${key}-meshy-low.glb`, (root) => {
       const view = weaponViews[index];
       root.name = `Meshy ${key.toUpperCase()} mobile LOD`;
@@ -617,38 +609,6 @@ if (window.T2?.GLTFLoader) {
       root.position.set(0, -0.02, forward);
       view.add(root);
       for (const child of view.children) if (child !== root) child.visible = false;
-    });
-  }
-  loadDetail('unityHg', 'easy-weapons-pistol-slide.glb', (root) => {
-    root.name = 'Easy Weapons Pistol';
-    // The GLB's parent node already converts Unity units to metres.
-    root.scale.setScalar(1.4);
-    root.rotation.y = 0;
-    root.position.set(0, -0.02, -0.13);
-    pistolSlide = root.getObjectByName('Pistol_Slide');
-    if (!pistolSlide) throw new Error('Pistol slide mesh missing');
-    pistolSlideRestZ = pistolSlide.position.z;
-    unityHgView.add(root);
-    for (const child of unityHgView.children) if (child !== root && child !== hgReloadMagazine && !child.userData.skyFlash) child.visible = false;
-  });
-  const easyAssets = [
-    ['easyShotgun', 5, 'easy-weapons-shotgun.glb', 2],
-    ['easyM4', 6, 'easy-weapons-m4.glb', 2.2],
-    ['easyRail', 7, 'easy-weapons-rail-gun.glb', 2],
-    ['easyBeam', 8, 'easy-weapons-beam-gun.glb', 2],
-    ['easyCluster', 9, 'easy-weapons-cluster-launcher.glb', 2],
-    ['easyRocket', 10, 'easy-weapons-rocket-launcher.glb', 2.2],
-    ['easyM79', 11, 'easy-weapons-m79-launcher.glb', 2],
-  ];
-  for (const [key, index, filename, scale] of easyAssets) {
-    loadDetail(key, filename, (root) => {
-      root.name = `Easy Weapons ${WP[index].n} model`;
-      root.scale.setScalar(scale);
-      root.rotation.y = 0;
-      root.position.set(0, -0.02, index >= 9 ? -0.17 : -0.13);
-      easyWeaponViews[index - 5].add(root);
-      if (index === 5 || index === 6) bindEasyMagazine(index, root);
-      for (const child of easyWeaponViews[index - 5].children) if (child !== root && !child.userData.skyFlash) child.visible = false;
     });
   }
   loadDetail('hook', 'hook-launcher-meshy-low.glb', (root) => {
@@ -1392,10 +1352,9 @@ window.__skyGhost = window.skyReplay;
   // Faithful takes: the recordings as they are (1.2 s with the natural room tail), plus short one-shot "heads"
   // (smgh*, mgh*, about 93 ms) that are used for the next shots of a burst so tails do not pile up.
   const SAMPLES = {
-    HG: ['hg1', 'hg2'], SG: ['sg1', 'sg2', 'sg3', 'sg4'],
-    SMG: ['smgh1', 'smgh2', 'smgh3', 'smgh4', 'smgh5', 'smgh6', 'smgh7', 'smgh8', 'smgh9', 'smgl1', 'smgl2'],
-    MG: ['mg1', 'mg2', 'mg3', 'mg4', 'mgh1', 'mgh2', 'mgh3', 'mgh4', 'mgh5', 'mgh6'],
+    HG: ['hg1', 'hg2'],
   };
+
   // ?snd=full brings back the previous processing (synthetic sine thump, heavier saturation) for A/B listening.
   // Default: the stereo recording as it is (1.5 ms fade-in, cosine fade-out, a safety limiter, nothing else), with its
   // natural room tail; this keeps the texture of the original files (the user preferred it to every processed version). ?snd=body = adds a low shelf and an octave-down layer, ?snd=full = the old heavy chain.
@@ -1420,17 +1379,9 @@ window.__skyGhost = window.skyReplay;
   // left once the context exists; otherwise the first shots after starting could fall back to the synthetic sound.
   const SFX_VER = '20261024-12';
   const sfxBytes = {};
-  const EASY_FIRE = {
-    4: ['pistol_fire_1.wav', 0.50],
-    5: ['shotgun_fire_1.wav', 0.56],
-    6: ['rifle_fire_1.wav', 0.48],
-    7: ['laser_fire_1.wav', 0.50],
-    8: ['deep_beam.mp3', 0.56],
-    9: ['rocket_launch_2.wav', 0.52],
-    10: ['rocket_launch_1.wav', 0.52],
-    11: ['rocket_launch_2.wav', 0.52],
-  };
-  const easySoundFiles = [...new Set([...Object.values(EASY_FIRE).map(([file]) => file), 'reload_1.wav'])];
+  const EASY_FIRE = {}; // Easy Weapons shot sounds are kept in pool/.
+
+  const easySoundFiles = [];
   const easySoundBytes = Object.fromEntries(easySoundFiles.map((file) => [file,
     fetch(`./assets/sfx/easy-weapons/${file}?v=ew-20261025-1`)
       .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
@@ -1608,7 +1559,7 @@ window.__skyGhost = window.skyReplay;
     if (weaponIndex === 12) { window.skyJumpGun.playSound(); return; }
     loadSamples();
     if (weaponIndex >= 4) {
-      const [file, gain] = EASY_FIRE[weaponIndex] || EASY_FIRE[4];
+      const [file, gain] = EASY_FIRE[weaponIndex] || ['', 0];
       if (!(weaponIndex === 8 ? playBeamSound() : playEasySound(file, gain))) gunVoice(Ut.ctx, Ut.master,
         ({ 4: 'HG', 5: 'SG', 6: 'MG', 7: 'HG', 8: 'SMG', 9: 'SG', 10: 'SG', 11: 'SG' })[weaponIndex]);
     } else if (!playSample(Ut.ctx, name)) gunVoice(Ut.ctx, Ut.master, name);

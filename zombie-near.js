@@ -1,7 +1,8 @@
 // Reuse the original vertices, UVs, skin weights, rig and animation clips.
 const sky=window.__skyInternals;
-const enabled=new URLSearchParams(location.search).get('zombieGeometry')!=='original';
-const data=enabled?fetch('./assets/zombie-near-indices.json?v=20261027-near-v1').then(r=>{if(!r.ok)throw Error('near zombie indices');return r.json();}).catch(e=>{console.warn('Near zombie geometry fallback',e);return null;}):Promise.resolve(null);
+// The reduced-triangle index data only covered the old Meshy zombies, which now live in pool/.
+// The Unity zombies ship with their own LOD, so nothing is fetched here.
+const data=Promise.resolve(null);
 const results={};
 async function attach(ent){
  if(ent.nearAttached)return;ent.nearAttached=true;
