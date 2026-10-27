@@ -114,6 +114,7 @@ export function createWeaponDrops(sky, game) {
     sky.Tt.mark?.(); sky.rn(`${type.name}取得！ ${profile.mag}発装填・移動しながら撃てる`);
   }
   function step(dt) {
+    if(window.skyPracticeMode)return;
     if (sky.modeRef() !== 'play' || z.over || z.mission) return;
     elapsed += dt;
     const to = c.pos.toArray(), from = previous && Math.hypot(...to.map((v, k) => v - previous[k])) < 4 ? previous : to;
@@ -134,7 +135,7 @@ export function createWeaponDrops(sky, game) {
     previous = to;
   }
   function frame() {
-    const playing = sky.modeRef() === 'play' && !z.over && !z.mission;
+    const playing = !window.skyPracticeMode && sky.modeRef() === 'play' && !z.over && !z.mission;
     root.visible = playing; status.hidden = !playing;
     const active = items.filter(i => i.node);
     for (const item of items) {

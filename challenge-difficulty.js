@@ -25,7 +25,7 @@
   let active = selected, game, lastObservation = -1;
   const debug = new URLSearchParams(location.search).has('challengeDebug');
   const level = id => byId[id] || levels[1];
-  const profile = () => game?.z.mission || active === 'legacy' ? null : level(active);
+  const profile = () => window.skyPracticeMode || game?.z.mission || active === 'legacy' ? null : level(active);
   const speedScale = () => (game?.U.sprintSpeed || 6) / 6;
   const range = p => ({ start: (p.startSpeed ?? p.maxSpeed - 2) * speedScale(), end: p.maxSpeed * speedScale() });
   const ladderExits = new WeakMap();

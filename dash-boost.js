@@ -88,7 +88,7 @@ export function createDash(sky, game) {
   const rule = document.querySelector('#ovStart .rules .keys');
   if (rule) { const li = document.createElement('li'); li.textContent = '青いDASHリングを取ると5秒間、速度が1.3倍。再出現は36秒後'; rule.appendChild(li); }
   let remaining = 0, age = 0, time = 0, pulse = 0, run = 0, boost = 0, aimTime = 0, shots = game.stats.shots || 0;
-  let previous = null, previousFactor = 1;
+  let previous = null, previousFactor = 1, swingView = 0;
   const trail = [], forward = new Vector3(), right = new Vector3(), centre = new Vector3();
   const camera = { distance: 3.6, shoulder: .62, height: .18 };
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false;
@@ -99,12 +99,12 @@ export function createDash(sky, game) {
     if (round) { items.forEach(i => { i.cooldown = 0; }); game.stats.dashPickups = 0; }
   }
   function placePickups(position, yaw) {
-    const selected = pickupNodes(game.NAV, position, yaw, n => [[0, 0], [.48, 0], [-.48, 0], [0, .48], [0, -.48]].every(([x, z]) => sky.oe(n.x + x, n.y + .05, n.z + z, .28, 1.8)));
+    const selected = window.skyPracticeMode ? window.skyPracticeCourse.dashPositions.map(([x,y,z],id)=>({x,y,z,id})) : pickupNodes(game.NAV, position, yaw, n => [[0, 0], [.48, 0], [-.48, 0], [0, .48], [0, -.48]].every(([x, z]) => sky.oe(n.x + x, n.y + .05, n.z + z, .28, 1.8)));
     items.forEach((item, i) => { item.node = selected[i * 2] || selected[i] || null; if (item.node) item.group.position.set(item.node.x, item.node.y + 1.05, item.node.z); item.group.visible = false; });
   }
   function collect(item) {
     const refreshing = remaining > 0;
-    item.cooldown = DASH_RESPAWN; item.group.visible = false; remaining = DASH_SECONDS; pulse = .42;
+    item.cooldown = window.skyPracticeMode ? 3 : DASH_RESPAWN; item.group.visible = false; remaining = DASH_SECONDS; pulse = .42;
     if (!refreshing) age = 0;
     game.stats.dashPickups = (game.stats.dashPickups || 0) + 1; previousFactor = 1;
     burst.position.set(c.pos.x, c.pos.y + .2, c.pos.z); trail.length = 0;
@@ -142,11 +142,12 @@ export function createDash(sky, game) {
     time += dt;
     const speed = Math.hypot(c.vel.x, c.vel.z), aiming = aimTime > 0 || Et.reloadT > 0 || window.skyHumanView?.isFiring;
     const free = c.state !== 'ladder' && c.state !== 'ledge';
-    const strength = free ? smooth(U.walkSpeed + .12, U.sprintSpeed - .05, speed) * (aiming ? .22 : 1) : 0;
+    const strength = free ? smooth(U.walkSpeed + .12, U.sprintSpeed - .05, Math.max(speed,window.skySwing?.cameraSpeed||0)) * (aiming ? .22 : 1) : 0;
     run = ease(run, strength, dt, 7); boost = ease(boost, remaining > 0 ? boostEnvelope(remaining, age) : 0, dt, 12);
-    camera.distance = 3.6 + run * .25 + boost * run * .3;
-    camera.shoulder = .62 - run * .28 - boost * run * .1;
-    camera.height = .18 - run * .3 - boost * run * .07;
+    swingView = ease(swingView, window.skySwing?.active ? 1 : 0, dt, 12);
+    camera.distance = 3.6 + run * .25 + boost * run * .3 - .45 * swingView;
+    camera.shoulder = .62 - run * .28 - boost * run * .1 - .15 * swingView;
+    camera.height = .18 - run * .3 - boost * run * .07 + .08 * swingView;
     const moving = smooth(.7, U.sprintSpeed, speed), trailOn = boost * moving;
     lines.style.opacity = String((reduced ? .16 : .38) * run * (.35 + .65 * boost));
     flash.style.opacity = String(reduced ? 0 : .13 * pulse / .42);
@@ -184,7 +185,7 @@ export function createDash(sky, game) {
   }
   return { step, frame, reset, placePickups, camera,
     speed: base => base * (1 + (DASH_MULTIPLIER - 1) * boostEnvelope(remaining, age)),
-    fov: original => Math.min(122, Math.max(original, U.fov + U.fovKick * .8 * run + 7 * boost * run)),
+    fov: original => Math.min(122, Math.max(original, U.fov + U.fovKick * .8 * run + 7 * boost * run + (reduced ? 0 : 7 * swingView))),
     get boost() { return boost; }, get remaining() { return remaining; },
     get pickups() { return items.filter(i => i.node).map(i => ({ id: i.id, nodeId: i.node.id, position: [i.node.x, i.node.y, i.node.z], cooldown: i.cooldown })); }
   };
