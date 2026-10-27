@@ -1,0 +1,62 @@
+/* HUD / result unification: one set of colors, shadow and card style shared by the
+   in-play HUD and the Unity-style result card (challenge-score.css). Loaded last. */
+:root{
+  --hud-ink:#efe6c9;--hud-sub:#cfc6aa;--hud-gold:#ffdb7c;--hud-danger:#ff6a4d;
+  --hud-card:rgba(22,20,16,.46);--hud-line:rgba(189,177,150,.38);
+  --hud-shadow:0 1px 2px #000,1px 0 1px #000;
+}
+#hud{color:var(--hud-ink);text-shadow:var(--hud-shadow)}
+
+/* top-left status: same card look as ammo / ability readout */
+.hud-tl,.unity-challenge-score .hud-tl{
+  top:12px;box-sizing:border-box;padding:7px 11px;max-width:none;
+  font-size:14px;line-height:1.6;font-variant-numeric:tabular-nums;
+  background:var(--hud-card);border:1px solid var(--hud-line);border-radius:8px;
+}
+.hud-tl b{font-weight:700;color:#fff}
+.hud-tl .life b{color:var(--hud-danger);font-size:16px;letter-spacing:.12em}
+.hud-tl kbd{font-size:.78em;line-height:1.35;border-color:var(--hud-line);color:var(--hud-sub)}
+.hud-tl #hudDifficulty,.hud-tl #unityDifficulty{
+  position:static;top:auto;left:auto;font-size:inherit;color:var(--hud-gold);font-weight:700;
+}
+.hud-tl #unityDifficulty:before{content:'難易度 ';color:var(--hud-sub);font-weight:400}
+
+/* header counters: unit sits right next to the number, colors follow the result card */
+.unity-counter{grid-template-columns:32px max-content 1fr}
+.unity-counter>span{color:var(--hud-sub)}
+.unity-counter strong{color:var(--hud-ink)}
+.unity-score>b{color:var(--hud-gold)}
+.unity-score>img{filter:sepia(1) saturate(2.5) drop-shadow(0 1px 1px #000)}
+
+/* bottom cluster: ammo + movement readiness share the card style */
+.ammo,.catchbox{background:var(--hud-card);border:1px solid var(--hud-line);border-radius:8px;box-sizing:border-box;padding:6px 11px}
+.ammo{bottom:14px}
+.ammo span{color:var(--hud-sub);opacity:1}
+.ammo i{background:#efe6c933}
+.ammo u{background:var(--hud-gold)}
+.catchbox{bottom:14px;font-size:12px;opacity:1;color:var(--hud-sub)}
+.catchbox b{color:var(--hud-ink)}
+.hud-tr{color:var(--hud-sub);opacity:1;line-height:1.7}
+
+/* the result card and the pause sheet own the screen: fade the live HUD out instead of letting it show through */
+#hud{transition:opacity .2s}
+#app:has(#ovOver:not([hidden])) #hud,#app:has(#ovPause:not([hidden])) #hud{opacity:0}
+
+/* touch: tidy right-hand button cluster */
+html.touch .ammo{top:62px;bottom:auto}
+.tb{color:var(--hud-ink);border-color:rgba(239,230,201,.62);text-shadow:var(--hud-shadow)}
+.tb small{display:block;margin-top:1px;font-size:10px;font-weight:600;color:var(--hud-sub);letter-spacing:0}
+#tFlash,#tFlash.empty{line-height:1.15;white-space:normal;text-align:center}
+#tFlash{width:64px;height:64px;right:calc(max(24px,env(safe-area-inset-right)) + 208px);bottom:122px}
+@media(max-width:700px){#tFlash{right:calc(max(24px,env(safe-area-inset-right)) + 208px);bottom:122px}}
+
+/* hint text must not run under the key list (top-right) or the status card (top-left) */
+.hint{white-space:normal;width:max-content;max-width:calc(100vw - 520px);text-align:center;line-height:1.5}
+@media(max-width:900px){.hint{max-width:calc(100vw - 320px)}}
+
+@media(max-width:1000px){
+  .hud-tl,.unity-challenge-score .hud-tl{top:8px;font-size:12px;max-width:128px;padding:5px 8px;line-height:1.5}
+  .hud-tl .life b{font-size:14px}
+}
+@media(max-width:650px){.unity-counter{grid-template-columns:max-content 1fr}}
+@media(prefers-reduced-motion:reduce){#hud{transition:none}}

@@ -65,7 +65,7 @@ export function createFlashbang(game) {
   function hud() {
     if (count) count.textContent = String(charges);
     if (button) {
-      button.textContent = `閃光弾 ${charges}（技${skills}/3）`;
+      button.innerHTML = `閃光弾<small>×${charges}　技${skills}/3</small>`;
       button.classList.toggle('empty', charges === 0);
       button.setAttribute('aria-label', `閃光弾 残り${charges}個 周囲${FLASHBANG.radius}mのゾンビを${FLASHBANG.duration}秒停止`);
     }

@@ -124,6 +124,8 @@
     const hud = document.createElement('div'); hud.id = 'unityScoreHud';
     hud.innerHTML = `<div id="unityDifficulty"></div><div class="unity-counter">${image('clock')}<b id="unityTime">120</b><small>秒</small><span>時間倍率 <strong id="unityTimeFactor">×1.0</strong></span></div><div class="unity-counter">${image('skull')}<b id="unityKills">0</b><span>撃破倍率 <strong id="unityKillFactor">×2.0</strong></span></div><div class="unity-counter unity-score">${image('star')}<b id="unityTotal">0</b><span>SCORE</span></div>`;
     $('hud').append(hud);
+    // Difficulty belongs with the other status lines, not floating under the header (it collided with hints).
+    $('hud').querySelector('.hud-tl')?.prepend($('unityDifficulty'));
     const pause = document.createElement('aside'); pause.id = 'unityScorePause';
     pause.innerHTML = `<h3>得点の内訳</h3><p id="unityPauseIdentity"></p><p id="unityPauseSurvival"></p><p id="unityPauseKill"></p><b id="unityPauseTotal"></b><small>長く生存するほど得点アップ。難易度ボーナスは各得点に反映済み。</small>`;
     $('challengeSettingsNote').after(pause);
