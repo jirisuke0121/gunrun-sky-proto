@@ -32,6 +32,8 @@ fs.mkdirSync(output, { recursive: true });
         return url.startsWith(base) || /^(data|blob):/.test(url) ? route.continue() : route.abort();
       });
       const page = await context.newPage(), errors = [];
+      page.setDefaultTimeout(60000);
+      const capture = name => page.screenshot({ path: path.join(output, `${id}-${name}.png`), timeout: 60000 });
       page.on('pageerror', error => errors.push(error.message));
       page.on('console', message => { if (message.type() === 'error') errors.push(`${message.text()} ${message.location().url}`); });
       try {
@@ -49,9 +51,12 @@ fs.mkdirSync(output, { recursive: true });
         await page.waitForTimeout(700);
         await page.keyboard.up('e');
         await page.keyboard.up('w');
+        // Stop the real-time loop before capturing software WebGL. Continually
+        // submitting full-map frames can starve Chromium's screenshot request.
+        await page.evaluate(() => { window.__hold = true; });
         assert.equal(await page.evaluate(() => window.__game.mode), 'play');
         assert.ok(await page.evaluate(() => window.__skyInternals.Et.ammo) < ammo, 'real shooting input consumes ammunition');
-        await page.screenshot({ path: path.join(output, `${id}-play.png`) });
+        await capture('play');
 
         await page.evaluate(() => {
           window.__hold = true;
@@ -90,10 +95,10 @@ fs.mkdirSync(output, { recursive: true });
         let state = await run('run', 60);
         assert.ok(+state.dataset.skyHumanRunBlend > .99 && state.visible && state.calls >= 7 && state.triangles > 1000, JSON.stringify(state));
         assert.equal(state.error, 0, 'run WebGL error');
-        await page.screenshot({ path: path.join(output, `${id}-run.png`) });
+        await capture('run');
         const renderer = state.renderer;
         state = await run('turn', 30); assert.ok(Math.abs(state.bank) > .02); assert.equal(state.error, 0);
-        await page.screenshot({ path: path.join(output, `${id}-turn.png`) });
+        await capture('turn');
         state = await run('shot', 6); assert.ok(+state.dataset.skyHumanRunBlend < .1); assert.equal(state.error, 0);
         state = await run('run', 40); assert.ok(+state.dataset.skyHumanRunBlend > .99);
         state = await run('reload', 6); assert.ok(+state.dataset.skyHumanRunBlend < .1); assert.equal(state.error, 0);
@@ -112,12 +117,12 @@ fs.mkdirSync(output, { recursive: true });
         state = await run('stop', 1); assert.equal(state.dataset.skyHumanView, 'first');
         await page.keyboard.press('v');
         state = await run('run', 60); assert.equal(state.dataset.skyHumanView, 'third'); assert.equal(state.error, 0);
-        await page.screenshot({ path: path.join(output, `${id}-return.png`) });
+        await capture('return');
         assert.deepEqual(errors, [], 'browser console/page errors');
         results.push({ id, status: 'passed', renderer, checks: 16 });
         console.log(`PASS ${id}: real WebGL, start/input, run/turn, firing/reload, walking/side/back, existing actions, pause, stop, view switch; ${renderer}`);
       } catch (error) {
-        await page.screenshot({ path: path.join(output, `${id}-failure.png`) }).catch(() => {});
+        await capture('failure').catch(() => {});
         results.push({ id, status: 'failed', error: error.message, browserErrors: errors });
         throw error;
       } finally { await context.close(); }
