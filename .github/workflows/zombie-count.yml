@@ -1,0 +1,29 @@
+name: Zombie count measurement
+on:
+  pull_request:
+    paths: ['bench/zombie-count.cjs', '.github/workflows/zombie-count.yml']
+permissions:
+  contents: read
+jobs:
+  measure:
+    strategy:
+      matrix:
+        map: [index.html, canyon.html]
+        density: [cluster, spread]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+      - run: node bench/zombie-count.cjs
+        env:
+          BENCH_MAP: '${{ matrix.map }}'
+          BENCH_DENSITY: '${{ matrix.density }}'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 'counts-${{ matrix.map }}-${{ matrix.density }}'
+          path: count-evidence/
