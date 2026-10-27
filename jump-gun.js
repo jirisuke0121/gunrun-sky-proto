@@ -1,12 +1,18 @@
 import { playGearSound } from './gear-audio.js?v=20261026-gear-polish-v1';
-export const JUMP_GUN = Object.freeze({ up: 16, push: 10, maxUp: 24, maxPush: 14 });
+export const JUMP_GUN = Object.freeze({ up: 20, push: 10, maxUp: 24, maxPush: 14 });
 
 export function migrateJumpGunSettings(settings, storage) {
-  if (storage.getItem('gunrun-jumpgun-power-20261026')) return false;
   let changed = false;
-  if (settings.jumpGunUp === 11.2) { settings.jumpGunUp = JUMP_GUN.up; changed = true; }
-  if (settings.jumpGunPush === 8) { settings.jumpGunPush = JUMP_GUN.push; changed = true; }
-  storage.setItem('gunrun-jumpgun-power-20261026', '1');
+  if (!storage.getItem('gunrun-jumpgun-power-20261026')) {
+    if (settings.jumpGunUp === 11.2) { settings.jumpGunUp = JUMP_GUN.up; changed = true; }
+    if (settings.jumpGunPush === 8) { settings.jumpGunPush = JUMP_GUN.push; changed = true; }
+    storage.setItem('gunrun-jumpgun-power-20261026', '1');
+  }
+  // Upgrade the previous default once, including players already migrated above.
+  if (!storage.getItem('gunrun-jumpgun-power-20261027-v2')) {
+    if (settings.jumpGunUp === 16) { settings.jumpGunUp = JUMP_GUN.up; changed = true; }
+    storage.setItem('gunrun-jumpgun-power-20261027-v2', '1');
+  }
   return changed;
 }
 

@@ -1,6 +1,6 @@
 // Browser adaptation of the weapon modes in Easy Weapons/Weapon.cs.
 // Unity prefabs provide the mode and timing; Air Corridor keeps its own damage scale.
-import { createJumpGun } from './jump-gun.js?v=20261027-jump-items-v1';
+import { createJumpGun } from './jump-gun.js?v=20261027-jump-power-v2';
 export const UNITY_WEAPONS = Object.freeze({
   4: { kind: 'raycast', trigger: 'semi', rof: 12, pellets: 1, accuracy: 70, drop: 5, recovery: 3.5 },
   5: { kind: 'raycast', trigger: 'semi', rof: 2, pellets: 6, accuracy: 55, drop: 10, recovery: 1.5 },
