@@ -1,7 +1,7 @@
 import { createSwing } from './parkour-swing.js?v=20261028-timed-swing-v2';
-import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
+import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
 import { createFlashbang } from './flashbang.js?v=20261027-hud-unify-v1';
-import { createGhostReplay } from './ghost-replay.js?v=20261027-swing-v1';
+import { createGhostReplay } from './ghost-replay.js?v=20261028-result-stars-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261027-jump-power-v2';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261027-swing-v1';
@@ -2043,92 +2043,5 @@ if (/[?&]perf=1/.test(location.search)) {
     if (input && input.parentElement) input.parentElement.style.display = 'none';
   }
 
-  // 3) ランキング（Unity得点版は得点順、旧版・自由調整はクリア有無→得点）。受け口は server/worker.js の GET /ranking。
-  const RANK_URL = 'https://gunrun-runs.jirisuke0121.workers.dev/ranking';
-  const style = document.createElement('style');
-  style.textContent = `
-.rankbox{margin:10px 0;padding:8px 12px;border-radius:8px;background:rgba(0,0,0,.38);font-size:13px;line-height:1.5;text-align:left}
-.rankbox:empty{display:none}
-.rankbox h3{margin:0 0 4px;font-size:13px;letter-spacing:.04em}
-.rankbox small{display:block;opacity:.7;margin-bottom:4px}
-.rankbox ol{margin:0;padding:0;list-style:none}
-.rankbox li{display:grid;grid-template-columns:2.6em 3.2em 1fr auto;gap:6px;padding:1px 0}
-.rankbox .rank-time{grid-column:2/-1;font-size:12px;color:#cbd7df;margin:0}.rankbox .ghost-button{grid-column:2/-1;justify-self:start;font-size:12px;padding:6px 10px;min-height:38px;margin:2px 0 6px}.rankbox li.me{color:#ffd24a;font-weight:700}
-.rankbox .clear{color:#7be08b;font-weight:700}
-.rankbox .mine{margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,.2)}`;
-  document.head.appendChild(style);
-
-  const playerId = () => { try { return localStorage.getItem('gunrun-pid') || ''; } catch { return ''; } };
-  const esc = (v) => String(v).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-  const status = (row) => (row.cleared ? '<span class="clear">クリア</span>' : `${row.t}秒`);
-
-  async function fetchRanking() {
-    const me = playerId();
-    const res = await fetch(RANK_URL + '?rules=' + window.skyChallenge.version + '&difficulty=' + window.skyChallenge.id + '&map=' + (window.SKY_CANYON_MAP ? 'rock-canyon' : 'old-town') + (me ? '&me=' + encodeURIComponent(me) : ''), { cache: 'no-store' });
-    if (!res.ok) throw new Error('ranking ' + res.status);
-    return res.json();
-  }
-
-  function renderRanking(box, data, limit) {
-    if (!data || data.difficulty !== window.skyChallenge.id || (window.skyChallenge.id !== 'legacy' && data.rules !== window.skyChallenge.version) || !data.top || !data.top.length) { box.innerHTML = ''; return; }
-    const rows = data.top.slice(0, limit).map((row) =>
-      `<li class="${row.me ? 'me' : ''}"><span>${row.pos}位</span><span>${esc(row.tag)}</span><span>${status(row)}</span><span>${row.score}点</span><time class="rank-time"${row.playedAt ? ` datetime="${esc(row.playedAt)}"` : ""}>記録 ${esc(formatReplayTime(row.playedAt))}${row.playedAt ? "（日本時間）" : ""}</time>${row.replayId ? `<button type="button" class="ghost-button" data-replay="${esc(row.replayId)}">ゴーストを見る</button>` : '<small style="grid-column:2/-1">ゴースト記録なし</small>'}</li>`).join('');
-    const inList = data.top.slice(0, limit).some((row) => row.me);
-    const mine = data.me && !inList
-      ? `<div class="mine">あなたの最高：${data.me.pos}位（${data.total}人中）　${status(data.me)}　${data.me.score}点<br>記録 ${esc(formatReplayTime(data.me.playedAt))}${data.me.playedAt ? "（日本時間）" : ""}</div>` : '';
-    box.innerHTML = `<h3>${esc(window.skyChallenge.name)} ランキング</h3><small>クリア（2分逃げ切り）が上、同じ場合は得点順。このマップ・難易度の記録を表示。記録の送信がオンのプレイが対象です。</small><ol>${rows}</ol>${mine}`;
-  }
-
-  document.addEventListener('click', event => {
-    const button = event.target.closest('.ghost-button[data-replay]');
-    if (button) window.skyReplay.open(button.dataset.replay, button);
-  });
-
-  async function refresh(box, limit) {
-    try { renderRanking(box, await fetchRanking(), limit); } catch { box.innerHTML = ''; }
-  }
-
-  const startPanel = document.getElementById('ovStart');
-  const overPanel = document.getElementById('ovOver');
-  const titleBox = document.createElement('div');
-  titleBox.className = 'rankbox';
-  const mapSelect = startPanel && startPanel.querySelector('.map-select');
-  if (mapSelect) mapSelect.parentElement.insertBefore(titleBox, mapSelect);
-  const overBox = document.createElement('div');
-  overBox.className = 'rankbox';
-  const overStats = document.getElementById('oStats');
-  if (overStats) overStats.parentElement.insertBefore(overBox, overStats);
-
-  if (startPanel) {
-    new MutationObserver(() => { if (!startPanel.hidden) refresh(titleBox, 10); })
-      .observe(startPanel, { attributes: true, attributeFilter: ['hidden'] });
-    if (!startPanel.hidden) refresh(titleBox, 10);
-  }
-
-  document.addEventListener('sky-difficulty-change', () => { titleBox.innerHTML = ''; refresh(titleBox, 10); });
-  let overToken = 0;
-  if (overPanel) {
-    new MutationObserver(async () => {
-      if (overPanel.hidden || z.mission || !z.final) return;
-      const customRanking = document.getElementById('unityScoreRanking');
-      if (window.skyChallengeScore?.enabled() && customRanking) customRanking.append(overBox);
-      else if (overStats) overStats.parentElement.insertBefore(overBox, overStats);
-      const token = ++overToken;
-      const total = z.final.total;
-      const cleared = z.reason === 'time';
-      overBox.innerHTML = '';
-      // 記録の送信が終わるまで待ち、自分の最高がこの回以上になったら表示する（最大3回）
-      for (const wait of [1200, 2000, 3500]) {
-        await new Promise((resolve) => setTimeout(resolve, wait));
-        if (token !== overToken || overPanel.hidden) return;
-        try {
-          const data = await fetchRanking();
-          const me = data.me;
-          const reflected = me && (window.skyChallengeScore?.enabled() ? me.score >= total : ((me.cleared ? 1 : 0) > (cleared ? 1 : 0) || ((me.cleared ? 1 : 0) === (cleared ? 1 : 0) && me.score >= total)));
-          renderRanking(overBox, data, 5);
-          if (reflected) return;
-        } catch { overBox.innerHTML = ''; return; }
-      }
-    }).observe(overPanel, { attributes: true, attributeFilter: ['hidden'] });
-  }
+  installRanking(game);
 }

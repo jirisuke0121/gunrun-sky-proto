@@ -17,46 +17,41 @@
 .unity-challenge-score .hud-tr{top:105px;max-width:250px;line-height:1.6}
 #unityScorePause{padding:14px 18px;margin:10px 0 18px;background:#faf8f0;border-top:3px solid #d6232a;color:#252c31;text-shadow:none;font-variant-numeric:tabular-nums}
 #unityScorePause h3{margin:0 0 8px;font-size:20px}#unityScorePause p{margin:4px 0}#unityScorePause small{display:block;margin-top:8px;color:#5a6066}
-.unity-challenge-score #ovOver{padding:0;overflow:auto;background:rgba(3,5,7,.45)}
-.unity-challenge-score #ovOver:not([hidden]){animation:unity-result-shade .25s linear}
-@keyframes unity-result-shade{from{background:transparent}to{background:rgba(3,5,7,.45)}}
-#unityResultCard{position:relative;box-sizing:border-box;background:url('./assets/challenge-score/panel.webp') center/100% 100% no-repeat;color:#efe6c9;text-shadow:0 1px 2px #000,1px 0 1px #000;font-variant-numeric:tabular-nums;--card-scale:1;flex-shrink:0}
-#unityResultCard>*{position:absolute;box-sizing:border-box;margin:0}
-#unityResultCard img{object-fit:contain;pointer-events:none}
-#unityResultBadge{left:5.94%;top:5.34%;width:9.12%;height:12.15%}
-.uc-caption{left:15.88%;top:6.08%;width:52.5%;font-size:clamp(14px,calc(65px * var(--card-scale)),65px);white-space:nowrap}
-#unityResultTitle{left:69.4%;top:7.09%;width:25.2%;font-size:clamp(12px,calc(42px * var(--card-scale)),42px);color:#ffbd4d;text-align:center;white-space:nowrap}
-#unityResultCard[data-failed=true] #unityResultTitle{color:#ff4933}
-.uc-english{left:67.33%;top:12.62%;width:27.28%;font-size:clamp(9px,calc(28px * var(--card-scale)),28px);text-align:center;white-space:nowrap}
-.uc-score-label{left:7.25%;top:19.34%;font-size:clamp(12px,calc(35px * var(--card-scale)),35px)}
-.uc-silver{left:11.88%;top:22.84%;width:20.03%;height:26.7%}
-.uc-star{left:16.92%;top:29.65%;width:10%;height:13.35%;filter:sepia(1) saturate(2.5)}
-#unityResultBest{left:6.56%;top:44.01%;width:32.11%;text-align:center;font-size:clamp(13px,calc(44px * var(--card-scale)),44px)}
-.uc-total-label{left:7.94%;top:49.17%;width:29.28%;text-align:center;font-size:clamp(11px,calc(29px * var(--card-scale)),29px)}
-.uc-total{left:6.14%;top:52.3%;width:33.15%;text-align:center;color:#ffdb7c;white-space:nowrap}
-.uc-total b{font-size:clamp(28px,calc(110px * var(--card-scale)),110px);line-height:1.15}.uc-total small{font-size:clamp(13px,calc(46px * var(--card-scale)),46px)}
-#unityResultContent,#unityResultActions{inset:0;pointer-events:none}
-#unityResultContent>*{position:absolute;margin:0;box-sizing:border-box}
-.uc-record-label{left:43.16%;top:20.44%;width:33%;font-size:clamp(13px,calc(38px * var(--card-scale)),38px)}
-.uc-summary{left:44.89%;top:29.1%;width:46%;font-size:clamp(12px,calc(38px * var(--card-scale)),38px);line-height:1.65}
-.uc-summary p{margin:0 0 .2em}.uc-summary small{font-size:clamp(10px,calc(28px * var(--card-scale)),28px)}
-#unityResultEquation{margin-top:.6em;font-size:clamp(12px,calc(31px * var(--card-scale)),31px)}
-.uc-breakdown-label{left:6.7%;top:65.29%;font-size:clamp(11px,calc(28px * var(--card-scale)),28px)}
-.uc-clock-medal{left:9.12%;top:68.69%;width:7.8%;height:10.4%}.uc-skull-medal{left:53.66%;top:68.69%;width:7.8%;height:10.4%}
-.uc-survival-label{left:18.3%;top:68.97%}.uc-kill-label{left:62.85%;top:68.97%}
-.uc-survival-label,.uc-kill-label{font-size:clamp(12px,calc(30px * var(--card-scale)),30px)}
-#unityResultSurvival{left:18.3%;top:72.74%}#unityResultKill{left:62.85%;top:72.74%}
-#unityResultSurvival,#unityResultKill{font-size:clamp(15px,calc(48px * var(--card-scale)),48px)}
-#unitySurvivalFormula{left:28.31%;top:69.9%;width:18.99%}#unityKillFormula{left:72.86%;top:69.9%;width:18.99%}
-#unitySurvivalFormula,#unityKillFormula{font-size:clamp(10px,calc(23px * var(--card-scale)),23px);text-align:right;white-space:nowrap}
-.uc-note{left:6.56%;top:78.4%;line-height:1;font-size:clamp(9px,calc(20px * var(--card-scale)),20px)}
-#unityResultCard[data-compact=true] .uc-note{display:none}
-#unityResultActions>button{position:absolute;top:80.76%;height:11.05%;min-height:44px;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:#efe6c9;font-weight:700;font-size:clamp(16px,calc(51px * var(--card-scale)),51px);text-shadow:0 1px 2px #000;pointer-events:auto}
-#unityResultActions>button:hover{background:#fff2}#unityResultActions>button:disabled{pointer-events:none;opacity:.7}#unityResultActions>button:focus-visible{outline:3px solid #ffd36d;outline-offset:2px}
-#unityRetry{left:11.95%;width:35.77%}#unityMenu{left:52.35%;width:35.84%}
-#unityResultActions>#unityMore{left:80%;top:17.5%;width:14%;height:6%;font-size:clamp(12px,calc(27px * var(--card-scale)),27px);border:1px solid #bdb19670;border-radius:5px}
-#unityScoreDetails{position:absolute;inset:3%;overflow:auto;z-index:2;background:#1e2022f5;padding:20px;color:#f3e8cd;text-shadow:none;border:1px solid #bcb094;border-radius:8px}
-#unityScoreDetails[hidden]{display:none}#unityScoreDetails button{min-height:44px}#unityScoreRanking:empty:after{content:'このルールのランキング記録はまだありません。';color:#c5bcaa;font-size:13px}
+/* Air-corridor results: survival and earned stars lead, points explain the run. */
+.unity-challenge-score #ovOver{padding:16px;overflow:auto;background:rgba(4,12,22,.78);align-items:safe center}
+#unityScoreResult{width:100%;max-width:880px;margin:auto}
+#unityResultCard{position:relative;box-sizing:border-box;width:100%;padding:26px 30px;color:#edf7fc;background:linear-gradient(135deg,#152a38f5,#0b1723f5);border:1px solid #85c4d766;border-top:3px solid #85dfdb;border-radius:14px;box-shadow:0 24px 80px #0007;font-variant-numeric:tabular-nums;text-shadow:none}
+#unityResultCard header{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.uc-caption{font-size:12px;letter-spacing:.14em;color:#a4bfce}#unityResultDifficulty{font-size:13px;color:#a4e9e4}
+#unityResultTitle{grid-column:1/-1;font-size:clamp(28px,4vw,40px);margin:4px 0 14px;font-weight:800;letter-spacing:.06em}
+#unityResultCard[data-failed=true]{border-top-color:#c3cbd2}#unityResultCard[data-failed=true] #unityResultTitle{color:#e2e7eb}
+#unityResultContent{display:grid;grid-template-columns:1.35fr 1fr;gap:12px 28px}
+.uc-achievement{text-align:center;padding:8px 0}#unityResultStars{display:flex;justify-content:center;gap:12px;font-size:clamp(44px,7vw,76px);line-height:1.2;color:#415461}
+#unityResultStars span{display:inline-block}.earned{color:#ffda7d;filter:drop-shadow(0 0 10px #ffce4938);animation:corridor-star .5s calc(var(--star-index) * .14s) both}
+@keyframes corridor-star{from{transform:translateY(8px) scale(.7);opacity:.15}to{transform:none;opacity:1}}
+#unityEscapeRecord{font-size:16px;margin:10px 0;color:#c0e4e6}.uc-star-goals{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;font-size:11px;color:#8ea5b2}
+.uc-star-goals>span{padding:5px 7px;border:1px solid #6b83994d;border-radius:5px}.uc-star-goals>.achieved{color:#ffda7d;border-color:#d8b96466;background:#e0b84c0a}
+#unityResultGoal{font-size:13px;line-height:1.7;color:#d2e6ed;margin:16px 0 0}
+.uc-points{padding:12px 18px;border-left:1px solid #88a6b740}#unityResultBest{font-size:12px;color:#a7c5d3}.uc-total{color:#fff;line-height:1.1;margin:5px 0 15px}.uc-total b{font-size:clamp(36px,5vw,56px);font-weight:700}.uc-total small{font-size:17px;color:#a7c5d3}
+.uc-breakdown{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}.uc-breakdown>div{display:grid;gap:3px;font-size:12px;color:#afc6d2}.uc-breakdown b{font-size:19px;color:#eaf4f9}.uc-breakdown small{font-size:11px}
+#unityResultBonus,#unityResultEquation{display:block;font-size:11px;color:#9cb3c1;line-height:1.7}#unityRunMoves{grid-column:1/-1;font-size:12px;color:#8eacbc;margin:8px 0;line-height:1.5}
+#unityResultActions{display:flex;gap:10px;flex-wrap:wrap;padding-top:16px;margin-top:8px;border-top:1px solid #88a6b733}
+#unityResultActions button,#unityScoreDetails button{min-height:44px;cursor:pointer;font:inherit;border:1px solid #88a6b766;border-radius:7px;padding:10px 16px;margin:0;background:#152a3d;color:#eaf5fb;text-shadow:none}
+#unityResultActions #unityRetry{background:#9de4df;color:#0b2633;border-color:#9de4df;font-weight:700;flex:1}#unityResultActions button:hover,#unityScoreDetails button:hover{filter:brightness(1.15)}#unityResultActions button:disabled{opacity:.5;cursor:wait}#unityResultActions button:focus-visible,#unityScoreDetails button:focus-visible{outline:3px solid #ffda7d;outline-offset:2px}
+#unityScoreDetails{position:absolute;inset:3%;overflow:auto;z-index:2;background:#0c1b29fa;padding:24px;color:#edf7fc;text-shadow:none;border:1px solid #88a6b7;border-radius:12px}#unityScoreDetails[hidden]{display:none}#unityScoreDetails h2{margin-top:0}
+.unity-challenge-score #hint{top:118px}
+.uc-hud-goal{grid-column:1/-1;text-align:center;font-size:11px;color:#d5e7e8;white-space:nowrap}.uc-hud-goal b{margin-right:8px;color:#ffda7d;letter-spacing:2px}
+@media(max-height:500px){.unity-challenge-score #ovOver{padding:10px}#unityResultCard{padding:14px 22px}#unityResultTitle{font-size:26px;margin:0 0 6px}#unityResultContent{gap:5px 20px}#unityResultStars{font-size:44px}#unityEscapeRecord{margin:5px 0;font-size:13px}#unityResultGoal{margin-top:8px;font-size:12px}.uc-points{padding:4px 14px}.uc-total{margin-bottom:8px}.uc-total b{font-size:36px}.uc-breakdown{margin-bottom:5px}#unityResultActions{padding-top:8px;margin-top:2px}#unityRunMoves{margin:2px 0}.uc-achievement{padding:0}}
+@media(max-width:560px){#unityResultCard{padding:18px}#unityResultContent{grid-template-columns:1fr}.uc-points{border-left:0;border-top:1px solid #88a6b740;padding:14px 0 0}.uc-total b{font-size:40px}#unityResultActions button{flex:1;white-space:nowrap;font-size:13px}.uc-caption{font-size:10px}#unityResultDifficulty{font-size:12px}}
 @media(max-width:1000px){#unityScoreHud{left:145px;right:85px;transform:none;width:auto;max-width:650px}.unity-counter{grid-template-columns:22px auto auto;gap:0 4px}.unity-counter>img{width:22px;height:22px}.unity-counter>b{font-size:28px}.unity-counter>span{font-size:11px}.unity-challenge-score .hud-tl{font-size:11px;max-width:135px}.unity-challenge-score .hud-tr{display:none}#unityDifficulty{top:68px}}
 @media(max-width:650px){.unity-counter>img{display:none}.unity-counter{grid-template-columns:auto auto;grid-template-rows:34px 22px}.unity-counter>span{grid-column:1/-1}.unity-counter>b{font-size:25px}.unity-score>b{grid-column:1/-1}#unityScoreHud{gap:4px}.unity-counter strong{margin-left:0}}
-@media(prefers-reduced-motion:reduce){#unityResultCard{transform:none!important}.unity-challenge-score #ovOver{animation:none!important}}
+@media(prefers-reduced-motion:reduce){#unityResultCard{transform:none!important}.earned{animation:none!important}}
+
+.rankbox{margin:16px 0;padding:14px;border:1px solid #88a6b740;border-radius:8px;background:#07131eaa;font-size:13px;line-height:1.5;text-align:left;color:#eaf5fa;text-shadow:none}
+.rankbox h3{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between}.rankbox h3 small{font-size:12px;font-weight:400;color:#a2bac8}
+.rank-tabs{display:flex;gap:6px}.rank-tabs button,.rankbox .ghost-button,.rankbox [data-refresh]{min-height:44px;padding:8px 12px;margin:0;cursor:pointer;border:1px solid #88a6b760;border-radius:6px;color:#d5e5ee;background:#172b3c;font:inherit}
+.rank-tabs button{flex:1}.rank-tabs button[aria-pressed=true]{color:#0d2734;background:#a0e1de;border-color:#a0e1de;font-weight:700}.rankbox button:focus-visible,.rankbox select:focus-visible{outline:3px solid #ffda7d;outline-offset:2px}
+.rank-filter:not([hidden]){display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}.rank-filter select{font:inherit;min-height:44px;min-width:130px;padding:5px 10px;background:#172b3c;color:#ecf5fb;border:1px solid #88a6b760;border-radius:6px}
+.rank-note,.rank-scope{font-size:11px;color:#a7c0cd;margin:8px 0}.rank-columns{display:flex;justify-content:space-between;border-bottom:1px solid #88a6b73d;padding-bottom:6px;font-size:10px;color:#a7c0cd}
+.rankbox ol{padding:0;margin:0;list-style:none;max-height:370px;overflow:auto}.rankbox li{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:3px 8px;padding:10px 0;border-bottom:1px solid #88a6b726}.rankbox li.me{background:#9de4df0a}
+.rank-clear{color:#a0e1de;grid-column:2;grid-row:2}.rank-score{grid-column:3;grid-row:1;white-space:nowrap}.rank-stars{grid-column:3;grid-row:2;justify-self:end;color:#ffda7d;letter-spacing:2px}.rank-time{grid-column:2/-1;font-size:10px;color:#91aebf}.rankbox .ghost-button{grid-column:2/-1;justify-self:start;font-size:11px;padding:5px 10px;margin-top:4px}.rank-mine{padding-top:10px;line-height:2}.rank-empty{color:#bbcfda;font-size:12px}

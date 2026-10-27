@@ -110,7 +110,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     for (const [object, visible] of saved.visibility) object.visible = visible;
     game.An(saved.mode); saved.focus?.focus();
   }
-  async function open(id, button) {
+  async function open(id, button, { mode = 'score', difficulty = window.skyChallenge.id } = {}) {
     if (!['menu', 'over'].includes(game.modeRef()) || active) return;
     const token = ++fetchToken;
     const visibility = game.Jt.flatMap(zombie => [zombie.m?.root, zombie.pool].filter(Boolean)).map(object => [object, object.visible]);
@@ -122,7 +122,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     el('replayNote').textContent = 'ゴーストを読み込み中…'; el('replayTitle').textContent = 'ゴースト';
     el('replayDate').textContent = ''; el('replayClock').textContent = ''; controls.forEach(control => { control.disabled = true; }); el('replayClose').focus();
     try {
-      const response = await fetch(`https://gunrun-runs.jirisuke0121.workers.dev/ghosts/${encodeURIComponent(id)}?map=${map}&difficulty=${window.skyChallenge.id}&rules=${window.skyChallenge.version}`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+      const response = await fetch(`https://gunrun-runs.jirisuke0121.workers.dev/ghosts/${encodeURIComponent(id)}?map=${map}&mode=${encodeURIComponent(mode)}&difficulty=${encodeURIComponent(difficulty)}&rules=${window.skyChallenge.version}`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
       if (!response.ok) throw new Error('unavailable');
       const data = await response.json();
       if (token !== fetchToken || !active) return;

@@ -32,7 +32,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-10-27-cap12-v4" }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-10-28-result-ranking-v1" }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
@@ -106,23 +106,32 @@ async function one(req, env, cors, id) {
 
 // ランキング：端末ごとの最高記録。corridor-score-v3以降の6難易度は得点順、旧版・自由調整はクリア優先。
 // 対象は本番（map）の記録のみ（ミッションは score が null）。dev版（build が -dev で終わる）と途中終了（quit）は除く。
-const RANK_CTE = `
+function rankCte(clear) { return `
 WITH s AS (
   SELECT id, player, score, t, played_at, received_at, (reason = 'time') AS cleared,
+         COALESCE(json_extract(json, '$.challenge.id'), 'legacy') AS difficulty,
+         CASE WHEN reason != 'time' THEN 0 WHEN stars > 0 THEN MIN(3, CAST(stars AS INTEGER)) ELSE
+           1 + (score >= COALESCE(json_extract(json, '$.settings.star2'), 430)) + (score >= COALESCE(json_extract(json, '$.settings.star3'), 470)) END AS stars,
          (COALESCE(json_array_length(json, '$.ghost.samples'),0) >= 2 OR COALESCE(json_array_length(json, '$.trail'),0) >= 2) AS replay,
-         (CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-score-v3', 'corridor-cap12-v4') AND json_extract(json, '$.challenge.id') != 'legacy' THEN 0 WHEN reason = 'time' THEN 1000000 ELSE 0 END) + score AS k
+         ${clear ? `CASE json_extract(json, '$.challenge.id') WHEN 'easy' THEN 0 WHEN 'normal' THEN 1 WHEN 'hard' THEN 2 WHEN 'expert' THEN 3 WHEN 'master' THEN 4 WHEN 'ultra' THEN 5 END` : `(CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-score-v3', 'corridor-cap12-v4') AND json_extract(json, '$.challenge.id') != 'legacy' THEN 0 WHEN reason = 'time' THEN 1000000 ELSE 0 END) + score`} AS k
   FROM runs
   WHERE reason IN ('time','caught','fell') AND score IS NOT NULL AND (build IS NULL OR build NOT LIKE '%-dev')
     AND COALESCE(json_extract(json, '$.channel'), 'production') != 'dev'
     AND (CASE WHEN json_extract(json, '$.map.id') = 'rock_canyon_v1' OR json_extract(json, '$.mapVersion') = 'rock-canyon-v1'
               THEN 'rock-canyon' ELSE 'old-town' END) = ?
-    AND COALESCE(json_extract(json, '$.challenge.id'), 'legacy') = ?
-    AND (? = 'legacy' OR json_extract(json, '$.challenge.version') = ?)
+    ${clear ? `AND reason = 'time' AND json_extract(json, '$.challenge.id') IN ('easy','normal','hard','expert','master','ultra') AND json_extract(json, '$.challenge.version') = ?` : `AND COALESCE(json_extract(json, '$.challenge.id'), 'legacy') = ? AND (? = 'legacy' OR json_extract(json, '$.challenge.version') = ?)`}
 ), b AS (
-  SELECT *, ROW_NUMBER() OVER (PARTITION BY player ORDER BY k DESC, t DESC, received_at DESC, id DESC) AS rn FROM s
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY player ORDER BY k DESC, ${clear ? 'score DESC,' : ''} t DESC, received_at DESC, id DESC) AS rn FROM s
 ), r AS (
-  SELECT id, player, replay, cleared, score, played_at, received_at, ROUND(t) AS t, RANK() OVER (ORDER BY k DESC) AS pos FROM b WHERE rn = 1
-)`;
+  SELECT id, player, replay, cleared, score, difficulty, stars, played_at, received_at, ROUND(t) AS t, RANK() OVER (ORDER BY k DESC) AS pos FROM b WHERE rn = 1
+)`; }
+
+const RANK_CTE = rankCte(false), CLEAR_RANK_CTE = rankCte(true);
+
+function rankQuery(mode, map, difficulty, rules) {
+  return mode === 'clear' ? { sql: CLEAR_RANK_CTE, args: [map, rules] }
+    : { sql: RANK_CTE, args: [map, difficulty, difficulty, rules] };
+}
 
 function publicTime(row) {
   const { receivedAt, ...result } = row;
@@ -138,6 +147,8 @@ function publicTime(row) {
 const DIFFICULTIES = ['easy', 'normal', 'hard', 'expert', 'master', 'ultra', 'legacy'];
 
 async function ranking(env, cors, url) {
+  const mode = url.searchParams.get('mode') || 'score';
+  if (!['score', 'clear'].includes(mode)) return json({ error: 'bad_mode' }, 400, cors);
   const rules = url.searchParams.get('rules') || 'unity-v1';
   if (!['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4'].includes(rules)) return json({ error: 'bad_rules' }, 400, cors);
   const difficulty = url.searchParams.get('difficulty') || 'legacy';
@@ -145,13 +156,16 @@ async function ranking(env, cors, url) {
   const map = url.searchParams.get("map") || "old-town";
   if (!["old-town", "rock-canyon"].includes(map)) return json({ error: "bad_map" }, 400, cors);
   const me = (url.searchParams.get("me") || "").slice(0, 40);
-  const top = await env.DB.prepare(RANK_CTE + " SELECT pos, substr(player,1,4) AS tag, cleared, score, t, (player = ?) AS me, CASE WHEN replay THEN id ELSE NULL END AS replayId, played_at AS playedAt, received_at AS receivedAt FROM r ORDER BY pos, score DESC, id LIMIT 20").bind(map, difficulty, difficulty, rules, me).all();
-  const total = await env.DB.prepare(RANK_CTE + " SELECT COUNT(*) AS n FROM r").bind(map, difficulty, difficulty, rules).first();
-  const mine = me ? await env.DB.prepare(RANK_CTE + " SELECT pos, cleared, score, t, played_at AS playedAt, received_at AS receivedAt FROM r WHERE player = ?").bind(map, difficulty, difficulty, rules, me).first() : null;
-  return json({ map, difficulty, rules, total: total ? total.n : 0, me: mine ? publicTime(mine) : null, top: top.results.map(publicTime) }, 200, { ...cors, "cache-control": "no-store" });
+  const query = rankQuery(mode, map, difficulty, rules);
+  const top = await env.DB.prepare(query.sql + " SELECT pos, substr(player,1,4) AS tag, cleared, score, difficulty, stars, t, (player = ?) AS me, CASE WHEN replay THEN id ELSE NULL END AS replayId, played_at AS playedAt, received_at AS receivedAt FROM r ORDER BY pos, score DESC, id LIMIT 20").bind(...query.args, me).all();
+  const total = await env.DB.prepare(query.sql + " SELECT COUNT(*) AS n FROM r").bind(...query.args).first();
+  const mine = me ? await env.DB.prepare(query.sql + " SELECT pos, cleared, score, difficulty, stars, t, played_at AS playedAt, received_at AS receivedAt FROM r WHERE player = ?").bind(...query.args, me).first() : null;
+  return json({ map, mode, difficulty: mode === 'clear' ? 'all' : difficulty, rules, total: total ? total.n : 0, me: mine ? publicTime(mine) : null, top: top.results.map(publicTime) }, 200, { ...cors, "cache-control": "no-store" });
 }
 
 async function publicGhost(env, cors, url, id) {
+  const mode = url.searchParams.get('mode') || 'score';
+  if (!['score', 'clear'].includes(mode)) return json({ error: 'bad_mode' }, 400, cors);
   const rules = url.searchParams.get('rules') || 'unity-v1';
   if (!['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4'].includes(rules)) return json({ error: 'bad_rules' }, 400, cors);
   const difficulty = url.searchParams.get('difficulty') || 'legacy';
@@ -160,7 +174,8 @@ async function publicGhost(env, cors, url, id) {
   if (!["old-town", "rock-canyon"].includes(map)) return json({ error: "bad_map" }, 400, cors);
   // Publish only the ranking's selected run and its movement. Full diagnostic
   // records, device IDs and settings remain administrator-only. Recorded-at time is public.
-  const ranked = await env.DB.prepare(RANK_CTE + " SELECT id FROM r WHERE id = ? AND replay = 1").bind(map, difficulty, difficulty, rules, id).first();
+  const query = rankQuery(mode, map, difficulty, rules);
+  const ranked = await env.DB.prepare(query.sql + " SELECT id FROM r WHERE id = ? AND replay = 1").bind(...query.args, id).first();
   if (!ranked) return json({ error: "not_found" }, 404, cors);
   const row = await env.DB.prepare("SELECT player, score, json, played_at AS playedAt, received_at AS receivedAt FROM runs WHERE id = ?").bind(id).first();
   if (!row) return json({ error: "not_found" }, 404, cors);
