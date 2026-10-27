@@ -1,20 +1,22 @@
 // Unity Challenge pacing, adapted to the 120-second aerial-corridor course.
 // Source settings and intentional adaptations are documented in CHALLENGE_DIFFICULTY.md.
 (() => {
-  const version = 'corridor-score-v3', storage = 'gunrun-challenge-difficulty-v1';
+  const version = 'corridor-cap12-v4', storage = 'gunrun-challenge-difficulty-v1';
+  // The 2026-10-25 performance budget is independent of difficulty.
+  const maxAlive = 12;
   const levels = [
     { id: 'easy', name: 'Easy', note: '走って距離を取り、技を練習', startSpeed: 4.3, maxSpeed: 5.4, counts: [3, 5, 7], initial: 3, interval: 2.2, flank: .05, ahead: .1, drop: 0, lull: 5, quiet: 0, lead: 6, warn: 2.5 },
     { id: 'normal', name: 'Normal', note: '後半は走るだけでは少しずつ追いつかれる', startSpeed: 5.2, maxSpeed: 6.4, counts: [5, 8, 12], initial: 4, interval: 1.7, flank: .2, ahead: .25, drop: .1, lull: 4, quiet: 22, lead: 5, warn: 2.5 },
-    { id: 'hard', name: 'Hard', note: '技で引き離し、次の逃げ道へつなぐ', startSpeed: 5.6, maxSpeed: 6.8, counts: [6, 10, 16], initial: 5, interval: 1.4, flank: .3, ahead: .3, drop: .15, lull: 3.5, quiet: 20, lead: 4.5, warn: 2.3 },
-    { id: 'expert', name: 'Expert', note: '速い追跡と予告付きの包囲', startSpeed: 5.9, maxSpeed: 7.1, counts: [7, 12, 20], initial: 5, interval: 1.2, flank: .35, ahead: .35, drop: .2, lull: 3, quiet: 18, lead: 4, warn: 2.2 },
-    { id: 'master', name: 'Master', note: '逃げ技とクールダウンの管理が必要', startSpeed: 6.1, maxSpeed: 7.35, counts: [8, 12, 16, 20, 22, 24], initial: 6, interval: 1, flank: .4, ahead: .4, drop: .25, lull: 2.5, quiet: 16, lead: 3.5, warn: 2 },
-    { id: 'ultra', name: 'Ultra', note: '最大28体・技を続けて圧力を切る', startSpeed: 6.3, maxSpeed: 7.6, counts: [9, 14, 18, 22, 26, 28], initial: 7, interval: .85, flank: .45, ahead: .4, drop: .3, lull: 2, quiet: 14, lead: 3, warn: 1.8 },
+    { id: 'hard', name: 'Hard', note: '技で引き離し、次の逃げ道へつなぐ', startSpeed: 5.6, maxSpeed: 6.8, counts: [6, 10, 12], initial: 5, interval: 1.4, flank: .3, ahead: .3, drop: .15, lull: 3.5, quiet: 20, lead: 4.5, warn: 2.3 },
+    { id: 'expert', name: 'Expert', note: '速い追跡と予告付きの包囲', startSpeed: 5.9, maxSpeed: 7.1, counts: [7, 11, 12], initial: 5, interval: 1.2, flank: .35, ahead: .35, drop: .2, lull: 3, quiet: 18, lead: 4, warn: 2.2 },
+    { id: 'master', name: 'Master', note: '逃げ技とクールダウンの管理が必要', startSpeed: 6.1, maxSpeed: 7.35, counts: [8, 10, 11, 12, 12, 12], initial: 6, interval: 1, flank: .4, ahead: .4, drop: .25, lull: 2.5, quiet: 16, lead: 3.5, warn: 2 },
+    { id: 'ultra', name: 'Ultra', note: '最大12体・速い追跡と短い補充間隔', startSpeed: 6.3, maxSpeed: 7.6, counts: [9, 11, 12, 12, 12, 12], initial: 7, interval: .85, flank: .45, ahead: .4, drop: .3, lull: 2, quiet: 14, lead: 3, warn: 1.8 },
     { id: 'legacy', name: '自由調整', note: '従来の設定・追跡者・ランキング', counts: [] },
   ];
   for (const p of levels) if (p.id !== 'legacy') p.ramp = 90;
   const byId = Object.fromEntries(levels.map(p => [p.id, p]));
   for (const p of levels) if (p.id !== 'legacy') p.values = {
-    zombieSpeed: p.maxSpeed, maxZombies: p.counts.at(-1), flankShare: p.flank, aheadShare: p.ahead,
+    zombieSpeed: p.maxSpeed, maxZombies: Math.min(maxAlive, p.counts.at(-1)), flankShare: p.flank, aheadShare: p.ahead,
     dropperShare: p.drop, dropShare: p.drop, killLull: p.lull, paceGap: p.quiet,
     stalkerOn: false, stalker2: false, stalkerAt: 120, stalkerSpeed: 0,
   };
@@ -36,7 +38,7 @@
   const key = base => (active === 'legacy' ? base : `${base}-${version}-${active}`) + (debug ? '-debug' : '');
   function limit(time, fallback) {
     const p = profile();
-    return p ? p.counts[Math.min(p.counts.length - 1, Math.floor(Math.max(0, time) / (p.counts.length === 3 ? 40 : 20)))] : fallback;
+    return p ? Math.min(maxAlive, p.counts[Math.min(p.counts.length - 1, Math.floor(Math.max(0, time) / (p.counts.length === 3 ? 40 : 20)))]) : fallback;
   }
   function value(name, fallback) {
     const p = profile();
@@ -99,7 +101,7 @@
     document.dispatchEvent(new CustomEvent('sky-difficulty-change'));
   }
   window.skyChallenge = {
-    version, debug, levels, key, profile, limit, value, events, begin,
+    version, debug, maxAlive, levels, key, profile, limit, value, events, begin,
     get id() { return active; }, get selected() { return selected; },
     get name() { return level(active).name; },
     speed(multiplier, fallback) {
@@ -169,7 +171,7 @@
       return length / speed;
     },
     interval(fallback) { return profile()?.interval ?? fallback; },
-    initial(fallback) { return profile()?.initial ?? fallback; },
+    initial(fallback) { return profile() ? Math.min(profile().initial, limit(0, fallback)) : fallback; },
     cap(fallback) { return profile() ? limit(game.z.t, fallback) : fallback; },
     extra(fallback) { return profile() ? 0 : fallback; },
     count(alive, ordinary) { return profile() ? alive : ordinary; },

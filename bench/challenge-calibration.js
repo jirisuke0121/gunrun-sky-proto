@@ -45,7 +45,7 @@ function setup(w, id, phase, before = false) {
   g.setMode('menu');
   const select = w.document.getElementById('challengeDifficulty'); select.value = id; select.dispatchEvent(new w.Event('change'));
   Object.assign(g.S, { sendLog: false, autoFire: false, aimAuto: false, volume: 0, human: 'existing' });
-  g.startGame(); clearEnemies(w); g.RL.on = false;
+  g.startGame(); g.calibrationInitialAlive = g.zombies.filter(e => !e.dead).length; clearEnemies(w); g.RL.on = false;
   g.SCR.off = g.PACE.off = g.MARK.off = true; g.GAME.spawnT = 1e9; g.GAME.t = phase;
   Object.assign(g.P, { life: 3, invuln: g.time + 1000, state: 'normal', onGround: true, hookCD: 0, jumpBuf: 0 });
   for (const key in g.keys) g.keys[key] = false;
@@ -233,6 +233,64 @@ $('forecast').addEventListener('click', async () => {
   } catch (e) { result.error = String(e.stack || e); $('status').textContent = '測定エラー'; publish(); }
   finally { busy = false; }
 });
+$('caps').addEventListener('click', async () => {
+  if (busy) return; busy = true;
+  result = { kind: 'actual runtime spawn paths at phase boundaries; initial, ordinary, surge, guard, ambush, two-sided and mixed requests share the 12-alive budget; no published records', maps: [] }; publish();
+  try {
+    for (const map of ['index.html', 'canyon.html']) {
+      const w = await load(map), q = lane(w), data = { map, levels: [] }; result.maps.push(data);
+      for (const id of ['easy', 'normal', 'hard', 'expert', 'master', 'ultra']) {
+        const row = { id, phases: [] }; data.levels.push(row);
+        for (const phase of [0, 39.99, 40, 59.99, 60, 79.99, 80, 100, 119]) {
+          $('status').textContent = `${map} ${id} ${phase}秒 生存上限`;
+          const g = setup(w, id, phase), policy = w.skyChallenge, cap = policy.cap(99);
+          place(g, { x: q.x + q.dx * 8, y: q.y, z: q.z + q.dz * 8 }, q.dx, q.dz);
+          const sample = { phase, cap, initial: g.calibrationInitialAlive, stages: [] }; row.phases.push(sample);
+          if (cap > 12 || sample.initial > policy.limit(0,99)) throw Error(`${map} ${id}: invalid cap/initial`);
+          const check = stage => {
+            const alive = g.zombies.filter(e => !e.dead).length;
+            const currentCap = policy.cap(99);
+            sample.stages.push({ stage, alive, cap: currentCap });
+            if (currentCap > 12 || alive > currentCap) throw Error(`${map} ${id} ${phase} ${stage}: ${alive}>${currentCap}`);
+          };
+          for (let i = 0; i < 20; i++) { g.spawnZombie(12); check('ordinary'); }
+          clearEnemies(w); g.surge(99,99); check('surge');
+          for (const kind of ['guard','ambush']) {
+            clearEnemies(w); g.postAt(q,99,kind==='guard',kind); check(kind);
+          }
+          clearEnemies(w); g.postAt(q,99,false,'squeeze-front'); check('front');
+          g.postAt(q,99,false,'squeeze-back'); check('back');
+          g.surge(99,99); check('mixed-surge'); g.spawnZombie(12); check('mixed-ordinary');
+          const dead = g.zombies.find(e => !e.dead); dead?.die(false); check('kill');
+          g.postAt(q,99,false,'refill'); check('refill');
+          if (g.zombies.filter(e => !e.dead).length !== cap) throw Error('refill did not use freed budget');
+          g.SCR.off = false; g.GAME.spawnT = 0; g.advance(1/60); check('scheduled-events');
+          const counts = policy.profile().counts; policy.profile().counts = counts.map(()=>999);
+          sample.clampedFutureCap = policy.cap(99); policy.profile().counts = counts;
+          if (sample.clampedFutureCap !== 12) throw Error('performance cap can be raised by profile');
+          sample.maxAlive = Math.max(...sample.stages.map(s=>s.alive));
+          sample.stages = sample.stages.filter((s,i,a)=>i===0||s.stage!==a[i-1].stage);
+          publish(); await wait(0);
+        }
+      }
+      data.legacyLimit = (()=>{setup(w,'legacy',100);return w.skyChallenge.cap(23);})();
+      if (data.legacyLimit !== 23) throw Error('legacy custom settings changed');
+      publish();
+    }
+    $('status').textContent = '生存上限の確認完了';
+  } catch (e) { result.error = String(e.stack || e); $('status').textContent = '測定エラー'; publish(); }
+  finally { busy = false; }
+});
+$('capPreview').addEventListener('click', async () => {
+  if (busy) return; busy = true;
+  try {
+    const w = await load('index.html'), q = lane(w), g = setup(w,'ultra',100);
+    place(g,{x:q.x+q.dx*8,y:q.y,z:q.z+q.dz*8},-q.dx,-q.dz);
+    g.postAt(q,99,false,'cap-preview'); g.frameOnce(0);
+    const alive = g.zombies.filter(e=>!e.dead).length;
+    $('status').textContent = `Ultra・100秒・生存${alive}体 / 上限${w.skyChallenge.cap(99)}体の確認表示`;
+  } finally { busy = false; }
+});
 function eliminate(w, q, fall = false) {
   const e = spawn(w, q);
   if (fall) e.die(true);
@@ -300,7 +358,7 @@ $('scoreFail').addEventListener('click', () => previewScore(true));
 $('scoreClear').addEventListener('click', () => previewScore(false));
 $('scorePerf').addEventListener('click', async () => {
   if (busy) return; busy = true;
-  result = { kind: 'controlled score HUD CPU/DOM work, 1000 unchanged updates; rAF-paced CPU frame submission at 28 live enemies, not physical device FPS', maps: [] }; publish();
+  result = { kind: 'controlled score HUD CPU/DOM work, 1000 unchanged updates; rAF-paced CPU frame submission at 12 live enemies, not physical device FPS', maps: [] }; publish();
   try {
     for (const map of ['index.html', 'canyon.html']) {
       const w = await load(map), q = lane(w), g = setup(w, 'ultra', 100);
@@ -312,7 +370,7 @@ $('scorePerf').addEventListener('click', async () => {
       const begin = performance.now(); for (let i = 0; i < 1000; i++) w.skyChallengeScore.sync();
       const ms = performance.now() - begin; await wait(0); observer.disconnect();
       const nodes = g.NAV.nodes.filter(n => Math.abs(n.y) < .1 && Math.hypot(n.x - g.P.pos.x, n.z - g.P.pos.z) > 9);
-      for (let i = 0; i < 28; i++) spawn(w, nodes[Math.floor(i * nodes.length / 28)]);
+      for (let i = 0; i < 12; i++) spawn(w, nodes[Math.floor(i * nodes.length / 12)]);
       const frames = [], cold = [];
       for (let i = 0; i < 105; i++) {
         await new Promise(resolve => w.requestAnimationFrame(resolve));
@@ -336,7 +394,7 @@ $('population').addEventListener('click', async () => {
   try {
     for (const map of ['index.html', 'canyon.html']) {
       const w = await load(map), q = lane(w), data = { map, counts: [] }; result.maps.push(data);
-      for (const count of [12,20,28]) {
+      for (const count of [7,10,12]) {
         $('status').textContent = `${map} ${count}体 負荷`;
         const g = setup(w, 'ultra', 100);
         place(g, { x: q.x + q.dx * 8, y: q.y, z: q.z + q.dz * 8 }, q.dx, q.dz);
