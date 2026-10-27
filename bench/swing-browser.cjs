@@ -19,14 +19,15 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
       await p.goto(base+'canyon.html');await p.waitForFunction(()=>window.skySwing&&window.skyHumanView);
       if(await p.locator('#humanSel [data-human="unity"]').count()) await p.locator('#humanSel [data-human="unity"]').click();
       await p.waitForFunction(()=>window.skyHumanView.choice==='unity'&&document.body.dataset.skyHumanLoaded==='true',null,{timeout:90000});
+      console.log('loaded',touch?'touch':'desktop');
       await p.locator('#bStart').click();
       await p.waitForFunction(()=>__game.mode==='play');
       await p.evaluate(()=>{
         const g=__game,c=g.P;g.S.sendLog=false;c.invuln=Infinity;
         window.swingQA={trace:[],frames:[]};
-        window.stepSwing=(frames=1)=>{for(let f=0;f<frames;f++){
+        window.stepSwing=(frames=1,render=true)=>{for(let f=0;f<frames;f++){
           for(let i=0;i<4;i++)g.playerStep(1/120);
-          g.cam(1/30);skyHumanView.update(1/30);g.debug.renderer.clear();g.debug.renderer.render(__skyInternals.ue,__skyInternals.Se);
+          g.cam(1/30);skyHumanView.update(1/30);if(render){g.debug.renderer.clear();g.debug.renderer.render(__skyInternals.ue,__skyInternals.Se);}
           const a=skySwing.active;
           swingQA.trace.push({pos:c.pos.toArray(),state:c.state,bar:a?.bar.id,angle:a?.angle,handError:+document.body.dataset.skyHumanHandError||0,clip:document.body.dataset.skyHumanClip});
         }};
@@ -48,7 +49,7 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
       await jump();
       let captured=new Set();
       for(let f=0;f<130;f++) {
-        const ready=await p.evaluate(()=>!!skySwing.active&&skySwing.active.age>.12&&!skySwing.active.queued);
+        const ready=await p.evaluate(()=>!!skySwing.active&&skySwing.active.angle>=.35&&skySwing.active.angle<.7&&skySwing.active.omega>1.1);
         if(ready)await jump();
         const state=await p.evaluate(()=>{
           stepSwing();
@@ -64,8 +65,9 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
       assert.ok(route.trace.filter(x=>x.state==='swing').every(x=>x.handError<.025&&x.clip==='swing'),'hands stay on the bar while the body swings');
       assert.equal(route.gl,0);assert.deepEqual(errors,[]);
       await p.screenshot({path:`${output}/${touch?'touch':'desktop'}-landing.png`});
-      // A single held jump from the pad must release both bars, using native
-      // keyboard or emulated touch input rather than setting the jump buffer.
+      console.log('route passed',touch?'touch':'desktop');
+      // Holding the approach jump, including OS key repeat, never releases a
+      // grip. A missed forward window comes around again after a full swing.
       await p.evaluate(()=>{startSwingQA([-16.9,5.2001,-6]);stepSwing(4);});
       let session;
       if(touch){
@@ -73,12 +75,31 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
         await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:b.x+b.width/2,y:b.y+b.height/2,id:7}]});
       }else await p.keyboard.down('Space');
       const held=await p.evaluate(()=>{
-        const bars=new Set();let landed=false;
-        for(let i=0;i<110;i++){stepSwing();if(skySwing.active)bars.add(skySwing.active.bar.id);if(bars.size===2&&__game.P.onGround&&__game.P.pos.y>7.9){landed=true;break;}}
-        return{bars:[...bars],landed,pos:__game.P.pos.toArray()};
+        const bars=new Set(),angles=[];const before=__game.stats.barJumps||0;
+        for(let i=0;i<135;i++){
+          if(i%8===0)dispatchEvent(new KeyboardEvent('keydown',{code:'Space',repeat:true}));
+          stepSwing(1,false);if(skySwing.active){bars.add(skySwing.active.bar.id);angles.push(skySwing.active.angle);}
+        }
+        return{bars:[...bars],active:!!skySwing.active,jumps:(__game.stats.barJumps||0)-before,min:Math.min(...angles),max:Math.max(...angles),pos:__game.P.pos.toArray()};
       });
       if(touch){await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await session.detach();}else await p.keyboard.up('Space');
-      assert.ok(held.landed&&held.bars.length===2,JSON.stringify(held));results.at(-1).held=held;
+      assert.ok(held.active&&held.bars.length===1&&held.jumps===0,JSON.stringify(held));
+      assert.ok(held.min<-.5&&held.max>.5,'body swings back and forward rather than hanging still');results.at(-1).held=held;
+      if(!touch)for(const phase of ['back','front']){
+        await p.evaluate(phase=>{
+          for(let i=0;i<100;i++){
+            stepSwing(1,false);const a=skySwing.active;
+            if(a&&a.omega>0&&(phase==='back'?a.angle<-.65:a.angle>.65))break;
+          }
+          __game.debug.renderer.clear();__game.debug.renderer.render(__skyInternals.ue,__skyInternals.Se);
+        },phase);
+        await p.screenshot({path:`${output}/body-${phase}.png`});
+      }
+      // A fresh press releases immediately on the next physics tick, even at
+      // an unhelpful phase; it is never queued until a better launch angle.
+      await jump();
+      const released=await p.evaluate(()=>{stepSwing();return{active:!!skySwing.active,state:__game.P.state};});
+      assert.equal(released.active,false);assert.notEqual(released.state,'swing');
       // Pause freezes the movement state; down input drops; reset clears it.
       const lifecycle=await p.evaluate(()=>{
         startSwingQA([-12.9,6.05,-6]);const c=__game.P;c.onGround=false;c.vel.x=5;stepSwing();
@@ -88,6 +109,16 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
         skySwing.reset();return{grabbed,before,paused,dropped,reset:c.state,ammo,heldAmmo};
       });
       assert.ok(lifecycle.grabbed);assert.deepEqual(lifecycle.before,lifecycle.paused);assert.equal(lifecycle.dropped,'normal');assert.equal(lifecycle.reset,'normal');assert.equal(lifecycle.ammo,lifecycle.heldAmmo);
+      const gripLimit=await p.evaluate(()=>{
+        startSwingQA([-12.9,6.05,-6]);const c=__game.P;c.onGround=false;c.vel.x=5;stepSwing(1,false);
+        const before=__game.stats.barJumps||0;let warning=false,elapsed=0;
+        while(skySwing.active&&elapsed<9){
+          stepSwing(1,false);elapsed+=1/30;
+          if(elapsed>6.5&&skySwing.active)warning=/手が離れるまで/.test(document.getElementById('swingHint').textContent);
+        }
+        return{elapsed,warning,active:!!skySwing.active,jumps:(__game.stats.barJumps||0)-before};
+      });
+      assert.ok(gripLimit.elapsed>=7.8&&gripLimit.elapsed<8.1&&gripLimit.warning&&!gripLimit.active&&gripLimit.jumps===0,JSON.stringify(gripLimit));
       const nav=await p.evaluate(()=>{
         const g=__game.NAV,nearest=p=>g.nodes.reduce((best,n)=>Math.hypot(n.x-p[0],n.y-p[1],n.z-p[2])<Math.hypot(g.nodes[best].x-p[0],g.nodes[best].y-p[1],g.nodes[best].z-p[2])?n.id:best,0);
         const visited=new Set(),q=[nearest(skySwingCourse.approach)];visited.add(q[0]);
@@ -100,7 +131,7 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
     // The shared movement hook must remain inert in the old town.
     const p=await browser.newPage();await p.addInitScript(()=>window.__hold=true);await p.route('https://**/*',r=>r.abort());await p.goto(base+'index.html');await p.waitForFunction(()=>window.skySwing);
     assert.equal(await p.evaluate(()=>skySwing.course),undefined);await p.close();
-    console.log('PASS: wall kick → pad → two actual bar catches/releases → upper spine, grip contact, PC/touch widths, pause/drop/reset, unchanged old town');
+    console.log('PASS: wall kick → pad → two actual bar catches/releases → upper spine, grip contact, PC/touch widths, pause/drop/reset, grip timeout, unchanged old town');
   } finally {
     fs.writeFileSync(`${output}/results.json`,JSON.stringify(results,null,2));
     await browser?.close();server?.kill();
