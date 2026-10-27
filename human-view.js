@@ -1,6 +1,6 @@
 // Local Unity human trial for the old town and canyon maps.
 import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor } from './human-running.js?v=20261027-dash-v1';
-import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261027-dash-v1';
+import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261027-torso-v1';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
 const { Group, Vector3 } = Geom;
@@ -283,6 +283,10 @@ function previewAim() {
 }
 function aimWeaponAt(target) {
   const carryPosition=worldWeapon.position.clone(),carryRotation=worldWeapon.quaternion.clone();
+  const localTarget=model.worldToLocal(target.clone());
+  // The chest turns first; shoulder roots and both hand goals then share it.
+  const torso=aimRig.prepare(localTarget.toArray(),aimBlend);
+  document.body.dataset.skyHumanTorso=JSON.stringify(torso);
   const roots = aimRig.shoulders().map(p => model.localToWorld(new Vector3(...p)));
   const centre = roots[0].clone().add(roots[1]).multiplyScalar(.5);
   aimDirection.copy(target).sub(centre).normalize();
