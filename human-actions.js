@@ -59,7 +59,9 @@ export function actionPose(kind, phase) {
     const shoulderTarget = torso(shoulder);
     const ik = solveLimb(shoulderTarget, goal, length(sub(elbow, shoulder)), length(sub(hand, elbow)), [side, -.15, -.3]);
     hands[side < 0 ? 'right' : 'left'] = ik.end;
-    arms[side] = { upper: boneMap(shoulder, elbow, shoulderTarget, ik.joint), lower: boneMap(elbow, hand, ik.joint, ik.end) };
+    const fingers = lerp([0, -.02, 1], [0, -1, 0], release);
+    arms[side] = { upper: boneMap(shoulder, elbow, shoulderTarget, ik.joint), lower: boneMap(elbow, hand, ik.joint, ik.end),
+      palm: boneMap(hand, add(hand, [0, -1, 0]), ik.end, add(ik.end, fingers)) };
     const hip = [side * .17, 1.23, -.025], knee = [side * .23, .65, -.09], ankle = [side * .24, .12, -.04];
     const lift = jump ? .42 * tuck * (side > 0 ? 1.15 : .8) : (vault ? .66 : .45) * tuck * (side > 0 ? 1 : .65);
     const foot = [side * (.24 + .04 * tuck), .12 + lift, -.04 + (jump ? .23 : .37) * tuck * (side > 0 ? 1 : -.35)];
@@ -70,7 +72,10 @@ export function actionPose(kind, phase) {
   return { hands, contactWeight: jump ? 0 : 1 - smooth(.72, .94, t),
     vertex(p, armWeight) {
       const side = p[0] < 0 ? -1 : 1, arm = arms[side], leg = legs[side];
-      const a = lerp(arm.upper(p), arm.lower(p), 1 - smooth(1.48, 1.67, p[1]));
+      let a = lerp(arm.upper(p), arm.lower(p), 1 - smooth(1.48, 1.67, p[1]));
+      // Lay the palm/fingers along the top surface instead of leaving the
+      // unarmed model's downward fingers pointing into the obstacle.
+      if (!jump) a = lerp(a, arm.palm(p), 1 - smooth(1.21, 1.34, p[1]));
       let l = lerp(leg.upper(p), leg.lower(p), 1 - smooth(.55, .77, p[1]));
       if (Math.abs(p[0]) < .1) {
         const other = legs[-side], q = lerp(other.upper(p), other.lower(p), 1 - smooth(.55, .77, p[1]));
