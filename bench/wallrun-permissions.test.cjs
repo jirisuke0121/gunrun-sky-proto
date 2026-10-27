@@ -10,7 +10,8 @@ const jumpHandler=w.__skyTryRegisteredWallJump;
 vm.runInContext(fs.readFileSync('hook-targeting.js','utf8'),context);
 assert.equal(w.__skyTryRegisteredWallJump,jumpHandler,'hook targeting cannot overwrite current permissions');
 const spots=JSON.parse(JSON.stringify(w.__skyWallRunSpots));
-assert.deepEqual(spots,JSON.parse(JSON.stringify(w.skyWallJumpCandidates.filter(p=>p.status==='ok').map(({at,normal})=>({at,normal})))),'permissions match the four shortcut routes selected by the user');
+assert.equal(spots.length,5,'original four faces plus the southbound west wall requested in the photo');
+assert.deepEqual(spots,JSON.parse(JSON.stringify(w.skyWallJumpCandidates.filter(p=>p.status==='ok').map(({at,normal})=>({at,normal})))),'permissions match the five shortcut routes selected by the user');
 const faces=[];
 for(const {at:[x,y,z],normal:[nx,nz]} of spots){
   const wall={type:'mono',minX:nx?x-(nx>0?2:0):x-8,maxX:nx?x+(nx<0?2:0):x+8,minZ:nz?z-(nz>0?2:0):z-8,maxZ:nz?z+(nz<0?2:0):z+8,minY:0,maxY:7};
@@ -39,4 +40,4 @@ vm.runInContext('K_(1/60,1)',context);assert.equal(context.c.state,'normal','con
 context.c.wallKey=null;vm.runInContext('J_(8)',context);assert.equal(context.c.state,'normal','unapproved face cannot start a run');
 delete context.window.__skyCanWallRunOnFace;
 vm.runInContext('J_(8)',context);assert.equal(context.c.state,'normal','missing registry cannot enable arbitrary walls');
-console.log('PASS four shortcut permissions: allowed face only, opposite/nearby/old faces denied, marked jump area, actual entry/continuation and missing-registry checks');
+console.log('PASS five shortcut permissions: allowed face only, opposite/nearby/old faces denied, marked jump area, actual entry/continuation and missing-registry checks');

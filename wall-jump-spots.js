@@ -4,6 +4,7 @@
     { at: [29.6, 1.9, -25.2], normal: [0, 1], direction: [1, 0], name: '北の梁' },
     { at: [14, 1.4, 6.8], normal: [1, 0], direction: [0, 1], name: 'リング東壁' },
     { at: [-14, 0.3, -13.6], normal: [-1, 0], direction: [0, -1], name: 'リング西壁' },
+    { at: [-14, 1.4, 6.8], normal: [-1, 0], direction: [0, 1], name: '西の路地・南への近道' },
   ];
   window.__skyWallRunSpots = points.map(({ at, normal }) => ({ at: [...at], normal: [...normal] }));
   window.__skyWallRunRoutes = points.map(({ at, normal, direction, name }) =>
