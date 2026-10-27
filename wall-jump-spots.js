@@ -24,7 +24,7 @@
         ? Math.abs(player.pos.x - (x + nx * (player.r + 0.04)))
         : Math.abs(player.pos.z - (z + nz * (player.r + 0.04)));
       const alongWallDistance = nx ? Math.abs(player.pos.z - z) : Math.abs(player.pos.x - x);
-      return planeDistance <= 0.7 && alongWallDistance <= 1.6 && Math.abs(player.pos.y - y) <= 1.5;
+      return planeDistance <= 0.9 && alongWallDistance <= 2 && Math.abs(player.pos.y - y) <= 1.8;
     });
   }
 
@@ -32,7 +32,11 @@
     !!matchingPoint(player, getWall, wallNormal);
 
   window.__skyTryRegisteredWallJump = (player, settings, getWall, time, stats, audio) => {
-    const spot = matchingPoint(player, getWall);
+    const spot = matchingPoint(
+      player,
+      getWall,
+      player.state === "wallrun" ? player.wallN : null,
+    );
     if (!spot) return false;
 
     const [nx, nz] = spot.normal;
