@@ -5,7 +5,7 @@
 
 ## 2026-10-27：チャレンジ難易度別の記録
 
-`GET /ranking?map=old-town&difficulty=normal` と `GET /ghosts/<id>?map=old-town&difficulty=normal` は同じ難易度の記録に絞ります。`easy` / `normal` / `hard` / `expert` / `master` / `ultra` は `challenge.version = unity-v1` の記録が対象です。`legacy` または難易度省略では従来の記録・自由調整の記録を返します。過去の記録を新しいNormalへ移すことはありません。
+`GET /ranking?map=old-town&difficulty=normal&rules=corridor-v2` と `GET /ghosts/<id>?map=old-town&difficulty=normal&rules=corridor-v2` は同じ難易度の記録に絞ります。`easy` / `normal` / `hard` / `expert` / `master` / `ultra` は指定した `challenge.version` の記録が対象です。`rules` は `corridor-v2` と前案の `unity-v1` に対応し、省略時は前案互換の `unity-v1`。`legacy` または難易度省略では従来の記録・自由調整の記録を返します。過去の記録を新しいNormalへ移すことはありません。
 
 記録JSONの `challenge: {id, version}` を既存のJSON列へ保存し、DBスキーマ変更はありません。Workerを先に更新してからゲームを公開します。
 
