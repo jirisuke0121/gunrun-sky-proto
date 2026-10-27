@@ -27,7 +27,7 @@ try{
    c.node=node(c.pos.toArray());g.updateField();
   }
   const tick=()=>{g.advance(dt);if(!c.pos.toArray().every(Number.isFinite))throw Error('nonfinite player');};
-  function route({offset=0,yaw=0,angle=.35,waitCycle=false,backward=false,enemy=false}={}){
+  function route({offset=0,yaw=0,angle=.7,waitCycle=false,backward=false,enemy=false}={}){
    setup(offset);const bars=new Set(),trail=[];let input=0,landed=false;
    if(enemy){const z=new s.ri(-20,4.01,-11);z.spawnT=0;z.rise=null;z.node=node(z.pos.toArray());z.hp=1e6;z.flank=z.dropper=z.stalker=false;z.onGround=true;s.Jt.push(z);}
    key('Space','keydown');key('Space','keyup');input++;
@@ -52,7 +52,7 @@ try{
    }
    return{landed,pad,bars:[...bars],offset,yaw,angle,waitCycle,backward,input,time,at,caughtAt,enemyPath,trail};
   }
-  const cases=[{}, {angle:.2}, {angle:.55}, {waitCycle:true}, {offset:.35,yaw:.06}, {offset:-.35,yaw:-.06}].map(route);
+  const cases=[{}, {angle:.55}, {angle:.85}, {waitCycle:true}, {offset:.35,yaw:.06}, {offset:-.35,yaw:-.06}].map(route);
   const mistimed=[{angle:-1}, {backward:true}].map(route);
   const chase=route({enemy:true});
   // Estimate the existing walk/climb route with the game's own traversal costs;

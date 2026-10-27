@@ -31,7 +31,7 @@ const base=process.env.RUNNING_QA_URL||'http://127.0.0.1:8778/';
   for(let i=0;i<160;i++){
    const state=await p.evaluate(()=>{tickPractice();const a=skySwing.active,c=__game.P;return{bar:a?.bar.id,angle:a?.angle,omega:a?.omega,ground:c.onGround,pos:c.pos.toArray(),speed:Math.hypot(c.vel.x,c.vel.z)};});
    maxSpeed=Math.max(maxSpeed,state.speed);if(state.bar)bars.add(state.bar);
-   if(state.bar&&state.angle>=.2&&state.omega>1.1)await jump();
+   if(state.bar&&state.angle>=.7&&state.omega>1.1)await jump();
    if(bars.size===2&&state.ground&&state.pos[1]>7.9){landed=true;break;}
   }
   if(!landed)console.log(await p.evaluate(()=>({inputs:qaTouch,stick:document.getElementById('stick').className,knob:document.getElementById('knob').style.transform,pos:__game.P.pos.toArray(),velocity:__game.P.vel.toArray(),settings:{sprint:__game.S.sprintSpeed,auto:__game.S.autoSprint},yaw:__game.P.yaw})));

@@ -1,4 +1,4 @@
-import { createSwing } from './parkour-swing.js?v=20261028-playground-v1';
+import { createSwing } from './parkour-swing.js?v=20261028-swing-flow-v2';
 import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
 import { createFlashbang } from './flashbang.js?v=20261028-touch-layout-v1';
 import { createZombieClimb } from './zombie-climb.js?v=20261028-pillar-climb-v1';
@@ -8,7 +8,7 @@ import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261027-swing-v1';
 import { createJumpPickups } from './jump-pickups.js?v=20261028-playground-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261028-playground-v1';
-import { createDash } from './dash-boost.js?v=20261028-playground-v1';
+import { createDash } from './dash-boost.js?v=20261028-swing-flow-v2';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;

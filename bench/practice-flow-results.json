@@ -1,5 +1,5 @@
 {
-  "time": 39.08333333333176,
+  "time": 39.308333333331746,
   "falls": 0,
   "stages": [
     {
@@ -296,9 +296,9 @@
     },
     {
       "name": "swing",
-      "t": 16.22499999999972,
+      "t": 16.74999999999969,
       "pos": [
-        -0.5656019384829327,
+        4.615318710518331,
         8.0001,
         -6.208192070441585
       ],
@@ -312,7 +312,7 @@
         "walljumps": 1,
         "falls": 0,
         "catches": 0,
-        "topSpeed": 15.172910953097457,
+        "topSpeed": 12.457942892593788,
         "jumpGunLaunches": 0,
         "dashPickups": 0,
         "jumpGunPickups": 0,
@@ -341,7 +341,7 @@
     },
     {
       "name": "ladder",
-      "t": 18.458333333332927,
+      "t": 18.683333333332914,
       "pos": [
         9,
         11.200099999999999,
@@ -357,7 +357,7 @@
         "walljumps": 1,
         "falls": 0,
         "catches": 0,
-        "topSpeed": 15.172910953097457,
+        "topSpeed": 12.457942892593788,
         "jumpGunLaunches": 0,
         "dashPickups": 0,
         "jumpGunPickups": 0,
@@ -387,7 +387,7 @@
     },
     {
       "name": "dash+drop",
-      "t": 22.033333333332724,
+      "t": 22.25833333333271,
       "pos": [
         9,
         0.0001,
@@ -403,7 +403,7 @@
         "walljumps": 1,
         "falls": 0,
         "catches": 0,
-        "topSpeed": 15.172910953097457,
+        "topSpeed": 12.457942892593788,
         "jumpGunLaunches": 0,
         "dashPickups": 1,
         "jumpGunPickups": 0,
@@ -433,7 +433,7 @@
     },
     {
       "name": "stomp",
-      "t": 23.39166666666598,
+      "t": 23.616666666665967,
       "pos": [
         3.8338764227196553,
         2.108433333333334,
@@ -449,7 +449,7 @@
         "walljumps": 1,
         "falls": 0,
         "catches": 0,
-        "topSpeed": 15.172910953097457,
+        "topSpeed": 12.457942892593788,
         "jumpGunLaunches": 0,
         "dashPickups": 1,
         "jumpGunPickups": 0,
@@ -479,7 +479,7 @@
     },
     {
       "name": "airkick",
-      "t": 25.66666666666585,
+      "t": 25.891666666665838,
       "pos": [
         5.908211745428355,
         0.9028777777777779,
@@ -495,7 +495,7 @@
         "walljumps": 1,
         "falls": 0,
         "catches": 0,
-        "topSpeed": 15.172910953097457,
+        "topSpeed": 12.457942892593788,
         "jumpGunLaunches": 0,
         "dashPickups": 1,
         "jumpGunPickups": 0,
@@ -525,7 +525,7 @@
     },
     {
       "name": "barrel-top",
-      "t": 30.70833333333223,
+      "t": 30.933333333332218,
       "pos": [
         -17.490151451436205,
         1.1201,
@@ -541,7 +541,7 @@
         "walljumps": 1,
         "falls": 0,
         "catches": 0,
-        "topSpeed": 15.172910953097457,
+        "topSpeed": 12.457942892593788,
         "jumpGunLaunches": 0,
         "dashPickups": 1,
         "jumpGunPickups": 0,
@@ -571,7 +571,7 @@
     },
     {
       "name": "blast-fired:true",
-      "t": 30.70833333333223,
+      "t": 30.933333333332218,
       "pos": [
         -17.490151451436205,
         1.1201,
@@ -587,7 +587,7 @@
         "walljumps": 1,
         "falls": 0,
         "catches": 0,
-        "topSpeed": 15.172910953097457,
+        "topSpeed": 12.457942892593788,
         "jumpGunLaunches": 0,
         "dashPickups": 1,
         "jumpGunPickups": 0,
@@ -617,7 +617,7 @@
     },
     {
       "name": "blast-landing",
-      "t": 32.50833333333213,
+      "t": 32.73333333333212,
       "pos": [
         -22.88634112128089,
         2.0001,
@@ -633,7 +633,7 @@
         "walljumps": 1,
         "falls": 0,
         "catches": 0,
-        "topSpeed": 15.172910953097457,
+        "topSpeed": 12.457942892593788,
         "jumpGunLaunches": 0,
         "dashPickups": 1,
         "jumpGunPickups": 0,
@@ -663,7 +663,7 @@
     },
     {
       "name": "jumpgun-pickup",
-      "t": 33.474999999998744,
+      "t": 33.69999999999873,
       "pos": [
         -26.847667164188575,
         2.0001,
@@ -679,7 +679,7 @@
         "walljumps": 1,
         "falls": 0,
         "catches": 0,
-        "topSpeed": 15.172910953097457,
+        "topSpeed": 12.457942892593788,
         "jumpGunLaunches": 0,
         "dashPickups": 1,
         "jumpGunPickups": 1,
@@ -709,7 +709,7 @@
     },
     {
       "name": "jumpgun",
-      "t": 35.108333333331984,
+      "t": 35.33333333333197,
       "pos": [
         -26.847667164188575,
         8.0001,
@@ -725,7 +725,7 @@
         "walljumps": 1,
         "falls": 0,
         "catches": 0,
-        "topSpeed": 15.172910953097457,
+        "topSpeed": 12.457942892593788,
         "jumpGunLaunches": 1,
         "dashPickups": 1,
         "jumpGunPickups": 1,
@@ -755,7 +755,7 @@
     },
     {
       "name": "loop",
-      "t": 39.08333333333176,
+      "t": 39.308333333331746,
       "pos": [
         -26.005799572821203,
         2.0001,
@@ -771,7 +771,7 @@
         "walljumps": 1,
         "falls": 0,
         "catches": 0,
-        "topSpeed": 15.172910953097457,
+        "topSpeed": 12.457942892593788,
         "jumpGunLaunches": 1,
         "dashPickups": 1,
         "jumpGunPickups": 1,

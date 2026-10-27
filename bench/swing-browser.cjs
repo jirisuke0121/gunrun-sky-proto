@@ -29,7 +29,7 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
           for(let i=0;i<4;i++)g.playerStep(1/120);
           g.cam(1/30);skyHumanView.update(1/30);if(render){g.debug.renderer.clear();g.debug.renderer.render(__skyInternals.ue,__skyInternals.Se);}
           const a=skySwing.active;
-          swingQA.trace.push({pos:c.pos.toArray(),state:c.state,bar:a?.bar.id,angle:a?.angle,handError:+document.body.dataset.skyHumanHandError||0,clip:document.body.dataset.skyHumanClip});
+          swingQA.trace.push({pos:c.pos.toArray(),state:c.state,bar:a?.bar.id,angle:a?.angle,age:a?.age,flight:c.swingFlight?.age,shoulder:skyDash.camera.shoulder,handError:+document.body.dataset.skyHumanHandError||0,clip:document.body.dataset.skyHumanClip});
         }};
         window.startSwingQA=(at)=>{skySwing.reset();c.pos.set(...at);c.vel.set(0,0,0);c.state='normal';c.h=1.75;c.onGround=true;c.yaw=-Math.PI/2;c.pitch=0;c.camY=at[1]+1.62;c.jumpBuf=0;c.edgeOff=null;c.catchCD=0;c.crouchPressed=false;g.keys.KeyW=true;};
       });
@@ -48,13 +48,15 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
       assert.equal(wall.kicked,1,JSON.stringify(wall));assert.ok(wall.landed,JSON.stringify(wall));
       await jump();
       let captured=new Set();
+      if(!touch&&process.env.SWING_MOTION_CAPTURE)fs.mkdirSync(`${output}/motion`,{recursive:true});
       for(let f=0;f<130;f++) {
-        const ready=await p.evaluate(()=>!!skySwing.active&&skySwing.active.angle>=.35&&skySwing.active.angle<.7&&skySwing.active.omega>1.1);
+        const ready=await p.evaluate(()=>!!skySwing.active&&skySwing.active.angle>=.7&&skySwing.active.angle<1.1&&skySwing.active.omega>1.1);
         if(ready)await jump();
         const state=await p.evaluate(()=>{
           stepSwing();
           return{bar:skySwing.active?.bar.id,angle:skySwing.active?.angle,ground:__game.P.onGround,pos:__game.P.pos.toArray(),handError:+document.body.dataset.skyHumanHandError||0};
         });
+        if(!touch&&process.env.SWING_MOTION_CAPTURE)await p.screenshot({path:`${output}/motion/${String(f).padStart(3,'0')}.png`});
         if(state.bar&&!captured.has(state.bar)) {captured.add(state.bar);await p.screenshot({path:`${output}/${touch?'touch':'desktop'}-${state.bar}.png`});}
         if(captured.size===2&&state.ground&&state.pos[0]>-1.5&&state.pos[1]>7.9)break;
       }
@@ -63,6 +65,9 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
       assert.equal(captured.size,2,JSON.stringify({pos:route.pos,ground:route.ground,stats:route.stats}));
       assert.ok(route.ground&&route.pos[0]>-1.5&&Math.abs(route.pos[1]-8)<.05,JSON.stringify({pos:route.pos,ground:route.ground,stats:route.stats}));
       assert.ok(route.trace.filter(x=>x.state==='swing').every(x=>x.handError<.025&&x.clip==='swing'),'hands stay on the bar while the body swings');
+      for(const bar of captured){const grip=route.trace.filter(x=>x.bar===bar);assert.ok(grip.length>=7&&Math.min(...grip.map(x=>x.angle))<-.35&&Math.max(...grip.map(x=>x.angle))>.65,'each grip shows a backward-to-forward arc before the successful release');}
+      assert.ok(route.trace.some(x=>x.clip==='swingFlight'),'release has its own airborne reach animation');
+      assert.ok(route.trace.some(x=>x.shoulder>1.3),'three-quarter camera reveals the swing silhouette');
       assert.equal(route.gl,0);assert.deepEqual(errors,[]);
       await p.screenshot({path:`${output}/${touch?'touch':'desktop'}-landing.png`});
       console.log('route passed',touch?'touch':'desktop');

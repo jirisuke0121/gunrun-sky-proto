@@ -144,10 +144,11 @@ export function createDash(sky, game) {
     const free = c.state !== 'ladder' && c.state !== 'ledge';
     const strength = free ? smooth(U.walkSpeed + .12, U.sprintSpeed - .05, Math.max(speed,window.skySwing?.cameraSpeed||0)) * (aiming ? .22 : 1) : 0;
     run = ease(run, strength, dt, 7); boost = ease(boost, remaining > 0 ? boostEnvelope(remaining, age) : 0, dt, 12);
-    swingView = ease(swingView, window.skySwing?.active ? 1 : 0, dt, 12);
-    camera.distance = 3.6 + run * .25 + boost * run * .3 - .45 * swingView;
-    camera.shoulder = .62 - run * .28 - boost * run * .1 - .15 * swingView;
-    camera.height = .18 - run * .3 - boost * run * .07 + .08 * swingView;
+    const swingTarget=window.skySwing?.active ? 1 : c.swingFlight ? Math.exp(-c.swingFlight.age*2.5) : 0;
+    swingView = ease(swingView, swingTarget, dt, reduced ? 5 : 9);
+    camera.distance = 3.6 + run * .25 + boost * run * .3 + .25 * swingView;
+    camera.shoulder = .62 - run * .28 - boost * run * .1 + 1.4 * swingView;
+    camera.height = .18 - run * .3 - boost * run * .07 + .28 * swingView;
     const moving = smooth(.7, U.sprintSpeed, speed), trailOn = boost * moving;
     lines.style.opacity = String((reduced ? .16 : .38) * run * (.35 + .65 * boost));
     flash.style.opacity = String(reduced ? 0 : .13 * pulse / .42);
@@ -185,7 +186,10 @@ export function createDash(sky, game) {
   }
   return { step, frame, reset, placePickups, camera,
     speed: base => base * (1 + (DASH_MULTIPLIER - 1) * boostEnvelope(remaining, age)),
-    fov: original => Math.min(122, Math.max(original, U.fov + U.fovKick * .8 * run + 7 * boost * run + (reduced ? 0 : 7 * swingView))),
+    fov: original => {
+      const normal=Math.min(122,Math.max(original,U.fov+U.fovKick*.8*run+7*boost*run));
+      return normal+(Math.min(normal,94)-normal)*swingView;
+    },
     get boost() { return boost; }, get remaining() { return remaining; },
     get pickups() { return items.filter(i => i.node).map(i => ({ id: i.id, nodeId: i.node.id, position: [i.node.x, i.node.y, i.node.z], cooldown: i.cooldown })); }
   };

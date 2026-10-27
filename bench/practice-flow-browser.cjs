@@ -24,7 +24,7 @@ const {chromium}=require('playwright'),{spawn}=require('child_process'),fs=requi
   c.yaw=-Math.PI/2;g.keys.KeyW=false;key('Space');for(let i=0;i<12;i++)tick();key('Space');g.keys.KeyW=true;
   for(let i=0;i<150;i++){tick();if(c.onGround&&c.pos.y>5&&c.pos.x>-18)break;}mark('wallkick');
   key('Space');const bars=new Set();
-  for(let i=0;i<300;i++){const a=skySwing.active;if(a){bars.add(a.bar.id);if(a.angle>=.2&&a.omega>1.1)key('Space');}tick();if(bars.size===2&&c.onGround&&c.pos.y>7.9)break;}mark('swing');
+  for(let i=0;i<300;i++){const a=skySwing.active;if(a){bars.add(a.bar.id);if(a.angle>=.7&&a.omega>1.1)key('Space');}tick();if(bars.size===2&&c.onGround&&c.pos.y>7.9)break;}mark('swing');
   moveTo(9,-5.4,300);g.keys.KeyW=false;for(let i=0;i<20;i++)tick();moveTo(9,-1.2,600);mark('ladder');
   moveTo(9,18,600);for(let i=0;i<240&&!c.onGround;i++)tick();mark('dash+drop');
   moveTo(8,18);let stomp=false;moveTo(3.5,18,400,()=>{if(!stomp&&c.pos.x<6.75&&c.onGround){key('Space');stomp=true;}});mark('stomp');
