@@ -1,14 +1,31 @@
 (() => {
   const points = [
-    { at: [14, 2.84, 9.82], normal: [1, 0] },
-    { at: [14, 2.28, -10.42], normal: [1, 0] },
-    { at: [-14, 3.22, -8.1], normal: [-1, 0] },
-    { at: [-14, 2.69, 11.51], normal: [-1, 0] },
+    { at: [26, 1.9, -1.5], normal: [0, 1] },
+    { at: [29.6, 1.9, -25.2], normal: [0, 1] },
+    { at: [14, 1.4, 6.8], normal: [1, 0] },
+    { at: [-14, 0.3, -13.6], normal: [-1, 0] },
   ];
+  window.__skyWallRunSpots = points.map(({ at, normal }) => ({ at: [...at], normal: [...normal] }));
+
+  // A jump marker permits only its wall face, never the whole wall object or
+  // another face on the same building. Keep run permission separate from the
+  // much smaller take-off area used by matchingPoint below.
+  const wallRunFaces = points;
+  window.__skyCanWallRunOnFace = (wall, normal) => {
+    if (!wall || wall.type !== "mono" || wall.wr === false || wall.off || !normal) return false;
+    return wallRunFaces.some(({ at: [x, y, z], normal: [nx, nz] }) => {
+      if (normal.x !== nx || normal.z !== nz) return false;
+      const plane = nx ? (nx > 0 ? wall.maxX : wall.minX) : (nz > 0 ? wall.maxZ : wall.minZ);
+      const along = nx ? z : x;
+      return Math.abs(plane - (nx ? x : z)) < .05
+        && along > (nx ? wall.minZ : wall.minX) && along < (nx ? wall.maxZ : wall.maxX)
+        && y >= wall.minY && y < wall.maxY;
+    });
+  };
 
   function matchingPoint(player, getWall, wallNormal) {
     const radius = player.r + 0.55;
-    return points.find(({ at, normal }) => {
+    return (window.skySwingCourse ? [window.skySwingCourse.wall] : points).find(({ at, normal }) => {
       const [x, y, z] = at;
       const [nx, nz] = normal;
       if (wallNormal && wallNormal.x * nx + wallNormal.z * nz < 0.8) return false;
@@ -24,7 +41,7 @@
         ? Math.abs(player.pos.x - (x + nx * (player.r + 0.04)))
         : Math.abs(player.pos.z - (z + nz * (player.r + 0.04)));
       const alongWallDistance = nx ? Math.abs(player.pos.z - z) : Math.abs(player.pos.x - x);
-      return planeDistance <= 0.7 && alongWallDistance <= 1.6 && Math.abs(player.pos.y - y) <= 1.5;
+      return planeDistance <= 0.9 && alongWallDistance <= 2 && Math.abs(player.pos.y - y) <= 1.8;
     });
   }
 
@@ -32,7 +49,11 @@
     !!matchingPoint(player, getWall, wallNormal);
 
   window.__skyTryRegisteredWallJump = (player, settings, getWall, time, stats, audio) => {
-    const spot = matchingPoint(player, getWall);
+    const spot = matchingPoint(
+      player,
+      getWall,
+      player.state === "wallrun" ? player.wallN : null,
+    );
     if (!spot) return false;
 
     const [nx, nz] = spot.normal;

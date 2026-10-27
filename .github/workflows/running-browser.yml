@@ -19,6 +19,7 @@ jobs:
         run: |
           node bench/human-running.test.cjs
           node bench/human-wallrun.test.cjs
+          node bench/wallrun-permissions.test.cjs
           node bench/human-actions.test.cjs
           node bench/human-view-running.test.cjs
           node bench/dash-boost.test.cjs
@@ -38,6 +39,9 @@ jobs:
           node bench/human-running-browser.cjs
           node bench/human-aim-browser.cjs
           node bench/dash-browser.cjs
+          node bench/swing-browser.cjs
+          node bench/swing-flow-browser.cjs
+          node bench/wallrun-permissions-browser.cjs
       - name: Encode dash motion evidence
         run: |
           if [ -d browser-evidence/dash-motion ] && command -v ffmpeg >/dev/null 2>&1; then

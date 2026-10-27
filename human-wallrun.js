@@ -1,8 +1,8 @@
 // Asset coordinates: +Y up, +Z forward. side is the wall's local X sign.
-import { solveLimb, boneMap } from './human-actions.js?v=20261027-aim-v1';
+import { solveLimb, boneMap } from './human-actions.js?v=20261027-swing-v1';
 
 export const WALLRUN_STRIDE = 2.8;
-export const WALLRUN_SAMPLES = 16;
+export const WALLRUN_SAMPLES = 10;
 const mix = (a, b, t) => a + (b - a) * t;
 const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const lerp = (a, b, t) => a.map((v, k) => mix(v, b[k], t));

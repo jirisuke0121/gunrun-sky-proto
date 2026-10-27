@@ -6,6 +6,7 @@
 <nav><button id="old">旧市街を確認</button><button id="canyon">岩壁渓谷を確認</button><button id="left">反対向き</button><button id="pause">一時停止</button><button id="view">一人称／三人称</button><button id="shot">射撃</button><button id="capture">画像を保存</button></nav>
 <iframe id="game" title="壁走りの実ゲーム画面" sandbox="allow-same-origin allow-scripts"></iframe>
 <output id="result">準備中…</output></main>
+<script src="../wall-jump-candidates.js"></script>
 <script type="module">
 const frame=document.querySelector('#game'),result=document.querySelector('#result');
 let w,g,c,sky,scenario,clock=0,paused=false,direction=1,last=null,ready=false,demoWall=true,checks=[],errors=[];
@@ -14,7 +15,7 @@ const wait=()=>new Promise(r=>setTimeout(r,50));
 function reset(s,sign=1){
   const n=s.normal,t={x:-n.z*sign,z:n.x*sign};
   c.pos.set(s.x,s.y,s.z);c.vel.set(t.x*g.S.sprintSpeed,1.8,t.z*g.S.sprintSpeed);
-  Object.assign(c,{state:'normal',onGround:false,airT:.12,wallKey:null,wallT:0,jumpBuf:0,coyote:0,ledge:null,edgeOff:null,catchCD:1,hookPressed:false,zipWish:0,slideBuf:0,slideCD:1,setCD:1,pitch:-.12,yaw:Math.atan2(-t.x,-t.z),camY:s.y+1.62});
+  Object.assign(c,{state:'normal',onGround:false,airT:.12,wallKey:null,wallT:0,jumpBuf:0,coyote:0,ledge:null,edgeOff:null,catchCD:1,hookPressed:false,zipWish:0,slideBuf:0,slideCD:1,setCD:1,pitch:-.12,yaw:Math.atan2(-t.x*.955+n.x*.296,-t.z*.955+n.z*.296),camY:s.y+1.62});
   sky.z.over=false;sky.z.safeT=10;g.keys.KeyW=true;g.S.gunOn=true;g.S.autoSprint=true;g.S.sendLog=false;
   for(const k of Object.keys(g.keys))if(k!=='KeyW')g.keys[k]=false;
   g.setMode('play');
@@ -22,6 +23,11 @@ function reset(s,sign=1){
 function step(dt){g.playerStep(dt);c.camY=c.pos.y+c.eye;g.cam(dt);w.skyHumanView.update(dt);}
 function draw(){g.debug.renderer.clear();g.debug.renderer.render(g.debug.scene,g.debug.camera);}
 function findScenario(){
+  for(const {at:[x,y,z],normal:[nx,nz]} of w.__skyWallRunSpots||[]){
+    const s={x:x+nx*(c.r+.04),y,z:z+nz*(c.r+.04),normal:{x:nx,z:nz}};
+    reset(s);let count=0;for(let i=0;i<24;i++){g.playerStep(1/60);if(c.state==='wallrun')count++;}
+    if(count>=18)return s;
+  }
   for(const b of g.solids.filter(b=>b.type==='mono'&&b.wr!==false&&b.maxY-b.minY>3)){
     for(const n of [{x:1,z:0},{x:-1,z:0},{x:0,z:1},{x:0,z:-1}]){
       if(b.wf&&!b.wf[n.x+','+n.z])continue;
@@ -62,6 +68,35 @@ async function boot(map){
       check(g.debug.renderer.getContext().getError()===0,'WebGL描画エラーなし');
       draw();ready=true;result.textContent=checks.join('\n')+'\n渓谷は壁走りの発動が無効です。共有モデルの読込・通常描画を確認しました。';document.body.dataset.result='passed';return;
     }
+    const allowed=[];let denied=0;
+    for(const [index,b] of g.solids.entries())if(b.type==='mono'&&b.wr!==false){
+      for(const n of [{x:1,z:0},{x:-1,z:0},{x:0,z:1},{x:0,z:-1}]){
+        if(w.__skyCanWallRunOnFace(b,n)){allowed.push({index,b,n});continue;}
+        if((n.x?b.maxZ-b.minZ:b.maxX-b.minX)<4)continue;
+        const s={normal:n,x:n.x?(n.x>0?b.maxX:b.minX)+n.x*(c.r+.04):(b.minX+b.maxX)/2,
+          z:n.z?(n.z>0?b.maxZ:b.minZ)+n.z*(c.r+.04):(b.minZ+b.maxZ)/2,y:b.minY+1.2};
+        if(!g.freeAt(s.x,s.y,s.z,c.r,c.h))continue;
+        reset(s);let entered=false;for(let i=0;i<8;i++){g.playerStep(1/60);if(c.state==='wallrun')entered=true;}
+        check(!entered,'非許可の壁面では発動しない #'+index+' '+n.x+','+n.z);denied++;
+      }
+    }
+    check(allowed.length===4,'許可する壁面はショートカット4面だけ');
+    check(denied>=8,'複数の非許可壁面を実際の移動処理で確認');
+    for(const {at:[x,y,z],normal:[nx,nz]} of w.__skyWallRunSpots){
+      const route=window.skyWallJumpCandidates.find(route=>route.status==='ok'&&route.at[0]===x&&route.at[2]===z);
+      const finish=route.path.at(-1),start=route.path[0],sign=(-nz*(x-start[0])+nx*(z-start[2]))<0?-1:1;
+      reset({x:x+nx*(c.r+.04),y,z:z+nz*(c.r+.04),normal:{x:nx,z:nz}},sign);step(1/60);
+      check(c.state==='wallrun','ショートカットの許可地点で発動 '+x+','+z);
+      const jumps=g.stats.walljumps||0;c.jumpBuf=.2;step(1/60);
+      check((g.stats.walljumps||0)>jumps&&c.vel.y>0,'ショートカット地点で壁ジャンプ '+x+','+z+' '+JSON.stringify({before:jumps,after:g.stats.walljumps,y:c.vel.y,state:c.state,pos:c.pos.toArray(),normal:c.wallN}));
+      let landed=false;const life=c.life;
+      for(let i=0;i<180;i++){
+        c.yaw=Math.atan2(c.pos.x-finish[0],c.pos.z-finish[2]);step(1/60);
+        if(c.onGround){landed=true;break;}
+      }
+      check(landed&&c.life===life&&Math.hypot(c.pos.x-finish[0],c.pos.z-finish[2])<2&&Math.abs(c.pos.y-finish[1])<.65,
+        'ショートカット先へ着地 '+route.title+' '+JSON.stringify({pos:c.pos.toArray(),target:finish,life:c.life}));
+    }
     scenario=findScenario();const before=g.stats.wallruns;
     for(const sign of [1,-1]){
       reset(scenario,sign);for(let i=0;i<18;i++)step(1/60);
@@ -91,7 +126,7 @@ async function boot(map){
       check(!data.skyHumanAction.startsWith('parkourWall'),'着地後に通常姿勢へ '+sign);
     }
     check(g.stats.wallruns>=before+2,'両方向の壁走りをゲーム本体が記録');
-    const jumpSpot={x:14+c.r+.04,y:2.84,z:9.82,normal:{x:1,z:0}};
+    const jumpSpot={x:14+c.r+.04,y:1.4,z:6.8,normal:{x:1,z:0}};
     reset(jumpSpot);step(1/60);const jumps=g.stats.walljumps||0;c.jumpBuf=.2;step(1/60);
     check((g.stats.walljumps||0)>jumps&&c.vel.y>0,'登録済みスポットで実際に壁ジャンプ');
     check(w.document.body.dataset.skyHumanAction==='parkourJump','壁ジャンプから跳躍モーションへ');

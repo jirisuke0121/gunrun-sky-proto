@@ -19,7 +19,7 @@ const { fixture } = require('./human-running.test.cjs');
   const {gltf,motion}=await fixture(),meshes=[];gltf.scene.traverse(o=>{if(o.isMesh)meshes.push(o);});
   addParkourRun(gltf.scene,motion,meshes[0].geometry.attributes.position.constructor);
   for(const kind of ['parkourWallLeft','parkourWallRight']){
-    const clip=motion.clips[kind];assert.equal(clip.frames.length,17);
+    const clip=motion.clips[kind];assert.equal(clip.frames.length,11);
     for(const mesh of meshes){
       const targets=clip.frames.map(n=>mesh.geometry.morphAttributes.position[mesh.morphTargetDictionary[n]]);
       for(const t of targets)assert.ok(t.array.every(Number.isFinite),`${mesh.name}: finite wall pose`);
@@ -27,5 +27,5 @@ const { fixture } = require('./human-running.test.cjs');
       assert.ok(targets.some(t=>t.array.some((v,i)=>Math.abs(v-targets[0].array[i])>.01)),`${mesh.name}: follows the pose`);
     }
   }
-  console.log('PASS wall run: 8 wall/direction combinations, alternating boots, wall palm, 7 meshes / 34 finite poses with seamless loops');
+  console.log('PASS wall run: 8 wall/direction combinations, alternating boots, wall palm, 7 meshes / 22 finite poses with seamless loops');
 })().catch(error=>{console.error(error);process.exitCode=1;});

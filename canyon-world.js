@@ -121,6 +121,7 @@ window.buildSkyCanyon = function ({ ne, Mh, ld, us, jn, Ja }) {
     step.canyonTier = 'G';
     return { ...barrel, block, cap, step };
   });
+  window.buildSwingCourse?.({ ne });
   window.SKY_CANYON_MAP.world = { solids: jn.length, visual: Ja.length };
 };
 
