@@ -1,6 +1,15 @@
 import { playGearSound } from './gear-audio.js?v=20261026-gear-polish-v1';
 // Defensive flashbang. Simulation time owns the fuse and stun, including pause.
-export const FLASHBANG = Object.freeze({ radius: 6, duration: 3, fuse: 0.22, maxCharges: 2 });
+export const FLASHBANG = Object.freeze({ radius: 8, duration: 4, fuse: 0.22, maxCharges: 2, burstDuration: 1, screenDuration: 0.8, reducedScreenDuration: 0.4 });
+
+// One bright pulse, then a smooth afterglow across the entire screen.
+export function flashScreenOpacity(age, reducedMotion = false) {
+  if (!Number.isFinite(age) || age < 0) return 0;
+  const duration = reducedMotion ? FLASHBANG.reducedScreenDuration : FLASHBANG.screenDuration;
+  const hold = reducedMotion ? 0 : 0.065;
+  const fade = Math.max(0, 1 - Math.max(0, age - hold) / (duration - hold));
+  return (reducedMotion ? 0.22 : 0.84) * Math.pow(fade, 1.35);
+}
 
 export function flashCanReach(origin, enemy, raycast) {
   if (enemy.dead || enemy.remove || enemy.rise?.t < 0 || enemy.fall?.wait > 0) return false;
@@ -16,7 +25,7 @@ export function createFlashbang(game) {
   const grenades = [], bursts = [], affected = new Map();
   const stats = { thrown: 0, detonated: 0, affected: 0 };
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const light = new PointLight(0xbceeff, 0, 10, 2); light.castShadow = false; root.add(light);
+  const light = new PointLight(0xbceeff, 0, 13, 2); light.castShadow = false; root.add(light);
   const materials = {
     yellow: new Basic({ color: 0xffd453, fog: false }),
     dark: new Basic({ color: 0x192c35 }),
@@ -58,7 +67,7 @@ export function createFlashbang(game) {
     if (button) {
       button.textContent = `閃光弾 ${charges}（技${skills}/3）`;
       button.classList.toggle('empty', charges === 0);
-      button.setAttribute('aria-label', `閃光弾 残り${charges}個 周囲のゾンビを3秒停止`);
+      button.setAttribute('aria-label', `閃光弾 残り${charges}個 周囲${FLASHBANG.radius}mのゾンビを${FLASHBANG.duration}秒停止`);
     }
   }
   function message(text, seconds = 1.3) { notice.textContent = text; noticeTime = seconds; notice.style.display = ''; }
@@ -131,7 +140,7 @@ export function createFlashbang(game) {
       const ray = new Mesh(box, ringMat); ray.quaternion.setFromUnitVectors(new Vector3(0, 0, 1), direction); ray.userData.direction = direction; model.add(ray); rays.push(ray);
     }
     bursts.push({ model, core, halo, wave, vertical, rays, age: 0, ownedMaterials: [flashMat, haloMat, ringMat] });
-    light.position.copy(center); light.intensity = 6;
+    light.position.copy(center); light.intensity = 10;
     let hits = 0;
     for (const enemy of Jt) {
       if (!flashCanReach(center, enemy, raycast)) continue;
@@ -146,7 +155,7 @@ export function createFlashbang(game) {
       updateMarker(enemy, state); hits++;
     }
     stats.affected += hits;
-    message(hits ? `閃光！ ${hits}体が3秒停止` : '閃光！ 命中なし');
+    message(hits ? `閃光！ ${hits}体が${FLASHBANG.duration}秒停止` : '閃光！ 命中なし');
     playGearSound(game, 'flash');
     if (window.__skyAudio) window.__skyAudio.flashbang++;
   }
@@ -189,22 +198,15 @@ export function createFlashbang(game) {
     }
     for (let i = bursts.length - 1; i >= 0; i--) {
       const effect = bursts[i]; effect.age += dt;
-      if (effect.age >= 0.72) { removeEffect(effect); bursts.splice(i, 1); continue; }
-      const p = effect.age / 0.72;
-      effect.core.scale.setScalar(1.5 + Math.min(1, effect.age / 0.09) * 4);
-      effect.core.material.opacity = Math.max(0, 1 - effect.age / 0.18);
-      effect.halo.scale.setScalar(2 + p * 11); effect.halo.material.opacity = Math.exp(-p * 6) * 0.8;
-      const radius = 0.25 + Math.min(1, effect.age / 0.45) * FLASHBANG.radius;
+      if (effect.age >= FLASHBANG.burstDuration) { removeEffect(effect); bursts.splice(i, 1); continue; }
+      const p = effect.age / FLASHBANG.burstDuration;
+      effect.core.scale.setScalar(1.5 + Math.min(1, effect.age / 0.09) * 5.5);
+      effect.core.material.opacity = Math.max(0, 1 - effect.age / 0.28);
+      effect.halo.scale.setScalar(2 + p * 16); effect.halo.material.opacity = Math.exp(-p * 5) * 0.9;
+      const radius = 0.25 + Math.min(1, effect.age / 0.6) * FLASHBANG.radius;
       effect.wave.scale.setScalar(radius); effect.vertical.scale.setScalar(radius * 0.85); effect.wave.material.opacity = (1 - p) * 0.85;
       effect.rays.forEach(ray => { ray.position.copy(ray.userData.direction).multiplyScalar(0.2 + p * 7); ray.scale.set(0.012 * (1 - p), 0.012 * (1 - p), 0.2 + (1 - p) * 0.7); });
     }
-    const newest = bursts.at(-1);
-    light.intensity = newest ? 6 * Math.exp(-newest.age * 22) : 0;
-    if (newest && newest.age < 0.23) {
-      const point = newest.model.position.clone().project(game.Se), x = Math.max(5, Math.min(95, (point.x + 1) * 50)), y = Math.max(5, Math.min(95, (1 - point.y) * 50));
-      glow.style.background = `radial-gradient(ellipse at ${x}% ${y}%,#eaffff 0%,#8bdfffaa 22%,#7dbaff00 72%)`;
-      glow.style.opacity = String((reducedMotion ? 0.12 : 0.28) * Math.max(0, 1 - newest.age / 0.23));
-    } else glow.style.opacity = '0';
     for (let i = grenades.length - 1; i >= 0; i--) {
       const grenade = grenades[i]; grenade.age += dt;
       const p = Math.min(1, grenade.age / FLASHBANG.fuse);
@@ -218,6 +220,15 @@ export function createFlashbang(game) {
       positions.needsUpdate = true;
       if (p === 1) { detonate(grenade); removeEffect(grenade); grenades.splice(i, 1); }
     }
+    // Update after detonation so the screen flashes on the same rendered frame.
+    const newest = bursts.at(-1);
+    light.intensity = newest ? (reducedMotion ? 4 : 10) * Math.exp(-newest.age * 11) : 0;
+    if (newest && flashScreenOpacity(newest.age, reducedMotion) > 0) {
+      const point = newest.model.position.clone().project(game.Se), x = Math.max(5, Math.min(95, (point.x + 1) * 50)), y = Math.max(5, Math.min(95, (1 - point.y) * 50));
+      // Opaque color at every stop also lights the corners; only the center is white.
+      glow.style.background = `radial-gradient(ellipse farthest-corner at ${x}% ${y}%,#ffffff 0%,#f3fcfff0 38%,#d6eeffc9 72%,#bddfffad 100%)`;
+      glow.style.opacity = String(flashScreenOpacity(newest.age, reducedMotion));
+    } else glow.style.opacity = '0';
   }
 
   // All zombie types use the same movement and attack gate. Never freeze vertical physics.

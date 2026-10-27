@@ -1,6 +1,6 @@
 import { createSwing } from './parkour-swing.js?v=20261027-swing-v1';
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
-import { createFlashbang } from './flashbang.js?v=20261026-gear-polish-v1';
+import { createFlashbang } from './flashbang.js?v=20261027-flash-impact-v1';
 import { createGhostReplay } from './ghost-replay.js?v=20261027-swing-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261027-jump-power-v2';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
