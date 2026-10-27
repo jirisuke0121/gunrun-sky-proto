@@ -2,6 +2,7 @@ import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 import { MAP_VERSIONS, REPLAY_LIMIT, REPLAY_STEP, REPLAY_STATES, sampleReplay, validateGhost } from './replay-data.js?v=20261026-feedback-v1';
 
 export function createGhostReplay(game) {
+  if(window.skyPracticeMode)return {start(){},finish(){},update(){},snapshot(){return null;},get active(){return null;}};
   const { c, z, U, Geom, ue, Se: camera } = game;
   const map = window.SKY_CANYON_MAP ? 'rock-canyon' : 'old-town';
   const mapVersion = MAP_VERSIONS[map];

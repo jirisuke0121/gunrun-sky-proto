@@ -39,7 +39,7 @@ try{
    const released=new Set();
    for(let i=0;i<720;i++){
     const a=skySwing.active;
-    if(a){bars.add(a.bar.id);if(!released.has(a.bar.id)&&(backward ? a.angle>.65&&a.omega<-.3 : a.angle>=angle&&a.omega>1.1)&&(!waitCycle||a.age>1.5)){released.add(a.bar.id);key('Space','keydown');key('Space','keyup');input++;}}
+    if(a){bars.add(a.bar.id);if(!released.has(a.bar.id)&&(backward ? a.angle>.35&&a.omega<-2 : a.angle>=angle&&a.omega>1.1)&&(!waitCycle||a.age>1.5)){released.add(a.bar.id);key('Space','keydown');key('Space','keyup');input++;}}
     tick();trail.push({t:g.GAME.t,pos:c.pos.toArray(),state:c.state,bar:skySwing.active?.bar.id});
     if(bars.size===2&&c.onGround&&c.pos.y>7.9){landed=true;break;}
     if(c.onGround&&c.pos.y<1)break;
@@ -68,7 +68,7 @@ try{
   route();g.keys.KeyW=false;const exitFrom=c.pos.toArray();
   // Brake the carried swing momentum, then follow the deck chevrons inward.
   for(let i=0;i<8;i++)tick();
-  g.keys.KeyS=true;for(let i=0;i<24;i++)tick();g.keys.KeyS=false;g.keys.KeyA=true;
+  g.keys.KeyS=true;for(let i=0;i<90&&c.pos.x>.7;i++)tick();g.keys.KeyS=false;g.keys.KeyA=true;
   for(let i=0;i<60;i++)tick();const exitTo=c.pos.toArray(),exitGround=c.onGround;
   // Deliberately skip release: drop to the existing floor, no fall/respawn.
   setup();c.pos.set(-12.9,6.05,-6);c.onGround=false;c.vel.set(5,0,0);g.playerStep(dt);

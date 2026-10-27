@@ -16,7 +16,7 @@
   const wallRunFaces = points;
   window.__skyCanWallRunOnFace = (wall, normal) => {
     if (!wall || wall.type !== "mono" || wall.wr === false || wall.off || !normal) return false;
-    return wallRunFaces.some(({ at: [x, y, z], normal: [nx, nz] }) => {
+    return (window.skyPracticeMode ? window.skyPracticeCourse.wallSpots : wallRunFaces).some(({ at: [x, y, z], normal: [nx, nz] }) => {
       if (normal.x !== nx || normal.z !== nz) return false;
       const plane = nx ? (nx > 0 ? wall.maxX : wall.minX) : (nz > 0 ? wall.maxZ : wall.minZ);
       const along = nx ? z : x;
@@ -28,7 +28,7 @@
 
   function matchingPoint(player, getWall, wallNormal) {
     const radius = player.r + 0.55;
-    return (window.skySwingCourse ? [window.skySwingCourse.wall] : points).find(({ at, normal }) => {
+    return (window.skyPracticeMode ? [...window.skyPracticeCourse.wallSpots,window.skySwingCourse.wall] : window.skySwingCourse ? [window.skySwingCourse.wall] : points).find(({ at, normal }) => {
       const [x, y, z] = at;
       const [nx, nz] = normal;
       if (wallNormal && wallNormal.x * nx + wallNormal.z * nz < 0.8) return false;
