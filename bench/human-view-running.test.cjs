@@ -10,6 +10,15 @@ const { fixture } = require('./human-running.test.cjs');
   const Group = gltf.scene.constructor, Vector3 = gltf.scene.position.constructor;
   let body; gltf.scene.traverse(o => { if (o.name.startsWith('Body_mesh')) body = o; });
   const Float32Attribute = body.geometry.attributes.position.constructor;
+  gltf.scene.updateMatrixWorld(true);
+  const neutralTarget=body.geometry.morphAttributes.position[body.morphTargetDictionary[motion.clips.jump.frames[0]]];
+  const handVertices=[-1,1].map(side=>{
+    let best=0,nearest=Infinity;
+    for(let i=0;i<body.geometry.attributes.position.count;i++){
+      const p=new Vector3().fromBufferAttribute(body.geometry.attributes.position,i).add(new Vector3().fromBufferAttribute(neutralTarget,i)).applyMatrix4(body.matrixWorld);
+      const d=p.distanceTo(new Vector3(side*.52495,1.19165,-.0644));if(d<nearest){nearest=d;best=i;}
+    }return best;
+  });
   const weaponGeometry = new body.geometry.constructor();
   weaponGeometry.setAttribute('position', new Float32Attribute(new Float32Array([-.04,-.08,0,.04,-.08,0,-.04,.04,0,.04,.04,0,-.04,-.08,-.3,.04,-.08,-.3,-.04,.04,-.3,.04,.04,-.3]),3));
   const c = { pos: new Vector3(), vel: new Vector3(0, 0, -6), yaw: 0, pitch: 0, eye: 1.62, onGround: true, state: 'normal' };
@@ -89,6 +98,16 @@ const { fixture } = require('./human-running.test.cjs');
     assert.ok(shot.origin.distanceTo(context.window.skyHumanView.getMuzzleWorld())<1e-8);
     assert.ok(shot.direction.dot(target.sub(shot.origin).normalize())>1-1e-8);
     assert.ok(+dataset.skyHumanGripError<.04,`${state}/${pitch}/${yaw}: both hands reach their grips (${dataset.skyHumanGripError})`);
+    // Inspect the final deformed mesh independently of the IK error metric.
+    const profile=vm.runInContext('heldWeapon',context);
+    holder.updateMatrixWorld(true);
+    for(let j=0;j<2;j++){
+      const i=handVertices[j],p=new Vector3().fromBufferAttribute(body.geometry.attributes.position,i);
+      body.morphTargetInfluences.forEach((w,k)=>p.addScaledVector(new Vector3().fromBufferAttribute(body.geometry.morphAttributes.position[k],i),w));
+      p.applyMatrix4(body.matrixWorld);
+      const target=weapon.localToWorld(new Vector3(...(j===0?profile.grip:profile.support)));
+      assert.ok(p.distanceTo(target)<.065,`${state}/${pitch}/${yaw}: visible wrist ${j} contacts gun (${p.distanceTo(target)})`);
+    }
     assert.ok(body.geometry.attributes.position.array.every(Number.isFinite));assert.ok(body.geometry.attributes.normal.array.every(Number.isFinite));
   }
   c.state='normal';c.onGround=true;c.yaw=0;c.pitch=0;sky.Se.rotation.set(0,0,0);update(30,false);
@@ -97,5 +116,5 @@ const { fixture } = require('./human-running.test.cjs');
   keys.get('keydown')({ code: 'KeyV', repeat: false }); c.pos.z -= 100; c.vel.z = -6; update(1, false);
   assert.equal(+dataset.skyHumanGaitPhase, 0);
   assert.ok(body.morphTargetInfluences.every(Number.isFinite));
-  console.log('PASS actual human-view integration: moving/blocked feet, walk/run/strafe/back, firing/reload, pause, existing jump/slide/ladder, stop, view switch and respawn');
+  console.log('PASS actual human-view integration: moving/blocked feet, walk/run/strafe/back, firing/reload, pause, jump/slide/ladder, ledge contacts, view switch/respawn; 45 first-shot barrel/ray and actual deformed wrist contacts');
 })().catch(error => { console.error(error); process.exitCode = 1; });

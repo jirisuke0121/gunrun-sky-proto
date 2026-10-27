@@ -43,12 +43,12 @@ fs.mkdirSync('browser-evidence',{recursive:true});
       const record=JSON.parse(document.body.dataset.skyHumanShot||'null');
       const dot=ray?bore.dot(new T.Vector3(...ray.direction)):0;
       // Render this exact shot pose, then an independent side view for review.
-      g.debug.renderer.render(sky.ue,sky.Se);
+      window.__gunFx.step(1/60);g.debug.renderer.clear();g.debug.renderer.render(sky.ue,sky.Se);
       const data={weapon,pitch,yaw,state,auto,shots:g.stats.shots-before,ray,record,dot,muzzleError:ray?muzzle.distanceTo(new T.Vector3(...ray.origin)):Infinity,tracerError:window.__aimTracer?muzzle.distanceTo(new T.Vector3(...window.__aimTracer)):null,gripError:+document.body.dataset.skyHumanGripError,glError:g.debug.renderer.getContext().getError(),models:JSON.parse(document.body.dataset.skyModels||'{}')};
       if(auto)data.autoError=new T.Vector3(...record.target).distanceTo(new T.Vector3(-8,202.1,-12));
       return data;
      };
-     window.__aimSide=()=>{sky.Se.position.set(2.8,201.5,2.8);sky.Se.lookAt(0,201,0);sky.Se.updateMatrixWorld(true);g.debug.renderer.render(sky.ue,sky.Se);};
+     window.__aimSide=()=>{sky.Se.position.set(2.8,201.5,2.8);sky.Se.lookAt(0,201,0);sky.Se.updateMatrixWorld(true);g.debug.renderer.clear();g.debug.renderer.render(sky.ue,sky.Se);};
     });
     const cases=[{state:'normal',pitch:0},{state:'normal',pitch:1.2},{state:'normal',pitch:-1.2},{state:'run',pitch:.5,yaw:1.1},{state:'air',pitch:.6},{state:'air',pitch:-.8},{state:'slide',pitch:.4},{state:'normal',auto:true},...[1,2,3,4,5,6,7,8,9,10,11,12].map(weapon=>({weapon,pitch:.35,yaw:-.4}))];
     for(let i=0;i<cases.length;i++){
