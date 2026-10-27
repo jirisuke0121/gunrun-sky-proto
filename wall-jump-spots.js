@@ -1,10 +1,27 @@
 (() => {
   const points = [
-    { at: [14, 2.84, 9.82], normal: [1, 0] },
-    { at: [14, 2.28, -10.42], normal: [1, 0] },
-    { at: [-14, 3.22, -8.1], normal: [-1, 0] },
-    { at: [-14, 2.69, 11.51], normal: [-1, 0] },
+    { at: [26, 1.9, -1.5], normal: [0, 1] },
+    { at: [29.6, 1.9, -25.2], normal: [0, 1] },
+    { at: [14, 1.4, 6.8], normal: [1, 0] },
+    { at: [-14, 0.3, -13.6], normal: [-1, 0] },
   ];
+  window.__skyWallRunSpots = points.map(({ at, normal }) => ({ at: [...at], normal: [...normal] }));
+
+  // A jump marker permits only its wall face, never the whole wall object or
+  // another face on the same building. Keep run permission separate from the
+  // much smaller take-off area used by matchingPoint below.
+  const wallRunFaces = points;
+  window.__skyCanWallRunOnFace = (wall, normal) => {
+    if (!wall || wall.type !== "mono" || wall.wr === false || wall.off || !normal) return false;
+    return wallRunFaces.some(({ at: [x, y, z], normal: [nx, nz] }) => {
+      if (normal.x !== nx || normal.z !== nz) return false;
+      const plane = nx ? (nx > 0 ? wall.maxX : wall.minX) : (nz > 0 ? wall.maxZ : wall.minZ);
+      const along = nx ? z : x;
+      return Math.abs(plane - (nx ? x : z)) < .05
+        && along > (nx ? wall.minZ : wall.minX) && along < (nx ? wall.maxZ : wall.maxX)
+        && y >= wall.minY && y < wall.maxY;
+    });
+  };
 
   function matchingPoint(player, getWall, wallNormal) {
     const radius = player.r + 0.55;

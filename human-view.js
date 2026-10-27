@@ -1,5 +1,5 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor } from './human-running.js?v=20261027-swing-v1';
+import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE } from './human-running.js?v=20261027-wallrun-v2';
 import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261027-torso-v1';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
@@ -13,6 +13,7 @@ let gripPoint = new Vector3(), muzzleFlash = null;
 let gaitPhase = 0, runPose = 0, gripPitch = 0, bodyYawOffset = 0, turnBank = 0;
 let swingLean = 0;
 let motionPosition = null, lastTravelYaw = null;
+let wallFrame = null, wallPhase = 0;
 let parkourRunEnabled = true;
 let contactFrame = null, trackedLedge = null, handAnchor = null;
 let aimRig = null, heldWeapon = null, aimBlend = 0, shotTarget = null;
@@ -156,6 +157,11 @@ function updateMotion(dt, speed) {
   if (!motionPosition) motionPosition = new Vector3();
   motionPosition.copy(c.pos);
   if (teleported) { gaitPhase = 0; runPose = 0; bodyYawOffset = 0; turnBank = 0; lastTravelYaw = null; }
+  wallFrame = c.state === 'wallrun' && parkourRunEnabled ? wallRunFrame(c.wallN, c.vel, c.yaw) : null;
+  if (wallFrame) {
+    if (activeClip !== 'wallrun' || teleported) wallPhase = 0;
+    else wallPhase = strideAdvance(wallPhase, distance, WALLRUN_STRIDE);
+  }
   const firing = !!sky.U.gunOn && (reload > 0 || shotTime < .28);
   const runTarget = parkourRunEnabled && normalGround && front > speed * .6 && !firing && motion.clips.parkourRun
     ? runningBlend(speed, sky.U.walkSpeed, sky.U.sprintSpeed) : 0;
@@ -173,11 +179,17 @@ function updateMotion(dt, speed) {
   } else {
     bodyYawOffset *= Math.exp(-dt * 18); turnBank *= Math.exp(-dt * 18); lastTravelYaw = null;
   }
+  if (wallFrame) {
+    const angle = wallFrame.yaw - c.yaw - Math.PI;
+    bodyYawOffset = Math.atan2(Math.sin(angle), Math.cos(angle));
+    turnBank = 0; runPose = 0;
+  }
   let next = 'idle';
   const walking = speed < (sky.U.walkSpeed + sky.U.sprintSpeed) / 2;
   if (c.state === 'swing' && c.swing && motion.clips.parkourSwing) next = 'swing';
   else if (c.state === 'ladder') next = 'ladder';
   else if (c.state === 'slide') next = 'slide';
+  else if (wallFrame) next = 'wallrun';
   else if (c.state === 'ledge' && c.ledge && parkourRunEnabled && motion.clips.parkourMantle) next = c.ledge.kind === 'vault' ? 'vault' : c.ledge.kind === 'catch' ? 'catch' : 'mantle';
   else if (!grounded || landTime > 0 || c.state === 'ledge') next = 'jump';
   else if (speed > .2) {
@@ -194,7 +206,8 @@ function updateMotion(dt, speed) {
     if (next === 'slide') document.body.dataset.skyHumanSlideSeen = 'true';
     if (next === 'ladder') document.body.dataset.skyHumanLadderSeen = 'true';
   }
-  const special = { vault: 'parkourVault', mantle: 'parkourMantle', catch: 'parkourCatch', jump: 'parkourJump', swing: 'parkourSwing' }[next];
+  const special = next === 'wallrun' ? (wallFrame.side < 0 ? 'parkourWallLeft' : 'parkourWallRight')
+    : { vault: 'parkourVault', mantle: 'parkourMantle', catch: 'parkourCatch', jump: 'parkourJump', swing: 'parkourSwing' }[next];
   const selected = (next === 'swing' || parkourRunEnabled) && motion.clips[special] ? special : next;
   const ledgeAction = next === 'swing' || next === 'vault' || next === 'mantle' || next === 'catch';
   if (ledgeAction) runPose = 0;
@@ -216,7 +229,8 @@ function updateMotion(dt, speed) {
     const descent = c.vel.y < 0 ? .43 + .43 * Math.min(1, -c.vel.y / Math.max(1, sky.U.jumpVel)) : 0;
     clipTime = info.duration * (grounded ? .86 + .14 * (1 - landTime / .14) : Math.max(riseAndFall, descent));
     }
-  } else if (next === 'slide') clipTime = Math.min(info.duration * .99, (c.slideT || 0) * info.duration / 1.2);
+  } else if (next === 'wallrun') clipTime = wallPhase * info.duration;
+  else if (next === 'slide') clipTime = Math.min(info.duration * .99, (c.slideT || 0) * info.duration / 1.2);
   else if (next === 'ladder') clipTime += c.vel.y * dt * info.duration / 1.5;
   else if (next.startsWith('walk') || next.startsWith('run')) clipTime = gaitPhase * info.duration;
   else {
@@ -249,7 +263,7 @@ function updateMotion(dt, speed) {
   }
   const a = motion.grips[selected][lo], b = motion.grips[selected][hi];
   blendedGrip.set(a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction, a[2] + (b[2] - a[2]) * fraction);
-  let wantedPitch = 0;
+  let wantedPitch = next === 'wallrun' ? -.65 : 0;
   if (runSample) {
     const { lo, hi, fraction } = runSample, grips = motion.grips[runName], pitches = motion.gripPitches[runName];
     blendedGrip.x += (grips[lo][0] + (grips[hi][0] - grips[lo][0]) * fraction - blendedGrip.x) * runPose;
@@ -277,6 +291,8 @@ function updateMotion(dt, speed) {
   document.body.dataset.skyHumanRunBlend = runPose.toFixed(3);
   document.body.dataset.skyHumanRunClip = runSample ? runName : 'existing';
   document.body.dataset.skyHumanGaitPhase = gaitPhase.toFixed(3);
+  document.body.dataset.skyHumanWallSide = wallFrame ? String(wallFrame.side) : '';
+  document.body.dataset.skyHumanWallPhase = wallPhase.toFixed(3);
 }
 const aimPoint = new Vector3(), aimDirection = new Vector3(), aimHand = new Vector3(), aimSupport = new Vector3(), aimPalm = new Vector3();
 const bore = new Vector3(), gunMuzzle = new Vector3(), actualDirection = new Vector3();
@@ -378,6 +394,7 @@ function update(dt) {
     else if (!third) {
       lastAmmo = sky.Et.ammo; shotTime = 1; jumpTime = 0; landTime = 0; wasGrounded = !!c.onGround;
       motionPosition = null; lastTravelYaw = null; runPose = 0; gaitPhase = 0; gripPitch = 0; bodyYawOffset = 0; turnBank = 0;
+      wallFrame = null; wallPhase = 0;
       swingLean = 0;
       contactFrame = null; trackedLedge = null; handAnchor = null; contactOffset.set(0, 0, 0);
       aimRig?.reset();aimBlend=0;shotTarget=null;
