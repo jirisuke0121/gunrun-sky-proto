@@ -12,6 +12,15 @@ const { fixture } = require('./human-running.test.cjs');
   const Float32Attribute = body.geometry.attributes.position.constructor;
   gltf.scene.updateMatrixWorld(true);
   const neutralTarget=body.geometry.morphAttributes.position[body.morphTargetDictionary[motion.clips.jump.frames[0]]];
+  const originalBody=body.geometry.attributes.position.array.slice();
+  const neutralPoints=Array.from({length:body.geometry.attributes.position.count},(_,i)=>new Vector3().fromBufferAttribute(body.geometry.attributes.position,i).add(new Vector3().fromBufferAttribute(neutralTarget,i)).applyMatrix4(body.matrixWorld));
+  const chestMarkers=[[0,1.8,.14],[0,1.8,-.23]].map(goal=>neutralPoints.reduce((best,p,i)=>p.distanceTo(new Vector3(...goal))<neutralPoints[best].distanceTo(new Vector3(...goal))?i:best,0));
+  const footVertices=neutralPoints.flatMap((p,i)=>p.y<.5?[i]:[]);
+  function deformed(mesh,i,base=mesh.geometry.attributes.position.array){
+    const p=new Vector3().fromArray(base,i*3);
+    mesh.morphTargetInfluences.forEach((w,k)=>p.addScaledVector(new Vector3().fromBufferAttribute(mesh.geometry.morphAttributes.position[k],i),w));
+    return p;
+  }
   const handVertices=[-1,1].map(side=>{
     let best=0,nearest=Infinity;
     for(let i=0;i<body.geometry.attributes.position.count;i++){
@@ -99,7 +108,7 @@ const { fixture } = require('./human-running.test.cjs');
     const bore=new Vector3(0,0,-1).applyQuaternion(weapon.quaternion);
     assert.ok(bore.dot(shot.direction)>1-1e-8,`${state}/${pitch}/${yaw}: barrel follows actual ray`);
     assert.ok(shot.origin.distanceTo(context.window.skyHumanView.getMuzzleWorld())<1e-8);
-    assert.ok(shot.direction.dot(target.sub(shot.origin).normalize())>1-1e-8);
+    assert.ok(shot.direction.dot(target.clone().sub(shot.origin).normalize())>1-1e-8);
     assert.ok(+dataset.skyHumanGripError<.04,`${state}/${pitch}/${yaw}: both hands reach their grips (${dataset.skyHumanGripError})`);
     // Inspect the final deformed mesh independently of the IK error metric.
     const profile=vm.runInContext('heldWeapon',context);
@@ -111,6 +120,15 @@ const { fixture } = require('./human-running.test.cjs');
       const target=weapon.localToWorld(new Vector3(...(j===0?profile.grip:profile.support)));
       assert.ok(p.distanceTo(target)<.065,`${state}/${pitch}/${yaw}: visible wrist ${j} contacts gun (${p.distanceTo(target)})`);
     }
+    const chest=chestMarkers.map(i=>deformed(body,i).applyMatrix4(body.matrixWorld));
+    const chestForward=chest[0].clone().sub(chest[1]).normalize();
+    const towardsTarget=target.clone().sub(chest[0].clone().add(chest[1]).multiplyScalar(.5)).normalize();
+    assert.ok(chestForward.dot(towardsTarget)>.84,`${state}/${pitch}/${yaw}: visible chest follows target (${chestForward.dot(towardsTarget)})`);
+    for(const i of footVertices)assert.ok(deformed(body,i).distanceTo(deformed(body,i,originalBody))<1e-6,'aim leaves visible feet in their movement pose');
+    for(const name of ['Eyes_mesh001','Gaz_mask_mesh001001','Hood_mesh001']){
+      const attachment=gltf.scene.getObjectByName(name);
+      assert.ok(attachment.geometry.attributes.position.array.every(Number.isFinite),`${name} follows upper body with finite vertices`);
+    }
     assert.ok(body.geometry.attributes.position.array.every(Number.isFinite));assert.ok(body.geometry.attributes.normal.array.every(Number.isFinite));
   }
   c.state='normal';c.onGround=true;c.yaw=0;c.pitch=0;sky.Se.rotation.set(0,0,0);update(30,false);
@@ -119,5 +137,5 @@ const { fixture } = require('./human-running.test.cjs');
   keys.get('keydown')({ code: 'KeyV', repeat: false }); c.pos.z -= 100; c.vel.z = -6; update(1, false);
   assert.equal(+dataset.skyHumanGaitPhase, 0);
   assert.ok(body.morphTargetInfluences.every(Number.isFinite));
-  console.log('PASS actual human-view integration: moving/blocked feet, walk/run/strafe/back, firing/reload, pause, jump/slide/ladder, ledge contacts, view switch/respawn; 45 first-shot barrel/ray and actual deformed wrist contacts');
+  console.log('PASS actual human-view integration: moving/blocked feet, walk/run/strafe/back, firing/reload, pause, jump/slide/ladder, ledge contacts, view switch/respawn; 45 first-shot barrel/ray, visible chest direction, foot preservation and actual deformed wrist contacts');
 })().catch(error => { console.error(error); process.exitCode = 1; });
