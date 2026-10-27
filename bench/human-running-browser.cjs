@@ -24,6 +24,9 @@ fs.mkdirSync(output, { recursive: true });
     for (const device of ['desktop', 'touch-landscape']) for (const map of ['index.html', 'canyon.html']) {
       const id = `${device}-${map.split('.')[0]}`;
       const context = await browser.newContext({ viewport: device === 'desktop' ? { width: 1280, height: 720 } : { width: 844, height: 390 }, hasTouch: device !== 'desktop', isMobile: device !== 'desktop', deviceScaleFactor: 1 });
+      // Advance the real simulation explicitly. Software GPU speed must not
+      // decide whether the player reaches a vault before the shooting check.
+      await context.addInitScript(() => { window.__hold = true; });
       // Keep test records out of the ranking, including requests made on exit.
       await context.route('**/*', route => {
         const url = route.request().url();
@@ -44,18 +47,17 @@ fs.mkdirSync(output, { recursive: true });
         assert.equal(await page.evaluate(() => document.body.dataset.skyHumanRunStyle), 'parkour');
         await page.locator('#bStart').click();
         await page.waitForFunction(() => window.__game.mode === 'play');
-        // Exercise the real start/input/physics loop before isolating poses.
-        await page.keyboard.down('w');
+        // Exercise the real start, keyboard handlers and physics before poses.
+        await page.evaluate(() => { window.__game.S.gunOn = true; window.__game.S.sendLog = false; });
         const ammo = await page.evaluate(() => window.__skyInternals.Et.ammo);
         await page.keyboard.down('e');
-        await page.waitForTimeout(700);
+        await page.evaluate(() => { for (let i = 0; i < 20; i++) window.__game.advance(1 / 60); });
         await page.keyboard.up('e');
-        await page.keyboard.up('w');
-        // Stop the real-time loop before capturing software WebGL. Continually
-        // submitting full-map frames can starve Chromium's screenshot request.
-        await page.evaluate(() => { window.__hold = true; });
-        assert.equal(await page.evaluate(() => window.__game.mode), 'play');
         assert.ok(await page.evaluate(() => window.__skyInternals.Et.ammo) < ammo, 'real shooting input consumes ammunition');
+        await page.keyboard.down('w');
+        await page.evaluate(() => { for (let i = 0; i < 20; i++) window.__game.advance(1 / 60); window.__game.frameOnce(0); });
+        await page.keyboard.up('w');
+        assert.equal(await page.evaluate(() => window.__game.mode), 'play');
         await capture('play');
 
         await page.evaluate(() => {
