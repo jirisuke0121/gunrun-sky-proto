@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const {chromium}=require('playwright'),{spawn}=require('child_process'),fs=require('fs');
 (async()=>{let b,server;try{
  server=spawn('python3',['-m','http.server','8779','--bind','127.0.0.1'],{stdio:'ignore'});for(let i=0;i<50;i++){if(await fetch('http://127.0.0.1:8779').then(r=>r.ok,()=>false))break;await new Promise(r=>setTimeout(r,100));}
- b=await chromium.launch({headless:true,executablePath:'/tmp/chromium',args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ b=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const p=await b.newPage(),errors=[];await p.addInitScript(()=>window.__hold=true);p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[]}'}));
  await p.goto('http://127.0.0.1:8779/canyon.html?practice=1');await p.waitForFunction(()=>window.skyPractice&&__game.mode==='play',null,{timeout:90000});
  const r=await p.evaluate(()=>{
