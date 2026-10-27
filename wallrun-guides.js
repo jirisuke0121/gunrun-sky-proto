@@ -67,6 +67,7 @@ const style = document.createElement('style');
 style.textContent = `
 #wallrunGuide{position:absolute;left:50%;top:34%;transform:translateX(-50%);max-width:calc(100% - 48px);width:max-content;padding:8px 14px;border:1px solid #75ffe1;border-radius:8px;background:#082b29ed;color:#e1fff5;text-align:center;font:600 14px/1.5 var(--font);text-shadow:none;pointer-events:none}
 #wallrunGuide[hidden]{display:none}#wallrunGuide strong{display:block;color:#8fffe2;font-size:15px}#wallrunGuide[data-ready=true]{border-color:#ffdc79;background:#382a0bef}#wallrunGuide[data-ready=true] strong{color:#ffdc79}
+#hud:has(#wallrunGuide:not([hidden])) .hint{opacity:0}
 @media(max-height:500px){#wallrunGuide{top:30%;font-size:11px;padding:5px 10px;max-width:calc(100% - 300px)}#wallrunGuide strong{font-size:13px}}
 `;
 document.head.appendChild(style);
