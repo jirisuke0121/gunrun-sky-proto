@@ -1,6 +1,7 @@
 name: Zombie near geometry validation
 on:
   pull_request:
+    paths: [zombie-near.js, assets/zombie-near-indices.json, tools/build-zombie-near.mjs, "bench/zombie-near-*.cjs", .github/workflows/zombie-near.yml]
 permissions:
   contents: read
 jobs:

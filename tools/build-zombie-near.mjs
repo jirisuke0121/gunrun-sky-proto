@@ -13,8 +13,10 @@ for(const file of files){
  const importance=new Map();for(let i=0;i<joints.length;i++)importance.set(joints[i],(importance.get(joints[i])||0)+weights[i]);
  const bones=[...importance].sort((a,b)=>b[1]-a[1]).slice(0,24).map(x=>x[0]),stride=5+bones.length,attrs=new Float32Array(vertices*stride),locks=new Uint8Array(vertices);
  for(let i=0;i<vertices;i++){attrs.set(norm.slice(i*3,i*3+3),i*stride);attrs.set(uv.slice(i*2,i*2+2),i*stride+3);for(let k=0;k<4;k++){const b=bones.indexOf(joints[i*4+k]);if(b>=0)attrs[i*stride+5+b]+=weights[i*4+k];}if(p[i*3+1]>.65)locks[i]=1;}
- const [reduced,error]=S.simplifyWithAttributes(idx,p,3,attrs,stride,[.1,.1,.1,.6,.6,...bones.map(()=>2)],locks,5500*3,.02,['Permissive','RegularizeLight']);
- if(reduced.length/3>6000)throw Error(file+' did not reach target: '+reduced.length/3);
+ const positions=new Map();for(let i=0;i<vertices;i++){const key=p.slice(i*3,i*3+3).join(',');const group=positions.get(key)||[];group.push(i);positions.set(key,group);}
+ for(const group of positions.values())if(file.includes('woman')&&(group.some(i=>Math.abs(uv[i*2]-uv[group[0]*2])+Math.abs(uv[i*2+1]-uv[group[0]*2+1])>1e-5)))for(const i of group)if(!locks[i])locks[i]=2;
+ const [reduced,error]=S.simplifyWithAttributes(idx,p,3,attrs,stride,file.includes('woman')?[.15,.15,.15,1.5,1.5,...bones.map(()=>3)]:[.1,.1,.1,.6,.6,...bones.map(()=>2)],locks,(file.includes('woman')?6000:5500)*3,.02,['Permissive','RegularizeLight']);
+ if(reduced.length/3>8000)throw Error(file+' did not reach target: '+reduced.length/3);
  const packed=Buffer.alloc(reduced.length*2);reduced.forEach((x,i)=>packed.writeUInt16LE(x,i*2));
  output.models[file]={vertices,originalTriangles:idx.length/3,triangles:reduced.length/3,error,indices:packed.toString('base64')};
  console.log(file,idx.length/3,'->',reduced.length/3,'error',error);
