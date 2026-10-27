@@ -111,6 +111,7 @@ export function addParkourRun(model, motion, Attribute) {
   const inverseModel = model.matrixWorld.clone().invert();
   const matrices = new Map(meshes.map(mesh => [mesh, inverseModel.clone().multiply(mesh.matrixWorld)]));
   const bodyMatrix = matrices.get(body).elements;
+  const originalBodyNames = Object.entries(body.morphTargetDictionary).sort((a,b)=>a[1]-b[1]).map(([name])=>name);
   const bodyBase = [], bodyUnarmed = [], bodyFrames = [];
   const count = body.geometry.attributes.position.count;
   for (let i = 0; i < count; i++) {
@@ -161,23 +162,28 @@ export function addParkourRun(model, motion, Attribute) {
       const total = nearest.reduce((sum, n) => sum + 1 / Math.max(.0001, n.distance ** 2), 0);
       return { p, nearest: nearest.map(n => ({ index: n.index, weight: 1 / Math.max(.0001, n.distance ** 2) / total })) };
     });
-    for (let frame = 0; frame < frames.length; frame++) {
+    // The export only baked Body/Hood/Backpack. Static mask/eyes/knee pads
+    // must also follow the original slide and armed clips, not just new poses.
+    const missingOriginal = positions.length ? [] : originalBodyNames;
+    const frameNames = [...missingOriginal, ...frames];
+    for (let frame = 0; frame < frameNames.length; frame++) {
       const absolute = new Float32Array(base.count * 3), delta = new Float32Array(base.count * 3);
       for (let i = 0; i < base.count; i++) {
         let p;
         if (mesh === body) p = bodyFrames[frame][i];
         else if (bindings) {
           const binding = bindings[i];
-          p = binding.p.map((v, k) => v + binding.nearest.reduce((sum, n) => sum + n.weight * (bodyFrames[frame][n.index][k] - bodyBase[n.index][k]), 0));
+          const follows = binding.nearest.map(n => ({...n, p:frame < missingOriginal.length ? posedPoint(body, frameNames[frame], n.index, bodyMatrix) : bodyFrames[frame - missingOriginal.length][n.index]}));
+          p = binding.p.map((v, k) => v + follows.reduce((sum, n) => sum + n.weight * (n.p[k] - bodyBase[n.index][k]), 0));
         }
         const local = transform(p, inverse);
         for (let k = 0; k < 3; k++) { absolute[i * 3 + k] = local[k]; delta[i * 3 + k] = local[k] - base.array[i * 3 + k]; }
       }
       const target = new Attribute(delta, 3);
-      target.name = frames[frame];
+      target.name = frameNames[frame];
       positions.push(target);
       normals.push(new Attribute(frameNormals(absolute, geometry.index, geometry.attributes.normal), 3));
-      names.push(frames[frame]);
+      names.push(frameNames[frame]);
     }
     geometry.morphAttributes.position = positions;
     geometry.morphAttributes.normal = normals;

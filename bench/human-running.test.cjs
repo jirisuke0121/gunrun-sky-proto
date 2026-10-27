@@ -66,6 +66,11 @@ if (require.main === module) (async () => {
     const last = geometry.morphAttributes.position[names[clip.frames.at(-1)]].array;
     assert.ok(first.every((value, i) => Math.abs(value - last[i]) < .0001), `${mesh.name}: seamless loop`);
     assert.ok(geometry.morphAttributes.normal.every(a => a.array.every(Number.isFinite)));
+    if(mesh.name.startsWith('Eyes')||mesh.name.startsWith('Gaz_mask')){
+      const slide=geometry.morphAttributes.position[names[motion.clips.slide.frames[0]]];
+      assert.ok(slide,`${mesh.name}: face equipment follows original slide`);
+      assert.ok(slide.array.some((v,i)=>i%3===1&&Math.abs(v)>.2),`${mesh.name}: equipment lowers with the sliding head`);
+    }
   }
   for (let i = 0; i < originalNames.length; i++) {
     assert.equal(body.morphTargetDictionary[originalNames[i]], i, 'jump/slide/ladder targets keep their original indices');
