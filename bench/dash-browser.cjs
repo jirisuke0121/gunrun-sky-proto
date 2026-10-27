@@ -67,7 +67,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     await page.keyboard.down('w');
     const running=await page.evaluate(()=>window.__dashFrames(35));
     assert.ok(running.speed>9.8,JSON.stringify(running));
-    assert.equal(running.clip,'parkourDash');assert.ok(running.distance>4.7&&running.fov>108,JSON.stringify(running));assert.equal(running.gl,0);
+    assert.equal(running.clip,'parkourDash');assert.ok(running.distance>4.05&&running.fov>106,JSON.stringify(running));assert.equal(running.gl,0);
     await capture('boost');
     if(!touch&&map==='index.html'){
      fs.mkdirSync('browser-evidence/dash-motion',{recursive:true});
@@ -86,7 +86,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     await page.evaluate(l=>{const c=window.__game.P;c.pos.set(l.x,l.y+.01,l.z);c.vel.set(0,0,0);c.state='normal';c.onGround=true;c.yaw=Math.atan2(-l.dx,-l.dz);},lane);
     await page.keyboard.down('w');
     const normal=await page.evaluate(()=>window.__dashFrames(35));await page.keyboard.up('w');
-    assert.ok(Math.abs(normal.speed-6)<.05&&normal.fov>98&&normal.distance>4.2,JSON.stringify(normal));await capture('sprint');
+    assert.ok(Math.abs(normal.speed-6)<.05&&normal.fov>98&&normal.distance>3.8,JSON.stringify(normal));await capture('sprint');
     await page.keyboard.press('v');await page.evaluate(()=>window.__game.frameOnce(1/60));assert.equal(await page.evaluate(()=>document.body.dataset.skyHumanView),'first');
     await page.evaluate(()=>window.__game.startGame());
     assert.equal(await page.evaluate(()=>window.skyDash.remaining),0);assert.ok(await page.evaluate(()=>window.skyDash.pickups.every(p=>p.cooldown===0)));
