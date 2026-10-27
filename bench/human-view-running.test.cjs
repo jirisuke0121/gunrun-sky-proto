@@ -40,11 +40,12 @@ const { fixture } = require('./human-running.test.cjs');
   const document = { body: { dataset }, querySelectorAll: () => [],
     getElementById(id) { if (!nodes.has(id)) nodes.set(id, { textContent: '', addEventListener() {} }); return nodes.get(id); },
     addEventListener(type, listener) { keys.set(type, listener); } };
-  // Install the animation fixture before explicitly selecting the Unity human.
-  const context = vm.createContext({ window: { __skyInternals: sky }, document, sessionStorage: { getItem() { return 'existing'; }, setItem() {} },
+  const context = vm.createContext({ window: { __skyInternals: sky }, document, sessionStorage: { getItem() { return null; }, setItem() {} },
     T2: { GLTFLoader: class {} }, console, ...running, ...aim, gltf, motionFixture: motion });
   const source = fs.readFileSync('human-view.js', 'utf8').replace(/^import .*;\n/gm, '');
-  vm.runInContext(source + '\nreadAnimatedHuman = async () => ({gltf, details: motionFixture});', context);
+  // Function declarations are hoisted: replace loading before the module's
+  // default Unity model starts, rather than after its initial async call.
+  vm.runInContext('readAnimatedHuman = async () => ({gltf, details: motionFixture});\n' + source, context);
   context.window.skyHumanView.select('unity');
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(dataset.skyHumanRunStyle, 'parkour');
