@@ -1,5 +1,7 @@
 // Running style for the existing, baked Unity human. No new model download.
 // Asset-space metres: +Y up, +Z forward, the right hand is on -X.
+import { actionPose } from './human-actions.js?v=20261027-actions-v1';
+export { jumpPhase, ledgeAnchor } from './human-actions.js?v=20261027-actions-v1';
 export const RUN_STRIDE = 3.36;
 export const RUN_SAMPLES = 24;
 const TAU = Math.PI * 2;
@@ -125,6 +127,18 @@ export function addParkourRun(model, motion, Attribute) {
     grips.push(leanTorso(swingArm(motion.grips.jump[0], -1, phase), phase, 1));
     pitches.push(clamp(-(-1.42 - .10 - .78 * Math.cos(phase * TAU) + .42 + Math.PI / 2), -1.35, .6));
   }
+  const actionClips = {}, actionGrips = {}, actionHands = {};
+  for (const kind of ['parkourJump', 'parkourVault', 'parkourMantle', 'parkourCatch']) {
+    const names = [], seconds = [], rightHands = [], bothHands = [];
+    for (let i = 0; i <= 12; i++) {
+      const phase = i / 12, pose = actionPose(kind, phase), name = `${kind}_${String(i).padStart(3, '0')}`;
+      names.push(name); seconds.push(phase); frames.push(name);
+      bodyFrames.push(bodyUnarmed.map(p => pose.vertex(p, armWeight(p))));
+      rightHands.push(pose.hands.right); bothHands.push(pose.hands);
+    }
+    actionClips[kind] = { frames: names, times: seconds, duration: 1, source: 'reference-inspired two-bone limb poses' };
+    actionGrips[kind] = rightHands; actionHands[kind] = bothHands;
+  }
   for (const mesh of meshes) {
     const geometry = mesh.geometry, base = geometry.attributes.position, matrix = matrices.get(mesh);
     const inverse = matrix.clone().invert().elements;
@@ -147,7 +161,7 @@ export function addParkourRun(model, motion, Attribute) {
       const total = nearest.reduce((sum, n) => sum + 1 / Math.max(.0001, n.distance ** 2), 0);
       return { p, nearest: nearest.map(n => ({ index: n.index, weight: 1 / Math.max(.0001, n.distance ** 2) / total })) };
     });
-    for (let frame = 0; frame <= RUN_SAMPLES; frame++) {
+    for (let frame = 0; frame < frames.length; frame++) {
       const absolute = new Float32Array(base.count * 3), delta = new Float32Array(base.count * 3);
       for (let i = 0; i < base.count; i++) {
         let p;
@@ -172,8 +186,10 @@ export function addParkourRun(model, motion, Attribute) {
     // GLTFLoader restores exported names separately from updateMorphTargets.
     mesh.morphTargetDictionary = Object.fromEntries(names.map((name, i) => [name, i]));
   }
-  motion.clips.parkourRun = { frames, times, duration: .56, source: 'procedural reference run over existing Unity run legs' };
+  motion.clips.parkourRun = { frames: frames.slice(0, RUN_SAMPLES + 1), times, duration: .56, source: 'procedural reference run over existing Unity run legs' };
   motion.grips.parkourRun = grips;
   motion.gripPitches = { ...motion.gripPitches, parkourRun: pitches };
+  Object.assign(motion.clips, actionClips); Object.assign(motion.grips, actionGrips);
+  motion.hands = { ...motion.hands, ...actionHands };
   return true;
 }
