@@ -1,7 +1,7 @@
 import { createSwing } from './parkour-swing.js?v=20261028-timed-swing-v2';
 import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
-import { createFlashbang } from './flashbang.js?v=20261027-hud-unify-v1';
-import { createGhostReplay } from './ghost-replay.js?v=20261028-result-stars-v1';
+import { createFlashbang } from './flashbang.js?v=20261028-touch-layout-v1';
+import { createGhostReplay } from './ghost-replay.js?v=20261028-touch-layout-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261027-jump-power-v2';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261027-swing-v1';

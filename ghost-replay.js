@@ -56,7 +56,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
 @media(max-width:600px){#ghostReplay .replay-panel{padding:7px 10px}#replayDate{flex-basis:100%;margin:0;font-size:12px;color:#cad9e3}#ghostReplay h2{font-size:14px}#ghostReplay .replay-controls{gap:5px}#ghostReplay button,#ghostReplay select{font-size:12px;padding:6px 8px}}
 `;
   document.head.append(style);
-  const chip = document.createElement('div'); chip.id = 'ghostBest'; chip.hidden = true; document.body.append(chip);
+  const chip = document.createElement('div'); chip.id = 'ghostBest'; chip.hidden = true; document.getElementById('hud').append(chip);
   const overlay = document.createElement('section');
   overlay.id = 'ghostReplay'; overlay.hidden = true; overlay.setAttribute('aria-label', 'ゴースト閲覧');
   overlay.innerHTML = `<div class="replay-panel replay-top"><h2 id="replayTitle">ゴースト</h2><button id="replayClose" type="button">ランキングに戻る</button><p id="replayDate"></p></div>

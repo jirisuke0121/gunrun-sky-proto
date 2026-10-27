@@ -1,0 +1,60 @@
+/* All positions use the game's logical viewport, including portrait rotation. */
+html.touch #app{
+  --touch-left:max(16px,var(--control-inset-left,env(safe-area-inset-left)));
+  --touch-right:max(16px,var(--control-inset-right,env(safe-area-inset-right)));
+  --touch-top:max(8px,var(--control-inset-top,env(safe-area-inset-top)));
+  --touch-bottom:max(16px,var(--control-inset-bottom,env(safe-area-inset-bottom)));
+  --touch-main:clamp(60px,calc(var(--control-height,100dvh) * .22),84px);
+  --touch-secondary:calc(var(--touch-main) - 8px);
+  --touch-gap:14px;
+}
+html.touch .tb{font-size:13px;box-shadow:0 1px 4px #0003}
+html.touch #tJump,html.touch #tFire{
+  left:auto;top:auto;right:var(--touch-right);
+  width:var(--touch-main);height:var(--touch-main);
+}
+html.touch #tSlide,html.touch #tReload{
+  left:auto;top:auto;right:calc(var(--touch-right) + var(--touch-main) + var(--touch-gap));
+  width:var(--touch-secondary);height:var(--touch-secondary);
+}
+html.touch #tJump,html.touch #tSlide{bottom:var(--touch-bottom)}
+html.touch #tFire,html.touch #tReload{bottom:calc(var(--touch-bottom) + var(--touch-main) + var(--touch-gap))}
+
+/* Put the consumable above the movement thumb, away from camera and combat. */
+html.touch .hud-tl,html.touch .unity-challenge-score .hud-tl{
+  left:var(--touch-left);top:var(--touch-top);max-width:none;width:136px;
+  padding:5px 8px;font-size:12px;line-height:18px;
+}
+html.touch .hud-tl .life b{font-size:14px}
+html.touch .hud-tl kbd{display:none}
+html.touch #tFlash{
+  left:var(--touch-left);right:auto;top:calc(var(--touch-top) + 116px);bottom:auto;
+  width:96px;height:48px;border-radius:12px;font-size:13px;
+  border-color:#f3d38b;background:#302b20b3;
+}
+html.touch #tFlash small{font-size:10px}
+#tFlash.armed{background:#78602ce6;border-color:#ffe5a4;box-shadow:0 0 0 3px #ffe5a44d}
+html.touch #weaponSupplyStatus{
+  left:var(--touch-left);top:calc(var(--touch-top) + 172px);
+  max-width:190px;padding:4px 7px;font-size:10px;line-height:1.5;
+}
+
+/* Ammo sits above the fire row instead of underneath its hit target. */
+html.touch .ammo{
+  right:var(--touch-right);top:auto;
+  bottom:calc(var(--touch-bottom) + var(--touch-main) * 2 + var(--touch-gap) * 2);
+  padding:4px 8px;gap:1px 4px;
+}
+html.touch .ammo b{font-size:24px;line-height:1.1}
+html.touch .ammo span{font-size:11px}
+html.touch .ammo i{width:80px}
+html.touch .catchbox{bottom:var(--touch-bottom);font-size:11px;padding:5px 8px}
+
+/* The menu stays upright, but occupies the game's top-right corner. When
+   its upright sheet opens, it returns to that sheet's normal top-right. */
+html.touch[data-sky-rotation="1"] #bSettings[aria-expanded="false"]{
+  top:auto;bottom:max(10px,env(safe-area-inset-bottom));
+}
+html.touch[data-sky-rotation="-1"] #bSettings[aria-expanded="false"]{
+  right:auto;left:max(12px,env(safe-area-inset-left));
+}
