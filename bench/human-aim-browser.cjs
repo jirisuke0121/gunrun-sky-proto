@@ -18,7 +18,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
    page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
    try{
     await page.goto(new URL(map,base).href);await page.waitForFunction(()=>window.__game&&window.skyHumanView);
-    await page.locator('#humanSel [data-human="unity"]').click();await page.waitForFunction(()=>document.body.dataset.skyHumanLoaded==='true');
+    if(await page.locator('#humanSel [data-human="unity"]').count()) await page.locator('#humanSel [data-human="unity"]').click();await page.waitForFunction(()=>window.skyHumanView.choice==='unity'&&document.body.dataset.skyHumanLoaded==='true');
     // HG is the shipped export. The pooled weapons retain their fallback-axis
     // coverage below, but their GLBs are intentionally no longer loaded.
     await page.waitForFunction(()=>JSON.parse(document.body.dataset.skyModels||'{}').hg,null,{timeout:60000});

@@ -17,7 +17,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
    const capture=name=>page.screenshot({path:`browser-evidence/${id}-${name}.png`});
    try{
     await page.goto(new URL(map,base).href);await page.waitForFunction(()=>window.__game&&window.skyDash&&window.skyHumanView);
-    await page.locator('#humanSel [data-human="unity"]').click();await page.waitForFunction(()=>document.body.dataset.skyHumanLoaded==='true');await page.locator('#bStart').click();
+    if(await page.locator('#humanSel [data-human="unity"]').count()) await page.locator('#humanSel [data-human="unity"]').click();await page.waitForFunction(()=>window.skyHumanView.choice==='unity'&&document.body.dataset.skyHumanLoaded==='true');await page.locator('#bStart').click();
     const placements=await page.evaluate(()=>{
      const g=window.__game,sky=window.__skyInternals,c=g.P;g.S.sendLog=false;g.S.autoSprint=true;c.invuln=1e9;
      for(const z of sky.Jt){z.dead=true;z.m.root.visible=false;}
