@@ -78,7 +78,7 @@ export function createSwing(sky, game, course) {
     pad.position.set(course.pad[0],course.pad[1]+.035,course.pad[2]); pad.rotation.x=Math.PI/2;group.add(pad);
   }
   const style = document.createElement('style');
-  style.textContent = '#swingHint{position:fixed;top:24%;left:50%;transform:translateX(-50%);padding:6px 12px;border-radius:8px;color:#fff4d6;background:#25354cdd;font:700 12px system-ui;pointer-events:none;z-index:6;text-align:center;max-width:85vw}#swingHint[hidden]{display:none}#swingHint[data-ready=true]{color:#d8ffe4;border:1px solid #7ef0aa;background:#163a30ed}#tJump[data-swing-ready=true]{box-shadow:0 0 0 3px #7ef0aa,0 0 18px #7ef0aa80}';
+  style.textContent = '#swingHint{position:fixed;top:24%;left:50%;transform:translateX(-50%);padding:6px 12px;border-radius:8px;color:#fff4d6;background:#25354cdd;font:700 12px system-ui;pointer-events:none;z-index:6;text-align:center;max-width:85vw}body[data-sky-swing] #hint{visibility:hidden}#swingHint[hidden]{display:none}#swingHint[data-ready=true]{color:#d8ffe4;border:1px solid #7ef0aa;background:#163a30ed}#tJump[data-swing-ready=true]{box-shadow:0 0 0 3px #7ef0aa,0 0 18px #7ef0aa80}';
   document.head.appendChild(style);
   const hint = document.createElement('div'); hint.id = 'swingHint'; hint.hidden = true; document.body.appendChild(hint);
   if (bars.length) {
