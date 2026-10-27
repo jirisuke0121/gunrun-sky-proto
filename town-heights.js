@@ -77,6 +77,17 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
   box(-58, 4.4, 14, -56, 9.2, 16);
   us.push([-55.75, 14.0, 11.2]);                                             // grapple from the street or the roofs to the north
 
+  // Two return hooks (2026-10-28), appended so the existing hook indices stay the same.
+  // Chosen from the old-town route graph: each cuts a 65-75 m walk to about 17-19 m, and
+  // neither can be used from the street, so nothing here is a way up from below.
+  //  - North passage (x 18-26) -> the upper sky beam. The anchor is 2 m north of the beam
+  //    so the pull ends over the beam, not over the roof of block 222 (zombies cannot reach that roof).
+  //    Zipline 3 only goes down, so this closes the loop: ride down, hook back up.
+  //  - Ring roof west edge / block 67 roof -> the south catwalk of the west sky corridor.
+  //    Reachable only from roof height; from the ground the anchor is out of reach.
+  us.push([29, 13.0, -10.0]);
+  us.push([-31.5, 13.0, 1.2]);
+
   // Stepping stone between the 4.4 m and 5.5 m roofs: zombies leap gaps of up to 1 m in height, this one is 1.1 m.
   box(-60, 0, 16, -58, 4.95, 18);
 
