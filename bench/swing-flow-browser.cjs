@@ -9,7 +9,7 @@ try{
  const page=await browser.newPage({viewport:{width:1280,height:720}}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(()=>window.__hold=true);
  await page.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'}));
- await page.goto(base+'canyon.html');await page.waitForFunction(()=>window.skySwing&&window.__skyInternals.zombieModels().length>=4);
+ await page.goto(base+'canyon.html');await page.waitForFunction(()=>window.skySwing&&window.__game&&!document.getElementById('bStart').disabled);
  await page.locator('#bStart').click();
  result=await page.evaluate(()=>{
   const g=__game,s=__skyInternals,c=g.P,dt=1/60,N=g.NAV;
