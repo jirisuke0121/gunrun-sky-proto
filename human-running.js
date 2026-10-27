@@ -1,7 +1,7 @@
 // Running style for the existing, baked Unity human. No new model download.
 // Asset-space metres: +Y up, +Z forward, the right hand is on -X.
-import { actionPose } from './human-actions.js?v=20261027-actions-v1';
-export { jumpPhase, ledgeAnchor } from './human-actions.js?v=20261027-actions-v1';
+import { actionPose } from './human-actions.js?v=20261027-aim-v1';
+export { jumpPhase, ledgeAnchor } from './human-actions.js?v=20261027-aim-v1';
 export const RUN_STRIDE = 3.36;
 export const RUN_SAMPLES = 24;
 const TAU = Math.PI * 2;

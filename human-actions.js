@@ -21,7 +21,7 @@ export function solveLimb(root, target, upperLength, lowerLength, hint) {
   return { joint: add(root, add(mul(direction, along), mul(normal, Math.sqrt(Math.max(0, upperLength ** 2 - along ** 2))))), end: add(root, mul(direction, distance)) };
 }
 
-function boneMap(a, b, targetA, targetB) {
+export function boneMap(a, b, targetA, targetB) {
   const u = unit(sub(b, a)), v = unit(sub(targetB, targetA)), cosine = clamp(dot(u, v), -1, 1);
   let axis = cross(u, v), sine = length(axis);
   if (sine < .000001 && cosine < 0) { axis = unit(cross(u, Math.abs(u[0]) < .8 ? [1, 0, 0] : [0, 1, 0])); }

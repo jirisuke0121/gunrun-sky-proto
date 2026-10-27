@@ -28,7 +28,9 @@ jobs:
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
           npx playwright install --with-deps chromium
       - name: Render and exercise both maps
-        run: node bench/human-running-browser.cjs
+        run: |
+          node bench/human-running-browser.cjs
+          node bench/human-aim-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

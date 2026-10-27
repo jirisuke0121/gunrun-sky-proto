@@ -5,22 +5,26 @@ const { fixture } = require('./human-running.test.cjs');
 
 (async () => {
   const running = await import('../human-running.js');
+  const aim = await import('../human-aim.js');
   const { gltf, motion } = await fixture();
   const Group = gltf.scene.constructor, Vector3 = gltf.scene.position.constructor;
   let body; gltf.scene.traverse(o => { if (o.name.startsWith('Body_mesh')) body = o; });
   const Float32Attribute = body.geometry.attributes.position.constructor;
+  const weaponGeometry = new body.geometry.constructor();
+  weaponGeometry.setAttribute('position', new Float32Attribute(new Float32Array([-.04,-.08,0,.04,-.08,0,-.04,.04,0,.04,.04,0,-.04,-.08,-.3,.04,-.08,-.3,-.04,.04,-.3,.04,.04,-.3]),3));
   const c = { pos: new Vector3(), vel: new Vector3(0, 0, -6), yaw: 0, pitch: 0, eye: 1.62, onGround: true, state: 'normal' };
   let mode = 'play';
   const sky = { c, U: { weapon: 0, gunOn: true, walkSpeed: 4.6, sprintSpeed: 6, jumpVel: 7.2, gravity: 20 },
     Et: { ammo: 12, reloadT: 0 }, wpc: () => ({ rl: 1.5 }), modeRef: () => mode,
     Se: new Group(), ue: new Group(), fo: new Group(), tl: new Group(), Geom: { Group, Vector3, Float32Attribute }, oe: () => true, mr: [] };
+  const prototype=new Group();prototype.name='Sky HG';prototype.add(new body.constructor(weaponGeometry,body.material));sky.tl.add(prototype);
   const nodes = new Map(), keys = new Map(), dataset = {};
   const document = { body: { dataset }, querySelectorAll: () => [],
     getElementById(id) { if (!nodes.has(id)) nodes.set(id, { textContent: '', addEventListener() {} }); return nodes.get(id); },
     addEventListener(type, listener) { keys.set(type, listener); } };
   const context = vm.createContext({ window: { __skyInternals: sky }, document, sessionStorage: { getItem() { return null; }, setItem() {} },
-    T2: { GLTFLoader: class {} }, console, ...running, gltf, motionFixture: motion });
-  const source = fs.readFileSync('human-view.js', 'utf8').replace(/^import .*;\n/m, '');
+    T2: { GLTFLoader: class {} }, console, ...running, ...aim, gltf, motionFixture: motion });
+  const source = fs.readFileSync('human-view.js', 'utf8').replace(/^import .*;\n/gm, '');
   vm.runInContext(source + '\nreadAnimatedHuman = async () => ({gltf, details: motionFixture});', context);
   context.window.skyHumanView.select('unity');
   await new Promise(resolve => setImmediate(resolve));
@@ -70,6 +74,24 @@ const { fixture } = require('./human-running.test.cjs');
     mode = 'pause'; const pausedPosition = holder.position.toArray(); update(1, false); assert.ok(holder.position.toArray().every((v, i) => Math.abs(v - pausedPosition[i]) < 1e-10)); mode = 'play';
   }
   c.state = 'normal'; c.ledge = null; c.onGround = true; update(30, false);
+  // Real barrel/arm alignment must hold on the first shot, not only after the
+  // run has faded out. Use an off-axis target as automatic aim can select one.
+  for(const state of ['normal','jump','slide'])for(const pitch of [-1.45,-.6,0,.7,1.45])for(const yaw of [-2.4,0,2.4]){
+    c.state=state==='jump'?'normal':state;c.onGround=state!=='jump';c.pitch=pitch;c.yaw=yaw;
+    c.vel.set(0,state==='jump'?3:0,-6);c.slideT=.5;sky.Se.rotation.set(pitch,yaw,0,'YXZ');update(1,false);
+    const origin=sky.Se.position.clone(),direction=new Vector3(.18,.02,-1).normalize().applyQuaternion(sky.Se.quaternion);
+    const target=origin.clone().addScaledVector(direction,18);
+    const shot=context.window.skyHumanView.prepareShot(origin,direction,18);
+    assert.ok(shot,'third-person shot uses the rendered weapon');
+    const weapon=sky.ue.children.find(o=>o.name==='Unity human held weapon');
+    const bore=new Vector3(0,0,-1).applyQuaternion(weapon.quaternion);
+    assert.ok(bore.dot(shot.direction)>1-1e-8,`${state}/${pitch}/${yaw}: barrel follows actual ray`);
+    assert.ok(shot.origin.distanceTo(context.window.skyHumanView.getMuzzleWorld())<1e-8);
+    assert.ok(shot.direction.dot(target.sub(shot.origin).normalize())>1-1e-8);
+    assert.ok(+dataset.skyHumanGripError<.04,`${state}/${pitch}/${yaw}: both hands reach their grips (${dataset.skyHumanGripError})`);
+    assert.ok(body.geometry.attributes.position.array.every(Number.isFinite));assert.ok(body.geometry.attributes.normal.array.every(Number.isFinite));
+  }
+  c.state='normal';c.onGround=true;c.yaw=0;c.pitch=0;sky.Se.rotation.set(0,0,0);update(30,false);
   // Return from first person or a respawn without accumulating an old distance.
   keys.get('keydown')({ code: 'KeyV', repeat: false }); update(1, false); assert.equal(dataset.skyHumanView, 'first');
   keys.get('keydown')({ code: 'KeyV', repeat: false }); c.pos.z -= 100; c.vel.z = -6; update(1, false);
