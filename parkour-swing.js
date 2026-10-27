@@ -10,17 +10,17 @@ export function releaseVelocity(direction, angle, omega, jumpVelocity) {
   // Keep the signed tangent velocity. A press adds a fixed jump impulse;
   // neither the next bar nor a desired arrival height influences this launch.
   const horizontal = SWING_LENGTH * omega * Math.cos(angle) + 4;
-  const vertical = SWING_LENGTH * omega * Math.sin(angle) + jumpVelocity * .5;
+  const vertical = SWING_LENGTH * omega * Math.sin(angle) + jumpVelocity * .28;
   return [direction[0] * horizontal, vertical, direction[1] * horizontal];
 }
 export function isLaunchWindow(angle, omega) {
-  return angle >= -.08 && angle <= .6 && omega > 1.1;
+  return angle >= .55 && angle <= .95 && omega > 1.1;
 }
 export function createSwing(sky, game, course) {
   if (!course) return { step: () => false, frame() {}, reset() {}, active: null, course };
   const { c, U, z, Geom: T } = sky;
   const bars = course?.bars || [];
-  let active = null, cooldown = 0, previous = null, lastBar = '', chain = 0, chainTime = 0;
+  let active = null, cooldown = 0, previous = null, lastBar = '', chain = 0, chainTime = 0, releasedBar = '', recatch = 0;
   let jumpHeld = false, touchHeld = false, jumpPressed = false;
   function press() {
     if (active && sky.modeRef() === 'play' && !z.over) jumpPressed = true;
@@ -52,7 +52,7 @@ export function createSwing(sky, game, course) {
       const grip = new T.Mesh(new T.Cylinder(.078, .078, .24, 8), orange);
       grip.rotation.x = Math.PI / 2; grip.position.set(b.at[0], b.at[1], b.at[2] + offset); group.add(grip);
     }
-    label(b.id.endsWith('1') ? '1  SWING >' : '2  > UPPER', [b.at[0],b.at[1]+.7,b.at[2]], .7);
+    label(b.id.endsWith('1') ? '1  SWING >' : '2  > UPPER', [b.at[0],b.at[1]+.45,b.at[2]+2.25], .5);
   }
   if (course) {
     label('WALL > JUMP > SWING', [-20.2,9.15,course.wall.at[2]],.85);
@@ -91,7 +91,8 @@ export function createSwing(sky, game, course) {
   }
   function reset() {
     if (c.state === 'swing') c.state = 'normal';
-    active = null; c.swing = null; cooldown = 0; previous = null; lastBar = ''; chain = 0; chainTime = 0;
+    active = null; c.swing = null; c.swingFlight = null; cooldown = 0; previous = null; lastBar = ''; chain = 0; chainTime = 0;
+    releasedBar = ''; recatch = 0;
     hint.hidden = true;
     jumpHeld = touchHeld = jumpPressed = false;
     delete jumpButton?.dataset.swingReady;
@@ -101,9 +102,10 @@ export function createSwing(sky, game, course) {
     const a = active;
     if (!a) return;
     c.state = 'normal'; c.swing = null; c.jumpBuf = 0; c.coyote = 0; c.airT = 0; c.catchCD = .25;
-    c.hookPressed = false; c.edgeOff = null; cooldown = .3;
+    c.hookPressed = false; c.edgeOff = null; cooldown = .08; releasedBar = a.bar.id; recatch = .45;
     const launch = releaseVelocity(a.direction, a.angle, a.omega, U.jumpVel);
     c.vel.set(...(drop ? [a.direction[0] * 2, -1, a.direction[1] * 2] : launch));
+    c.swingFlight = drop ? null : { age: 0, angle: a.angle, direction: [...a.direction] };
     event(drop ? 'barDrop' : 'barJump', { bar: a.bar.id, chain, angle: +a.angle.toFixed(3), omega: +a.omega.toFixed(3) });
     if (!drop) { window.skyTelemetryProbe?.jumpAccepted(z.t, 'bar_release'); game.stats.barJumps = (game.stats.barJumps || 0) + 1; sky.Tt.jump?.(); }
     active = null; jumpPressed = false; previous = c.pos.toArray(); hint.hidden = true;
@@ -116,13 +118,14 @@ export function createSwing(sky, game, course) {
     // Bars can be used backwards as an escape, too.
     if (into < -.5) { direction[0] *= -1; direction[1] *= -1; }
     const along = (c.pos.x - nearest[0]) * direction[0] + (c.pos.z - nearest[2]) * direction[1];
-    const angle = clamp(Math.atan2(along, bar.at[1] - c.pos.y), -.9, .65);
+    const angle = clamp(Math.atan2(along, bar.at[1] - c.pos.y), -1.05, .65);
     const tangent = Math.abs(into) * Math.cos(angle) + c.vel.y * Math.sin(angle);
     const omega = clamp(Math.max(tangent,Math.abs(into)*1.05+1.2)/SWING_LENGTH, 2.8, 5.4);
     const pivot = [...nearest];
     const p = pendulumPoint(pivot, direction, angle);
     if (Math.hypot(...p.map((v,k)=>v-c.pos.getComponent(k))) > .85 || !sky.oe(p[0], p[1] + .03, p[2], c.r, 1.75)) return false;
     active = { bar, pivot, direction, angle, omega, age: 0 };
+    c.swingFlight = null;
     jumpPressed = false; hint.dataset.ready = 'false';
     hint.textContent = '前へ振れたらジャンプ / 下で離す';
     chain = chainTime > 0 && lastBar !== bar.id ? chain + 1 : 1; chainTime = 2; lastBar = bar.id;
@@ -134,7 +137,11 @@ export function createSwing(sky, game, course) {
   function step(dt, input = {}) {
     if (!bars.length) return false;
     if (sky.modeRef() !== 'play' || z.over) { jumpPressed = false; return false; }
-    cooldown = Math.max(0, cooldown - dt); if (!active) chainTime = Math.max(0, chainTime - dt);
+    if (c.swingFlight) {
+      c.swingFlight.age += dt;
+      if (c.onGround || c.state !== 'normal' || c.swingFlight.age > 1.2) c.swingFlight = null;
+    }
+    cooldown = Math.max(0, cooldown - dt); recatch = Math.max(0,recatch-dt); if (!active) chainTime = Math.max(0, chainTime - dt);
     if (active && c.state !== 'swing') { active = null; c.swing = null; hint.hidden = true; }
     if (active) {
       const a = active;
@@ -164,17 +171,23 @@ export function createSwing(sky, game, course) {
       document.body.dataset.skySwing = JSON.stringify({ bar: a.bar.id, angle: a.angle, chain, age: a.age });
       previous = c.pos.toArray(); return true;
     }
-    const to = [c.pos.x, c.pos.y + SWING_LENGTH, c.pos.z];
-    const from = previous ? [previous[0], previous[1] + SWING_LENGTH, previous[2]] : to;
+    const to = c.pos.toArray();
+    const from = previous || to;
     previous = c.pos.toArray();
     if (cooldown || c.onGround || c.state !== 'normal' || c.vel.y < -8 || Math.hypot(c.vel.x,c.vel.z) < 1) return false;
     for (const b of bars) {
+      if (b.id===releasedBar && recatch>0) continue;
       const pivot = [b.at[0], b.at[1], clamp(c.pos.z, b.at[2] - b.width / 2 + .35, b.at[2] + b.width / 2 - .35)];
-      // Sweep the hand path: 30 FPS should not skip a thin crossbar.
+      // Reach forward during the approach, instead of waiting for the feet to
+      // pass directly below the bar. The radial reach is the actual pendulum
+      // length; attaching corrects at most .38 m, never to the next target.
       const delta = to.map((v,k)=>v-from[k]), length = delta.reduce((s,v)=>s+v*v,0);
       const t = length ? clamp(delta.reduce((s,v,k)=>s+(pivot[k]-from[k])*v,0)/length,0,1) : 0;
       const distance = Math.hypot(...pivot.map((v,k)=>v-from[k]-t*delta[k]));
-      if (distance < .62 && attach(b, pivot)) return true;
+      const along = (c.pos.x-pivot[0])*b.direction[0]+(c.pos.z-pivot[2])*b.direction[1];
+      const into = c.vel.x*b.direction[0]+c.vel.z*b.direction[1];
+      const angle = Math.atan2(along, pivot[1]-c.pos.y);
+      if (pivot[1]-c.pos.y > .95 && Math.abs(c.pos.z-pivot[2]) < .5 && along*into < 0 && Math.abs(angle)<1.05 && distance < SWING_LENGTH+.38 && attach(b, pivot)) return true;
     }
     return false;
   }

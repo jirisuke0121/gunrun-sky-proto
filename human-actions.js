@@ -34,6 +34,7 @@ export function boneMap(a, b, targetA, targetB) {
 
 export function actionPose(kind, phase) {
   if (kind === 'parkourSwing') return swingPose(phase);
+  if (kind === 'parkourSwingFlight') return swingFlightPose(phase);
   const t = clamp(phase), jump = kind === 'parkourJump', vault = kind === 'parkourVault';
   const release = jump ? smooth(.78, 1, t) : smooth(.74, 1, t);
   const tuck = jump ? Math.sin(Math.PI * clamp(t / .86)) : Math.sin(Math.PI * t);
@@ -91,7 +92,9 @@ export function actionPose(kind, phase) {
 // Hands stay above the shoulders; the movement state's angle rotates the whole
 // body about this grip. Legs tuck and extend through the pendulum's arc.
 function swingPose(phase) {
-  const tuck = Math.sin(Math.PI * clamp(phase)), arms = {}, legs = {}, hands = {};
+  const angle = clamp(phase)*2.3-1.15;
+  const front = smooth(-.15,.95,angle), back = smooth(.1,.95,-angle);
+  const tuck = 1-smooth(.15,.95,Math.abs(angle)), arms = {}, legs = {}, hands = {};
   for (const side of [-1, 1]) {
     const shoulder = [side * .28, 1.94, -.075], elbow = [side * .43, 1.55, -.105], hand = [side * .52495, 1.19165, -.0644];
     const goal = [side * .32, 2.62, .03];
@@ -100,7 +103,10 @@ function swingPose(phase) {
     arms[side] = { upper: boneMap(shoulder, elbow, shoulder, arm.joint), lower: boneMap(elbow, hand, arm.joint, arm.end),
       palm: boneMap(hand, add(hand, [0,-1,0]), arm.end, add(arm.end, [0,0,1])) };
     const hip = [side * .17, 1.23, -.025], knee = [side * .23, .65, -.09], ankle = [side * .24, .12, -.04];
-    const foot = [side * .23, .12 + .48 * tuck, -.04 + .38 * tuck];
+    // Compress through the bottom, then drive the feet out ahead of the hips.
+    // The split legs make the acceleration readable even from three quarters.
+    const foot = [side * (.23+.05*front), .12 + .55*tuck + .12*front,
+      -.04 + (.62+side*.16)*front - .42*back];
     const leg = solveLimb(hip, foot, length(sub(knee, hip)), length(sub(ankle, knee)), [0,.1,1]);
     legs[side] = { upper: boneMap(hip,knee,hip,leg.joint), lower: boneMap(knee,ankle,leg.joint,leg.end) };
   }
@@ -111,6 +117,33 @@ function swingPose(phase) {
     const l = lerp(leg.upper(p),leg.lower(p),1-smooth(.55,.77,p[1]));
     return lerp(lerp(p,l,1-smooth(1.12,1.42,p[1])),a,armWeight);
   } };
+}
+
+// Release -> compact flight -> reach. This clip is used only after a bar jump;
+// ordinary jumps keep their existing animation and controls.
+function swingFlightPose(phase) {
+  const t=clamp(phase), fold=smooth(0,.35,t)*(1-smooth(.5,.9,t));
+  const reach=smooth(.25,.65,t), settle=smooth(.7,1,t), arms={},legs={},hands={};
+  for(const side of [-1,1]) {
+    const shoulder=[side*.28,1.94,-.075],elbow=[side*.43,1.55,-.105],hand=[side*.52495,1.19165,-.0644];
+    const goal=lerp([side*mix(.32,.27,reach),2.6-.5*fold,.03+.55*fold+.28*reach],
+      [side*.42,1.42,.28],settle);
+    const arm=solveLimb(shoulder,goal,length(sub(elbow,shoulder)),length(sub(hand,elbow)),[side,0,-.3]);
+    hands[side<0?'right':'left']=arm.end;
+    arms[side]={upper:boneMap(shoulder,elbow,shoulder,arm.joint),lower:boneMap(elbow,hand,arm.joint,arm.end),
+      palm:boneMap(hand,add(hand,[0,-1,0]),arm.end,add(arm.end,[0,0,1]))};
+    const hip=[side*.17,1.23,-.025],knee=[side*.23,.65,-.09],ankle=[side*.24,.12,-.04];
+    const foot=[side*.25,.15+.6*fold*(side>0?1:.72),.15+.5*fold+side*.22*(1-fold)];
+    const leg=solveLimb(hip,foot,length(sub(knee,hip)),length(sub(ankle,knee)),[0,.1,1]);
+    legs[side]={upper:boneMap(hip,knee,hip,leg.joint),lower:boneMap(knee,ankle,leg.joint,leg.end)};
+  }
+  return {hands,contactWeight:0,vertex(p,armWeight){
+    const side=p[0]<0?-1:1,arm=arms[side],leg=legs[side];
+    let a=lerp(arm.upper(p),arm.lower(p),1-smooth(1.48,1.67,p[1]));
+    a=lerp(a,arm.palm(p),1-smooth(1.21,1.34,p[1]));
+    const l=lerp(leg.upper(p),leg.lower(p),1-smooth(.55,.77,p[1]));
+    return lerp(lerp(p,l,1-smooth(1.12,1.42,p[1])),a,armWeight);
+  }};
 }
 
 export function jumpPhase(velocityY, jumpVelocity, landingTime) {

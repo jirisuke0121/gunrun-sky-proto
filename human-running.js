@@ -1,9 +1,9 @@
 // Running style for the existing, baked Unity human. No new model download.
 // Asset-space metres: +Y up, +Z forward, the right hand is on -X.
-import { actionPose } from './human-actions.js?v=20261027-swing-v1';
+import { actionPose } from './human-actions.js?v=20261028-swing-flow-v2';
 import { wallRunPose, WALLRUN_SAMPLES } from './human-wallrun.js?v=20261027-wallrun-v2';
 export { wallRunFrame, WALLRUN_STRIDE } from './human-wallrun.js?v=20261027-wallrun-v2';
-export { jumpPhase, ledgeAnchor } from './human-actions.js?v=20261027-swing-v1';
+export { jumpPhase, ledgeAnchor } from './human-actions.js?v=20261028-swing-flow-v2';
 export const RUN_STRIDE = 3.36;
 export const RUN_SAMPLES = 24;
 const TAU = Math.PI * 2;
@@ -150,10 +150,11 @@ export function addParkourRun(model, motion, Attribute) {
     actionClips[kind] = { frames: names, times: seconds, duration: 1, source: 'distance-synchronised wall contact cycle' };
     actionGrips[kind] = rightHands; actionHands[kind] = bothHands;
   }
-  for (const kind of ['parkourJump', 'parkourVault', 'parkourMantle', 'parkourCatch', 'parkourSwing']) {
+  for (const kind of ['parkourJump', 'parkourVault', 'parkourMantle', 'parkourCatch', 'parkourSwing', 'parkourSwingFlight']) {
     const names = [], seconds = [], rightHands = [], bothHands = [];
-    for (let i = 0; i <= 12; i++) {
-      const phase = i / 12, pose = actionPose(kind, phase), name = `${kind}_${String(i).padStart(3, '0')}`;
+    const samples=kind==='parkourSwingFlight'?4:kind==='parkourSwing'?8:12;
+    for (let i = 0; i <= samples; i++) {
+      const phase = i / samples, pose = actionPose(kind, phase), name = `${kind}_${String(i).padStart(3, '0')}`;
       names.push(name); seconds.push(phase); frames.push(name);
       bodyFrames.push(bodyUnarmed.map(p => pose.vertex(p, armWeight(p))));
       rightHands.push(pose.hands.right); bothHands.push(pose.hands);

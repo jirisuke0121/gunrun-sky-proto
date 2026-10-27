@@ -1,5 +1,5 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE } from './human-running.js?v=20261027-wallrun-v2';
+import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE } from './human-running.js?v=20261028-swing-flow-v2';
 import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261027-torso-v1';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
@@ -187,6 +187,7 @@ function updateMotion(dt, speed) {
   let next = 'idle';
   const walking = speed < (sky.U.walkSpeed + sky.U.sprintSpeed) / 2;
   if (c.state === 'swing' && c.swing && motion.clips.parkourSwing) next = 'swing';
+  else if (c.swingFlight && !grounded && c.state === 'normal') next = 'swingFlight';
   else if (c.state === 'ladder') next = 'ladder';
   else if (c.state === 'slide') next = 'slide';
   else if (wallFrame) next = 'wallrun';
@@ -207,13 +208,14 @@ function updateMotion(dt, speed) {
     if (next === 'ladder') document.body.dataset.skyHumanLadderSeen = 'true';
   }
   const special = next === 'wallrun' ? (wallFrame.side < 0 ? 'parkourWallLeft' : 'parkourWallRight')
-    : { vault: 'parkourVault', mantle: 'parkourMantle', catch: 'parkourCatch', jump: 'parkourJump', swing: 'parkourSwing' }[next];
-  const selected = (next === 'swing' || parkourRunEnabled) && motion.clips[special] ? special : next;
+    : { vault: 'parkourVault', mantle: 'parkourMantle', catch: 'parkourCatch', jump: 'parkourJump', swing: 'parkourSwing', swingFlight: 'parkourSwingFlight' }[next];
+  const selected = (next === 'swing' || next === 'swingFlight' || parkourRunEnabled) && motion.clips[special] ? special : next;
   const ledgeAction = next === 'swing' || next === 'vault' || next === 'mantle' || next === 'catch';
   if (ledgeAction) runPose = 0;
   const info = motion.clips[selected];
   if (!info) return;
-  if (next === 'swing') clipTime = info.duration * Math.max(0, Math.min(1, (c.swing.angle + .9) / 1.85));
+  if (next === 'swing') clipTime = info.duration * Math.max(0, Math.min(1, (c.swing.angle + 1.15) / 2.3));
+  else if (next === 'swingFlight') clipTime = info.duration * Math.min(1,c.swingFlight.age/.42);
   else if (next === 'vault' || next === 'mantle' || next === 'catch') clipTime = info.duration * Math.max(0, Math.min(1, c.ledge.t));
   else if (next === 'reload') {
     const total = Math.max(.1, sky.wpc().rl || 1.5);
@@ -405,8 +407,10 @@ function update(dt) {
     const ladderYaw = c.ladder ? Math.atan2(-c.ladder.nx, -c.ladder.nz) : c.yaw + Math.PI;
     const ledgeYaw = c.state === 'ledge' && c.ledge ? Math.atan2(c.ledge.dx, c.ledge.dz) : null;
     const swinging = c.state === 'swing' && c.swing;
-    const swingYaw = swinging ? Math.atan2(c.swing.direction[0],c.swing.direction[1]) : null;
-    if (sky.modeRef() === 'play') swingLean = swinging ? -c.swing.angle : swingLean * Math.exp(-dt * 18);
+    const flight = c.swingFlight;
+    const swingDirection = swinging ? c.swing.direction : flight?.direction;
+    const swingYaw = swingDirection ? Math.atan2(swingDirection[0],swingDirection[1]) : null;
+    if (sky.modeRef() === 'play') swingLean = swinging ? -c.swing.angle : flight ? -flight.angle*Math.exp(-flight.age*5) : swingLean * Math.exp(-dt * 18);
     holder.rotation.set(c.state === 'ladder' ? .09 : swingLean, c.state === 'ladder' ? ladderYaw : swingYaw ?? ledgeYaw ?? c.yaw + Math.PI + bodyYawOffset + 1.25 * slidePose, ledgeYaw === null ? turnBank : 0, 'YXZ');
     if (third && contactFrame) {
       holder.updateMatrixWorld(true);
@@ -422,6 +426,7 @@ function update(dt) {
   if (!third) { updateWorldWeapon(false,dt);window.skyFirstPersonView?.update(dt, false); return; }
   // Match Unity's over-shoulder distance while keeping the player in frame.
   pivot.set(c.pos.x, c.camY === undefined ? c.pos.y + c.eye : c.camY, c.pos.z);
+  if (c.state === 'swing') pivot.y=c.pos.y+c.eye;
   if (c.state === 'ledge' && holder) pivot.y = holder.position.y + Math.min(c.eye, 1.5);
   forward.set(0, 0, -1).applyQuaternion(camera.quaternion);
   right.set(1, 0, 0).applyQuaternion(camera.quaternion);

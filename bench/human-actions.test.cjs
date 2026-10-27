@@ -37,5 +37,17 @@ const { fixture } = require('./human-running.test.cjs');
       if (i === 12) assert.equal(p.contactWeight, 0);
     }
   }
+  for(const kind of ['parkourSwing','parkourSwingFlight']) {
+    for(const name of motion.clips[kind].frames)gltf.scene.traverse(mesh=>{
+      if(!mesh.isMesh)return;
+      const index=mesh.morphTargetDictionary[name];assert.ok(Number.isInteger(index));
+      assert.ok(mesh.geometry.morphAttributes.position[index].array.every(Number.isFinite));
+      assert.ok(mesh.geometry.morphAttributes.normal[index].array.every(Number.isFinite));
+    });
+  }
+  const reach=actionPose('parkourSwingFlight',.5),settle=actionPose('parkourSwingFlight',1);
+  assert.ok(reach.hands.left[1]>settle.hands.left[1]+.4,'airborne reach settles into a landing posture');
+  const back=actionPose('parkourSwing',0),front=actionPose('parkourSwing',1),foot=[.24,.12,-.04];
+  assert.ok(front.vertex(foot,0)[2]>back.vertex(foot,0)[2]+.7,'feet drive forward across the swing arc');
   console.log('PASS action poses: reachable limb lengths, rise/apex/fall/land, collision-edge anchor, 4 × 13 poses on 7 real meshes, finite normals and WebGL2 layer bounds');
 })().catch(e => { console.error(e); process.exitCode = 1; });
