@@ -20,11 +20,29 @@ export function createJumpGun(game) {
   ring.rotation.x=-Math.PI/2;ring.visible=false;ue.add(ring);
   const pulsePoint=new Vector3();
   let spent=false,launchTime=-1,lastClock=0,ringLife=0;
+  let previousWeapon=null, previousGunOn=true, returnPending=false;
+  const fireLabel=document.getElementById('tFire').textContent;
+  function cancelPickup() {
+    if(previousWeapon!==null && (U.weapon|0)===12) {
+      U.gunOn=previousGunOn;
+      game.equipWeapon(previousWeapon);
+    }
+    previousWeapon=null;returnPending=false;
+    document.getElementById('tFire').textContent=fireLabel;
+  }
+  function grant() {
+    if(previousWeapon!==null || game.modeRef()!=='play' || z.over)return false;
+    previousWeapon=U.weapon|0;previousGunOn=U.gunOn;
+    U.gunOn=true;game.equipWeapon(12);
+    spent=false;Et.ammo=1;Et.reloadT=0;Et.fireCD=.12;Et.autoReload=0;Et.held=false;Et.trigger=0;
+    game.rn('JUMP取得！ 発射で足元を自動撃ち・1回使える');
+    report('equipped');return true;
+  }
   const report = (result, extra={}) => {
     document.body.dataset.skyJumpGun=JSON.stringify({result,ready:!spent,...extra});
   };
   function reset() {
-    spent=false;launchTime=-1;lastClock=0;ringLife=0;ring.visible=false;
+    cancelPickup();spent=false;launchTime=-1;lastClock=0;ringLife=0;ring.visible=false;
     if(window.__game?.stats)window.__game.stats.jumpGunLaunches=0;
   }
   function blockShot() {
@@ -34,14 +52,13 @@ export function createJumpGun(game) {
   }
   function fire({origin,direction,raycast,particles,stats}) {
     Et.ammo=Et.mag;Et.autoReload=0;
-    // Aim from the player even in third person; a nearby wall still blocks it.
-    const start=new Vector3(c.pos.x,c.pos.y+c.eye,c.pos.z);
-    const hit=raycast(start.x,start.y,start.z,direction.x,direction.y,direction.z,4.5);
-    const point=hit?start.clone().addScaledVector(direction,hit.t):null;
-    const floor=point && direction.y<-.28 && Math.abs(point.y-hit.b.maxY)<.045
-      && Math.hypot(point.x-c.pos.x,point.z-c.pos.z)<=3.8;
+    // Target the floor beneath the feet independently of camera/muzzle aim.
+    const start=new Vector3(c.pos.x,c.pos.y+.25,c.pos.z);
+    const hit=raycast(start.x,start.y,start.z,0,-1,0,3);
+    const point=hit?start.clone().addScaledVector(new Vector3(0,-1,0),hit.t):null;
+    const floor=point && Math.abs(point.y-hit.b.maxY)<.045;
     if(!floor) {
-      game.rn('近くの床を狙って撃つと大ジャンプ');
+      game.rn('足元に床がある場所で発射すると大ジャンプ');
       report('no-floor');return {handled:true,suppressTracer:true};
     }
     spent=true;launchTime=z.t;
@@ -49,8 +66,11 @@ export function createJumpGun(game) {
     const push=Number.isFinite(U.jumpGunPush)?Math.max(0,Math.min(JUMP_GUN.maxPush,U.jumpGunPush)):JUMP_GUN.push;
     c.state='normal';c.ledge=null;c.ladder=null;c.wallKey=null;
     c.onGround=false;c.coyote=0;c.airT=0;c.jumpBuf=0;
-    c.vel.y=Math.max(c.vel.y,Math.max(up*(8.2/11.2),-direction.y*up));
-    c.vel.x-=direction.x*push;c.vel.z-=direction.z*push;
+    c.vel.y=Math.max(c.vel.y,up);
+    const moving=Math.hypot(c.vel.x,c.vel.z);
+    const forwardX=moving>.5?c.vel.x/moving:-Math.sin(c.yaw);
+    const forwardZ=moving>.5?c.vel.z/moving:-Math.cos(c.yaw);
+    c.vel.x+=forwardX*push;c.vel.z+=forwardZ*push;
     const speed=Math.hypot(c.vel.x,c.vel.z);
     if(speed>14){c.vel.x*=14/speed;c.vel.z*=14/speed;}
     c.shake=Math.max(c.shake||0,.22);
@@ -59,11 +79,13 @@ export function createJumpGun(game) {
     particles(point.x,point.y+.06,point.z,12,'dust',2,.3);
     stats.jumpGunLaunches=(stats.jumpGunLaunches||0)+1;
     game.rn('反動ジャンプ！ 空中で進路を調整');
+    returnPending=previousWeapon!==null;
     report('launched',{point:point.toArray(),velocity:c.vel.toArray(),life:c.life,up,push});
     return {handled:true,suppressTracer:true};
   }
   function tick(dt) {
     const mode=game.modeRef();
+    if(returnPending || mode==='menu' || z.over)cancelPickup();
     if(mode==='menu' || z.t+.05<lastClock){
       spent=false;launchTime=-1;ringLife=0;ring.visible=false;
       if(window.__game?.stats)window.__game.stats.jumpGunLaunches=0;
@@ -77,9 +99,9 @@ export function createJumpGun(game) {
     if(ring.visible){const p=1-ringLife/.42;ring.scale.setScalar(1+p*8);material.opacity=(1-p)*.85;}
     if((U.weapon|0)===12 && mode!=='menu') {
       document.getElementById('hAmmo').textContent=spent?'着地待ち':'READY';
-      document.getElementById('hRes').textContent='Jump Gun・近い床を狙う';
-      document.getElementById('tFire').textContent='床撃ち';
+      document.getElementById('hRes').textContent='Jump Gun・足元へ自動射撃（1回）';
+      document.getElementById('tFire').textContent='跳ぶ';
     }
   }
-  return {fire,tick,blockShot,reset,playSound(){ document.body.dataset.skyGunSound='Jump Gun pressure pulse'; return playGearSound(game,'jump'); },get ready(){return !spent;}};
+  return {fire,tick,blockShot,reset,grant,cancelPickup,get carrying(){return previousWeapon!==null;},playSound(){ document.body.dataset.skyGunSound='Jump Gun pressure pulse'; return playGearSound(game,'jump'); },get ready(){return !spent;}};
 }
