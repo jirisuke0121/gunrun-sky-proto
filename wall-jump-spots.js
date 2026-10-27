@@ -1,11 +1,13 @@
 (() => {
   const points = [
-    { at: [26, 1.9, -1.5], normal: [0, 1] },
-    { at: [29.6, 1.9, -25.2], normal: [0, 1] },
-    { at: [14, 1.4, 6.8], normal: [1, 0] },
-    { at: [-14, 0.3, -13.6], normal: [-1, 0] },
+    { at: [26, 1.9, -1.5], normal: [0, 1], direction: [1, 0], name: '東の隙間' },
+    { at: [29.6, 1.9, -25.2], normal: [0, 1], direction: [1, 0], name: '北の梁' },
+    { at: [14, 1.4, 6.8], normal: [1, 0], direction: [0, 1], name: 'リング東壁' },
+    { at: [-14, 0.3, -13.6], normal: [-1, 0], direction: [0, -1], name: 'リング西壁' },
   ];
   window.__skyWallRunSpots = points.map(({ at, normal }) => ({ at: [...at], normal: [...normal] }));
+  window.__skyWallRunRoutes = points.map(({ at, normal, direction, name }) =>
+    ({ at: [...at], normal: [...normal], direction: [...direction], name }));
 
   // A jump marker permits only its wall face, never the whole wall object or
   // another face on the same building. Keep run permission separate from the
