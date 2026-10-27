@@ -43,7 +43,9 @@ async function boot(map){
   const originalFetch=window.fetch.bind(window);window.fetch=(url,options)=>/gunrun-runs\\./.test(String(url))?Promise.resolve(new Response('{}',{status:200,headers:{'content-type':'application/json'}})):originalFetch(url,options);
   Storage.prototype.setItem=()=>{};Storage.prototype.removeItem=()=>{};Storage.prototype.clear=()=>{};<\/script>`;
   try{
-    const source=await fetch(new URL(map,base)).then(r=>r.text());frame.srcdoc=source.replace('<head>',`<head>${guard}`);
+    const source=await fetch(new URL(map,base)).then(r=>r.text());
+    const loaded=new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
+    frame.srcdoc=source.replace('<head>',`<head>${guard}`);await loaded;
     for(let i=0;i<400&&!frame.contentWindow.skyHumanView;i++)await wait();
     w=frame.contentWindow;w.addEventListener('error',e=>errors.push(e.message));
     check(!!w.skyHumanView,'ゲーム本体を読み込み');
