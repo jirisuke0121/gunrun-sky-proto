@@ -135,7 +135,7 @@ export function createFirstPersonWeapons(game, prototypes, loaded, excludedHandP
     }
     lastShots=shots;shotClock+=dt;
     kick*=Math.exp(-dt*(weapon===1||weapon>=9?10:16));flashT=Math.max(0,flashT-dt);
-    const freeHands=['ladder','ledge','zip','hook'].includes(c.state) || game.nn.t>0;
+    const freeHands=['ladder','ledge','zip','hook','swing'].includes(c.state) || game.nn.t>0;
     active=!!model && !!U.gunOn && !!U.showBody && game.modeRef()!=='menu' && !window.skySettings?.beforeRun && !thirdPerson && !freeHands;
     rig.visible=active;
     for(const prototype of prototypes) prototype.visible=false;

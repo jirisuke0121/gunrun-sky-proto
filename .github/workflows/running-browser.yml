@@ -37,6 +37,8 @@ jobs:
           node bench/human-running-browser.cjs
           node bench/human-aim-browser.cjs
           node bench/dash-browser.cjs
+          node bench/swing-browser.cjs
+          node bench/swing-flow-browser.cjs
       - name: Encode dash motion evidence
         run: |
           if [ -d browser-evidence/dash-motion ] && command -v ffmpeg >/dev/null 2>&1; then

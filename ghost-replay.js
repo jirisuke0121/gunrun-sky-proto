@@ -70,7 +70,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     if (!recording || z.mission || active || samples.length >= REPLAY_LIMIT) return;
     const t = round(z.t), last = samples.at(-1);
     if (last && (t <= last[0] || (!force && t - last[0] < REPLAY_STEP - 0.001))) return;
-    const state = c.state === 'normal' ? (c.onGround ? 'run' : 'air') : c.state === 'ledge' ? c.ledge?.kind || 'vault' : c.state;
+    const state = c.state === 'normal' ? (c.onGround ? 'run' : 'air') : c.state === 'ledge' ? c.ledge?.kind || 'vault' : c.state === 'swing' ? 'air' : c.state;
     const cut = last && (c.life < last[7] || Math.hypot(c.pos.x - last[1], c.pos.y - last[2], c.pos.z - last[3]) > 6) ? 1 : 0;
     samples.push([t, round(c.pos.x), round(c.pos.y), round(c.pos.z), round(c.yaw), round(c.pitch), Math.max(0, REPLAY_STATES.indexOf(state)), Math.max(0, c.life), cut]);
   }
