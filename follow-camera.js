@@ -48,8 +48,9 @@
       raw.fwdIn = raw.reversing ? forward : Math.max(0, forward);
     }
     const lowerTurn = analog && forward < 0 && gesture === 'drive';
-    const deadzone = analog ? (lowerTurn ? .08 : .28) : 0;
-    const range = analog ? (lowerTurn ? .5 : .72) : 1;
+    const pivotBlend = lowerTurn ? clamp(-forward / .5, 0, 1) : 0;
+    const deadzone = analog ? .28 - .2 * pivotBlend : 0;
+    const range = analog ? .72 - .22 * pivotBlend : 1;
     raw.steer = sideways || raw.reversePending || raw.reversing ? 0
       : Math.sign(x) * Math.pow(clamp((magnitude - deadzone) / range, 0, 1), 1.15);
     // A small horizontal correction remains lateral. In the lower half, use
