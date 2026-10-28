@@ -53,11 +53,24 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
 #replayDate{flex-basis:100%;margin:0;font-size:12px;color:#cad9e3}#ghostReplay h2{font-size:17px;margin:0;flex:1}#ghostReplay .replay-bottom{position:absolute;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom))}
 #ghostReplay .replay-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}#ghostReplay button,#ghostReplay select{min-height:42px;font:600 14px system-ui;color:#fff;background:#344353;border:1px solid #8194a8;border-radius:7px;padding:7px 10px}
 #ghostReplay input{width:100%;margin:8px 0;min-height:28px;touch-action:pan-x}#ghostReplay p{font-size:12px;margin:4px 0;line-height:1.45}#ghostReplay output{font-variant-numeric:tabular-nums}
-#ghostBest{position:fixed;left:12px;bottom:56px;padding:3px 9px;border-radius:12px;background:#286e96a8;color:white;font:12px system-ui;pointer-events:none;z-index:6}
+#ghostBest{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0;font:13px system-ui;color:var(--dim)}
+#ghostBest[hidden]{display:none}#ghostBest button{min-height:44px}
 @media(max-width:600px){#ghostReplay .replay-panel{padding:7px 10px}#replayDate{flex-basis:100%;margin:0;font-size:12px;color:#cad9e3}#ghostReplay h2{font-size:14px}#ghostReplay .replay-controls{gap:5px}#ghostReplay button,#ghostReplay select{font-size:12px;padding:6px 8px}}
 `;
   document.head.append(style);
-  const chip = document.createElement('div'); chip.id = 'ghostBest'; chip.hidden = true; document.getElementById('hud').append(chip);
+  const chip = document.createElement('div'); chip.id = 'ghostBest'; chip.hidden = true;
+  const bestLabel = document.createElement('span'), bestToggle = document.createElement('button');
+  bestToggle.type = 'button';
+  chip.append(bestLabel, bestToggle);
+  document.getElementById('challengeSettingsNote').before(chip);
+  function toggleBest() { showBest = !showBest; syncBest(); }
+  function syncBest() {
+    chip.hidden = !best || z.mission || !!active;
+    bestLabel.textContent = `ゴースト ベスト ${best?.total ?? 0}点`;
+    bestToggle.textContent = showBest ? 'ゴーストを隠す' : 'ゴーストを表示';
+    bestToggle.setAttribute('aria-pressed', String(showBest));
+  }
+  bestToggle.addEventListener('click', toggleBest);
   const overlay = document.createElement('section');
   overlay.id = 'ghostReplay'; overlay.hidden = true; overlay.setAttribute('aria-label', 'ゴースト閲覧');
   overlay.innerHTML = `<div class="replay-panel replay-top"><h2 id="replayTitle">ゴースト</h2><button id="replayClose" type="button">ランキングに戻る</button><p id="replayDate"></p></div>
@@ -148,7 +161,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
   el('replayView').addEventListener('change', () => update(0));
   document.addEventListener('keydown', event => {
     if (active && event.code === 'Escape') { event.preventDefault(); close(); }
-    if (!active && event.code === 'KeyH' && !event.repeat && game.modeRef() === 'play') showBest = !showBest;
+    if (!active && event.code === 'KeyH' && !event.repeat && game.modeRef() === 'play') toggleBest();
   });
   const target = new Geom.Vector3();
   function update(dt) {
@@ -173,10 +186,9 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
       el('replayToggle').textContent = active.paused ? '再生' : '一時停止';
       return;
     }
-    if (game.modeRef() !== 'play' || z.over || z.mission) { avatar.visible = false; chip.hidden = true; return; }
+    syncBest();
+    if (game.modeRef() !== 'play' || z.over || z.mission) { avatar.visible = false; return; }
     capture();
-    chip.hidden = !best;
-    chip.textContent = showBest ? `ゴースト ベスト ${best?.total}点（Hで切替）` : 'ゴースト 非表示（Hで切替）';
     if (!best || !showBest || z.t > best.ghost.samples.at(-1)[0]) { avatar.visible = false; return; }
     const pose = sampleReplay(best.ghost.samples, z.t); poseAvatar(pose);
     avatar.visible = Math.hypot(pose[1] - c.pos.x, pose[2] - c.pos.y, pose[3] - c.pos.z) > 1.2;

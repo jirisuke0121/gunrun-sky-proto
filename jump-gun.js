@@ -104,9 +104,10 @@ export function createJumpGun(game) {
     ring.visible=ringLife>0 && mode!=='menu';
     if(ring.visible){const p=1-ringLife/.42;ring.scale.setScalar(1+p*8);material.opacity=(1-p)*.85;}
     if((U.weapon|0)===12 && mode!=='menu') {
-      document.getElementById('hAmmo').textContent=spent?'着地待ち':'READY';
-      document.getElementById('hRes').textContent='Jump Gun・足元へ自動射撃（1回）';
+      document.getElementById('hAmmo').textContent=spent?'0':'1';
+      document.getElementById('hRes').textContent=spent?'JUMP・着地待ち':'JUMP';
       document.getElementById('tFire').textContent='跳ぶ';
+      document.getElementById('tReload').style.display='none';
     }
   }
   return {fire,tick,blockShot,reset,grant,cancelPickup,get carrying(){return previousWeapon!==null;},playSound(){ document.body.dataset.skyGunSound='Jump Gun pressure pulse'; return playGearSound(game,'jump'); },get ready(){return !spent;}};
