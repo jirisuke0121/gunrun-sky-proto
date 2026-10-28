@@ -34,7 +34,7 @@ export function createSwing(sky, game, course) {
   jumpButton?.addEventListener('pointerdown', () => { if (!touchHeld) press(); touchHeld = true; });
   for (const name of ['pointerup','pointercancel','pointerleave']) jumpButton?.addEventListener(name, () => { touchHeld = false; });
   addEventListener('blur', () => { jumpHeld = touchHeld = jumpPressed = false; });
-  const group = new T.Group(); group.name = 'West ascent swing bars'; sky.ue.add(group);
+  const group = new T.Group(); group.name = course.oldTown ? course.name : 'West ascent swing bars'; sky.ue.add(group);
   const steel = new T.Standard({ color: 0x243c52, metalness: .65, roughness: .4 });
   const orange = new T.Standard({ color: 0xffaa35, emissive: 0x633509, roughness: .5 });
   function label(text, at, scale = 1) {
@@ -52,22 +52,22 @@ export function createSwing(sky, game, course) {
       const grip = new T.Mesh(new T.Cylinder(.078, .078, .24, 8), orange);
       grip.rotation.x = Math.PI / 2; grip.position.set(b.at[0], b.at[1], b.at[2] + offset); group.add(grip);
     }
-    label(b.id.endsWith('1') ? '1  SWING >' : '2  > UPPER', [b.at[0],b.at[1]+.45,b.at[2]+2.25], .5);
+    label(b.label || (b.id.endsWith('1') ? '1  SWING >' : '2  > UPPER'), [b.at[0],b.at[1]+.45,b.at[2]+2.25], .5);
   }
-  if (course) {
+  function arrow(x,y,z,dx,dz) {
+    const chevron = new T.Group(); chevron.position.set(x,y,z); chevron.rotation.y=Math.atan2(dx,dz)+Math.PI;
+    for(const side of [-1,1]) {
+      const stroke=new T.Mesh(new T.Box(.08,.025,.62),orange);
+      stroke.position.set(side*.19,0,0);stroke.rotation.y=side*.72;chevron.add(stroke);
+    }
+    group.add(chevron);
+  }
+  if (course && !course.oldTown) {
     label('WALL > JUMP > SWING', [-20.2,9.15,course.wall.at[2]],.85);
     // Both directions on the existing ring see the optional shortcut before
     // reaching its wall. Painted chevrons carry the eye to the take-off pad.
     label('SWING / 8m', [-17.9,6.5,-10.5], .7);
     label('SWING / 8m', [-17.9,7,-2], .7);
-    function arrow(x,y,z,dx,dz) {
-      const chevron = new T.Group(); chevron.position.set(x,y,z); chevron.rotation.y=Math.atan2(dx,dz)+Math.PI;
-      for(const side of [-1,1]) {
-        const stroke=new T.Mesh(new T.Box(.08,.025,.62),orange);
-        stroke.position.set(side*.19,0,0);stroke.rotation.y=side*.72;chevron.add(stroke);
-      }
-      group.add(chevron);
-    }
     for(const [x,y,z,dir] of course.entryMarkers || []) arrow(x,y,z,0,dir);
     arrow(-16.5,5.225,-6,1,0);
     for(const z of [-7.4,-8.8]) arrow(0,8.025,z,0,-1);
@@ -78,13 +78,15 @@ export function createSwing(sky, game, course) {
     const pad = new T.Mesh(new T.Torus(.58,.055,5,20),orange);
     pad.position.set(course.pad[0],course.pad[1]+.035,course.pad[2]); pad.rotation.x=Math.PI/2;group.add(pad);
   }
+  for (const sign of course.signs || []) label(sign.text, sign.at, sign.scale);
+  for (const mark of course.arrows || []) arrow(...mark.at, ...mark.direction);
   const style = document.createElement('style');
   style.textContent = '#swingHint{position:fixed;top:24%;left:50%;transform:translateX(-50%);padding:6px 12px;border-radius:8px;color:#fff4d6;background:#25354cdd;font:700 12px system-ui;pointer-events:none;z-index:6;text-align:center;max-width:85vw}body[data-sky-swing] #hint{visibility:hidden}#swingHint[hidden]{display:none}#swingHint[data-ready=true]{color:#d8ffe4;border:1px solid #7ef0aa;background:#163a30ed}#tJump[data-swing-ready=true]{box-shadow:0 0 0 3px #7ef0aa,0 0 18px #7ef0aa80}';
   document.head.appendChild(style);
   const hint = document.createElement('div'); hint.id = 'swingHint'; hint.hidden = true; document.body.appendChild(hint);
   if (bars.length) {
     const rule = document.querySelector('#ovStart .rules .keys');
-    if (rule) { const li = document.createElement('li'); li.textContent = '西の橙色ルート：壁蹴り→小足場→鉄棒2本→中央高台。空中で鉄棒を自動つかみ。体が前へ振れた瞬間にジャンプを押して次へ。鉄棒ごとに押し直す。下入力で手を離す。高台で左右へ曲がる'; rule.appendChild(li); }
+    if (rule) { const li = document.createElement('li'); li.textContent = course.instructions || '西の橙色ルート：壁蹴り→小足場→鉄棒2本→中央高台。空中で鉄棒を自動つかみ。体が前へ振れた瞬間にジャンプを押して次へ。鉄棒ごとに押し直す。下入力で手を離す。高台で左右へ曲がる'; rule.appendChild(li); }
   }
   function event(type, detail = {}) {
     if (game.RL?.events?.length < 300) game.RL.events.push({ e: type, t: +z.t.toFixed(3), x: c.pos.x, y: c.pos.y, z: c.pos.z, ...detail });
@@ -165,7 +167,8 @@ export function createSwing(sky, game, course) {
         SWING_LENGTH * Math.sin(a.angle) * a.omega, a.direction[1] * SWING_LENGTH * Math.cos(a.angle) * a.omega);
       const ready = isLaunchWindow(a.angle, a.omega);
       hint.hidden = false; hint.dataset.ready = String(ready);
-      hint.textContent = ready ? `鉄棒 ${chain}/2　今！ジャンプで次へ` : `鉄棒 ${chain}/2　前へ振れたらジャンプ / 下で離す`;
+      const progress = course.oldTown ? '鉄棒' : `鉄棒 ${chain}/${bars.length}`;
+      hint.textContent = ready ? `${progress}　今！ジャンプで次へ` : `${progress}　前へ振れたらジャンプ / 下で離す`;
       if (a.age >= MAX_GRIP_SECONDS - 2) hint.textContent += ` / 手が離れるまで ${Math.ceil(MAX_GRIP_SECONDS - a.age)}秒`;
       if (jumpButton) {jumpButton.dataset.swingReady = String(ready);jumpButton.textContent='跳び移る';}
       document.body.dataset.skySwing = JSON.stringify({ bar: a.bar.id, angle: a.angle, chain, age: a.age });
@@ -187,7 +190,8 @@ export function createSwing(sky, game, course) {
       const along = (c.pos.x-pivot[0])*b.direction[0]+(c.pos.z-pivot[2])*b.direction[1];
       const into = c.vel.x*b.direction[0]+c.vel.z*b.direction[1];
       const angle = Math.atan2(along, pivot[1]-c.pos.y);
-      if (pivot[1]-c.pos.y > .95 && Math.abs(c.pos.z-pivot[2]) < .5 && along*into < 0 && Math.abs(angle)<1.05 && distance < SWING_LENGTH+.38 && attach(b, pivot)) return true;
+      const lateralReach = course.oldTown ? Math.max(.5, b.width / 2 - .35) : .5;
+      if (pivot[1]-c.pos.y > .95 && Math.abs(c.pos.z-pivot[2]) < lateralReach && along*into < 0 && Math.abs(angle)<1.05 && distance < SWING_LENGTH+.38 && attach(b, pivot)) return true;
     }
     return false;
   }
