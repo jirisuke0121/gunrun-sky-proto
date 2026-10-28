@@ -3,15 +3,15 @@
   if(!window.skyPracticeMode)return;
   const sky=window.__skyInternals,g=window.__game,{c,U,z,Geom:T}=sky,course=window.skyPracticeCourse;
   document.body.classList.add('practice-mode');document.title='パルクール練習場 | 空中回廊';
-  const style=document.createElement('link');style.rel='stylesheet';style.href='./practice.css?v=20261028-playground-v1';document.head.append(style);
+  const style=document.createElement('link');style.rel='stylesheet';style.href='./practice.css?v=20261028-practice-controls-v2';document.head.append(style);
   document.querySelector('#ovStart h1').textContent='パルクール練習場';
   document.querySelector('#ovStart h1 + p').textContent='追手・制限時間なし。技を繋げて一周したり、好きな技からすぐ試せます。落ちたら直前の地点に戻ります。';
   document.getElementById('bStart').textContent='練習をはじめる';
   let section=course.sections.find(s=>s.id===new URLSearchParams(location.search).get('section'))||course.start;
-  let falls=0,chain=0,lastAction=-10,blastReset=0,lastMode='',lastStats={},message='',messageUntil=0,autoStarted=false;
+  let falls=0,chain=0,lastAction=-10,blastReset=0,lastStats={},message='',messageUntil=0,autoStarted=false;
   const panel=document.createElement('section');panel.id='practicePanel';panel.hidden=true;panel.setAttribute('aria-label','練習場の操作');
-  panel.innerHTML='<div class="practice-row"><strong>練習場</strong><output id="practiceSpeed">0.0 m/s</output><span id="practiceChain"></span></div><div class="practice-row"><select id="practiceSection" aria-label="試す技"></select><button id="practiceRetry" type="button">ここからやり直す</button><button id="practiceNext" type="button">次の技へ</button><a href="./index.html">ホーム</a></div><p id="practiceHint"></p>';
-  document.body.append(panel);
+  panel.innerHTML='<div class="practice-row"><strong>練習場</strong><output id="practiceSpeed">0.0 m/s</output><span id="practiceChain"></span><button id="practiceChoose" type="button">技を選ぶ</button></div><div class="practice-row"><select id="practiceSection" aria-label="試す技"></select><button id="practiceRetry" type="button">ここからやり直す</button><button id="practiceNext" type="button">次の技へ</button><a href="./index.html">ホーム</a></div><p id="practiceHint"></p>';
+  const app=document.getElementById('app'),pausePlate=document.querySelector('#ovPause .plate');app.append(panel);
   const select=panel.querySelector('select'),hint=panel.querySelector('#practiceHint');
   for(const s of course.sections)select.add(new Option(s.name,s.id));select.value=section.id;
   function clearInput(){Object.keys(g.keys).forEach(k=>g.keys[k]=false);c.jumpBuf=0;c.zipWish=0;c.slideBuf=0;c.crouchPressed=false;c.hookPressed=false;}
@@ -46,12 +46,14 @@
     restoreTargets();place(section);
   }
   function retry(){if(!['play','pause'].includes(g.mode))return;falls++;restoreTargets();place();}
+  function choose(){if(g.mode!=='play')return;document.exitPointerLock?.();sky.An('pause');pausePlate.prepend(panel);panel.dataset.paused='true';select.focus();}
+  panel.querySelector('#practiceChoose').addEventListener('click',choose);
   select.addEventListener('change',()=>{restoreTargets();place(course.sections.find(s=>s.id===select.value));});
   panel.querySelector('#practiceRetry').addEventListener('click',retry);
   panel.querySelector('#practiceNext').addEventListener('click',()=>{restoreTargets();place(course.sections[(course.sections.indexOf(section)+1)%course.sections.length]);});
   for(const name of ['pointerdown','pointerup','touchstart','touchend'])panel.addEventListener(name,e=>e.stopPropagation());
   addEventListener('keydown',e=>{
-    if(g.mode==='play'&&e.code==='Tab'){e.preventDefault();e.stopImmediatePropagation();document.exitPointerLock?.();sky.An('pause');select.focus();}
+    if(g.mode==='play'&&e.code==='Tab'){e.preventDefault();e.stopImmediatePropagation();choose();}
     else if(g.mode==='play'&&e.code==='KeyT'&&!e.repeat){e.preventDefault();retry();}
   },true);
   function tick(dt){
@@ -79,7 +81,12 @@
   function frame(){
     panel.hidden=!['play','pause'].includes(g.mode);
     panel.dataset.paused=String(g.mode==='pause');
-    if(lastMode!==g.mode){lastMode=g.mode;if(g.mode==='pause')document.querySelector('#ovPause .plate').prepend(panel);else document.body.append(panel);}
+    // During play the panel shares the game's rotation and safe-area mapping.
+    // The paused settings sheet deliberately stays in the physical viewport.
+    // Selecting a section can pause and resume within one animation frame.
+    // Check the actual parent so the live panel always returns to the game.
+    if(g.mode==='pause'){if(panel.parentElement!==pausePlate)pausePlate.prepend(panel);}
+    else if(panel.parentElement!==app)app.append(panel);
     if(!panel.hidden){panel.querySelector('#practiceSpeed').textContent=Math.hypot(c.vel.x,c.vel.z).toFixed(1)+' m/s';panel.querySelector('#practiceChain').textContent=chain>1?chain+' 連続':'';hint.textContent=(messageUntil>z.t?message+'！　':'')+section.hint+(matchMedia('(pointer:fine)').matches?'　T：再試行 / Tab：技を選ぶ':'');}
     document.body.dataset.skyPractice=JSON.stringify({section:section.id,falls,chain,targets:targets.length});
     if(!autoStarted&&g.mode==='menu'&&window.skySwing&&document.body.dataset.skyHumanLoaded==='true'&&!document.getElementById('bStart').disabled){autoStarted=true;document.getElementById('bStart').click();}

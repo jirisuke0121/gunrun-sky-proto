@@ -25,7 +25,7 @@ const base=process.env.RUNNING_QA_URL||'http://127.0.0.1:8778/';
   else await p.keyboard.down('KeyW');
   await p.evaluate(()=>{tickPractice(4);
   });
-  const openControls=async()=>{if(!touch){await p.keyboard.press('Tab');await p.waitForFunction(()=>__game.mode==='pause');}};
+  const openControls=async()=>{if(touch)await p.getByRole('button',{name:'技を選ぶ',exact:true}).click();else await p.keyboard.press('Tab');await p.waitForFunction(()=>__game.mode==='pause');};
   const jump=async()=>{if(touch){const b=await p.locator('#tJump').boundingBox(),point={x:b.x+b.width/2,y:b.y+b.height/2,id:8};await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[stick,point]});await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[point]});}else await p.keyboard.press('Space');};
   await jump();const bars=new Set();let landed=false,maxSpeed=0;
   for(let i=0;i<160;i++){
