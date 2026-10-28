@@ -7,6 +7,8 @@
     { at: [-14, 1.4, 6.8], normal: [-1, 0], direction: [0, 1], name: '西の路地・南への近道' },
   ];
   const key = 'gunrun-old-town-walljumps-v1';
+  // Restore the published routes independently of saved editor designs. Moving
+  // a design marker must not remove an existing in-game take-off point.
   let points = defaults;
   const rows = source => source.map(({ at, normal }) => [...at, ...normal]);
   const valid = value => Array.isArray(value) && value.length <= 128 && value.every(p =>
@@ -16,8 +18,8 @@
   function publish() {
     // Practice and canyon courses own their own permissions and route guides.
     if (window.skyPracticeMode || window.skySwingCourse) return;
-    window.__skyWallRunSpots = points.map(({ at, normal }) => ({ at: [...at], normal: [...normal] }));
-    window.__skyWallRunRoutes = points.map(({ at, normal, direction, name }) =>
+    window.__skyWallRunSpots = defaults.map(({ at, normal }) => ({ at: [...at], normal: [...normal] }));
+    window.__skyWallRunRoutes = defaults.map(({ at, normal, direction, name }) =>
       ({ at: [...at], normal: [...normal], direction: [...direction], name }));
     window.dispatchEvent?.(new Event('sky-walljump-layout-change'));
   }
@@ -38,14 +40,13 @@
       return { at: [x, y, z], normal: [nx, nz], direction: original ? [...original.direction] : [-nz, nx],
         name: original?.name || `編集した壁ジャンプ ${i + 1}` };
     });
-    publish();
     return true;
   }
   window.skyWallJumpEditor = {
     key, defaults: () => rows(defaults), current: () => rows(points), apply,
     reset() {
       try { localStorage.removeItem(key); } catch { return false; }
-      points = defaults; publish(); return true;
+      points = defaults; return true;
     },
   };
   publish();
@@ -64,7 +65,7 @@
   // much smaller take-off area used by matchingPoint below.
   window.__skyCanWallRunOnFace = (wall, normal) => {
     if (!wall || wall.type !== "mono" || wall.wr === false || wall.off || !normal) return false;
-    return (window.skyPracticeMode ? window.skyPracticeCourse.wallSpots : window.skySwingCourse ? defaults : points).some(({ at: [x, y, z], normal: [nx, nz] }) => {
+    return (window.skyPracticeMode ? window.skyPracticeCourse.wallSpots : defaults).some(({ at: [x, y, z], normal: [nx, nz] }) => {
       if (normal.x !== nx || normal.z !== nz) return false;
       const plane = nx ? (nx > 0 ? wall.maxX : wall.minX) : (nz > 0 ? wall.maxZ : wall.minZ);
       const along = nx ? z : x;
@@ -76,7 +77,7 @@
 
   function matchingPoint(player, getWall, wallNormal) {
     const radius = player.r + 0.55;
-    return (window.skyPracticeMode ? [...window.skyPracticeCourse.wallSpots,window.skySwingCourse.wall] : window.skySwingCourse ? [window.skySwingCourse.wall] : points).find(({ at, normal }) => {
+    return (window.skyPracticeMode ? [...window.skyPracticeCourse.wallSpots,window.skySwingCourse.wall] : window.skySwingCourse ? [window.skySwingCourse.wall] : defaults).find(({ at, normal }) => {
       const [x, y, z] = at;
       const [nx, nz] = normal;
       if (wallNormal && wallNormal.x * nx + wallNormal.z * nz < 0.8) return false;

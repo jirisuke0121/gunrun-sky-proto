@@ -46,15 +46,15 @@ const wait = (page, predicate, argument) => page.waitForFunction(predicate, argu
         assert.equal(await editor.locator('#points button').count(), 5, 'editor starts with actual standard points');
         await editor.locator('#points button').first().click();
         await editor.locator('#x').fill('32'); await editor.locator('#x').blur();
-        await wait(game, () => window.skyWallJumpEditor.current()[0][0] === 32 && window.skyWallRunGuides?.routes[0]?.at[0] === 32);
+        await wait(game, () => window.skyWallJumpEditor.current()[0][0] === 32 && window.skyWallRunGuides?.routes[0]?.at[0] === 26);
         const accepts = await game.evaluate(() => {
           const wall = window.__game.solids.find(b => b.type === 'mono' && Math.abs(b.maxZ + 1.5) < .05 && b.minX < 26 && b.maxX > 32);
           const player = x => ({ r: .34, pos: { x, y: 1.9, z: -.78 } });
           return [32, 26].map(x => window.__skyCanWallJumpAtSpot(player(x), () => wall, { x: 0, z: 1 }));
         });
-        assert.deepEqual(accepts, [true, false], 'new location accepts jumps; old location no longer does');
+        assert.deepEqual(accepts, [false, true], 'original take-off remains active after editing a design');
         await editor.locator('#remove').click();
-        await wait(game, () => window.skyWallJumpEditor.current().length === 4 && window.skyWallRunGuides.routes.length === 4);
+        await wait(game, () => window.skyWallJumpEditor.current().length === 4 && window.skyWallRunGuides.routes.length === 5);
         await editor.locator('#reset').click();
         await wait(game, () => window.skyWallJumpEditor.current().length === 5 && window.skyWallRunGuides.routes.length === 5);
         console.log('SYNC verified; reloading game');
@@ -62,7 +62,7 @@ const wait = (page, predicate, argument) => page.waitForFunction(predicate, argu
         await wait(game, () => window.skyWallJumpEditor?.current().length === 5 && window.skyWallRunGuides?.routes.length === 5);
         await editor.screenshot({ path: `browser-evidence/editor-autosave-${touch ? 'touch' : 'desktop'}.png`, fullPage: true });
         assert.deepEqual(errors, []);
-        console.log(`PASS ${touch ? 'touch' : 'desktop'} editor: input auto-save, cross-tab hooks, reload, moved jump permissions and paint, delete and standard reset`);
+        console.log(`PASS ${touch ? 'touch' : 'desktop'} editor: input auto-save, cross-tab hooks, reload, saved jump designs and stable published permissions/paint, delete and standard reset`);
       } finally { await context.close(); }
     }
   } finally { await browser?.close(); server?.kill(); }

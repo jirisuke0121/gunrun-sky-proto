@@ -73,7 +73,7 @@ function element() {
     getBoundingClientRect: () => ({ left: 0, top: 0 }), setPointerCapture: noop };
 }
 // Execute the real guide module against a small scene to check that registry
-// changes remove old paint and rebuild the markers at the new coordinates.
+// design changes leave the published five routes and their markers intact.
 class Group {
   constructor() { this.children = []; }
   add(child) { this.children.push(child); }
@@ -133,20 +133,20 @@ async function main() {
 
   get('wallJumpMode').onclick(); run('selectedWallJump=0'); get('x').value = '32'; get('x').handlers.get('change')();
   editor.flush();
-  assert.equal(game.skyWallJumpEditor.current()[0][0], 32, 'wall-jump positions are live game data');
-  assert.equal(frame.skyWallRunGuides.routes[0].at[0], 32, 'paint follows the updated jump location');
+  assert.equal(game.skyWallJumpEditor.current()[0][0], 32, 'wall-jump designs are saved across tabs');
+  assert.equal(frame.skyWallRunGuides.routes[0].at[0], 26, 'published paint stays at the original take-off');
   const player = x => ({ r: .34, pos: { x, y: 1.9, z: -1.5 + .72 } });
-  assert.equal(game.__skyCanWallJumpAtSpot(player(32), () => walls[0], { x: 0, z: 1 }), true);
-  assert.equal(game.__skyCanWallJumpAtSpot(player(26), () => walls[0], { x: 0, z: 1 }), false, 'old take-off area is no longer active');
+  assert.equal(game.__skyCanWallJumpAtSpot(player(32), () => walls[0], { x: 0, z: 1 }), false);
+  assert.equal(game.__skyCanWallJumpAtSpot(player(26), () => walls[0], { x: 0, z: 1 }), true, 'original take-off remains active after moving a design');
   get('remove').onclick(); editor.flush();
-  assert.equal(frame.skyWallRunGuides.root.children.length, 8, 'removed jump point leaves no old paint behind');
-  assert.equal(game.__skyCanWallRunOnFace(walls[0], { x: 0, z: 1 }), false, 'deleting the only point on a face removes its permission');
+  assert.equal(frame.skyWallRunGuides.root.children.length, 10, 'deleting a design keeps all five published markers');
+  assert.equal(game.__skyCanWallRunOnFace(walls[0], { x: 0, z: 1 }), true, 'deleting a design keeps the published wall permission');
   get('reset').onclick();
   assert.deepEqual(plain(game.skyWallJumpEditor.current()), defaults);
 
   run('wallJumps.push([55,2,0,-1,0]);markWallJumpDirty()'); editor.flush();
-  assert.equal(frame.skyWallRunGuides.root.children.length, 12, 'new wall gets arrow and jump panels');
-  assert.equal(game.__skyCanWallRunOnFace(extraWall, { x: -1, z: 0 }), true, 'new registered wall becomes usable');
+  assert.equal(frame.skyWallRunGuides.root.children.length, 10, 'adding a design leaves the published route markers intact');
+  assert.equal(game.__skyCanWallRunOnFace(extraWall, { x: -1, z: 0 }), false, 'design additions do not replace published wall permissions');
   assert.equal(game.__skyCanWallRunOnFace(extraWall, { x: 1, z: 0 }), false, 'opposite face remains disallowed');
 
   get('hookMode').onclick(); run('selected=0'); denyWrites = true;
@@ -164,7 +164,7 @@ async function main() {
   assert.equal(game.skyHookEditor.current()[0][0], 11, 'leaving the page flushes pending edits');
   const reloadedGame = makeTab(); installHooks(reloadedGame); installWalls(reloadedGame);
   assert.equal(reloadedGame.skyHookEditor.current()[0][0], 11);
-  assert.equal(reloadedGame.skyWallJumpEditor.current().length, 6, 'a reloaded game keeps the wall configuration');
+  assert.equal(reloadedGame.skyWallJumpEditor.current().length, 6, 'a reloaded editor keeps its saved design');
 
   get('wallJumpMode').onclick();
   get('importFile').files = [{ text: async () => JSON.stringify({ format: 'gunrun-old-town-walljumps-v1', map: 'old-town',
@@ -190,6 +190,6 @@ async function main() {
   game.skyWallJumpEditor.reset();
   assert.equal(practice.__skyWallRunRoutes, practiceRoutes, 'old-town synchronization leaves practice route guides alone');
   assert.equal(practice.__skyCanWallRunOnFace(extraWall, { x: -1, z: 0 }), true, 'practice permissions stay independent');
-  console.log('PASS editor autosave: hooks/wall-jumps, live cross-tab sync, debounce, delete/reset/import, reload, page exit, denied storage/retry, invalid data and practice isolation');
+  console.log('PASS editor autosave: live hooks, saved wall-jump designs, stable published routes, debounce, delete/reset/import, reload, page exit, denied storage/retry, invalid data and practice isolation');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

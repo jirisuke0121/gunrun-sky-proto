@@ -248,6 +248,7 @@ function setViewPan(value){viewPan=value;$('viewPan').classList.toggle('active',
 function setMode(value){mode=value;tool='add';$('hookMode').classList.toggle('active',mode==='hook');$('wallJumpMode').classList.toggle('active',mode==='walljump');$('testPoint').hidden=mode==='walljump';refresh();setTool('add');}
 function flushSave() {
   clearTimeout(saveTimer);
+  const savingWallJump = dirty.walljump;
   let ok = true;
   for (const kind of ['hook', 'walljump']) {
     if (!dirty[kind]) continue;
@@ -256,7 +257,7 @@ function flushSave() {
     else ok = false;
   }
   refresh();
-  status(ok ? '自動保存済み。同じブラウザの旧市街に反映しました。' : '自動保存できませんでした。未保存の変更があります。「保存を再試行」を押してください。', !ok);
+  status(ok ? (savingWallJump ? '壁ジャンプの設計データを自動保存しました。ゲームの標準5地点は変わりません。' : '自動保存済み。同じブラウザの旧市街に反映しました。') : '自動保存できませんでした。未保存の変更があります。「保存を再試行」を押してください。', !ok);
   return ok;
 }
 function queueSave(kind) {
@@ -270,16 +271,16 @@ function markWallJumpDirty(){dirty.walljump=true;if(!wallApi.apply(wallJumps)){c
 function refresh(){
   draw();renderCandidates();const isWall=mode==='walljump',points=isWall?wallJumps:layout,index=isWall?selectedWallJump:selected,p=points[index];
   $('selectedTitle').textContent=isWall?'選択中の壁ジャンプ地点':'選択中のフック';$('pointsTitle').firstChild.textContent=isWall?'壁ジャンプ地点 ':'配置済み ';$('count').textContent=`${points.length}個`;
-  $('reset').textContent='標準配置に戻す';$('saveNote').textContent='追加・移動・削除すると自動保存され、同じブラウザで開いている旧市街にも反映されます。';
+  $('reset').textContent='標準配置に戻す';$('saveNote').textContent=isWall?'壁ジャンプの編集は設計データとして自動保存します。ゲームでは従来の標準5地点を使います。':'追加・移動・削除すると自動保存され、同じブラウザで開いている旧市街にも反映されます。';
   $('normalField').style.display=isWall?'block':'none';$('mapnote').textContent=isWall?'緑●＝壁走りジャンプ推奨、赤■＝非推奨（理由は右の一覧）。壁走りできる縦の壁面をクリックして地点を登録。番号をドラッグして移動。「視点移動」をONにしてドラッグするとマップを平行移動、OFFでは回転します。':'壁をクリックしてフックを配置、番号をドラッグして移動。「視点移動」をONにしてドラッグするとマップを平行移動、OFFでは回転します。右ドラッグでも移動できます。';
-  $('handoffNote').textContent='JSONの読み込みも自動保存されます。別の端末へはJSONで受け渡せます。全プレイヤー向けの標準配置にする場合は、ソースへの反映が必要です。';
+  $('handoffNote').textContent=isWall?'JSONで設計データを受け渡せます。ゲームの壁ジャンプ地点を変更するには、書き出したJSONをソースへ反映します。':'JSONの読み込みも自動保存されます。別の端末へはJSONで受け渡せます。全プレイヤー向けの標準配置にする場合は、ソースへの反映が必要です。';
   $('loadState').textContent=(dirty[mode]?'未保存の変更あり / ':'自動保存 / ')+`地形 ${solids.length} 箱 / ${isWall?'壁ジャンプ地点':'フック'} ${points.length} 個`;$('save').disabled=!dirty.hook&&!dirty.walljump;
   for(const [k,i] of [['x',0],['y',1],['z',2]])$(k).value=p?Number(p[i].toFixed(2)):'';
   if(isWall&&p)$('normal').value=`${p[3]},${p[4]}`;
   $('remove').disabled=!p;$('move').disabled=!p;$('focusSelected').disabled=!p;
   $('points').replaceChildren(...points.map((q,i)=>{const button=document.createElement('button');button.className='point'+(i===index?' selected':'');const suffix=isWall?` / ${q[3]===1?'東':q[3]===-1?'西':q[4]===1?'南':'北'}面`:'';button.innerHTML=`<span>● ${i+1}</span><em>${q.slice(0,3).map(n=>n.toFixed(1)).join(' / ')}${suffix}</em>`;button.onclick=()=>{if(isWall)selectedWallJump=i;else selected=i;refresh();};return button;}));
   if(!p){$('reach').textContent=isWall?'壁ジャンプ地点を選択してください。':'フックを選択してください。';return;}
-  if(isWall){$('reach').textContent=`壁の向き：${p[3]===1?'東':p[3]===-1?'西':p[4]===1?'南':'北'}向き。ゲーム内の壁ジャンプは現在、壁走り中の入力で発生します。`;return;}
+  if(isWall){$('reach').textContent=`壁の向き：${p[3]===1?'東':p[3]===-1?'西':p[4]===1?'南':'北'}向き。設計地点の移動で、ゲームの標準5地点は変わりません。`;return;}
   const start=[launch.x,launch.y+1.6,launch.z],d=[p[0]-start[0],p[1]-start[1],p[2]-start[2]],range=Math.hypot(...d),max=game.S.hookRange;let label=range<2.5?'近すぎます':range>max?'射程外':`射程内（${range.toFixed(1)} / ${max}）`;if(range>=2.5&&range<=max&&internals?.raycast){const block=internals.raycast(...start,...d.map(v=>v/range),range-.6);label+=block?'・途中に障害物あり':'・見通しあり';}$('reach').textContent='試射地点から：'+label+'。実際の使用には照準合わせも必要です。';
 }
 canvas.addEventListener('pointerdown',e=>{if(!api)return;const p=pointFromEvent(e),marker=hitMarker(p.x,p.y);canvas.setPointerCapture(e.pointerId);if(marker>=0){if(mode==='hook')selected=marker;else selectedWallJump=marker;}const kind=marker>=0&&e.button===0?'marker':viewPan||e.button===2||e.shiftKey?'pan':'orbit';drag={kind,x:p.x,y:p.y,moved:false,startYaw:camera.yaw,startPitch:camera.pitch,startTarget:{...camera.target}};canvas.classList.toggle('is-panning',kind==='pan');if(marker>=0)refresh();});
@@ -315,7 +316,7 @@ $('reset').onclick=()=>{
   const isWall=mode==='walljump',registry=isWall?wallApi:api;
   if(!registry.reset())return status('標準配置に戻せませんでした。ブラウザの保存設定を確認してください。',true);
   if(isWall){wallJumps=registry.current();selectedWallJump=-1;}else{layout=registry.current();selected=-1;}
-  dirty[mode]=false;refresh();status('最新の標準配置に戻し、ゲームにも反映しました。');
+  dirty[mode]=false;refresh();status(isWall?'壁ジャンプの設計を標準5地点に戻しました。':'フックを標準配置に戻し、ゲームにも反映しました。');
 };
 $('export').onclick=()=>{const isWall=mode==='walljump',data=isWall?{format:'gunrun-old-town-walljumps-v1',map:'old-town',wallJumps:wallJumps.map(([x,y,z,nx,nz])=>({at:[x,y,z],normal:[nx,nz]}))}:{format:'gunrun-old-town-hooks-v1',map:'old-town',hooks:layout};const blob=new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=isWall?'gunrun-old-town-walljumps.json':'gunrun-old-town-hooks.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status(isWall?'壁ジャンプ地点JSONを書き出しました。':'フック配置JSONを書き出しました。');};
 $('import').onclick=()=>$('importFile').click();$('importFile').onchange=async()=>{const file=$('importFile').files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(mode==='hook'){if(data.format!=='gunrun-old-town-hooks-v1'||data.map!=='old-town'||!Array.isArray(data.hooks)||data.hooks.length>64||!data.hooks.every(finitePoint))throw Error('形式または座標が正しくありません');layout=data.hooks.map(p=>[...p]);selected=-1;preview();}else{if(data.format!=='gunrun-old-town-walljumps-v1'||data.map!=='old-town'||!Array.isArray(data.wallJumps)||data.wallJumps.length>128||!data.wallJumps.every(p=>Array.isArray(p?.at)&&Array.isArray(p?.normal)&&finiteWallJump([...p.at,...p.normal])))throw Error('形式または座標が正しくありません');const next=data.wallJumps.map(p=>[...p.at,...p.normal]);if(!next.every(p=>wallJumpPointAt(...p.slice(0,3),p.slice(3))))throw Error('壁走りできる壁面上にない地点があります');wallJumps=next;selectedWallJump=-1;markWallJumpDirty();}status('JSONを読み込みました。自動保存しています。');}catch(e){status('読み込めませんでした：'+e.message,true);}finally{$('importFile').value='';}};
@@ -328,7 +329,7 @@ async function boot(){
     api=w.skyHookEditor;wallApi=w.skyWallJumpEditor;game=w.__game;internals=w.__skyInternals;
     if(!api||!wallApi||!game?.solids)throw Error('ゲームの地形を読み込めませんでした');
     w.__hold=true;solids=game.solids;layout=api.current();wallJumps=wallApi.current();
-    fit();resize();refresh();status('配置の変更は自動保存され、同じブラウザの旧市街に反映されます。');
+    fit();resize();refresh();status('配置の変更は自動保存されます。壁ジャンプのゲーム内配置は従来の標準5地点です。');
   }catch(e){status(e.message,true);$('loadState').textContent='読み込みに失敗しました。HTTPまたは公開URLで開いてください。';}
 }
 window.addEventListener('storage',event=>{
