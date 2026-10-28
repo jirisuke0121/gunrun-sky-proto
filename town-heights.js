@@ -37,6 +37,34 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
     }
   };
 
+  // Central building: break the two long ground-floor lanes into escape loops.
+  // Cut collision and rendered geometry together, before the spatial/nav indices
+  // are built. The upper wall/floor and the existing door openings stay intact.
+  const corridorExit = (id, x0, x1, z0, z1, outsideX) => {
+    const index = jn.findIndex(b => b.type === 'mono' && b.minX === x0 && b.maxX === x1 && b.minY === 0 && b.minZ <= z0 && b.maxZ >= z1);
+    if (index < 0) throw new Error('Missing corridor wall: ' + id);
+    const wall = jn.splice(index, 1)[0];
+    box(x0, 0, wall.minZ, x1, wall.maxY, z0, 'mono');
+    box(x0, 0, z1, x1, wall.maxY, wall.maxZ, 'mono');
+    const lintel = box(x0, 2.5, z0, x1, wall.maxY, z1, 'mono');
+    lintel.indoorExit = id;
+    // A flush landing joins the exterior street; neither hole ends over a void.
+    box(Math.min(outsideX, x0), -.4, z0 - .6, Math.max(outsideX, x1), 0, z1 + .6, 'slab', SKY.steel);
+    const face = outsideX < x0 ? x1 : x0;
+    box(face - .055, 0, z0, face + .055, 2.5, z0 + .13, 'beam', SKY.green);
+    box(face - .055, 0, z1 - .13, face + .055, 2.5, z1, 'beam', SKY.green);
+    box(face - .055, 2.37, z0, face + .055, 2.5, z1, 'beam', SKY.green);
+    return { id, width: z1 - z0 - .26, height: 2.37, from: [outsideX < x0 ? x1 + 1 : x0 - 1, 0, (z0 + z1) / 2], to: [outsideX + (outsideX < x0 ? .6 : -.6), 0, (z0 + z1) / 2] };
+  };
+  window.skyCorridorExits = [
+    corridorExit('corridor-west', -14, -13, 7, 9.6, -17),
+    corridorExit('corridor-east', 13, 14, -5, -2.4, 17),
+  ];
+  // The east landing sits beside a tall block. Continue south to the existing
+  // east entrance, so turning out of the hole leads to a loop, not a dead end.
+  box(14, -.4, -5.6, 17, 0, 1.5, 'slab', SKY.steel);
+  box(16.85, 0, -5.6, 17, .85, -1.5, 'beam', SKY.plank);
+
   // Each tower stands on the back half of its roof, with a staircase beside it: six steps
   // (1.25 m rises, 1.08 m treads, 1.5 m wide, a 2.5 m landing at the top), so anything going up, people or zombies,
   // goes up in single file. The plank, the grapple and the sky chain are the fast ways.

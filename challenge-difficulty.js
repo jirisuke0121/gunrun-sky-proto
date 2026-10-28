@@ -159,7 +159,7 @@
       if (edge.kind === 7) return .3 + Math.sqrt(2 * Math.max(0, edge.fall || 0) / game.U.gravity);
       if (edge.kind === 5) return h / ladderSpeed + .8;
       if (edge.kind === 1) return (.45 + .38 * h) * (h > 1.4 ? 1.8 : 1) + Math.max(0, edge.len - 1.6) / speed;
-      if (edge.kind === 3) return edge.len / (speed * .35);
+      if (edge.kind === 3) return edge.len / (window.skyZombieCrawlSpeed?.(speed) ?? speed * .35);
       return edge.len / speed;
     },
     travelCost(edge, fallback) {
