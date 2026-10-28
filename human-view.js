@@ -15,6 +15,7 @@ let gripPoint = new Vector3(), muzzleFlash = null;
 let gaitPhase = 0, runPose = 0, gripPitch = 0, bodyYawOffset = 0, turnBank = 0;
 let swingLean = 0;
 let motionPosition = null, lastTravelYaw = null;
+let closeFollowView = false;
 let wallFrame = null, wallPhase = 0;
 let parkourRunEnabled = true;
 let contactFrame = null, trackedLedge = null, handAnchor = null;
@@ -459,15 +460,21 @@ function update(dt) {
   }
   camera.position.copy(pivot).addScaledVector(delta, safe);
   camera.updateMatrixWorld();
-  const close = safe <= .28;
+  const follow = window.skyFollowCamera?.active;
+  // Hide the avatar before it fills the view, with a wider return threshold
+  // so a wall edge does not flicker between a full body and first person.
+  const distance = delta.length() * safe;
+  closeFollowView = !!follow && distance < (closeFollowView ? 1.95 : 1.65);
+  const close = follow ? closeFollowView : safe <= .28;
   updateWorldWeapon(!close,dt);
   if (holder) holder.visible = !close;
   if (worldWeapon && close) worldWeapon.visible = false;
-  if (ls) ls.root.visible = close && !!sky.U.showBody;
-  for (const arm of mr) arm.root.visible = close && !!sky.U.showBody;
+  if (ls) ls.root.visible = close && !follow && !!sky.U.showBody;
+  for (const arm of mr) arm.root.visible = close && !follow && !!sky.U.showBody;
   document.body.dataset.skyHumanView = close ? 'first-collision' : 'third';
   document.body.dataset.skyHumanCameraClearance = safe.toFixed(2);
-  window.skyFirstPersonView?.update(dt, !close);
+  // A squeezed follow view prioritizes the landing area over body/weapon overlays.
+  window.skyFirstPersonView?.update(dt, !close || !!follow);
 }
 function getMuzzleWorld() {
   if(choice!=='unity'||view!=='third'||!worldWeapon?.visible||!holder?.visible)return null;

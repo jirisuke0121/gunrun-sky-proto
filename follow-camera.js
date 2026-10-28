@@ -14,6 +14,8 @@
   const angle = n => Math.atan2(Math.sin(n), Math.cos(n));
   const view = { yaw: c.yaw, pitch: c.pitch };
   let manual = false, manualUntil = 0, mouseHeld = false, lastInput = 0;
+  // A turn gesture cannot become reverse until the thumb returns to neutral.
+  let gesture = 'idle', gestureId = null, reverseTime = 0;
   const selectors = [];
   const enabled = () => mode === 'after' && !game.demoActive();
   const playing = () => enabled() && game.modeRef() === 'play' && !game.z.over;
@@ -21,23 +23,72 @@
   function reset() {
     view.yaw = c.yaw; view.pitch = c.pitch;
     manual = mouseHeld = false; manualUntil = 0; lastInput = 0;
+    gesture = 'idle'; gestureId = null; reverseTime = 0;
   }
   function input(raw) {
     if (!playing()) return raw;
+    // These actions own forward/back input (e.g. descending a ladder).
+    if (['ladder', 'zip', 'hook', 'swing'].includes(c.state)) return raw;
     const analog = touch.on && raw.tmag > .18;
     const sideways = keys.AltLeft || keys.AltRight;
-    const x = raw.strIn, magnitude = Math.abs(x);
-    raw.steer = sideways ? 0 : Math.sign(x) * Math.pow(clamp((magnitude - (analog ? .28 : 0)) / (analog ? .72 : 1), 0, 1), 1.15);
-    // Keep small thumb corrections lateral; a full sideways deflection turns in place.
-    if (!sideways) raw.strIn = analog ? x * clamp((.55 - magnitude) / .27, 0, 1) : 0;
+    const x = raw.strIn, magnitude = Math.abs(x), forward = raw.fwdIn;
+    if (!analog || touch.id !== gestureId) {
+      gesture = 'idle'; reverseTime = 0; gestureId = touch.id;
+    }
+    if (analog) {
+      // Enter a narrow reverse cone from neutral, then hold briefly. Rolling a
+      // forward/turn gesture into the lower half is always a brake/pivot.
+      const down = forward < 0 && magnitude < -forward * .35;
+      if (gesture === 'idle') gesture = down ? 'pending' : 'drive';
+      if ((gesture === 'pending' || gesture === 'reverse') && !down) {
+        gesture = 'drive'; reverseTime = 0;
+      }
+      raw.reversePending = gesture === 'pending' && forward < -.55;
+      raw.reversing = gesture === 'reverse';
+      raw.fwdIn = raw.reversing ? forward : Math.max(0, forward);
+    }
+    const lowerTurn = analog && forward < 0 && gesture === 'drive';
+    const pivotBlend = lowerTurn ? clamp(-forward / .5, 0, 1) : 0;
+    const deadzone = analog ? .28 - .2 * pivotBlend : 0;
+    const range = analog ? .72 - .22 * pivotBlend : 1;
+    raw.steer = sideways || raw.reversePending || raw.reversing ? 0
+      : Math.sign(x) * Math.pow(clamp((magnitude - deadzone) / range, 0, 1), 1.15);
+    // A small horizontal correction remains lateral. In the lower half, use
+    // horizontal intent only to pivot; never strafe or walk backwards.
+    if (!sideways) raw.strIn = analog && forward >= 0 ? x * clamp((.55 - magnitude) / .27, 0, 1) : 0;
+    if (raw.reversePending) raw.fwdIn = raw.strIn = 0;
+    raw.motionScale = analog ? clamp((Math.hypot(raw.fwdIn, raw.strIn) - .12) / .88, 0, 1) : 1;
+    raw.motionScale *= 1 - .75 * Math.pow(Math.abs(raw.steer), .8);
+    raw.precise = analog || Math.abs(raw.steer) > .01;
     return raw;
   }
   function step(dt, controls) {
     if (!playing()) return;
+    if (controls.reversePending && c.onGround && c.state === 'normal') {
+      reverseTime += Math.min(.05, Math.max(0, dt));
+      if (reverseTime >= .18) gesture = 'reverse';
+    } else reverseTime = 0;
     lastInput = Math.max(Math.abs(controls.fwdIn), Math.abs(controls.strIn), Math.abs(controls.steer || 0));
     if (!['normal', 'slide', 'wallrun'].includes(c.state)) return;
     const turn = (controls.steer || 0) * 2.4 * (c.state === 'wallrun' ? .3 : 1);
     c.yaw = angle(c.yaw - turn * Math.min(.05, Math.max(0, dt)));
+  }
+  function speed(base, controls) {
+    if (!playing() || !c.onGround || c.state !== 'normal') return base;
+    const scaled = base * (controls.motionScale ?? 1);
+    return controls.reversing ? Math.min(2.2, scaled) : scaled;
+  }
+  function move(dt, x, z, magnitude, target, controls) {
+    if (!playing() || !c.onGround || c.state !== 'normal' || !controls.precise ||
+        (controls.motionScale >= .99 && !controls.reversing)) return false;
+    // Respect the reduced target immediately through braking, instead of the
+    // normal momentum-preservation path that carries a runner past a corner.
+    const dx = x * target - c.vel.x, dz = z * target - c.vel.z;
+    const difference = Math.hypot(dx, dz);
+    const braking = Math.hypot(c.vel.x, c.vel.z) > target || magnitude === 0;
+    const amount = Math.min(1, (braking ? Math.max(32, game.U.groundBrake) : game.U.groundAccel) * dt / (difference || 1));
+    c.vel.x += dx * amount; c.vel.z += dz * amount;
+    return true;
   }
   function look(yawDelta, pitchDelta) {
     if (!playing()) return false;
@@ -55,7 +106,7 @@
     if (manual && (held || performance.now() < manualUntil || lastInput < .08)) return view;
     manual = false;
     let targetYaw = c.yaw;
-    let targetPitch = c.onGround ? -.09 : -.16;
+    let targetPitch = c.state === 'ledge' ? -.24 : c.onGround ? -.09 : -.16;
     // Follow only the anchor already selected by the player. Never retarget a hook.
     if (c.state === 'hook' && c.hook) {
       const dx = c.hook[0] - c.pos.x, dz = c.hook[2] - c.pos.z;
@@ -75,8 +126,8 @@
     for (const select of selectors) select.value = mode;
     for (const note of document.querySelectorAll('.follow-camera-help')) {
       note.textContent = mode === 'before' ? '従来どおり、移動と視点を別々に操作します。' : coarse()
-        ? '左スティックの左右で曲がる。少しだけ倒すと横へ微調整。右スワイプで見回せます。'
-        : 'W/S：前後、A/D：曲がる、Alt＋A/D：横移動。マウスで見回せます。';
+        ? '浅く倒すとゆっくり。横〜斜め下で減速して旋回。後退は一度戻して真下へ。右スワイプで見回せます。'
+        : 'W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。マウスで見回せます。';
     }
   }
   function setMode(next, persist = true) {
@@ -104,12 +155,12 @@
     return group;
   }
   window.skyFollowCamera = {
-    input, step, look, frame, reset, setMode,
+    input, step, speed, move, look, frame, reset, setMode,
     holdLook(held) { mouseHeld = held; },
     get active() { return enabled(); },
     get mode() { return mode; },
     get view() { return enabled() ? view : c; },
-    get state() { return { mode, yaw: view.yaw, pitch: view.pitch, heading: c.yaw, manual, moving: lastInput }; },
+    get state() { return { mode, yaw: view.yaw, pitch: view.pitch, heading: c.yaw, manual, moving: lastInput, gesture }; },
   };
   document.getElementById('humanStatus')?.after(control('cameraModeHome', true));
   document.getElementById('setGrid').prepend(control('cameraMode', false));
