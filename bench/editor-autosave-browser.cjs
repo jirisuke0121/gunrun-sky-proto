@@ -2,6 +2,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { spawn } = require('node:child_process');
 const { chromium } = require('playwright');
+// Timer polling also observes tabs whose animation frames are suspended.
+const wait = (page, predicate, argument) => page.waitForFunction(predicate, argument, { polling: 100, timeout: 45000 });
 
 (async () => {
   const base = process.env.RUNNING_QA_URL || 'http://127.0.0.1:8779/';
@@ -21,26 +23,30 @@ const { chromium } = require('playwright');
     for (const touch of [false, true]) {
       const context = await browser.newContext({ viewport: touch ? { width: 844, height: 390 } : { width: 1280, height: 800 },
         hasTouch: touch, isMobile: touch });
+      context.setDefaultTimeout(45000);
       try {
         const editor = await context.newPage(), game = await context.newPage(), errors = [];
         for (const page of [editor, game]) page.on('pageerror', error => errors.push(error.message));
         await editor.goto(new URL('hook-editor.html', base).href, { waitUntil: 'load' });
-        await editor.waitForFunction(() => document.querySelector('#loadState').textContent.startsWith('自動保存 /'), null, { timeout: 90000 });
+        await wait(editor, () => document.querySelector('#loadState').textContent.startsWith('自動保存 /'));
+        console.log(`READY ${touch ? 'touch' : 'desktop'} editor`);
         await game.goto(base, { waitUntil: 'load' });
-        await game.waitForFunction(() => window.skyHookEditor && window.skyWallRunGuides, null, { timeout: 90000 });
+        await wait(game, () => window.skyHookEditor && window.skyWallRunGuides);
+        console.log('READY game');
 
         await editor.locator('#points button').first().click();
         const oldX = await editor.locator('#x').inputValue(), nextX = Number(oldX) + .25;
         await editor.locator('#x').fill(String(nextX)); await editor.locator('#x').blur();
-        await game.waitForFunction(x => window.skyHookEditor.current()[0][0] === x, nextX);
+        await wait(game, x => window.skyHookEditor.current()[0][0] === x, nextX);
+        console.log('SYNC verified; reloading game');
         await game.reload({ waitUntil: 'load' });
-        await game.waitForFunction(x => window.skyHookEditor?.current()[0][0] === x, nextX);
+        await wait(game, x => window.skyHookEditor?.current()[0][0] === x, nextX);
 
         await editor.locator('#wallJumpMode').click();
         assert.equal(await editor.locator('#points button').count(), 5, 'editor starts with actual standard points');
         await editor.locator('#points button').first().click();
         await editor.locator('#x').fill('32'); await editor.locator('#x').blur();
-        await game.waitForFunction(() => window.skyWallJumpEditor.current()[0][0] === 32 && window.skyWallRunGuides.routes[0].at[0] === 32);
+        await wait(game, () => window.skyWallJumpEditor.current()[0][0] === 32 && window.skyWallRunGuides?.routes[0]?.at[0] === 32);
         const accepts = await game.evaluate(() => {
           const wall = window.__game.solids.find(b => b.type === 'mono' && Math.abs(b.maxZ + 1.5) < .05 && b.minX < 26 && b.maxX > 32);
           const player = x => ({ r: .34, pos: { x, y: 1.9, z: -.78 } });
@@ -48,11 +54,12 @@ const { chromium } = require('playwright');
         });
         assert.deepEqual(accepts, [true, false], 'new location accepts jumps; old location no longer does');
         await editor.locator('#remove').click();
-        await game.waitForFunction(() => window.skyWallJumpEditor.current().length === 4 && window.skyWallRunGuides.routes.length === 4);
+        await wait(game, () => window.skyWallJumpEditor.current().length === 4 && window.skyWallRunGuides.routes.length === 4);
         await editor.locator('#reset').click();
-        await game.waitForFunction(() => window.skyWallJumpEditor.current().length === 5 && window.skyWallRunGuides.routes.length === 5);
+        await wait(game, () => window.skyWallJumpEditor.current().length === 5 && window.skyWallRunGuides.routes.length === 5);
+        console.log('SYNC verified; reloading game');
         await game.reload({ waitUntil: 'load' });
-        await game.waitForFunction(() => window.skyWallJumpEditor?.current().length === 5 && window.skyWallRunGuides?.routes.length === 5);
+        await wait(game, () => window.skyWallJumpEditor?.current().length === 5 && window.skyWallRunGuides?.routes.length === 5);
         await editor.screenshot({ path: `browser-evidence/editor-autosave-${touch ? 'touch' : 'desktop'}.png`, fullPage: true });
         assert.deepEqual(errors, []);
         console.log(`PASS ${touch ? 'touch' : 'desktop'} editor: input auto-save, cross-tab hooks, reload, moved jump permissions and paint, delete and standard reset`);
