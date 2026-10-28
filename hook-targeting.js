@@ -12,7 +12,8 @@ globalThis.SkyHookAssist = {
       else if (distance < 2.5) reason = 'too_close';
       else if (point.z < -1 || point.z > 1 || Math.abs(point.x) > 1 || Math.abs(point.y) > 1) reason = 'offscreen';
       else if (occluded(dx / distance, dy / distance, dz / distance, distance - 0.6)) reason = 'occluded';
-      const dot = (-Math.sin(player.yaw) * Math.cos(player.pitch) * dx + Math.sin(player.pitch) * dy - Math.cos(player.yaw) * Math.cos(player.pitch) * dz) / (distance || 1);
+      const view = globalThis.skyFollowCamera?.active ? globalThis.skyFollowCamera.view : player;
+      const dot = (-Math.sin(view.yaw) * Math.cos(view.pitch) * dx + Math.sin(view.pitch) * dy - Math.cos(view.yaw) * Math.cos(view.pitch) * dz) / (distance || 1);
       const { width, height } = screen();
       return { anchor, reason, distance, angle: Math.acos(Math.max(-1, Math.min(1, dot))), x: (point.x + 1) * width / 2, y: (1 - point.y) * height / 2 };
     }
