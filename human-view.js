@@ -1,9 +1,11 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE } from './human-running.js?v=20261028-swing-flow-v2';
+import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE } from './human-running.js?v=20261028-roll-v1';
+import { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261028-roll-v1';
 import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261027-torso-v1';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
 const { Group, Vector3 } = Geom;
+const landingRoll = window.skyLandingRoll = createLandingRoll(sky);
 const choiceButtons = [...document.querySelectorAll('#humanSel button')];
 const status = document.getElementById('humanStatus');
 const loader = new T2.GLTFLoader();
@@ -151,7 +153,8 @@ function updateMotion(dt, speed) {
   right.set(Math.cos(c.yaw), 0, -Math.sin(c.yaw));
   const front = c.vel.x * forward.x + c.vel.z * forward.z;
   const side = c.vel.x * right.x + c.vel.z * right.z;
-  const normalGround = grounded && c.state === 'normal';
+  const rolling = landingRoll.active;
+  const normalGround = grounded && c.state === 'normal' && !rolling;
   const distance = motionPosition ? Math.hypot(c.pos.x - motionPosition.x, c.pos.z - motionPosition.z) : 0;
   const teleported = distance > Math.max(1.5, speed * dt * 3);
   if (!motionPosition) motionPosition = new Vector3();
@@ -186,7 +189,8 @@ function updateMotion(dt, speed) {
   }
   let next = 'idle';
   const walking = speed < (sky.U.walkSpeed + sky.U.sprintSpeed) / 2;
-  if (c.state === 'swing' && c.swing && motion.clips.parkourSwing) next = 'swing';
+  if (rolling && motion.clips.parkourRoll) next = 'roll';
+  else if (c.state === 'swing' && c.swing && motion.clips.parkourSwing) next = 'swing';
   else if (c.swingFlight && !grounded && c.state === 'normal') next = 'swingFlight';
   else if (c.state === 'ladder') next = 'ladder';
   else if (c.state === 'slide') next = 'slide';
@@ -208,13 +212,15 @@ function updateMotion(dt, speed) {
     if (next === 'ladder') document.body.dataset.skyHumanLadderSeen = 'true';
   }
   const special = next === 'wallrun' ? (wallFrame.side < 0 ? 'parkourWallLeft' : 'parkourWallRight')
-    : { vault: 'parkourVault', mantle: 'parkourMantle', catch: 'parkourCatch', jump: 'parkourJump', swing: 'parkourSwing', swingFlight: 'parkourSwingFlight' }[next];
-  const selected = (next === 'swing' || next === 'swingFlight' || parkourRunEnabled) && motion.clips[special] ? special : next;
+    : { roll: 'parkourRoll', vault: 'parkourVault', mantle: 'parkourMantle', catch: 'parkourCatch', jump: 'parkourJump', swing: 'parkourSwing', swingFlight: 'parkourSwingFlight' }[next];
+  const selected = (next === 'roll' || next === 'swing' || next === 'swingFlight' || parkourRunEnabled) && motion.clips[special] ? special : next;
   const ledgeAction = next === 'swing' || next === 'vault' || next === 'mantle' || next === 'catch';
+  if (rolling) { runPose = 0; bodyYawOffset = 0; turnBank = 0; landTime = 0; }
   if (ledgeAction) runPose = 0;
   const info = motion.clips[selected];
   if (!info) return;
-  if (next === 'swing') clipTime = info.duration * Math.max(0, Math.min(1, (c.swing.angle + 1.15) / 2.3));
+  if (next === 'roll') clipTime = info.duration * rollTuck(landingRoll.phase);
+  else if (next === 'swing') clipTime = info.duration * Math.max(0, Math.min(1, (c.swing.angle + 1.15) / 2.3));
   else if (next === 'swingFlight') clipTime = info.duration * Math.min(1,c.swingFlight.age/.42);
   else if (next === 'vault' || next === 'mantle' || next === 'catch') clipTime = info.duration * Math.max(0, Math.min(1, c.ledge.t));
   else if (next === 'reload') {
@@ -258,7 +264,8 @@ function updateMotion(dt, speed) {
       const name = run.frames[index]; targets[name] = (targets[name] || 0) + weight * runPose;
     }
   }
-  const smooth = ledgeAction ? 1 : 1 - Math.exp(-dt * 18);
+  const snap = landingRoll.takeSnap();
+  const smooth = ledgeAction || rolling || snap ? 1 : 1 - Math.exp(-dt * 18);
   for (const mesh of morphMeshes) {
     const weights = mesh.morphTargetInfluences, names = mesh.morphTargetDictionary;
     for (const [name, index] of Object.entries(names)) weights[index] += ((targets[name] || 0) - weights[index]) * smooth;
@@ -295,6 +302,7 @@ function updateMotion(dt, speed) {
   document.body.dataset.skyHumanGaitPhase = gaitPhase.toFixed(3);
   document.body.dataset.skyHumanWallSide = wallFrame ? String(wallFrame.side) : '';
   document.body.dataset.skyHumanWallPhase = wallPhase.toFixed(3);
+  document.body.dataset.skyHumanRollPhase = rolling ? landingRoll.phase.toFixed(3) : '';
 }
 const aimPoint = new Vector3(), aimDirection = new Vector3(), aimHand = new Vector3(), aimSupport = new Vector3(), aimPalm = new Vector3();
 const bore = new Vector3(), gunMuzzle = new Vector3(), actualDirection = new Vector3();
@@ -356,7 +364,7 @@ function updateWorldWeapon(third, dt = 0) {
     }
   }
   if (!worldWeapon) { aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
-  worldWeapon.visible = third && !!sky.U.gunOn && c.state !== 'ladder' && c.state !== 'ledge' && c.state !== 'swing';
+  worldWeapon.visible = third && !!sky.U.gunOn && !landingRoll.active && c.state !== 'ladder' && c.state !== 'ledge' && c.state !== 'swing';
   if (!worldWeapon.visible) { aimBlend=0;aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
   const aiming=aimRig && sky.Et.reloadT<=0 && (shotTime<.28 || (c.onGround && c.state==='normal' && runPose<.01));
   // A shot must already have a matching pose on its first visible frame.
@@ -411,7 +419,16 @@ function update(dt) {
     const swingDirection = swinging ? c.swing.direction : flight?.direction;
     const swingYaw = swingDirection ? Math.atan2(swingDirection[0],swingDirection[1]) : null;
     if (sky.modeRef() === 'play') swingLean = swinging ? -c.swing.angle : flight ? -flight.angle*Math.exp(-flight.age*5) : swingLean * Math.exp(-dt * 18);
-    holder.rotation.set(c.state === 'ladder' ? .09 : swingLean, c.state === 'ladder' ? ladderYaw : swingYaw ?? ledgeYaw ?? c.yaw + Math.PI + bodyYawOffset + 1.25 * slidePose, ledgeYaw === null ? turnBank : 0, 'YXZ');
+    const rolling = third && landingRoll.active && !!motion?.rollGround;
+    holder.rotation.set(rolling ? rollTurn(landingRoll.phase) : c.state === 'ladder' ? .09 : swingLean, rolling ? landingRoll.yaw : c.state === 'ladder' ? ladderYaw : swingYaw ?? ledgeYaw ?? c.yaw + Math.PI + bodyYawOffset + 1.25 * slidePose, ledgeYaw === null ? turnBank : 0, 'YXZ');
+    if (rolling) {
+      const frame = landingRoll.phase * (motion.rollGround.length - 1), i = Math.floor(frame), fraction = frame - i;
+      const a = motion.rollGround[i], b = motion.rollGround[Math.min(i + 1, motion.rollGround.length - 1)];
+      holder.position.y += (a.y + (b.y - a.y) * fraction) * holder.scale.y;
+      const z = (a.z + (b.z - a.z) * fraction) * holder.scale.z;
+      holder.position.x += Math.sin(landingRoll.yaw) * z;
+      holder.position.z += Math.cos(landingRoll.yaw) * z;
+    }
     if (third && contactFrame) {
       holder.updateMatrixWorld(true);
       contactWorld.set(...contactFrame.middle); model.localToWorld(contactWorld);
@@ -457,6 +474,7 @@ function getMuzzleWorld() {
   worldWeapon.updateMatrixWorld(true);return worldWeapon.localToWorld(heldWeapon.muzzle.clone());
 }
 function prepareShot(origin,direction,distance) {
+  landingRoll.cancel();
   if(choice!=='unity'||view!=='third'||!holder?.visible||!aimRig)return null;
   shotTarget=origin.clone().addScaledVector(direction,distance);shotTime=0;update(0);
   const muzzle=getMuzzleWorld();if(!muzzle)return null;

@@ -1,0 +1,70 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>空中回廊 着地の前転</title>
+<style>body{margin:0;background:#101a22;color:#e4f2f5;font:15px system-ui}main{max-width:1100px;margin:auto;padding:14px}h1{font-size:22px;margin:0 0 8px}p{color:#bdd0da}button{font:inherit;padding:8px 12px;margin:3px;background:#244654;color:white;border:1px solid #6b939d;border-radius:6px}iframe{width:100%;height:66vh;min-height:300px;border:1px solid #526d76}output{display:block;white-space:pre-wrap;font:14px ui-monospace,monospace;padding:10px;color:#b4edcf}</style>
+<main><h1>空中回廊 — 着地から走りへ</h1><p>実マップの床・ゲーム本体の移動処理と人間モデル。記録送信・設定保存は停止。</p>
+<nav><button id="old">旧市街</button><button id="canyon">岩壁渓谷</button><button data-drop="1.4">低い段差 1.4m</button><button data-drop="4.5">高所 4.5m</button><button data-drop="8">高所 8m</button><button id="jump">通常ジャンプ</button></nav>
+<nav><button id="pause">停止／再生</button><button data-phase=".25">前転25%で停止</button><button data-phase=".5">前転50%で停止</button><button data-phase=".75">前転75%で停止</button><button id="view">一人称／三人称</button><button id="cancelJump">ジャンプで中断</button><button id="shot">射撃で中断</button></nav>
+<iframe id="game" title="前転受け身の実ゲーム画面" sandbox="allow-same-origin allow-scripts allow-downloads"></iframe><output id="result">読込中…</output></main>
+<script type="module">
+const frame=document.querySelector('#game'),result=document.querySelector('#result');
+let w,g,c,sky,lane,ready=false,paused=false,last=null,phaseStop=null,sim=0,events=[],seen=false,scenario='',height=4.5,morphCount=0;
+const wait=()=>new Promise(r=>setTimeout(r,50));
+function drop(h=4.5,jump=false){
+ height=h;paused=false;sim=0;events=[];seen=false;scenario=jump?'通常ジャンプ':h+'mから着地';
+ w.skyLandingRoll.reset();g.placeAt({...lane,yaw:Math.atan2(-lane.dx,-lane.dz)});g.setMode('play');
+ c.pos.set(lane.x,lane.y+(jump?.01:h),lane.z);c.vel.set(lane.dx*6,jump?g.S.jumpVel:0,lane.dz*6);
+ Object.assign(c,{state:'normal',h:1.7,onGround:false,coyote:0,airT:0,jumpBuf:0,hookPressed:false,crouchPressed:false,slideBuf:0,zipWish:0,ledge:null,edgeOff:null,catchCD:1,setCD:2,camY:undefined,pitch:-.12});
+ g.keys.KeyW=true;sky.z.over=false;delete w.document.body.dataset.skyLandingRoll;
+}
+async function boot(map){
+ ready=false;result.textContent='モデルとマップを読み込み中…';
+ const base=new URL('../',location.href).href;
+ const guard=`<base href="${base}"><script>window.__hold=true;const request=window.fetch.bind(window);window.fetch=(url,options)=>/gunrun-runs\\./.test(String(url))?Promise.resolve(new Response('{}',{status:200,headers:{'content-type':'application/json'}})):request(url,options);Storage.prototype.setItem=()=>{};Storage.prototype.removeItem=()=>{};Storage.prototype.clear=()=>{};<\/script>`;
+ try{
+  const source=await fetch(new URL(map,base)).then(r=>r.text());
+  const loaded=new Promise(r=>frame.addEventListener('load',r,{once:true}));frame.srcdoc=source.replace('<head>',`<head>${guard}`);await loaded;
+  for(let i=0;i<600&&(!frame.contentWindow.skyHumanView||frame.contentWindow.document.body.dataset.skyHumanLoaded!=='true');i++)await wait();
+  w=frame.contentWindow;g=w.__game;c=g.P;sky=w.__skyInternals;g.S.sendLog=false;g.S.autoSprint=true;g.S.autoFire=false;
+  if(w.document.body.dataset.skyHumanLoaded!=='true')throw Error('人間モデルの読込未完了');
+  lane=null;
+  for(const n of g.NAV.nodes){
+   for(const [dx,dz]of[[0,-1],[1,0],[0,1],[-1,0]]){
+    const route=g.wp(n,n.x+dx*14,n.z+dz*14,n.y);
+    if(!route||route.climb>.05||route.drop>.05)continue;
+    let clear=true;
+    for(let d=0;d<=14;d+=.5)if(!sky.oe(n.x+dx*d,n.y+.05,n.z+dz*d,.4,10))clear=false;
+    if(clear){lane={x:n.x,y:n.y,z:n.z,dx,dz};break;}
+   }if(lane)break;
+  }
+  if(!lane)throw Error('着地用の広い床がありません');
+  for(const id of ['hud','touch','hookMark','menuLauncher','bSettings']){const e=w.document.getElementById(id);if(e)e.style.setProperty('display','none','important');}
+  morphCount=0;g.debug.scene.children.find(o=>o.name==='Unity challenge human').traverse(o=>{if(o.morphTargetInfluences)morphCount=Math.max(morphCount,o.morphTargetInfluences.length);});ready=true;drop(height);
+ }catch(e){result.textContent=e.stack;}
+}
+document.querySelector('#old').onclick=()=>boot('index.html');document.querySelector('#canyon').onclick=()=>boot('canyon.html');
+for(const b of document.querySelectorAll('[data-drop]'))b.onclick=()=>{phaseStop=null;drop(+b.dataset.drop);};
+for(const b of document.querySelectorAll('[data-phase]'))b.onclick=()=>{phaseStop=+b.dataset.phase;drop(4.5);};
+document.querySelector('#jump').onclick=()=>{phaseStop=null;drop(0,true);};
+document.querySelector('#pause').onclick=()=>{paused=!paused;};
+document.querySelector('#view').onclick=()=>{w.document.dispatchEvent(new w.KeyboardEvent('keydown',{code:'KeyV'}));};
+document.querySelector('#cancelJump').onclick=()=>{phaseStop=null;paused=false;c.jumpBuf=.18;};
+document.querySelector('#shot').onclick=()=>{phaseStop=null;paused=false;sky.Et.fireCD=0;sky.fireWeapon();};
+
+function draw(){g.debug.renderer.clear();g.debug.renderer.render(g.debug.scene,g.debug.camera);}
+function tick(now){
+ requestAnimationFrame(tick);const dt=last===null?1/60:Math.min(.05,(now-last)/1000);last=now;if(!ready)return;
+ if(!paused){
+  let remain=dt;while(remain>1e-6){const n=Math.min(1/120,remain);g.playerStep(n);remain-=n;sim+=n;}
+  g.cam(dt);
+  if(w.skyHumanView.view==='third')g.debug.camera.rotation.set(-.16,c.yaw+.85,0,'YXZ');
+  w.skyHumanView.update(dt);
+  if(w.skyLandingRoll.active&&!seen){seen=true;events.push('前転開始 '+sim.toFixed(2)+'s / '+w.document.body.dataset.skyLandingRoll);}
+  if(seen&&!w.skyLandingRoll.active&&events.length===1)events.push('走行復帰 '+sim.toFixed(2)+'s');
+  if(phaseStop!==null&&w.skyLandingRoll.active&&w.skyLandingRoll.phase>=phaseStop){paused=true;phaseStop=null;}
+  if(sim>1.9){paused=true;g.keys.KeyW=false;}
+ }
+ draw();const data=w.document.body.dataset;
+ result.textContent=`${scenario} / ${paused?'停止中':'再生中'} / 高さ ${(c.pos.y-lane.y).toFixed(2)}m / 速度 ${Math.hypot(c.vel.x,c.vel.z).toFixed(2)}m/s\n${data.skyHumanAction} / 前転 ${w.skyLandingRoll.active?w.skyLandingRoll.phase.toFixed(3):'—'} / ${data.skyHumanView}\n${events.join('\n')}\n着地床 ${JSON.stringify(lane)} / モーフ数 ${morphCount}`;
+}
+requestAnimationFrame(tick);boot('index.html');
+</script></html>

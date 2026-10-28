@@ -1,6 +1,8 @@
 // Running style for the existing, baked Unity human. No new model download.
 // Asset-space metres: +Y up, +Z forward, the right hand is on -X.
 import { actionPose } from './human-actions.js?v=20261028-swing-flow-v2';
+import { landingRollPose, rollTuck, rollTurn, LANDING_ROLL } from './landing-roll.js?v=20261028-roll-v1';
+export { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261028-roll-v1';
 import { wallRunPose, WALLRUN_SAMPLES } from './human-wallrun.js?v=20261027-wallrun-v2';
 export { wallRunFrame, WALLRUN_STRIDE } from './human-wallrun.js?v=20261027-wallrun-v2';
 export { jumpPhase, ledgeAnchor } from './human-actions.js?v=20261028-swing-flow-v2';
@@ -161,6 +163,24 @@ export function addParkourRun(model, motion, Attribute) {
     }
     actionClips[kind] = { frames: names, times: seconds, duration: 1, source: 'reference-inspired two-bone limb poses' };
     actionGrips[kind] = rightHands; actionHands[kind] = bothHands;
+  }
+  {
+    const pose = landingRollPose(.5), name = 'parkourRoll_tuck';
+    const vertices = bodyUnarmed.map(p => pose.vertex(p, armWeight(p)));
+    frames.push(name); bodyFrames.push(vertices);
+    actionClips.parkourRoll = { frames: [unarmed, name], times: [0, LANDING_ROLL.duration], duration: LANDING_ROLL.duration, source: 'tucked landing roll with continuous root rotation' };
+    actionGrips.parkourRoll = [motion.grips.jump[0], pose.hands.right];
+    actionHands.parkourRoll = [pose.hands, pose.hands];
+    motion.rollGround = [];
+    for (let i = 0; i <= LANDING_ROLL.samples; i++) {
+      const phase = i / LANDING_ROLL.samples, tuck = rollTuck(phase), angle = rollTurn(phase), co = Math.cos(angle), si = Math.sin(angle);
+      const floor = Math.min(...bodyUnarmed.map((p, j) => {
+        const y = mix(p[1], vertices[j][1], tuck) + model.position.y, z = mix(p[2], vertices[j][2], tuck) + model.position.z;
+        return y * co - z * si;
+      }));
+      const hipY = 1.02 + model.position.y, hipZ = .1 + model.position.z;
+      motion.rollGround.push({ y: .025 - floor, z: hipZ - (hipY * si + hipZ * co) });
+    }
   }
   const dashNames = [], dashGrips = [];
   for (let i = 0; i <= RUN_SAMPLES; i++) {
