@@ -305,7 +305,8 @@ function makeAnchor(x, y, z0) {
 }
 for (const [x, y, z0] of us) makeAnchor(x, y, z0);
 
-const HOOK_LAYOUT_KEY = 'gunrun-old-town-hook-layout-v1';
+const HOOK_LAYOUT_KEY = window.skyPracticeMode ? 'gunrun-practice-hook-layout-v1'
+  : window.skySwingCourse ? 'gunrun-canyon-hook-layout-v1' : 'gunrun-old-town-hook-layout-v1';
 const builtInHooks = us.map(([x, y, z0]) => [x, y, z0]);
 // The original game also creates two small meshes per built-in anchor. Hide
 // those static copies so a moved or deleted anchor leaves no marker behind.

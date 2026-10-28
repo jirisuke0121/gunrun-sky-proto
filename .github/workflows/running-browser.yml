@@ -37,9 +37,11 @@ jobs:
           else
             npx playwright install --with-deps chromium
           fi
-      - name: Render and exercise both maps
+      - name: Editor auto-save in desktop and touch browsers
         run: |
           node bench/editor-autosave-browser.cjs
+      - name: Render and exercise both maps
+        run: |
           node bench/human-running-browser.cjs
           node bench/human-aim-browser.cjs
           node bench/dash-browser.cjs

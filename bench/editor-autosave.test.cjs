@@ -48,6 +48,10 @@ function installHooks(context) {
 function installWalls(context) { vm.runInContext(read('wall-jump-spots.js'), context); }
 const frame = makeTab(), game = makeTab();
 for (const tab of [frame, game]) { installHooks(tab); installWalls(tab); }
+const canyon = makeTab(); canyon.skySwingCourse = {}; installHooks(canyon);
+const practiceHooks = makeTab(); practiceHooks.skyPracticeMode = true; installHooks(practiceHooks);
+assert.notEqual(canyon.skyHookEditor.key, game.skyHookEditor.key);
+assert.notEqual(practiceHooks.skyHookEditor.key, game.skyHookEditor.key);
 const defaults = plain(game.skyWallJumpEditor.defaults());
 const walls = defaults.map(([x, , z, nx, nz]) => ({ type: 'mono', minY: 0, maxY: 7,
   minX: nx ? x - (nx > 0 ? 2 : 0) : x - 8, maxX: nx ? x + (nx < 0 ? 2 : 0) : x + 8,
@@ -114,6 +118,8 @@ async function main() {
   editor.flush();
   assert.equal(writes, 1, 'drag/rapid edits persist only the last configuration');
   assert.equal(game.skyHookEditor.current()[0][0], 6, 'open game receives the new hook without reload');
+  assert.equal(canyon.skyHookEditor.current()[0][0], 1, 'old-town auto-save cannot replace canyon hooks');
+  assert.equal(practiceHooks.skyHookEditor.current()[0][0], 1, 'practice hooks stay independent');
   assert.equal(get('save').disabled, true);
   const second = makeEditor();
   assert.equal(second.run('layout[0][0]'), 6, 'another editor opens on the live layout');
