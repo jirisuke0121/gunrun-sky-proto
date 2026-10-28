@@ -19,6 +19,8 @@ function reset(s,sign=1){
   sky.z.over=false;sky.z.safeT=10;g.keys.KeyW=true;g.S.gunOn=true;g.S.autoSprint=true;g.S.sendLog=false;
   for(const k of Object.keys(g.keys))if(k!=='KeyW')g.keys[k]=false;
   g.setMode('play');
+  // Match placeAt: a new scenario also resets the independent follow view.
+  w.skyFollowCamera?.reset();
 }
 function step(dt){g.playerStep(dt);c.camY=c.pos.y+c.eye;g.cam(dt);w.skyHumanView.update(dt);}
 function draw(){g.debug.renderer.clear();g.debug.renderer.render(g.debug.scene,g.debug.camera);}

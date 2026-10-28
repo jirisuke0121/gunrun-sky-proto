@@ -13,6 +13,7 @@ window.addEventListener("load", () => {
   canvas.addEventListener("mousedown", event => {
     if (event.button !== 2 || !unlockedPlay()) return;
     dragging = true;
+    window.skyFollowCamera?.holdLook(true);
     lastX = event.clientX;
     lastY = event.clientY;
     event.preventDefault();
@@ -26,17 +27,20 @@ window.addEventListener("load", () => {
       return;
     }
     const sensitivity = 0.0022 * game.U.sensitivity;
-    game.c.yaw -= (event.clientX - lastX) * sensitivity;
-    game.c.pitch = Math.max(-1.5, Math.min(1.5,
-      game.c.pitch - (event.clientY - lastY) * sensitivity * (game.U.invertY ? -1 : 1)));
+    const yaw = (event.clientX - lastX) * sensitivity;
+    const pitch = (event.clientY - lastY) * sensitivity * (game.U.invertY ? -1 : 1);
+    if (!window.skyFollowCamera?.look(yaw, pitch)) {
+      game.c.yaw -= yaw;
+      game.c.pitch = Math.max(-1.5, Math.min(1.5, game.c.pitch - pitch));
+    }
     lastX = event.clientX;
     lastY = event.clientY;
     event.stopImmediatePropagation();
   }, true);
 
-  const stopDragging = event => { if (event.button === 2) dragging = false; };
+  const stopDragging = event => { if (event.button === 2) { dragging = false; window.skyFollowCamera?.holdLook(false); } };
   window.addEventListener("mouseup", stopDragging, true);
-  window.addEventListener("blur", () => { dragging = false; });
+  window.addEventListener("blur", () => { dragging = false; window.skyFollowCamera?.holdLook(false); });
   document.addEventListener("pointerlockchange", () => {
     if (document.pointerLockElement === canvas) dragging = false;
   });

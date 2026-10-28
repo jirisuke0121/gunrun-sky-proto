@@ -1,0 +1,8 @@
+.follow-camera-home{display:grid;grid-template-columns:auto minmax(140px,210px);align-items:center;gap:6px 12px;margin:12px 0;padding:10px 12px;border:1px solid #b6a68a;border-radius:8px;background:#f5eddc}
+.follow-camera-home label,.follow-camera-settings label{font-weight:700;font-size:14px}
+.follow-camera-home select,.follow-camera-settings select{min-height:44px;max-width:100%;padding:7px 10px;border:1px solid #988668;border-radius:6px;background:#fff9ed;color:#30291f;font:inherit;touch-action:manipulation}
+.follow-camera-home .note{grid-column:1/-1;margin:0;font-size:12px;line-height:1.55}
+.follow-camera-settings{display:block!important}
+.follow-camera-settings select{display:block;width:100%;margin:6px 0}
+.follow-camera-settings .note{font-size:12px;line-height:1.55}
+@media(max-width:500px){.follow-camera-home{grid-template-columns:58px minmax(0,1fr)}}
