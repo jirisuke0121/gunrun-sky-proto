@@ -243,6 +243,7 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
     const m = mo[i];
     if (m.x < -30 && m.x > -72 && m.z > -14 && m.z < 20) mo.splice(i, 1);
   }
+  window.buildOldTownSwingCourse?.({ ne });
 };
 
 // Zombies may use jump and drop edges only inside the west district (x -72..-30).

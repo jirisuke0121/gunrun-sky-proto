@@ -23,7 +23,9 @@
   let selected = 'normal';
   try { const saved = localStorage.getItem(storage); if (levels.some(p => p.id === saved)) selected = saved; } catch {}
   let active = selected, game, lastObservation = -1;
-  const debug = new URLSearchParams(location.search).has('challengeDebug');
+  const params = new URLSearchParams(location.search);
+  const oldTownSwingPreview = params.get('oldtown_swing') === '1';
+  const debug = params.has('challengeDebug') || oldTownSwingPreview;
   const level = id => byId[id] || levels[1];
   const profile = () => window.skyPracticeMode || game?.z.mission || active === 'legacy' ? null : level(active);
   const speedScale = () => (game?.U.sprintSpeed || 6) / 6;
@@ -35,7 +37,7 @@
     return ladderExits.get(edge.ladder);
   }
   const currentSpeed = p => { const r = range(p); return r.start + (r.end - r.start) * Math.min(1, Math.max(0, game?.z.t || 0) / (p.ramp || 80)); };
-  const key = base => (active === 'legacy' ? base : `${base}-${version}-${active}`) + (debug ? '-debug' : '');
+  const key = base => (active === 'legacy' ? base : `${base}-${version}-${active}`) + (oldTownSwingPreview ? '-oldtown-swing-preview' : debug ? '-debug' : '');
   function limit(time, fallback) {
     const p = profile();
     return p ? Math.min(maxAlive, p.counts[Math.min(p.counts.length - 1, Math.floor(Math.max(0, time) / (p.counts.length === 3 ? 40 : 20)))]) : fallback;
