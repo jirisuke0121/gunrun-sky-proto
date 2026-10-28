@@ -6,7 +6,7 @@ const FOV = Math.PI / 3;
 let game, api, wallApi, internals, solids = [], layout = [], selected = -1;
 let wallJumps = [], selectedWallJump = -1, bars = [], selectedBar = -1, mode = 'hook', selectedCandidate = -1;
 const DRAFT_KEY='gunrun-old-town-marker-draft-v2', DRAFT_FORMAT='gunrun-old-town-marker-draft-v2';
-const SOURCE_VERSION='20261029-bars-v1';
+const SOURCE_VERSION='20261029-terrain-v1';
 let draft, published, storageOK=true;
 let tool = 'add', viewPan = false, dirty = {hook:false,walljump:false,bar:false}, drag = null, hover = null, booted = false;
 let launch = {x: -42, y: 0, z: 8};
@@ -276,9 +276,19 @@ function requestText(){if(!draft)return '';syncDraft();const lines=['旧市街�
     points.forEach((after,i)=>{const id=ids[i];if(original.has(id))return;n++;lines.push('',`${n}. ${labels[kind]} 追加 (${id})`,'変更前：なし',`変更後：${fmt(after,kind)}`);if(draft.notes[id])lines.push('メモ：'+draft.notes[id]);});
   }if(!n)lines.push('変更はありません。');return lines.join('\n');}
 function updateRequest(){$('requestText').value=requestText();}
-function refresh(){if(!draft)return;draw();renderCandidates();const kind=mode,isWall=kind==='walljump',isBar=kind==='bar',points=rows(kind),index=selection(),p=points[index];
+function draftFromPublished(){return {format:DRAFT_FORMAT,map:'old-town',sourceVersion:SOURCE_VERSION,baseline:clone(published),points:clone(published),ids:Object.fromEntries(kinds.map(k=>[k,published[k].map((_,i)=>`${k}-base-${i+1}`)])),notes:{}};}
+function useDraft(value){draft=value;for(const k of kinds){assign(k,clone(value.points[k]));dirty[k]=true;}select(-1);flushSave();}
+function versionNotice(){
+  if(!draft)return;const stale=draft.sourceVersion!==SOURCE_VERSION;
+  $('versionNotice').hidden=!stale;$('newDraft').hidden=!stale;
+  $('versionNotice').textContent=`保存済み下書きは以前の配置（${draft.sourceVersion||'版不明'}）です。白い点線が最新配置です。最新配置から始める場合も、現在の下書きは退避して戻せます。`;
+  try{$('restoreDraft').hidden=!localStorage.getItem(DRAFT_KEY+'-previous');}catch{$('restoreDraft').hidden=true;}
+  $('reset').textContent=stale?'参照時の配置に戻す':'標準配置に戻す';
+}
+function refresh(){
+  versionNotice();if(!draft)return;draw();renderCandidates();const kind=mode,isWall=kind==='walljump',isBar=kind==='bar',points=rows(kind),index=selection(),p=points[index];
   $('selectedTitle').textContent='選択中の'+labels[kind];$('pointsTitle').firstChild.textContent=labels[kind]+' ';$('count').textContent=points.length+'個';
-  $('reset').textContent='この種類の下書きを戻す';$('saveNote').textContent='マーキング専用：下書きだけを端末に自動保存します。ゲームの配置・判定には反映しません。移動・削除した場所の輪郭は標準配置です。';
+  $('reset').textContent=draft.sourceVersion===SOURCE_VERSION?'この種類の下書きを戻す':'参照時の配置に戻す';$('saveNote').textContent='マーキング専用：下書きだけを端末に自動保存します。ゲームの配置・判定には反映しません。移動・削除した場所の輪郭は標準配置です。';
   $('normalField').style.display=isWall||isBar?'block':'none';$('normalField').firstChild.textContent=isBar?'飛ぶ向き（鉄棒は直角に伸びます）':'壁の向き';
   for(const opt of $('normal').options){const names={'1,0':'東','-1,0':'西','0,1':'南','0,-1':'北'};opt.textContent=names[opt.value]+(isBar?'へ振る':'向きの壁面');}
   $('barWidthField').hidden=!isBar;$('barWidth').value=isBar&&p?p[5]:2.6;
@@ -317,6 +327,8 @@ $('barWidth').onchange=()=>{if(mode!=='bar'||selectedBar<0)return;const p=[...ba
 $('pointNote').addEventListener('input',()=>{const id=draft?.ids[mode][selection()];if(!id)return;draft.notes[id]=$('pointNote').value.slice(0,2000);dirty[mode]=true;clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,500);updateRequest();});
 $('remove').onclick=()=>{const i=selection();if(i<0)return;rows(mode).splice(i,1);draft.ids[mode].splice(i,1);select(Math.min(i,rows(mode).length-1));changed();};$('save').onclick=flushSave;
 $('reset').onclick=()=>{assign(mode,clone(draft.baseline[mode]));draft.ids[mode]=draft.baseline[mode].map((_,i)=>`${mode}-base-${i+1}`);for(const id of Object.keys(draft.notes))if(id.startsWith(mode+'-'))delete draft.notes[id];select(-1);changed();};
+$('newDraft').onclick=()=>{if(!draft)return;syncDraft();try{localStorage.setItem(DRAFT_KEY+'-previous',JSON.stringify(draft));useDraft(draftFromPublished());status('前の下書きを退避して、最新配置から開始しました。「前の下書きを戻す」で復元できます。');}catch{status('前の下書きを退避できないため切り替えません。JSONを書き出してください。',true);}};
+$('restoreDraft').onclick=()=>{try{const saved=JSON.parse(localStorage.getItem(DRAFT_KEY+'-previous'));if(!validDraft(saved))throw Error();syncDraft();localStorage.setItem(DRAFT_KEY+'-previous',JSON.stringify(draft));useDraft(saved);status('退避していた下書きに戻しました。');}catch{status('前の下書きを読み込めませんでした。',true);}};
 $('refreshRequest').onclick=()=>{updateRequest();status('変更依頼文を表示しました。');};
 $('copyRequest').onclick=async()=>{updateRequest();const text=$('requestText').value;try{if(!navigator.clipboard?.writeText)throw Error();await navigator.clipboard.writeText(text);status('変更依頼文をコピーしました。チャットへ貼り付けてください。');}catch{const field=$('requestText');field.focus();field.select();field.setSelectionRange(0,field.value.length);status('文章を選択しました。長押しして「コピー」を選んでください。',true);}};
 $('export').onclick=()=>{syncDraft();const blob=new Blob([JSON.stringify(draft,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='gunrun-old-town-marker-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status('3種類の下書きJSONを書き出しました。');};
