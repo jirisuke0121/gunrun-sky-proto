@@ -13,7 +13,7 @@
   <select id="map" aria-label="比較するマップ"><option value="canyon.html?practice=1">練習場（追手なし）</option><option value="index.html">旧市街</option><option value="canyon.html">岩壁渓谷</option></select>
   <a id="open" class="open" href="./canyon.html?practice=1&camera=after" target="_blank" rel="noopener">ゲームを大きく開く ↗</a>
 </header>
-<p id="guide">After：左スティックの左右で曲がる。右側は見回したいときだけ操作。PCはW/Sで前後、A/Dで旋回、Alt＋A/Dで横移動。</p>
+<p id="guide">After：浅く倒すとゆっくり。横〜斜め下で減速して旋回。後退は一度戻して真下へ。右側は見回し。PCはW/Sで前後、A/Dで旋回、Alt＋A/Dで横移動。</p>
 <iframe id="game" title="カメラを比較するゲーム" src="./canyon.html?practice=1&camera=after" allow="fullscreen; autoplay"></iframe>
 <footer>同じ場所でBefore／Afterを切り替えられます。Beforeを選ぶと従来の移動・視点操作へ戻ります。</footer>
 <script>
@@ -24,7 +24,7 @@ function choose(next){
   mode=next;
   document.getElementById('before').setAttribute('aria-pressed',String(mode==='before'));
   document.getElementById('after').setAttribute('aria-pressed',String(mode==='after'));
-  document.getElementById('guide').textContent=mode==='before'?'Before：左側は前後・横移動、右側は視点操作。PCはWASDで移動、マウスで視点操作。':'After：左スティックの左右で曲がる。右側は見回したいときだけ操作。PCはW/Sで前後、A/Dで旋回、Alt＋A/Dで横移動。';
+  document.getElementById('guide').textContent=mode==='before'?'Before：左側は前後・横移動、右側は視点操作。PCはWASDで移動、マウスで視点操作。':'After：浅く倒すとゆっくり。横〜斜め下で減速して旋回。後退は一度戻して真下へ。右側は見回し。PCはW/Sで前後、A/Dで旋回、Alt＋A/Dで横移動。';
   link();frame.contentWindow.skyFollowCamera?.setMode(mode);
   frame.contentWindow.document.getElementById('c')?.focus();
 }
