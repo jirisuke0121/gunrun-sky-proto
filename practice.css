@@ -1,8 +1,18 @@
 .practice-mode .practice-entry,.practice-mode .hud-tc,.practice-mode .hud-tl,.practice-mode .hud-tr,.practice-mode #hint,.practice-mode #markMark,.practice-mode #ghostBest,.practice-mode #challengeDescription,.practice-mode .challenge-select,.practice-mode #bestLine,.practice-mode #recNote,.practice-mode .missions,.practice-mode #unityScoreHud,.practice-mode #scorePop,.practice-mode #hStars,.practice-mode #hStarNext{display:none!important}
-#practicePanel{position:fixed;top:max(9px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));z-index:25;max-width:calc(100vw - 155px);padding:9px 12px;border:1px solid #75b5b5;border-radius:12px;background:#15343cde;color:#e0fff7;font:600 12px system-ui;box-sizing:border-box}
+#practicePanel{position:absolute;top:max(9px,var(--control-inset-top,env(safe-area-inset-top)));left:max(12px,var(--control-inset-left,env(safe-area-inset-left)));z-index:25;width:max-content;max-width:min(440px,calc(100% - 140px - max(12px,var(--control-inset-left,env(safe-area-inset-left))) - var(--control-inset-right,env(safe-area-inset-right))));padding:9px 12px;border:1px solid #75b5b5;border-radius:12px;background:#15343cde;color:#e0fff7;font:600 12px system-ui;box-sizing:border-box}
 #practicePanel[hidden]{display:none}#practicePanel .practice-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}#practicePanel .practice-row+div{margin-top:5px}#practicePanel strong{font-size:15px}#practiceSpeed{font-size:19px;min-width:88px;font-variant-numeric:tabular-nums}#practiceChain{color:#f5d987}#practicePanel button,#practicePanel select,#practicePanel a{font:600 12px system-ui;min-height:36px;padding:6px 10px;border:1px solid #7faaaa;border-radius:7px;color:#e4fff7;background:#24525c;text-decoration:none;touch-action:manipulation}#practicePanel p{margin:6px 0 0;line-height:1.45;max-width:520px}#practicePanel button:hover,#practicePanel a:hover{background:#356b74}
 .practice-mode #swingHint{top:35%}.practice-mode #catchBox{bottom:24px}.practice-mode #dashStatus{bottom:65px}
-@media(max-width:900px){#practicePanel{padding:5px 8px;max-width:calc(100vw - 120px)}#practicePanel p{max-width:470px;font-size:11px}#practicePanel button,#practicePanel select,#practicePanel a{min-height:32px;padding:4px 7px;font-size:11px}#practicePanel .practice-row{gap:5px}#practiceSpeed{font-size:16px}#practicePanel strong{font-size:13px}}
+@media(max-width:900px){#practicePanel{padding:5px 8px}#practicePanel p{max-width:470px;font-size:11px}#practicePanel button,#practicePanel select,#practicePanel a{min-height:32px;padding:4px 7px;font-size:11px}#practicePanel .practice-row{gap:5px}#practiceSpeed{font-size:16px}#practicePanel strong{font-size:13px}}
 
 #practicePanel[data-paused=true]{position:static;max-width:none;margin:0 0 12px;width:100%}
-@media(pointer:fine){#practicePanel[data-paused=false] .practice-row:nth-child(2){display:none}}
+/* Only the small chooser button intercepts touches while moving. */
+#practicePanel[data-paused=false]{pointer-events:none}
+#practicePanel[data-paused=false] .practice-row:nth-child(2){display:none}
+#practicePanel[data-paused=false] #practiceChoose{pointer-events:auto;margin-left:auto}
+#practicePanel[data-paused=true] #practiceChoose{display:none}
+html.touch #practicePanel{padding:5px 8px}
+html.touch #practicePanel .practice-row{gap:5px}
+html.touch #practicePanel strong{font-size:13px}
+html.touch #practiceSpeed{font-size:16px}
+html.touch #practicePanel p{font-size:11px}
+html.touch #practicePanel button,html.touch #practicePanel select,html.touch #practicePanel a{min-height:40px}
