@@ -18,7 +18,7 @@
     <div class="mapnote" id="mapnote">「視点移動」をONにしてドラッグするとマップを平行移動、OFFでは回転します。右ドラッグでも移動できます。</div>
   </main>
   <aside>
-    <section class="panel"><h2>配置</h2><p id="loadState">旧市街の地形を読み込み中…</p><div class="row"><button id="save">保存を再試行</button><button id="reset">標準配置に戻す</button></div><p id="saveNote">下書きだけをこの端末に保存します。ゲームの配置・判定は変更しません。</p></section>
+    <section class="panel"><h2>配置</h2><p><a href="./swing-plan.html" style="color:#e6ba74">鉄棒の配置計画を見る ↗</a></p><p id="versionNotice" hidden></p><div class="row"><button id="newDraft" hidden>最新配置で下書きを作成</button><button id="restoreDraft" hidden>前の下書きを戻す</button></div><p id="loadState">旧市街の地形を読み込み中…</p><div class="row"><button id="save">保存を再試行</button><button id="reset">標準配置に戻す</button></div><p id="saveNote">下書きだけをこの端末に保存します。ゲームの配置・判定は変更しません。</p></section>
     <section class="panel"><h2 id="selectedTitle">選択中のフック</h2><div class="grid"><label>X 東西<input id="x" type="number" step="0.1"></label><label>Y 高さ<input id="y" type="number" step="0.1"></label><label>Z 南北<input id="z" type="number" step="0.1"></label></div><label id="normalField" style="display:none;font-size:12px;color:#bdccca">壁の向き<select id="normal" style="display:block;width:100%;margin-top:4px;border:1px solid #53616c;border-radius:6px;background:#1b282f;color:#fff;padding:8px"><option value="1,0">東向きの壁面</option><option value="-1,0">西向きの壁面</option><option value="0,1">南向きの壁面</option><option value="0,-1">北向きの壁面</option></select></label><label id="barWidthField" hidden>鉄棒の幅（m）<input id="barWidth" type="number" min="1.4" max="8" step="0.1" value="2.6"></label><label style="display:block;margin:10px 0">この地点のメモ<textarea id="pointNote" rows="2" maxlength="2000" placeholder="例：この屋根から南側へ跳び移りたい"></textarea></label><div class="row" style="margin-top:9px"><button id="remove">削除</button><button id="move">選択点を移動</button><button id="focusSelected">ここへ寄る</button></div><p id="reach">フックを選択してください。</p></section>
     <section class="panel"><h2 id="pointsTitle">配置済み <span id="count"></span></h2><div id="points" class="points"></div></section>
     <section class="panel" id="candidatePanel" hidden><h2>壁走りジャンプ候補 <span id="candCount"></span></h2><p>緑●＝壁走りジャンプを有効にすると近道になる壁、赤■＝調べて外した壁。ゲームの動きで試走して判定しています。番号か一覧をクリックすると理由が出ます。</p><div id="candidates" class="points"></div><div class="row" style="margin-top:9px"><button id="adoptCandidates">緑を壁ジャンプ地点に追加</button></div></section>
@@ -26,8 +26,8 @@
     <div id="status" class="status" role="status"></div>
   </aside>
 </div>
-<iframe id="source" src="./index.html?hook_editor=1&challengeDebug=1&v=20261029-bars-v1" title="旧市街の地形データ"></iframe>
+<iframe id="source" src="./index.html?hook_editor=1&challengeDebug=1&v=20261029-terrain-v1" title="旧市街の地形データ"></iframe>
 <script src="./wall-jump-candidates.js?v=20261027-walljump-candidates-v1"></script>
-<script type="module" src="./hook-editor.js?v=20261029-bars-v1"></script>
+<script type="module" src="./hook-editor.js?v=20261029-terrain-v1"></script>
 </body>
 </html>

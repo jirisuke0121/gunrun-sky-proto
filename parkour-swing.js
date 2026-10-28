@@ -52,7 +52,13 @@ export function createSwing(sky, game, course) {
       const grip = new T.Mesh(new T.Cylinder(.078, .078, .24, 8), orange);
       grip.rotation.copy(tube.rotation); grip.position.set(b.at[0] - b.direction[1] * offset, b.at[1], b.at[2] + b.direction[0] * offset); group.add(grip);
     }
-    label(b.label || (b.id.endsWith('1') ? '1  SWING >' : '2  > UPPER'), [b.at[0],b.at[1]+.45,b.at[2]+2.25], .5);
+    if (!course.oldTown) label(b.label || (b.id.endsWith('1') ? '1  SWING >' : '2  > UPPER'), [b.at[0],b.at[1]+.45,b.at[2]+2.25], .5);
+  }
+  for (const {from,to} of course.supports || []) {
+    const start=new T.Vector3(...from),end=new T.Vector3(...to),delta=end.clone().sub(start);
+    const mount=new T.Mesh(new T.Cylinder(.055,.055,delta.length(),6),steel);
+    mount.position.copy(start).add(end).multiplyScalar(.5);
+    mount.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),delta.normalize());group.add(mount);
   }
   function arrow(x,y,z,dx,dz) {
     const chevron = new T.Group(); chevron.position.set(x,y,z); chevron.rotation.y=Math.atan2(dx,dz)+Math.PI;
@@ -171,10 +177,12 @@ export function createSwing(sky, game, course) {
       c.pos.set(...p);
       c.vel.set(a.direction[0] * SWING_LENGTH * Math.cos(a.angle) * a.omega,
         SWING_LENGTH * Math.sin(a.angle) * a.omega, a.direction[1] * SWING_LENGTH * Math.cos(a.angle) * a.omega);
-      const ready = isLaunchWindow(a.angle, a.omega);
+      const launchWindow = a.bar.launchWindow;
+      const ready = launchWindow ? a.angle >= launchWindow[0] && a.angle <= launchWindow[1] && a.omega > 1.1 : isLaunchWindow(a.angle, a.omega);
       hint.hidden = false; hint.dataset.ready = String(ready);
       const progress = course.oldTown ? '鉄棒' : `鉄棒 ${chain}/${bars.length}`;
       hint.textContent = ready ? `${progress}　今！ジャンプで次へ` : `${progress}　前へ振れたらジャンプ / 下で離す`;
+      if (a.bar.exitHint) hint.textContent += ` / ${a.bar.exitHint}`;
       if (a.age >= MAX_GRIP_SECONDS - 2) hint.textContent += ` / 手が離れるまで ${Math.ceil(MAX_GRIP_SECONDS - a.age)}秒`;
       if (jumpButton) {jumpButton.dataset.swingReady = String(ready);jumpButton.textContent='跳び移る';}
       document.body.dataset.skySwing = JSON.stringify({ bar: a.bar.id, angle: a.angle, chain, age: a.age });
