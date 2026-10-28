@@ -4,8 +4,11 @@ const $ = (id) => document.getElementById(id);
 const canvas = $('map'), ctx = canvas.getContext('2d'), iframe = $('source');
 const FOV = Math.PI / 3;
 let game, api, wallApi, internals, solids = [], layout = [], selected = -1;
-let wallJumps = [], selectedWallJump = -1, mode = 'hook', selectedCandidate = -1;
-let tool = 'add', viewPan = false, dirty = {hook:false,walljump:false}, drag = null, hover = null, booted = false;
+let wallJumps = [], selectedWallJump = -1, bars = [], selectedBar = -1, mode = 'hook', selectedCandidate = -1;
+const DRAFT_KEY='gunrun-old-town-marker-draft-v2', DRAFT_FORMAT='gunrun-old-town-marker-draft-v2';
+const SOURCE_VERSION='20261029-bars-v1';
+let draft, published, storageOK=true;
+let tool = 'add', viewPan = false, dirty = {hook:false,walljump:false,bar:false}, drag = null, hover = null, booted = false;
 let launch = {x: -42, y: 0, z: 8};
 let saveTimer;
 const camera = {target: {x: 0, y: 4, z: 0}, distance: 180, yaw: Math.PI / 4, pitch: 0.67};
@@ -172,10 +175,18 @@ function draw() {
     return dc-da;
   });
   for(const solid of items)drawBox(solid,b);
+  if(published&&draft)for(const kind of ['hook','walljump','bar'])published[kind].forEach((q,i)=>{
+    if(rows(kind).some(p=>JSON.stringify(p)===JSON.stringify(q)))return;
+    const p=project(q[0],q[1],q[2],b);if(!p)return;ctx.save();ctx.setLineDash([3,3]);ctx.strokeStyle='#d6e4f2';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,10,0,Math.PI*2);ctx.stroke();ctx.restore();ctx.font='10px system-ui';ctx.fillStyle='#d6e4f2';ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillText('標準'+(i+1),p.x+12,p.y-6);
+  });
   const start=project(launch.x,launch.y+1.6,launch.z,b);
   if(start){ctx.fillStyle='#7ce4f2';ctx.beginPath();ctx.arc(start.x,start.y,7,0,Math.PI*2);ctx.fill();ctx.font='11px system-ui';ctx.fillText('試射地点',start.x+9,start.y-8);}
   layout.forEach(([x,y,z],i)=>{const p=project(x,y,z,b);if(!p)return;ctx.beginPath();ctx.arc(p.x,p.y,mode==='hook'&&i===selected?12:8,0,Math.PI*2);ctx.fillStyle=mode==='hook'&&i===selected?'#ffdb84':'#e9a745';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#40260b';ctx.stroke();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 11px system-ui';ctx.fillStyle='#292218';ctx.fillText(String(i+1),p.x,p.y);});
   wallJumps.forEach(([x,y,z,nx,nz],i)=>{const p=project(x,y,z,b);if(!p)return;const tip=project(x+nx*1.8,y,z+nz*1.8,b);ctx.beginPath();ctx.arc(p.x,p.y,mode==='walljump'&&i===selectedWallJump?12:8,0,Math.PI*2);ctx.fillStyle=mode==='walljump'&&i===selectedWallJump?'#a8f4ed':'#52d6c7';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#083b3a';ctx.stroke();if(tip){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(tip.x,tip.y);ctx.strokeStyle='#b8fff4';ctx.lineWidth=2;ctx.stroke();}ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 11px system-ui';ctx.fillStyle='#073432';ctx.fillText(String(i+1),p.x,p.y);});
+  bars.forEach(([x,y,z,dx,dz,width],i)=>{
+    const side=[-dz,dx],a=project(x-side[0]*width/2,y,z-side[1]*width/2,b),c=project(x+side[0]*width/2,y,z+side[1]*width/2,b),p=project(x,y,z,b),tip=project(x+dx*1.8,y,z+dz*1.8,b);
+    if(!p)return;ctx.lineWidth=mode==='bar'&&selectedBar===i?7:5;ctx.strokeStyle='#ee9bf5';if(a&&c){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(c.x,c.y);ctx.stroke();}drawLine(p,tip,'#ffd0ff');ctx.beginPath();ctx.arc(p.x,p.y,mode==='bar'&&selectedBar===i?12:8,0,Math.PI*2);ctx.fillStyle='#e7a3ef';ctx.fill();ctx.fillStyle='#35213a';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 11px system-ui';ctx.fillText(String(i+1),p.x,p.y);
+  });
   if(mode==='walljump')drawCandidates(b);
   ctx.textAlign='left';ctx.textBaseline='alphabetic';
   if(hover&&tool!=='testPoint'){const p=project(hover.x,hover.y+1.5,hover.z,b);if(p){ctx.beginPath();ctx.arc(p.x,p.y,10,0,Math.PI*2);ctx.strokeStyle='#a6f3c3';ctx.lineWidth=2;ctx.stroke();}}
@@ -241,111 +252,85 @@ function zoom(ratio,sx=canvas.clientWidth/2,sy=canvas.clientHeight/2){
   }
   draw();
 }
-function hitMarker(x,y){let best=-1,depth=Infinity;const points=mode==='hook'?layout:wallJumps;points.forEach((q,i)=>{const p=project(q[0],q[1],q[2]);if(p&&Math.hypot(x-p.x,y-p.y)<15&&p.depth<depth){best=i;depth=p.depth;}});return best;}
+const kinds=['hook','walljump','bar'], labels={hook:'フック',walljump:'壁ジャンプ',bar:'鉄棒'};
+const clone=v=>JSON.parse(JSON.stringify(v));
+const rows=kind=>kind==='hook'?layout:kind==='walljump'?wallJumps:bars;
+const selection=()=>mode==='hook'?selected:mode==='walljump'?selectedWallJump:selectedBar;
+function select(i){if(mode==='hook')selected=i;else if(mode==='walljump')selectedWallJump=i;else selectedBar=i;}
+function assign(kind,value){if(kind==='hook')layout=value;else if(kind==='walljump')wallJumps=value;else bars=value;}
+const validBar=p=>Array.isArray(p)&&p.length===6&&finitePoint(p.slice(0,3))&&finiteWallJump([...p.slice(0,5)])&&p[5]>=1.4&&p[5]<=8;
+const validRows=(kind,value)=>Array.isArray(value)&&value.length<=(kind==='hook'?64:128)&&value.every(kind==='hook'?finitePoint:kind==='walljump'?finiteWallJump:validBar);
+function validDraft(v){return v?.format===DRAFT_FORMAT&&v.map==='old-town'&&kinds.every(k=>validRows(k,v.baseline?.[k])&&validRows(k,v.points?.[k])&&Array.isArray(v.ids?.[k])&&v.ids[k].length===v.points[k].length&&v.ids[k].every(id=>typeof id==='string'&&id.length<100)&&new Set(v.ids[k]).size===v.ids[k].length)&&v.notes&&typeof v.notes==='object'&&!Array.isArray(v.notes)&&Object.values(v.notes).every(n=>typeof n==='string'&&n.length<=2000);}
+function hitMarker(x,y){let best=-1,depth=Infinity;rows(mode).forEach((q,i)=>{const p=project(q[0],q[1],q[2]);if(p&&Math.hypot(x-p.x,y-p.y)<15&&p.depth<depth){best=i;depth=p.depth;}});return best;}
 function pointFromEvent(e){const b=canvas.getBoundingClientRect();return{x:e.clientX-b.left,y:e.clientY-b.top};}
 function setTool(value){tool=value;for(const id of ['add','move','testPoint','focusPoint'])$(id).classList.toggle('active',id===value);draw();}
 function setViewPan(value){viewPan=value;$('viewPan').classList.toggle('active',viewPan);$('viewPan').setAttribute('aria-pressed',String(viewPan));canvas.classList.toggle('pan-mode',viewPan);}
-function setMode(value){mode=value;tool='add';$('hookMode').classList.toggle('active',mode==='hook');$('wallJumpMode').classList.toggle('active',mode==='walljump');$('testPoint').hidden=mode==='walljump';refresh();setTool('add');}
-function flushSave() {
-  clearTimeout(saveTimer);
-  const savingWallJump = dirty.walljump;
-  let ok = true;
-  for (const kind of ['hook', 'walljump']) {
-    if (!dirty[kind]) continue;
-    const saved = (kind === 'hook' ? api : wallApi)?.apply(kind === 'hook' ? layout : wallJumps, true);
-    if (saved) dirty[kind] = false;
-    else ok = false;
-  }
-  refresh();
-  status(ok ? (savingWallJump ? '壁ジャンプの設計データを自動保存しました。ゲームの標準5地点は変わりません。' : '自動保存済み。同じブラウザの旧市街に反映しました。') : '自動保存できませんでした。未保存の変更があります。「保存を再試行」を押してください。', !ok);
-  return ok;
+function setMode(value){mode=value;for(const [id,k] of [['hookMode','hook'],['wallJumpMode','walljump'],['barMode','bar']])$(id).classList.toggle('active',mode===k);$('testPoint').hidden=mode!=='hook';refresh();setTool('add');}
+function syncDraft(){for(const kind of kinds)draft.points[kind]=clone(rows(kind));}
+function flushSave(){clearTimeout(saveTimer);if(!draft)return false;syncDraft();try{localStorage.setItem(DRAFT_KEY,JSON.stringify(draft));for(const k of kinds)dirty[k]=false;storageOK=true;refresh();status('下書きを保存しました。ゲームの配置・判定は変わりません。');return true;}catch{storageOK=false;refresh();status('端末に保存できません。変更依頼文のコピーかJSON書き出しで退避してください。',true);return false;}}
+function changed(){dirty[mode]=true;clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,180);refresh();}
+function fmt(q,kind){if(!q)return 'なし';const xyz=`X ${q[0]} / Y ${q[1]} / Z ${q[2]}`;return xyz+(kind==='hook'?'':` / ${kind==='bar'?'飛ぶ向き':'壁面の向き'} [${q[3]}, ${q[4]}]`)+(kind==='bar'?` / 幅 ${q[5]}m`:'');}
+function requestText(){if(!draft)return '';syncDraft();const lines=['旧市街の配置変更依頼',`参照版：${draft.sourceVersion||SOURCE_VERSION} / map: old-town`,'この文章は下書きです。ゲームへの反映・成立確認はまだ行っていません。'];let n=0;
+  for(const kind of kinds){const baseline=draft.baseline[kind],ids=draft.ids[kind],points=rows(kind),original=new Set(baseline.map((_,i)=>`${kind}-base-${i+1}`));
+    baseline.forEach((before,i)=>{const id=`${kind}-base-${i+1}`,index=ids.indexOf(id),after=index<0?null:points[index],note=draft.notes[id]||'';if(after&&JSON.stringify(before)===JSON.stringify(after)&&!note)return;n++;lines.push(``,`${n}. ${labels[kind]} ${after?'移動・調整':'削除'} (${id})`,`変更前：${fmt(before,kind)}`,`変更後：${fmt(after,kind)}`);if(note)lines.push('メモ：'+note);});
+    points.forEach((after,i)=>{const id=ids[i];if(original.has(id))return;n++;lines.push('',`${n}. ${labels[kind]} 追加 (${id})`,'変更前：なし',`変更後：${fmt(after,kind)}`);if(draft.notes[id])lines.push('メモ：'+draft.notes[id]);});
+  }if(!n)lines.push('変更はありません。');return lines.join('\n');}
+function updateRequest(){$('requestText').value=requestText();}
+function refresh(){if(!draft)return;draw();renderCandidates();const kind=mode,isWall=kind==='walljump',isBar=kind==='bar',points=rows(kind),index=selection(),p=points[index];
+  $('selectedTitle').textContent='選択中の'+labels[kind];$('pointsTitle').firstChild.textContent=labels[kind]+' ';$('count').textContent=points.length+'個';
+  $('reset').textContent='この種類の下書きを戻す';$('saveNote').textContent='マーキング専用：下書きだけを端末に自動保存します。ゲームの配置・判定には反映しません。移動・削除した場所の輪郭は標準配置です。';
+  $('normalField').style.display=isWall||isBar?'block':'none';$('normalField').firstChild.textContent=isBar?'飛ぶ向き（鉄棒は直角に伸びます）':'壁の向き';
+  for(const opt of $('normal').options){const names={'1,0':'東','-1,0':'西','0,1':'南','0,-1':'北'};opt.textContent=names[opt.value]+(isBar?'へ振る':'向きの壁面');}
+  $('barWidthField').hidden=!isBar;$('barWidth').value=isBar&&p?p[5]:2.6;
+  $('mapnote').textContent=isBar?'鉄棒の下書き：床・屋根をタップすると3m上に仮置き。高さ・飛ぶ向き・幅を調整できます。紫の線が鉄棒、細線が振る方向。番号のドラッグで移動。ゲームには反映しません。':isWall?'壁走りできる縦の壁面をタップしてマーキング。緑は推奨候補、赤は非推奨候補。番号をドラッグして移動。ゲームの標準5面は変わりません。':'壁や床をタップしてフックをマーキング。番号をドラッグして移動。ゲームの配置は変わりません。';
+  $('handoffNote').textContent='3種類をまとめてJSONに保存・読み込みできます。変更依頼文をチャットへ貼って実装を依頼してください。';
+  $('loadState').textContent=(kinds.some(k=>dirty[k])?'未保存の下書き / ':'下書き保存済み / ')+`地形 ${solids.length} 箱 / ${labels[kind]} 標準 ${published?.[kind].length??0}・下書き ${points.length} 個`;$('save').disabled=!kinds.some(k=>dirty[k]);
+  for(const [k,i]of [['x',0],['y',1],['z',2]]){$(k).value=p?Number(p[i].toFixed(2)):'';$(k).disabled=!p;}
+  if((isWall||isBar)&&p)$('normal').value=`${p[3]},${p[4]}`;
+  $('pointNote').disabled=!p;$('pointNote').value=p?(draft.notes[draft.ids[kind][index]]||''):'';
+  for(const id of ['remove','move','focusSelected'])$(id).disabled=!p;
+  $('points').replaceChildren(...points.map((q,i)=>{const button=document.createElement('button');button.className='point'+(i===index?' selected':'');const a=document.createElement('span'),b=document.createElement('em');a.textContent=`● ${i+1}`;b.textContent=q.slice(0,3).map(n=>n.toFixed(1)).join(' / ')+(isBar?` / 幅${q[5]}m`:'');button.append(a,b);button.onclick=()=>{select(i);refresh();};return button;}));
+  $('reach').textContent=!p?labels[kind]+'を選択してください。':isBar?'Yは鉄棒の中心の高さ。飛ぶ向きと直角に横棒を置きます。これは下書きで、つかみ・着地は実装後に確認します。':isWall?'壁面上の下書きです。既存の壁ジャンプ判定は変わりません。':'フックの下書きです。実際の射程・障害物・移動経路は実装後に確認します。';if(p&&kind==='hook'){
+    const start=[launch.x,launch.y+1.6,launch.z],d=p.map((v,i)=>v-start[i]),range=Math.hypot(...d),max=game.S.hookRange;
+    let text=range<2.5?'近すぎます':range>max?'射程外':`射程内（${range.toFixed(1)} / ${max}）`;
+    if(range>=2.5&&range<=max&&internals?.raycast)text+=internals.raycast(...start,...d.map(v=>v/range),range-.6)?'・途中に障害物あり':'・見通しあり';
+    $('reach').textContent='試射地点から：'+text+'。下書きなのでゲームのフックは動きません。';
+  }updateRequest();
 }
-function queueSave(kind) {
-  dirty[kind] = true;
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(flushSave, 180);
-  refresh();
-}
-function preview(){dirty.hook=true;if(!api.apply(layout)){clearTimeout(saveTimer);refresh();return status('座標または配置数が有効な範囲を外れています。',true);}queueSave('hook');}
-function markWallJumpDirty(){dirty.walljump=true;if(!wallApi.apply(wallJumps)){clearTimeout(saveTimer);refresh();return status('壁ジャンプ地点の座標または配置数が有効な範囲を外れています。',true);}queueSave('walljump');}
-function refresh(){
-  draw();renderCandidates();const isWall=mode==='walljump',points=isWall?wallJumps:layout,index=isWall?selectedWallJump:selected,p=points[index];
-  $('selectedTitle').textContent=isWall?'選択中の壁ジャンプ地点':'選択中のフック';$('pointsTitle').firstChild.textContent=isWall?'壁ジャンプ地点 ':'配置済み ';$('count').textContent=`${points.length}個`;
-  $('reset').textContent='標準配置に戻す';$('saveNote').textContent=isWall?'壁ジャンプの編集は設計データとして自動保存します。ゲームでは従来の標準5地点を使います。':'追加・移動・削除すると自動保存され、同じブラウザで開いている旧市街にも反映されます。';
-  $('normalField').style.display=isWall?'block':'none';$('mapnote').textContent=isWall?'緑●＝壁走りジャンプ推奨、赤■＝非推奨（理由は右の一覧）。壁走りできる縦の壁面をクリックして地点を登録。番号をドラッグして移動。「視点移動」をONにしてドラッグするとマップを平行移動、OFFでは回転します。':'壁をクリックしてフックを配置、番号をドラッグして移動。「視点移動」をONにしてドラッグするとマップを平行移動、OFFでは回転します。右ドラッグでも移動できます。';
-  $('handoffNote').textContent=isWall?'JSONで設計データを受け渡せます。ゲームの壁ジャンプ地点を変更するには、書き出したJSONをソースへ反映します。':'JSONの読み込みも自動保存されます。別の端末へはJSONで受け渡せます。全プレイヤー向けの標準配置にする場合は、ソースへの反映が必要です。';
-  $('loadState').textContent=(dirty[mode]?'未保存の変更あり / ':'自動保存 / ')+`地形 ${solids.length} 箱 / ${isWall?'壁ジャンプ地点':'フック'} ${points.length} 個`;$('save').disabled=!dirty.hook&&!dirty.walljump;
-  for(const [k,i] of [['x',0],['y',1],['z',2]])$(k).value=p?Number(p[i].toFixed(2)):'';
-  if(isWall&&p)$('normal').value=`${p[3]},${p[4]}`;
-  $('remove').disabled=!p;$('move').disabled=!p;$('focusSelected').disabled=!p;
-  $('points').replaceChildren(...points.map((q,i)=>{const button=document.createElement('button');button.className='point'+(i===index?' selected':'');const suffix=isWall?` / ${q[3]===1?'東':q[3]===-1?'西':q[4]===1?'南':'北'}面`:'';button.innerHTML=`<span>● ${i+1}</span><em>${q.slice(0,3).map(n=>n.toFixed(1)).join(' / ')}${suffix}</em>`;button.onclick=()=>{if(isWall)selectedWallJump=i;else selected=i;refresh();};return button;}));
-  if(!p){$('reach').textContent=isWall?'壁ジャンプ地点を選択してください。':'フックを選択してください。';return;}
-  if(isWall){$('reach').textContent=`壁の向き：${p[3]===1?'東':p[3]===-1?'西':p[4]===1?'南':'北'}向き。設計地点の移動で、ゲームの標準5地点は変わりません。`;return;}
-  const start=[launch.x,launch.y+1.6,launch.z],d=[p[0]-start[0],p[1]-start[1],p[2]-start[2]],range=Math.hypot(...d),max=game.S.hookRange;let label=range<2.5?'近すぎます':range>max?'射程外':`射程内（${range.toFixed(1)} / ${max}）`;if(range>=2.5&&range<=max&&internals?.raycast){const block=internals.raycast(...start,...d.map(v=>v/range),range-.6);label+=block?'・途中に障害物あり':'・見通しあり';}$('reach').textContent='試射地点から：'+label+'。実際の使用には照準合わせも必要です。';
-}
-canvas.addEventListener('pointerdown',e=>{if(!api)return;const p=pointFromEvent(e),marker=hitMarker(p.x,p.y);canvas.setPointerCapture(e.pointerId);if(marker>=0){if(mode==='hook')selected=marker;else selectedWallJump=marker;}const kind=marker>=0&&e.button===0?'marker':viewPan||e.button===2||e.shiftKey?'pan':'orbit';drag={kind,x:p.x,y:p.y,moved:false,startYaw:camera.yaw,startPitch:camera.pitch,startTarget:{...camera.target}};canvas.classList.toggle('is-panning',kind==='pan');if(marker>=0)refresh();});
-canvas.addEventListener('pointermove',e=>{if(!api)return;const p=pointFromEvent(e);if(!drag){hover=pick(p.x,p.y);draw();return;}const dx=p.x-drag.x,dy=p.y-drag.y;if(Math.hypot(dx,dy)>4)drag.moved=true;if(!drag.moved)return;hover=null;
-  if(drag.kind==='marker'){const hit=pick(p.x,p.y);if(!hit)return;if(mode==='hook'){layout[selected]=[+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];preview();}else{const point=wallJumpPoint(hit);if(!point)return;wallJumps[selectedWallJump]=point;markWallJumpDirty();}}
+function newPoint(hit,old){if(mode==='walljump')return wallJumpPoint(hit);if(mode==='bar')return [+hit.x.toFixed(2),+(hit.y+3).toFixed(2),+hit.z.toFixed(2),...(old?old.slice(3):$('normal').value.split(',').map(Number).concat(Number($('barWidth').value)||2.6))];return [+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];}
+function put(hit,moving=false){const points=rows(mode),index=selection(),p=newPoint(hit,moving?points[index]:null);if(!p)return status('壁走りできる縦の壁面を選んでください。',true);if(!validRows(mode,[p]))return status('座標・向き・幅が範囲外です。',true);if(moving&&index>=0)points[index]=p;else{if(points.length>=(mode==='hook'?64:128))return status('配置数の上限です。',true);points.push(p);draft.ids[mode].push(mode+'-'+(crypto.randomUUID?.()||Date.now()+'-'+Math.random().toString(16).slice(2)));select(points.length-1);}changed();}
+canvas.addEventListener('pointerdown',e=>{if(!draft)return;const p=pointFromEvent(e),marker=hitMarker(p.x,p.y);canvas.setPointerCapture(e.pointerId);if(marker>=0)select(marker);const kind=marker>=0&&e.button===0?'marker':viewPan||e.button===2||e.shiftKey?'pan':'orbit';drag={kind,x:p.x,y:p.y,moved:false,startYaw:camera.yaw,startPitch:camera.pitch,startTarget:{...camera.target}};canvas.classList.toggle('is-panning',kind==='pan');if(marker>=0)refresh();});
+canvas.addEventListener('pointermove',e=>{if(!draft)return;const p=pointFromEvent(e);if(!drag){hover=pick(p.x,p.y);draw();return;}const dx=p.x-drag.x,dy=p.y-drag.y;if(Math.hypot(dx,dy)>4)drag.moved=true;if(!drag.moved)return;hover=null;
+  if(drag.kind==='marker'){const hit=pick(p.x,p.y);if(hit)put(hit,true);}
   else if(drag.kind==='orbit'){camera.yaw=drag.startYaw-dx*.007;camera.pitch=drag.startPitch+dy*.007;draw();}
-  else {const b=basis(),scale=camera.distance*2*Math.tan(FOV/2)/canvas.clientHeight;camera.target={x:drag.startTarget.x+(-b.right.x*dx+b.up.x*dy)*scale,y:drag.startTarget.y+(-b.right.y*dx+b.up.y*dy)*scale,z:drag.startTarget.z+(-b.right.z*dx+b.up.z*dy)*scale};draw();}
+  else{const b=basis(),scale=camera.distance*2*Math.tan(FOV/2)/canvas.clientHeight;camera.target={x:drag.startTarget.x+(-b.right.x*dx+b.up.x*dy)*scale,y:drag.startTarget.y+(-b.right.y*dx+b.up.y*dy)*scale,z:drag.startTarget.z+(-b.right.z*dx+b.up.z*dy)*scale};draw();}
 });
-canvas.addEventListener('pointerup',e=>{if(!drag||!api)return;const p=pointFromEvent(e),moved=drag.moved,kind=drag.kind;drag=null;canvas.classList.remove('is-panning');if(dirty.hook||dirty.walljump)flushSave();camera.yaw%=Math.PI*2;camera.pitch%=Math.PI*2;if(moved||kind==='marker'||kind==='pan'||e.button!==0)return;const hit=pick(p.x,p.y);if(!hit)return;if(tool==='focusPoint'){focus(hit);return;}if(mode==='hook'&&tool==='testPoint'){launch={x:hit.x,y:hit.y,z:hit.z};refresh();return;}if(mode==='walljump'){const cand=hitCandidate(p.x,p.y);if(cand>=0){selectCandidate(cand);return;}const point=wallJumpPoint(hit);if(!point)return status('壁ジャンプ地点は壁走りできる縦の壁面に置いてください。',true);if(tool==='move'&&selectedWallJump>=0)wallJumps[selectedWallJump]=point;else{wallJumps.push(point);selectedWallJump=wallJumps.length-1;}markWallJumpDirty();return;}const point=[+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];if(tool==='move'&&selected>=0)layout[selected]=point;else{layout.push(point);selected=layout.length-1;}preview();});
-canvas.addEventListener('pointercancel',()=>{drag=null;canvas.classList.remove('is-panning');if(dirty.hook||dirty.walljump)flushSave();});
-canvas.addEventListener('contextmenu',e=>e.preventDefault());
-canvas.addEventListener('wheel',e=>{e.preventDefault();const p=pointFromEvent(e);zoom(e.deltaY<0?.81:1.23,p.x,p.y);},{passive:false});
+canvas.addEventListener('pointerup',e=>{if(!drag||!draft)return;const p=pointFromEvent(e),{moved,kind}=drag;drag=null;canvas.classList.remove('is-panning');if(kinds.some(k=>dirty[k]))flushSave();camera.yaw%=Math.PI*2;camera.pitch%=Math.PI*2;if(moved||kind==='marker'||kind==='pan'||e.button!==0)return;const hit=pick(p.x,p.y);if(!hit)return;if(tool==='focusPoint'){focus(hit);return;}if(mode==='hook'&&tool==='testPoint'){launch={x:hit.x,y:hit.y,z:hit.z};refresh();return;}if(mode==='walljump'){const i=hitCandidate(p.x,p.y);if(i>=0){selectCandidate(i);return;}}put(hit,tool==='move');});
+canvas.addEventListener('pointercancel',()=>{drag=null;canvas.classList.remove('is-panning');if(kinds.some(k=>dirty[k]))flushSave();});canvas.addEventListener('contextmenu',e=>e.preventDefault());canvas.addEventListener('wheel',e=>{e.preventDefault();const p=pointFromEvent(e);zoom(e.deltaY<0?.81:1.23,p.x,p.y);},{passive:false});
 for(const id of ['add','move','testPoint','focusPoint'])$(id).onclick=()=>setTool(id);
-$('hookMode').onclick=()=>setMode('hook');$('wallJumpMode').onclick=()=>setMode('walljump');
-$('adoptCandidates').onclick=()=>{let added=0;for(const c of candidates()){if(c.status!=='ok')continue;const [x,y,z]=c.at,[nx,nz]=c.normal;if(wallJumps.some(w=>Math.hypot(w[0]-x,w[2]-z)<1&&w[3]===nx&&w[4]===nz))continue;wallJumps.push([x,y,z,nx,nz]);added++;}
-  if(added){selectedWallJump=wallJumps.length-1;markWallJumpDirty();status(`緑の候補${added}か所を追加しました。自動保存しています。`);}
-  else status('追加できる緑の候補はありません（すべて登録済みです）。');};
-$('viewPan').onclick=()=>setViewPan(!viewPan);
-$('fit').onclick=fit;$('zoomIn').onclick=()=>zoom(.75);$('zoomOut').onclick=()=>zoom(1.33);
-$('topView').onclick=()=>{camera.pitch=1.52;draw();};$('obliqueView').onclick=()=>{camera.pitch=.67;draw();};
-$('focusSelected').onclick=()=>{const p=mode==='hook'?layout[selected]:wallJumps[selectedWallJump];if(p)focus({x:p[0],y:p[1],z:p[2]});};
-for(const [k,i] of [['x',0],['y',1],['z',2]])$(k).addEventListener('change',()=>{const index=mode==='hook'?selected:selectedWallJump,points=mode==='hook'?layout:wallJumps;if(index<0)return;const value=Number($(k).value);if(!Number.isFinite(value))return;if(mode==='hook'){points[index][i]=value;preview();return;}const next=points[index].slice(0,3);next[i]=value;const wall=wallJumpPointAt(...next);if(!wall){refresh();return status('壁ジャンプ地点は縦の壁面上に置いてください。',true);}wallJumps[index]=wall;markWallJumpDirty();});
-$('normal').addEventListener('change',()=>{
-  if(mode!=='walljump'||selectedWallJump<0)return;
-  const normal=$('normal').value.split(',').map(Number),point=wallJumps[selectedWallJump];
-  const wall=wallJumpPointAt(...point.slice(0,3),normal);
-  if(!wall){refresh();return status('選択した向きの壁面がありません。壁面上へ移動してください。',true);}
-  wallJumps[selectedWallJump]=wall;markWallJumpDirty();
-});
-$('remove').onclick=()=>{if(mode==='hook'){if(selected<0)return;layout.splice(selected,1);selected=Math.min(selected,layout.length-1);preview();}else{if(selectedWallJump<0)return;wallJumps.splice(selectedWallJump,1);selectedWallJump=Math.min(selectedWallJump,wallJumps.length-1);markWallJumpDirty();}};
-$('save').onclick=flushSave;
-$('reset').onclick=()=>{
-  const isWall=mode==='walljump',registry=isWall?wallApi:api;
-  if(!registry.reset())return status('標準配置に戻せませんでした。ブラウザの保存設定を確認してください。',true);
-  if(isWall){wallJumps=registry.current();selectedWallJump=-1;}else{layout=registry.current();selected=-1;}
-  dirty[mode]=false;refresh();status(isWall?'壁ジャンプの設計を標準5地点に戻しました。':'フックを標準配置に戻し、ゲームにも反映しました。');
-};
-$('export').onclick=()=>{const isWall=mode==='walljump',data=isWall?{format:'gunrun-old-town-walljumps-v1',map:'old-town',wallJumps:wallJumps.map(([x,y,z,nx,nz])=>({at:[x,y,z],normal:[nx,nz]}))}:{format:'gunrun-old-town-hooks-v1',map:'old-town',hooks:layout};const blob=new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=isWall?'gunrun-old-town-walljumps.json':'gunrun-old-town-hooks.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status(isWall?'壁ジャンプ地点JSONを書き出しました。':'フック配置JSONを書き出しました。');};
-$('import').onclick=()=>$('importFile').click();$('importFile').onchange=async()=>{const file=$('importFile').files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(mode==='hook'){if(data.format!=='gunrun-old-town-hooks-v1'||data.map!=='old-town'||!Array.isArray(data.hooks)||data.hooks.length>64||!data.hooks.every(finitePoint))throw Error('形式または座標が正しくありません');layout=data.hooks.map(p=>[...p]);selected=-1;preview();}else{if(data.format!=='gunrun-old-town-walljumps-v1'||data.map!=='old-town'||!Array.isArray(data.wallJumps)||data.wallJumps.length>128||!data.wallJumps.every(p=>Array.isArray(p?.at)&&Array.isArray(p?.normal)&&finiteWallJump([...p.at,...p.normal])))throw Error('形式または座標が正しくありません');const next=data.wallJumps.map(p=>[...p.at,...p.normal]);if(!next.every(p=>wallJumpPointAt(...p.slice(0,3),p.slice(3))))throw Error('壁走りできる壁面上にない地点があります');wallJumps=next;selectedWallJump=-1;markWallJumpDirty();}status('JSONを読み込みました。自動保存しています。');}catch(e){status('読み込めませんでした：'+e.message,true);}finally{$('importFile').value='';}};
+$('hookMode').onclick=()=>setMode('hook');$('wallJumpMode').onclick=()=>setMode('walljump');$('barMode').onclick=()=>setMode('bar');
+$('adoptCandidates').onclick=()=>{let n=0;for(const c of candidates()){if(wallJumps.length>=128)break;if(c.status!=='ok'||wallJumps.some(w=>Math.hypot(w[0]-c.at[0],w[2]-c.at[2])<1&&w[3]===c.normal[0]&&w[4]===c.normal[1]))continue;wallJumps.push([...c.at,...c.normal]);draft.ids.walljump.push('walljump-'+crypto.randomUUID());n++;}if(n){selectedWallJump=wallJumps.length-1;changed();}status(n?`${n}か所を下書きへ追加しました。`:'候補はすべて下書きにあります。');};
+$('viewPan').onclick=()=>setViewPan(!viewPan);$('fit').onclick=fit;$('zoomIn').onclick=()=>zoom(.75);$('zoomOut').onclick=()=>zoom(1.33);$('topView').onclick=()=>{camera.pitch=1.52;draw();};$('obliqueView').onclick=()=>{camera.pitch=.67;draw();};$('focusSelected').onclick=()=>{const p=rows(mode)[selection()];if(p)focus({x:p[0],y:p[1],z:p[2]});};
+for(const [k,i]of [['x',0],['y',1],['z',2]])$(k).addEventListener('change',()=>{const index=selection(),points=rows(mode);if(index<0)return;const p=[...points[index]];p[i]=Number($(k).value);if(!validRows(mode,[p])){refresh();return status('座標が範囲外です。',true);}if(mode==='walljump'){const wall=wallJumpPointAt(...p.slice(0,3),p.slice(3));if(!wall){refresh();return status('同じ向きの縦の壁面上に置いてください。',true);}points[index]=wall;}else points[index]=p;changed();});
+$('normal').onchange=()=>{const i=selection(),points=rows(mode);if(i<0||mode==='hook')return;const direction=$('normal').value.split(',').map(Number),p=points[i];if(mode==='walljump'){const wall=wallJumpPointAt(...p.slice(0,3),direction);if(!wall){refresh();return status('選んだ向きの壁面がありません。',true);}points[i]=wall;}else points[i]=[...p.slice(0,3),...direction,p[5]];changed();};
+$('barWidth').onchange=()=>{if(mode!=='bar'||selectedBar<0)return;const p=[...bars[selectedBar]];p[5]=Number($('barWidth').value);if(!validBar(p)){refresh();return status('幅は1.4〜8mです。',true);}bars[selectedBar]=p;changed();};
+$('pointNote').addEventListener('input',()=>{const id=draft?.ids[mode][selection()];if(!id)return;draft.notes[id]=$('pointNote').value.slice(0,2000);dirty[mode]=true;clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,500);updateRequest();});
+$('remove').onclick=()=>{const i=selection();if(i<0)return;rows(mode).splice(i,1);draft.ids[mode].splice(i,1);select(Math.min(i,rows(mode).length-1));changed();};$('save').onclick=flushSave;
+$('reset').onclick=()=>{assign(mode,clone(draft.baseline[mode]));draft.ids[mode]=draft.baseline[mode].map((_,i)=>`${mode}-base-${i+1}`);for(const id of Object.keys(draft.notes))if(id.startsWith(mode+'-'))delete draft.notes[id];select(-1);changed();};
+$('refreshRequest').onclick=()=>{updateRequest();status('変更依頼文を表示しました。');};
+$('copyRequest').onclick=async()=>{updateRequest();const text=$('requestText').value;try{if(!navigator.clipboard?.writeText)throw Error();await navigator.clipboard.writeText(text);status('変更依頼文をコピーしました。チャットへ貼り付けてください。');}catch{const field=$('requestText');field.focus();field.select();field.setSelectionRange(0,field.value.length);status('文章を選択しました。長押しして「コピー」を選んでください。',true);}};
+$('export').onclick=()=>{syncDraft();const blob=new Blob([JSON.stringify(draft,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='gunrun-old-town-marker-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status('3種類の下書きJSONを書き出しました。');};
+$('import').onclick=()=>$('importFile').click();$('importFile').onchange=async()=>{const file=$('importFile').files?.[0];if(!file)return;try{if(file.size>1024*1024)throw Error('1MB以内のJSONを選んでください');const data=JSON.parse(await file.text());if(validDraft(data)){draft=clone(data);for(const k of kinds){assign(k,clone(draft.points[k]));dirty[k]=true;}select(-1);}else{let kind,value;if(data.format==='gunrun-old-town-hooks-v1'){kind='hook';value=data.hooks;}else if(data.format==='gunrun-old-town-walljumps-v1'){kind='walljump';value=data.wallJumps?.map(p=>[...p.at,...p.normal]);}else if(data.format==='gunrun-old-town-bars-v1'){kind='bar';value=data.bars?.map(p=>[...p.at,...p.direction,p.width]);}if(data.map!=='old-town'||!kind||!validRows(kind,value))throw Error('形式または座標が正しくありません');assign(kind,clone(value));draft.ids[kind]=value.map((_,i)=>i<draft.baseline[kind].length?`${kind}-base-${i+1}`:kind+'-'+crypto.randomUUID());dirty[kind]=true;setMode(kind);select(-1);}flushSave();status('下書きとして読み込みました。ゲームの配置は変更しません。');}catch(e){status('読み込めませんでした：'+e.message,true);}finally{$('importFile').value='';}};
 new ResizeObserver(resize).observe(canvas);
-async function boot(){
-  if(booted)return;booted=true;
-  try{
-    const w=iframe.contentWindow;
-    for(let i=0;i<250&&(!w.skyHookEditor||!w.skyWallJumpEditor);i++)await new Promise(r=>setTimeout(r,80));
-    api=w.skyHookEditor;wallApi=w.skyWallJumpEditor;game=w.__game;internals=w.__skyInternals;
-    if(!api||!wallApi||!game?.solids)throw Error('ゲームの地形を読み込めませんでした');
-    w.__hold=true;solids=game.solids;layout=api.current();wallJumps=wallApi.current();
-    fit();resize();refresh();status('配置の変更は自動保存されます。壁ジャンプのゲーム内配置は従来の標準5地点です。');
-  }catch(e){status(e.message,true);$('loadState').textContent='読み込みに失敗しました。HTTPまたは公開URLで開いてください。';}
-}
-window.addEventListener('storage',event=>{
-  if(!api||!wallApi)return;
-  for(const kind of ['hook','walljump']){
-    const registry=kind==='hook'?api:wallApi;
-    if((event.key!==registry.key&&event.key!==null)||dirty[kind])continue;
-    try{
-      const next=event.newValue===null?registry.defaults():JSON.parse(event.newValue);
-      if(!registry.apply(next))continue;
-      if(kind==='hook'){layout=registry.current();selected=Math.min(selected,layout.length-1);}
-      else{wallJumps=registry.current();selectedWallJump=Math.min(selectedWallJump,wallJumps.length-1);}
-      refresh();
-    }catch{/* Ignore incomplete or invalid updates from another tab. */}
+async function boot(){if(booted)return;booted=true;try{const w=iframe.contentWindow;for(let i=0;i<250&&(!w.skyHookEditor||!w.skyWallJumpEditor||!w.skyOldTownSwingCourse);i++)await new Promise(r=>setTimeout(r,80));api=w.skyHookEditor;wallApi=w.skyWallJumpEditor;game=w.__game;internals=w.__skyInternals;if(!api||!wallApi||!game?.solids||!w.skyOldTownSwingCourse)throw Error('地形を読み込めませんでした');w.__hold=true;solids=game.solids;
+  const baseline={hook:api.defaults(),walljump:wallApi.defaults(),bar:w.skyOldTownSwingCourse.bars.map(b=>[...b.at,...b.direction,b.width])};published=clone(baseline);draft={format:DRAFT_FORMAT,map:'old-town',sourceVersion:SOURCE_VERSION,baseline:clone(baseline),points:clone(baseline),ids:Object.fromEntries(kinds.map(k=>[k,baseline[k].map((_,i)=>`${k}-base-${i+1}`)])),notes:{}};
+  // Preserve older hook/wall design work, but never write back to gameplay keys.
+  for(const [kind,value] of [['hook',api.current()],['walljump',wallApi.current()]]){
+    if(validRows(kind,value)){draft.points[kind]=clone(value);draft.ids[kind]=value.map((_,i)=>i<baseline[kind].length?`${kind}-base-${i+1}`:kind+'-'+crypto.randomUUID());}
   }
-});
-for(const name of ['pagehide','beforeunload'])window.addEventListener(name,()=>{if(dirty.hook||dirty.walljump)flushSave();});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&(dirty.hook||dirty.walljump))flushSave();});
+  try{const stored=localStorage.getItem(DRAFT_KEY);if(stored){const data=JSON.parse(stored);if(!validDraft(data))throw Error('下書きデータが正しくありません');draft=data;}}catch(e){storageOK=false;status('保存済み下書きを読み込めません。標準配置を表示しています。',true);}
+  for(const k of kinds)assign(k,clone(draft.points[k]));fit();resize();refresh();if(storageOK)status('マーキング専用です。追加・移動・削除はゲームへ反映しません。');
+}catch(e){status(e.message,true);$('loadState').textContent='読み込み失敗。HTTPまたは公開URLで開いてください。';}}
+window.addEventListener('storage',e=>{if(e.key!==DRAFT_KEY||kinds.some(k=>dirty[k]))return;try{const v=JSON.parse(e.newValue);if(!validDraft(v))return;draft=v;for(const k of kinds)assign(k,clone(v.points[k]));select(-1);refresh();status('別タブの下書きを読み込みました。');}catch{}});
+for(const name of ['pagehide','beforeunload'])window.addEventListener(name,()=>{if(draft&&kinds.some(k=>dirty[k]))flushSave();});document.addEventListener('visibilitychange',()=>{if(document.hidden&&draft&&kinds.some(k=>dirty[k]))flushSave();});
 if(iframe.contentDocument?.readyState==='complete')boot();else iframe.addEventListener('load',boot,{once:true});

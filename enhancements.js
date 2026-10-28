@@ -1,4 +1,4 @@
-import { createSwing } from './parkour-swing.js?v=20261028-oldtown-swing-v1';
+import { createSwing } from './parkour-swing.js?v=20261029-bars-v1';
 import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
 import { createFlashbang } from './flashbang.js?v=20261028-touch-layout-v1';
 import { createZombieClimb } from './zombie-climb.js?v=20261028-pillar-climb-v1';

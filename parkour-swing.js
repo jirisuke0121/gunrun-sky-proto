@@ -47,10 +47,10 @@ export function createSwing(sky, game, course) {
   }
   for (const b of bars) {
     const tube = new T.Mesh(new T.Cylinder(.065, .065, b.width + .3, 8), steel);
-    tube.rotation.x = Math.PI / 2; tube.position.set(...b.at); group.add(tube);
+    tube.rotation.z = Math.PI / 2; tube.rotation.y = Math.atan2(b.direction[0], b.direction[1]); tube.position.set(...b.at); group.add(tube);
     for (const offset of [-.35, .35]) {
       const grip = new T.Mesh(new T.Cylinder(.078, .078, .24, 8), orange);
-      grip.rotation.x = Math.PI / 2; grip.position.set(b.at[0], b.at[1], b.at[2] + offset); group.add(grip);
+      grip.rotation.copy(tube.rotation); grip.position.set(b.at[0] - b.direction[1] * offset, b.at[1], b.at[2] + b.direction[0] * offset); group.add(grip);
     }
     label(b.label || (b.id.endsWith('1') ? '1  SWING >' : '2  > UPPER'), [b.at[0],b.at[1]+.45,b.at[2]+2.25], .5);
   }
@@ -120,12 +120,18 @@ export function createSwing(sky, game, course) {
     // Bars can be used backwards as an escape, too.
     if (into < -.5) { direction[0] *= -1; direction[1] *= -1; }
     const along = (c.pos.x - nearest[0]) * direction[0] + (c.pos.z - nearest[2]) * direction[1];
-    const angle = clamp(Math.atan2(along, bar.at[1] - c.pos.y), -1.05, .65);
+    const angle = clamp(Math.atan2(along, bar.at[1] - c.pos.y), course.oldTown ? -1.25 : -1.05, course.oldTown ? 1.05 : .65);
     const tangent = Math.abs(into) * Math.cos(angle) + c.vel.y * Math.sin(angle);
-    const omega = clamp(Math.max(tangent,Math.abs(into)*1.05+1.2)/SWING_LENGTH, 2.8, 5.4);
+    const omega = clamp(Math.max(tangent,Math.abs(into)*1.05+1.2)/SWING_LENGTH, 2.8, course.oldTown ? 3.8 : 5.4);
     const pivot = [...nearest];
     const p = pendulumPoint(pivot, direction, angle);
-    if (Math.hypot(...p.map((v,k)=>v-c.pos.getComponent(k))) > .85 || !sky.oe(p[0], p[1] + .03, p[2], c.r, 1.75)) return false;
+    const correction = Math.hypot(...p.map((v,k)=>v-c.pos.getComponent(k)));
+    if (correction > (course.oldTown ? 1.6 : .85)) return false;
+    // A wider hand reach must never pull the body through a wall or roof lip.
+    for (let i=1;i<=8;i++) {
+      const f=i/8, q=p.map((v,k)=>c.pos.getComponent(k)+(v-c.pos.getComponent(k))*f);
+      if (!sky.oe(q[0],q[1]+.03,q[2],c.r,1.75)) return false;
+    }
     active = { bar, pivot, direction, angle, omega, age: 0 };
     c.swingFlight = null;
     jumpPressed = false; hint.dataset.ready = 'false';
@@ -177,21 +183,28 @@ export function createSwing(sky, game, course) {
     const to = c.pos.toArray();
     const from = previous || to;
     previous = c.pos.toArray();
-    if (cooldown || c.onGround || c.state !== 'normal' || c.vel.y < -8 || Math.hypot(c.vel.x,c.vel.z) < 1) return false;
+    if (cooldown || c.onGround || c.state !== 'normal' || c.vel.y < (course.oldTown ? -12 : -8) || Math.hypot(c.vel.x,c.vel.z) < 1) return false;
     for (const b of bars) {
       if (b.id===releasedBar && recatch>0) continue;
-      const pivot = [b.at[0], b.at[1], clamp(c.pos.z, b.at[2] - b.width / 2 + .35, b.at[2] + b.width / 2 - .35)];
+      const side = [-b.direction[1], b.direction[0]];
+      const across = (c.pos.x-b.at[0])*side[0]+(c.pos.z-b.at[2])*side[1];
+      const margin = course.oldTown ? .3 : .35;
+      const offset = clamp(across, -b.width/2+margin, b.width/2-margin);
+      const pivot = [b.at[0]+side[0]*offset,b.at[1],b.at[2]+side[1]*offset];
       // Reach forward during the approach, instead of waiting for the feet to
       // pass directly below the bar. The radial reach is the actual pendulum
-      // length; attaching corrects at most .38 m, never to the next target.
+      // length. Old-town bars allow a wider hand reach, with the entire
+      // body correction checked for walls; the next target never affects it.
       const delta = to.map((v,k)=>v-from[k]), length = delta.reduce((s,v)=>s+v*v,0);
       const t = length ? clamp(delta.reduce((s,v,k)=>s+(pivot[k]-from[k])*v,0)/length,0,1) : 0;
       const distance = Math.hypot(...pivot.map((v,k)=>v-from[k]-t*delta[k]));
       const along = (c.pos.x-pivot[0])*b.direction[0]+(c.pos.z-pivot[2])*b.direction[1];
       const into = c.vel.x*b.direction[0]+c.vel.z*b.direction[1];
       const angle = Math.atan2(along, pivot[1]-c.pos.y);
-      const lateralReach = course.oldTown ? Math.max(.5, b.width / 2 - .35) : .5;
-      if (pivot[1]-c.pos.y > .95 && Math.abs(c.pos.z-pivot[2]) < lateralReach && along*into < 0 && Math.abs(angle)<1.05 && distance < SWING_LENGTH+.38 && attach(b, pivot)) return true;
+      const lateralReach = course.oldTown ? b.width/2+.45 : .5;
+      const sideDistance = course.oldTown ? Math.abs(across) : Math.abs(across-offset);
+      const approaching = along*into < 0 || (course.oldTown && Math.abs(along)<.8 && c.vel.y<0);
+      if (pivot[1]-c.pos.y > (course.oldTown ? .5 : .95) && sideDistance < lateralReach && approaching && Math.abs(angle)<(course.oldTown ? 1.35 : 1.05) && distance < SWING_LENGTH+(course.oldTown ? .85 : .38) && attach(b,pivot)) return true;
     }
     return false;
   }
