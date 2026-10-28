@@ -47,7 +47,7 @@
     const game = window.__game, sky = window.__skyInternals;
     if (!game || !sky || !window.skyOldTownSwingCourse) return;
     const card = document.createElement('section'); card.id = 'oldTownSwingPreview';
-    card.style.cssText = 'margin:12px 0;padding:12px;border:1px solid #ffb647;border-radius:10px;background:#2c3028';
+    card.style.cssText = 'margin:0 0 16px;padding:12px;border:1px solid #ffb647;border-radius:10px;background:#2c3028;color:#fff4df';
     const title = document.createElement('strong'); title.textContent = '旧市街・鉄棒① 試作';
     const note = document.createElement('p');
     note.textContent = '壁走り→壁ジャンプ→着地→鉄棒1本→西の屋根。通常ルートも通れます。この試作は記録を送信しません。';
@@ -62,7 +62,7 @@
     const normal = document.createElement('a'); normal.href = './index.html';
     normal.textContent = '通常の旧市街へ'; normal.style.cssText = 'margin-left:12px;color:#ffe0a0';
     card.append(title, note, start, normal);
-    const home = document.getElementById('ovStart')?.querySelector('.card') || document.getElementById('ovStart');
+    const home = document.getElementById('ovStart')?.querySelector('.plate') || document.getElementById('ovStart');
     home?.prepend(card);
     const recording = document.getElementById('recNote');
     if (recording) recording.textContent = '鉄棒①の試作中：プレイの記録は送信しません。';
