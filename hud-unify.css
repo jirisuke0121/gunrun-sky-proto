@@ -1,59 +1,74 @@
-/* HUD / result unification: one set of colors, shadow and card style shared by the
-   in-play HUD and the Unity-style result card (challenge-score.css). Loaded last. */
+/* Keep the route and the aiming area clear. Details live in the pause sheet. */
 :root{
   --hud-ink:#efe6c9;--hud-sub:#cfc6aa;--hud-gold:#ffdb7c;--hud-danger:#ff6a4d;
   --hud-card:rgba(22,20,16,.46);--hud-line:rgba(189,177,150,.38);
   --hud-shadow:0 1px 2px #000,1px 0 1px #000;
 }
-#hud{color:var(--hud-ink);text-shadow:var(--hud-shadow)}
-
-/* top-left status: same card look as ammo / ability readout */
+#hud{color:var(--hud-ink);text-shadow:var(--hud-shadow);transition:opacity .2s}
 .hud-tl,.unity-challenge-score .hud-tl{
-  top:12px;box-sizing:border-box;padding:7px 11px;max-width:none;
-  font-size:14px;line-height:1.6;font-variant-numeric:tabular-nums;
+  top:12px;box-sizing:border-box;padding:5px 9px;max-width:none;
+  font-size:12px;line-height:1.6;font-variant-numeric:tabular-nums;
   background:var(--hud-card);border:1px solid var(--hud-line);border-radius:8px;
 }
 .hud-tl b{font-weight:700;color:#fff}
-.hud-tl .life b{color:var(--hud-danger);font-size:16px;letter-spacing:.12em}
-.hud-tl kbd{font-size:.78em;line-height:1.35;border-color:var(--hud-line);color:var(--hud-sub)}
+.hud-tl .life b{color:var(--hud-danger);font-size:15px;letter-spacing:.1em}
+.hud-tl .hud-detail,.hud-tr{display:none}
+.hud-tl .hud-detail:has(#hFlash){display:block}
+html.touch .hud-tl .hud-detail:has(#hFlash){display:none}
 .hud-tl #hudDifficulty,.hud-tl #unityDifficulty{
-  position:static;top:auto;left:auto;font-size:inherit;color:var(--hud-gold);font-weight:700;
+  position:static;top:auto;left:auto;font-size:12px;color:var(--hud-gold);font-weight:700;
 }
-.hud-tl #unityDifficulty:before{content:'難易度 ';color:var(--hud-sub);font-weight:400}
+.hud-tl #unityDifficulty:before{content:none}
 
-/* header counters: unit sits right next to the number, colors follow the result card */
-.unity-counter{grid-template-columns:32px max-content 1fr}
-.unity-counter>span{color:var(--hud-sub)}
-.unity-counter strong{color:var(--hud-ink)}
-.unity-score>b{color:var(--hud-gold)}
+/* Time, kills and score share a single compact row. Multipliers are in pause. */
+#unityScoreHud{
+  top:10px;left:50%;right:auto;transform:translateX(-50%);
+  width:min(440px,calc(100% - 300px));max-width:none;
+  grid-template-columns:1fr .85fr 1fr;gap:0 14px;
+}
+.unity-counter{
+  grid-template-columns:22px max-content 1fr;grid-template-rows:34px;
+  align-items:center;gap:0 5px;
+}
+.unity-counter>img{display:block;width:22px;height:22px}
+.unity-counter>b{font-size:30px;color:var(--hud-ink)}
+.unity-counter>small{font-size:11px;align-self:center;padding:0;color:var(--hud-sub)}
+.unity-counter>span{display:none}
+.unity-score>b{grid-column:auto;color:var(--hud-gold)}
 .unity-score>img{filter:sepia(1) saturate(2.5) drop-shadow(0 1px 1px #000)}
+.uc-hud-goal{font-size:10px;text-align:right;white-space:normal;line-height:1.4}
+#unityHudStars{display:none}
 
-/* bottom cluster: ammo + movement readiness share the card style */
-.ammo,.catchbox{background:var(--hud-card);border:1px solid var(--hud-line);border-radius:8px;box-sizing:border-box;padding:6px 11px}
-.ammo{bottom:14px}
-.ammo span{color:var(--hud-sub);opacity:1}
-.ammo i{background:#efe6c933}
+/* Ammo may never grow into a banner, including movement weapons. */
+.ammo,.catchbox{background:var(--hud-card);border:1px solid var(--hud-line);border-radius:8px;box-sizing:border-box}
+.ammo{bottom:14px;max-width:160px;padding:5px 8px;gap:1px 5px;grid-template-columns:max-content minmax(0,1fr)}
+.ammo b{font-size:24px;line-height:1.15}
+.ammo span{font-size:11px;line-height:1.3;color:var(--hud-sub);opacity:1;white-space:normal;overflow-wrap:anywhere}
+.ammo i{width:100%;min-width:70px;background:#efe6c933}
 .ammo u{background:var(--hud-gold)}
-.catchbox{bottom:14px;font-size:12px;opacity:1;color:var(--hud-sub)}
+.catchbox{bottom:14px;padding:4px 8px;font-size:11px;opacity:1;color:var(--hud-sub)}
 .catchbox b{color:var(--hud-ink)}
-.hud-tr{color:var(--hud-sub);opacity:1;line-height:1.7}
+#catchBox{font-size:0}
+#catchBox>span{font-size:11px}
+#catchBox>span:not(.cool){display:none!important}
+#catchBox:not(:has(>span.cool)){display:none}
 
-/* the result card and the pause sheet own the screen: fade the live HUD out instead of letting it show through */
-#hud{transition:opacity .2s}
+#weaponSupplyStatus{
+  position:absolute;top:94px;left:max(16px,env(safe-area-inset-left));max-width:150px;
+  padding:3px 6px;font:600 11px/1.5 var(--font);border:1px solid var(--hud-line);
+  border-radius:6px;background:var(--hud-card);color:var(--hud-ink);
+}
+#pauseRunStatus{line-height:1.8}
 #app:has(#ovOver:not([hidden])) #hud,#app:has(#ovPause:not([hidden])) #hud{opacity:0}
-
-/* Touch positioning lives in touch-controls.css. */
 .tb{color:var(--hud-ink);border-color:rgba(239,230,201,.62);text-shadow:var(--hud-shadow)}
 .tb small{display:block;margin-top:1px;font-size:10px;font-weight:600;color:var(--hud-sub);letter-spacing:0}
 #tFlash,#tFlash.empty{line-height:1.15;white-space:normal;text-align:center}
-
-/* hint text must not run under the key list (top-right) or the status card (top-left) */
-.hint{white-space:normal;width:max-content;max-width:calc(100vw - 520px);text-align:center;line-height:1.5}
-@media(max-width:900px){.hint{max-width:calc(100vw - 320px)}}
-
-@media(max-width:1000px){
-  .hud-tl,.unity-challenge-score .hud-tl{top:8px;font-size:12px;max-width:128px;padding:5px 8px;line-height:1.5}
-  .hud-tl .life b{font-size:14px}
+.hint,.toast{white-space:normal;width:max-content;max-width:calc(100% - 360px);text-align:center;line-height:1.5;font-size:14px}
+.unity-challenge-score #hint{top:88px}
+@media(max-width:700px){
+  #unityScoreHud{width:calc(100% - 270px);gap:0 8px}
+  .unity-counter{grid-template-columns:max-content 1fr;gap:0 3px}
+  .unity-counter>img{display:none}
+  .unity-counter>b{font-size:25px}
 }
-@media(max-width:650px){.unity-counter{grid-template-columns:max-content 1fr}}
 @media(prefers-reduced-motion:reduce){#hud{transition:none}}

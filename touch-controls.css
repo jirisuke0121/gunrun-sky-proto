@@ -22,21 +22,21 @@ html.touch #tFire,html.touch #tReload{bottom:calc(var(--touch-bottom) + var(--to
 
 /* Put the consumable above the movement thumb, away from camera and combat. */
 html.touch .hud-tl,html.touch .unity-challenge-score .hud-tl{
-  left:var(--touch-left);top:var(--touch-top);max-width:none;width:136px;
-  padding:5px 8px;font-size:12px;line-height:18px;
+  left:var(--touch-left);top:var(--touch-top);max-width:none;width:114px;
+  padding:4px 8px;font-size:12px;line-height:18px;
 }
 html.touch .hud-tl .life b{font-size:14px}
 html.touch .hud-tl kbd{display:none}
 html.touch #tFlash{
-  left:var(--touch-left);right:auto;top:calc(var(--touch-top) + 116px);bottom:auto;
+  left:var(--touch-left);right:auto;top:calc(var(--touch-top) + 60px);bottom:auto;
   width:96px;height:48px;border-radius:12px;font-size:13px;
   border-color:#f3d38b;background:#302b20b3;
 }
 html.touch #tFlash small{font-size:10px}
 #tFlash.armed{background:#78602ce6;border-color:#ffe5a4;box-shadow:0 0 0 3px #ffe5a44d}
 html.touch #weaponSupplyStatus{
-  left:var(--touch-left);top:calc(var(--touch-top) + 172px);
-  max-width:190px;padding:4px 7px;font-size:10px;line-height:1.5;
+  left:var(--touch-left);top:calc(var(--touch-top) + 116px);
+  max-width:150px;padding:3px 6px;font-size:10px;line-height:1.5;
 }
 
 /* Ammo sits above the fire row instead of underneath its hit target. */
@@ -49,6 +49,9 @@ html.touch .ammo b{font-size:24px;line-height:1.1}
 html.touch .ammo span{font-size:11px}
 html.touch .ammo i{width:80px}
 html.touch .catchbox{bottom:var(--touch-bottom);font-size:11px;padding:5px 8px}
+/* The slide button already shows its own cooldown. */
+html.touch #catchBox #slidePart{display:none!important}
+html.touch #catchBox:not(:has(>#catchPart.cool,>#hookPart.cool)){display:none}
 
 /* The menu stays upright, but occupies the game's top-right corner. When
    its upright sheet opens, it returns to that sheet's normal top-right. */
