@@ -44,29 +44,37 @@ function addPanel(route, along, y, width, height, mat, offset) {
   mesh.position.set(nx ? route.at[0] + nx * offset : along, y, nz ? route.at[2] + nz * offset : along);
   root.add(mesh); return mesh;
 }
-for (const route of window.__skyWallRunRoutes || []) {
-  const [nx, nz] = route.normal, normal = { x: nx, z: nz };
-  const wall = game.solids.find(wall => window.__skyCanWallRunOnFace?.(wall, normal)
-    // Parallel shortcut faces can overlap along the run direction. Match this
-    // route's own face plane before using a wall's dimensions for the paint.
-    && Math.abs((nx ? (nx > 0 ? wall.maxX : wall.minX) : (nz > 0 ? wall.maxZ : wall.minZ)) - (nx ? route.at[0] : route.at[2])) < .05
-    && (nx ? route.at[2] > wall.minZ && route.at[2] < wall.maxZ : route.at[0] > wall.minX && route.at[0] < wall.maxX)
-    && route.at[1] >= wall.minY && route.at[1] < wall.maxY);
-  if (!wall) continue;
-  const low = (nx ? wall.minZ : wall.minX) + .08, high = (nx ? wall.maxZ : wall.maxX) - .08;
-  const along = nx ? route.at[2] : route.at[0];
-  const y = Math.max(wall.minY + .65, Math.min(wall.maxY - .7, route.at[1] + .85));
-  const sign = Math.sign(nz * route.direction[0] - nx * route.direction[1]);
-  const band = addPanel(route, (low + high) / 2, y, high - low, .64, bandMaterial(sign), .028);
-  band.name = `${route.name}: wall-run arrows`;
-  // The horizontal paint matches the existing +/-2 m acceptance window, clipped
-  // to the actual wall face, including the short take-off at the west wall end.
-  const a = Math.max(low, along - 2), b = Math.min(high, along + 2);
-  const bottom = Math.max(wall.minY + .08, y + .14), top = Math.min(wall.maxY - .08, y + 1.26);
-  const launch = addPanel(route, (a + b) / 2, (bottom + top) / 2, b - a, top - bottom, jumpMaterial, .042);
-  launch.name = `${route.name}: jump zone`;
-  guides.push({ ...route, wall, band, launch, normal });
+function rebuildGuides() {
+  root.clear();
+  guides.length = 0;
+  for (const geometry of geometries.values()) geometry.dispose();
+  geometries.clear();
+  for (const route of window.__skyWallRunRoutes || []) {
+    const [nx, nz] = route.normal, normal = { x: nx, z: nz };
+    const wall = game.solids.find(wall => window.__skyCanWallRunOnFace?.(wall, normal)
+      // Parallel shortcut faces can overlap along the run direction. Match this
+      // route's own face plane before using a wall's dimensions for the paint.
+      && Math.abs((nx ? (nx > 0 ? wall.maxX : wall.minX) : (nz > 0 ? wall.maxZ : wall.minZ)) - (nx ? route.at[0] : route.at[2])) < .05
+      && (nx ? route.at[2] > wall.minZ && route.at[2] < wall.maxZ : route.at[0] > wall.minX && route.at[0] < wall.maxX)
+      && route.at[1] >= wall.minY && route.at[1] < wall.maxY);
+    if (!wall) continue;
+    const low = (nx ? wall.minZ : wall.minX) + .08, high = (nx ? wall.maxZ : wall.maxX) - .08;
+    const along = nx ? route.at[2] : route.at[0];
+    const y = Math.max(wall.minY + .65, Math.min(wall.maxY - .7, route.at[1] + .85));
+    const sign = Math.sign(nz * route.direction[0] - nx * route.direction[1]);
+    const band = addPanel(route, (low + high) / 2, y, high - low, .64, bandMaterial(sign), .028);
+    band.name = `${route.name}: wall-run arrows`;
+    // The horizontal paint matches the existing +/-2 m acceptance window, clipped
+    // to the actual wall face, including the short take-off at the west wall end.
+    const a = Math.max(low, along - 2), b = Math.min(high, along + 2);
+    const bottom = Math.max(wall.minY + .08, y + .14), top = Math.min(wall.maxY - .08, y + 1.26);
+    const launch = addPanel(route, (a + b) / 2, (bottom + top) / 2, b - a, top - bottom, jumpMaterial, .042);
+    launch.name = `${route.name}: jump zone`;
+    guides.push({ ...route, wall, band, launch, normal });
+  }
 }
+rebuildGuides();
+window.addEventListener('sky-walljump-layout-change', rebuildGuides);
 
 const style = document.createElement('style');
 style.textContent = `

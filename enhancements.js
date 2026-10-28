@@ -305,7 +305,8 @@ function makeAnchor(x, y, z0) {
 }
 for (const [x, y, z0] of us) makeAnchor(x, y, z0);
 
-const HOOK_LAYOUT_KEY = 'gunrun-old-town-hook-layout-v1';
+const HOOK_LAYOUT_KEY = window.skyPracticeMode ? 'gunrun-practice-hook-layout-v1'
+  : window.skySwingCourse ? 'gunrun-canyon-hook-layout-v1' : 'gunrun-old-town-hook-layout-v1';
 const builtInHooks = us.map(([x, y, z0]) => [x, y, z0]);
 // The original game also creates two small meshes per built-in anchor. Hide
 // those static copies so a moved or deleted anchor leaves no marker behind.
@@ -327,16 +328,16 @@ function validHookLayout(value) {
 function applyHookLayout(points, persist = false) {
   if (!validHookLayout(points)) return false;
   const next = points.map(([x, y, z0]) => [x, y, z0]);
+  if (persist) {
+    try { localStorage.setItem(HOOK_LAYOUT_KEY, JSON.stringify(next)); }
+    catch { return false; }
+  }
   while (anchors.length > next.length) ue.remove(anchors.pop());
   next.forEach(([x, y, z0], i) => {
     if (i < anchors.length) anchors[i].position.set(x, y, z0);
     else makeAnchor(x, y, z0);
   });
   us.splice(0, us.length, ...next);
-  if (persist) {
-    try { localStorage.setItem(HOOK_LAYOUT_KEY, JSON.stringify(next)); }
-    catch { return false; }
-  }
   return true;
 }
 window.skyHookEditor = {
@@ -345,7 +346,7 @@ window.skyHookEditor = {
   current: () => us.map((point) => [...point]),
   apply: applyHookLayout,
   reset: () => {
-    try { localStorage.removeItem(HOOK_LAYOUT_KEY); } catch { /* private browsing */ }
+    try { localStorage.removeItem(HOOK_LAYOUT_KEY); } catch { return false; }
     return applyHookLayout(builtInHooks);
   },
 };
@@ -354,7 +355,7 @@ try {
   if (stored) applyHookLayout(JSON.parse(stored));
 } catch { /* Corrupt or unavailable storage: keep the built-in points. */ }
 window.addEventListener('storage', (event) => {
-  if (event.key !== HOOK_LAYOUT_KEY) return;
+  if (event.key !== HOOK_LAYOUT_KEY && event.key !== null) return;
   try { applyHookLayout(event.newValue ? JSON.parse(event.newValue) : builtInHooks); }
   catch { /* Keep the current layout. */ }
 });
