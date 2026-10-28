@@ -56,8 +56,8 @@
       set('unityTimeFactor', '×' + timeFactor); set('unityKillFactor', '×' + killFactor);
     }
     set('unityHudStars', game.z.over ? '★'.repeat(game.z.stars || 0) + '☆'.repeat(3 - (game.z.stars || 0)) : '☆☆☆');
-    const target = b.total < game.U.star2 ? `★2まで ${game.U.star2 - b.total}点` : b.total < game.U.star3 ? `★3まで ${game.U.star3 - b.total}点` : '★3の得点に到達';
-    set('unityHudGoal', `${target} ・ 逃げ切ると星を獲得`);
+    const target = b.total < game.U.star2 ? `★2 あと${game.U.star2 - b.total}点` : b.total < game.U.star3 ? `★3 あと${game.U.star3 - b.total}点` : '★3 得点到達';
+    set('unityHudGoal', target);
     const minute = Math.floor(b.elapsed / 60);
     if (mode === 'play' && !game.z.over && (minute > previousMinute && minute > 0 || b.elapsed >= 1 && previousMinute < 0)) {
       for (const id of ['unityTime', 'unityTimeFactor', 'unityKillFactor']) pulse(id, 1.3);
@@ -134,7 +134,7 @@
     game = internals;
     for (const name of ['milestoneBonus', 'shakePts']) $('s_' + name)?.closest('.sl')?.classList.add('legacy-score-setting');
     const hud = document.createElement('div'); hud.id = 'unityScoreHud';
-    hud.innerHTML = `<div id="unityDifficulty"></div><div class="unity-counter">${image('clock')}<b id="unityTime">120</b><small>秒</small><span>時間倍率 <strong id="unityTimeFactor">×1.0</strong></span></div><div class="unity-counter">${image('skull')}<b id="unityKills">0</b><span>撃破倍率 <strong id="unityKillFactor">×2.0</strong></span></div><div class="unity-counter unity-score">${image('star')}<b id="unityTotal">0</b><span>SCORE</span></div><div class="uc-hud-goal"><b id="unityHudStars" aria-hidden="true">☆☆☆</b><span id="unityHudGoal"></span></div>`;
+    hud.innerHTML = `<div id="unityDifficulty"></div><div class="unity-counter">${image('clock')}<b id="unityTime">120</b><small>秒</small><span>時間倍率 <strong id="unityTimeFactor">×1.0</strong></span></div><div class="unity-counter">${image('skull')}<b id="unityKills">0</b><small>撃破</small><span>撃破倍率 <strong id="unityKillFactor">×2.0</strong></span></div><div class="unity-counter unity-score">${image('star')}<b id="unityTotal">0</b><small>点</small><span>SCORE</span></div><div class="uc-hud-goal"><b id="unityHudStars" aria-hidden="true">☆☆☆</b><span id="unityHudGoal"></span></div>`;
     $('hud').append(hud);
     // Difficulty belongs with the other status lines, not floating under the header (it collided with hints).
     $('hud').querySelector('.hud-tl')?.prepend($('unityDifficulty'));

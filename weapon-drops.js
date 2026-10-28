@@ -47,9 +47,6 @@ export function createWeaponDrops(sky, game) {
   });
   const status = document.createElement('div'); status.id = 'weaponSupplyStatus'; status.hidden = true;
   document.getElementById('hud').append(status);
-  const style = document.createElement('style');
-  style.textContent = '#weaponSupplyStatus{position:absolute;top:152px;left:16px;max-width:210px;padding:7px 10px;border-left:3px solid #ffca86;background:#263235df;color:#fff3d8;font:700 12px/1.65 system-ui;pointer-events:none}#weaponSupplyStatus[hidden]{display:none}@media(max-height:500px){#weaponSupplyStatus{top:100px;left:10px;font-size:10px;max-width:170px;padding:4px 7px}}';
-  document.head.append(style);
   let candidates = [], previous = null, recent = [], elapsed = 0, next = WEAPON_DROP_INTERVAL, sequence = 0;
   let spawned = 0, collected = 0;
 
@@ -147,13 +144,13 @@ export function createWeaponDrops(sky, game) {
       item.beam.visible = item.age < FALL_SECONDS || Math.sin(elapsed * 2) > -.6;
     }
     const target = active.reduce((best, item) => !best || c.pos.distanceTo(item.group.position) < c.pos.distanceTo(best.group.position) ? item : best, null);
-    const wait = Math.max(0, Math.ceil(next - elapsed));
     if (target) {
       const dx = target.node.x - c.pos.x, dz = target.node.z - c.pos.z, dy = target.node.y - c.pos.y;
       const angle = Math.atan2(dx * Math.cos(c.yaw) - dz * Math.sin(c.yaw), -dx * Math.sin(c.yaw) - dz * Math.cos(c.yaw));
       const arrow = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'][(Math.round(angle / (Math.PI / 4)) + 8) % 8];
-      status.textContent = `${arrow} ${TYPES[target.type].name}補給 ${Math.round(Math.hypot(dx, dz))}m${dy > 1 ? `・上へ${Math.round(dy)}m` : ''}　次${wait}秒`;
-    } else status.textContent = `武器補給まで${wait}秒　屋根・上層へ`;
+      status.textContent = `${arrow} ${TYPES[target.type].name} ${Math.round(Math.hypot(dx, dz))}m${dy > 1 ? ` ↑${Math.round(dy)}m` : ''}`;
+    }
+    status.hidden = !playing || !target;
     document.body.dataset.skyWeaponDrops = JSON.stringify({ interval: WEAPON_DROP_INTERVAL, limit: WEAPON_DROP_LIMIT,
       elapsed: +elapsed.toFixed(2), next: +next.toFixed(2), spawned, collected, candidates: candidates.length, weapon: U.weapon | 0,
       items: active.map(i => ({ weapon: TYPES[i.type].name, position: [i.node.x, i.node.y, i.node.z], age: +i.age.toFixed(2), falling: i.age < FALL_SECONDS })) });

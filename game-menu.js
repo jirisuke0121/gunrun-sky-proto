@@ -5,6 +5,9 @@ const panel=document.getElementById('ovPause');
 const heading=panel.querySelector('h2');
 const resume=document.getElementById('bResume');
 const restart=document.getElementById('bRestart');
+const runStatus=document.createElement('p');
+runStatus.id='pauseRunStatus';runStatus.className='note';
+document.getElementById('challengeSettingsNote').before(runStatus);
 // Keep the controls in the physical viewport, outside the rotated game canvas.
 document.body.append(button,panel);
 const jumpGroup=document.getElementById('s_jumpGunUp').closest('.set-group');
@@ -27,6 +30,11 @@ function modeChanged(mode) {
   resume.textContent=pre?'ホームに戻る':'つづける';
   restart.hidden=pre;
   document.getElementById('bMenu').hidden=pre;
+  runStatus.hidden=mode!=='pause'||pre||!!window.skyPracticeMode;
+  if(!runStatus.hidden){
+    const value=id=>document.getElementById(id).textContent;
+    runStatus.textContent=`ライフ ${value('hLife')}　閃光弾 ${value('hFlash')}　撃破 ${value('hKills')}（落下 ${value('hDrops')}）　ゾンビ ${value('hZom')}`;
+  }
   document.getElementById('hud').hidden=mode==='menu'||pre;
   button.hidden=!['menu','play','pause'].includes(mode);
   button.setAttribute('aria-expanded',String(mode==='pause'));
