@@ -1,8 +1,8 @@
 // Running style for the existing, baked Unity human. No new model download.
 // Asset-space metres: +Y up, +Z forward, the right hand is on -X.
 import { actionPose } from './human-actions.js?v=20261028-swing-flow-v2';
-import { landingRollPose, rollTuck, rollTurn, LANDING_ROLL } from './landing-roll.js?v=20261028-roll-v1';
-export { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261028-roll-v1';
+import { landingRollPose, rollTuck, rollTurn, LANDING_ROLL } from './landing-roll.js?v=20261029-edge-assist-v3';
+export { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
 import { wallRunPose, WALLRUN_SAMPLES } from './human-wallrun.js?v=20261027-wallrun-v2';
 export { wallRunFrame, WALLRUN_STRIDE } from './human-wallrun.js?v=20261027-wallrun-v2';
 export { jumpPhase, ledgeAnchor } from './human-actions.js?v=20261028-swing-flow-v2';

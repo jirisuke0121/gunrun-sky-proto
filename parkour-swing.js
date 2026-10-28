@@ -109,6 +109,7 @@ export function createSwing(sky, game, course) {
   function detach(drop = false) {
     const a = active;
     if (!a) return;
+    c.edgeJump = !drop;
     c.state = 'normal'; c.swing = null; c.jumpBuf = 0; c.coyote = 0; c.airT = 0; c.catchCD = .25;
     c.hookPressed = false; c.edgeOff = null; cooldown = .08; releasedBar = a.bar.id; recatch = .45;
     const launch = releaseVelocity(a.direction, a.angle, a.omega, U.jumpVel);
@@ -143,6 +144,7 @@ export function createSwing(sky, game, course) {
     jumpPressed = false; hint.dataset.ready = 'false';
     hint.textContent = '前へ振れたらジャンプ / 下で離す';
     chain = chainTime > 0 && lastBar !== bar.id ? chain + 1 : 1; chainTime = 2; lastBar = bar.id;
+    c.edgeJump = false;
     c.state = 'swing'; c.swing = active; c.pos.set(...p); c.onGround = false; c.h = 1.75;
     c.coyote = 0; c.jumpBuf = 0; c.hookPressed = false; c.edgeOff = null;
     game.stats.barGrabs = (game.stats.barGrabs || 0) + 1; event('barGrab', { bar: bar.id, chain });

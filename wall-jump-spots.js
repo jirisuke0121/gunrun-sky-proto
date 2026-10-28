@@ -115,6 +115,7 @@
     player.vel.x = tangentX + nx * settings.wallJumpPush;
     player.vel.z = tangentZ + nz * settings.wallJumpPush;
     player.vel.y = settings.jumpVel * 0.95;
+    player.edgeJump = true;
     player.onGround = false;
     player.state = "normal";
     player.jumpBuf = 0;

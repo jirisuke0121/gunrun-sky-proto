@@ -71,7 +71,7 @@ export function createJumpGun(game) {
     const up=Number.isFinite(U.jumpGunUp)?Math.max(4,Math.min(JUMP_GUN.maxUp,U.jumpGunUp)):JUMP_GUN.up;
     const push=Number.isFinite(U.jumpGunPush)?Math.max(0,Math.min(JUMP_GUN.maxPush,U.jumpGunPush)):JUMP_GUN.push;
     c.state='normal';c.ledge=null;c.ladder=null;c.wallKey=null;
-    c.onGround=false;c.coyote=0;c.airT=0;c.jumpBuf=0;
+    c.edgeJump=true;c.onGround=false;c.coyote=0;c.airT=0;c.jumpBuf=0;
     c.vel.y=Math.max(c.vel.y,up);
     const moving=Math.hypot(c.vel.x,c.vel.z);
     const forwardX=moving>.5?c.vel.x/moving:-Math.sin(c.yaw);
