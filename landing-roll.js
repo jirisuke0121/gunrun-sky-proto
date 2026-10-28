@@ -61,9 +61,11 @@ export function createLandingRoll(game) {
     if (c.onGround || c.state !== 'normal') { peak = c.pos.y; airTime = 0; }
     else { peak = Math.max(peak, c.pos.y); airTime += dt; }
   }
+  const canLand = velocityY => c.state === 'normal' && c.h >= 1 && airTime >= .22 &&
+    peak - c.pos.y >= LANDING_ROLL.minDrop && -velocityY >= LANDING_ROLL.minImpact;
   function land(velocityY) {
     drop = peak - c.pos.y; impact = -velocityY;
-    if (c.state !== 'normal' || c.h < 1 || airTime < .22 || drop < LANDING_ROLL.minDrop || impact < LANDING_ROLL.minImpact) return false;
+    if (!canLand(velocityY)) return false;
     elapsed = 0;
     yaw = Math.hypot(c.vel.x, c.vel.z) > .3 ? Math.atan2(c.vel.x, c.vel.z) : c.yaw + Math.PI;
     game.Mn?.(.16, 850, .6, .30);

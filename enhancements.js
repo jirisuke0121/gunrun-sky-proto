@@ -1,9 +1,9 @@
-import { createSwing } from './parkour-swing.js?v=20261029-terrain-v1';
+import { createSwing } from './parkour-swing.js?v=20261029-edge-assist-v3';
 import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
 import { createFlashbang } from './flashbang.js?v=20261028-touch-layout-v1';
 import { createZombieClimb } from './zombie-climb.js?v=20261028-pillar-climb-v1';
 import { createGhostReplay } from './ghost-replay.js?v=20261028-compact-hud-v1';
-import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261028-compact-hud-v1';
+import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261029-edge-assist-v3';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261027-swing-v1';
 import { createJumpPickups } from './jump-pickups.js?v=20261028-playground-v1';
