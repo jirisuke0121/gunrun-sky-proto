@@ -20,6 +20,8 @@ jobs:
           node bench/human-running.test.cjs
           node bench/human-wallrun.test.cjs
           node bench/wallrun-permissions.test.cjs
+          node bench/editor-autosave.test.cjs
+          node bench/hook-touch-exits.test.cjs
           node bench/swing-timing.test.cjs
           node bench/human-actions.test.cjs
           node bench/human-view-running.test.cjs
@@ -37,6 +39,7 @@ jobs:
           fi
       - name: Render and exercise both maps
         run: |
+          node bench/editor-autosave-browser.cjs
           node bench/human-running-browser.cjs
           node bench/human-aim-browser.cjs
           node bench/dash-browser.cjs

@@ -3,11 +3,11 @@
 const $ = (id) => document.getElementById(id);
 const canvas = $('map'), ctx = canvas.getContext('2d'), iframe = $('source');
 const FOV = Math.PI / 3;
-let game, api, internals, solids = [], layout = [], defaults = [], selected = -1;
+let game, api, wallApi, internals, solids = [], layout = [], selected = -1;
 let wallJumps = [], selectedWallJump = -1, mode = 'hook', selectedCandidate = -1;
 let tool = 'add', viewPan = false, dirty = {hook:false,walljump:false}, drag = null, hover = null, booted = false;
 let launch = {x: -42, y: 0, z: 8};
-const WALL_JUMP_STORAGE_KEY = 'gunrun-old-town-walljumps-v1';
+let saveTimer;
 const camera = {target: {x: 0, y: 4, z: 0}, distance: 180, yaw: Math.PI / 4, pitch: 0.67};
 // Keep the clipping plane proportional to the view distance so close-up views
 // remain visible without imposing a fixed zoom stop.
@@ -91,7 +91,7 @@ function pick(sx,sy) {
 }
 function wallJumpPoint(hit) {
   const b=hit?.solid;
-  if(!b||hit.y<b.minY+.05||hit.y>b.maxY-.05)return null;
+  if(!b||b.type!=='mono'||b.wr===false||hit.y<b.minY+.05||hit.y>b.maxY-.05)return null;
   const faces=[
     {d:Math.abs(hit.x-b.minX),x:-1,z:0},
     {d:Math.abs(hit.x-b.maxX),x:1,z:0},
@@ -104,17 +104,17 @@ function wallJumpPoint(hit) {
   const z=face.z<0?b.minZ:face.z>0?b.maxZ:hit.z;
   return [+x.toFixed(2),+hit.y.toFixed(2),+z.toFixed(2),face.x,face.z];
 }
-function wallJumpPointAt(x,y,z) {
+function wallJumpPointAt(x,y,z,normal) {
   let best=null,distance=.08;
   for(const b of visibleSolids()){
-    if(y<b.minY+.05||y>b.maxY-.05)continue;
+    if(b.type!=='mono'||b.wr===false||y<b.minY+.05||y>b.maxY-.05)continue;
     const faces=[
       {d:Math.abs(x-b.minX),x:b.minX,z,nx:-1,nz:0,inside:z>=b.minZ-.08&&z<=b.maxZ+.08},
       {d:Math.abs(x-b.maxX),x:b.maxX,z,nx:1,nz:0,inside:z>=b.minZ-.08&&z<=b.maxZ+.08},
       {d:Math.abs(z-b.minZ),x,y,z:b.minZ,nx:0,nz:-1,inside:x>=b.minX-.08&&x<=b.maxX+.08},
       {d:Math.abs(z-b.maxZ),x,y,z:b.maxZ,nx:0,nz:1,inside:x>=b.minX-.08&&x<=b.maxX+.08},
     ];
-    for(const face of faces)if(face.inside&&face.d<distance){distance=face.d;best=[+face.x.toFixed(2),+y.toFixed(2),+face.z.toFixed(2),face.nx,face.nz];}
+    for(const face of faces)if(face.inside&&face.d<distance&&(!normal||(face.nx===normal[0]&&face.nz===normal[1]))){distance=face.d;best=[+face.x.toFixed(2),+y.toFixed(2),+face.z.toFixed(2),face.nx,face.nz];}
   }
   return best;
 }
@@ -246,15 +246,34 @@ function pointFromEvent(e){const b=canvas.getBoundingClientRect();return{x:e.cli
 function setTool(value){tool=value;for(const id of ['add','move','testPoint','focusPoint'])$(id).classList.toggle('active',id===value);draw();}
 function setViewPan(value){viewPan=value;$('viewPan').classList.toggle('active',viewPan);$('viewPan').setAttribute('aria-pressed',String(viewPan));canvas.classList.toggle('pan-mode',viewPan);}
 function setMode(value){mode=value;tool='add';$('hookMode').classList.toggle('active',mode==='hook');$('wallJumpMode').classList.toggle('active',mode==='walljump');$('testPoint').hidden=mode==='walljump';refresh();setTool('add');}
-function preview(){if(!api.apply(layout))return status('座標が有効な範囲を外れています。',true);dirty.hook=true;refresh();}
-function markWallJumpDirty(){dirty.walljump=true;refresh();}
+function flushSave() {
+  clearTimeout(saveTimer);
+  let ok = true;
+  for (const kind of ['hook', 'walljump']) {
+    if (!dirty[kind]) continue;
+    const saved = (kind === 'hook' ? api : wallApi)?.apply(kind === 'hook' ? layout : wallJumps, true);
+    if (saved) dirty[kind] = false;
+    else ok = false;
+  }
+  refresh();
+  status(ok ? '自動保存済み。同じブラウザの旧市街に反映しました。' : '自動保存できませんでした。未保存の変更があります。「保存を再試行」を押してください。', !ok);
+  return ok;
+}
+function queueSave(kind) {
+  dirty[kind] = true;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushSave, 180);
+  refresh();
+}
+function preview(){dirty.hook=true;if(!api.apply(layout)){clearTimeout(saveTimer);refresh();return status('座標または配置数が有効な範囲を外れています。',true);}queueSave('hook');}
+function markWallJumpDirty(){dirty.walljump=true;if(!wallApi.apply(wallJumps)){clearTimeout(saveTimer);refresh();return status('壁ジャンプ地点の座標または配置数が有効な範囲を外れています。',true);}queueSave('walljump');}
 function refresh(){
   draw();renderCandidates();const isWall=mode==='walljump',points=isWall?wallJumps:layout,index=isWall?selectedWallJump:selected,p=points[index];
   $('selectedTitle').textContent=isWall?'選択中の壁ジャンプ地点':'選択中のフック';$('pointsTitle').firstChild.textContent=isWall?'壁ジャンプ地点 ':'配置済み ';$('count').textContent=`${points.length}個`;
-  $('reset').textContent=isWall?'すべて削除':'初期配置に戻す';$('saveNote').textContent=isWall?'このブラウザーに設計データを保存します。壁ジャンプの動作範囲は変わりません。':'フックを保存すると、このブラウザーで開く旧市街のゲームにも反映されます。他の人の配置は変わりません。';
-  $('normalField').style.display=isWall?'block':'none';$('mapnote').textContent=isWall?'緑●＝壁走りジャンプ推奨、赤■＝非推奨（理由は右の一覧）。縦の壁面をクリックして壁ジャンプ地点を登録。番号をドラッグして移動。「視点移動」をONにしてドラッグするとマップを平行移動、OFFでは回転します。':'壁をクリックしてフックを配置、番号をドラッグして移動。「視点移動」をONにしてドラッグするとマップを平行移動、OFFでは回転します。右ドラッグでも移動できます。';
-  $('handoffNote').textContent=isWall?'壁ジャンプ地点JSONは設計データとして書き出されます。ゲーム動作へ反映するには、JSONをゲームのソースへ組み込みます。':'全プレイヤー向けの公開配置にする場合は、書き出したJSONをゲームのソースへ反映します。';
-  $('loadState').textContent=dirty[mode]?'未保存の変更があります。保存してください。':`地形 ${solids.length} 箱 / ${isWall?'壁ジャンプ地点':'フック'} ${points.length} 個を表示中`;$('save').disabled=!dirty[mode];
+  $('reset').textContent='標準配置に戻す';$('saveNote').textContent='追加・移動・削除すると自動保存され、同じブラウザで開いている旧市街にも反映されます。';
+  $('normalField').style.display=isWall?'block':'none';$('mapnote').textContent=isWall?'緑●＝壁走りジャンプ推奨、赤■＝非推奨（理由は右の一覧）。壁走りできる縦の壁面をクリックして地点を登録。番号をドラッグして移動。「視点移動」をONにしてドラッグするとマップを平行移動、OFFでは回転します。':'壁をクリックしてフックを配置、番号をドラッグして移動。「視点移動」をONにしてドラッグするとマップを平行移動、OFFでは回転します。右ドラッグでも移動できます。';
+  $('handoffNote').textContent='JSONの読み込みも自動保存されます。別の端末へはJSONで受け渡せます。全プレイヤー向けの標準配置にする場合は、ソースへの反映が必要です。';
+  $('loadState').textContent=(dirty[mode]?'未保存の変更あり / ':'自動保存 / ')+`地形 ${solids.length} 箱 / ${isWall?'壁ジャンプ地点':'フック'} ${points.length} 個`;$('save').disabled=!dirty.hook&&!dirty.walljump;
   for(const [k,i] of [['x',0],['y',1],['z',2]])$(k).value=p?Number(p[i].toFixed(2)):'';
   if(isWall&&p)$('normal').value=`${p[3]},${p[4]}`;
   $('remove').disabled=!p;$('move').disabled=!p;$('focusSelected').disabled=!p;
@@ -269,26 +288,63 @@ canvas.addEventListener('pointermove',e=>{if(!api)return;const p=pointFromEvent(
   else if(drag.kind==='orbit'){camera.yaw=drag.startYaw-dx*.007;camera.pitch=drag.startPitch+dy*.007;draw();}
   else {const b=basis(),scale=camera.distance*2*Math.tan(FOV/2)/canvas.clientHeight;camera.target={x:drag.startTarget.x+(-b.right.x*dx+b.up.x*dy)*scale,y:drag.startTarget.y+(-b.right.y*dx+b.up.y*dy)*scale,z:drag.startTarget.z+(-b.right.z*dx+b.up.z*dy)*scale};draw();}
 });
-canvas.addEventListener('pointerup',e=>{if(!drag||!api)return;const p=pointFromEvent(e),moved=drag.moved,kind=drag.kind;drag=null;canvas.classList.remove('is-panning');camera.yaw%=Math.PI*2;camera.pitch%=Math.PI*2;if(moved||kind==='marker'||kind==='pan'||e.button!==0)return;const hit=pick(p.x,p.y);if(!hit)return;if(tool==='focusPoint'){focus(hit);return;}if(mode==='hook'&&tool==='testPoint'){launch={x:hit.x,y:hit.y,z:hit.z};refresh();return;}if(mode==='walljump'){const cand=hitCandidate(p.x,p.y);if(cand>=0){selectCandidate(cand);return;}const point=wallJumpPoint(hit);if(!point)return status('壁ジャンプ地点は縦の壁面に置いてください。',true);if(tool==='move'&&selectedWallJump>=0)wallJumps[selectedWallJump]=point;else{wallJumps.push(point);selectedWallJump=wallJumps.length-1;}markWallJumpDirty();return;}const point=[+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];if(tool==='move'&&selected>=0)layout[selected]=point;else{layout.push(point);selected=layout.length-1;}preview();});
-canvas.addEventListener('pointercancel',()=>{drag=null;canvas.classList.remove('is-panning');});
+canvas.addEventListener('pointerup',e=>{if(!drag||!api)return;const p=pointFromEvent(e),moved=drag.moved,kind=drag.kind;drag=null;canvas.classList.remove('is-panning');if(dirty.hook||dirty.walljump)flushSave();camera.yaw%=Math.PI*2;camera.pitch%=Math.PI*2;if(moved||kind==='marker'||kind==='pan'||e.button!==0)return;const hit=pick(p.x,p.y);if(!hit)return;if(tool==='focusPoint'){focus(hit);return;}if(mode==='hook'&&tool==='testPoint'){launch={x:hit.x,y:hit.y,z:hit.z};refresh();return;}if(mode==='walljump'){const cand=hitCandidate(p.x,p.y);if(cand>=0){selectCandidate(cand);return;}const point=wallJumpPoint(hit);if(!point)return status('壁ジャンプ地点は壁走りできる縦の壁面に置いてください。',true);if(tool==='move'&&selectedWallJump>=0)wallJumps[selectedWallJump]=point;else{wallJumps.push(point);selectedWallJump=wallJumps.length-1;}markWallJumpDirty();return;}const point=[+hit.x.toFixed(2),+(hit.y+1.5).toFixed(2),+hit.z.toFixed(2)];if(tool==='move'&&selected>=0)layout[selected]=point;else{layout.push(point);selected=layout.length-1;}preview();});
+canvas.addEventListener('pointercancel',()=>{drag=null;canvas.classList.remove('is-panning');if(dirty.hook||dirty.walljump)flushSave();});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('wheel',e=>{e.preventDefault();const p=pointFromEvent(e);zoom(e.deltaY<0?.81:1.23,p.x,p.y);},{passive:false});
 for(const id of ['add','move','testPoint','focusPoint'])$(id).onclick=()=>setTool(id);
 $('hookMode').onclick=()=>setMode('hook');$('wallJumpMode').onclick=()=>setMode('walljump');
 $('adoptCandidates').onclick=()=>{let added=0;for(const c of candidates()){if(c.status!=='ok')continue;const [x,y,z]=c.at,[nx,nz]=c.normal;if(wallJumps.some(w=>Math.hypot(w[0]-x,w[2]-z)<1&&w[3]===nx&&w[4]===nz))continue;wallJumps.push([x,y,z,nx,nz]);added++;}
-  if(added){selectedWallJump=wallJumps.length-1;markWallJumpDirty();}
-  status(added?`緑の候補${added}か所を壁ジャンプ地点に追加しました。保存またはJSON書き出しで確定してください。`:'追加できる緑の候補はありません（すべて登録済みです）。');};
+  if(added){selectedWallJump=wallJumps.length-1;markWallJumpDirty();status(`緑の候補${added}か所を追加しました。自動保存しています。`);}
+  else status('追加できる緑の候補はありません（すべて登録済みです）。');};
 $('viewPan').onclick=()=>setViewPan(!viewPan);
 $('fit').onclick=fit;$('zoomIn').onclick=()=>zoom(.75);$('zoomOut').onclick=()=>zoom(1.33);
 $('topView').onclick=()=>{camera.pitch=1.52;draw();};$('obliqueView').onclick=()=>{camera.pitch=.67;draw();};
 $('focusSelected').onclick=()=>{const p=mode==='hook'?layout[selected]:wallJumps[selectedWallJump];if(p)focus({x:p[0],y:p[1],z:p[2]});};
 for(const [k,i] of [['x',0],['y',1],['z',2]])$(k).addEventListener('change',()=>{const index=mode==='hook'?selected:selectedWallJump,points=mode==='hook'?layout:wallJumps;if(index<0)return;const value=Number($(k).value);if(!Number.isFinite(value))return;if(mode==='hook'){points[index][i]=value;preview();return;}const next=points[index].slice(0,3);next[i]=value;const wall=wallJumpPointAt(...next);if(!wall){refresh();return status('壁ジャンプ地点は縦の壁面上に置いてください。',true);}wallJumps[index]=wall;markWallJumpDirty();});
-$('normal').addEventListener('change',()=>{if(mode!=='walljump'||selectedWallJump<0)return;const [nx,nz]=$('normal').value.split(',').map(Number);wallJumps[selectedWallJump][3]=nx;wallJumps[selectedWallJump][4]=nz;markWallJumpDirty();});
+$('normal').addEventListener('change',()=>{
+  if(mode!=='walljump'||selectedWallJump<0)return;
+  const normal=$('normal').value.split(',').map(Number),point=wallJumps[selectedWallJump];
+  const wall=wallJumpPointAt(...point.slice(0,3),normal);
+  if(!wall){refresh();return status('選択した向きの壁面がありません。壁面上へ移動してください。',true);}
+  wallJumps[selectedWallJump]=wall;markWallJumpDirty();
+});
 $('remove').onclick=()=>{if(mode==='hook'){if(selected<0)return;layout.splice(selected,1);selected=Math.min(selected,layout.length-1);preview();}else{if(selectedWallJump<0)return;wallJumps.splice(selectedWallJump,1);selectedWallJump=Math.min(selectedWallJump,wallJumps.length-1);markWallJumpDirty();}};
-$('save').onclick=()=>{if(mode==='hook'){if(!api.apply(layout,true))return status('保存できませんでした。ブラウザの保存設定を確認してください。',true);dirty.hook=false;refresh();status('フック配置をこのブラウザに保存しました。ゲームを開き直すと反映されます。');return;}try{localStorage.setItem(WALL_JUMP_STORAGE_KEY,JSON.stringify(wallJumps));dirty.walljump=false;refresh();status('壁ジャンプ地点をこのブラウザに保存しました。');}catch{status('保存できませんでした。ブラウザの保存設定を確認してください。',true);}};
-$('reset').onclick=()=>{if(mode==='hook'){layout=defaults.map(p=>[...p]);selected=-1;api.reset();dirty.hook=false;refresh();status('フック配置を初期配置に戻しました。');return;}wallJumps=[];selectedWallJump=-1;try{localStorage.removeItem(WALL_JUMP_STORAGE_KEY);}catch{}dirty.walljump=false;refresh();status('壁ジャンプ地点をすべて削除しました。');};
+$('save').onclick=flushSave;
+$('reset').onclick=()=>{
+  const isWall=mode==='walljump',registry=isWall?wallApi:api;
+  if(!registry.reset())return status('標準配置に戻せませんでした。ブラウザの保存設定を確認してください。',true);
+  if(isWall){wallJumps=registry.current();selectedWallJump=-1;}else{layout=registry.current();selected=-1;}
+  dirty[mode]=false;refresh();status('最新の標準配置に戻し、ゲームにも反映しました。');
+};
 $('export').onclick=()=>{const isWall=mode==='walljump',data=isWall?{format:'gunrun-old-town-walljumps-v1',map:'old-town',wallJumps:wallJumps.map(([x,y,z,nx,nz])=>({at:[x,y,z],normal:[nx,nz]}))}:{format:'gunrun-old-town-hooks-v1',map:'old-town',hooks:layout};const blob=new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=isWall?'gunrun-old-town-walljumps.json':'gunrun-old-town-hooks.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status(isWall?'壁ジャンプ地点JSONを書き出しました。':'フック配置JSONを書き出しました。');};
-$('import').onclick=()=>$('importFile').click();$('importFile').onchange=async()=>{const file=$('importFile').files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(mode==='hook'){if(data.format!=='gunrun-old-town-hooks-v1'||data.map!=='old-town'||!Array.isArray(data.hooks)||data.hooks.length>64||!data.hooks.every(finitePoint))throw Error('形式または座標が正しくありません');layout=data.hooks.map(p=>[...p]);selected=-1;preview();}else{if(data.format!=='gunrun-old-town-walljumps-v1'||data.map!=='old-town'||!Array.isArray(data.wallJumps)||data.wallJumps.length>128||!data.wallJumps.every(p=>Array.isArray(p?.at)&&Array.isArray(p?.normal)&&finiteWallJump([...p.at,...p.normal])))throw Error('形式または座標が正しくありません');wallJumps=data.wallJumps.map(p=>[...p.at,...p.normal]);selectedWallJump=-1;markWallJumpDirty();}status('JSONを読み込みました。確認してから保存してください。');}catch(e){status('読み込めませんでした：'+e.message,true);}finally{$('importFile').value='';}};
+$('import').onclick=()=>$('importFile').click();$('importFile').onchange=async()=>{const file=$('importFile').files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(mode==='hook'){if(data.format!=='gunrun-old-town-hooks-v1'||data.map!=='old-town'||!Array.isArray(data.hooks)||data.hooks.length>64||!data.hooks.every(finitePoint))throw Error('形式または座標が正しくありません');layout=data.hooks.map(p=>[...p]);selected=-1;preview();}else{if(data.format!=='gunrun-old-town-walljumps-v1'||data.map!=='old-town'||!Array.isArray(data.wallJumps)||data.wallJumps.length>128||!data.wallJumps.every(p=>Array.isArray(p?.at)&&Array.isArray(p?.normal)&&finiteWallJump([...p.at,...p.normal])))throw Error('形式または座標が正しくありません');const next=data.wallJumps.map(p=>[...p.at,...p.normal]);if(!next.every(p=>wallJumpPointAt(...p.slice(0,3),p.slice(3))))throw Error('壁走りできる壁面上にない地点があります');wallJumps=next;selectedWallJump=-1;markWallJumpDirty();}status('JSONを読み込みました。自動保存しています。');}catch(e){status('読み込めませんでした：'+e.message,true);}finally{$('importFile').value='';}};
 new ResizeObserver(resize).observe(canvas);
-async function boot(){if(booted)return;booted=true;try{const w=iframe.contentWindow;for(let i=0;i<250&&!w.skyHookEditor;i++)await new Promise(r=>setTimeout(r,80));api=w.skyHookEditor;game=w.__game;internals=w.__skyInternals;if(!api||!game?.solids)throw Error('ゲームの地形を読み込めませんでした');w.__hold=true;solids=game.solids;defaults=api.defaults();layout=api.current();try{const stored=localStorage.getItem(WALL_JUMP_STORAGE_KEY);if(stored){const parsed=JSON.parse(stored);if(Array.isArray(parsed)&&parsed.length<=128&&parsed.every(finiteWallJump))wallJumps=parsed;}}catch{}fit();resize();refresh();status('ドラッグで回転。「視点移動」をONにすると平行移動できます。');}catch(e){status(e.message,true);$('loadState').textContent='読み込みに失敗しました。HTTPまたは公開URLで開いてください。';}}
+async function boot(){
+  if(booted)return;booted=true;
+  try{
+    const w=iframe.contentWindow;
+    for(let i=0;i<250&&(!w.skyHookEditor||!w.skyWallJumpEditor);i++)await new Promise(r=>setTimeout(r,80));
+    api=w.skyHookEditor;wallApi=w.skyWallJumpEditor;game=w.__game;internals=w.__skyInternals;
+    if(!api||!wallApi||!game?.solids)throw Error('ゲームの地形を読み込めませんでした');
+    w.__hold=true;solids=game.solids;layout=api.current();wallJumps=wallApi.current();
+    fit();resize();refresh();status('配置の変更は自動保存され、同じブラウザの旧市街に反映されます。');
+  }catch(e){status(e.message,true);$('loadState').textContent='読み込みに失敗しました。HTTPまたは公開URLで開いてください。';}
+}
+window.addEventListener('storage',event=>{
+  if(!api||!wallApi)return;
+  for(const kind of ['hook','walljump']){
+    const registry=kind==='hook'?api:wallApi;
+    if((event.key!==registry.key&&event.key!==null)||dirty[kind])continue;
+    try{
+      const next=event.newValue===null?registry.defaults():JSON.parse(event.newValue);
+      if(!registry.apply(next))continue;
+      if(kind==='hook'){layout=registry.current();selected=Math.min(selected,layout.length-1);}
+      else{wallJumps=registry.current();selectedWallJump=Math.min(selectedWallJump,wallJumps.length-1);}
+      refresh();
+    }catch{/* Ignore incomplete or invalid updates from another tab. */}
+  }
+});
+for(const name of ['pagehide','beforeunload'])window.addEventListener(name,()=>{if(dirty.hook||dirty.walljump)flushSave();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&(dirty.hook||dirty.walljump))flushSave();});
 if(iframe.contentDocument?.readyState==='complete')boot();else iframe.addEventListener('load',boot,{once:true});

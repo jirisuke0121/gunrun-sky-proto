@@ -1,22 +1,70 @@
 (() => {
-  const points = [
+  const defaults = [
     { at: [26, 1.9, -1.5], normal: [0, 1], direction: [1, 0], name: '東の隙間' },
     { at: [29.6, 1.9, -25.2], normal: [0, 1], direction: [1, 0], name: '北の梁' },
     { at: [14, 1.4, 6.8], normal: [1, 0], direction: [0, 1], name: 'リング東壁' },
     { at: [-14, 0.3, -13.6], normal: [-1, 0], direction: [0, -1], name: 'リング西壁' },
     { at: [-14, 1.4, 6.8], normal: [-1, 0], direction: [0, 1], name: '西の路地・南への近道' },
   ];
-  window.__skyWallRunSpots = points.map(({ at, normal }) => ({ at: [...at], normal: [...normal] }));
-  window.__skyWallRunRoutes = points.map(({ at, normal, direction, name }) =>
-    ({ at: [...at], normal: [...normal], direction: [...direction], name }));
+  const key = 'gunrun-old-town-walljumps-v1';
+  let points = defaults;
+  const rows = source => source.map(({ at, normal }) => [...at, ...normal]);
+  const valid = value => Array.isArray(value) && value.length <= 128 && value.every(p =>
+    Array.isArray(p) && p.length === 5 && p.every(Number.isFinite) &&
+    Math.abs(p[0]) <= 150 && p[1] >= -20 && p[1] <= 100 && Math.abs(p[2]) <= 150 &&
+    ((Math.abs(p[3]) === 1 && p[4] === 0) || (p[3] === 0 && Math.abs(p[4]) === 1)));
+  function publish() {
+    // Practice and canyon courses own their own permissions and route guides.
+    if (window.skyPracticeMode || window.skySwingCourse) return;
+    window.__skyWallRunSpots = points.map(({ at, normal }) => ({ at: [...at], normal: [...normal] }));
+    window.__skyWallRunRoutes = points.map(({ at, normal, direction, name }) =>
+      ({ at: [...at], normal: [...normal], direction: [...direction], name }));
+    window.dispatchEvent?.(new Event('sky-walljump-layout-change'));
+  }
+  function apply(value, persist = false) {
+    if (!valid(value)) return false;
+    // Persist before changing the live registry so a denied write remains retryable.
+    if (persist) {
+      try { localStorage.setItem(key, JSON.stringify(value)); }
+      catch { return false; }
+    }
+    if (JSON.stringify(value) === JSON.stringify(rows(points))) return true;
+    points = value.map(([x, y, z, nx, nz], i) => {
+      // Retain the route's arrow direction when its take-off point is moved on
+      // the same face. New faces get a consistent tangent for their guide.
+      const original = defaults.find(p => p.normal[0] === nx && p.normal[1] === nz &&
+        Math.abs((nx ? p.at[0] : p.at[2]) - (nx ? x : z)) < .05 &&
+        Math.hypot(p.at[0] - x, p.at[2] - z) < 10);
+      return { at: [x, y, z], normal: [nx, nz], direction: original ? [...original.direction] : [-nz, nx],
+        name: original?.name || `編集した壁ジャンプ ${i + 1}` };
+    });
+    publish();
+    return true;
+  }
+  window.skyWallJumpEditor = {
+    key, defaults: () => rows(defaults), current: () => rows(points), apply,
+    reset() {
+      try { localStorage.removeItem(key); } catch { return false; }
+      points = defaults; publish(); return true;
+    },
+  };
+  publish();
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored !== null) apply(JSON.parse(stored));
+  } catch { /* Keep published defaults if storage is corrupt or unavailable. */ }
+  window.addEventListener?.('storage', event => {
+    if (event.key !== key && event.key !== null) return;
+    try { apply(event.newValue === null ? rows(defaults) : JSON.parse(event.newValue)); }
+    catch { /* Keep the last valid live registry. */ }
+  });
 
   // A jump marker permits only its wall face, never the whole wall object or
   // another face on the same building. Keep run permission separate from the
   // much smaller take-off area used by matchingPoint below.
-  const wallRunFaces = points;
   window.__skyCanWallRunOnFace = (wall, normal) => {
     if (!wall || wall.type !== "mono" || wall.wr === false || wall.off || !normal) return false;
-    return (window.skyPracticeMode ? window.skyPracticeCourse.wallSpots : wallRunFaces).some(({ at: [x, y, z], normal: [nx, nz] }) => {
+    return (window.skyPracticeMode ? window.skyPracticeCourse.wallSpots : window.skySwingCourse ? defaults : points).some(({ at: [x, y, z], normal: [nx, nz] }) => {
       if (normal.x !== nx || normal.z !== nz) return false;
       const plane = nx ? (nx > 0 ? wall.maxX : wall.minX) : (nz > 0 ? wall.maxZ : wall.minZ);
       const along = nx ? z : x;
