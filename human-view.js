@@ -601,6 +601,9 @@ function prepareShot(origin,direction,distance) {
 window.skyHumanView = { update, select, getMuzzleWorld, prepareShot,
   get canAimBehind() { return canAimBehind(); },
   autoAimReady(target) {
+    // Automatic fire waits for the body to unfold. A deliberate shot can still
+    // interrupt through prepareShot immediately, as with other parkour poses.
+    if (c.swingFlight?.perfect && c.swingFlight.age < c.swingFlight.flipDuration) return false;
     if (!canAimBehind()) return true;
     const direction = Math.atan2(target.pos.x - c.pos.x, target.pos.z - c.pos.z);
     return holder?.visible && aimBlend > .96 && Math.abs(wrapAngle(direction - holder.rotation.y)) < 1.12;

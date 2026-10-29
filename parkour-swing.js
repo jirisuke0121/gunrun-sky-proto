@@ -118,6 +118,7 @@ export function createSwing(sky, game, course) {
     c.vel.set(...(drop ? [a.direction[0] * 2, -1, a.direction[1] * 2] : launch));
     c.swingFlight = drop ? null : { age: 0, angle: a.angle, direction: [...a.direction], perfect,
       flipDuration: perfect ? flipDuration(c.pos.toArray(), launch, U.gravity, sky.oe, bars, a.bar.id, c.r) : 0 };
+    if (perfect && U.autoFire && sky.Et) sky.Et.trigger = 0;
     event(drop ? 'barDrop' : 'barJump', { bar: a.bar.id, chain, angle: +a.angle.toFixed(3), omega: +a.omega.toFixed(3), perfect });
     if (perfect) game.stats.barFlips = (game.stats.barFlips || 0) + 1;
     if (!drop) { window.skyTelemetryProbe?.jumpAccepted(z.t, 'bar_release'); game.stats.barJumps = (game.stats.barJumps || 0) + 1; sky.Tt.jump?.(); }
