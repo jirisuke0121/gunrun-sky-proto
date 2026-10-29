@@ -93,6 +93,13 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         assert.equal(chase.targeted, true); assert.equal(chase.touching, false, 'lured enemy cannot damage the real player');
         assert.ok(chase.towardClone > 0 && chase.towardPlayer < 0, JSON.stringify(chase));
         assert.ok(chase.distance < cast.distance + 1, JSON.stringify({ cast, chase })); assert.equal(chase.life, cast.life); assert.ok(chase.moved > 1); assert.equal(chase.gl, 0);
+        if (layout.touch) {
+          const labels = await page.evaluate(() => {
+            const banner = document.getElementById('decoyBanner').getBoundingClientRect(), toast = document.querySelector('.toast').getBoundingClientRect();
+            return { banner: {top:banner.top,bottom:banner.bottom}, toast: {top:toast.top,bottom:toast.bottom} };
+          });
+          assert.ok(labels.banner.bottom < labels.toast.top || labels.toast.bottom < labels.banner.top, 'skill status overlaps toast: ' + JSON.stringify(labels));
+        }
         await page.screenshot({ path: `browser-evidence/${id}-active.png` });
         if (map === 'index.html' && ['desktop', 'touch'].includes(layout.name)) console.log('SKILL_IMAGE_' + layout.name + ':' + (await page.screenshot({type:'jpeg',quality:60})).toString('base64'));
         const paused = await page.evaluate(() => {

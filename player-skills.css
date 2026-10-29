@@ -27,10 +27,11 @@
 #catchBox{bottom:113px}
 #scorePop{bottom:145px}
 body:has(#ovPause:not([hidden])) #skillDock,body:has(#ovOver:not([hidden])) #skillDock{visibility:hidden}
-#decoyBanner{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);color:#a9fff5;font:800 14px/1.4 system-ui;letter-spacing:.12em;text-align:center;text-shadow:0 0 14px #2bebe3,0 2px 3px #000;pointer-events:none;opacity:0}
+#decoyBanner{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 40px);color:#a9fff5;font:800 14px/1.4 system-ui;letter-spacing:.12em;text-align:center;text-shadow:0 0 14px #2bebe3,0 2px 3px #000;pointer-events:none;opacity:0}
 #decoyBanner.on{opacity:1}
 #decoyPulse{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:6;background:radial-gradient(ellipse at 50% 60%,transparent 45%,#bc49e530 78%,#21eddd44);mix-blend-mode:screen}
 html.touch #skillDock{--skill-size:clamp(48px,calc(var(--control-height,100dvh) * .145),58px);bottom:calc(var(--touch-bottom) + 13px);gap:14px}
+html.touch #decoyBanner{top:calc(64% - 30px);bottom:auto;font-size:12px}
 html.touch #catchBox{bottom:calc(var(--touch-bottom) + 92px)}
 html.touch #weaponSupplyStatus{top:calc(var(--touch-top) + 60px)}
 @media(prefers-reduced-motion:reduce){#skillDock button{transition:none}}
