@@ -55,7 +55,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
             c.yaw = Math.atan2(lane.dx, lane.dz); c.pitch = -.15; c.camY = undefined; c.invuln = -1;
             c.lastGround.copy(c.pos); c.safe.copy(c.pos); window.skyFollowCamera?.reset();
           };
-          window.__skillsFrames = count => { for (let i = 0; i < count; i++) g.frameOnce(1 / 60); };
+          window.__skillsFrames = count => { for (let i = 0; i < count; i++) g.advance(1 / 60); g.frameOnce(0); };
           window.__skillsPlace(6); g.frameOnce(0);
           const enemy = new sky.ri(lane.x + lane.dx * 9, lane.y + .005, lane.z + lane.dz * 9);
           enemy.spawnT = 0; enemy.flank = false; enemy.onGround = true; enemy.speedMul = 1; sky.Jt.push(enemy); window.__skillsEnemy = enemy;
@@ -74,7 +74,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         }
         assert.equal(intersects(boxes.tFlash, boxes.tDecoy), false);
         // Use an actual click/tap. Releasing within the button fires once.
-        if (layout.touch) await page.tap('#tDecoy'); else await page.locator('#tDecoy').click();
+        if (layout.touch) await page.tap('#tDecoy'); else await page.keyboard.press('e');
         const cast = await page.evaluate(() => {
           const a = window.skyDecoy.active; if (!a) throw Error('Skill input did not cast');
           window.__skillsPlace(12); window.__game.updateField();
@@ -88,6 +88,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         assert.equal(chase.targeted, true); assert.equal(chase.touching, false, 'lured enemy cannot damage the real player');
         assert.ok(chase.distance < cast.distance + 1, JSON.stringify({ cast, chase })); assert.equal(chase.life, cast.life); assert.ok(chase.moved > 1); assert.equal(chase.gl, 0);
         await page.screenshot({ path: `browser-evidence/${id}-active.png` });
+        if (map === 'index.html' && ['desktop', 'touch'].includes(layout.name)) console.log('SKILL_IMAGE_' + layout.name + ':' + (await page.screenshot({type:'jpeg',quality:60})).toString('base64'));
         const paused = await page.evaluate(() => {
           window.__game.setMode('pause'); const before = [window.skyDecoy.remaining, window.skyDecoy.cooldown]; window.__skillsFrames(60);
           return { before, after: [window.skyDecoy.remaining, window.skyDecoy.cooldown], hidden: !document.getElementById('tDecoy').checkVisibility() };
@@ -103,7 +104,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         });
         assert.equal(ended.expired, true); assert.equal(ended.blocked, true); assert.equal(ended.ready, true); assert.equal(ended.second, true); assert.equal(ended.used, 2);
         const flash = await page.evaluate(() => { window.skyDecoy.clear(); window.__skillsPlace(6); window.__game.frameOnce(0); return window.skyFlashbang.charges; });
-        if (layout.touch) await page.tap('#tFlash'); else await page.locator('#tFlash').click();
+        if (layout.touch) await page.tap('#tFlash'); else await page.keyboard.press('g');
         assert.equal(await page.evaluate(() => window.skyFlashbang.charges), flash - 1, 'flash still works from bottom dock');
         await page.evaluate(() => { window.__game.startGame(); window.__game.frameOnce(0); });
         assert.equal(await page.evaluate(() => window.skyDecoy.cooldown), 0, 'restart resets cooldown');
