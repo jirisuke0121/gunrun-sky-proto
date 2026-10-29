@@ -105,6 +105,27 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
       await jump();
       const released=await p.evaluate(()=>{stepSwing();return{active:!!skySwing.active,state:__game.P.state};});
       assert.equal(released.active,false);assert.notEqual(released.state,'swing');
+      const reach=await p.evaluate(()=>{
+        const sky=__skyInternals,weapon=sky.ue.children.find(o=>o.name==='Unity human held weapon');
+        return{flight:!!sky.c.swingFlight,clip:document.body.dataset.skyHumanClip,weaponVisible:weapon.visible};
+      });
+      assert.deepEqual(reach,{flight:true,clip:'swingFlight',weaponVisible:false},'release/reach keeps the two-hand pose clear');
+      await p.screenshot({path:`${output}/${touch?'touch':'desktop'}-release.png`});
+      const airShot=await p.evaluate(()=>{
+        const sky=__skyInternals,g=__game,c=g.P,before=sky.Et.ammo;
+        sky.fireWeapon();g.cam(0);skyHumanView.update(0);
+        const weapon=sky.ue.children.find(o=>o.name==='Unity human held weapon');
+        const ray=JSON.parse(document.body.dataset.skyHumanShot||'null');
+        const bore=new sky.Geom.Vector3(0,0,-1).applyQuaternion(weapon.quaternion);
+        const direction=ray&&new sky.Geom.Vector3(...ray.direction);
+        g.debug.renderer.clear();g.debug.renderer.render(sky.ue,sky.Se);
+        return{shots:before-sky.Et.ammo,flight:!!c.swingFlight,visible:weapon.visible,clip:document.body.dataset.skyHumanClip,
+          gripError:+document.body.dataset.skyHumanGripError,dot:direction&&bore.dot(direction),gl:g.debug.renderer.getContext().getError()};
+      });
+      assert.equal(airShot.shots,1);assert.equal(airShot.flight,false);assert.equal(airShot.visible,true);
+      assert.equal(airShot.clip,'jump');assert.ok(airShot.gripError<.04&&airShot.dot>1-1e-7,JSON.stringify(airShot));assert.equal(airShot.gl,0);
+      results.at(-1).airShot=airShot;
+      await p.screenshot({path:`${output}/${touch?'touch':'desktop'}-release-shot.png`});
       // Pause freezes the movement state; down input drops; reset clears it.
       const lifecycle=await p.evaluate(()=>{
         startSwingQA([-12.9,6.05,-6]);const c=__game.P;c.onGround=false;c.vel.x=5;stepSwing();

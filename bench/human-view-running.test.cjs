@@ -78,7 +78,32 @@ const { fixture } = require('./human-running.test.cjs');
   for (let i = 0; i < 30; i++) { c.yaw += .015; c.vel.set(-Math.sin(c.yaw) * 6, 0, -Math.cos(c.yaw) * 6); update(); }
   const holder = sky.ue.children.find(o => o.name === 'Unity challenge human');
   assert.ok(holder.rotation.z < -.02 && holder.rotation.z >= -.2, 'body banks inside a continuous turn');
-  c.yaw = 0;
+  // A turn immediately before catching a bar must not tilt the grip line.
+  // Check the two transformed hand contacts, rather than the midpoint metric.
+  c.state = 'swing'; c.onGround = false; c.yaw = -Math.PI / 2;
+  c.swing = { direction: [1, 0], angle: -.6, pivot: [c.pos.x + 1.2, c.pos.y + 1.8, c.pos.z] };
+  c.vel.set(5, -3, 0); update(1, false);
+  holder.updateMatrixWorld(true);
+  const sample = running.sampleClip(motion.clips.parkourSwing, (c.swing.angle + 1.15) / 2.3);
+  const contacts = ['left', 'right'].map(side => {
+    const a = motion.hands.parkourSwing[sample.lo][side], b = motion.hands.parkourSwing[sample.hi][side];
+    return gltf.scene.localToWorld(new Vector3(...a.map((v, k) => v + (b[k] - v) * sample.fraction)));
+  });
+  assert.ok(Math.abs(contacts[1].y - contacts[0].y) < .001,
+    `both hands share the horizontal bar after turning (${Math.abs(contacts[1].y - contacts[0].y)})`);
+  const carried = sky.ue.children.find(o => o.name === 'Unity human held weapon');
+  assert.equal(carried.visible, false, 'both hands are occupied on a bar');
+  c.state = 'normal'; c.swing = null; c.swingFlight = { age: .1, angle: .7, direction: [1, 0] };
+  c.vel.set(8, 4, 0); update(1, false);
+  assert.equal(dataset.skyHumanClip, 'swingFlight');
+  assert.equal(carried.visible, false, 'the two-hand release/reach pose has no dangling gun');
+  const flightShot = context.window.skyHumanView.prepareShot(new Vector3(0, 3, 4), new Vector3(0, 0, -1), 20);
+  assert.ok(flightShot, 'an intentional airborne shot remains available');
+  assert.equal(c.swingFlight, null, 'shooting immediately gives the hands back to the weapon pose');
+  assert.equal(carried.visible, true);
+  assert.ok(+dataset.skyHumanGripError < .04, 'the first shot after release has matching visible grips');
+  c.state = 'normal'; c.swing = c.swingFlight = null; c.onGround = true;
+  c.yaw = 0; c.vel.set(0, 0, 0); update(60, false);
   // Walking and strafing keep their original clips with a continuous foot phase.
   c.vel.set(0, 0, -4.6); const beforeWalk = +dataset.skyHumanGaitPhase; update();
   assert.equal(dataset.skyHumanClip, 'walkForward'); assert.notEqual(+dataset.skyHumanGaitPhase, 0); assert.notEqual(+dataset.skyHumanGaitPhase, beforeWalk);
@@ -154,5 +179,5 @@ const { fixture } = require('./human-running.test.cjs');
   keys.get('keydown')({ code: 'KeyV', repeat: false }); c.pos.z -= 100; c.vel.z = -6; update(1, false);
   assert.equal(+dataset.skyHumanGaitPhase, 0);
   assert.ok(body.morphTargetInfluences.every(Number.isFinite));
-  console.log('PASS actual human-view integration: moving/blocked feet, walk/run/strafe/back, firing/reload, pause, jump/slide/ladder, ledge contacts, wall run/look/pause/exit, view switch/respawn; 60 first-shot barrel/ray, visible chest direction, foot preservation and actual deformed wrist contacts');
+  console.log('PASS actual human-view integration: moving/blocked feet, walk/run/strafe/back, firing/reload, pause, jump/slide/ladder, ledge contacts, wall run/look/pause/exit, view switch/respawn; level two-hand bar contact after a turn, unarmed release/reach and same-frame airborne fire; 60 first-shot barrel/ray, visible chest direction, foot preservation and actual deformed wrist contacts');
 })().catch(error => { console.error(error); process.exitCode = 1; });
