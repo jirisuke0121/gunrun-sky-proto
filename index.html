@@ -89,7 +89,7 @@ html.touch .hookmark{width:48px;height:48px;margin:-24px;border-width:3px;backgr
         <li><span class="desktop-slide-help">走ってゾンビにスライディング → 足元をすり抜ける。</span>走ってゾンビの目の前でジャンプ → 頭を踏んで高く跳び越える</li>
         <li>光る輪が見えたら <kbd>Q</kbd> → フックで一気に飛び移る（ゾンビは使えない）</li>
         <li>ジップラインは上端・下端の近くで <kbd>Space</kbd> → 反対側へ移動。分岐では行きたいロープを向く。途中で再び <kbd>Space</kbd> → 飛び上がって離脱。勢いを保ったまま空中で自分で操作できる</li>
-        <li><kbd>E</kbd> 分身：6秒間、近くで分身を見たゾンビを誘導。再使用まで18秒。画面下の丸いボタンでも使用可能。</li>
+        <li><kbd>E</kbd> 分身：6秒間、全ゾンビが分身を本物と思い込み追跡。再使用まで18秒。画面下の丸いボタンでも使用可能。</li>
         <li><kbd>G</kbd> 閃光弾（最初1個）：正面に投げ、周囲8mのゾンビを4秒停止。壁越しには効かない。技を3回決めるごとに+1（最大2個）</li>
         <li>空中でゾンビの近くで <kbd>Space</kbd> → 飛び蹴り。ゾンビは吹き飛び、自分は跳ね返る。続けて次のゾンビも蹴れる</li>
         <li class="legacy-score-rule">得点 = 生き延びた時間 ＋ 撃破 ＋ 節目（30・60・90・120秒）。時間が進むほど1秒も1体も価値が上がる。奈落に落とした撃破は2倍。技を出しても点にはならない：その場に合う技で逃げ切った人が、結果として高得点になる</li>
@@ -7805,7 +7805,7 @@ window.skyChallengeScore.attach(window.__skyInternals);
 <script src="./desktop-look-fallback.js?v=20261028-follow-v1"></script>
 <script type="module" src="./zombie-near.js?v=20261027-pool-v1"></script>
 <script src="./blast-barrels.js?v=20261025r"></script>
-<script type="module" src="./enhancements.js?v=20261030-search-decoy-v3"></script>
+<script type="module" src="./enhancements.js?v=20261030-decoy-lock-search-v4"></script>
 <script type="module" src="./human-view.js?v=20261030-decoy-cue-v2"></script>
 <script type="module" src="./auto-fire-controls.js?v=20261030-auto-fire-controls-v1"></script>
 <script type="module" src="./game-menu.js?v=20261028-compact-hud-v1"></script>

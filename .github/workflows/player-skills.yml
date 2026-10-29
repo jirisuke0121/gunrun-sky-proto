@@ -1,7 +1,7 @@
 name: Player skills
 on:
   pull_request:
-    paths: ['player-skills.*', 'skill-decoy.js', 'flashbang.js', 'human-view.js', 'enhancements.js', 'zombie-climb.js', 'index.html', 'canyon.html', 'bench/player-skills*', '.github/workflows/player-skills.yml']
+    paths: ['player-skills.*', 'skill-decoy.js', 'decoy-audio.js', 'flashbang.js', 'human-view.js', 'enhancements.js', 'zombie-climb.js', 'index.html', 'canyon.html', 'bench/player-skills*', '.github/workflows/player-skills.yml']
 permissions:
   contents: read
 jobs:
@@ -16,6 +16,7 @@ jobs:
       - name: Skills and existing movement checks
         run: |
           node bench/player-skills.test.cjs
+          node bench/decoy-audio.test.cjs
           node bench/flashbang.test.cjs
           node bench/human-view-running.test.cjs
           node bench/slope-slide.test.cjs

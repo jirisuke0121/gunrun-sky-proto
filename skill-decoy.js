@@ -1,3 +1,4 @@
+import { createDecoyAudio } from './decoy-audio.js?v=20261030-decoy-lock-v2';
 import { bindSkillPress } from './player-skills.js?v=20261030-decoy-v1';
 
 export const DECOY = Object.freeze({ duration: 6, cooldown: 18, radius: 16, releaseRadius: 22, speed: 2.4, travel: 4.8 });
@@ -37,6 +38,7 @@ export function createDecoy(game, runtime) {
   const pulse = document.createElement('div'); pulse.id = 'decoyPulse'; pulse.setAttribute('aria-hidden', 'true');
   document.getElementById('hud').append(banner); document.getElementById('app').append(pulse);
   root.visible = false;
+  const audio = createDecoyAudio(game.Ut);
   const playing = () => game.modeRef() === 'play' && !z.over && !game.demoActive();
   const available = () => playing() && !active && cooldown <= 0;
 
@@ -76,8 +78,8 @@ export function createDecoy(game, runtime) {
     enemy.navT = 0; enemy.edge = -1; enemy.atkT = 0; enemy.lost = false; enemy.visT = 0;
   }
   function clear() {
-    cancelPress();
-    for (const enemy of [...lured]) release(enemy);
+    cancelPress(); audio.stop();
+    for (const enemy of [...new Set([...lured, ...Jt])]) { release(enemy); enemy.navT = 0; enemy.edge = -1; enemy.atkT = 0; }
     if (active) for (const body of [active.body, ...active.echoes]) body.dispose();
     active = null; root.visible = false; pulse.style.opacity = '0'; banner.classList.remove('on');
     lineGeometry.setDrawRange(0, 0); lastNode = -1; hudStamp = ''; hud();
@@ -101,14 +103,14 @@ export function createDecoy(game, runtime) {
     if (force || node !== lastNode) { game.decoyField(node, field); lastNode = node; stats.fieldBuilds++; }
   }
   function scan() {
+    for (const enemy of [...lured]) if (enemy.dead || enemy.remove || !Jt.includes(enemy)) release(enemy);
     for (const enemy of Jt) {
-      const node = runtime.nodeAt(enemy.pos.x, enemy.pos.y + .1, enemy.pos.z);
-      if (lured.has(enemy)) {
-        if (enemy.dead || enemy.remove || enemy.pos.distanceTo(active.pos) > DECOY.releaseRadius || node < 0 || !Number.isFinite(field[node])) release(enemy);
-      } else if (node >= 0 && Number.isFinite(field[node]) && canSeeDecoy(enemy, active.pos, game.raycast)) {
+      if (enemy.dead || enemy.remove) continue;
+      if (!lured.has(enemy)) {
         lured.add(enemy); enemy.navT = 0; enemy.edge = -1; enemy.guard = 0; enemy.atkT = 0;
         stats.attracted++; runtime.stats.decoyLures = (runtime.stats.decoyLures || 0) + 1;
       }
+      enemy.lost = false;
     }
   }
   function activate() {
@@ -127,14 +129,7 @@ export function createDecoy(game, runtime) {
     stats.used++; runtime.stats.decoys = (runtime.stats.decoys || 0) + 1;
     buildField(true); scan(); frame(); hud();
     rn('分身発動 — 追手を引きつけて逃げよう');
-    // A rising electronic sweep and two soft overtones, separate from gunfire.
-    const { ctx, master } = game.Ut;
-    if (ctx && master) for (let i = 0; i < 3; i++) {
-      const osc = ctx.createOscillator(), gain = ctx.createGain(), t = ctx.currentTime + i * .045;
-      osc.type = 'sine'; osc.frequency.setValueAtTime(180 + i * 140, t); osc.frequency.exponentialRampToValueAtTime(1100 + i * 300, t + .22);
-      gain.gain.setValueAtTime(.0001, t); gain.gain.exponentialRampToValueAtTime(.065, t + .02); gain.gain.exponentialRampToValueAtTime(.0001, t + .45);
-      osc.connect(gain); gain.connect(master); osc.start(t); osc.stop(t + .46); osc.onended = () => { osc.disconnect(); gain.disconnect(); };
-    }
+    audio.start();
     return true;
   }
   function tick(dt) {
@@ -156,6 +151,7 @@ export function createDecoy(game, runtime) {
   }
   function frame() {
     if (!active) return;
+    audio.sync(playing() && !document.hidden, active.age);
     const a = active, t = a.age, fade = Math.min(1, t / .14, (DECOY.duration - t) / .5);
     const moving = t > .2 && (t - .2) * DECOY.speed < a.travel;
     a.body.root.position.copy(a.pos); a.body.root.rotation.set(0, a.yaw, 0);
@@ -186,13 +182,14 @@ export function createDecoy(game, runtime) {
   }
   const cancelPress = bindSkillPress(button, available, activate);
   document.addEventListener('keydown', e => { if (e.code === 'KeyE' && !e.repeat && playing() && !/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName)) { e.preventDefault(); activate(); } });
+  document.addEventListener('visibilitychange', () => audio.sync(!!active && playing() && !document.hidden, active?.age || 0));
   hud();
-  return { activate, tick, frame, reset, clear, stats, config: DECOY,
+  return { audio, activate, tick, frame, reset, clear, stats, config: DECOY,
     get active() { return active; }, get remaining() { return active ? Math.max(0, DECOY.duration - active.age) : 0; }, get cooldown() { return cooldown; },
     get lured() { return lured; },
-    targetFor(enemy) { return active && playing() && lured.has(enemy) ? active.pos : null; },
-    navigationFor(enemy) { return active && lured.has(enemy) ? field : null; },
-    touching(enemy, distance) { return !!active && lured.has(enemy) && enemy.pos.distanceTo(active.pos) < distance; },
-    modeChanged(mode) { cancelPress(); hudStamp = ''; if (mode === 'menu' || mode === 'over') clear(); else hud(); }
+    targetFor(enemy) { return active && playing() && !enemy.dead && !enemy.remove ? active.pos : null; },
+    navigationFor(enemy) { return active && playing() && !enemy.dead && !enemy.remove ? field : null; },
+    touching(enemy, distance) { return !!active && playing() && !enemy.dead && !enemy.remove && enemy.pos.distanceTo(active.pos) < distance; },
+    modeChanged(mode) { cancelPress(); audio.sync(mode === 'play' && !!active && !document.hidden, active?.age || 0); hudStamp = ''; if (mode === 'menu' || mode === 'over') clear(); else hud(); }
   };
 }
