@@ -40,12 +40,13 @@ jobs:
           else
             npx playwright install --with-deps chromium
           fi
+      - name: Zombie search in both maps
+        run: node bench/zombie-search-browser.cjs
       - name: Editor auto-save in desktop and touch browsers
         run: |
           node bench/editor-autosave-browser.cjs
       - name: Render and exercise both maps
         run: |
-          node bench/zombie-search-browser.cjs
           node bench/landing-release-browser.cjs
           node bench/human-running-browser.cjs
           node bench/human-aim-browser.cjs

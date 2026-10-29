@@ -28,13 +28,14 @@ const out = 'browser-evidence/zombie-search'; fs.mkdirSync(out, { recursive: tru
         g.GAME.spawnT=1e6;g.SCR.off=true;g.PACE.off=true;g.MARK.off=true;g.STALK.spawned=true;
         g.S.loseSight=1;g.S.senseT=10;skyZombieSearch.reset();
         const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
-        const visible=(a,b)=>{const dx=b.x-a.x,dy=b.y-a.y-.25,dz=b.z-a.z,len=Math.hypot(dx,dy,dz);return !s.raycast(a.x,a.y+1.5,a.z,dx/len,dy/len,dz/len,len-.1);};
+        const obstruction=(a,b)=>{const dx=b.x-a.x,dy=b.y-a.y-.25,dz=b.z-a.z,len=Math.hypot(dx,dy,dz);return s.raycast(a.x,a.y+1.5,a.z,dx/len,dy/len,dz/len,len-.1);};
+        const visible=(a,b)=>!obstruction(a,b);
         const nodes=g.NAV.nodes.filter(n=>s.oe(n.x,n.y+.05,n.z,.31,1.8));
         let chosen;
         for(let i=0;i<nodes.length&&!chosen;i+=Math.max(1,Math.floor(nodes.length/180))){
           const a=nodes[i],b=nodes.find(n=>dist(a,n)>4&&dist(a,n)<9&&Math.abs(a.y-n.y)<.2&&visible(a,n));
           if(!b)continue;
-          const hidden=nodes.find(n=>dist(a,n)>4&&dist(a,n)<16&&dist(b,n)<10&&Math.abs(a.y-n.y)<.2&&!visible(a,n));
+          const hidden=nodes.find(n=>dist(a,n)>4&&dist(a,n)<16&&dist(b,n)<10&&Math.abs(a.y-n.y)<.2&&obstruction(a,n)?.b.type!=='door'&&!visible(a,n));
           if(hidden)chosen={a,b,hidden};
         }
         if(!chosen)throw Error('No real wall occlusion setup on this map');
@@ -44,7 +45,9 @@ const out = 'browser-evidence/zombie-search'; fs.mkdirSync(out, { recursive: tru
         enemy.yaw=Math.atan2(chosen.a.x-chosen.b.x,chosen.a.z-chosen.b.z);g.zombies.push(enemy);
         window.searchQA={g,s,enemy,chosen,place,tick(seconds){for(let i=0;i<Math.ceil(seconds*60);i++)g.advance(1/60);g.cam(0);g.frameOnce(0);return this.state();},
           state(){return{phase:skyZombieSearch.state(enemy)?.phase,last:skyZombieSearch.state(enemy)?.last,remaining:skyZombieSearch.remaining,
-            position:enemy.pos.toArray(),hud:document.getElementById('zombieSearchStatus').textContent,hidden:document.getElementById('zombieSearchStatus').hidden};}};
+            position:enemy.pos.toArray(),player:c.pos.toArray(),mode:g.mode,actualMode:s.modeRef(),time:g.GAME.t,over:g.GAME.over,mission:g.GAME.mission,loseSight:g.S.loseSight,
+            spawn:enemy.spawnT,rise:enemy.rise,fall:enemy.fall,dead:enemy.dead,count:g.zombies.length,
+            hud:document.getElementById('zombieSearchStatus').textContent,hidden:document.getElementById('zombieSearchStatus').hidden};}};
         return {a:chosen.a,b:chosen.b,hidden:chosen.hidden};
       });
       const chase = await page.evaluate(() => searchQA.tick(.9));assert.equal(chase.phase,'chase',JSON.stringify(chase));

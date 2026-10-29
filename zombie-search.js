@@ -16,8 +16,13 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
   const active = e => !e.dead && !e.remove && !e.rise && !e.fall && !e.act?.emerge && e.spawnT <= 0;
   const costFor = e => e.stalker ? nav.stalkerCost : e.dropper ? nav.dropCost : nav.cost;
 
-  // Migrate the former default, while retaining deliberate non-default values.
-  U.senseT = Number.isFinite(U.senseT) && U.senseT !== 4 ? U.senseT : ZOMBIE_SEARCH.duration;
+  // Migrate once so a player can deliberately choose four seconds afterwards.
+  let migrate = true;
+  try { migrate = !localStorage.getItem('gunrun-zombie-search-20261030'); } catch {}
+  if (!Number.isFinite(U.senseT) || migrate && U.senseT === 4) U.senseT = ZOMBIE_SEARCH.duration;
+  if (migrate) {
+    try { localStorage.setItem('gunrun-zombie-search-20261030', '1'); game.Ua?.(); } catch {}
+  }
   game.Jn.senseT = ZOMBIE_SEARCH.duration;
   const duration = () => Math.max(1, Number(U.senseT) || ZOMBIE_SEARCH.duration);
 
