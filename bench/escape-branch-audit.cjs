@@ -96,9 +96,9 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
    }
    window.auditReset=reset;window.branchAuditResults=results;return{map,touch,ladderExits:g.LADDERS.map((l,i)=>({i,x:l.x,z:l.z,y0:l.y0,y1:l.y1,canExit:s.canExitLadder(l)})),settings:{sprint:g.S.sprintSpeed,jump:g.S.jumpVel,gravity:g.S.gravity,difficulty:skyChallenge.id},results};
   },{map,touch});
-  result.errors=errors;
+  result.errors=errors;const id=`${touch?'touch':'desktop'}-${map}`;fs.writeFileSync(`branch-evidence/${id}.json`,JSON.stringify(result,null,2));
   const assert=require('node:assert/strict'),by=id=>result.results.find(r=>r.id===id);
-  for(const r of result.results.filter(r=>r.kind==='walk'&&r.id.startsWith('ladder-'))){assert.equal(r.complete,true,idFor(r));assert.equal(r.end.bodyFree,true,idFor(r));}
+  for(const r of result.results.filter(r=>r.kind==='walk'&&r.id.startsWith('ladder-'))){if(r.id.endsWith('-from-top')){const n=+r.id.split('-')[1],L=result.ladderExits[n];assert.ok(r.end.state==='normal'&&r.end.ground&&r.end.p[1]<=L.y0+.65&&r.start.p[1]-r.end.p[1]>1,idFor(r));}else assert.equal(r.complete,true,idFor(r));assert.equal(r.end.bodyFree,true,idFor(r));}
   function idFor(r){return `${map}/${touch?'touch':'desktop'}/${r.id}: ${JSON.stringify(r.end)}`;}
   assert.ok(result.ladderExits.every(L=>L.canExit),'every ladder has a safe upper exit');
   if(map==='index')for(const name of ['gallery-down','high-east-return','north-original-inbound','north-original-outbound','north-upper-west-east','north-upper-east-west','east-lower-recovery-south-detour','east-pillar-stair-return','south-recovery-stair','beam-T-roof'])assert.equal(by(name).complete,true,idFor(by(name)));
@@ -109,7 +109,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
    const button=page.getByRole('button',{name,exact:true});if(touch)await button.tap();else await button.click();
    const selected=await page.evaluate(()=>{for(let i=0;i<3;i++)__game.advance(1/120);return __game.P.state==='zip'?__game.P.zip.b:null;});assert.ok(selected&&Math.sign(selected[0])===sign,'explicit zip destination '+name);
   }
-const id=`${touch?'touch':'desktop'}-${map}`;fs.writeFileSync(`branch-evidence/${id}.json`,JSON.stringify(result,null,2));
+fs.writeFileSync(`branch-evidence/${id}.json`,JSON.stringify(result,null,2));
   for(const target of ['north-original-inbound','bar-drop-oldtown-east-bar-1','gallery-down','east-lower-recovery','ladder-0-up','ladder-1-up','ladder-2-up']){
    // Separate end-state inspection, without representing this as a continuous video.
    const item=result.results.find(r=>r.id===target);if(!item)continue;

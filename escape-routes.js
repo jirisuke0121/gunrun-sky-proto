@@ -84,7 +84,7 @@ function update(){
  else if(oldTown&&c.pos.x>34&&c.pos.x<39&&c.pos.z>19&&c.pos.y>-.5)lastHint='金色の矢印からジャンプ。失敗時は下の青緑の階段へ';
  else if(!oldTown&&!window.skyPracticeMode&&Math.abs(c.pos.x)<2&&Math.abs(c.pos.z)<4&&c.pos.y>7)lastHint='青い上層は前後へ。黄色い横道は4m下';
  else return;
- hint.textContent=lastHint;hint.hidden=false;
+ if(hint.textContent!==lastHint)hint.textContent=lastHint;hint.hidden=false;
 }
 function step(dt,input){
  if(!playing()){transition=null;c.ladderEntry=null;return false;}
