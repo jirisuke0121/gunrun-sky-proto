@@ -78,15 +78,15 @@ function beginDescent(candidate){
 }
 function zipOptions(){return game.ZIPS.filter(zip=>Math.hypot(c.pos.x-zip.a[0],c.pos.z-zip.a[2])<=2.3&&c.pos.y<=zip.a[1]-.8&&c.pos.y>=zip.a[1]-3.4);}
 function ride(zip){if(!playing()||c.state!=='normal'||!zipOptions().includes(zip))return;c.zipChoice=zip;c.jumpBuf=U.jumpBuffer;window.skyTelemetryProbe?.jumpInput({t:sky.z.t,source:'zip-choice',pos:c.pos.toArray(),state:c.state});}
-const downButton=document.createElement('button');downButton.id='tLadderDown';downButton.textContent='梯子で降りる';downButton.hidden=true;downButton.addEventListener('pointerdown',e=>e.stopPropagation());downButton.onclick=e=>{e.preventDefault();e.stopPropagation();const top=topCandidate();if(playing()&&top)beginDescent(top)};actions.append(downButton);
+const downButton=document.createElement('button');downButton.id='tLadderDown';downButton.textContent='梯子で降りる [3]';downButton.setAttribute('aria-label','梯子で降りる');downButton.hidden=true;downButton.addEventListener('pointerdown',e=>e.stopPropagation());downButton.onclick=e=>{e.preventDefault();e.stopPropagation();const top=topCandidate();if(playing()&&top)beginDescent(top)};actions.append(downButton);
 const zipButtons=new Map();
-for(const zip of game.ZIPS){const b=document.createElement('button');const dx=zip.b[0]-zip.a[0],dz=zip.b[2]-zip.a[2];b.textContent=Math.abs(dx)>Math.abs(dz)?dx<0?'西へジップ':'東へジップ':dz<0?'北へジップ':'南へジップ';b.addEventListener('pointerdown',e=>e.stopPropagation());b.onclick=e=>{e.preventDefault();e.stopPropagation();ride(zip)};zipButtons.set(zip,b);actions.append(b);}
+for(const zip of game.ZIPS){const b=document.createElement('button');const dx=zip.b[0]-zip.a[0],dz=zip.b[2]-zip.a[2];b.textContent=Math.abs(dx)>Math.abs(dz)?dx<0?'西へジップ':'東へジップ':dz<0?'北へジップ':'南へジップ';b.setAttribute('aria-label',b.textContent);b.textContent+=' ['+(game.ZIPS.indexOf(zip)+1)+']';b.addEventListener('pointerdown',e=>e.stopPropagation());b.onclick=e=>{e.preventDefault();e.stopPropagation();ride(zip)};zipButtons.set(zip,b);actions.append(b);}
 function update(){
  root.visible=playing();hint.hidden=true;actions.hidden=true;
  if(!playing())return;
  const zips=c.state==='normal'?zipOptions():[];const top=topCandidate();nearTop=top;downButton.hidden=!top;if(top)actions.hidden=false;
  for(const [zip,b]of zipButtons){b.hidden=!zips.includes(zip);b.classList.toggle('selected',c.zipChoice===zip);}
- if(zips.length>1){actions.hidden=false;lastHint='行き先を選んでジップへ／梯子で降りる。向き＋ジャンプでも乗れます。';}
+ if(zips.length>1){actions.hidden=false;lastHint='ジップは行き先ボタン／PCは1・2。梯子下降は3。向き＋ジャンプでも乗れます。';}
  else if(c.ladderDescending&&c.state==='ladder')lastHint='はしご下降：前進で降りる／後ろで戻る／ジャンプで離脱';
  else if(top)lastHint='はしご：外側へ前進すると降りる';
  else if(game.LADDERS.some(L=>L.sharedDoor&&Math.abs(c.pos.y-L.y0)<.3&&Math.hypot(c.pos.x-L.x,c.pos.z-L.z)<2))lastHint='通り抜け：前進／はしごを登る：ジャンプ＋前進';
@@ -114,4 +114,5 @@ function step(dt,input){
  update();return false;
 }
 window.skyEscapeRoutes={step,update,topCandidate,zipOptions,ride,root,reset,wantsLadder,clearClimbRequest:()=>{climbRequest=null}};
+addEventListener('keydown',e=>{if(e.repeat||e.target.closest?.('input,select,textarea,[contenteditable="true"]'))return;const zips=zipOptions();if(zips.length>1&&(e.code==='Digit1'||e.code==='Digit2')){e.preventDefault();ride(zips[e.code==='Digit1'?0:1]);}else if(e.code==='Digit3'&&playing()){const top=topCandidate();if(top){e.preventDefault();beginDescent(top);}}});
 let last=0;function frame(t){requestAnimationFrame(frame);if(t-last<90)return;last=t;update();}requestAnimationFrame(frame);update();
