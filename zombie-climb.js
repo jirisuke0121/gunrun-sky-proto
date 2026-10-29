@@ -408,6 +408,14 @@ export function createZombieClimb(game, runtime, flashbang) {
 
   const originalUpdate = ri.prototype.update, originalAnim = ri.prototype.anim;
   ri.prototype.update = function updateWithPillarClimb(dt) {
+    // A visible decoy owns this chase; recovery scans must not pull it back
+    // toward the real player's elevation or an old wall-top landing.
+    if (window.skyDecoy?.targetFor(this)) {
+      if (this.act?.kind === 'pillar') interrupt(this);
+      const tracked = tracks.get(this); if (tracked) { tracked.wait = 0; tracked.landing = null; }
+      if (scan?.enemy === this) scan = null;
+      return originalUpdate.call(this, dt);
+    }
     pumpScan();
     const track = tracks.get(this);
     if (track?.active && this.act !== track.active) { track.active = null; track.wait = 0; stats.interrupted++; }
