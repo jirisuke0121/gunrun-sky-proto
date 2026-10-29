@@ -32,7 +32,24 @@ try{
    // A separate navigation-only probe retains the original arrival bound.
    // Normal gameplay must let this real parkour escape break visual contact.
    if(knownTarget)g.S.loseSight=0;
-   if(enemy){const z=new s.ri(-20,4.01,-11);z.spawnT=0;z.rise=null;z.node=node(z.pos.toArray());z.hp=1e6;z.flank=z.dropper=z.stalker=false;z.onGround=true;s.Jt.push(z);}
+   if(enemy){
+    let from={x:-20,y:4,z:-11};
+    if(!knownTarget){
+     from=N.nodes.find(p=>{
+      const dx=c.pos.x-p.x,dy=c.pos.y+1.25-(p.y+1.5),dz=c.pos.z-p.z,d=Math.hypot(dx,dy,dz);
+      return Math.abs(p.y-c.pos.y)<.1&&p.x<=c.pos.x+.5&&d>3&&d<6&&s.oe(p.x,p.y+.03,p.z,.3,1.8)&&!s.raycast(p.x,p.y+1.5,p.z,dx/d,dy/d,dz/d,d-.1);
+     });
+     if(!from)throw Error('No visible, supported chase start for the real swing escape');
+    }
+    const z=new s.ri(from.x,from.y+.01,from.z);z.spawnT=0;z.rise=null;z.node=node(z.pos.toArray());z.hp=1e6;z.flank=z.dropper=z.stalker=false;z.onGround=true;
+    z.yaw=Math.atan2(z.pos.x-c.pos.x,z.pos.z-c.pos.z);s.Jt.push(z);
+    if(!knownTarget){
+     // Establish an actual sighted chase before testing whether the parkour
+     // route breaks it. Randomly facing away is an unaware patrol, not escape.
+     z.stun=2;for(let i=0;i<48;i++)tick();z.stun=0;
+     if(skyZombieSearch.state(z)?.phase!=='chase')throw Error('Swing escape did not start from a confirmed visual chase');
+    }
+   }
    key('Space','keydown');key('Space','keyup');input++;
    for(let i=0;i<6;i++)tick();
    key('Space','keydown');key('Space','keyup');input++;g.keys.KeyW=true;
