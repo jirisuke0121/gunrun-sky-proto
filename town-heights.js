@@ -96,6 +96,53 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
   box(14, -.4, -5.6, 17, 0, 1.5, 'slab', SKY.steel);
   box(16.85, 0, -5.6, 17, .85, -1.5, 'beam', SKY.plank);
 
+  // The north-east ground lane ends against the 4m-high end of the stairs.
+  // Above it the opposite lane ends at the stairwell. Give each storey a
+  // continuous bypass outside the north facade; keep the stairs and both
+  // north ladders in their original positions and leave their shafts clear.
+  const northOpening = (id, x0, x1, floor) => {
+    const walls = jn.filter(b => b.type === 'mono' && b.minZ === -14 && b.maxZ === -13 &&
+      b.minX < x1 && b.maxX > x0 && b.minY < floor + 2.5 && b.maxY > floor);
+    if (!walls.length) throw new Error('Missing north facade: ' + id);
+    for (const b of walls) {
+      jn.splice(jn.indexOf(b), 1);
+      const left = Math.max(x0, b.minX), right = Math.min(x1, b.maxX);
+      const part = (a, y0, c, y1) => {
+        if (c - a > .001 && y1 - y0 > .001) box(a, y0, -14, c, y1, -13, 'mono');
+      };
+      part(b.minX, b.minY, left, b.maxY);
+      part(right, b.minY, b.maxX, b.maxY);
+      part(left, b.minY, right, floor);
+      part(left, floor + 2.5, right, b.maxY);
+    }
+    for (const x of [x0, x1 - .13]) box(x, floor, -13.055, x + .13, floor + 2.5, -12.945, 'beam', SKY.green);
+    box(x0, floor + 2.37, -13.055, x1, floor + 2.5, -12.945, 'beam', SKY.green);
+    if (floor) box(x0, floor - .4, -14, x1, floor, -13, 'slab', SKY.steel);
+    const door = box(x0 + .13, floor, -13.12, x1 - .13, floor + 2.37, -12.88, 'door');
+    // Match the existing doors: build navigation with the doorway passable,
+    // then let shared door feedback close it and manage pursuit/damage.
+    door.off = true; door.escapeDoor = id; door.swingAngle = 1.45;
+  };
+  northOpening('north-east-ground', 10.6, 13, 0);
+  northOpening('north-west-upper', .5, 2, 4);
+  northOpening('north-east-upper', 10.6, 13, 4);
+  box(-1.5, -.4, -17, 14, 0, -14, 'slab', SKY.steel);
+  // Starting the upper deck at x=.5 leaves the roof ladder at x=0 clear.
+  // The inner ladder at (2,-12) is south of the two short doorway bridges.
+  box(.5, 3.6, -17, 14, 4, -14, 'slab', SKY.steel);
+  const rail = (x0, z0, x1, z1, floor) => box(x0, floor, z0, x1, floor + .95, z1, 'beam', SKY.plank);
+  rail(-1.5, -17, -.9, -16.85, 0);
+  rail(.9, -17, 14, -16.85, 0); // open at x=0 onto the existing north street
+  rail(-1.5, -17, -1.35, -14, 0);
+  rail(13.85, -17, 14, -14, 0);
+  rail(.5, -17, 14, -16.85, 4);
+  rail(.5, -17, .65, -14, 4);
+  rail(13.85, -17, 14, -14, 4);
+  window.skyNorthEscapeRoutes = [
+    { id: 'north-east-ground', route: [[12, 0, -10], [12, 0, -15.5], [0, 0, -15.5], [0, 0, -19]] },
+    { id: 'north-upper-bypass', route: [[1.3, 4, -12], [1.3, 4, -15.5], [12, 4, -15.5], [12, 4, -12]] },
+  ];
+
   // Each tower stands on the back half of its roof, with a staircase beside it: six steps
   // (1.25 m rises, 1.08 m treads, 1.5 m wide, a 2.5 m landing at the top), so anything going up, people or zombies,
   // goes up in single file. The plank, the grapple and the sky chain are the fast ways.

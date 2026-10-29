@@ -46,7 +46,7 @@ window.createSkyDoorFeedback = function ({ THREE: T, scene, audio, player, zombi
     return d.fx.pivots.some((pivot, i) => {
       const x = p.pos.x - pivot.position.x, z = p.pos.z - pivot.position.z;
       const base = (d.axis === 'x' ? Math.PI / 2 : 0) + (i ? Math.PI : 0);
-      const rotation = (i ? 1 : -1) * d.fx.swingSign * .88;
+      const rotation = (i ? 1 : -1) * d.fx.swingSign * d.fx.swingAngle;
       const start = base + rotation * from, end = base + rotation * to;
       const relative = Math.atan2(Math.sin(Math.atan2(z, x) - start), Math.cos(Math.atan2(z, x) - start));
       const delta = end - start, radius = p.r + .12 - .002;
@@ -120,11 +120,11 @@ window.createSkyDoorFeedback = function ({ THREE: T, scene, audio, player, zombi
       }
     }
     d.id = 'indoor-door-' + index;
-    d.fx = { pivot: pivots[0], pivots, leaves, cracks, span, shake: 0, elapsed: 0, swingSign: 1, angle: 0 };
+    d.fx = { pivot: pivots[0], pivots, leaves, cracks, span, swingAngle: b.swingAngle || .88, shake: 0, elapsed: 0, swingSign: 1, angle: 0 };
   }
   function placeLeaf(d) {
     const f = d.fx;
-    f.angle = f.swingSign * .88 * d.progress;
+    f.angle = f.swingSign * f.swingAngle * d.progress;
     f.pivots.forEach((pivot, i) => { pivot.rotation.y = (i ? -1 : 1) * (f.angle + Math.sin(f.elapsed * 91) * .035 * f.shake); pivot.visible = d.phase !== 'broken'; });
     f.leaves.forEach(leaf => { leaf.visible = d.phase !== 'broken'; });
     d.b.mesh.material.emissive?.setHex(f.shake > .05 ? d.hp <= 2 ? 0x743318 : 0x382213 : 0);

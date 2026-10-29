@@ -61,6 +61,8 @@ const solids = [
 // Central corridor walls are required by the current town builder, even
 // though the assertions below exercise the warehouse escape loops.
 solids.push(...[-14,13].map(minX=>({minX,maxX:minX+1,minY:0,maxY:8,minZ:-14,maxZ:14,type:'mono'})));
+// Match the real north facade, including the existing ground doorway lintel.
+solids.push(...[[-13,-1.5,0],[-1.5,1.5,3.2],[1.5,13,0]].map(([minX,maxX,minY])=>({minX,maxX,minY,maxY:8,minZ:-14,maxZ:-13,type:'mono'})));
 const window = {};
 vm.runInNewContext(fs.readFileSync('town-heights.js', 'utf8'), { window, Math });
 const ne = (minX,minY,minZ,maxX,maxY,maxZ,type) => { const b = {minX,minY,minZ,maxX,maxY,maxZ,type}; solids.push(b); return b; };
