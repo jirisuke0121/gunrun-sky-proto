@@ -100,6 +100,10 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
     for (const x of [x0, x1 - .13]) box(x, floor, -13.055, x + .13, floor + 2.5, -12.945, 'beam', SKY.green);
     box(x0, floor + 2.37, -13.055, x1, floor + 2.5, -12.945, 'beam', SKY.green);
     if (floor) box(x0, floor - .4, -14, x1, floor, -13, 'slab', SKY.steel);
+    const door = box(x0 + .13, floor, -13.12, x1 - .13, floor + 2.37, -12.88, 'door');
+    // Match the existing doors: build navigation with the doorway passable,
+    // then let shared door feedback close it and manage pursuit/damage.
+    door.off = true; door.escapeDoor = id; door.swingAngle = 1.45;
   };
   northOpening('north-east-ground', 10.6, 13, 0);
   northOpening('north-west-upper', .5, 2, 4);
