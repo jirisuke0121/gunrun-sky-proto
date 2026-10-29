@@ -252,7 +252,9 @@ function updateMotion(dt, speed) {
   const selected = (next === 'roll' || next === 'swing' || next === 'swingFlight' || parkourRunEnabled) && motion.clips[special] ? special : next;
   const ledgeAction = next === 'swing' || next === 'vault' || next === 'mantle' || next === 'catch';
   if (rolling) { runPose = 0; bodyYawOffset = 0; turnBank = 0; landTime = 0; }
-  if (ledgeAction) runPose = 0;
+  // A supported grip has its own contact frame. Ground-turn banking would
+  // rotate the two wrists away from a level bar even with a correct midpoint.
+  if (ledgeAction) { runPose = 0; bodyYawOffset = 0; turnBank = 0; }
   const info = motion.clips[selected];
   if (!info) return;
   if (next === 'roll') clipTime = info.duration * rollTuck(landingRoll.phase);
@@ -418,7 +420,7 @@ function updateWorldWeapon(third, dt = 0) {
     }
   }
   if (!worldWeapon) { if (third && c.doorAction) updateDoorPose(); else aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
-  worldWeapon.visible = third && !!sky.U.gunOn && !c.doorAction && !landingRoll.active && c.state !== 'ladder' && c.state !== 'ledge' && c.state !== 'swing';
+  worldWeapon.visible = third && !!sky.U.gunOn && !c.doorAction && !landingRoll.active && !c.swingFlight && c.state !== 'ladder' && c.state !== 'ledge' && c.state !== 'swing';
   if (!worldWeapon.visible) { aimBlend=0;if (third && c.doorAction) updateDoorPose(); else aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
   const aiming=aimRig && sky.Et.reloadT<=0 && (combatTarget || shotTime<.28 || Math.abs(combatTurn)>.01 || (c.onGround && c.state==='normal' && runPose<.01));
   // A shot must already have a matching pose on its first visible frame.
@@ -549,6 +551,9 @@ function getMuzzleWorld() {
 function prepareShot(origin,direction,distance) {
   landingRoll.cancel();
   if(choice!=='unity'||view!=='third'||!holder?.visible||!aimRig)return null;
+  // Airborne fire remains available: it takes over the hands from the reach
+  // animation on this same frame, before the muzzle/ray are calculated.
+  c.swingFlight = null;
   // A practice warp/respawn can be noticed during this same update. Keep the
   // in-flight shot's aim point even when the previous movement pose resets.
   const target=origin.clone().addScaledVector(direction,distance);
