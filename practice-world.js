@@ -4,7 +4,7 @@
   window.skyPracticeMode = true;
   const sections = [
     {id:'flow',name:'連続コース',at:[-26,2,-16],yaw:-Math.PI/2,floor:2,hint:'前へ走る → 低い壁を乗り越え → 隙間でジャンプ'},
-    {id:'slide',name:'スライド',at:[-12,2,-16],yaw:-Math.PI/2,floor:2,hint:'走りながらスライドで低いゲートを抜ける'},
+    {id:'slide',name:'スライド',at:[-12,2,-16],yaw:-Math.PI/2,floor:2,hint:'低いゲートへ向かって走り抜ける'},
     {id:'mantle',name:'よじ登り',at:[-5.5,2,-16],yaw:-Math.PI/2,floor:2,hint:'高い段差へ走ってジャンプし、縁をつかんでよじ登る'},
     {id:'wallrun',name:'壁走り',at:[3.8,4.4,-17.95],yaw:-Math.PI/2,floor:4.4,hint:'壁沿いに走ってジャンプ → 壁走りで向こうの足場へ'},
     {id:'hook',name:'フック',at:[18,4.4,-16],yaw:-2.75,floor:4.4,hint:'青い輪を向いてフック → 高い足場へ'},

@@ -3,7 +3,7 @@ import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
 import { createFlashbang } from './flashbang.js?v=20261028-touch-layout-v1';
 import { createZombieClimb } from './zombie-climb.js?v=20261029-stalled-climb-v3';
 import { createGhostReplay } from './ghost-replay.js?v=20261028-compact-hud-v1';
-import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261029-edge-assist-v3';
+import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261030-auto-fire-controls-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261029-door-motion-v1';
 import { createJumpPickups } from './jump-pickups.js?v=20261028-playground-v1';
@@ -25,7 +25,7 @@ if (knifeRule) {
     '最初はナイフだけ（調整画面でハンドガンも持てる）',
     'HGで開始。SG・SMG・MGはステージ内の補給箱で取得する',
   );
-  knifeRule.insertAdjacentHTML('afterend', '<li><kbd>E</kbd> 銃を撃つ　<kbd>R</kbd> 装填。HGで開始。SG・SMG・MGは10秒ごとに屋根・上層へ補給される（最大5個）</li>' +
+  knifeRule.insertAdjacentHTML('afterend', '<li>銃は射線が通る近い敵を自動で狙って撃ち、弾切れ時は自動装填。「自動射撃を停止／再開」または <kbd>X</kbd> で弾を温存。HGで開始。SG・SMG・MGは10秒ごとに屋根・上層へ補給される（最大5個）</li>' +
     '<li>技（スライド・壁走り・縁つかみ・はしご・ジップライン・フック）を3回決めると閃光弾+1（最大2個）</li>' +
     '<li>少し高い壁に走って跳ぶと、壁を蹴って駆け上がる。日よけ布に落ちると大きく跳ねる</li>' +
     '<li><kbd>H</kbd> 自己ベストのときの走りを青い人影（ゴースト）で表示・非表示</li>');
@@ -749,7 +749,7 @@ if (window.T2?.GLTFLoader) {
   const setHints = () => {
     if (!hudKeys) return;
     hudKeys.innerHTML = U.gunOn
-      ? '<kbd>クリック</kbd>/<kbd>E</kbd> 射撃　<kbd>右クリック</kbd>/<kbd>F</kbd> ナイフ　<kbd>R</kbd> 装填　<kbd>Q</kbd> フック　<kbd>Esc</kbd> 一時停止・調整'
+      ? '自動射撃　<kbd>X</kbd> 停止／再開　<kbd>右クリック</kbd>/<kbd>F</kbd> ナイフ　<kbd>Q</kbd> フック　<kbd>Esc</kbd> 一時停止・調整'
       : '<kbd>クリック</kbd>/<kbd>F</kbd> ナイフ　<kbd>Q</kbd> フック　<kbd>Esc</kbd> 一時停止・調整';
   };
   for (const item of document.querySelectorAll('#ovStart .rules .keys li')) {

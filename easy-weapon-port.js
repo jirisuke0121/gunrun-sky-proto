@@ -1,6 +1,6 @@
 // Browser adaptation of the weapon modes in Easy Weapons/Weapon.cs.
 // Unity prefabs provide the mode and timing; Air Corridor keeps its own damage scale.
-import { createJumpGun } from './jump-gun.js?v=20261029-edge-assist-v3';
+import { createJumpGun } from './jump-gun.js?v=20261030-auto-fire-controls-v1';
 export const UNITY_WEAPONS = Object.freeze({
   4: { kind: 'raycast', trigger: 'semi', rof: 12, pellets: 1, accuracy: 70, drop: 5, recovery: 3.5 },
   5: { kind: 'raycast', trigger: 'semi', rof: 2, pellets: 6, accuracy: 55, drop: 10, recovery: 1.5 },
@@ -35,7 +35,7 @@ export function createEasyWeaponPort(game) {
   beam.frustumCulled = false;
   ue.add(beam);
   let beamLife = 0, beamHeat = 0, beamCooling = 0;
-  let chargeStarted = 0, chargeFraction = 1;
+  let chargeStarted = 0, chargeFraction = 1, autoChargeTarget = null;
   let lastWeapon = -1;
   const accuracy = new Map();
   const accuracyFor = (weapon) => {
@@ -227,6 +227,27 @@ export function createEasyWeaponPort(game) {
     }
     document.body.dataset.skyTrigger = JSON.stringify({ held, ammo: Et.ammo, fireCD: +Et.fireCD.toFixed(3), chargeFraction: +chargeFraction.toFixed(3) });
   };
-  return { fire, tick, trigger, spread, allowBaseTrigger: (weapon) => weapon !== 11,
+  const cancelTrigger = () => {
+    chargeStarted = 0;
+    chargeFraction = 1;
+    autoChargeTarget = null;
+    Et.trigger = 0;
+    Et.held = false;
+  };
+  const cancelAutoTrigger = () => {
+    if (autoChargeTarget) cancelTrigger();
+  };
+  const autoTrigger = (target) => {
+    if ((U.weapon | 0) !== 11) { cancelAutoTrigger(); return false; }
+    if (Et.held) return true;
+    if (autoChargeTarget !== target) { cancelTrigger(); autoChargeTarget = target; }
+    trigger(true);
+    if (chargeStarted && performance.now() - chargeStarted >= 1500) {
+      autoChargeTarget = null;
+      trigger(false);
+    }
+    return true;
+  };
+  return { fire, tick, trigger, autoTrigger, cancelAutoTrigger, cancelTrigger, spread, allowBaseTrigger: (weapon) => weapon !== 11,
     get state() { return { missiles: missiles.length, beamHeat, beamCooling, charging: !!chargeStarted }; } };
 }
