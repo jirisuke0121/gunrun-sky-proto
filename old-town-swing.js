@@ -20,6 +20,8 @@
     box('high-east-walk',[-43.5,14.7,2.8],[-35,15,4.6]);
     box('high-return-walk',[-36.5,14.7,-1.2],[-34.8,15,4.6]);
     box('high-far-step',[-38,13.95,-1.1],[-36.5,14.2,.5]);
+    box('high-return-step',[-37,14.3,-1.1],[-36.5,14.6,.5],'slab',0xe39a4a);
+    box('high-pillar-step',[-38,13.5,-1.6],[-37.5,13.8,-1.1],'slab',0xe39a4a);
     // Keep the departure and the western drop opening clear of supports.
     for(const x of [-45.2,-44.1]) {
       strut([x,13.5,-2],[x,18.4,-2]);strut([x,18.4,-2],[x,18.4,-3.9]);
@@ -38,9 +40,9 @@
     box('warehouse-screen',[-59.8,6.4,2.35],[-51.2,10.4,2.55],'mono',0xb5604a);
     box('warehouse-roof',[-59.8,10.4,2.35],[-51.2,10.65,4.5],'beam',0x8f4a3a);
     box('warehouse-south-rail',[-59.8,6.4,4.35],[-53.2,7.2,4.5]);
-    for(let i=0;i<3;i++) {
-      const top=5.8-i*.6,z=4.5+i;
-      box('warehouse-far-stair-'+i,[-53.2,top-.25,z],[-51.2,top,z+1],'slab',0xe39a4a);
+    for(let i=0;i<5;i++) {
+      const top=6.4-(i+1)*.36,z=4.5+i*.6;
+      box('warehouse-far-stair-'+i,[-53.2,top-.25,z],[-51.2,top,z+.6],'slab',0xe39a4a);
     }
     for(const z of [2.15,5.05]) {
       strut([-59.8,10.4,z],[-62.5,8.6,z]);strut([-59.8,7.4,z],[-62.5,8.6,z]);
@@ -61,7 +63,9 @@
     box('east-south-rail',[51.5,3.6,4.05],[61.85,4.5,4.2]);
     box('east-north-rail',[60,3.6,-14.2],[61.85,4.5,-14.05]);
     box('east-lower-recovery',[46,-1.3,1.2],[62,-1,4.2]);
-    box('east-recovery-step',[45.7,-1.3,1.2],[46.7,-.5,4.2],'slab',0xe39a4a);
+    // Recover south of the 3m roof face, with steps within ordinary foot reach.
+    box('east-recovery-step-1',[46.5,-1.1,3.2],[47,-2/3,4.2],'slab',0xe39a4a);
+    box('east-recovery-step-2',[46,-1.1,3.2],[46.5,-1/3,4.2],'slab',0xe39a4a);
     for(const x of [24,32]) {
       strut([x,9.25,-1.45],[x,9.25,2.95]);
       strut([x,10.9,-1.45],[x,9.25,2.95]);
@@ -75,8 +79,8 @@
     // ④ shares its first bar. Continue east for the unchanged three-bar
     // escape, or steer north onto this side ledge after the first release.
     // These decks follow the existing long wall (x17..35, z-6..-1.5).
-    box('east-pillar-arrival',[29.5,6.72,-1.5],[36.4,7,.25]);
-    box('east-pillar-turn',[35,6.72,-2.5],[36.4,7,-1.5]);
+    box('east-pillar-arrival',[29.5,6.72,-1.5],[36.8,7,.25]);
+    box('east-pillar-turn',[35,6.72,-2.5],[36.8,7,-1.5]);
     for(const x of [30,33.5])strut([x,5.5,-1.45],[x,6.72,.15]);
 
     // The next ledge wraps the existing tall east column. The new bar
@@ -119,7 +123,14 @@
     for(const x of [34,37])strut([x,3.4,-13],[x,7.12,-14.6]);
     // A missed northern landing has a low return to the old east footing.
     // The original straight three-bar lane at z1.5 remains open.
-    box('east-pillar-recovery',[25.2,-1.4,-1.45],[34,-1.1,.6]);
+    box('east-pillar-recovery',[21.5,-1.4,-1.45],[34,-1.1,2.6]);
+
+    // Local turning space and a lower return, without filling the 4m jump.
+    box('south-bridge-turn',[20.8,-.35,22.8],[23.2,0,25.2]);
+    box('south-bridge-launch',[34.7,-.35,20],[37.3,0,22]);
+    box('south-bridge-recovery',[34.5,-3.85,14],[39.4,-3.5,20]);
+    for(let i=0;i<10;i++){const z=14+i*.4,top=-(i+1)*.35;
+      box('south-bridge-return-'+i,[37.5,-3.85,z],[39.4,top,z+.4],'slab',0xe39a4a);}
     const bars=[
       {id:'oldtown-high-bar-1',at:[-43.6,17.6,-3.9],direction:[0,1],width:2.6,route:'high'},
       {id:'oldtown-warehouse-bar-1',at:[-62.5,7.8,3.6],direction:[1,0],width:2.6,route:'warehouse'},
