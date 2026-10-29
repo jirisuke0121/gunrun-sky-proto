@@ -1,7 +1,7 @@
 // Local Unity human trial for the old town and canyon maps.
 import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE } from './human-running.js?v=20261029-edge-assist-v3';
 import { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
-import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261027-torso-v1';
+import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261029-door-motion-v1';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
 const { Group, Vector3 } = Geom;
@@ -155,7 +155,7 @@ function updateMotion(dt, speed) {
   const front = c.vel.x * forward.x + c.vel.z * forward.z;
   const side = c.vel.x * right.x + c.vel.z * right.z;
   const rolling = landingRoll.active;
-  const normalGround = grounded && c.state === 'normal' && !rolling;
+  const normalGround = grounded && c.state === 'normal' && !rolling && !c.doorAction;
   const distance = motionPosition ? Math.hypot(c.pos.x - motionPosition.x, c.pos.z - motionPosition.z) : 0;
   const teleported = distance > Math.max(1.5, speed * dt * 3);
   if (!motionPosition) motionPosition = new Vector3();
@@ -198,6 +198,7 @@ function updateMotion(dt, speed) {
   else if (wallFrame) next = 'wallrun';
   else if (c.state === 'ledge' && c.ledge && parkourRunEnabled && motion.clips.parkourMantle) next = c.ledge.kind === 'vault' ? 'vault' : c.ledge.kind === 'catch' ? 'catch' : 'mantle';
   else if (!grounded || landTime > 0 || c.state === 'ledge') next = 'jump';
+  else if (c.doorAction) next = 'idle';
   else if (speed > .2) {
     const pace = walking ? 'walk' : 'run';
     if (Math.abs(side) > Math.abs(front) * .8) next = `${pace}${side > 0 ? 'Right' : 'Left'}`;
@@ -307,6 +308,24 @@ function updateMotion(dt, speed) {
 }
 const aimPoint = new Vector3(), aimDirection = new Vector3(), aimHand = new Vector3(), aimSupport = new Vector3(), aimPalm = new Vector3();
 const bore = new Vector3(), gunMuzzle = new Vector3(), actualDirection = new Vector3();
+const doorTarget = new Vector3(), doorLean = new Vector3();
+function updateDoorPose() {
+  const action = c.doorAction;
+  if (!action || !aimRig || !holder || !model) return;
+  holder.updateMatrixWorld(true);
+  doorTarget.set(action.contact.x, action.contact.y, action.contact.z);
+  model.worldToLocal(doorTarget);
+  const weight = action.weight;
+  aimRig.prepare(doorTarget.toArray(), weight * .9, weight * (action.kind === 'close' ? .45 : .12));
+  const roots = aimRig.shoulders();
+  const left = [roots[1][0], roots[1][1] - .55, roots[1][2] + .12];
+  // Reach with the right palm; the other arm lowers while the gun is stowed.
+  const error = aimRig.apply([doorTarget.toArray(), left], [0, .12, 1], weight);
+  document.body.dataset.skyHumanDoorAction = action.kind;
+  document.body.dataset.skyHumanDoorPhase = action.phase.toFixed(3);
+  document.body.dataset.skyHumanDoorReachError = ((error || 0) * holder.scale.x).toFixed(4);
+  document.body.dataset.skyHumanAction = action.kind === 'open' ? 'doorOpen' : 'doorClose';
+}
 function previewAim() {
   aimDirection.set(0, 0, -1).applyQuaternion(camera.quaternion);
   const range = sky.wpc().range || 90;
@@ -364,9 +383,9 @@ function updateWorldWeapon(third, dt = 0) {
       world.add(worldWeapon);
     }
   }
-  if (!worldWeapon) { aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
-  worldWeapon.visible = third && !!sky.U.gunOn && !landingRoll.active && c.state !== 'ladder' && c.state !== 'ledge' && c.state !== 'swing';
-  if (!worldWeapon.visible) { aimBlend=0;aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
+  if (!worldWeapon) { if (third && c.doorAction) updateDoorPose(); else aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
+  worldWeapon.visible = third && !!sky.U.gunOn && !c.doorAction && !landingRoll.active && c.state !== 'ladder' && c.state !== 'ledge' && c.state !== 'swing';
+  if (!worldWeapon.visible) { aimBlend=0;if (third && c.doorAction) updateDoorPose(); else aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
   const aiming=aimRig && sky.Et.reloadT<=0 && (shotTime<.28 || (c.onGround && c.state==='normal' && runPose<.01));
   // A shot must already have a matching pose on its first visible frame.
   aimBlend=shotTime<.28&&aiming?1:aimBlend+((aiming?1:0)-aimBlend)*(1-Math.exp(-dt*18));
@@ -397,6 +416,11 @@ function updateWorldWeapon(third, dt = 0) {
   }
 }
 function update(dt) {
+  if (!c.doorAction) {
+    delete document.body.dataset.skyHumanDoorAction;
+    delete document.body.dataset.skyHumanDoorPhase;
+    delete document.body.dataset.skyHumanDoorReachError;
+  }
   const third = choice === 'unity' && view === 'third' && !!holder && sky.modeRef() !== 'menu' && sky.modeRef() !== 'replay' && !window.skySettings?.beforeRun;
   if (holder) {
     holder.visible = third;
@@ -422,6 +446,13 @@ function update(dt) {
     if (sky.modeRef() === 'play') swingLean = swinging ? -c.swing.angle : flight ? -flight.angle*Math.exp(-flight.age*5) : swingLean * Math.exp(-dt * 18);
     const rolling = third && landingRoll.active && !!motion?.rollGround;
     holder.rotation.set(rolling ? rollTurn(landingRoll.phase) : c.state === 'ladder' ? .09 : swingLean, rolling ? landingRoll.yaw : c.state === 'ladder' ? ladderYaw : swingYaw ?? ledgeYaw ?? c.yaw + Math.PI + bodyYawOffset + 1.25 * slidePose, ledgeYaw === null ? turnBank : 0, 'YXZ');
+    if (third && c.doorAction) {
+      const action = c.doorAction, base = c.yaw + Math.PI;
+      const turn = Math.atan2(Math.sin(action.yaw - base), Math.cos(action.yaw - base));
+      holder.rotation.y = base + turn * Math.min(1, action.phase / .18) * (1 - Math.max(0, (action.phase - .8) / .2));
+      doorLean.set(action.contact.x - c.pos.x, 0, action.contact.z - c.pos.z).normalize().multiplyScalar(.22 * action.weight);
+      holder.position.add(doorLean);
+    }
     if (rolling) {
       const frame = landingRoll.phase * (motion.rollGround.length - 1), i = Math.floor(frame), fraction = frame - i;
       const a = motion.rollGround[i], b = motion.rollGround[Math.min(i + 1, motion.rollGround.length - 1)];
