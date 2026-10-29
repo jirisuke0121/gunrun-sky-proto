@@ -20,10 +20,11 @@ function canAimBehind() {
   return choice === 'unity' && view === 'third' && !!aimRig && !!holder?.visible && !c.doorAction &&
     !landingRoll.active && !c.swingFlight && (c.state === 'normal' || c.state === 'slide');
 }
-function updateCombatTurn(dt, third) {
+function updateCombatTurn(dt, third, preparingShot = false) {
   if (third && sky.modeRef() === 'pause') return;
   if (motionPosition && c.pos.distanceTo(motionPosition) > Math.max(2, Math.hypot(c.vel.x, c.vel.z) * dt * 3)) {
-    combatTurn = 0; shotTarget = null;
+    combatTurn = 0;
+    if (!preparingShot) shotTarget = null;
   }
   combatTarget = third && sky.U.gunOn && sky.U.aimAuto && !sky.wpc().jumpGun &&
     sky.Et.reloadT <= 0 && sky.Et.ammo > 0 && canAimBehind() &&
@@ -448,14 +449,14 @@ function updateWorldWeapon(third, dt = 0) {
     if (muzzleFlash.visible) { worldWeapon.updateMatrixWorld(true); muzzleFlash.position.copy(heldWeapon.muzzle);worldWeapon.localToWorld(muzzleFlash.position); }
   }
 }
-function update(dt) {
+function update(dt, preparingShot = false) {
   if (!c.doorAction) {
     delete document.body.dataset.skyHumanDoorAction;
     delete document.body.dataset.skyHumanDoorPhase;
     delete document.body.dataset.skyHumanDoorReachError;
   }
   const third = choice === 'unity' && view === 'third' && !!holder && sky.modeRef() !== 'menu' && sky.modeRef() !== 'replay' && !window.skySettings?.beforeRun;
-  updateCombatTurn(dt, third);
+  updateCombatTurn(dt, third, preparingShot);
   if (holder) {
     holder.visible = third;
     const speed = Math.hypot(c.vel.x, c.vel.z);
@@ -548,10 +549,13 @@ function getMuzzleWorld() {
 function prepareShot(origin,direction,distance) {
   landingRoll.cancel();
   if(choice!=='unity'||view!=='third'||!holder?.visible||!aimRig)return null;
-  shotTarget=origin.clone().addScaledVector(direction,distance);shotTime=0;update(0);
+  // A practice warp/respawn can be noticed during this same update. Keep the
+  // in-flight shot's aim point even when the previous movement pose resets.
+  const target=origin.clone().addScaledVector(direction,distance);
+  shotTarget=target;shotTime=0;update(0,true);
   const muzzle=getMuzzleWorld();if(!muzzle)return null;
-  const corrected=shotTarget.clone().sub(muzzle).normalize();
-  document.body.dataset.skyHumanShot=JSON.stringify({origin:muzzle.toArray(),direction:corrected.toArray(),target:shotTarget.toArray(),gripError:+document.body.dataset.skyHumanGripError,aimError:+document.body.dataset.skyHumanAimError});
+  const corrected=target.clone().sub(muzzle).normalize();
+  document.body.dataset.skyHumanShot=JSON.stringify({origin:muzzle.toArray(),direction:corrected.toArray(),target:target.toArray(),gripError:+document.body.dataset.skyHumanGripError,aimError:+document.body.dataset.skyHumanAimError});
   return {origin:muzzle,direction:corrected};
 }
 window.skyHumanView = { update, select, getMuzzleWorld, prepareShot,
