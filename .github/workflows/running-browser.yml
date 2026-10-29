@@ -28,6 +28,8 @@ jobs:
         run: |
           node bench/zombie-search-browser.cjs
           node bench/swing-flow-browser.cjs
+          node bench/swing-flip.test.cjs
+          node bench/swing-flip-browser.cjs
       - name: Remaining practice and wall-run regressions
         run: |
           node bench/practice-browser.cjs
