@@ -155,7 +155,7 @@ function updateMotion(dt, speed) {
   const front = c.vel.x * forward.x + c.vel.z * forward.z;
   const side = c.vel.x * right.x + c.vel.z * right.z;
   const rolling = landingRoll.active;
-  const normalGround = grounded && c.state === 'normal' && !rolling && !c.doorAction;
+  const normalGround = grounded && c.state === 'normal' && !rolling;
   const distance = motionPosition ? Math.hypot(c.pos.x - motionPosition.x, c.pos.z - motionPosition.z) : 0;
   const teleported = distance > Math.max(1.5, speed * dt * 3);
   if (!motionPosition) motionPosition = new Vector3();
@@ -198,7 +198,6 @@ function updateMotion(dt, speed) {
   else if (wallFrame) next = 'wallrun';
   else if (c.state === 'ledge' && c.ledge && parkourRunEnabled && motion.clips.parkourMantle) next = c.ledge.kind === 'vault' ? 'vault' : c.ledge.kind === 'catch' ? 'catch' : 'mantle';
   else if (!grounded || landTime > 0 || c.state === 'ledge') next = 'jump';
-  else if (c.doorAction) next = 'idle';
   else if (speed > .2) {
     const pace = walking ? 'walk' : 'run';
     if (Math.abs(side) > Math.abs(front) * .8) next = `${pace}${side > 0 ? 'Right' : 'Left'}`;
