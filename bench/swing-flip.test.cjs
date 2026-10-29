@@ -1,11 +1,15 @@
 const assert = require('node:assert/strict');
 (async () => {
-  const { isPerfectRelease, flipPose, flipDuration } = await import('../swing-flip.js');
+  const { isPerfectRelease, releaseCueProgress, flipPose, flipDuration } = await import('../swing-flip.js');
   const { releaseVelocity } = await import('../parkour-swing.js');
   assert.ok(isPerfectRelease(.75, 3));
-  for (const angle of [-.7, .55, .95]) assert.equal(isPerfectRelease(angle, 3), false);
+  for (const angle of [-.7, .4, 1.1]) assert.equal(isPerfectRelease(angle, 3), false);
+  for (const angle of [.51, .55, .95, .99]) assert.ok(isPerfectRelease(angle, 3));
   assert.equal(isPerfectRelease(.75, -3), false);
   assert.ok(isPerfectRelease(.35, 3, [.2, .5]));
+  assert.equal(releaseCueProgress(-.3, 3), 0);
+  assert.ok(releaseCueProgress(.2, 3) > 0 && releaseCueProgress(.2, 3) < 1);
+  assert.equal(releaseCueProgress(.75, -3), 0);
   const normal = releaseVelocity([.6, .8], .75, 3, 7.2);
   const good = releaseVelocity([.6, .8], .75, 3, 7.2, true);
   assert.ok(Math.abs(good[0] - normal[0] - .36) < 1e-8);

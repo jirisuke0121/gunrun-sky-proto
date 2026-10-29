@@ -1,4 +1,4 @@
-import { createSwing } from './parkour-swing.js?v=20261030-frontflip-v1';
+import { createSwing } from './parkour-swing.js?v=20261030-frontflip-cue-v2';
 import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
 import { createFlashbang } from './flashbang.js?v=20261030-decoy-v1';
 import { installSkillDock } from './player-skills.js?v=20261030-decoy-v1';

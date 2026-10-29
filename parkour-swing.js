@@ -1,4 +1,4 @@
-import { isPerfectRelease, flipDuration } from './swing-flip.js?v=20261030-frontflip-v1';
+import { isPerfectRelease, releaseCueProgress, flipDuration } from './swing-flip.js?v=20261030-frontflip-cue-v2';
 // Pendulum traversal is a movement state, not a camera-only animation.
 export const SWING_LENGTH = 2.15;
 export const MAX_GRIP_SECONDS = 8;
@@ -38,6 +38,16 @@ export function createSwing(sky, game, course) {
   const group = new T.Group(); group.name = course.oldTown ? course.name : 'West ascent swing bars'; sky.ue.add(group);
   const steel = new T.Standard({ color: 0x243c52, metalness: .65, roughness: .4 });
   const orange = new T.Standard({ color: 0xffaa35, emissive: 0x633509, roughness: .5 });
+  const gripCues = new Map();
+  function setGripCue(id, ready) {
+    for (const [barId, material] of gripCues) {
+      const green = barId === id && ready;
+      if (material.userData.swingReady === green) continue;
+      material.userData.swingReady = green;
+      material.color.setHex(green ? 0x7ef0aa : 0xffaa35);
+      material.emissive.setHex(green ? 0x24743c : 0x633509);
+    }
+  }
   function label(text, at, scale = 1) {
     const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 96;
     const ctx = canvas.getContext('2d'); ctx.fillStyle = '#23364deb'; ctx.fillRect(0,0,512,96);
@@ -47,10 +57,12 @@ export function createSwing(sky, game, course) {
     sprite.scale.set(3.5*scale,.66*scale,1); sprite.position.set(...at); group.add(sprite);
   }
   for (const b of bars) {
+    const gripMaterial = orange.clone(); gripCues.set(b.id, gripMaterial);
     const tube = new T.Mesh(new T.Cylinder(.065, .065, b.width + .3, 8), steel);
     tube.rotation.z = Math.PI / 2; tube.rotation.y = Math.atan2(b.direction[0], b.direction[1]); tube.position.set(...b.at); group.add(tube);
     for (const offset of [-.35, .35]) {
-      const grip = new T.Mesh(new T.Cylinder(.078, .078, .24, 8), orange);
+      const grip = new T.Mesh(new T.Cylinder(.078, .078, .24, 8), gripMaterial);
+      grip.userData.swingBar = b.id;
       grip.rotation.copy(tube.rotation); grip.position.set(b.at[0] - b.direction[1] * offset, b.at[1], b.at[2] + b.direction[0] * offset); group.add(grip);
     }
     if (!course.oldTown) label(b.label || (b.id.endsWith('1') ? '1  SWING >' : '2  > UPPER'), [b.at[0],b.at[1]+.45,b.at[2]+2.25], .5);
@@ -88,7 +100,7 @@ export function createSwing(sky, game, course) {
   for (const sign of course.signs || []) label(sign.text, sign.at, sign.scale);
   for (const mark of course.arrows || []) arrow(...mark.at, ...mark.direction);
   const style = document.createElement('style');
-  style.textContent = '#swingHint{position:fixed;top:24%;left:50%;transform:translateX(-50%);padding:6px 12px;border-radius:8px;color:#fff4d6;background:#25354cdd;font:700 12px system-ui;pointer-events:none;z-index:6;text-align:center;max-width:85vw}body[data-sky-swing] #hint{visibility:hidden}#swingHint[hidden]{display:none}#swingHint[data-ready=true]{color:#d8ffe4;border:1px solid #7ef0aa;background:#163a30ed}#tJump[data-swing-ready=true]{box-shadow:0 0 0 3px #7ef0aa,0 0 18px #7ef0aa80}';
+  style.textContent = '#swingHint{position:fixed;top:24%;left:50%;transform:translateX(-50%);padding:9px 14px;border-radius:8px;color:#fff4d6;background:#25354cf2;font:700 14px system-ui;pointer-events:none;z-index:26;text-align:center;max-width:85vw;box-sizing:border-box}#swingHint:after{content:"";display:block;height:4px;margin-top:6px;background:currentColor;opacity:.8;transform:scaleX(var(--swing-progress,0));transform-origin:left}body[data-sky-swing] #hint{visibility:hidden}#swingHint[hidden]{display:none}#swingHint[data-ready=true]{color:#103424;border:2px solid #d5ffe6;background:#7ef0aa;box-shadow:0 0 18px #7ef0aa99;font-size:16px}#tJump[data-swing-ready=true]{color:#103424!important;border-color:#d5ffe6!important;background:#7ef0aa!important;box-shadow:0 0 0 3px #7ef0aa,0 0 18px #7ef0aa80}';
   document.head.appendChild(style);
   const hint = document.createElement('div'); hint.id = 'swingHint'; hint.hidden = true; document.body.appendChild(hint);
   if (bars.length) {
@@ -103,6 +115,7 @@ export function createSwing(sky, game, course) {
     active = null; c.swing = null; c.swingFlight = null; cooldown = 0; previous = null; lastBar = ''; chain = 0; chainTime = 0;
     releasedBar = ''; recatch = 0;
     hint.hidden = true;
+    setGripCue(null, false);
     jumpHeld = touchHeld = jumpPressed = false;
     delete jumpButton?.dataset.swingReady;
     if(jumpButton)jumpButton.textContent=jumpLabel;
@@ -122,6 +135,7 @@ export function createSwing(sky, game, course) {
     event(drop ? 'barDrop' : 'barJump', { bar: a.bar.id, chain, angle: +a.angle.toFixed(3), omega: +a.omega.toFixed(3), perfect });
     if (!drop) { window.skyTelemetryProbe?.jumpAccepted(z.t, 'bar_release'); game.stats.barJumps = (game.stats.barJumps || 0) + 1; sky.Tt.jump?.(); }
     active = null; jumpPressed = false; previous = c.pos.toArray(); hint.hidden = true;
+    setGripCue(null, false);
     delete jumpButton?.dataset.swingReady;
     if(jumpButton)jumpButton.textContent=jumpLabel;
   }
@@ -145,7 +159,8 @@ export function createSwing(sky, game, course) {
     }
     active = { bar, pivot, direction, angle, omega, age: 0 };
     c.swingFlight = null;
-    jumpPressed = false; hint.dataset.ready = 'false';
+    jumpPressed = false; hint.dataset.ready = 'false'; hint.style.setProperty('--swing-progress', 0);
+    setGripCue(bar.id, false);
     hint.textContent = '前へ振れたらジャンプ / 下で離す';
     chain = chainTime > 0 && lastBar !== bar.id ? chain + 1 : 1; chainTime = 2; lastBar = bar.id;
     c.edgeJump = false;
@@ -162,7 +177,7 @@ export function createSwing(sky, game, course) {
       if (c.onGround || c.state !== 'normal' || c.swingFlight.age > 1.2) c.swingFlight = null;
     }
     cooldown = Math.max(0, cooldown - dt); recatch = Math.max(0,recatch-dt); if (!active) chainTime = Math.max(0, chainTime - dt);
-    if (active && c.state !== 'swing') { active = null; c.swing = null; hint.hidden = true; }
+    if (active && c.state !== 'swing') { active = null; c.swing = null; hint.hidden = true; setGripCue(null, false); }
     if (active) {
       const a = active;
       a.age += dt;
@@ -186,11 +201,13 @@ export function createSwing(sky, game, course) {
       const launchWindow = a.bar.launchWindow;
       const ready = isPerfectRelease(a.angle, a.omega, launchWindow);
       hint.hidden = false; hint.dataset.ready = String(ready);
+      hint.style.setProperty('--swing-progress', releaseCueProgress(a.angle, a.omega, launchWindow));
+      setGripCue(a.bar.id, ready);
       const progress = course.oldTown ? '鉄棒' : `鉄棒 ${chain}/${bars.length}`;
-      hint.textContent = ready ? `${progress}　今！ジャンプで前宙＋遠くへ` : `${progress}　前へ振れたらジャンプ / 緑で前宙 / 下で離す`;
+      hint.textContent = ready ? `${progress}　今！前宙ジャンプ` : `${progress}　前へ振る → 緑でジャンプ / 下で離す`;
       if (a.bar.exitHint) hint.textContent += ` / ${a.bar.exitHint}`;
       if (a.age >= MAX_GRIP_SECONDS - 2) hint.textContent += ` / 手が離れるまで ${Math.ceil(MAX_GRIP_SECONDS - a.age)}秒`;
-      if (jumpButton) {jumpButton.dataset.swingReady = String(ready);jumpButton.textContent='跳び移る';}
+      if (jumpButton) {jumpButton.dataset.swingReady = String(ready);jumpButton.textContent=ready?'前宙！':'跳び移る';}
       document.body.dataset.skySwing = JSON.stringify({ bar: a.bar.id, angle: a.angle, chain, age: a.age });
       previous = c.pos.toArray(); return true;
     }
@@ -225,6 +242,7 @@ export function createSwing(sky, game, course) {
   function frame() {
     hint.hidden = !active || sky.modeRef() !== 'play' || z.over;
     if (sky.modeRef() !== 'play' || z.over) {
+      setGripCue(null, false);
       jumpHeld = touchHeld = jumpPressed = false;
       c.jumpBuf = 0; delete jumpButton?.dataset.swingReady;
     if(jumpButton)jumpButton.textContent=jumpLabel;
