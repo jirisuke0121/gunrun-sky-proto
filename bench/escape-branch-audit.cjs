@@ -61,6 +61,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
     }
     walk('south-recovery-stair',[36,-3.5,19],[[38.4,-3.5,19],[38.4,0,13.5]],{maxSeconds:6});
     walk('beam-T-roof',[-39.5,4.4,8],[[-42,4.4,8],[-42,3.1,2.8]],{maxSeconds:5});
+    walk('east-lower-escape-with-pursuers',[56,3.6,2.5],[[51.8,3.6,2.5],[49,-1,2.5],[49,-1,3.6],[44,0,3.6]],{enemies:[[58,3.61,2.5],[60.7,3.61,-8]],jumpX:52.2,maxSeconds:10});
     walk('beam-T-north',[-39.5,4.4,8],[[-42,4.4,8],[-42,4.4,5]],{maxSeconds:5});
    }else{
     walk('middle-west-to-east',[-19,4,0],[[19,4,0]],{maxSeconds:8});
@@ -101,7 +102,8 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
   for(const r of result.results.filter(r=>r.kind==='walk'&&r.id.startsWith('ladder-'))){if(r.id.endsWith('-from-top')){const n=+r.id.split('-')[1],L=result.ladderExits[n];assert.ok(r.end.state==='normal'&&r.end.ground&&r.end.p[1]<=L.y0+.65&&r.start.p[1]-r.end.p[1]>1,idFor(r));}else assert.equal(r.complete,true,idFor(r));assert.equal(r.end.bodyFree,true,idFor(r));}
   function idFor(r){return `${map}/${touch?'touch':'desktop'}/${r.id}: ${JSON.stringify(r.end)}`;}
   assert.ok(result.ladderExits.every(L=>L.canExit),'every ladder has a safe upper exit');
-  if(map==='index')for(const name of ['gallery-down','high-east-return','north-original-inbound','north-original-outbound','north-upper-west-east','north-upper-east-west','east-lower-recovery-south-detour','east-pillar-stair-return','south-recovery-stair','beam-T-roof'])assert.equal(by(name).complete,true,idFor(by(name)));
+  if(map==='index')for(const name of ['gallery-down','high-east-return','north-original-inbound','north-original-outbound','north-upper-west-east','north-upper-east-west','east-lower-recovery-south-detour','east-pillar-stair-return','south-recovery-stair','beam-T-roof','east-lower-escape-with-pursuers'])assert.equal(by(name).complete,true,idFor(by(name)));
+  if(map==='index')assert.ok(by('east-lower-escape-with-pursuers').end.life>0,'the lower branch must remain usable under the controlled pursuit');
   assert.ok(result.results.filter(r=>r.kind==='bar-drop').every(r=>r.attached&&!r.fell&&r.end.ground),'every tested bar drop reaches a floor without losing life');
   assert.ok(result.results.filter(r=>r.kind==='shared-ladder').every(r=>r.entered),'jump deliberately selects a shared ladder');
   if(map==='canyon')for(const [name,sign]of [['西へジップ',-1],['東へジップ',1]]){
