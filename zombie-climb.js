@@ -260,7 +260,7 @@ export function createZombieClimb(game, runtime, flashbang) {
   }
   function climb(enemy, dt) {
     const a = enemy.act, s = a.segments[a.index];
-    if (enemy.dead || enemy.stun > 0 || flashbang.blinded(enemy) || a.column.off || a.cap.off ||
+    if (enemy.lost || enemy.dead || enemy.stun > 0 || flashbang.blinded(enemy) || a.column.off || a.cap.off ||
         (player.onGround && Math.abs(player.pos.y - a.goal.y) > 0.4) ||
         Math.hypot(player.pos.x - a.goal.x, player.pos.z - a.goal.z) > 8) {
       interrupt(enemy); return false;
@@ -408,6 +408,8 @@ export function createZombieClimb(game, runtime, flashbang) {
 
   const originalUpdate = ri.prototype.update, originalAnim = ri.prototype.anim;
   ri.prototype.update = function updateWithPillarClimb(dt) {
+    if (window.skyZombieSearch?.deferSpawn(this)) { this.anim(0); return; }
+    window.skyZombieSearch?.observe(this, dt);
     pumpScan();
     const track = tracks.get(this);
     if (track?.active && this.act !== track.active) { track.active = null; track.wait = 0; stats.interrupted++; }

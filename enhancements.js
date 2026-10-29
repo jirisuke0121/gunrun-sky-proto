@@ -1,7 +1,8 @@
 import { createSwing } from './parkour-swing.js?v=20261030-frontflip-v1';
 import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
 import { createFlashbang } from './flashbang.js?v=20261028-touch-layout-v1';
-import { createZombieClimb } from './zombie-climb.js?v=20261029-stalled-climb-v3';
+import { createZombieClimb } from './zombie-climb.js?v=20261030-zombie-search-v1';
+import { createZombieSearch } from './zombie-search.js?v=20261030-zombie-search-v1';
 import { createGhostReplay } from './ghost-replay.js?v=20261028-compact-hud-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261030-auto-fire-controls-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
@@ -441,6 +442,7 @@ Tt.hg = () => {
 
 // Flashbang effects and zombie reactions run on the base simulation clock.
 const flashbang = window.skyFlashbang = createFlashbang(game);
+window.skyZombieSearch = createZombieSearch(game, window.__game, flashbang);
 window.skyZombieClimb = createZombieClimb(game, window.__game, flashbang);
 knifeRule?.insertAdjacentHTML('afterend', '<li>高台で追いつけずにいるゾンビは、柱をゆっくり登ってくる。登っている間に撃って落とせる。</li>');
 
