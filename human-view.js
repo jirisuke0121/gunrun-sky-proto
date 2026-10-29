@@ -2,6 +2,7 @@
 import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, RUN_STRIDE, DASH_STRIDE, LANDING_SECONDS, releaseAccent } from './human-running.js?v=20261030-boost-sprint-v3';
 import { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
 import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261029-door-motion-v1';
+import { flipPose } from './swing-flip.js?v=20261030-frontflip-v1';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
 const { Group, Vector3 } = Geom;
@@ -255,7 +256,8 @@ function updateMotion(dt, speed) {
   }
   const special = next === 'wallrun' ? (wallFrame.side < 0 ? 'parkourWallLeft' : 'parkourWallRight')
     : { roll: 'parkourRoll', landing: 'parkourLand', vault: 'parkourVault', mantle: 'parkourMantle', catch: 'parkourCatch', jump: 'parkourJump', swing: 'parkourSwing', swingFlight: 'parkourSwingFlight' }[next];
-  const selected = (next === 'roll' || next === 'swing' || next === 'swingFlight' || parkourRunEnabled) && motion.clips[special] ? special : next;
+  const flipping = next === 'swingFlight' && c.swingFlight.perfect && c.swingFlight.flipDuration > 0;
+  const selected = flipping ? 'parkourRoll' : (next === 'roll' || next === 'swing' || next === 'swingFlight' || parkourRunEnabled) && motion.clips[special] ? special : next;
   const ledgeAction = next === 'swing' || next === 'vault' || next === 'mantle' || next === 'catch';
   if (rolling) { runPose = 0; bodyYawOffset = 0; turnBank = 0; landTime = 0; }
   // A supported grip has its own contact frame. Ground-turn banking would
@@ -266,7 +268,7 @@ function updateMotion(dt, speed) {
   if (next === 'roll') clipTime = info.duration * rollTuck(landingRoll.phase);
   else if (next === 'landing') clipTime = LANDING_SECONDS - landTime;
   else if (next === 'swing') clipTime = info.duration * Math.max(0, Math.min(1, (c.swing.angle + 1.15) / 2.3));
-  else if (next === 'swingFlight') clipTime = info.duration * Math.min(1,c.swingFlight.age/.42);
+  else if (next === 'swingFlight') clipTime = info.duration * (flipping ? flipPose(c.swingFlight.age, c.swingFlight.flipDuration).tuck : Math.min(1,c.swingFlight.age/.42));
   else if (next === 'vault' || next === 'mantle' || next === 'catch') clipTime = info.duration * Math.max(0, Math.min(1, c.ledge.t));
   else if (next === 'reload') {
     const total = Math.max(.1, sky.wpc().rl || 1.5);
@@ -513,7 +515,8 @@ function update(dt, preparingShot = false) {
     const swingYaw = swingDirection ? Math.atan2(swingDirection[0],swingDirection[1]) : null;
     if (sky.modeRef() === 'play') swingLean = swinging ? -c.swing.angle : flight ? -flight.angle*Math.exp(-flight.age*5) : swingLean * Math.exp(-dt * 18);
     const rolling = third && landingRoll.active && !!motion?.rollGround;
-    const accent = flight && !c.onGround && c.state === 'normal' ? releaseAccent(flight.age, reducedMotion) : { pitch: 0, twist: 0 };
+    const flip = flight?.perfect && flight.flipDuration > 0 && !c.onGround && c.state === 'normal' ? flipPose(flight.age, flight.flipDuration) : null;
+    const accent = flip ? { pitch: flip.pitch, twist: 0 } : flight && !c.onGround && c.state === 'normal' ? releaseAccent(flight.age, reducedMotion) : { pitch: 0, twist: 0 };
     holder.rotation.set(rolling ? rollTurn(landingRoll.phase) : c.state === 'ladder' ? .09 : swingLean, rolling ? landingRoll.yaw : c.state === 'ladder' ? ladderYaw : swingYaw ?? ledgeYaw ?? c.yaw + Math.PI + bodyYawOffset + combatTurn + 1.25 * slidePose, ledgeYaw === null ? turnBank : 0, 'YXZ');
     if (accent.pitch || accent.twist) {
       // Rotate around the visual hips, not the feet/collision capsule. Neither
@@ -524,6 +527,7 @@ function update(dt, preparingShot = false) {
       hipOffset.sub(forward.set(0, hip, 0).applyEuler(holder.rotation)); holder.position.add(hipOffset);
     }
     document.body.dataset.skyHumanReleaseAccent = accent.pitch.toFixed(3);
+    document.body.dataset.skyHumanFlipPhase = flip ? flip.phase.toFixed(3) : '';
     if (third && c.doorAction) {
       const action = c.doorAction, base = c.yaw + Math.PI;
       const turn = Math.atan2(Math.sin(action.yaw - base), Math.cos(action.yaw - base));
@@ -608,6 +612,9 @@ function prepareShot(origin,direction,distance) {
 window.skyHumanView = { update, select, getMuzzleWorld, prepareShot,
   get canAimBehind() { return canAimBehind(); },
   autoAimReady(target) {
+    // Automatic fire waits for the body to unfold. A deliberate shot can still
+    // interrupt through prepareShot immediately, as with other parkour poses.
+    if (c.swingFlight?.perfect && c.swingFlight.age < c.swingFlight.flipDuration) return false;
     if (!canAimBehind()) return true;
     const direction = Math.atan2(target.pos.x - c.pos.x, target.pos.z - c.pos.z);
     return holder?.visible && aimBlend > .96 && Math.abs(wrapAngle(direction - holder.rotation.y)) < 1.12;

@@ -6,6 +6,7 @@ const { fixture } = require('./human-running.test.cjs');
 (async () => {
   const running = await import('../human-running.js');
   const aim = await import('../human-aim.js');
+  const flip = await import('../swing-flip.js');
   const { gltf, motion } = await fixture();
   const Group = gltf.scene.constructor, Vector3 = gltf.scene.position.constructor;
   let body; gltf.scene.traverse(o => { if (o.name.startsWith('Body_mesh')) body = o; });
@@ -41,7 +42,7 @@ const { fixture } = require('./human-running.test.cjs');
     getElementById(id) { if (!nodes.has(id)) nodes.set(id, { textContent: '', addEventListener() {} }); return nodes.get(id); },
     addEventListener(type, listener) { keys.set(type, listener); } };
   const context = vm.createContext({ window: { __skyInternals: sky }, document, sessionStorage: { getItem() { return null; }, setItem() {} },
-    T2: { GLTFLoader: class {} }, console, ...running, ...aim, gltf, motionFixture: motion });
+    T2: { GLTFLoader: class {} }, console, ...running, ...aim, ...flip, gltf, motionFixture: motion });
   const source = fs.readFileSync('human-view.js', 'utf8').replace(/^import .*;\n/gm, '');
   // Function declarations are hoisted: replace loading before the module's
   // default Unity model starts, rather than after its initial async call.
@@ -97,6 +98,17 @@ const { fixture } = require('./human-running.test.cjs');
   c.vel.set(8, 4, 0); update(1, false);
   assert.equal(dataset.skyHumanClip, 'swingFlight');
   assert.equal(carried.visible, false, 'the two-hand release/reach pose has no dangling gun');
+  const physicalFlight = JSON.stringify({ pos: c.pos.toArray(), vel: c.vel.toArray(), yaw: c.yaw });
+  for (const age of [0, .125, .25, .375, .5]) {
+    c.swingFlight = { age, angle: .7, direction: [1, 0], perfect: true, flipDuration: .5 };
+    update(1, false);
+    assert.equal(JSON.stringify({ pos: c.pos.toArray(), vel: c.vel.toArray(), yaw: c.yaw }), physicalFlight);
+    assert.equal(+dataset.skyHumanFlipPhase, age / .5);
+    assert.ok(Math.abs(+dataset.skyHumanReleaseAccent - flip.flipPose(age, .5).pitch) < .001);
+    assert.equal(context.window.skyHumanView.autoAimReady({ pos: new Vector3(20, 3, 0) }), age >= .5,
+      'automatic fire waits for the full turn, then resumes immediately');
+  }
+  c.swingFlight.age = .125;
   const flightShot = context.window.skyHumanView.prepareShot(new Vector3(0, 3, 4), new Vector3(0, 0, -1), 20);
   assert.ok(flightShot, 'an intentional airborne shot remains available');
   assert.equal(c.swingFlight, null, 'shooting immediately gives the hands back to the weapon pose');

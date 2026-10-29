@@ -1,3 +1,4 @@
+import { isPerfectRelease, flipDuration } from './swing-flip.js?v=20261030-frontflip-v1';
 // Pendulum traversal is a movement state, not a camera-only animation.
 export const SWING_LENGTH = 2.15;
 export const MAX_GRIP_SECONDS = 8;
@@ -6,11 +7,11 @@ export function pendulumPoint(bar, direction, angle, length = SWING_LENGTH) {
   return [bar[0] + direction[0] * length * Math.sin(angle), bar[1] - length * Math.cos(angle),
     bar[2] + direction[1] * length * Math.sin(angle)];
 }
-export function releaseVelocity(direction, angle, omega, jumpVelocity) {
+export function releaseVelocity(direction, angle, omega, jumpVelocity, perfect = false) {
   // Keep the signed tangent velocity. A press adds a fixed jump impulse;
   // neither the next bar nor a desired arrival height influences this launch.
-  const horizontal = SWING_LENGTH * omega * Math.cos(angle) + 4;
-  const vertical = SWING_LENGTH * omega * Math.sin(angle) + jumpVelocity * .28;
+  const horizontal = SWING_LENGTH * omega * Math.cos(angle) + 4 + (perfect ? .6 : 0);
+  const vertical = SWING_LENGTH * omega * Math.sin(angle) + jumpVelocity * .28 + (perfect ? .2 : 0);
   return [direction[0] * horizontal, vertical, direction[1] * horizontal];
 }
 export function isLaunchWindow(angle, omega) {
@@ -92,7 +93,7 @@ export function createSwing(sky, game, course) {
   const hint = document.createElement('div'); hint.id = 'swingHint'; hint.hidden = true; document.body.appendChild(hint);
   if (bars.length) {
     const rule = document.querySelector('#ovStart .rules .keys');
-    if (rule) { const li = document.createElement('li'); li.textContent = course.instructions || '西の橙色ルート：壁蹴り→小足場→鉄棒2本→中央高台。空中で鉄棒を自動つかみ。体が前へ振れた瞬間にジャンプを押して次へ。鉄棒ごとに押し直す。下入力で手を離す。高台で左右へ曲がる'; rule.appendChild(li); }
+    if (rule) { const li = document.createElement('li'); li.textContent = (course.instructions || '西の橙色ルート：壁蹴り→小足場→鉄棒2本→中央高台。空中で鉄棒を自動つかみ。体が前へ振れた瞬間にジャンプを押して次へ。鉄棒ごとに押し直す。下入力で手を離す。高台で左右へ曲がる') + ' 緑の合図に合わせてジャンプすると前宙し、少し遠くへ飛べます。'; rule.appendChild(li); }
   }
   function event(type, detail = {}) {
     if (game.RL?.events?.length < 300) game.RL.events.push({ e: type, t: +z.t.toFixed(3), x: c.pos.x, y: c.pos.y, z: c.pos.z, ...detail });
@@ -112,10 +113,13 @@ export function createSwing(sky, game, course) {
     c.edgeJump = !drop;
     c.state = 'normal'; c.swing = null; c.jumpBuf = 0; c.coyote = 0; c.airT = 0; c.catchCD = .25;
     c.hookPressed = false; c.edgeOff = null; cooldown = .08; releasedBar = a.bar.id; recatch = .45;
-    const launch = releaseVelocity(a.direction, a.angle, a.omega, U.jumpVel);
+    const perfect = !drop && isPerfectRelease(a.angle, a.omega, a.bar.launchWindow);
+    const launch = releaseVelocity(a.direction, a.angle, a.omega, U.jumpVel, perfect);
     c.vel.set(...(drop ? [a.direction[0] * 2, -1, a.direction[1] * 2] : launch));
-    c.swingFlight = drop ? null : { age: 0, angle: a.angle, direction: [...a.direction] };
-    event(drop ? 'barDrop' : 'barJump', { bar: a.bar.id, chain, angle: +a.angle.toFixed(3), omega: +a.omega.toFixed(3) });
+    c.swingFlight = drop ? null : { age: 0, angle: a.angle, direction: [...a.direction], perfect,
+      flipDuration: perfect ? flipDuration(c.pos.toArray(), launch, U.gravity, sky.oe, bars, a.bar.id, c.r) : 0 };
+    if (perfect && U.autoFire && sky.Et) sky.Et.trigger = 0;
+    event(drop ? 'barDrop' : 'barJump', { bar: a.bar.id, chain, angle: +a.angle.toFixed(3), omega: +a.omega.toFixed(3), perfect });
     if (!drop) { window.skyTelemetryProbe?.jumpAccepted(z.t, 'bar_release'); game.stats.barJumps = (game.stats.barJumps || 0) + 1; sky.Tt.jump?.(); }
     active = null; jumpPressed = false; previous = c.pos.toArray(); hint.hidden = true;
     delete jumpButton?.dataset.swingReady;
@@ -180,10 +184,10 @@ export function createSwing(sky, game, course) {
       c.vel.set(a.direction[0] * SWING_LENGTH * Math.cos(a.angle) * a.omega,
         SWING_LENGTH * Math.sin(a.angle) * a.omega, a.direction[1] * SWING_LENGTH * Math.cos(a.angle) * a.omega);
       const launchWindow = a.bar.launchWindow;
-      const ready = launchWindow ? a.angle >= launchWindow[0] && a.angle <= launchWindow[1] && a.omega > 1.1 : isLaunchWindow(a.angle, a.omega);
+      const ready = isPerfectRelease(a.angle, a.omega, launchWindow);
       hint.hidden = false; hint.dataset.ready = String(ready);
       const progress = course.oldTown ? '鉄棒' : `鉄棒 ${chain}/${bars.length}`;
-      hint.textContent = ready ? `${progress}　今！ジャンプで次へ` : `${progress}　前へ振れたらジャンプ / 下で離す`;
+      hint.textContent = ready ? `${progress}　今！ジャンプで前宙＋遠くへ` : `${progress}　前へ振れたらジャンプ / 緑で前宙 / 下で離す`;
       if (a.bar.exitHint) hint.textContent += ` / ${a.bar.exitHint}`;
       if (a.age >= MAX_GRIP_SECONDS - 2) hint.textContent += ` / 手が離れるまで ${Math.ceil(MAX_GRIP_SECONDS - a.age)}秒`;
       if (jumpButton) {jumpButton.dataset.swingReady = String(ready);jumpButton.textContent='跳び移る';}
