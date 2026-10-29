@@ -122,6 +122,8 @@ export function createFirstPersonWeapons(game, prototypes, loaded, excludedHandP
     hand.sleeve.quaternion.setFromUnitVectors(up,direction.normalize());
   }
   function update(dt,thirdPerson) {
+    const door = c.doorAction;
+    if (!door || thirdPerson) delete document.body.dataset.skyFirstPersonDoor;
     const weapon=U.weapon|0, source=prototypes[weapon];
     const nextSignature=`${weapon}:${source.children.length}`;
     if(nextSignature!==signature) {
@@ -136,7 +138,7 @@ export function createFirstPersonWeapons(game, prototypes, loaded, excludedHandP
     lastShots=shots;shotClock+=dt;
     kick*=Math.exp(-dt*(weapon===1||weapon>=9?10:16));flashT=Math.max(0,flashT-dt);
     const freeHands=['ladder','ledge','zip','hook','swing'].includes(c.state) || game.nn.t>0;
-    active=!!model && !!U.gunOn && !!U.showBody && game.modeRef()!=='menu' && !window.skySettings?.beforeRun && !thirdPerson && !freeHands;
+    active=!!model && (!!U.gunOn || !!door) && !!U.showBody && game.modeRef()!=='menu' && !window.skySettings?.beforeRun && !thirdPerson && !freeHands;
     rig.visible=active;
     for(const prototype of prototypes) prototype.visible=false;
     if(!active) {
@@ -149,6 +151,20 @@ export function createFirstPersonWeapons(game, prototypes, loaded, excludedHandP
     }
     // The original arm animation is retained for knife and parkour states.
     for(const hand of mr) hand.root.visible=false;
+    weaponRoot.visible = !door;
+    if (door) {
+      rig.scale.setScalar(1); rig.position.set(0,0,0); rig.rotation.set(0,0,0);
+      point.set(door.contact.x,door.contact.y,door.contact.z).applyMatrix4(game.Se.matrixWorldInverse);
+      const w=door.weight;
+      rightGrip.set(.32,-.34,-.34).lerp(new Vector3(clamp(point.x,-.6,.6),clamp(point.y,-.5,.12),clamp(point.z,-.9,-.42)),w);
+      leftGrip.set(-.29,-.43,-.32);
+      placeHand(hands[1],rightGrip,rightElbow,[.2*w,-.65*w,-Math.PI/2+.35*w]);
+      placeHand(hands[0],leftGrip,leftElbow,[0,0,Math.PI/2]);
+      flash.visible=false;
+      document.body.dataset.skyFirstPersonDoor=JSON.stringify({kind:door.kind,phase:+door.phase.toFixed(3),hand:rightGrip.toArray().map(x=>+x.toFixed(3)),weaponVisible:false});
+      return;
+    }
+    delete document.body.dataset.skyFirstPersonDoor;
     const profile=FIRST_PERSON_WEAPONS[weapon];
     const progress=Et.reloadT>0 && Et.reloadLen>0?clamp(1-Et.reloadT/Et.reloadLen,0,1):0;
     const reload=progress>0?Math.sin(Math.PI*progress):0;

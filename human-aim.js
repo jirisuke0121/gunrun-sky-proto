@@ -85,7 +85,7 @@ export function createHumanAim(model,motion,T) {
   }
   function bodyPoint(i){return p.fromArray(body.composed,i*3).applyMatrix4(body.toModel).toArray();}
   function rotate(v,weight){return v.sub(pivot).applyQuaternion(partial.slerpQuaternions(identity,q,weight)).add(pivot);}
-  function prepare(target,blend) {
+  function prepare(target,blend,lean = 0) {
     for(const r of records)compose(r);
     const current=landmarks.map(bodyPoint);
     pivot.set(...current[4]).add(new Vector3(...current[5])).multiplyScalar(.5);
@@ -95,7 +95,7 @@ export function createHumanAim(model,motion,T) {
     const pitch=Math.max(-1.05,Math.min(1.05,Math.atan2(direction[1],Math.hypot(direction[0],direction[2]))*.85));
     // Remove the baked chest's lean/twist before aiming. The legs and pelvis
     // keep their movement pose; the waist smoothly distributes the correction.
-    const desired=q.clone().setFromEuler(new model.rotation.constructor(-pitch,yaw,0,'YXZ')).multiply(neutralBasis);
+    const desired=q.clone().setFromEuler(new model.rotation.constructor(-pitch+lean,yaw,0,'YXZ')).multiply(neutralBasis);
     q.copy(desired).multiply(basis(current).invert());
     for(const r of records)for(let i=0;i<r.base.count;i++){
       if(r.torso[i]<.0001)continue;
