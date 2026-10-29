@@ -609,7 +609,35 @@ function prepareShot(origin,direction,distance) {
   document.body.dataset.skyHumanShot=JSON.stringify({origin:muzzle.toArray(),direction:corrected.toArray(),target:target.toArray(),gripError:+document.body.dataset.skyHumanGripError,aimError:+document.body.dataset.skyHumanAimError});
   return {origin:muzzle,direction:corrected};
 }
-window.skyHumanView = { update, select, getMuzzleWorld, prepareShot,
+// A decoy shares immutable geometry with the runner, but owns its pose,
+// materials and animation weights. No second model download is needed.
+function createDecoyAvatar(color = 0xff68e2) {
+  if (!holder || !model) return null;
+  const root = holder.clone(true), meshes = [];
+  root.name = 'Player hologram twin'; root.visible = true;
+  const material = new Geom.Basic({ color, transparent: true, opacity: .72, depthWrite: false, fog: false, toneMapped: false, blending: 2 });
+  root.traverse(node => {
+    if (!node.isMesh) return;
+    node.material = material; node.castShadow = node.receiveShadow = false;
+    node.frustumCulled = false;
+    if (node.morphTargetInfluences) { node.morphTargetInfluences = [...node.morphTargetInfluences]; meshes.push(node); }
+  });
+  return { root, material,
+    animate(time, moving = true) {
+      const clip = moving ? motion?.clips.parkourRun || motion?.clips.runForward : motion?.clips.idle;
+      if (!clip) return;
+      const sample = sampleClip(clip, (time / (clip.duration || .56)) % 1);
+      for (const mesh of meshes) {
+        mesh.morphTargetInfluences.fill(0);
+        const a = mesh.morphTargetDictionary[clip.frames[sample.lo]], b = mesh.morphTargetDictionary[clip.frames[sample.hi]];
+        if (a !== undefined) mesh.morphTargetInfluences[a] += 1 - sample.fraction;
+        if (b !== undefined) mesh.morphTargetInfluences[b] += sample.fraction;
+      }
+    },
+    dispose() { root.removeFromParent(); material.dispose(); }
+  };
+}
+window.skyHumanView = { update, select, getMuzzleWorld, prepareShot, createDecoyAvatar,
   get canAimBehind() { return canAimBehind(); },
   autoAimReady(target) {
     // Automatic fire waits for the body to unfold. A deliberate shot can still
