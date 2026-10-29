@@ -108,6 +108,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
   assert.ok(result.results.filter(r=>r.kind==='shared-ladder').every(r=>r.entered),'jump deliberately selects a shared ladder');
   if(map==='canyon')for(const [name,sign]of [['西へジップ',-1],['東へジップ',1]]){
    await page.evaluate(()=>{auditReset([0,8,-12]);skyEscapeRoutes.update();});
+   if(sign<0){await page.evaluate(()=>{const g=__game,s=__skyInternals;g.cam(1/60);skyHumanView.update(1/60);g.debug.renderer.clear();g.debug.renderer.render(s.ue,s.Se);});await page.screenshot({path:`branch-evidence/${id}-zip-options.png`});}
    const button=page.getByRole('button',{name,exact:true});if(touch)await button.tap();else await page.keyboard.press(sign<0?'Digit1':'Digit2');
    const picked=await page.evaluate(()=>{const trace=[];for(let i=0;i<3;i++){trace.push({state:__game.P.state,pos:__game.P.pos.toArray(),buf:__game.P.jumpBuf,cd:__game.P.setCD,choice:__game.P.zipChoice?.b,over:__game.GAME.over});__game.advance(1/120);}return{selected:__game.P.state==='zip'?__game.P.zip.b:null,trace};});assert.ok(picked.selected&&Math.sign(picked.selected[0])===sign,'explicit zip destination '+name+' '+JSON.stringify(picked));
   }
