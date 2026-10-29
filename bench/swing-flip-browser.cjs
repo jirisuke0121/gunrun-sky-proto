@@ -31,7 +31,9 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
             bar: skySwing.active?.bar.id, angle: skySwing.active?.angle, omega: skySwing.active?.omega,
             flight: c.swingFlight && { ...c.swingFlight }, phase: document.body.dataset.skyHumanFlipPhase,
             pitch: +document.body.dataset.skyHumanReleaseAccent, camera: s.Se.quaternion.toArray(),
-            cameraBank: new s.Geom.Vector3(1, 0, 0).applyQuaternion(s.Se.quaternion).y,
+            cameraRoll: s.Se.rotation.z,
+            cameraForward: new s.Geom.Vector3(0, 0, -1).applyQuaternion(s.Se.quaternion)
+              .dot(new s.Geom.Vector3(-Math.sin(c.yaw), 0, -Math.cos(c.yaw))),
             heading: c.yaw, clip: document.body.dataset.skyHumanClip };
         };
         window.flipSetup = () => {
@@ -86,7 +88,8 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
             assert.equal(+trace[i - 1].phase, 1, JSON.stringify({ id, previous: trace[i - 1], next: trace[i] }));
           const airborne = trace.filter(f => f.flight?.perfect);
           assert.ok(airborne.every(f => Math.abs(f.heading - airborne[0].heading) < 1e-8), 'body turn never steers travel heading');
-          assert.ok(airborne.every(f => Math.abs(f.cameraBank) < .04), 'camera keeps its horizon throughout the full body turn');
+          assert.ok(airborne.every(f => Math.abs(f.cameraRoll) < .04 && f.cameraForward > .95),
+            'camera keeps looking ahead without following the body turn');
         } else assert.ok(trace.every(f => !f.flight?.perfect), 'ordinary release never adds a somersault');
         const landing = await p.evaluate(() => { flipRender(); return { speed: Math.hypot(__game.P.vel.x, __game.P.vel.z), clip: document.body.dataset.skyHumanClip }; });
         assert.ok(landing.speed > 5, JSON.stringify(landing));
