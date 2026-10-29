@@ -11,6 +11,47 @@ const unit = a => mul(a, 1 / (length(a) || 1));
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const lerp = (a, b, t) => a.map((x, i) => mix(x, b[i], t));
 
+export const LANDING_SECONDS = .22;
+// Visual recovery only: no movement state, impulse, or input lock.
+export function releaseAccent(age, reduced = false) {
+  const weight = smooth(0, .10, age) * (1 - smooth(.16, .38, age)) * (reduced ? .25 : 1);
+  return { pitch: .95 * weight, twist: .22 * weight };
+}
+
+export function landingPose(phase) {
+  const t = clamp(phase), weight = smooth(0, .25, t) * (1 - smooth(.25, 1, t));
+  const torso = p => {
+    const upper = smooth(1.15, 1.95, p[1]);
+    return [p[0], p[1] - .23 * weight, p[2] + .20 * upper * weight];
+  };
+  const arms = {}, legs = {}, hands = {};
+  for (const side of [-1, 1]) {
+    const shoulder = [side * .28, 1.94, -.075], elbow = [side * .43, 1.55, -.105], hand = [side * .52495, 1.19165, -.0644];
+    const root = torso(shoulder), goal = lerp(hand, [side * .42, 1.35, .34], weight);
+    const arm = solveLimb(root, goal, length(sub(elbow, shoulder)), length(sub(hand, elbow)), [side, -.2, -.3]);
+    hands[side < 0 ? 'right' : 'left'] = arm.end;
+    arms[side] = { upper: boneMap(shoulder, elbow, root, arm.joint), lower: boneMap(elbow, hand, arm.joint, arm.end) };
+    const hip = [side * .17, 1.23, -.025], knee = [side * .23, .65, -.09], ankle = [side * .24, .12, -.04];
+    // Boots keep their floor height while the hips drop and knees flex.
+    const leg = solveLimb(torso(hip), ankle, length(sub(knee, hip)), length(sub(ankle, knee)), [0, .1, 1]);
+    legs[side] = { upper: boneMap(hip, knee, torso(hip), leg.joint), lower: boneMap(knee, ankle, leg.joint, leg.end),
+      boot: boneMap(ankle, add(ankle, [0, -1, 0]), leg.end, add(leg.end, [0, -1, 0])) };
+  }
+  return { hands, vertex(p, armWeight) {
+    const side = p[0] < 0 ? -1 : 1, arm = arms[side], leg = legs[side];
+    const a = lerp(arm.upper(p), arm.lower(p), 1 - smooth(1.48, 1.67, p[1]));
+    let l = lerp(leg.upper(p), leg.lower(p), 1 - smooth(.55, .77, p[1]));
+    l = lerp(l, leg.boot(p), 1 - smooth(.16, .32, p[1]));
+    if (Math.abs(p[0]) < .1) {
+      const other = legs[-side];
+      let q = lerp(other.upper(p), other.lower(p), 1 - smooth(.55, .77, p[1]));
+      q = lerp(q, other.boot(p), 1 - smooth(.16, .32, p[1]));
+      l = side < 0 ? lerp(l, q, smooth(-.1, .1, p[0])) : lerp(q, l, smooth(-.1, .1, p[0]));
+    }
+    return lerp(lerp(torso(p), l, 1 - smooth(1.12, 1.42, p[1])), a, armWeight);
+  } };
+}
+
 export function solveLimb(root, target, upperLength, lowerLength, hint) {
   const delta = sub(target, root), direction = length(delta) > .00001 ? unit(delta) : [0, -1, 0];
   const distance = clamp(length(sub(target, root)), Math.abs(upperLength - lowerLength) + .001, upperLength + lowerLength - .001);

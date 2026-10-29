@@ -1,11 +1,12 @@
 // Running style for the existing, baked Unity human. No new model download.
 // Asset-space metres: +Y up, +Z forward, the right hand is on -X.
-import { actionPose, boneMap, solveLimb } from './human-actions.js?v=20261028-swing-flow-v2';
+import { actionPose, boneMap, solveLimb, landingPose, LANDING_SECONDS } from './human-actions.js?v=20261030-landing-release-v1';
+export { LANDING_SECONDS, releaseAccent } from './human-actions.js?v=20261030-landing-release-v1';
 import { landingRollPose, rollTuck, rollTurn, LANDING_ROLL } from './landing-roll.js?v=20261029-edge-assist-v3';
 export { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
 import { wallRunPose, WALLRUN_SAMPLES } from './human-wallrun.js?v=20261027-wallrun-v2';
 export { wallRunFrame, WALLRUN_STRIDE } from './human-wallrun.js?v=20261027-wallrun-v2';
-export { jumpPhase, ledgeAnchor } from './human-actions.js?v=20261028-swing-flow-v2';
+export { jumpPhase, ledgeAnchor } from './human-actions.js?v=20261030-landing-release-v1';
 export const RUN_STRIDE = 3.36;
 export const DASH_STRIDE = 3.8;
 export const RUN_SAMPLES = 24;
@@ -243,6 +244,14 @@ export function addParkourRun(model, motion, Attribute) {
     }
     actionClips[kind] = { frames: names, times: seconds, duration: 1, source: 'reference-inspired two-bone limb poses' };
     actionGrips[kind] = rightHands; actionHands[kind] = bothHands;
+  }
+  {
+    // One additional target reaches, but does not exceed, the 256-layer floor.
+    const pose = landingPose(.25), name = 'parkourLand_compress';
+    frames.push(name); bodyFrames.push(bodyUnarmed.map(p => pose.vertex(p, armWeight(p))));
+    actionClips.parkourLand = { frames: [unarmed, name, unarmed], times: [0, .055, LANDING_SECONDS], duration: LANDING_SECONDS, source: 'grounded knee compression and stride recovery' };
+    actionGrips.parkourLand = [motion.grips.jump[0], pose.hands.right, motion.grips.jump[0]];
+    actionHands.parkourLand = [landingPose(0).hands, pose.hands, landingPose(1).hands];
   }
   {
     const pose = landingRollPose(.5), name = 'parkourRoll_tuck';
