@@ -20,6 +20,9 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     if(await page.locator('#humanSel [data-human="unity"]').count()) await page.locator('#humanSel [data-human="unity"]').click();await page.waitForFunction(()=>window.skyHumanView.choice==='unity'&&document.body.dataset.skyHumanLoaded==='true');await page.locator('#bStart').click();
     const placements=await page.evaluate(()=>{
      const g=window.__game,sky=window.__skyInternals,c=g.P;g.S.sendLog=false;g.S.autoSprint=true;c.invuln=1e9;
+     // This measures sprint/boost FOV. Autonomous combat deliberately narrows
+     // that FOV while firing, so keep combat out of this movement-only scene.
+     g.S.autoFire=false;g.S.aimAuto=false;g.S.aimAssist=false;
      for(const z of sky.Jt){z.dead=true;z.m.root.visible=false;}
      g.frameOnce(1/60);
      const placements=window.skyDash.pickups;
