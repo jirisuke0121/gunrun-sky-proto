@@ -1,5 +1,15 @@
 # 空中回廊 追跡（GunRun 試作）
 
+## 2026-10-29：北東1階と北側上階の袋小路を接続
+
+- 前の修正は横梁の下を立って通れるようにしたもので、階段まわりの袋小路は残っていました。北東1階は前方の北外壁と横の階段の4m端面で塞がれ、北側上階は階段の吹き抜けで床が途切れていました。現在の地形を実ゲームで歩いて両方を再現しました。
+- New north exits now use three working double-leaf doors, opening in 0.18s and closing in 0.16s after passage. A 1.45 radian swing keeps the narrow upper doorway clear. Shared door collision, safe closing, enemy hits and destruction are retained.
+- Manual runtime review: all three new doors passed in both directions and closed behind the player. Pursuers stopped at the closed ground and upper doors and damaged them. Walked continuously through the ground exit to the north street, and through the upper west door, bypass and east door. No automated tests were added or run; iPhone feel remains unverified.
+- 北東1階の突き当たりに出口を開け、北の既存街路までつながる幅3mの外側通路を追加。北側上階は、床が途切れる手前と東通路を外側の通路で接続。外縁には手すりを置き、地上は北街路への開口を残します。
+- 既存の階段と北側2本の梯子を維持。上階の通路はx=.5より東に置き、屋根梯子の昇降空間を確保します。上階の開口には壁の厚みを渡る床も追加。地形・衝突・追跡経路は同じ生成処理で更新します。
+- ローカルの手動確認で、1階の元の突き当たり→北の街路、上階の西側の端→新しい迂回路→東通路を、途中の再配置・ジャンプなしで歩いて通過しました。通常追手が1階の新しい出口と外側通路を通り北街路へ到達すること、元の階段で1階から上階へ歩いて上れること、既存の2本の梯子から4m上階・8m屋上へ出られることを確認しています。自動テストの追加・実行はしていません。iPhone実機の操作感は未確認です。
+
+
 ## 2026-10-29：屋内通路の立ち歩き・素早い扉の通過
 
 - 中央建物の上下階で通路を横断する梁の下面を床から2.5mへ上げました。以前は1〜1.3mしかなく、低速歩行では壁に止められ、高速でも自動スライドが必要でした。既存の天井・床・壁と階段は維持します。
