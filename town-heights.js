@@ -37,6 +37,24 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
     }
   };
 
+  // The long wall beside the east swing route has a usable 12m roof, but
+  // mono tops are excluded from navigation. Give this roof the same slab
+  // surface as the other roofs so pursuers can cross from the north ramp.
+  // Split the existing solid instead of stacking coplanar faces: its outer
+  // dimensions and the player's landing height remain exactly the same.
+  const eastWall = jn.find(b => b.type === 'mono' && b.minX === 17 && b.maxX === 35 &&
+    b.minZ === -6 && b.maxZ === -1.5 && b.maxY === 12);
+  if (eastWall) {
+    eastWall.maxY = 11.8;
+    box(17, 11.8, -6, 35, 12, -1.5).pursuitRoof = 'east-long-wall';
+    // The north ramp is separated from the wall by a 1.3m opening. Join it
+    // with a small landing and two 0.35m steps, using ordinary pursuit rather
+    // than granting east-side jump permissions or changing climb abilities.
+    box(26.5, 10.9, -7.4, 28.5, 11.3, -6.8, 'beam', SKY.steel);
+    box(26.5, 10.9, -6.8, 28.5, 11.65, -6.3, 'slab', SKY.stair);
+    box(26.5, 10.9, -6.3, 28.5, 12, -6, 'slab', SKY.stair);
+  }
+
   // Keep both storeys walkable at standing height. These cross-lane beams
   // used to leave only 1-1.3m below them, which looked like solid dead ends
   // from a third-person camera and stopped slow walking before auto-slide.
