@@ -26,12 +26,13 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
         g.S.sendLog = false; g.S.autoFire = g.S.aimAuto = false; c.invuln = Infinity;
         window.flipTick = () => {
           for (let i = 0; i < 2; i++) g.playerStep(1 / 120);
-          g.cam(1 / 60); skyHumanView.update(1 / 60);
+          g.cam(1 / 60); const cameraBeforeBody = s.Se.quaternion.clone(); skyHumanView.update(1 / 60);
           return { pos: c.pos.toArray(), velocity: c.vel.toArray(), ground: c.onGround, state: c.state,
             bar: skySwing.active?.bar.id, angle: skySwing.active?.angle, omega: skySwing.active?.omega,
             flight: c.swingFlight && { ...c.swingFlight }, phase: document.body.dataset.skyHumanFlipPhase,
             pitch: +document.body.dataset.skyHumanReleaseAccent, camera: s.Se.quaternion.toArray(),
             cameraRoll: s.Se.rotation.z,
+            cameraBodyTurn: cameraBeforeBody.angleTo(s.Se.quaternion),
             cameraForward: new s.Geom.Vector3(0, 0, -1).applyQuaternion(s.Se.quaternion)
               .dot(new s.Geom.Vector3(-Math.sin(c.yaw), 0, -Math.cos(c.yaw))),
             heading: c.yaw, clip: document.body.dataset.skyHumanClip };
@@ -42,6 +43,8 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
           g.placeAt({ x: at[0], y: at[1], z: at[2], yaw: course.oldTown ? Math.PI : -Math.PI / 2 });
           c.onGround = true; c.state = 'normal'; c.h = 1.75; c.vel.set(0, 0, 0); c.jumpBuf = 0; c.coyote = .15;
           c.pitch = 0; c.camY = c.pos.y + 1.62; c.catchCD = 0; c.crouchPressed = false; c.invuln = Infinity;
+          c.roll = c.shake = c.landDip = 0; c.eye = 1.62;
+          window.skyFollowCamera?.reset();
           g.S.gunOn = false; g.keys.KeyW = true;
           window.flipTrace = []; return flipTick();
         };
@@ -78,6 +81,7 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
           } else if (last?.ground) break;
         }
         const trace = await p.evaluate(() => flipTrace);
+        fs.writeFileSync(`${out}/${id}-${perfect ? 'perfect' : 'ordinary'}-trace.json`, JSON.stringify(trace));
         assert.equal(bars.size, map === 'canyon.html' ? 2 : 1, JSON.stringify({ id, perfect, last, bars: [...bars] }));
         assert.ok(last?.ground && last.pos[1] >= (map === 'canyon.html' ? 7.99 : 14.99), JSON.stringify({ id, perfect, last }));
         if (perfect) {
@@ -88,8 +92,9 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
             assert.equal(+trace[i - 1].phase, 1, JSON.stringify({ id, previous: trace[i - 1], next: trace[i] }));
           const airborne = trace.filter(f => f.flight?.perfect);
           assert.ok(airborne.every(f => Math.abs(f.heading - airborne[0].heading) < 1e-8), 'body turn never steers travel heading');
-          assert.ok(airborne.every(f => Math.abs(f.cameraRoll) < .04 && f.cameraForward > .95),
-            'camera keeps looking ahead without following the body turn');
+          assert.ok(airborne.every(f => f.cameraBodyTurn < 1e-6 && f.cameraForward > .95),
+            JSON.stringify({ id, message: 'camera keeps looking ahead without following the body turn',
+              frames: airborne.filter(f => f.cameraBodyTurn >= 1e-6 || f.cameraForward <= .95).map(f => ({age:f.flight.age,bodyTurn:f.cameraBodyTurn,forward:f.cameraForward,heading:f.heading})) }));
         } else assert.ok(trace.every(f => !f.flight?.perfect), 'ordinary release never adds a somersault');
         const landing = await p.evaluate(() => { flipRender(); return { speed: Math.hypot(__game.P.vel.x, __game.P.vel.z), clip: document.body.dataset.skyHumanClip }; });
         assert.ok(landing.speed > 5, JSON.stringify(landing));
