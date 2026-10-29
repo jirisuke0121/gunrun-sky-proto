@@ -1,0 +1,101 @@
+// Diagnostic controller: records successful and unsuccessful traversals without changing game files.
+const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=require('playwright');
+(async()=>{let browser,server;const output=[];fs.mkdirSync('branch-evidence',{recursive:true});try{
+ server=spawn('python3',['-m','http.server','8786','--bind','127.0.0.1'],{stdio:'ignore'});
+ for(let i=0;i<60;i++){if(await fetch('http://127.0.0.1:8786/').then(r=>r.ok,()=>false))break;await new Promise(r=>setTimeout(r,100));}
+ browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ for(const touch of [false,true])for(const map of ['index','canyon']){
+  const context=await browser.newContext({viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch});
+  await context.addInitScript(()=>window.__hold=true);await context.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'}));
+  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(120000);
+  await page.goto('http://127.0.0.1:8786/'+map+'.html?challengeDebug=1');await page.waitForFunction(()=>window.__game&&window.skySwing&&window.skyFollowCamera&&window.skyHumanView&&document.body.dataset.skyHumanLoaded==='true');await page.locator('#bStart').click();
+  const result=await page.evaluate(({map,touch})=>{
+   const g=__game,s=__skyInternals,c=g.P,dt=1/120,results=[];let seed=20261030;Math.random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+   function keysOff(){for(const k of Object.keys(g.keys))g.keys[k]=false;}
+   const key=(code,type)=>dispatchEvent(new KeyboardEvent(type,{code}));
+   function jump(){if(touch){const b=document.querySelector('#tJump');for(const type of ['pointerdown','pointerup'])b.dispatchEvent(new PointerEvent(type,{pointerId:777,pointerType:'touch',bubbles:true,cancelable:true}));}else{key('Space','keydown');key('Space','keyup');}}
+   function clearEnemies(){for(const z of s.Jt){s.ue.remove(z.m.root);if(z.pool)s.ue.remove(z.pool);}s.Jt.length=0;}
+   function reset(at,yaw=0,enemies=[]){keysOff();skySwing.reset();skyLandingRoll.reset();skyDash.reset(false);clearEnemies();g.DOOR_FEEDBACK.reset(g.DOORS);
+    g.SCR.off=g.PACE.off=g.MARK.off=true;Object.assign(g.S,{sendLog:false,gunOn:false,autoFire:false,aimAuto:false,stalkerOn:false,stalker2:false,dropShare:0});
+    g.GAME.over=false;g.GAME.t=0;g.GAME.spawnT=g.GAME.surgeT=1e9;g.GAME.safeT=0;g.setMode('play');g.placeAt({x:at[0],y:at[1],z:at[2],yaw});
+    Object.assign(c,{jumpBuf:0,coyote:0,slideBuf:0,slideCD:0,catchCD:0,hookPressed:false,crouchPressed:false,life:3,invuln:-1,edgeJump:false,edgeOff:null});
+    for(let i=0;i<12;i++)g.advance(dt);
+    c.node=g.nodeAt(c.pos.x,c.pos.y+.1,c.pos.z);g.updateField();
+    for(const p of enemies){const z=new s.ri(...p);Object.assign(z,{spawnT:0,rise:null,hp:1e6,flank:false,dropper:false,stalker:false,onGround:true});z.node=g.nodeAt(...[p[0],p[1]+.1,p[2]]);s.Jt.push(z);}
+   }
+   function state(){return{t:g.GAME.t,p:c.pos.toArray(),v:c.vel.toArray(),state:c.state,ground:c.onGround,life:c.life,over:g.GAME.over,reason:g.GAME.reason,hookCD:c.hookCD,ladder:c.ladder?{x:c.ladder.x,z:c.ladder.z,y0:c.ladder.y0,y1:c.ladder.y1}:null};}
+   function walk(id,at,waypoints,{jumpZ=null,enemies=[],maxSeconds=12}={}){reset(at,0,enemies);const start=state(),trail=[],states=new Set();let i=0,jumped=false,minNearest=Infinity;
+    for(let tick=0;tick<maxSeconds*120&&!g.GAME.over;tick++){
+     const dest=waypoints[i],dx=dest[0]-c.pos.x,dz=dest[2]-c.pos.z;
+     if(Math.hypot(dx,dz)<.4&&Math.abs(c.pos.y-dest[1])<.6){i++;if(i===waypoints.length)break;continue;}
+     c.yaw=Math.atan2(-dx,-dz);g.keys.KeyW=true;
+     if(jumpZ!==null&&!jumped&&c.onGround&&c.pos.z<jumpZ){jump();jumped=true;}
+     g.advance(dt);states.add(c.state);
+     for(const z of s.Jt)minNearest=Math.min(minNearest,c.pos.distanceTo(z.pos));
+     if(tick%12===0)trail.push({...state(),enemies:s.Jt.map(z=>({p:z.pos.toArray(),act:z.act?.kind}))});
+    }
+    keysOff();const r={id,kind:'walk',at,waypoints,start,end:state(),waypointsReached:i,complete:i===waypoints.length,states:[...states],jumped,minNearest:Number.isFinite(minNearest)?minNearest:null,trail};results.push(r);return r;
+   }
+   if(map==='index'){
+    walk('gallery-down',[-52.2,6.4,3.6],[[-52.2,4.6,8]],{maxSeconds:2});
+    walk('high-east-return',[-35.65,15,-.3],[[-37.6,14.2,-.3],[-37.6,13.4,-2.2]],{maxSeconds:3});
+    walk('north-original-inbound',[0,0,-17],[[0,0,-10]],{maxSeconds:4});
+    walk('north-original-outbound',[0,0,-10],[[0,0,-19]],{maxSeconds:4});
+    walk('north-new-inbound',[12,0,-17],[[12,0,-10]],{maxSeconds:4});
+    walk('north-upper-west-east',[1.3,4,-11],[[1.3,4,-15.5],[12,4,-15.5],[12,4,-11]],{maxSeconds:8});
+    walk('north-upper-east-west',[12,4,-11],[[12,4,-15.5],[1.3,4,-15.5],[1.3,4,-11]],{maxSeconds:8});
+    walk('warehouse-ground-west-east',[-65,0,10],[[-49,0,10]],{maxSeconds:6});
+    walk('warehouse-south-return',[-52.5,0,10],[[-52.5,0,19],[-46.5,0,19],[-46.5,0,11.5]],{maxSeconds:8});
+    walk('east-lower-recovery',[54,-1,2.5],[[44,0,2.5]],{maxSeconds:7});
+    walk('pillar-lower-recovery',[29,-1.1,0],[[38,0,0]],{maxSeconds:5});
+    walk('east-pillar-stair-return',[36,7,-.3],[[36,3.4,5],[38,3,5]],{maxSeconds:5});
+    walk('north-lower-cross-east',[-30,-3.5,-34],[[38,-3.5,-34]],{maxSeconds:14});
+    walk('south-gap-no-jump',[36,0,22.5],[[36,0,14]],{maxSeconds:3});
+    for(const jumpZ of [21.5,20.5,19.95])walk('south-gap-jump-'+jumpZ,[36,0,23.5],[[36,0,14]],{jumpZ,maxSeconds:4});
+    // Controlled route choices: same rear pressure with/without a northern interceptor.
+    for(const mode of ['clear','rear','front-rear']){
+     const enemies=mode==='clear'?[]:mode==='rear'?[[56,3.61,2.5]]:[[56,3.61,2.5],[60.7,3.61,-8]];
+     walk('east-north-'+mode,[60.7,3.6,.5],[[60.7,3.6,-10.5],[60.7,3.6,-12.8],[43,14.4,-12.8],[43,14.4,-10]],{enemies,maxSeconds:15});
+    }
+    walk('beam-T-north',[-39.5,4.4,8],[[-42,4.4,8],[-42,4.4,5]],{maxSeconds:5});
+   }else{
+    walk('middle-west-to-east',[-19,4,0],[[19,4,0]],{maxSeconds:8});
+    walk('ground-west-ramp',[-25,0,-6],[[-28,1.6,6],[-25,3.3,16],[-20,4,13]],{maxSeconds:10});
+    walk('ground-east-ramp',[25,0,8],[[28,1.6,-4],[25,3.3,-16],[20,4,-13]],{maxSeconds:10});
+    walk('upper-spine', [0,8,12],[[0,8,-11]],{maxSeconds:6});
+   }
+   // Every ladder: approach from its ordinary lower side, then try normal roof-side access.
+   for(let i=0;i<g.LADDERS.length;i++){
+    const L=g.LADDERS[i],bottom=[L.x+L.nx*1.0,L.y0,L.z+L.nz*1.0],top=[L.x-L.nx*.8,L.y1,L.z-L.nz*.8];
+    walk('ladder-'+i+'-up',bottom,[[L.x-L.nx*.9,L.y1,L.z-L.nz*.9]],{maxSeconds:Math.max(5,(L.y1-L.y0)/4.2+4)});
+    walk('ladder-'+i+'-from-top',top,[[L.x+L.nx*.8,L.y1-.8,L.z+L.nz*.8]],{maxSeconds:3});
+   }
+   // Drop from each real bar after grabbing through its real attachment logic.
+   for(const bar of skySwing.course.bars){
+    reset([bar.at[0]-.3*bar.direction[0],bar.at[1]-2.15,bar.at[2]-.3*bar.direction[1]],Math.atan2(-bar.direction[0],-bar.direction[1]));
+    skySwing.reset();c.pos.set(bar.at[0]-.3*bar.direction[0],bar.at[1]-2.15,bar.at[2]-.3*bar.direction[1]);c.onGround=false;c.vel.set(bar.direction[0]*3,-.2,bar.direction[1]*3);
+    for(let i=0;i<10&&!skySwing.active;i++)g.advance(dt);
+    const attached=skySwing.active?.bar.id,trail=[];if(attached)c.crouchPressed=true;
+    for(let i=0;i<8*120&&!g.GAME.over;i++){g.advance(dt);if(i%12===0)trail.push(state());if(i>12&&c.onGround)break;}
+    results.push({id:'bar-drop-'+bar.id,kind:'bar-drop',attached,end:state(),trail});
+   }
+   // Shared zip terminal: record selected target for different headings.
+   if(map==='canyon')for(const yaw of [0,-.25,.25,-Math.PI/2,Math.PI/2,Math.PI]){
+    reset([0,8,-12],yaw);c.yaw=yaw;jump();let attached=null;for(let i=0;i<45;i++){g.advance(dt);if(c.state==='zip'){attached={a:c.zip.a,b:c.zip.b};break;}}
+    results.push({id:'zip-heading-'+yaw,kind:'zip-choice',yaw,attached,end:state()});
+   }
+   window.branchAuditResults=results;return{map,touch,settings:{sprint:g.S.sprintSpeed,jump:g.S.jumpVel,gravity:g.S.gravity,difficulty:skyChallenge.id},results};
+  },{map,touch});
+  result.errors=errors;const id=`${touch?'touch':'desktop'}-${map}`;fs.writeFileSync(`branch-evidence/${id}.json`,JSON.stringify(result,null,2));
+  for(const target of ['north-original-inbound','bar-drop-oldtown-east-bar-1','gallery-down']){
+   // Separate end-state inspection, without representing this as a continuous video.
+   const item=result.results.find(r=>r.id===target);if(!item)continue;
+   await page.evaluate(item=>{const g=__game,c=g.P,s=__skyInternals;c.pos.set(...item.end.p);c.state='normal';c.onGround=item.end.ground;c.vel.set(...item.end.v);c.yaw=0;g.cam(1/60);skyHumanView.update(1/60);g.debug.renderer.clear();g.debug.renderer.render(s.ue,s.Se);},item);
+   await page.screenshot({path:`branch-evidence/${id}-${target}.png`});
+  }
+  output.push({id,errors,cases:result.results.length,walks:result.results.filter(r=>r.kind==='walk').map(({trail,...r})=>r),bars:result.results.filter(r=>r.kind==='bar-drop').map(({trail,...r})=>r),zips:result.results.filter(r=>r.kind==='zip-choice')});
+  console.log('AUDIT '+id+' '+result.results.length+' cases '+errors.length+' page errors');await context.close();
+ }
+ fs.writeFileSync('branch-evidence/summary.json',JSON.stringify(output,null,2));
+ if(output.some(x=>x.errors.length))throw Error('page error during diagnostic');
+}finally{await browser?.close();server?.kill();}})().catch(e=>{console.error(e);process.exitCode=1});
