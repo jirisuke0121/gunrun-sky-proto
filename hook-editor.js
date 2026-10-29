@@ -6,7 +6,7 @@ const FOV = Math.PI / 3;
 let game, api, wallApi, internals, solids = [], layout = [], selected = -1;
 let wallJumps = [], selectedWallJump = -1, bars = [], selectedBar = -1, mode = 'hook', selectedCandidate = -1;
 const DRAFT_KEY='gunrun-old-town-marker-draft-v2', DRAFT_FORMAT='gunrun-old-town-marker-draft-v2';
-const SOURCE_VERSION='20261029-terrain-v1';
+const SOURCE_VERSION='20261029-escape-v1';
 let draft, published, storageOK=true;
 let tool = 'add', viewPan = false, dirty = {hook:false,walljump:false,bar:false}, drag = null, hover = null, booted = false;
 let launch = {x: -42, y: 0, z: 8};
