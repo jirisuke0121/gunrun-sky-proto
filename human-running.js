@@ -1,6 +1,6 @@
 // Running style for the existing, baked Unity human. No new model download.
 // Asset-space metres: +Y up, +Z forward, the right hand is on -X.
-import { actionPose, boneMap } from './human-actions.js?v=20261028-swing-flow-v2';
+import { actionPose, boneMap, solveLimb } from './human-actions.js?v=20261028-swing-flow-v2';
 import { landingRollPose, rollTuck, rollTurn, LANDING_ROLL } from './landing-roll.js?v=20261029-edge-assist-v3';
 export { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
 import { wallRunPose, WALLRUN_SAMPLES } from './human-wallrun.js?v=20261027-wallrun-v2';
@@ -64,44 +64,79 @@ export function runningVertex(run, unarmed, phase) {
   return leanTorso(p, phase);
 }
 
-// A full sprint cycle, built from the same unarmed mesh as the parkour poses.
-// The recovery leg folds at the knee; stretching the existing run would keep
-// its low feet and would not produce the reference's high heel recovery.
-export function sprintPose(phase) {
-  const theta = phase * TAU, hip = [0, 1.28, -.045];
-  const bob = .025 * Math.cos(theta * 2);
-  const torso = p => {
-    const q = rotateX(rotateY(p, hip, .11 * Math.sin(theta)), hip, .72);
-    return [q[0], q[1] + bob, q[2] + .045];
+// The planted foot travels backwards by the same distance as the root moves
+// forwards. Recovery has separate heel-up, knee-drive and touchdown poses.
+const SPRINT_CONTACT = .22;
+function sprintFoot(phase, stride) {
+  const t = ((phase % 1) + 1) % 1;
+  if (t <= SPRINT_CONTACT) {
+    const toeOff = smoothstep(.15, SPRINT_CONTACT, t), pitch = .5 * toeOff;
+    return { y: .12 * Math.cos(pitch) + .20 * Math.sin(pitch),
+      z: .50 - stride * t + .20 - (-.12 * Math.sin(pitch) + .20 * Math.cos(pitch)), pitch, planted: true };
+  }
+  const end = .50 - stride * SPRINT_CONTACT;
+  const keys = [[SPRINT_CONTACT, .12 * Math.cos(.5) + .20 * Math.sin(.5), end + .20 - (-.12 * Math.sin(.5) + .20 * Math.cos(.5)), .5],
+    [.40, .90, -.47, .85], [.64, .80, .43, -.15], [.84, .38, .77, -.3], [1, .12, .50, 0]];
+  let i = 0; while (i < keys.length - 2 && t > keys[i + 1][0]) i++;
+  const a = keys[i], b = keys[i + 1], span = b[0] - a[0], f = (t - a[0]) / span;
+  const tangent = (at, axis) => {
+    if (at === 0 || at === keys.length - 1) return axis === 2 ? -stride : 0;
+    if (axis === 1 && at === 1) return 0;
+    return (keys[at + 1][axis] - keys[at - 1][axis]) / (keys[at + 1][0] - keys[at - 1][0]);
   };
-  const arms = {}, legs = {}, hands = {};
+  const curve = axis => (2 * f ** 3 - 3 * f ** 2 + 1) * a[axis]
+    + (f ** 3 - 2 * f ** 2 + f) * tangent(i, axis) * span
+    + (-2 * f ** 3 + 3 * f ** 2) * b[axis]
+    + (f ** 3 - f ** 2) * tangent(i + 1, axis) * span;
+  return { y: curve(1), z: curve(2), pitch: curve(3), planted: false };
+}
+
+export function sprintPose(phase, stride = DASH_STRIDE / .77) {
+  const theta = phase * TAU, hip = [0, 1.23, -.025];
+  const support = ((phase % .5) + .5) % .5;
+  const pelvisY = support <= SPRINT_CONTACT ? 1.10 + .025 * Math.sin(support / SPRINT_CONTACT * Math.PI)
+    : 1.10 + .14 * Math.sin((support - SPRINT_CONTACT) / (.5 - SPRINT_CONTACT) * Math.PI);
+  const pelvisZ = -.04, lean = .46;
+  const torso = p => {
+    let q = rotateX(rotateY(p, hip, .075 * Math.sin(theta)), hip, lean);
+    // Counter-rotate above the neck so the runner looks along the route.
+    const neck = rotateX([0, 2.00, -.04], hip, lean), head = rotateX(q, neck, -.24);
+    const headWeight = smoothstep(1.96, 2.13, p[1]);
+    q = q.map((v, k) => mix(v, head[k], headWeight));
+    return [q[0], q[1] + pelvisY - hip[1], q[2] + pelvisZ - hip[2]];
+  };
+  const arms = {}, legs = {}, hands = {}, feet = {};
   for (const side of [-1, 1]) {
+    const t = ((phase + (side < 0 ? 0 : .5)) % 1 + 1) % 1;
     const shoulder = [side * .28, 1.94, -.075], elbow = [side * .43, 1.55, -.105];
     const hand = [side * .52495, 1.19165, -.0644];
-    const armAngle = -.16 + side * 1.12 * Math.cos(theta);
+    // Same-side arm goes back as the foot lands in front of the pelvis.
+    const drive = Math.cos(t * TAU), armAngle = .05 + .72 * drive;
+    const bend = -1.65 + .20 * drive;
+    const upperArm = p => torso(rotateX(p, shoulder, armAngle));
+    const lowerArm = p => torso(rotateX(rotateX(p, elbow, bend), shoulder, armAngle));
     const arm = p => {
-      const bent = rotateX(p, elbow, -1.58);
-      const flexed = p.map((v, k) => mix(v, bent[k], 1 - smoothstep(1.48, 1.67, p[1])));
-      return torso(rotateX(flexed, shoulder, armAngle));
+      const a = upperArm(p), b = lowerArm(p);
+      return a.map((v, k) => mix(v, b[k], 1 - smoothstep(1.48, 1.67, p[1])));
     };
     arms[side] = arm;
-    hands[side < 0 ? 'right' : 'left'] = arm(hand);
-    const legPhase = theta + (side < 0 ? Math.PI : 0);
-    const thigh = -.16 - .88 * Math.cos(legPhase);
-    const kneeBend = .25 + 1.8 * Math.pow(Math.max(0, -Math.sin(legPhase)), 1.1);
+    hands[side < 0 ? 'right' : 'left'] = lowerArm(hand);
     const root = [side * .17, 1.23, -.025], knee = [side * .23, .65, -.09], ankle = [side * .24, .12, -.04];
-    const rootTarget = [root[0], root[1] + bob, root[2] + .045];
-    const upper = p => rotateX(p, root, thigh).map((v, k) => v + rootTarget[k] - root[k]);
-    const kneeTarget = upper(knee);
-    const ankleTarget = upper(rotateX(ankle, knee, kneeBend));
-    legs[side] = { upper, lower: boneMap(knee, ankle, kneeTarget, ankleTarget) };
+    const foot = sprintFoot(t, stride), rootTarget = [root[0], pelvisY, pelvisZ];
+    const goal = [side * .24, foot.y, foot.z];
+    const length = (a, b) => Math.hypot(...a.map((v, k) => v - b[k]));
+    const ik = solveLimb(rootTarget, goal, length(knee, root), length(ankle, knee), [0, .2, 1]);
+    legs[side] = { upper: boneMap(root, knee, rootTarget, ik.joint), lower: boneMap(knee, ankle, ik.joint, ik.end),
+      foot: p => rotateX(p, ankle, foot.pitch).map((v, k) => v + ik.end[k] - ankle[k]) };
+    feet[side < 0 ? 'right' : 'left'] = { ...foot, ankle: ik.end };
   }
-  return { hands, pitch: clamp(-(-1.58 - .16 - 1.12 * Math.cos(theta) + .72 + Math.PI / 2), -1.5, .8),
+  const rightDrive = Math.cos(theta), rightBend = -1.65 + .20 * rightDrive;
+  return { hands, feet, pitch: clamp(-(rightBend + .05 + .72 * rightDrive + lean + Math.PI / 2), -1.5, .8),
     vertex(p) {
       const side = p[0] < 0 ? -1 : 1;
       const legPoint = s => {
-        const leg = legs[s], upper = leg.upper(p), lower = leg.lower(p);
-        return upper.map((v, k) => mix(v, lower[k], 1 - smoothstep(.55, .77, p[1])));
+        const leg = legs[s], upper = leg.upper(p), lower = leg.lower(p), foot = leg.foot(p);
+        return upper.map((v, k) => mix(mix(v, lower[k], 1 - smoothstep(.55, .77, p[1])), foot[k], 1 - smoothstep(.16, .28, p[1])));
       };
       let leg = legPoint(side);
       if (Math.abs(p[0]) < .1) {
@@ -230,7 +265,7 @@ export function addParkourRun(model, motion, Attribute) {
   const dashNames = [], dashGrips = [], dashPitches = [];
   for (let i = 0; i <= RUN_SAMPLES; i++) {
     const name = `parkourDash_${String(i).padStart(3, '0')}`;
-    const pose = sprintPose(i === RUN_SAMPLES ? 0 : i / RUN_SAMPLES);
+    const pose = sprintPose(i === RUN_SAMPLES ? 0 : i / RUN_SAMPLES, DASH_STRIDE / (model.parent?.scale.y || .77));
     const vertices = bodyUnarmed.map(p => pose.vertex(p));
     const lift = Math.max(0, -Math.min(...vertices.map(p => p[1] + model.position.y)));
     dashNames.push(name); frames.push(name);

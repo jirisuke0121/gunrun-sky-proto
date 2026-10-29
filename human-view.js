@@ -1,5 +1,5 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, RUN_STRIDE, DASH_STRIDE } from './human-running.js?v=20261030-boost-sprint-v1';
+import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, RUN_STRIDE, DASH_STRIDE } from './human-running.js?v=20261030-boost-sprint-v2';
 import { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
 import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261029-door-motion-v1';
 const sky = window.__skyInternals;
@@ -306,7 +306,10 @@ function updateMotion(dt, speed) {
     }
   }
   const snap = landingRoll.takeSnap();
-  const smooth = ledgeAction || rolling || snap ? 1 : 1 - Math.exp(-dt * 18);
+  // The clip is already interpolated. Filtering a planted foot again delays
+  // it behind the player's travel and makes the sole slide across the floor.
+  const plantedRun = dashStrength > .001 && runPose > .99;
+  const smooth = ledgeAction || rolling || snap || plantedRun ? 1 : 1 - Math.exp(-dt * 18);
   for (const mesh of morphMeshes) {
     const weights = mesh.morphTargetInfluences, names = mesh.morphTargetDictionary;
     for (const [name, index] of Object.entries(names)) weights[index] += ((targets[name] || 0) - weights[index]) * smooth;

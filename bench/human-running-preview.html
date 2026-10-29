@@ -49,8 +49,16 @@ try {
   const g = w.__game, sky = w.__skyInternals, c = g.P, scene = g.debug.scene;
   const model = scene.children.find(o => o.name === 'Unity challenge human');
   for (const o of scene.children) if (o !== model && !o.isLight) o.visible = false;
-  const T = g.debug.THREE, floor = new T.Mesh(new T.BoxGeometry(32, .1, 32), new T.MeshBasicMaterial({color:0x53666d, wireframe:true}));
+  const T = g.debug.THREE, floor = new T.Group();
+  floor.add(new T.Mesh(new T.BoxGeometry(40, .06, 40), new T.MeshBasicMaterial({color:0x33444d})));
+  const gridMaterial = new T.MeshBasicMaterial({color:0x59717b});
+  for (let i = -20; i <= 20; i++) {
+    const across = new T.Mesh(new T.BoxGeometry(40, .002, .012), gridMaterial);
+    const along = new T.Mesh(new T.BoxGeometry(.012, .002, 40), gridMaterial);
+    across.position.set(0, .032, i); along.position.set(i, .032, 0); floor.add(across, along);
+  }
   scene.add(floor);
+  scene.fog = null; scene.background?.set('#23313a');
   g.S.gunOn = false; g.S.autoFire = false; g.S.aimAuto = false; g.S.sendLog = false;
   g.S.walkSpeed = 4.6; g.S.sprintSpeed = 6;
   // The map's collision field remains active even when its meshes are hidden.
@@ -91,7 +99,8 @@ try {
       w.skyHumanView.runStyle = original ? 'existing' : 'parkour';
       w.skyHumanView.update(dt);
     }
-    floor.position.set(c.pos.x, 199.87, c.pos.z);
+    // Keep this grid in world space so a planted sole can be checked against it.
+    floor.position.set(Math.floor(c.pos.x / 10) * 10, 199.965, Math.floor(c.pos.z / 10) * 10);
     const effects = scene.children.find(o => o.name === 'DASH pickups and effects');
     if (effects) effects.visible = false;
     g.debug.camera.fov = 48; g.debug.camera.updateProjectionMatrix();
