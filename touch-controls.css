@@ -9,6 +9,8 @@ html.touch #app{
   --touch-gap:14px;
 }
 html.touch .tb{font-size:13px;box-shadow:0 1px 4px #0003}
+/* Sliding remains part of movement; its touch button is deliberately hidden. */
+#tSlide{display:none!important}
 html.touch #tJump{
   left:auto;top:auto;right:var(--touch-right);
   width:var(--touch-main);height:var(--touch-main);
