@@ -77,8 +77,19 @@ const out = 'browser-evidence/zombie-search'; fs.mkdirSync(out, { recursive: tru
       const reacquired=await page.evaluate(()=>{const q=searchQA,e=q.enemy;e.stun=100;e.pos.set(q.chosen.a.x,q.chosen.a.y+.01,q.chosen.a.z);
         q.place(q.chosen.b);e.yaw=Math.atan2(e.pos.x-q.g.P.pos.x,e.pos.z-q.g.P.pos.z);return q.tick(.9);});
       assert.equal(reacquired.phase,'chase',JSON.stringify(reacquired));
+      const decoy = await page.evaluate(() => {
+        const q=searchQA,e=q.enemy;e.stun=0;q.place(q.chosen.b);
+        const used=skyDecoy.activate();q.place(q.chosen.hidden);q.tick(.6);
+        const lured=!!skyDecoy.targetFor(e),navigationOwned=!e.lost;
+        e.stun=100;e.pos.set(q.chosen.a.x,q.chosen.a.y+.01,q.chosen.a.z);e.vel.set(0,0,0);q.place(q.chosen.hidden);
+        q.tick(6.1);
+        return{used,lured,navigationOwned,expired:!skyDecoy.active,lost:e.lost,...q.state()};
+      });
+      assert.ok(decoy.used&&decoy.lured&&decoy.navigationOwned&&decoy.expired&&decoy.lost,JSON.stringify(decoy));
+      assert.equal(decoy.phase,'search','decoy expiry restores visual memory rather than live player tracking');
+      assert.ok(Math.abs(decoy.last.x-setup.b.x)<.05&&Math.abs(decoy.last.z-setup.b.z)<.05,'decoy does not reveal the real player after release');
       assert.equal(await page.evaluate(()=>__game.debug.renderer.getContext().getError()),0);
-      assert.deepEqual(errors,[]);results.push({id,setup,chase,escaped,gates,midway,pause,expired,walking,reacquired});
+      assert.deepEqual(errors,[]);results.push({id,setup,chase,escaped,gates,midway,pause,expired,walking,reacquired,decoy});
       console.log('PASS',id,JSON.stringify({remaining:escaped.remaining,moved:walking.moved,errors}));await ctx.close();
     }
     fs.writeFileSync(`${out}/results.json`,JSON.stringify(results,null,2));

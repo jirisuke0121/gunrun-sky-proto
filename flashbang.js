@@ -1,4 +1,5 @@
 import { playGearSound } from './gear-audio.js?v=20261026-gear-polish-v1';
+import { FLASH_ICON } from './player-skills.js?v=20261030-decoy-v1';
 // Defensive flashbang. Simulation time owns the fuse and stun, including pause.
 export const FLASHBANG = Object.freeze({ radius: 8, duration: 4, fuse: 0.22, maxCharges: 2, burstDuration: 1, screenDuration: 0.8, reducedScreenDuration: 0.4 });
 
@@ -65,7 +66,8 @@ export function createFlashbang(game) {
   function hud() {
     if (count) count.textContent = String(charges);
     if (button) {
-      button.innerHTML = `閃光弾<small>×${charges}　技${skills}/3</small>`;
+      button.innerHTML = `${FLASH_ICON}<span class="skill-value">${charges}</span><span class="skill-name">閃光玉 · G</span><small>技 ${skills}/3</small>`;
+      button.style.setProperty('--skill-progress', String(charges ? 1 : skills / 3));
       button.classList.toggle('empty', charges === 0);
       button.setAttribute('aria-label', `閃光弾 残り${charges}個 周囲${FLASHBANG.radius}mのゾンビを${FLASHBANG.duration}秒停止。離すと使用、外へずらすと取消`);
     }

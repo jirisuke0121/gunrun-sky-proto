@@ -35,7 +35,7 @@ const { fixture } = require('./human-running.test.cjs');
   let mode = 'play';
   const sky = { c, U: { weapon: 0, gunOn: true, walkSpeed: 4.6, sprintSpeed: 6, jumpVel: 7.2, gravity: 20 },
     Et: { ammo: 12, reloadT: 0 }, wpc: () => ({ rl: 1.5 }), modeRef: () => mode,
-    Se: new Group(), ue: new Group(), fo: new Group(), tl: new Group(), Geom: { Group, Vector3, Float32Attribute }, oe: () => true, mr: [] };
+    Se: new Group(), ue: new Group(), fo: new Group(), tl: new Group(), Geom: { Group, Vector3, Float32Attribute, Basic: body.material.constructor }, oe: () => true, mr: [] };
   const prototype=new Group();prototype.name='Sky HG';prototype.add(new body.constructor(weaponGeometry,body.material));sky.tl.add(prototype);
   const nodes = new Map(), keys = new Map(), dataset = {};
   const document = { body: { dataset }, querySelectorAll: () => [],
@@ -60,6 +60,18 @@ const { fixture } = require('./human-running.test.cjs');
   assert.equal(dataset.skyHumanClip, 'runForward'); assert.ok(+dataset.skyHumanRunBlend > .99);
   const phase = +dataset.skyHumanGaitPhase;
   assert.ok(phase > .65 && phase < .9, 'actual covered distance drives the running phase');
+  // A real hologram clone must animate independently and share only geometry.
+  const livePose = [...body.morphTargetInfluences];
+  const twin = context.window.skyHumanView.createDecoyAvatar();
+  assert.ok(twin && twin.root !== gltf.scene);
+  let twinBody; twin.root.traverse(o => { if (o.name.startsWith('Body_mesh')) twinBody = o; });
+  assert.equal(twinBody.geometry, body.geometry);
+  assert.notEqual(twinBody.material, body.material);
+  assert.notEqual(twinBody.morphTargetInfluences, body.morphTargetInfluences);
+  twin.animate(.2, true);
+  assert.deepEqual([...body.morphTargetInfluences], livePose, 'decoy cannot overwrite the real runner pose');
+  assert.ok(Math.abs(twinBody.morphTargetInfluences.reduce((a,b)=>a+b,0)-1)<.001);
+  twin.dispose();
   const weights = body.morphTargetInfluences;
   assert.ok(Math.abs(weights.reduce((a, b) => a + b, 0) - 1) < .001);
   context.window.skyDash={boost:1,camera:{distance:5.05,shoulder:.24,height:-.19}};update(30,false);

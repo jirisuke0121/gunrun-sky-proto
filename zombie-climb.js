@@ -410,6 +410,13 @@ export function createZombieClimb(game, runtime, flashbang) {
   ri.prototype.update = function updateWithPillarClimb(dt) {
     if (window.skyZombieSearch?.deferSpawn(this)) { this.anim(0); return; }
     window.skyZombieSearch?.observe(this, dt);
+    // Visible decoys own navigation; never recover toward the real player.
+    if (window.skyDecoy?.targetFor(this)) {
+      if (this.act?.kind === 'pillar') interrupt(this);
+      const tracked = tracks.get(this); if (tracked) { tracked.wait = 0; tracked.landing = null; }
+      if (scan?.enemy === this) scan = null;
+      return originalUpdate.call(this, dt);
+    }
     pumpScan();
     const track = tracks.get(this);
     if (track?.active && this.act !== track.active) { track.active = null; track.wait = 0; stats.interrupted++; }
