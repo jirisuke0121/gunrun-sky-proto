@@ -25,9 +25,16 @@ jobs:
           fi
       - name: Audit current escape branches with full game physics
         run: node bench/escape-branch-audit.cjs
+      - name: Verify merged swing flip integration
+        run: |
+          node bench/swing-flip.test.cjs
+          node bench/slope-slide.test.cjs
+          node bench/swing-flip-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: escape-branch-evidence
-          path: branch-evidence/
+          path: |
+            branch-evidence/
+            browser-evidence/swing-flip/
           retention-days: 14
