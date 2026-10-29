@@ -58,6 +58,9 @@ const solids = [
   [-63, 0, 11, -60, 5.5, 18], [-58, 0, 12, -53.5, 4.4, 18],
   [-51, 0, 11, -48, 5, 18], [-60, 0, -1, -52, 3, 6],
 ].map(([minX,minY,minZ,maxX,maxY,maxZ]) => ({minX,minY,minZ,maxX,maxY,maxZ,type:'slab'}));
+// Central corridor walls are required by the current town builder, even
+// though the assertions below exercise the warehouse escape loops.
+solids.push(...[-14,13].map(minX=>({minX,maxX:minX+1,minY:0,maxY:8,minZ:-14,maxZ:14,type:'mono'})));
 const window = {};
 vm.runInNewContext(fs.readFileSync('town-heights.js', 'utf8'), { window, Math });
 const ne = (minX,minY,minZ,maxX,maxY,maxZ,type) => { const b = {minX,minY,minZ,maxX,maxY,maxZ,type}; solids.push(b); return b; };
