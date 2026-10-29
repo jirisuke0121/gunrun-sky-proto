@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const { fixture } = require('./human-running.test.cjs');
 (async () => {
-  const { solveLimb, actionPose, jumpPhase, ledgeAnchor } = await import('../human-actions.js');
+  const { solveLimb, actionPose, jumpPhase, ledgeAnchor, landingPose, releaseAccent } = await import('../human-actions.js');
   const { addParkourRun } = await import('../human-running.js');
   const distance = (a, b) => Math.hypot(...a.map((x, i) => x - b[i]));
   for (const target of [[0, 0, 0], [0, 4, 0], [.4, .2, .4], [-1, -.4, 0]]) {
@@ -12,6 +12,12 @@ const { fixture } = require('./human-running.test.cjs');
   assert.ok(jumpPhase(7.2, 7.2, 0) < jumpPhase(1, 7.2, 0));
   assert.ok(jumpPhase(-4, 7.2, 0) > jumpPhase(0, 7.2, 0));
   assert.ok(jumpPhase(0, 7.2, .14) > .8);
+  const compressed = landingPose(.25), upright = landingPose(1);
+  assert.ok(compressed.vertex([0, 1.23, -.025], 0)[1] < upright.vertex([0, 1.23, -.025], 0)[1] - .18);
+  for (const side of [-1, 1]) assert.ok(Math.abs(compressed.vertex([side*.24,.12,-.04],0)[1]-.12)<.003,'boots remain grounded under flexed knees');
+  assert.equal(releaseAccent(0).pitch,0);assert.equal(releaseAccent(.4).pitch,0);
+  assert.ok(releaseAccent(.12).pitch>.9&&releaseAccent(.12).twist>.2);
+  assert.equal(releaseAccent(.12,true).pitch,releaseAccent(.12).pitch*.25);
   const anchor = ledgeAnchor({ sx: 0, sz: 0, tx: 1, tz: 0, ty: 2.002, dx: 1, dz: 0 }, [{ minX: .6, maxX: 2, minZ: -1, maxZ: 1, maxY: 2 }]);
   assert.ok(Math.abs(anchor.x - .625) < .001); assert.equal(anchor.y, 2.015);
   const { gltf, motion } = await fixture(); let body;

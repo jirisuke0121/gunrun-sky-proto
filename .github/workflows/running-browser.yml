@@ -42,6 +42,7 @@ jobs:
           node bench/editor-autosave-browser.cjs
       - name: Render and exercise both maps
         run: |
+          node bench/landing-release-browser.cjs
           node bench/human-running-browser.cjs
           node bench/human-aim-browser.cjs
           node bench/dash-browser.cjs
