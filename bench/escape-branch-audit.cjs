@@ -109,7 +109,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
   if(map==='canyon')for(const [name,sign]of [['西へジップ',-1],['東へジップ',1]]){
    await page.evaluate(()=>{auditReset([0,8,-12]);skyEscapeRoutes.update();});
    const button=page.getByRole('button',{name,exact:true});if(touch)await button.tap();else await button.click();
-   const selected=await page.evaluate(()=>{for(let i=0;i<3;i++)__game.advance(1/120);return __game.P.state==='zip'?__game.P.zip.b:null;});assert.ok(selected&&Math.sign(selected[0])===sign,'explicit zip destination '+name);
+   const picked=await page.evaluate(()=>{const trace=[];for(let i=0;i<3;i++){trace.push({state:__game.P.state,pos:__game.P.pos.toArray(),buf:__game.P.jumpBuf,cd:__game.P.setCD,choice:__game.P.zipChoice?.b,over:__game.GAME.over});__game.advance(1/120);}return{selected:__game.P.state==='zip'?__game.P.zip.b:null,trace};});assert.ok(picked.selected&&Math.sign(picked.selected[0])===sign,'explicit zip destination '+name+' '+JSON.stringify(picked));
   }
 fs.writeFileSync(`branch-evidence/${id}.json`,JSON.stringify(result,null,2));
   for(const target of ['north-original-inbound','bar-drop-oldtown-east-bar-1','gallery-down','east-lower-recovery','ladder-0-up','ladder-1-up','ladder-2-up']){
