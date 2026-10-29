@@ -21,12 +21,13 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
       await p.goto(base + map, { waitUntil: 'domcontentloaded', timeout: 120000 });
       await p.waitForFunction(() => window.skySwing && document.body.dataset.skyHumanLoaded === 'true', null, { timeout: 120000 });
       await p.locator('#bStart').click(); console.log('loaded', id);
-      await p.evaluate(() => {
+      await p.evaluate(({ fps }) => {
         const g = __game, c = g.P, s = __skyInternals;
         g.S.sendLog = false; g.S.autoFire = g.S.aimAuto = false; c.invuln = Infinity;
         window.flipTick = () => {
-          for (let i = 0; i < 2; i++) g.playerStep(1 / 120);
-          g.cam(1 / 60); const cameraBeforeBody = s.Se.quaternion.clone(); skyHumanView.update(1 / 60);
+          const stepFps = window.flipFps || fps;
+          for (let i = 0; i < 120 / stepFps; i++) g.playerStep(1 / 120);
+          g.cam(1 / stepFps); const cameraBeforeBody = s.Se.quaternion.clone(); skyHumanView.update(1 / stepFps);
           return { pos: c.pos.toArray(), velocity: c.vel.toArray(), ground: c.onGround, state: c.state,
             bar: skySwing.active?.bar.id, angle: skySwing.active?.angle, omega: skySwing.active?.omega,
             flight: c.swingFlight && { ...c.swingFlight }, phase: document.body.dataset.skyHumanFlipPhase,
@@ -35,7 +36,14 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
             cameraBodyTurn: cameraBeforeBody.angleTo(s.Se.quaternion),
             cameraForward: new s.Geom.Vector3(0, 0, -1).applyQuaternion(s.Se.quaternion)
               .dot(new s.Geom.Vector3(-Math.sin(c.yaw), 0, -Math.cos(c.yaw))),
-            heading: c.yaw, clip: document.body.dataset.skyHumanClip };
+            heading: c.yaw, clip: document.body.dataset.skyHumanClip,
+            cue: { ready: document.getElementById('swingHint').dataset.ready === 'true',
+              visible: !document.getElementById('swingHint').hidden,
+              progress: +document.getElementById('swingHint').style.getPropertyValue('--swing-progress'),
+              hintColor: getComputedStyle(document.getElementById('swingHint')).backgroundColor,
+              buttonColor: getComputedStyle(document.getElementById('tJump')).backgroundColor,
+              grips: s.ue.getObjectsByProperty('type', 'Mesh').filter(m => m.userData.swingBar && m.userData.swingBar === skySwing.active?.bar.id)
+                .map(m => m.material.color.getHex()) } };
         };
         window.flipSetup = () => {
           skySwing.reset(); skyLandingRoll.reset(); Object.keys(g.keys).forEach(k => g.keys[k] = false);
@@ -46,14 +54,14 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
           c.roll = c.shake = c.landDip = 0; c.eye = 1.62;
           window.skyFollowCamera?.reset();
           g.S.gunOn = false; g.keys.KeyW = true;
-          window.flipTrace = []; return flipTick();
+          window.flipTrace = []; window.flipCueAge = null; return flipTick();
         };
         window.flipRender = () => { g.debug.renderer.clear(); g.debug.renderer.render(s.ue, s.Se); };
-      });
+      }, { fps: touch ? 20 : 60 });
       const jump = async () => touch ? p.locator('#tJump').tap() : p.keyboard.press('Space');
       const cases = [];
       for (const perfect of [false, true]) {
-        await p.evaluate(() => { flipSetup(); for (let i = 0; i < 8; i++) flipTick(); });
+        await p.evaluate(({perfect, touch}) => { window.flipFps = perfect && touch ? 20 : 60; flipSetup(); for (let i = 0; i < 8; i++) flipTick(); }, {perfect, touch});
         await jump();
         const releases = [], bars = new Set(); let last, captured = false;
         for (let chunk = 0; chunk < 20; chunk++) {
@@ -61,7 +69,11 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
             const trace = []; let ready = false;
             for (let i = 0; i < 100; i++) {
               const a = skySwing.active;
-              if (a && a.angle >= (perfect ? .73 : .56) && a.omega > 1.1) { ready = true; break; }
+              const green = a && document.getElementById('swingHint').dataset.ready === 'true';
+              if (!green) window.flipCueAge = null;
+              else if (window.flipCueAge === null) window.flipCueAge = a.age;
+              // React to the rendered cue after 100 ms; touch runs at 20 fps.
+              if (a && (perfect ? green && a.age - window.flipCueAge >= .1 - 1e-8 : a.angle >= .4 && a.omega > 1.1)) { ready = true; break; }
               const frame = flipTick(); trace.push(frame); flipTrace.push(frame);
               if (!skySwing.active && __game.P.onGround && flipTrace.some(f => f.bar)) break;
             }
@@ -69,10 +81,14 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
           }, { perfect });
           part.trace.forEach(f => { if (f.bar) bars.add(f.bar); }); last = part.last || last;
           if (part.ready) {
-            bars.add(part.bar); await jump();
-            const release = await p.evaluate(() => { const frame = flipTick(); flipTrace.push(frame); return frame; });
+            bars.add(part.bar);
+            if (perfect && releases.length === 0) { await p.evaluate(() => flipRender()); await p.screenshot({ path: `${out}/${id}-cue.png` }); }
+            await jump();
+            const release = await p.evaluate(() => { window.flipCueAge = null; const frame = flipTick(); flipTrace.push(frame); return frame; });
             assert.ok(release.flight, JSON.stringify(release));
-            assert.equal(release.flight.perfect, perfect); releases.push(release);
+            assert.equal(release.flight.perfect, perfect);
+            assert.ok(!release.cue.visible && release.cue.buttonColor !== 'rgb(126, 240, 170)', 'cue clears on release');
+            releases.push(release);
             console.log(id, perfect ? 'perfect' : 'ordinary', part.bar, 'duration', release.flight.flipDuration);
             if (perfect && (map === 'index.html' || releases.length === 2)) {
               await p.evaluate(() => { while (__game.P.swingFlight && __game.P.swingFlight.age < __game.P.swingFlight.flipDuration * .5) { const f = flipTick(); flipTrace.push(f); } flipRender(); });
@@ -85,6 +101,10 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
         assert.equal(bars.size, map === 'canyon.html' ? 2 : 1, JSON.stringify({ id, perfect, last, bars: [...bars] }));
         assert.ok(last?.ground && last.pos[1] >= (map === 'canyon.html' ? 7.99 : 14.99), JSON.stringify({ id, perfect, last }));
         if (perfect) {
+          const green = trace.filter(f => f.bar && f.cue.ready && f.cue.visible);
+          assert.ok(green.length >= 2, 'green cue remains visible during response delay');
+          assert.ok(green.every(f => f.cue.hintColor === 'rgb(126, 240, 170)' && f.cue.buttonColor === 'rgb(126, 240, 170)' && f.cue.grips.length === 2 && f.cue.grips.every(c => c === 0x7ef0aa)), 'hint, touch button and held grip are bright green together');
+          assert.ok(trace.some(f => f.bar && !f.cue.ready && f.cue.progress > 0 && f.cue.progress < 1), 'preparation meter progresses before green');
           assert.ok(captured && trace.some(f => +f.phase > .3 && +f.phase < .8), 'full turn passes through the tucked midpoint');
           // At each subsequent catch or touchdown, the preceding flight has
           // already returned to an upright, untucked pose.
