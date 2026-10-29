@@ -20,6 +20,7 @@ for(const L of game.LADDERS){L.sharedDoor=(game.DOORS||[]).some(d=>Math.abs(d.b.
 const root=new T.Group();root.name='Escape route floor guides';sky.ue.add(root);
 const paint={walk:[],jump:[],drop:[]};
 function arrow(at,dir,kind='walk',size=.75){
+ const floors=game.st(at[0],at[2]).filter(y=>Math.abs(y-at[1])<.85);if(floors.length){floors.sort((a,b)=>Math.abs(a-at[1])-Math.abs(b-at[1]));at=[at[0],floors[0],at[2]];}
  const len=Math.hypot(...dir),dx=dir[0]/len,dz=dir[1]/len,sx=-dz,sz=dx;
  const p=(x,z)=>[at[0]+sx*x*size+dx*z*size,at[1]+.035,at[2]+sz*x*size+dz*z*size];
  for(const v of [[-.32,-.10],[.32,-.10],[0,.48],[-.09,-.52],[.09,-.52],[.09,-.1],[-.09,-.52],[.09,-.1],[-.09,-.1]])paint[kind].push(...p(...v));
@@ -44,7 +45,17 @@ if(oldTown){
  arrow([0,8,-10.5],[0,-1],'drop');
 }
 for(const [kind,points]of Object.entries(paint))if(points.length){const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32Attribute(new Float32Array(points),3));const mesh=new T.Mesh(geometry,new T.Basic({color:kind==='jump'?0xffd37c:kind==='drop'?0x8ecbff:0x7bf1d0,side:2,depthWrite:false}));mesh.name='Escape '+kind+' arrows';root.add(mesh);}
-let transition=null,lastHint='',nearTop=null;
+let transition=null,lastHint='',nearTop=null,climbRequest=null;
+function requestClimb(){
+ if(!playing()||c.state!=='normal'||!c.onGround)return;
+ const L=game.LADDERS.find(L=>L.sharedDoor&&Math.abs(c.pos.y-L.y0)<.65&&Math.hypot(c.pos.x-L.x,c.pos.z-L.z)<1.8&&dot(-L.nx,-L.nz)>.7);
+ if(L){climbRequest={L,until:game.time+.6};c.jumpBuf=0;}
+}
+addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat)requestClimb();});
+document.getElementById('tJump')?.addEventListener('pointerdown',requestClimb);
+function wantsLadder(L){return climbRequest?.L===L&&game.time<=climbRequest.until;}
+function reset(){transition=null;climbRequest=null;c.ladderEntry=null;c.ladderDescending=false;}
+
 function clearPath(from,to){for(let i=1;i<=8;i++){const f=i/8;if(!sky.oe(from.x+(to.x-from.x)*f,from.y+(to.y-from.y)*f+.015,from.z+(to.z-from.z)*f,c.r,1.75))return false;}return true;}
 function topCandidate(){
  if(c.state!=='normal'||!c.onGround||c.h<1.5)return null;
@@ -101,5 +112,5 @@ function step(dt,input){
  if(input.fwdIn>.55&&!c.jumpBuf){const top=topCandidate();if(top&&dot(top.L.nx,top.L.nz)>.7){beginDescent(top);update();return true;}}
  update();return false;
 }
-window.skyEscapeRoutes={step,update,topCandidate,zipOptions,ride,root};
+window.skyEscapeRoutes={step,update,topCandidate,zipOptions,ride,root,reset,wantsLadder,clearClimbRequest:()=>{climbRequest=null}};
 let last=0;function frame(t){requestAnimationFrame(frame);if(t-last<90)return;last=t;update();}requestAnimationFrame(frame);update();

@@ -1,7 +1,7 @@
 name: Escape branch audit
 on:
   pull_request:
-    paths: ["bench/escape-branch-audit.cjs", ".github/workflows/escape-branch-audit.yml"]
+    paths: ["bench/escape-branch-audit.cjs", ".github/workflows/escape-branch-audit.yml", "index.html", "canyon.html", "old-town-swing.js", "town-heights.js", "canyon-world.js", "escape-routes.js"]
 permissions:
   contents: read
 jobs:
