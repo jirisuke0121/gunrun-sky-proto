@@ -6,7 +6,7 @@ const assert = require('node:assert/strict'), fs = require('node:fs'), vm = requ
     const html = fs.readFileSync(file, 'utf8');
     const start = html.indexOf('var ri=class'), end = html.indexOf('},zPM=', start);
     assert.ok(start >= 0 && end > start);
-    let blocked = false, blind = false, mode = 'play', searches = 0;
+    let blocked = false, blind = false, lured = false, mode = 'play', searches = 0;
     const v = (x = 0, y = 0, z = 0) => ({ x, y, z, set(x,y,z){Object.assign(this,{x,y,z});return this;} });
     const nodes = Array.from({length:16}, (_, id) => ({ id, x:id*2, y:0, z:0 }));
     const edges=[], out=nodes.map(()=>[]);
@@ -16,7 +16,7 @@ const assert = require('node:assert/strict'), fs = require('node:fs'), vm = requ
     const run={t:0,over:false,mission:null}, enemies=[], events=[];
     const runtime={NAV:{nodes,out,E:edges},SCR:{warn:{},pending:{}},get mode(){return mode;},nodeAt:(x)=>Math.max(0,Math.min(15,Math.round(x/2)))};
     const game={c:player,z:run,U,Jn:{},Jt:enemies,ceRef:()=>run.t,rn:()=>{},searchEvent:(...e)=>events.push(e),
-      raycast:()=>blocked?{t:1}:null,searchNav:{cost:()=>2,dropCost:()=>2,stalkerCost:()=>2,
+      raycast:()=>blocked?{t:1}:null,searchNav:{decoyTarget:()=>lured?{x:8,y:0,z:0}:null,cost:()=>2,dropCost:()=>2,stalkerCost:()=>2,
         field:([target],cost,limit,field)=>{searches++;for(let i=0;i<field.length;i++)field[i]=Math.abs(i-target)*2;}}};
     const search=createZombieSearch(game,runtime,{blinded:()=>blind},()=>.35);
     assert.equal(U.senseT,10,'the previous four-second default migrates to ten');
@@ -64,6 +64,13 @@ const assert = require('node:assert/strict'), fs = require('node:fs'), vm = requ
     assert.equal(search.deferSpawn({rise:{t:-.5}}),true);
     assert.equal(search.deferSpawn({fall:{wait:.5}}),true);
     assert.equal(search.deferSpawn({rise:{t:.1}}),false,'visible emergence is allowed to finish');
+    blocked=false;a.pos.x=10;a.yaw=-Math.PI/2;player.pos.x=14;tick(.8);
+    assert.equal(search.state(a).phase,'chase');
+    lured=true;player.pos.x=28;tick(3);
+    assert.equal(search.state(a).phase,'search');assert.equal(a.lost,false,'decoy retains control of the navigation body');
+    assert.equal(search.state(a).last.x,14,'decoy does not reveal the real player');
+    lured=false;blocked=true;tick(.25);assert.equal(a.lost,true,'decoy expiry restores search, not live pursuit');
+    assert.equal(search.state(a).last.x,14);
     mode='pause';const saved=search.remaining;search.observe(a,1);search.afterStep();assert.equal(search.remaining,saved);
     mode='play';search.reset();assert.equal(search.remaining,0);assert.equal(search.state(a),null);
     U.loseSight=0;search.observe(a,.1);assert.equal(a.lost,false);

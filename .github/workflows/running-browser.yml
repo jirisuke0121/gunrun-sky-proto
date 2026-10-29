@@ -15,7 +15,9 @@ jobs:
         with:
           node-version: '24'
       - name: Model and search checks
-        run: node bench/zombie-search.test.cjs
+        run: |
+          node bench/zombie-search.test.cjs
+          node bench/player-skills.test.cjs
       - name: Install browser
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
@@ -30,6 +32,7 @@ jobs:
           node bench/swing-flow-browser.cjs
           node bench/swing-flip.test.cjs
           node bench/swing-flip-browser.cjs
+          node bench/player-skills-browser.cjs
       - name: Remaining practice and wall-run regressions
         run: |
           node bench/practice-browser.cjs

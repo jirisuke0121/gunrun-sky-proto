@@ -1,0 +1,33 @@
+name: Player skills
+on:
+  pull_request:
+    paths: ['player-skills.*', 'skill-decoy.js', 'flashbang.js', 'human-view.js', 'enhancements.js', 'zombie-climb.js', 'index.html', 'canyon.html', 'bench/player-skills*', '.github/workflows/player-skills.yml']
+permissions:
+  contents: read
+jobs:
+  skills:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Skills and existing movement checks
+        run: |
+          node bench/player-skills.test.cjs
+          node bench/flashbang.test.cjs
+          node bench/human-view-running.test.cjs
+          node bench/slope-slide.test.cjs
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps chromium
+      - name: Exercise clone attraction, expiry, pause, touch and rotation
+        run: node bench/player-skills-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: player-skills-evidence
+          path: browser-evidence/skills*
+          retention-days: 14

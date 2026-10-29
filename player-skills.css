@@ -1,0 +1,37 @@
+/* Coordinates belong to #app, so both portrait rotation directions work. */
+#skillDock{
+  --skill-size:60px;position:absolute;left:50%;bottom:max(24px,env(safe-area-inset-bottom));
+  transform:translateX(-50%);display:flex;gap:16px;align-items:center;pointer-events:none;z-index:25;
+}
+#skillDock #tFlash,#skillDock #tDecoy{
+  --skill-color:#ffdb75;--skill-progress:1;position:relative;inset:auto;
+  flex:none;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;
+  width:var(--skill-size);height:var(--skill-size);padding:10px;border-radius:50%;
+  border:2px solid #fff8;color:var(--skill-color);font:700 12px/1 system-ui,sans-serif;
+  background:radial-gradient(circle,#172332 61%,transparent 63%),conic-gradient(var(--skill-color) calc(var(--skill-progress) * 1turn),#ffffff26 0);
+  box-shadow:0 3px 12px #0008,0 0 14px color-mix(in srgb,var(--skill-color) 22%,transparent);
+  text-shadow:0 1px 3px #000;white-space:normal;transition:filter .15s,box-shadow .15s;
+}
+#skillDock #tDecoy{--skill-color:#67f5ec}
+#skillDock button svg{display:block;width:29px;height:29px;margin:0 auto;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px currentColor)}
+#skillDock #tFlash svg{fill:currentColor;stroke-width:0}
+#skillDock .skill-value{position:absolute;right:-4px;top:-4px;min-width:22px;height:22px;padding:4px;border:1px solid currentColor;border-radius:12px;background:#101c2c;font:800 12px/12px system-ui}
+#skillDock .skill-name{position:absolute;top:calc(100% + 5px);left:50%;transform:translateX(-50%);color:#fff;font:700 10px/1 system-ui;white-space:nowrap}
+#skillDock button small{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font:700 10px/1 system-ui;white-space:nowrap;color:#ffe6a9}
+#skillDock button.cool{filter:saturate(.4);color:#b0becb;box-shadow:0 3px 10px #0006}
+#skillDock #tDecoy.active{--skill-color:#ff80ef;border-color:#ffb0f5;box-shadow:0 0 22px #eb48df77}
+#skillDock button.armed{filter:brightness(1.55);box-shadow:0 0 0 4px #ffffff38,0 0 22px #7af5efaa}
+#skillDock button:focus-visible{outline:3px solid white;outline-offset:4px}
+#skillDock #tFlash.empty{filter:saturate(.35);opacity:.65}
+.hud-tl .hud-detail:has(#hFlash){display:none!important}
+#catchBox{bottom:113px}
+#scorePop{bottom:145px}
+body:has(#ovPause:not([hidden])) #skillDock,body:has(#ovOver:not([hidden])) #skillDock{visibility:hidden}
+#decoyBanner{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 40px);color:#a9fff5;font:800 14px/1.4 system-ui;letter-spacing:.12em;text-align:center;text-shadow:0 0 14px #2bebe3,0 2px 3px #000;pointer-events:none;opacity:0}
+#decoyBanner.on{opacity:1}
+#decoyPulse{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:6;background:radial-gradient(ellipse at 50% 60%,transparent 45%,#bc49e530 78%,#21eddd44);mix-blend-mode:screen}
+html.touch #skillDock{--skill-size:clamp(48px,calc(var(--control-height,100dvh) * .145),58px);bottom:calc(var(--touch-bottom) + 13px);gap:14px}
+html.touch #decoyBanner{top:calc(64% - 30px);bottom:auto;font-size:12px}
+html.touch #catchBox{bottom:calc(var(--touch-bottom) + 92px)}
+html.touch #weaponSupplyStatus{top:calc(var(--touch-top) + 60px)}
+@media(prefers-reduced-motion:reduce){#skillDock button{transition:none}}

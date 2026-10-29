@@ -70,10 +70,11 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
     // The pillar-climb wrapper and base walking update share the same step.
     if (state.observedAt === run.t) return;
     state.observedAt = run.t;
+    const distracted = !!nav.decoyTarget?.(enemy);
     if (run.t >= state.nextLook) {
       const elapsed = Math.min(0.3, run.t - (state.lookAt ?? run.t));
       state.lookAt = run.t; state.nextLook = run.t + ZOMBIE_SEARCH.scan;
-      const visible = clearSight(enemy, state);
+      const visible = !distracted && clearSight(enemy, state);
       if (visible) {
         if (state.phase !== 'chase') state.recognized += elapsed;
         if (state.phase === 'chase' || state.recognized >= ZOMBIE_SEARCH.recognition) {
@@ -104,7 +105,9 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
       // of the player's current position, even when the old field is stale.
       change(enemy, state, 'patrol');
     }
-    enemy.lost = state.phase !== 'chase'; enemy.seen = !enemy.lost;
+    // Decoy navigation owns the body while visual memory still tracks the
+    // real player. Release resumes that memory, never a live player field.
+    enemy.lost = state.phase !== 'chase' && !distracted; enemy.seen = state.phase === 'chase';
     enemy.hideT = enemy.lost ? Math.max(0, run.t - (state.hiddenAt || run.t)) : 0;
   }
   function field(target, enemy) {
