@@ -15,7 +15,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
    const key=(code,type)=>dispatchEvent(new KeyboardEvent(type,{code}));
    function jump(){if(touch){const b=document.querySelector('#tJump');for(const type of ['pointerdown','pointerup'])b.dispatchEvent(new PointerEvent(type,{pointerId:777,pointerType:'touch',bubbles:true,cancelable:true}));}else{key('Space','keydown');key('Space','keyup');}}
    function clearEnemies(){for(const z of s.Jt){s.ue.remove(z.m.root);if(z.pool)s.ue.remove(z.pool);}s.Jt.length=0;}
-   function reset(at,yaw=0,enemies=[]){keysOff();skySwing.reset();skyLandingRoll.reset();skyDash.reset(false);clearEnemies();g.DOOR_FEEDBACK?.reset(g.DOORS||[]);
+   function reset(at,yaw=0,enemies=[]){seed=20261030;keysOff();skySwing.reset();skyLandingRoll.reset();skyDash.reset(false);clearEnemies();g.DOOR_FEEDBACK?.reset(g.DOORS||[]);
     g.SCR.off=g.PACE.off=g.MARK.off=true;Object.assign(g.S,{sendLog:false,gunOn:false,autoFire:false,aimAuto:false,stalkerOn:false,stalker2:false,dropShare:0});
     g.GAME.over=false;g.GAME.t=0;g.GAME.spawnT=g.GAME.surgeT=1e9;g.GAME.safeT=0;g.setMode('play');g.placeAt({x:at[0],y:at[1],z:at[2],yaw});
     Object.assign(c,{jumpBuf:0,coyote:0,slideBuf:0,slideCD:0,catchCD:0,hookPressed:false,crouchPressed:false,life:3,invuln:-1,edgeJump:false,edgeOff:null});
@@ -24,7 +24,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
     for(const p of enemies){const z=new s.ri(...p);Object.assign(z,{spawnT:0,rise:null,hp:1e6,flank:false,dropper:false,stalker:false,onGround:true});z.node=g.nodeAt(...[p[0],p[1]+.1,p[2]]);s.Jt.push(z);}
    }
    function state(){return{t:g.GAME.t,p:c.pos.toArray(),v:c.vel.toArray(),state:c.state,ground:c.onGround,life:c.life,over:g.GAME.over,reason:g.GAME.reason,hookCD:c.hookCD,bodyFree:s.oe(c.pos.x,c.pos.y+.015,c.pos.z,c.r,c.h),ladder:c.ladder?{x:c.ladder.x,z:c.ladder.z,y0:c.ladder.y0,y1:c.ladder.y1}:null};}
-   function walk(id,at,waypoints,{jumpZ=null,jumpX=null,enemies=[],maxSeconds=12}={}){reset(at,0,enemies);const start=state(),trail=[],states=new Set();const fixtureInvalid=!s.oe(at[0],at[1]+.015,at[2],c.r,1.75)||Math.abs(start.p[1]-at[1])>.15;let i=0,jumped=false,minNearest=Infinity;
+   function walk(id,at,waypoints,{jumpZ=null,jumpX=null,enemies=[],maxSeconds=12}={}){waypoints=waypoints.map(p=>{const floors=g.st(p[0],p[2]).filter(y=>Math.abs(y-p[1])<.65&&s.oe(p[0],y+.02,p[2],c.r,1.75));floors.sort((a,b)=>Math.abs(a-p[1])-Math.abs(b-p[1]));return floors.length?[p[0],floors[0],p[2]]:p;});reset(at,0,enemies);const start=state(),trail=[],states=new Set();const fixtureInvalid=!s.oe(at[0],at[1]+.015,at[2],c.r,1.75)||Math.abs(start.p[1]-at[1])>.15;let i=0,jumped=false,minNearest=Infinity;
     for(let tick=0;tick<maxSeconds*120&&!g.GAME.over;tick++){
      const dest=waypoints[i],dx=dest[0]-c.pos.x,dz=dest[2]-c.pos.z;
      if(Math.hypot(dx,dz)<.22&&Math.abs(c.pos.y-dest[1])<.2){if(c.state==='ledge'||c.state==='ladder'){g.keys.KeyW=false;g.advance(dt);continue;}i++;if(i===waypoints.length)break;continue;}
@@ -47,6 +47,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
     walk('warehouse-ground-west-east',[-65,0,10],[[-49,0,10]],{maxSeconds:6});
     walk('warehouse-south-return',[-52.5,0,10],[[-52.5,0,19],[-46.5,0,19],[-46.5,0,11.5]],{maxSeconds:8});
     walk('east-lower-recovery',[54,-1,2.5],[[44,0,2.5]],{maxSeconds:7});
+    walk('east-lower-recovery-south-detour',[54,-1,2.5],[[48,-1,3.6],[44,0,3.6]],{maxSeconds:7});
     walk('east-lower-recovery-jump',[54,-1,2.5],[[44,0,2.5]],{maxSeconds:7,jumpX:47.4});
     walk('pillar-lower-recovery',[29,-1.1,0],[[38,0,0]],{maxSeconds:5});
     walk('east-pillar-stair-return',[36,7,-.3],[[36,3.4,5.4],[38,3,5.4]],{maxSeconds:5});
@@ -92,7 +93,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
    window.branchAuditResults=results;return{map,touch,ladderExits:g.LADDERS.map((l,i)=>({i,x:l.x,z:l.z,y0:l.y0,y1:l.y1,canExit:s.canExitLadder(l)})),settings:{sprint:g.S.sprintSpeed,jump:g.S.jumpVel,gravity:g.S.gravity,difficulty:skyChallenge.id},results};
   },{map,touch});
   result.errors=errors;const id=`${touch?'touch':'desktop'}-${map}`;fs.writeFileSync(`branch-evidence/${id}.json`,JSON.stringify(result,null,2));
-  for(const target of ['north-original-inbound','bar-drop-oldtown-east-bar-1','gallery-down']){
+  for(const target of ['north-original-inbound','bar-drop-oldtown-east-bar-1','gallery-down','east-lower-recovery','ladder-0-up','ladder-1-up','ladder-2-up']){
    // Separate end-state inspection, without representing this as a continuous video.
    const item=result.results.find(r=>r.id===target);if(!item)continue;
    await page.evaluate(item=>{const g=__game,c=g.P,s=__skyInternals;c.pos.set(...item.end.p);c.state='normal';c.onGround=item.end.ground;c.vel.set(...item.end.v);c.yaw=0;g.cam(1/60);skyHumanView.update(1/60);g.debug.renderer.clear();g.debug.renderer.render(s.ue,s.Se);},item);
