@@ -84,7 +84,11 @@
     // crosses diagonally between the columns, clear of the original bars.
     box('east-pillar-next-south',[38.6,7.12,-6],[47.4,7.4,-4.6]);
     box('east-pillar-next-north',[38.6,7.12,-13.4],[47.4,7.4,-12]);
-    box('east-pillar-next-west',[38.6,7.12,-12],[40,7.4,-6]);
+    // Keep the existing west-face ladder (x40, z-11) open from bottom to
+    // rooftop. The ledge goes around the outside of its climbing space.
+    box('east-pillar-next-west',[37.6,7.12,-12],[39,7.4,-6]);
+    box('east-pillar-next-west-south',[39,7.12,-10.5],[40,7.4,-6]);
+    box('east-pillar-next-west-north',[39,7.12,-12],[40,7.4,-11.7]);
     box('east-pillar-next-east',[46,7.12,-12],[47.4,7.4,-6]);
     const pillarBar=[37.2,9.4,-3.8],pillarSide=[2/Math.sqrt(5),1/Math.sqrt(5)];
     for(const sign of [-1,1]) {
@@ -101,7 +105,7 @@
     }
     for(let i=0;i<11;i++) {
       const tread=6.4/11,x=40.8+i*tread,top=3.4+i*.4;
-      box('east-pillar-next-stair-'+i,[x,3,-4.6],[x+tread,top,-3],'slab',0xe39a4a);
+      box('east-pillar-next-stair-'+i,[x,3,-4.6],[x+tread,top,-2.5],'slab',0xe39a4a);
     }
     // A missed northern landing has a low return to the old east footing.
     // The original straight three-bar lane at z1.5 remains open.
