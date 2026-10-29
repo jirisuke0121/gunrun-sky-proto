@@ -40,13 +40,16 @@ fs.mkdirSync('browser-evidence', { recursive: true });
           for (const e of sky.Jt) { e.dead = true; e.m.root.visible = false; }
           const supported = (x, y, zz) => sky.oe(x, y + .025, zz, .3, 1.8) && g.solids.some(b => b.solid && !b.off && b.type !== 'mono' && Math.abs(b.maxY - y) < .08 && x - .26 >= b.minX && x + .26 <= b.maxX && zz - .26 >= b.minZ && zz + .26 <= b.maxZ);
           let lane = null;
+          for (const openness of [1.2, 0]) {
+          if (lane) break;
           for (const n of g.NAV.nodes) {
             if (lane) break;
             for (const [dx, dz] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
               let valid = true;
-              for (let d = 0; d <= 13; d += .25) if (!supported(n.x + dx * d, n.y, n.z + dz * d)) { valid = false; break; }
+              for (let d = 0; d <= 13; d += .25) if (![-openness, 0, openness].every(side => supported(n.x + dx * d - dz * side, n.y, n.z + dz * d + dx * side)) || (openness && !sky.oe(n.x + dx * d, n.y + .025, n.z + dz * d, .3, 4))) { valid = false; break; }
               if (valid) { lane = { x: n.x, y: n.y, z: n.z, dx, dz }; break; }
             }
+          }
           }
           if (!lane) throw Error('No supported flat lane for a real chase');
           window.__skillsPlace = distance => {
@@ -56,8 +59,8 @@ fs.mkdirSync('browser-evidence', { recursive: true });
             c.lastGround.copy(c.pos); c.safe.copy(c.pos); window.skyFollowCamera?.reset();
           };
           window.__skillsFrames = count => { for (let i = 0; i < count; i++) g.advance(1 / 60); g.frameOnce(0); };
-          window.__skillsPlace(6); g.frameOnce(0);
-          const enemy = new sky.ri(lane.x + lane.dx * 9, lane.y + .005, lane.z + lane.dz * 9);
+          window.__skillsLane = lane; window.__skillsPlace(6); g.frameOnce(0);
+          const enemy = new sky.ri(lane.x + lane.dx * 10, lane.y + .005, lane.z + lane.dz * 10);
           enemy.spawnT = 0; enemy.flank = false; enemy.onGround = true; enemy.speedMul = 1; sky.Jt.push(enemy); window.__skillsEnemy = enemy;
           return lane;
         });
@@ -75,6 +78,8 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         assert.equal(intersects(boxes.tFlash, boxes.tDecoy), false);
         // Use an actual click/tap. Releasing within the button fires once.
         if (layout.touch) await page.tap('#tDecoy'); else await page.keyboard.press('e');
+        await page.evaluate(() => { window.__skillsFrames(21); });
+        if (map === 'index.html' && layout.name === 'desktop') console.log('SKILL_IMAGE_split:' + (await page.screenshot({type:'jpeg',quality:60})).toString('base64'));
         const cast = await page.evaluate(() => {
           const a = window.skyDecoy.active; if (!a) throw Error('Skill input did not cast');
           window.__skillsPlace(12); window.__game.updateField();
@@ -83,15 +88,16 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         assert.equal(cast.sameModel, 'Player hologram twin'); assert.ok(cast.lured >= 1); assert.equal(cast.used, 1);
         const chase = await page.evaluate(() => {
           window.__skillsFrames(60); const a = window.skyDecoy.active, e = window.__skillsEnemy;
-          return { targeted: window.skyDecoy.targetFor(e) === a.pos, distance: e.pos.distanceTo(a.pos), life: window.__game.P.life, touching: e.touching(100), moved: a.pos.distanceTo(a.start), gl: window.__game.debug.renderer.getContext().getError() };
+          return { targeted: window.skyDecoy.targetFor(e) === a.pos, distance: e.pos.distanceTo(a.pos), life: window.__game.P.life, touching: e.touching(100), moved: a.pos.distanceTo(a.start), towardPlayer: e.vel.dot(window.__game.P.pos.clone().sub(e.pos)), towardClone: e.vel.dot(a.pos.clone().sub(e.pos)), gl: window.__game.debug.renderer.getContext().getError() };
         });
         assert.equal(chase.targeted, true); assert.equal(chase.touching, false, 'lured enemy cannot damage the real player');
+        assert.ok(chase.towardClone > 0 && chase.towardPlayer < 0, JSON.stringify(chase));
         assert.ok(chase.distance < cast.distance + 1, JSON.stringify({ cast, chase })); assert.equal(chase.life, cast.life); assert.ok(chase.moved > 1); assert.equal(chase.gl, 0);
         await page.screenshot({ path: `browser-evidence/${id}-active.png` });
         if (map === 'index.html' && ['desktop', 'touch'].includes(layout.name)) console.log('SKILL_IMAGE_' + layout.name + ':' + (await page.screenshot({type:'jpeg',quality:60})).toString('base64'));
         const paused = await page.evaluate(() => {
           window.__game.setMode('pause'); const before = [window.skyDecoy.remaining, window.skyDecoy.cooldown]; window.__skillsFrames(60);
-          return { before, after: [window.skyDecoy.remaining, window.skyDecoy.cooldown], hidden: !document.getElementById('tDecoy').checkVisibility() };
+          return { before, after: [window.skyDecoy.remaining, window.skyDecoy.cooldown], hidden: getComputedStyle(document.getElementById('tDecoy')).visibility === 'hidden' };
         });
         assert.deepEqual(paused.after, paused.before); assert.equal(paused.hidden, true);
         const ended = await page.evaluate(() => {
