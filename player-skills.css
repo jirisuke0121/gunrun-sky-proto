@@ -26,7 +26,7 @@
 .hud-tl .hud-detail:has(#hFlash){display:none!important}
 #catchBox{bottom:113px}
 #scorePop{bottom:145px}
-#app:has(#ovPause:not([hidden])) #skillDock,#app:has(#ovOver:not([hidden])) #skillDock{visibility:hidden}
+body:has(#ovPause:not([hidden])) #skillDock,body:has(#ovOver:not([hidden])) #skillDock{visibility:hidden}
 #decoyBanner{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);color:#a9fff5;font:800 14px/1.4 system-ui;letter-spacing:.12em;text-align:center;text-shadow:0 0 14px #2bebe3,0 2px 3px #000;pointer-events:none;opacity:0}
 #decoyBanner.on{opacity:1}
 #decoyPulse{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:6;background:radial-gradient(ellipse at 50% 60%,transparent 45%,#bc49e530 78%,#21eddd44);mix-blend-mode:screen}
