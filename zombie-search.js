@@ -21,9 +21,11 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
   try { migrate = !localStorage.getItem('gunrun-zombie-search-20261030'); } catch {}
   if (!Number.isFinite(U.senseT) || migrate && U.senseT === 4) U.senseT = ZOMBIE_SEARCH.duration;
   if (migrate) {
+    U.loseSight = 1;
     try { localStorage.setItem('gunrun-zombie-search-20261030', '1'); game.Ua?.(); } catch {}
   }
   game.Jn.senseT = ZOMBIE_SEARCH.duration;
+  game.Jn.loseSight = 1;
   const duration = () => Math.max(1, Number(U.senseT) || ZOMBIE_SEARCH.duration);
 
   function track(enemy) {

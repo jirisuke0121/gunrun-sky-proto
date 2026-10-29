@@ -2046,12 +2046,13 @@ if (/[?&]perf=1/.test(location.search)) {
   } catch (e) { console.warn('static merge skipped', e); }
 }
 
-// ---- 2026-10-25: 全武器を公開・ゾンビの見失い無効・ランキング ----
+// ---- Public equipment and ranking; sight memory is managed by zombie-search. ----
 {
   // 武器12種はURLフラグなしでホーム画面から選べる。
-  // 1) ゾンビの見失い・足音/銃声で気づく処理は重いので常にオフ。撒き点は経路コストで数える（index.html の shk2）。
-  Object.defineProperty(U, 'loseSight', { get: () => 0, set: () => {}, enumerable: true, configurable: true });
-  for (const key of ['loseSight', 'hearR', 'senseT', 'gunHearR']) {
+  // The old unconditional loseSight=0 override must not disable the bounded
+  // sight-memory controller. Its search-duration and noise controls stay usable.
+  // The legacy wall-penetrating footstep radius is no longer used.
+  for (const key of ['hearR']) {
     const input = document.getElementById('s_' + key);
     if (input && input.parentElement) input.parentElement.style.display = 'none';
   }
