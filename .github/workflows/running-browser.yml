@@ -31,6 +31,7 @@ jobs:
           node bench/gear-polish.test.cjs
           node bench/ranked-ghost.test.cjs
           node bench/path-distance-rounding.test.cjs
+          node bench/zombie-search.test.cjs
       - name: Install browser
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
@@ -39,6 +40,8 @@ jobs:
           else
             npx playwright install --with-deps chromium
           fi
+      - name: Zombie search in both maps
+        run: node bench/zombie-search-browser.cjs
       - name: Editor auto-save in desktop and touch browsers
         run: |
           node bench/editor-autosave-browser.cjs
