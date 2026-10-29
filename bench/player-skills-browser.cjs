@@ -17,7 +17,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
       { name: 'portrait-right', width: 390, height: 844, touch: true, rotation: '1' },
       { name: 'portrait-left', width: 390, height: 844, touch: true, rotation: '-1' },
     ];
-    for (const map of ['index.html', 'canyon.html']) for (const layout of layouts) {
+    for (const layout of layouts) for (const map of ['index.html', 'canyon.html']) {
       const id = `skills-${map.split('.')[0]}-${layout.name}`;
       const context = await browser.newContext({ viewport: { width: layout.width, height: layout.height }, hasTouch: layout.touch, isMobile: layout.touch, deviceScaleFactor: 1 });
       await context.addInitScript(rotation => { window.__hold = true; if (rotation) localStorage.setItem('gunrun-rotdir', rotation); }, layout.rotation);
@@ -106,9 +106,13 @@ fs.mkdirSync('browser-evidence', { recursive: true });
           const expired = !window.skyDecoy.active && !window.skyDecoy.targetFor(e) && window.skyDecoy.lured.size === 0;
           const blocked = !window.skyDecoy.activate();
           g.P.invuln = 1e9; window.__skillsFrames(780);
-          return { expired, blocked, ready: window.skyDecoy.cooldown === 0, second: window.skyDecoy.activate(), used: window.skyDecoy.stats.used };
+          const ready = window.skyDecoy.cooldown === 0, beforeRecast = g.P.pos.toArray();
+          // A live pursuer can physically push the idle player beyond the lane
+          // during this 13s wait. Recast from the same supported test footing.
+          window.__skillsPlace(6);
+          return { expired, blocked, ready, beforeRecast, second: window.skyDecoy.activate(), used: window.skyDecoy.stats.used };
         });
-        assert.equal(ended.expired, true); assert.equal(ended.blocked, true); assert.equal(ended.ready, true); assert.equal(ended.second, true); assert.equal(ended.used, 2);
+        for (const key of ['expired','blocked','ready','second']) assert.equal(ended[key], true, key + ': ' + JSON.stringify(ended)); assert.equal(ended.used, 2);
         const flash = await page.evaluate(() => { window.skyDecoy.clear(); window.__skillsPlace(6); window.__game.frameOnce(0); return window.skyFlashbang.charges; });
         if (layout.touch) await page.tap('#tFlash'); else await page.keyboard.press('g');
         assert.equal(await page.evaluate(() => window.skyFlashbang.charges), flash - 1, 'flash still works from bottom dock');
@@ -119,7 +123,8 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         console.log('PASS', id, JSON.stringify({ lured: cast.lured, cloneMoved: chase.moved, chaseDistance: chase.distance, gl: chase.gl, expired: ended.expired, touchTargets: [boxes.tFlash, boxes.tDecoy] }));
       } catch (error) {
         await page.screenshot({ path: `browser-evidence/${id}-FAILED.png` }).catch(() => {});
-        console.error('PAGE ERRORS', JSON.stringify(errors)); throw error;
+        console.error('PAGE ERRORS', JSON.stringify(errors));
+        console.log('SKILL_IMAGE_failed:' + (await page.screenshot({type:'jpeg',quality:60})).toString('base64')); throw error;
       } finally { await context.close(); }
     }
   } finally {
