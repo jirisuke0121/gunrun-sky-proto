@@ -21,14 +21,17 @@ try{
    g.S.sendLog=false;g.startGame();skySwing.reset();clearEnemies();
    for(const e of N.E)if(e.jamT)e.jamT=0;
    g.SCR.off=g.PACE.off=g.MARK.off=true;g.GAME.spawnT=g.GAME.surgeT=1e9;g.GAME.over=false;g.GAME.t=0;
-   Object.assign(g.S,{sendLog:false,stalkerOn:false,stalker2:false,dropShare:0,autoFire:false,aimAuto:false});
+   Object.assign(g.S,{sendLog:false,stalkerOn:false,stalker2:false,dropShare:0,autoFire:false,aimAuto:false,loseSight:1});
    Object.keys(g.keys).forEach(k=>g.keys[k]=false);
    c.pos.set(-20.39,4.0001,-6+offset);c.vel.set(0,0,0);c.state='normal';c.onGround=true;c.h=1.75;c.jumpBuf=0;c.coyote=.15;c.edgeOff=null;c.hookPressed=false;c.catchCD=0;c.life=3;c.invuln=1e9;c.yaw=-Math.PI/2;c.pitch=0;
    c.node=node(c.pos.toArray());g.updateField();
   }
   const tick=()=>{g.advance(dt);if(!c.pos.toArray().every(Number.isFinite))throw Error('nonfinite player');};
-  function route({offset=0,yaw=0,angle=.7,waitCycle=false,backward=false,enemy=false}={}){
+  function route({offset=0,yaw=0,angle=.7,waitCycle=false,backward=false,enemy=false,knownTarget=false}={}){
    setup(offset);const bars=new Set(),trail=[];let input=0,landed=false;
+   // A separate navigation-only probe retains the original arrival bound.
+   // Normal gameplay must let this real parkour escape break visual contact.
+   if(knownTarget)g.S.loseSight=0;
    if(enemy){const z=new s.ri(-20,4.01,-11);z.spawnT=0;z.rise=null;z.node=node(z.pos.toArray());z.hp=1e6;z.flank=z.dropper=z.stalker=false;z.onGround=true;s.Jt.push(z);}
    key('Space','keydown');key('Space','keyup');input++;
    for(let i=0;i<6;i++)tick();
@@ -48,13 +51,14 @@ try{
    let caughtAt=null,enemyPath=[];
    if(enemy&&landed){
     g.keys.KeyW=false;c.vel.set(0,0,0);
-    for(let i=0;i<2100;i++){tick();const z=s.Jt[0];if(i%60===0)enemyPath.push({t:g.GAME.t,pos:z.pos.toArray(),state:z.act?.kind});if(Math.abs(z.pos.y-c.pos.y)<1.2&&Math.hypot(z.pos.x-c.pos.x,z.pos.z-c.pos.z)<1.5){caughtAt=g.GAME.t;break;}}
+    for(let i=0;i<2100;i++){tick();const z=s.Jt[0];if(i%60===0)enemyPath.push({t:g.GAME.t,pos:z.pos.toArray(),state:z.act?.kind,awareness:skyZombieSearch.state(z)?.phase});if(Math.abs(z.pos.y-c.pos.y)<1.2&&Math.hypot(z.pos.x-c.pos.x,z.pos.z-c.pos.z)<1.5){caughtAt=g.GAME.t;break;}}
    }
-   return{landed,pad,bars:[...bars],offset,yaw,angle,waitCycle,backward,input,time,at,caughtAt,enemyPath,trail};
+   return{landed,pad,bars:[...bars],offset,yaw,angle,waitCycle,backward,input,time,at,caughtAt,enemyPath,escapes:skyZombieSearch.stats.escapes,trail};
   }
   const cases=[{}, {angle:.55}, {angle:.85}, {waitCycle:true}, {offset:.35,yaw:.06}, {offset:-.35,yaw:-.06}].map(route);
   const mistimed=[{angle:-1}, {backward:true}].map(route);
   const chase=route({enemy:true});
+  const informedChase=route({enemy:true,knownTarget:true});
   // Estimate the existing walk/climb route with the game's own traversal costs;
   // exclude hooks, ziplines and the new swing state from this baseline.
   setup();const start=node([-20.39,4,-6]),goal=node(skySwingCourse.exit),dist=new Float64Array(N.nodes.length).fill(Infinity),used=new Set();dist[start]=0;
@@ -80,13 +84,14 @@ try{
     const delta=v.sign.map((x,k)=>x-v.from[k]),length=Math.hypot(...delta),hit=s.raycast(...v.from,...delta.map(x=>x/length),length-.15);
     return{...v,visible:!hit,angle:Math.acos((delta[0]*v.facing[0]+delta[2]*v.facing[1])/Math.hypot(delta[0],delta[2]))};
   });
-  return{cases,mistimed,chase,walkEstimate:dist[goal],exit:{from:exitFrom,to:exitTo,ground:exitGround},fallback,visibility,settings:{difficulty:skyChallenge.id,sprint:g.S.sprintSpeed},note:'Synthetic controller, stationary landing target for chase arrival; not a human fun study.'};
+  return{cases,mistimed,chase,informedChase,walkEstimate:dist[goal],exit:{from:exitFrom,to:exitTo,ground:exitGround},fallback,visibility,settings:{difficulty:skyChallenge.id,sprint:g.S.sprintSpeed},note:'Synthetic controller: normal visual escape plus a separate known-target navigation arrival probe; not a human fun study.'};
  });
  fs.mkdirSync('browser-evidence/swing',{recursive:true});fs.writeFileSync('browser-evidence/swing/flow-results.json',JSON.stringify(result,null,2));
  assert.ok(result.cases.every(x=>x.landed),JSON.stringify(result.cases.map(({trail,...r})=>r)));
  assert.ok(result.mistimed.every(x=>!x.landed&&x.input===4&&x.bars.length===1),'early/returning presses must not be corrected into a successful chain');
  assert.ok(Number.isFinite(result.walkEstimate)&&result.walkEstimate-result.cases[0].time>2,'at least two seconds saved against an optimistic walk/climb lower bound (ladder exit overhead omitted)');
- assert.ok(result.chase.landed&&result.chase.caughtAt>result.chase.time+2&&result.chase.caughtAt<35,JSON.stringify({...result.chase,trail:undefined}));
+ assert.ok(result.chase.landed&&result.chase.caughtAt===null&&result.chase.escapes>0&&result.chase.enemyPath.some(p=>p.awareness==='search')&&result.chase.enemyPath.some(p=>p.awareness==='patrol'),JSON.stringify({...result.chase,trail:undefined}));
+ assert.ok(result.informedChase.landed&&result.informedChase.caughtAt>result.informedChase.time+2&&result.informedChase.caughtAt<35,JSON.stringify({...result.informedChase,trail:undefined}));
  assert.ok(result.fallback.ground&&result.fallback.lifeBefore===result.fallback.lifeAfter);
  assert.ok(result.visibility.every(v=>v.visible&&v.angle<Math.PI/3.6));
  assert.ok(result.exit.to[1]>7.9&&Math.abs(result.exit.to[2]-result.exit.from[2])>4,'leave the landing through the existing spine');
