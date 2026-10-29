@@ -83,10 +83,10 @@ html.touch .hookmark{width:48px;height:48px;margin:-24px;border-width:3px;backgr
       <p id="recNote" class="note" hidden>プレイの記録（操作・結果・画面サイズ）を匿名で送信しています。設定でオフにできます。</p>
       <details class="rules"><summary>操作と得点のルール</summary><p class="unity-score-rule">得点は生存時間と撃破数から計算。時間倍率 = (1 + 難易度×0.1) × (1 + 生存秒数÷60)、撃破倍率はその2倍。生存・撃破を別々に整数へ切り捨てて合計します。落下撃破も1体として数え、技そのものには加点しません。★1は2分逃げ切り、★2・★3は逃げ切ったうえで目標得点に到達すると獲得します。途中終了では高得点でも星は付きません。</p>
       <ul class="keys">
-        <li><kbd>W A S D</kbd> 走る　マウスで視点　<kbd>Space</kbd> ジャンプ　<kbd>C</kbd> スライド</li>
+        <li><kbd>W A S D</kbd> 走る　マウスで視点　<kbd>Space</kbd> ジャンプ<span class="desktop-slide-help">　<kbd>C</kbd> スライド</span></li>
          <li>壁走り：青緑の矢印がある壁だけ使える。矢印に沿って跳び、空中でも移動入力を続ける。金枠の JUMP で <kbd>Space</kbd>（タッチはジャンプ）を押すとショートカット</li>
        <li><kbd>クリック</kbd>/<kbd>F</kbd>/<kbd>右クリック</kbd> ナイフ：前のゾンビを押し返してよろけさせる（つかみも止まる）。背後からなら一撃。最初はナイフだけ（調整画面でハンドガンも持てる）</li>
-        <li>走ってゾンビにスライディング → 足元をすり抜ける。走ってゾンビの目の前でジャンプ → 頭を踏んで高く跳び越える</li>
+        <li><span class="desktop-slide-help">走ってゾンビにスライディング → 足元をすり抜ける。</span>走ってゾンビの目の前でジャンプ → 頭を踏んで高く跳び越える</li>
         <li>光る輪が見えたら <kbd>Q</kbd> → フックで一気に飛び移る（ゾンビは使えない）</li>
         <li>ジップラインは上端・下端の近くで <kbd>Space</kbd> → 反対側へ移動。分岐では行きたいロープを向く。途中で再び <kbd>Space</kbd> → 飛び上がって離脱。勢いを保ったまま空中で自分で操作できる</li>
         <li><kbd>G</kbd> 閃光弾（最初1個）：正面に投げ、周囲8mのゾンビを4秒停止。壁越しには効かない。技を3回決めるごとに+1（最大2個）</li>
@@ -96,7 +96,7 @@ html.touch .hookmark{width:48px;height:48px;margin:-24px;border-width:3px;backgr
         <li class="legacy-score-rule">★1 2分生き残る　★2・★3 生き残ったうえで目標の点（画面上に、いま何割か）</li>
       </ul>
       </details>
-      <p id="touchNote" class="note" hidden>左半分ドラッグで移動、右半分ドラッグで視点</p>
+      <p id="touchNote" class="note" hidden>左半分ドラッグで移動、右半分ドラッグで視点。「ジャンプ」で跳ぶ。低い通路へ走ると自動でスライドしてくぐる</p>
       <button id="rotFlip" type="button">画面の向きが逆なら押す（左右反転）</button>
     </div>
   </section>
