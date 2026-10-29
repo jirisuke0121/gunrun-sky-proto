@@ -41,7 +41,7 @@ export function createDecoy(game, runtime) {
   const available = () => playing() && !active && cooldown <= 0;
 
   function fallbackAvatar(color) {
-    const avatar = new Group(), material = new Basic({ color, transparent: true, opacity: .7, depthWrite: false, fog: false, toneMapped: false, blending: 2 });
+    const avatar = new Group(), material = new Basic({ color, transparent: true, opacity: .7, depthWrite: false, fog: false, toneMapped: false, blending: 1 });
     const geometries = [], limbs = [];
     function part(w, h, d, x, y, zz) {
       const geometry = new Box(w, h, d); geometries.push(geometry);

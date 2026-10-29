@@ -615,7 +615,7 @@ function createDecoyAvatar(color = 0xff68e2) {
   if (!holder || !model) return null;
   const root = holder.clone(true), meshes = [];
   root.name = 'Player hologram twin'; root.visible = true;
-  const material = new Geom.Basic({ color, transparent: true, opacity: .72, depthWrite: false, fog: false, toneMapped: false, blending: 2 });
+  const material = new Geom.Basic({ color, transparent: true, opacity: .72, depthWrite: false, fog: false, toneMapped: false, blending: 1 });
   root.traverse(node => {
     if (!node.isMesh) return;
     node.material = material; node.castShadow = node.receiveShadow = false;
