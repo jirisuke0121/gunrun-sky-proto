@@ -319,6 +319,22 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
   beam(-45.3, 8.8, -44.7, 13.5);    // south from J1, along x = -45, to the south building roof
   beam(-42.3, 4.6, -41.7, 7.7);     // branch north from the west beam, along x = -42
 
+  // A small T landing permits a turn without widening the entire beam road.
+  box(-42.8,4,7.2,-41.2,4.4,8.8,'beam',SKY.beam);
+  for(let i=1;i<=4;i++){
+    const z=4.6-i*.45,top=4.4-i*.35;
+    box(-42.6,top-.25,z,-41.4,top,z+.45,'slab',SKY.stair);
+  }
+  // These two props used to pinch the east recovery's ground exit to 5cm of
+  // steering tolerance. Put them on the neighbouring roof instead.
+  for(const b of jn){
+    if(b.type!=='prop'||b.shape!=='barrel')continue;
+    const x=(b.minX+b.maxX)/2,z=(b.minZ+b.maxZ)/2;
+    if(Math.abs(x-44)<.02&&Math.abs(z-4)<.02 || Math.abs(x-44.7)<.02&&Math.abs(z-4.6)<.02){
+      b.minY+=4.4;b.maxY+=4.4;b.minZ+=3;b.maxZ+=3;
+    }
+  }
+
   // ---- Blast barrels (2026-10-25n): escape tools. ----
   // The canyon's one-use blast barrel, moved here (blast-barrels.js does the work). Shoot one
   // and everything within 5 m is thrown back; if you stand on the barrel (a 0.55 m step and a

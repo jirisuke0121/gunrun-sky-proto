@@ -45,8 +45,12 @@ window.buildSkyCanyon = function ({ ne, Mh, ld, us, jn, Ja }) {
     if (path.type === 'ground') continue;
     if (path.type === 'ladder') {
       const p = at(points[0]);
-      // The lower approach is south of each ladder, the upper exit north.
-      Mh(p[0], p[2], 0, -1, p[1], points[1][2], path.width_m);
+      // Mount on the actual upper deck edge, with a clear body-width approach.
+      // Side ladders use the end faces of the T; their old north placement
+      // climbed through the deck. The south ladder was 1m short of its lip.
+      const nx=path.id==='west_ladder'?-1:path.id==='east_ladder'?1:0;
+      const nz=nx?0:-1, z=path.id==='south_ladder'?-12:p[2];
+      Mh(p[0], z, nx, nz, p[1], points[1][2], path.width_m);
       continue;
     }
     if (path.type === 'zipline') {
