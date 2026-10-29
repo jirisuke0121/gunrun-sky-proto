@@ -15,7 +15,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
    const key=(code,type)=>dispatchEvent(new KeyboardEvent(type,{code}));
    function jump(){if(touch){const b=document.querySelector('#tJump');for(const type of ['pointerdown','pointerup'])b.dispatchEvent(new PointerEvent(type,{pointerId:777,pointerType:'touch',bubbles:true,cancelable:true}));}else{key('Space','keydown');key('Space','keyup');}}
    function clearEnemies(){for(const z of s.Jt){s.ue.remove(z.m.root);if(z.pool)s.ue.remove(z.pool);}s.Jt.length=0;}
-   function reset(at,yaw=0,enemies=[]){keysOff();skySwing.reset();skyLandingRoll.reset();skyDash.reset(false);clearEnemies();g.DOOR_FEEDBACK.reset(g.DOORS);
+   function reset(at,yaw=0,enemies=[]){keysOff();skySwing.reset();skyLandingRoll.reset();skyDash.reset(false);clearEnemies();g.DOOR_FEEDBACK?.reset(g.DOORS||[]);
     g.SCR.off=g.PACE.off=g.MARK.off=true;Object.assign(g.S,{sendLog:false,gunOn:false,autoFire:false,aimAuto:false,stalkerOn:false,stalker2:false,dropShare:0});
     g.GAME.over=false;g.GAME.t=0;g.GAME.spawnT=g.GAME.surgeT=1e9;g.GAME.safeT=0;g.setMode('play');g.placeAt({x:at[0],y:at[1],z:at[2],yaw});
     Object.assign(c,{jumpBuf:0,coyote:0,slideBuf:0,slideCD:0,catchCD:0,hookPressed:false,crouchPressed:false,life:3,invuln:-1,edgeJump:false,edgeOff:null});
