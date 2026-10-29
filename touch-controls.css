@@ -9,16 +9,36 @@ html.touch #app{
   --touch-gap:14px;
 }
 html.touch .tb{font-size:13px;box-shadow:0 1px 4px #0003}
-html.touch #tJump,html.touch #tFire{
+html.touch #tJump{
   left:auto;top:auto;right:var(--touch-right);
   width:var(--touch-main);height:var(--touch-main);
 }
-html.touch #tSlide,html.touch #tReload{
+html.touch #tSlide,html.touch #tFire{
   left:auto;top:auto;right:calc(var(--touch-right) + var(--touch-main) + var(--touch-gap));
   width:var(--touch-secondary);height:var(--touch-secondary);
 }
 html.touch #tJump,html.touch #tSlide{bottom:var(--touch-bottom)}
-html.touch #tFire,html.touch #tReload{bottom:calc(var(--touch-bottom) + var(--touch-main) + var(--touch-gap))}
+html.touch #tFire{bottom:calc(var(--touch-bottom) + var(--touch-main) + var(--touch-gap));font-size:11px}
+
+/* The same stop/resume control is available to mouse and touch players. */
+#tAutoFire{
+  position:absolute;right:max(16px,env(safe-area-inset-right));bottom:90px;
+  z-index:24;pointer-events:auto;touch-action:manipulation;
+  min-width:130px;min-height:54px;padding:8px 12px;border:1px solid #e7cc80;
+  border-radius:12px;background:#28271feb;color:#fff0c3;
+  font:700 13px/1.5 var(--font);text-align:center;
+}
+#tAutoFire small{display:block;font-size:10px;font-weight:500;color:#d6cdae}
+#tAutoFire.is-stopped{background:#403021eb;border-color:#f4a75b}
+#tAutoFire.is-stopped small{color:#ffcf99}
+#tAutoFire:focus-visible{outline:3px solid #8ee5ed;outline-offset:3px}
+#tAutoFire[hidden],#tFire[hidden]{display:none!important}
+html.touch #tAutoFire{
+  right:var(--touch-right);bottom:calc(var(--touch-bottom) + var(--touch-main) + var(--touch-gap));
+  min-width:0;width:116px;min-height:58px;padding:6px;
+}
+html.touch #tAutoFire kbd{display:none}
+html.touch #tFire{right:calc(var(--touch-right) + 116px + var(--touch-gap))}
 
 /* Put the consumable above the movement thumb, away from camera and combat. */
 html.touch .hud-tl,html.touch .unity-challenge-score .hud-tl{
