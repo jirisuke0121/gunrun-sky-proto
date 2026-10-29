@@ -14,6 +14,38 @@ let loading = null, activeClip = '', clipTime = 0, jumpTime = 0, landTime = 0, w
 let gripPoint = new Vector3(), muzzleFlash = null;
 let gaitPhase = 0, runPose = 0, gripPitch = 0, bodyYawOffset = 0, turnBank = 0;
 let swingLean = 0;
+let combatTurn = 0, combatTarget = null;
+const wrapAngle = angle => Math.atan2(Math.sin(angle), Math.cos(angle));
+function canAimBehind() {
+  return choice === 'unity' && view === 'third' && !!aimRig && !!holder?.visible && !c.doorAction &&
+    !landingRoll.active && !c.swingFlight && (c.state === 'normal' || c.state === 'slide');
+}
+function updateCombatTurn(dt, third) {
+  if (third && sky.modeRef() === 'pause') return;
+  if (motionPosition && c.pos.distanceTo(motionPosition) > Math.max(2, Math.hypot(c.vel.x, c.vel.z) * dt * 3)) {
+    combatTurn = 0; shotTarget = null;
+  }
+  combatTarget = third && sky.U.gunOn && sky.U.aimAuto && !sky.wpc().jumpGun &&
+    sky.Et.reloadT <= 0 && sky.Et.ammo > 0 && canAimBehind() &&
+    !window.skyBlastBarrels?.aimedAt(camera, sky.raycast) ? sky.aimTarget?.() : null;
+  const target = combatTarget ? new Vector3(combatTarget.pos.x, combatTarget.pos.y + 1.1, combatTarget.pos.z)
+    : shotTarget && shotTime < .28 && third && canAimBehind() ? shotTarget : null;
+  let desired = combatTurn + wrapAngle(-combatTurn);
+  if (target) {
+    const bodyBase = c.yaw + Math.PI + bodyYawOffset + 1.25 * slidePose;
+    const angle = wrapAngle(Math.atan2(target.x - c.pos.x, target.z - c.pos.z) - bodyBase);
+    const error = wrapAngle(angle - combatTurn);
+    // Turn the pelvis only as far as needed for a comfortable chest twist.
+    // Measuring from its current pose keeps the same shoulder across +/-pi.
+    desired = Math.abs(angle) < .88 ? combatTurn + wrapAngle(-combatTurn)
+      : combatTurn + error - Math.max(-.88, Math.min(.88, error));
+  }
+  if (!third || !canAimBehind()) combatTurn = 0;
+  else if (shotTime === 0 && target) combatTurn = desired;
+  else combatTurn += (desired - combatTurn) * (1 - Math.exp(-dt * (target ? 13 : 9)));
+  combatTurn = wrapAngle(combatTurn);
+  document.body.dataset.skyHumanCombatTurn = combatTurn.toFixed(4);
+}
 let motionPosition = null, lastTravelYaw = null;
 let closeFollowView = false;
 let wallFrame = null, wallPhase = 0;
@@ -153,7 +185,6 @@ function updateMotion(dt, speed) {
   forward.set(-Math.sin(c.yaw), 0, -Math.cos(c.yaw));
   right.set(Math.cos(c.yaw), 0, -Math.sin(c.yaw));
   const front = c.vel.x * forward.x + c.vel.z * forward.z;
-  const side = c.vel.x * right.x + c.vel.z * right.z;
   const rolling = landingRoll.active;
   const normalGround = grounded && c.state === 'normal' && !rolling;
   const distance = motionPosition ? Math.hypot(c.pos.x - motionPosition.x, c.pos.z - motionPosition.z) : 0;
@@ -166,7 +197,7 @@ function updateMotion(dt, speed) {
     if (activeClip !== 'wallrun' || teleported) wallPhase = 0;
     else wallPhase = strideAdvance(wallPhase, distance, WALLRUN_STRIDE);
   }
-  const firing = !!sky.U.gunOn && (reload > 0 || shotTime < .28);
+  const firing = !!sky.U.gunOn && (reload > 0 || shotTime < .28 || !!combatTarget);
   const runTarget = parkourRunEnabled && normalGround && front > speed * .6 && !firing && motion.clips.parkourRun
     ? runningBlend(speed, sky.U.walkSpeed, sky.U.sprintSpeed) : 0;
   runPose += (runTarget - runPose) * (1 - Math.exp(-dt * (firing ? 30 : 16)));
@@ -200,8 +231,11 @@ function updateMotion(dt, speed) {
   else if (!grounded || landTime > 0 || c.state === 'ledge') next = 'jump';
   else if (speed > .2) {
     const pace = walking ? 'walk' : 'run';
-    if (Math.abs(side) > Math.abs(front) * .8) next = `${pace}${side > 0 ? 'Right' : 'Left'}`;
-    else next = `${pace}${front < -.1 ? 'Back' : 'Forward'}`;
+    const poseYaw = c.yaw + combatTurn;
+    const poseFront = -c.vel.x * Math.sin(poseYaw) - c.vel.z * Math.cos(poseYaw);
+    const poseSide = c.vel.x * Math.cos(poseYaw) - c.vel.z * Math.sin(poseYaw);
+    if (Math.abs(poseSide) > Math.abs(poseFront) * .8) next = `${pace}${poseSide > 0 ? 'Right' : 'Left'}`;
+    else next = `${pace}${poseFront < -.1 ? 'Back' : 'Forward'}`;
   } else if (reload > 0) next = 'reload';
   else if (shotTime < .24) next = 'shoot';
   if (next !== activeClip) {
@@ -342,7 +376,7 @@ function aimWeaponAt(target) {
   const roots = aimRig.shoulders().map(p => model.localToWorld(new Vector3(...p)));
   const centre = roots[0].clone().add(roots[1]).multiplyScalar(.5);
   aimDirection.copy(target).sub(centre).normalize();
-  right.set(Math.cos(c.yaw), 0, -Math.sin(c.yaw));
+  right.set(-aimDirection.z, 0, aimDirection.x).normalize();
   // Keep both wrists within reach, including the support grip of long weapons.
   aimHand.copy(centre).addScaledVector(right, .075).addScaledVector(aimDirection, .24);
   aimHand.y -= .075;
@@ -385,7 +419,7 @@ function updateWorldWeapon(third, dt = 0) {
   if (!worldWeapon) { if (third && c.doorAction) updateDoorPose(); else aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
   worldWeapon.visible = third && !!sky.U.gunOn && !c.doorAction && !landingRoll.active && c.state !== 'ladder' && c.state !== 'ledge' && c.state !== 'swing';
   if (!worldWeapon.visible) { aimBlend=0;if (third && c.doorAction) updateDoorPose(); else aimRig?.reset(); if (muzzleFlash) muzzleFlash.visible = false; return; }
-  const aiming=aimRig && sky.Et.reloadT<=0 && (shotTime<.28 || (c.onGround && c.state==='normal' && runPose<.01));
+  const aiming=aimRig && sky.Et.reloadT<=0 && (combatTarget || shotTime<.28 || Math.abs(combatTurn)>.01 || (c.onGround && c.state==='normal' && runPose<.01));
   // A shot must already have a matching pose on its first visible frame.
   aimBlend=shotTime<.28&&aiming?1:aimBlend+((aiming?1:0)-aimBlend)*(1-Math.exp(-dt*18));
   forward.set(-Math.sin(c.yaw), 0, -Math.cos(c.yaw));
@@ -400,7 +434,7 @@ function updateWorldWeapon(third, dt = 0) {
     grip.getWorldPosition(worldWeapon.position);
     worldWeapon.position.addScaledVector(forward, .07);
   } else worldWeapon.position.set(c.pos.x, c.pos.y + 1.2, c.pos.z).addScaledVector(right, .25).addScaledVector(forward, .2);
-  worldWeapon.rotation.set(c.pitch * .45 * (1 - runPose) + gripPitch, c.yaw + bodyYawOffset, turnBank, 'YXZ');
+  worldWeapon.rotation.set(c.pitch * .45 * (1 - runPose) + gripPitch, c.yaw + bodyYawOffset + combatTurn, turnBank, 'YXZ');
   // Position the normalized trigger at the animated palm in a lowered carry.
   bore.set(...heldWeapon.grip).applyQuaternion(worldWeapon.quaternion);worldWeapon.position.sub(bore);
   if (sky.Et.reloadT > 0) worldWeapon.rotation.z = Math.sin(Math.min(1, sky.Et.reloadT / Math.max(.1, sky.wpc().rl || 1.5)) * Math.PI) * .2;
@@ -421,6 +455,7 @@ function update(dt) {
     delete document.body.dataset.skyHumanDoorReachError;
   }
   const third = choice === 'unity' && view === 'third' && !!holder && sky.modeRef() !== 'menu' && sky.modeRef() !== 'replay' && !window.skySettings?.beforeRun;
+  updateCombatTurn(dt, third);
   if (holder) {
     holder.visible = third;
     const speed = Math.hypot(c.vel.x, c.vel.z);
@@ -444,7 +479,7 @@ function update(dt) {
     const swingYaw = swingDirection ? Math.atan2(swingDirection[0],swingDirection[1]) : null;
     if (sky.modeRef() === 'play') swingLean = swinging ? -c.swing.angle : flight ? -flight.angle*Math.exp(-flight.age*5) : swingLean * Math.exp(-dt * 18);
     const rolling = third && landingRoll.active && !!motion?.rollGround;
-    holder.rotation.set(rolling ? rollTurn(landingRoll.phase) : c.state === 'ladder' ? .09 : swingLean, rolling ? landingRoll.yaw : c.state === 'ladder' ? ladderYaw : swingYaw ?? ledgeYaw ?? c.yaw + Math.PI + bodyYawOffset + 1.25 * slidePose, ledgeYaw === null ? turnBank : 0, 'YXZ');
+    holder.rotation.set(rolling ? rollTurn(landingRoll.phase) : c.state === 'ladder' ? .09 : swingLean, rolling ? landingRoll.yaw : c.state === 'ladder' ? ladderYaw : swingYaw ?? ledgeYaw ?? c.yaw + Math.PI + bodyYawOffset + combatTurn + 1.25 * slidePose, ledgeYaw === null ? turnBank : 0, 'YXZ');
     if (third && c.doorAction) {
       const action = c.doorAction, base = c.yaw + Math.PI;
       const turn = Math.atan2(Math.sin(action.yaw - base), Math.cos(action.yaw - base));
@@ -519,7 +554,14 @@ function prepareShot(origin,direction,distance) {
   document.body.dataset.skyHumanShot=JSON.stringify({origin:muzzle.toArray(),direction:corrected.toArray(),target:shotTarget.toArray(),gripError:+document.body.dataset.skyHumanGripError,aimError:+document.body.dataset.skyHumanAimError});
   return {origin:muzzle,direction:corrected};
 }
-window.skyHumanView = { update, select, getMuzzleWorld, prepareShot, get choice() { return choice; }, get view() { return view; },
+window.skyHumanView = { update, select, getMuzzleWorld, prepareShot,
+  get canAimBehind() { return canAimBehind(); },
+  autoAimReady(target) {
+    if (!canAimBehind()) return true;
+    const direction = Math.atan2(target.pos.x - c.pos.x, target.pos.z - c.pos.z);
+    return holder?.visible && aimBlend > .96 && Math.abs(wrapAngle(direction - holder.rotation.y)) < 1.12;
+  },
+  get choice() { return choice; }, get view() { return view; },
   get isFiring() { return shotTime < .28; },
   get runStyle() { return parkourRunEnabled ? 'parkour' : 'existing'; },
   set runStyle(value) { parkourRunEnabled = value !== 'existing'; } };
