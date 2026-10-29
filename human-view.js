@@ -1,5 +1,5 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, LANDING_SECONDS, releaseAccent } from './human-running.js?v=20261030-landing-release-v1';
+import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, RUN_STRIDE, DASH_STRIDE, LANDING_SECONDS, releaseAccent } from './human-running.js?v=20261030-boost-sprint-v3';
 import { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
 import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261029-door-motion-v1';
 const sky = window.__skyInternals;
@@ -206,7 +206,8 @@ function updateMotion(dt, speed) {
   const runTarget = parkourRunEnabled && normalGround && front > speed * .6 && !firing && motion.clips.parkourRun
     ? runningBlend(speed, sky.U.walkSpeed, sky.U.sprintSpeed) : 0;
   runPose += (runTarget - runPose) * (1 - Math.exp(-dt * (firing ? 30 : 16)));
-  if (normalGround && !teleported && speed > .2) gaitPhase = strideAdvance(gaitPhase, distance, speed < sky.U.walkSpeed + .15 ? 1.8 : 3.36);
+  const dashStrength = runTarget > 0 && motion.clips.parkourDash ? Math.max(0, Math.min(1, window.skyDash?.boost || 0)) : 0;
+  if (normalGround && !teleported && speed > .2) gaitPhase = strideAdvance(gaitPhase, distance, speed < sky.U.walkSpeed + .15 ? 1.8 : RUN_STRIDE + (DASH_STRIDE - RUN_STRIDE) * dashStrength);
   if (normalGround && speed > .5) {
     const yaw = Math.atan2(c.vel.x, c.vel.z);
     const angle = yaw - (c.yaw + Math.PI);
@@ -309,19 +310,24 @@ function updateMotion(dt, speed) {
     const a = motion.grips[groundClip][sample.lo], b = motion.grips[groundClip][sample.hi];
     recoveryGrip = a.map((v, k) => v + (b[k] - v) * sample.fraction);
   }
-  let runSample = null;
   const runWeight = runPose * recovery;
-  const runName = window.skyDash?.boost > .12 && motion.clips.parkourDash ? 'parkourDash' : 'parkourRun';
+  const runSamples = [];
   if (runWeight > .0001 && motion.clips.parkourRun) {
-    const run = motion.clips[runName];
-    runSample = sampleClip(run, gaitPhase);
     for (const name of Object.keys(targets)) targets[name] *= 1 - runWeight;
-    for (const [index, weight] of [[runSample.lo, 1 - runSample.fraction], [runSample.hi, runSample.fraction]]) {
-      const name = run.frames[index]; targets[name] = (targets[name] || 0) + weight * runWeight;
+    for (const [name, weight] of [['parkourRun', 1 - dashStrength], ['parkourDash', dashStrength]]) {
+      if (weight <= 0) continue;
+      const run = motion.clips[name], sample = sampleClip(run, gaitPhase);
+      runSamples.push({ name, weight, ...sample });
+      for (const [index, fraction] of [[sample.lo, 1 - sample.fraction], [sample.hi, sample.fraction]]) {
+        const frame = run.frames[index]; targets[frame] = (targets[frame] || 0) + fraction * weight * runWeight;
+      }
     }
   }
   const snap = landingRoll.takeSnap();
-  const smooth = ledgeAction || rolling || snap ? 1 : 1 - Math.exp(-dt * 18);
+  // The clip is already interpolated. Filtering a planted foot again delays
+  // it behind the player's travel and makes the sole slide across the floor.
+  const plantedRun = dashStrength > .001 && runWeight > .99;
+  const smooth = ledgeAction || rolling || snap || plantedRun ? 1 : 1 - Math.exp(-dt * 18);
   for (const mesh of morphMeshes) {
     const weights = mesh.morphTargetInfluences, names = mesh.morphTargetDictionary;
     for (const [name, index] of Object.entries(names)) weights[index] += ((targets[name] || 0) - weights[index]) * smooth;
@@ -330,12 +336,16 @@ function updateMotion(dt, speed) {
   blendedGrip.set(a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction, a[2] + (b[2] - a[2]) * fraction);
   if (recoveryGrip) blendedGrip.lerp(hipOffset.set(...recoveryGrip), recovery);
   let wantedPitch = next === 'wallrun' ? -.65 : 0;
-  if (runSample) {
-    const { lo, hi, fraction } = runSample, grips = motion.grips[runName], pitches = motion.gripPitches[runName];
-    blendedGrip.x += (grips[lo][0] + (grips[hi][0] - grips[lo][0]) * fraction - blendedGrip.x) * runWeight;
-    blendedGrip.y += (grips[lo][1] + (grips[hi][1] - grips[lo][1]) * fraction - blendedGrip.y) * runWeight;
-    blendedGrip.z += (grips[lo][2] + (grips[hi][2] - grips[lo][2]) * fraction - blendedGrip.z) * runWeight;
-    wantedPitch = (pitches[lo] + (pitches[hi] - pitches[lo]) * fraction) * runWeight;
+  if (runSamples.length) {
+    const carry = [0, 0, 0];
+    for (const { name, weight, lo, hi, fraction } of runSamples) {
+      const grips = motion.grips[name], pitches = motion.gripPitches[name];
+      for (let k = 0; k < 3; k++) carry[k] += (grips[lo][k] + (grips[hi][k] - grips[lo][k]) * fraction) * weight;
+      wantedPitch += (pitches[lo] + (pitches[hi] - pitches[lo]) * fraction) * weight * runWeight;
+    }
+    blendedGrip.x += (carry[0] - blendedGrip.x) * runWeight;
+    blendedGrip.y += (carry[1] - blendedGrip.y) * runWeight;
+    blendedGrip.z += (carry[2] - blendedGrip.z) * runWeight;
   }
   gripPoint.lerp(blendedGrip, smooth);
   gripPitch += (wantedPitch - gripPitch) * smooth;
@@ -355,7 +365,8 @@ function updateMotion(dt, speed) {
   document.body.dataset.skyHumanAction = selected;
   if (selected === 'parkourJump') document.body.dataset.skyHumanJumpPhase = (clipTime / info.duration).toFixed(3);
   document.body.dataset.skyHumanRunBlend = runPose.toFixed(3);
-  document.body.dataset.skyHumanRunClip = runSample ? runName : 'existing';
+  document.body.dataset.skyHumanRunClip = runSamples.length ? dashStrength > .001 ? 'parkourDash' : 'parkourRun' : 'existing';
+  document.body.dataset.skyHumanDashBlend = (runSamples.length ? runWeight * dashStrength : 0).toFixed(3);
   document.body.dataset.skyHumanGaitPhase = gaitPhase.toFixed(3);
   document.body.dataset.skyHumanWallSide = wallFrame ? String(wallFrame.side) : '';
   document.body.dataset.skyHumanWallPhase = wallPhase.toFixed(3);
