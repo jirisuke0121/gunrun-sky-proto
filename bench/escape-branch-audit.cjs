@@ -24,7 +24,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
     for(const p of enemies){const z=new s.ri(...p);Object.assign(z,{spawnT:0,rise:null,hp:1e6,flank:false,dropper:false,stalker:false,onGround:true});z.node=g.nodeAt(...[p[0],p[1]+.1,p[2]]);s.Jt.push(z);}
    }
    function state(){return{t:g.GAME.t,p:c.pos.toArray(),v:c.vel.toArray(),state:c.state,ground:c.onGround,life:c.life,over:g.GAME.over,reason:g.GAME.reason,hookCD:c.hookCD,bodyFree:s.oe(c.pos.x,c.pos.y+.015,c.pos.z,c.r,c.h),ladder:c.ladder?{x:c.ladder.x,z:c.ladder.z,y0:c.ladder.y0,y1:c.ladder.y1}:null};}
-   function walk(id,at,waypoints,{jumpZ=null,jumpX=null,enemies=[],maxSeconds=12,climb=false}={}){waypoints=waypoints.map(p=>{const floors=g.st(p[0],p[2]).filter(y=>Math.abs(y-p[1])<.65&&s.oe(p[0],y+.02,p[2],c.r,1.75));floors.sort((a,b)=>Math.abs(a-p[1])-Math.abs(b-p[1]));return floors.length?[p[0],floors[0],p[2]]:p;});reset(at,0,enemies);const start=state(),trail=[],states=new Set();const fixtureInvalid=!s.oe(at[0],at[1]+.015,at[2],c.r,1.75)||Math.abs(start.p[1]-at[1])>.15;let i=0,jumped=false,minNearest=Infinity;let climbPressed=false;
+   function walk(id,at,waypoints,{jumpZ=null,jumpX=null,enemies=[],maxSeconds=12,climb=false,descend=false}={}){waypoints=waypoints.map(p=>{const floors=g.st(p[0],p[2]).filter(y=>Math.abs(y-p[1])<.65&&s.oe(p[0],y+.02,p[2],c.r,1.75));floors.sort((a,b)=>Math.abs(a-p[1])-Math.abs(b-p[1]));return floors.length?[p[0],floors[0],p[2]]:p;});reset(at,0,enemies);const start=state(),trail=[],states=new Set();const fixtureInvalid=!s.oe(at[0],at[1]+.015,at[2],c.r,1.75)||Math.abs(start.p[1]-at[1])>.15;let i=0,jumped=false,minNearest=Infinity;let climbPressed=false;if(descend){skyEscapeRoutes.update();const b=document.getElementById('tLadderDown');if(b&&!b.hidden)b.click();}
     for(let tick=0;tick<maxSeconds*120&&!g.GAME.over;tick++){
      const dest=waypoints[i],dx=dest[0]-c.pos.x,dz=dest[2]-c.pos.z;
      if(Math.hypot(dx,dz)<.22&&Math.abs(c.pos.y-dest[1])<.2){if(c.state==='ledge'||c.state==='ladder'){g.keys.KeyW=false;g.advance(dt);continue;}i++;if(i===waypoints.length)break;continue;}
@@ -78,7 +78,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
     const levels=g.st(bottom[0],bottom[2]).filter(y=>Math.abs(y-L.y0)<.65&&s.oe(bottom[0],y+.015,bottom[2],c.r,1.75));if(levels.length)bottom[1]=levels.sort((a,b)=>Math.abs(a-L.y0)-Math.abs(b-L.y0))[0];
     if(L.sharedDoor){reset(bottom,Math.atan2(-(-L.nx),-(-L.nz)));jump();g.keys.KeyW=true;for(let j=0;j<15;j++)g.advance(dt);results.push({id:'shared-ladder-'+i,kind:'shared-ladder',entered:c.state==='ladder'||c.state==='ledge',end:state()});}
     walk('ladder-'+i+'-up',bottom,[[L.x-L.nx*.9,L.y1,L.z-L.nz*.9]],{maxSeconds:Math.max(5,(L.y1-L.y0)/4.2+4),climb:!!L.sharedDoor});
-    walk('ladder-'+i+'-from-top',top,[[L.x+L.nx*.9,bottom[1],L.z+L.nz*.9]],{maxSeconds:Math.max(5,(L.y1-L.y0)/5+4)});
+    walk('ladder-'+i+'-from-top',top,[[L.x+L.nx*.9,bottom[1],L.z+L.nz*.9]],{maxSeconds:Math.max(5,(L.y1-L.y0)/5+4),descend:true});
    }
    // Drop from each real bar after grabbing through its real attachment logic.
    for(const bar of skySwing.course.bars){
