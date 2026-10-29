@@ -9,8 +9,12 @@ html.touch #app{
   --touch-gap:14px;
 }
 html.touch .tb{font-size:13px;box-shadow:0 1px 4px #0003}
-/* Sliding remains part of movement; its touch button is deliberately hidden. */
-#tSlide,html.touch .desktop-slide-help{display:none!important}
+/* The downhill action is available only on a supported slope. */
+html.touch .desktop-slide-help{display:none!important}
+#tSlide[hidden]{display:none!important}
+#tSlide:disabled{opacity:.32;box-shadow:none}
+#tSlide.slope-ready{opacity:1;border-color:#8bf1f0;background:#19666be6;box-shadow:0 0 0 3px #7ee8ef44}
+#tSlide.slope-active{opacity:.8;border-color:#b3ffff;background:#21575bd9}
 html.touch #tJump{
   left:auto;top:auto;right:var(--touch-right);
   width:var(--touch-main);height:var(--touch-main);

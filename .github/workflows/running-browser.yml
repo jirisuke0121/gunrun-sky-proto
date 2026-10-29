@@ -23,6 +23,7 @@ jobs:
           node bench/editor-autosave.test.cjs
           node bench/hook-touch-exits.test.cjs
           node bench/swing-timing.test.cjs
+          node bench/slope-slide.test.cjs
           node bench/human-actions.test.cjs
           node bench/human-view-running.test.cjs
           node bench/dash-boost.test.cjs
