@@ -23,13 +23,13 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
     c.node=g.nodeAt(c.pos.x,c.pos.y+.1,c.pos.z);g.updateField();
     for(const p of enemies){const z=new s.ri(...p);Object.assign(z,{spawnT:0,rise:null,hp:1e6,flank:false,dropper:false,stalker:false,onGround:true});z.node=g.nodeAt(...[p[0],p[1]+.1,p[2]]);s.Jt.push(z);}
    }
-   function state(){return{t:g.GAME.t,p:c.pos.toArray(),v:c.vel.toArray(),state:c.state,ground:c.onGround,life:c.life,over:g.GAME.over,reason:g.GAME.reason,hookCD:c.hookCD,ladder:c.ladder?{x:c.ladder.x,z:c.ladder.z,y0:c.ladder.y0,y1:c.ladder.y1}:null};}
+   function state(){return{t:g.GAME.t,p:c.pos.toArray(),v:c.vel.toArray(),state:c.state,ground:c.onGround,life:c.life,over:g.GAME.over,reason:g.GAME.reason,hookCD:c.hookCD,bodyFree:s.oe(c.pos.x,c.pos.y+.015,c.pos.z,c.r,c.h),ladder:c.ladder?{x:c.ladder.x,z:c.ladder.z,y0:c.ladder.y0,y1:c.ladder.y1}:null};}
    function walk(id,at,waypoints,{jumpZ=null,jumpX=null,enemies=[],maxSeconds=12}={}){reset(at,0,enemies);const start=state(),trail=[],states=new Set();const fixtureInvalid=!s.oe(at[0],at[1]+.015,at[2],c.r,1.75)||Math.abs(start.p[1]-at[1])>.15;let i=0,jumped=false,minNearest=Infinity;
     for(let tick=0;tick<maxSeconds*120&&!g.GAME.over;tick++){
      const dest=waypoints[i],dx=dest[0]-c.pos.x,dz=dest[2]-c.pos.z;
-     if(Math.hypot(dx,dz)<.4&&Math.abs(c.pos.y-dest[1])<.6){if(c.state==='ledge'||c.state==='ladder'){g.keys.KeyW=false;g.advance(dt);continue;}i++;if(i===waypoints.length)break;continue;}
+     if(Math.hypot(dx,dz)<.22&&Math.abs(c.pos.y-dest[1])<.2){if(c.state==='ledge'||c.state==='ladder'){g.keys.KeyW=false;g.advance(dt);continue;}i++;if(i===waypoints.length)break;continue;}
      c.yaw=Math.atan2(-dx,-dz);g.keys.KeyW=true;
-     if(!jumped&&c.onGround&&((jumpZ!==null&&c.pos.z<jumpZ)||(jumpX!==null&&c.pos.x<jumpX))){jump();jumped=true;}
+     if(!jumped&&c.onGround&&c.state==='normal'&&((jumpZ!==null&&c.pos.z<jumpZ)||(jumpX!==null&&c.pos.x<jumpX))){jump();jumped=true;}
      g.advance(dt);states.add(c.state);
      for(const z of s.Jt)minNearest=Math.min(minNearest,c.pos.distanceTo(z.pos));
      if(tick%12===0)trail.push({...state(),enemies:s.Jt.map(z=>({p:z.pos.toArray(),act:z.act?.kind}))});
@@ -61,9 +61,13 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
     walk('beam-T-north',[-39.5,4.4,8],[[-42,4.4,8],[-42,4.4,5]],{maxSeconds:5});
    }else{
     walk('middle-west-to-east',[-19,4,0],[[19,4,0]],{maxSeconds:8});
-    walk('ground-west-ramp',[-25,0,-6],[[-28,1.6,6],[-25,3.3,16],[-20,4,13]],{maxSeconds:10});
-    walk('ground-east-ramp',[25,0,8],[[28,1.6,-4],[25,3.3,-16],[20,4,-13]],{maxSeconds:10});
+    walk('ground-west-ramp',[-25,.342857142857,-6],[[-28,1.6,6],[-25,3.3,16],[-20,4,13]],{maxSeconds:10});
+    walk('ground-east-ramp',[25,.342857142857,8],[[28,1.6,-4],[25,3.3,-16],[20,4,-13]],{maxSeconds:10});
     walk('upper-spine', [0,8,12],[[0,8,-11]],{maxSeconds:6});
+   }
+   if(map==='index'){
+    reset([54,-1,2.5],Math.PI/2);g.keys.KeyW=true;for(let i=0;i<240;i++)g.advance(dt);const before=state();jump();let airborne=false;
+    for(let i=0;i<240&&!g.GAME.over;i++){g.advance(dt);airborne||=!c.onGround;if(c.pos.x<44)break;}keysOff();results.push({id:'east-lower-jump-after-stop',kind:'recovery',before,airborne,end:state()});
    }
    // Every ladder: approach from its ordinary lower side, then try normal roof-side access.
    for(let i=0;i<g.LADDERS.length;i++){
@@ -85,7 +89,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
     reset([0,8,-12],yaw);c.yaw=yaw;jump();let attached=null;for(let i=0;i<45;i++){g.advance(dt);if(c.state==='zip'){attached={a:c.zip.a,b:c.zip.b};break;}}
     results.push({id:'zip-heading-'+yaw,kind:'zip-choice',yaw,attached,end:state()});
    }
-   window.branchAuditResults=results;return{map,touch,settings:{sprint:g.S.sprintSpeed,jump:g.S.jumpVel,gravity:g.S.gravity,difficulty:skyChallenge.id},results};
+   window.branchAuditResults=results;return{map,touch,ladderExits:g.LADDERS.map((l,i)=>({i,x:l.x,z:l.z,y0:l.y0,y1:l.y1,canExit:s.canExitLadder(l)})),settings:{sprint:g.S.sprintSpeed,jump:g.S.jumpVel,gravity:g.S.gravity,difficulty:skyChallenge.id},results};
   },{map,touch});
   result.errors=errors;const id=`${touch?'touch':'desktop'}-${map}`;fs.writeFileSync(`branch-evidence/${id}.json`,JSON.stringify(result,null,2));
   for(const target of ['north-original-inbound','bar-drop-oldtown-east-bar-1','gallery-down']){
