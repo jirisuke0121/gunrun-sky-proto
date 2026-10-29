@@ -13,11 +13,13 @@ html.touch #tJump,html.touch #tFire{
   left:auto;top:auto;right:var(--touch-right);
   width:var(--touch-main);height:var(--touch-main);
 }
-html.touch #tSlide,html.touch #tReload{
+/* Keep the base button's DOM hooks; touch play uses automatic low passages. */
+html.touch #tSlide,html.touch .desktop-slide-help{display:none!important}
+html.touch #tReload{
   left:auto;top:auto;right:calc(var(--touch-right) + var(--touch-main) + var(--touch-gap));
   width:var(--touch-secondary);height:var(--touch-secondary);
 }
-html.touch #tJump,html.touch #tSlide{bottom:var(--touch-bottom)}
+html.touch #tJump{bottom:var(--touch-bottom)}
 html.touch #tFire,html.touch #tReload{bottom:calc(var(--touch-bottom) + var(--touch-main) + var(--touch-gap))}
 
 /* Put the consumable above the movement thumb, away from camera and combat. */
@@ -49,7 +51,7 @@ html.touch .ammo b{font-size:24px;line-height:1.1}
 html.touch .ammo span{font-size:11px}
 html.touch .ammo i{width:80px}
 html.touch .catchbox{bottom:var(--touch-bottom);font-size:11px;padding:5px 8px}
-/* The slide button already shows its own cooldown. */
+/* Manual slide and its cooldown are only relevant to keyboard controls. */
 html.touch #catchBox #slidePart{display:none!important}
 html.touch #catchBox:not(:has(>#catchPart.cool,>#hookPart.cool)){display:none}
 
