@@ -133,10 +133,11 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
       assert.deepEqual(nav,{pad:true,exit:true},'both waiting platforms remain accessible through zombie navigation');
       await ctx.close();
     }
-    // The shared movement hook must remain inert in the old town.
+    // The old town now uses the shared movement hook for its published escape routes.
     const p=await browser.newPage();await p.addInitScript(()=>window.__hold=true);await p.route('https://**/*',r=>r.abort());await p.goto(base+'index.html');await p.waitForFunction(()=>window.skySwing);
-    assert.equal(await p.evaluate(()=>skySwing.course),undefined);await p.close();
-    console.log('PASS: wall kick → pad → two actual bar catches/releases → upper spine, grip contact, PC/touch widths, pause/drop/reset, grip timeout, unchanged old town');
+    const town=await p.evaluate(()=>({oldTown:skySwing.course.oldTown,bars:skySwing.course.bars.length,routes:skySwing.course.routes.map(r=>r.id),active:!!skySwing.active}));
+    assert.deepEqual(town,{oldTown:true,bars:5,routes:['high','warehouse','east'],active:false},'published old-town routes are installed without a menu-time grip');await p.close();
+    console.log('PASS: wall kick → pad → two actual bar catches/releases → upper spine, grip contact, PC/touch widths, pause/drop/reset, grip timeout, published old-town escape routes');
   } finally {
     fs.writeFileSync(`${output}/results.json`,JSON.stringify(results,null,2));
     await browser?.close();server?.kill();
