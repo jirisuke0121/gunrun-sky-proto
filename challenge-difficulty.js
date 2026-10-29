@@ -1,22 +1,22 @@
 // Unity Challenge pacing, adapted to the 120-second aerial-corridor course.
 // Source settings and intentional adaptations are documented in CHALLENGE_DIFFICULTY.md.
 (() => {
-  const version = 'corridor-cap12-v4', storage = 'gunrun-challenge-difficulty-v1';
+  const version = 'corridor-health-v5', storage = 'gunrun-challenge-difficulty-v1';
   // The 2026-10-25 performance budget is independent of difficulty.
   const maxAlive = 12;
   const levels = [
-    { id: 'easy', name: 'Easy', note: '走って距離を取り、技を練習', startSpeed: 4.3, maxSpeed: 5.4, counts: [3, 5, 7], initial: 3, interval: 2.2, flank: .05, ahead: .1, drop: 0, lull: 5, quiet: 0, lead: 6, warn: 2.5 },
-    { id: 'normal', name: 'Normal', note: '後半は走るだけでは少しずつ追いつかれる', startSpeed: 5.2, maxSpeed: 6.4, counts: [5, 8, 12], initial: 4, interval: 1.7, flank: .2, ahead: .25, drop: .1, lull: 4, quiet: 22, lead: 5, warn: 2.5 },
-    { id: 'hard', name: 'Hard', note: '技で引き離し、次の逃げ道へつなぐ', startSpeed: 5.6, maxSpeed: 6.8, counts: [6, 10, 12], initial: 5, interval: 1.4, flank: .3, ahead: .3, drop: .15, lull: 3.5, quiet: 20, lead: 4.5, warn: 2.3 },
-    { id: 'expert', name: 'Expert', note: '速い追跡と予告付きの包囲', startSpeed: 5.9, maxSpeed: 7.1, counts: [7, 11, 12], initial: 5, interval: 1.2, flank: .35, ahead: .35, drop: .2, lull: 3, quiet: 18, lead: 4, warn: 2.2 },
-    { id: 'master', name: 'Master', note: '逃げ技とクールダウンの管理が必要', startSpeed: 6.1, maxSpeed: 7.35, counts: [8, 10, 11, 12, 12, 12], initial: 6, interval: 1, flank: .4, ahead: .4, drop: .25, lull: 2.5, quiet: 16, lead: 3.5, warn: 2 },
-    { id: 'ultra', name: 'Ultra', note: '最大12体・速い追跡と短い補充間隔', startSpeed: 6.3, maxSpeed: 7.6, counts: [9, 11, 12, 12, 12, 12], initial: 7, interval: .85, flank: .45, ahead: .4, drop: .3, lull: 2, quiet: 14, lead: 3, warn: 1.8 },
+    { id: 'easy', health: 4, name: 'Easy', note: '走って距離を取り、技を練習', startSpeed: 4.3, maxSpeed: 5.4, counts: [3, 5, 7], initial: 3, interval: 2.2, flank: .05, ahead: .1, drop: 0, lull: 5, quiet: 0, lead: 6, warn: 2.5 },
+    { id: 'normal', health: 6, name: 'Normal', note: '後半は走るだけでは少しずつ追いつかれる', startSpeed: 5.2, maxSpeed: 6.4, counts: [5, 8, 12], initial: 4, interval: 1.7, flank: .2, ahead: .25, drop: .1, lull: 4, quiet: 22, lead: 5, warn: 2.5 },
+    { id: 'hard', health: 7, name: 'Hard', note: '技で引き離し、次の逃げ道へつなぐ', startSpeed: 5.6, maxSpeed: 6.8, counts: [6, 10, 12], initial: 5, interval: 1.4, flank: .3, ahead: .3, drop: .15, lull: 3.5, quiet: 20, lead: 4.5, warn: 2.3 },
+    { id: 'expert', health: 8, name: 'Expert', note: '速い追跡と予告付きの包囲', startSpeed: 5.9, maxSpeed: 7.1, counts: [7, 11, 12], initial: 5, interval: 1.2, flank: .35, ahead: .35, drop: .2, lull: 3, quiet: 18, lead: 4, warn: 2.2 },
+    { id: 'master', health: 9, name: 'Master', note: '逃げ技とクールダウンの管理が必要', startSpeed: 6.1, maxSpeed: 7.35, counts: [8, 10, 11, 12, 12, 12], initial: 6, interval: 1, flank: .4, ahead: .4, drop: .25, lull: 2.5, quiet: 16, lead: 3.5, warn: 2 },
+    { id: 'ultra', health: 10, name: 'Ultra', note: '最大12体・速い追跡と短い補充間隔', startSpeed: 6.3, maxSpeed: 7.6, counts: [9, 11, 12, 12, 12, 12], initial: 7, interval: .85, flank: .45, ahead: .4, drop: .3, lull: 2, quiet: 14, lead: 3, warn: 1.8 },
     { id: 'legacy', name: '自由調整', note: '従来の設定・追跡者・ランキング', counts: [] },
   ];
   for (const p of levels) if (p.id !== 'legacy') p.ramp = 90;
   const byId = Object.fromEntries(levels.map(p => [p.id, p]));
   for (const p of levels) if (p.id !== 'legacy') p.values = {
-    zombieSpeed: p.maxSpeed, maxZombies: Math.min(maxAlive, p.counts.at(-1)), flankShare: p.flank, aheadShare: p.ahead,
+    zombieSpeed: p.maxSpeed, zombieHealth: p.health, maxZombies: Math.min(maxAlive, p.counts.at(-1)), flankShare: p.flank, aheadShare: p.ahead,
     dropperShare: p.drop, dropShare: p.drop, killLull: p.lull, paceGap: p.quiet,
     stalkerOn: false, stalker2: false, stalkerAt: 120, stalkerSpeed: 0,
   };
@@ -60,16 +60,16 @@
       { t: 100, do: 'squeeze', front: Math.min(index, 3), back: Math.min(index, 3) },
     ];
   }
-  const owned = ['zombieSpeed', 'maxZombies', 'flankShare', 'aheadShare', 'dropperShare', 'dropShare', 'killLull', 'paceGap', 'stalkerOn', 'stalker2', 'stalkerAt', 'stalkerSpeed'];
+  const owned = ['zombieSpeed', 'zombieHealth', 'maxZombies', 'flankShare', 'aheadShare', 'dropperShare', 'dropShare', 'killLull', 'paceGap', 'stalkerOn', 'stalker2', 'stalkerAt', 'stalkerSpeed'];
   function sync() {
     const p = level(selected), preset = selected !== 'legacy';
     document.getElementById('challengeDifficulty').value = selected;
     document.getElementById('challengeDescription').textContent = preset
-      ? `${p.note}。群れの上限 ${p.counts.join(' → ')}体、通常追跡 ${range(p).start.toFixed(1)} → ${range(p).end.toFixed(1)}m/s。終盤ほど強くなる2分間。`
+      ? `${p.note}。群れの上限 ${p.counts.join(' → ')}体、体力 ${p.health}（HGで${p.health}発）、通常追跡 ${range(p).start.toFixed(1)} → ${range(p).end.toFixed(1)}m/s。終盤ほど強くなる2分間。`
       : 'メニューのゾンビ調整値を使います。これまでのベスト・ゴースト・ランキングはこちら。';
     document.getElementById('challengeSettingsNote').textContent = preset
-      ? `${p.name}：ゾンビ数・速さ・増援は難易度に従います。個別に変える場合はホームで「自由調整」を選択。`
-      : '自由調整：ゾンビ数・速さ・追跡者を個別に調整できます。';
+      ? `${p.name}：ゾンビ数・体力・速さ・増援は難易度に従います。個別に変える場合はホームで「自由調整」を選択。`
+      : '自由調整：ゾンビ数・体力・速さ・追跡者を個別に調整できます。';
     for (const name of owned) {
       const input = document.getElementById('s_' + name) || document.getElementById('t_' + name);
       if (input) {
@@ -80,7 +80,7 @@
           else {
             input.value = value(name, p.values[name]);
             const output = document.getElementById('o_' + name);
-            if (output) output.textContent = name === 'maxZombies' ? `${p.values[name]} 体（終盤）` : name === 'zombieSpeed' ? `${range(p).end.toFixed(1)} m/s（終盤）` : String(p.values[name]);
+            if (output) output.textContent = name === 'maxZombies' ? `${p.values[name]} 体（終盤）` : name === 'zombieSpeed' ? `${range(p).end.toFixed(1)} m/s（終盤）` : name === 'zombieHealth' ? `${p.health}（HGで${p.health}発）` : String(p.values[name]);
           }
         }
       }
@@ -185,6 +185,7 @@
       document.getElementById('hDifficulty').dataset.challenge = JSON.stringify({
         id: game.z.mission ? "mission" : active, t: +game.z.t.toFixed(2), cap: limit(game.z.t, game.U.maxZombies),
         alive: alive.length, stalkers: alive.filter(e => e.stalker).length,
+        health: value('zombieHealth', game.U.zombieHealth),
         speed: +(profile() ? currentSpeed(profile()) : game.U.zombieSpeed).toFixed(3),
         moving: alive.filter(e => !e.act && !e.fall && !e.rise && e.onGround && e.stun <= 0 && e.atkT <= 0)
           .map(e => +Math.hypot(e.vel.x, e.vel.z).toFixed(3)),
