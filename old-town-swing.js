@@ -75,48 +75,58 @@
     // ④ shares its first bar. Continue east for the unchanged three-bar
     // escape, or steer north onto this side ledge after the first release.
     // These decks follow the existing long wall (x17..35, z-6..-1.5).
-    box('east-pillar-arrival',[26,6.52,-1.5],[36.4,6.8,.25]);
-    box('east-pillar-turn',[35,6.52,-6],[36.4,6.8,-1.5]);
-    box('east-pillar-back',[30,6.52,-7.4],[36.4,6.8,-6]);
-    for(const x of [26.5,29.5,33.5])strut([x,5.5,-1.45],[x,6.52,.15]);
+    box('east-pillar-arrival',[29.5,6.72,-1.5],[36.4,7,.25]);
+    box('east-pillar-turn',[35,6.72,-2.5],[36.4,7,-1.5]);
+    for(const x of [30,33.5])strut([x,5.5,-1.45],[x,6.72,.15]);
 
     // The next ledge wraps the existing tall east column. The new bar
     // crosses diagonally between the columns, clear of the original bars.
-    box('east-pillar-next-south',[38.6,7.12,-6],[47.4,7.4,-4.6]);
-    box('east-pillar-next-north',[38.6,7.12,-13.4],[47.4,7.4,-12]);
+    // Leave a 7m opening after the first corner. A normal jump must not
+    // replace the bar, including at the closest edges of these ledges.
+    box('east-pillar-next-north',[38.6,7.12,-13.4],[41.4,7.4,-12]);
+    box('east-pillar-next-corner',[37.6,7.12,-13.4],[38.6,7.4,-12]);
     // Keep the existing west-face ladder (x40, z-11) open from bottom to
     // rooftop. The ledge goes around the outside of its climbing space.
-    box('east-pillar-next-west',[37.6,7.12,-12],[39,7.4,-6]);
-    box('east-pillar-next-west-south',[39,7.12,-10.5],[40,7.4,-6]);
+    box('east-pillar-next-west',[37.6,7.12,-12],[39,7.4,-9.5]);
+    box('east-pillar-next-west-south',[39,7.12,-10.5],[40,7.4,-9.5]);
     box('east-pillar-next-west-north',[39,7.12,-12],[40,7.4,-11.7]);
-    box('east-pillar-next-east',[46,7.12,-12],[47.4,7.4,-6]);
-    const pillarBar=[37.2,9.4,-3.8],pillarSide=[2/Math.sqrt(5),1/Math.sqrt(5)];
+    const pillarBar=[37.2,9.4,-5.8],pillarSide=[2/Math.sqrt(5),1/Math.sqrt(5)];
     for(const sign of [-1,1]) {
       const end=[pillarBar[0]+sign*pillarSide[0]*1.45,9.4,pillarBar[2]+sign*pillarSide[1]*1.45];
       const mount=[end[0],10.35,end[2]];
-      strut(end,mount);strut(sign<0?[35,10.35,-3]:[40,10.35,-6],mount);
+      strut(end,mount);strut(sign<0?[35,10.35,-4.8]:[40,10.35,-7.8],mount);
     }
 
-    // Walkable returns connect BOTH ledges to the existing 3m east roof.
+    // Walkable returns connect both ledges to existing roofs and ground.
     // Chasers take these longer mantle/stair paths instead of the new bar.
     for(let i=0;i<9;i++) {
-      const x=36.4+i*.6,top=6.4-i*.4;
-      box('east-pillar-return-stair-'+i,[x,3,-1.5],[x+.6,top,0],'slab',0xe39a4a);
+      const z=.25+i*.6,top=6.6-i*.4;
+      box('east-pillar-return-stair-'+i,[35.3,3,z],[36.7,top,z+.6],'slab',0xe39a4a);
     }
+    box('east-pillar-return-foot',[36.7,2.72,3],[42,3,5.65]);
+    // The original outer-tower stair occupies the tower's northeast side.
+    // Return around the northwest terrace instead of building into it or
+    // bridging the new swing gap. The existing tower ladder stays usable.
+    box('east-pillar-next-backwalk',[30.5,7.12,-15],[39.8,7.4,-13.4]);
     for(let i=0;i<11;i++) {
-      const tread=6.4/11,x=40.8+i*tread,top=3.4+i*.4;
-      box('east-pillar-next-stair-'+i,[x,3,-4.6],[x+tread,top,-2.5],'slab',0xe39a4a);
+      const x=35.5-i*.5,top=3.4+i*.4;
+      box('east-pillar-next-stair-'+i,[x,3.1,-13.4],[x+.5,top,-11.8],'slab',0xe39a4a);
     }
+    for(let i=0;i<9;i++) {
+      const z=-8.5-(i+1)*.45,top=Math.min(3.4,.4*(i+1));
+      box('east-pillar-next-lower-stair-'+i,[34.4,-.25,z],[35.9,top,z+.45],'slab',0xe39a4a);
+    }
+    for(const x of [34,37])strut([x,3.4,-13],[x,7.12,-14.6]);
     // A missed northern landing has a low return to the old east footing.
     // The original straight three-bar lane at z1.5 remains open.
     box('east-pillar-recovery',[25.2,-1.4,-1.45],[34,-1.1,.6]);
     const bars=[
       {id:'oldtown-high-bar-1',at:[-43.6,17.6,-3.9],direction:[0,1],width:2.6,route:'high'},
       {id:'oldtown-warehouse-bar-1',at:[-62.5,7.8,3.6],direction:[1,0],width:2.6,route:'warehouse'},
-      {id:'oldtown-east-bar-1',at:[24,8.4,1.5],direction:[1,0],width:2.6,route:'east',exitHint:'直進：3連 / 左＋逆入力で減速：柱の縁'},
+      {id:'oldtown-east-bar-1',at:[24,8.4,1.5],direction:[1,0],width:2.6,route:'east',exitHint:'直進：3連 / 左：柱の縁へ'},
       {id:'oldtown-east-bar-2',at:[32,8.4,1.5],direction:[1,0],width:2.6,route:'east'},
       {id:'oldtown-east-bar-3',at:[39.5,9.2,1.5],direction:[1,0],width:2.6,route:'east',exitHint:'外側に着地 → 南屋根のフック / 北の屋上'},
-      {id:'oldtown-east-pillar-bar',at:pillarBar,direction:[1/Math.sqrt(5),-2/Math.sqrt(5)],width:2.6,route:'east-pillar',exitHint:'次の柱の縁へ / 下は既存の東屋根'},
+      {id:'oldtown-east-pillar-bar',at:pillarBar,direction:[1/Math.sqrt(5),-2/Math.sqrt(5)],width:2.6,route:'east-pillar',exitHint:'北西の縁へ / 離脱後は逆入力で減速'},
     ];
     const routes=[
       {id:'high',name:'② 北柱→南の空中分岐',approach:[-43.6,14.4,-6.5],pursuitStart:[-45.8,14.4,-6.5],yaw:Math.PI,exit:[-43.6,15,6],
@@ -129,13 +139,14 @@
        escape:[[56,3.6,2.5],[44.5,6.6,10.5],[43.2,4.4,5.7]],
        alternate:[[60.7,3.6,2.5],[60.7,3.6,-13],[44,14.4,-13],[44,14.4,-10]],
        returnVia:[44,14.4,-10],fallback:[47,-1,2.5]},
-      {id:'east-pillar',name:'④ 分岐：柱の縁→鉄棒→次の縁',approach:[18.5,6.2,2.4],pursuitStart:[16,7.2,3],yaw:-Math.PI/2,exit:[39.3,7.4,-8],
-       escape:[[39.3,7.4,-5.3],[46.8,7.4,-5.3],[46.8,7.4,-3.8],[41.2,3.4,-3.8],[43,3,1.5]],
-       returnVia:[41.2,3,-2],fallback:[33,-1.1,0],sharedBars:['oldtown-east-bar-1']},
+      {id:'east-pillar',name:'④ 分岐：柱の縁→鉄棒→次の縁',approach:[18.5,6.2,2.4],pursuitStart:[16,7.2,3],yaw:-Math.PI/2,exit:[39.3,7.4,-12.7],
+       escape:[[38.8,7.4,-13.9],[30.8,7.4,-13.9],[30.8,7.4,-12.6],[36.4,3.4,-13],[38.5,0,-13]],
+       alternate:[[38.8,7.4,-11.7],[39.46,7.4,-11],[39.46,14.4,-11],[43,14.4,-11]],
+       returnVia:[36.5,3.4,-13],fallback:[33,-1.1,0],sharedBars:['oldtown-east-bar-1']},
     ];
     window.skyOldTownSwingCourse={id:'oldtown-swing-escape-v1',oldTown:true,name:'旧市街の鉄棒と逃走分岐',bars,routes,supports,
       approach:routes[0].approach,approachYaw:routes[0].yaw,pad:routes[0].approach,exit:routes[0].exit,
-      signs:[],arrows:[{at:[29.5,6.825,-.65],direction:[1,0]},{at:[35.7,6.825,-1.2],direction:[1/Math.sqrt(5),-2/Math.sqrt(5)]}],
+      signs:[],arrows:[{at:[31.5,7.025,-.65],direction:[1,0]},{at:[35.7,7.025,-1.8],direction:[1/Math.sqrt(5),-2/Math.sqrt(5)]}],
       instructions:'橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連→外側回廊、左へ曲がると柱の縁→鉄棒→次の柱の縁。既存の南屋根フック・北の屋上も使えます。空中で自動につかみ、前へ振れたらジャンプを押し直す。下入力で離す。',
     };
   };
@@ -146,7 +157,7 @@
     card.style.cssText='margin:0 0 16px;padding:12px;border:1px solid #ffb647;border-radius:10px;background:#2c3028;color:#fff4df';
     const title=document.createElement('strong');title.textContent='旧市街・鉄棒から逃走分岐へ';
     const note=document.createElement('p');note.style.cssText='font-size:13px;line-height:1.6;margin:8px 0';
-    note.textContent=(preview?'この練習入口からの記録は送信しません。':'各経路の入口から試せます。')+'④は最初の鉄棒で分岐。直進は3連→外側回廊、左は柱の縁→鉄棒→次の縁。左への離脱は逆入力で減速します。';
+    note.textContent=(preview?'この練習入口からの記録は送信しません。':'各経路の入口から試せます。')+'④は最初の鉄棒で分岐。直進は3連→外側回廊、左は柱の縁→鉄棒→次の縁。柱の間は約7m。鉄棒の離脱後は逆入力で減速します。';
     card.append(title,note);
     for(const route of course.routes){
       const control=document.createElement(preview?'button':'a');control.textContent=route.name;
