@@ -107,7 +107,7 @@ export function createJumpGun(game) {
       document.getElementById('hAmmo').textContent=spent?'0':'1';
       document.getElementById('hRes').textContent=spent?'JUMP・着地待ち':'JUMP';
       document.getElementById('tFire').textContent='跳ぶ';
-      document.getElementById('tReload').style.display='none';
+      document.getElementById('tFire').hidden=false;
     }
   }
   return {fire,tick,blockShot,reset,grant,cancelPickup,get carrying(){return previousWeapon!==null;},playSound(){ document.body.dataset.skyGunSound='Jump Gun pressure pulse'; return playGearSound(game,'jump'); },get ready(){return !spent;}};
