@@ -5,6 +5,7 @@
   const sections = [
     {id:'flow',name:'連続コース',at:[-26,2,-16],yaw:-Math.PI/2,floor:2,hint:'前へ走る → 低い壁を乗り越え → 隙間でジャンプ'},
     {id:'slide',name:'スライド',at:[-12,2,-16],yaw:-Math.PI/2,floor:2,hint:'低いゲートへ向かって走り抜ける'},
+    {id:'downhill',name:'斜面滑り',at:[29.6,7.9,9],yaw:Math.PI/2,floor:0,hint:'斜面滑りをタップ（PCはC）→ 左右で微調整 → ジャンプで離脱'},
     {id:'mantle',name:'よじ登り',at:[-5.5,2,-16],yaw:-Math.PI/2,floor:2,hint:'高い段差へ走ってジャンプし、縁をつかんでよじ登る'},
     {id:'wallrun',name:'壁走り',at:[3.8,4.4,-17.95],yaw:-Math.PI/2,floor:4.4,hint:'壁沿いに走ってジャンプ → 壁走りで向こうの足場へ'},
     {id:'hook',name:'フック',at:[18,4.4,-16],yaw:-2.75,floor:4.4,hint:'青い輪を向いてフック → 高い足場へ'},
@@ -19,8 +20,10 @@
     {id:'loop',name:'周回の戻り道',at:[-30,8,-16],yaw:0,floor:0,hint:'階段を下る → 右へ曲がる → STARTへ戻ってもう一周'},
   ];
   window.skyPracticeCourse = {sections,start:sections[0],dashPositions:[[9,11.2,8]],jumpPositions:[[-27,2,5.8]],wallSpots:[]};
-  window.buildSkyCanyon = function({ne,Mh,ld,us,jn}) {
+  window.buildSkyCanyon = function({ne,Mh,ld,us,jn,hd}) {
     const add=(id,a,b,type='beam',tier='M')=>{const s=ne(...a,...b,type);s.practice=id;s.canyonTier=tier;return s;};
+    add('downhill-start',[30,7.6,6],[33,8,12]);
+    hd('x',14,30,7,11,0,8,.3);
     add('floor',[-34,-.6,-26],[34,0,26],'slab','G');
     // Colour/rail rhythm makes forward travel legible without dense decoration.
     add('start',[-29,1.6,-19],[-15,2,-13]);
