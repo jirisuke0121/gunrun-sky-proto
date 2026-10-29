@@ -24,38 +24,39 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
     for(const p of enemies){const z=new s.ri(...p);Object.assign(z,{spawnT:0,rise:null,hp:1e6,flank:false,dropper:false,stalker:false,onGround:true});z.node=g.nodeAt(...[p[0],p[1]+.1,p[2]]);s.Jt.push(z);}
    }
    function state(){return{t:g.GAME.t,p:c.pos.toArray(),v:c.vel.toArray(),state:c.state,ground:c.onGround,life:c.life,over:g.GAME.over,reason:g.GAME.reason,hookCD:c.hookCD,ladder:c.ladder?{x:c.ladder.x,z:c.ladder.z,y0:c.ladder.y0,y1:c.ladder.y1}:null};}
-   function walk(id,at,waypoints,{jumpZ=null,enemies=[],maxSeconds=12}={}){reset(at,0,enemies);const start=state(),trail=[],states=new Set();let i=0,jumped=false,minNearest=Infinity;
+   function walk(id,at,waypoints,{jumpZ=null,jumpX=null,enemies=[],maxSeconds=12}={}){reset(at,0,enemies);const start=state(),trail=[],states=new Set();const fixtureInvalid=!s.oe(at[0],at[1]+.015,at[2],c.r,1.75)||Math.abs(start.p[1]-at[1])>.15;let i=0,jumped=false,minNearest=Infinity;
     for(let tick=0;tick<maxSeconds*120&&!g.GAME.over;tick++){
      const dest=waypoints[i],dx=dest[0]-c.pos.x,dz=dest[2]-c.pos.z;
-     if(Math.hypot(dx,dz)<.4&&Math.abs(c.pos.y-dest[1])<.6){i++;if(i===waypoints.length)break;continue;}
+     if(Math.hypot(dx,dz)<.4&&Math.abs(c.pos.y-dest[1])<.6){if(c.state==='ledge'||c.state==='ladder'){g.keys.KeyW=false;g.advance(dt);continue;}i++;if(i===waypoints.length)break;continue;}
      c.yaw=Math.atan2(-dx,-dz);g.keys.KeyW=true;
-     if(jumpZ!==null&&!jumped&&c.onGround&&c.pos.z<jumpZ){jump();jumped=true;}
+     if(!jumped&&c.onGround&&((jumpZ!==null&&c.pos.z<jumpZ)||(jumpX!==null&&c.pos.x<jumpX))){jump();jumped=true;}
      g.advance(dt);states.add(c.state);
      for(const z of s.Jt)minNearest=Math.min(minNearest,c.pos.distanceTo(z.pos));
      if(tick%12===0)trail.push({...state(),enemies:s.Jt.map(z=>({p:z.pos.toArray(),act:z.act?.kind}))});
     }
-    keysOff();const r={id,kind:'walk',at,waypoints,start,end:state(),waypointsReached:i,complete:i===waypoints.length,states:[...states],jumped,minNearest:Number.isFinite(minNearest)?minNearest:null,trail};results.push(r);return r;
+    keysOff();const r={id,kind:'walk',at,waypoints,start,end:state(),waypointsReached:i,complete:i===waypoints.length,fixtureInvalid,states:[...states],jumped,minNearest:Number.isFinite(minNearest)?minNearest:null,trail};results.push(r);return r;
    }
    if(map==='index'){
     walk('gallery-down',[-52.2,6.4,3.6],[[-52.2,4.6,8]],{maxSeconds:2});
     walk('high-east-return',[-35.65,15,-.3],[[-37.6,14.2,-.3],[-37.6,13.4,-2.2]],{maxSeconds:3});
-    walk('north-original-inbound',[0,0,-17],[[0,0,-10]],{maxSeconds:4});
-    walk('north-original-outbound',[0,0,-10],[[0,0,-19]],{maxSeconds:4});
-    walk('north-new-inbound',[12,0,-17],[[12,0,-10]],{maxSeconds:4});
-    walk('north-upper-west-east',[1.3,4,-11],[[1.3,4,-15.5],[12,4,-15.5],[12,4,-11]],{maxSeconds:8});
-    walk('north-upper-east-west',[12,4,-11],[[12,4,-15.5],[1.3,4,-15.5],[1.3,4,-11]],{maxSeconds:8});
+    walk('north-original-inbound',[0,0,-17],[[0,0,-12]],{maxSeconds:4});
+    walk('north-original-outbound',[0,0,-12],[[0,0,-19]],{maxSeconds:4});
+    walk('north-new-inbound',[12,0,-15.5],[[12,0,-10]],{maxSeconds:4});
+    walk('north-upper-west-east',[1.3,4,-12],[[1.3,4,-15.5],[12,4,-15.5],[12,4,-12]],{maxSeconds:8});
+    walk('north-upper-east-west',[12,4,-12],[[12,4,-15.5],[1.3,4,-15.5],[1.3,4,-12]],{maxSeconds:8});
     walk('warehouse-ground-west-east',[-65,0,10],[[-49,0,10]],{maxSeconds:6});
     walk('warehouse-south-return',[-52.5,0,10],[[-52.5,0,19],[-46.5,0,19],[-46.5,0,11.5]],{maxSeconds:8});
     walk('east-lower-recovery',[54,-1,2.5],[[44,0,2.5]],{maxSeconds:7});
+    walk('east-lower-recovery-jump',[54,-1,2.5],[[44,0,2.5]],{maxSeconds:7,jumpX:47.4});
     walk('pillar-lower-recovery',[29,-1.1,0],[[38,0,0]],{maxSeconds:5});
-    walk('east-pillar-stair-return',[36,7,-.3],[[36,3.4,5],[38,3,5]],{maxSeconds:5});
+    walk('east-pillar-stair-return',[36,7,-.3],[[36,3.4,5.4],[38,3,5.4]],{maxSeconds:5});
     walk('north-lower-cross-east',[-30,-3.5,-34],[[38,-3.5,-34]],{maxSeconds:14});
     walk('south-gap-no-jump',[36,0,22.5],[[36,0,14]],{maxSeconds:3});
     for(const jumpZ of [21.5,20.5,19.95])walk('south-gap-jump-'+jumpZ,[36,0,23.5],[[36,0,14]],{jumpZ,maxSeconds:4});
     // Controlled route choices: same rear pressure with/without a northern interceptor.
     for(const mode of ['clear','rear','front-rear']){
      const enemies=mode==='clear'?[]:mode==='rear'?[[56,3.61,2.5]]:[[56,3.61,2.5],[60.7,3.61,-8]];
-     walk('east-north-'+mode,[60.7,3.6,.5],[[60.7,3.6,-10.5],[60.7,3.6,-12.8],[43,14.4,-12.8],[43,14.4,-10]],{enemies,maxSeconds:15});
+     walk('east-north-'+mode,[60.7,3.6,.5],[[60.7,3.6,-10.5],[60.7,4.68,-12.8],[43,14.4,-12.8],[43,14.4,-10]],{enemies,maxSeconds:15});
     }
     walk('beam-T-north',[-39.5,4.4,8],[[-42,4.4,8],[-42,4.4,5]],{maxSeconds:5});
    }else{
@@ -75,9 +76,9 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
     reset([bar.at[0]-.3*bar.direction[0],bar.at[1]-2.15,bar.at[2]-.3*bar.direction[1]],Math.atan2(-bar.direction[0],-bar.direction[1]));
     skySwing.reset();c.pos.set(bar.at[0]-.3*bar.direction[0],bar.at[1]-2.15,bar.at[2]-.3*bar.direction[1]);c.onGround=false;c.vel.set(bar.direction[0]*3,-.2,bar.direction[1]*3);
     for(let i=0;i<10&&!skySwing.active;i++)g.advance(dt);
-    const attached=skySwing.active?.bar.id,trail=[];if(attached)c.crouchPressed=true;
-    for(let i=0;i<8*120&&!g.GAME.over;i++){g.advance(dt);if(i%12===0)trail.push(state());if(i>12&&c.onGround)break;}
-    results.push({id:'bar-drop-'+bar.id,kind:'bar-drop',attached,end:state(),trail});
+    const attached=skySwing.active?.bar.id,trail=[];let fell=false,minY=c.pos.y;if(attached)c.crouchPressed=true;
+    for(let i=0;i<8*120&&!g.GAME.over;i++){g.advance(dt);minY=Math.min(minY,c.pos.y);if(i%12===0)trail.push(state());if(c.life<3){fell=true;break;}if(i>12&&c.onGround)break;}
+    results.push({id:'bar-drop-'+bar.id,kind:'bar-drop',attached,fell,minY,end:state(),trail});
    }
    // Shared zip terminal: record selected target for different headings.
    if(map==='canyon')for(const yaw of [0,-.25,.25,-Math.PI/2,Math.PI/2,Math.PI]){
