@@ -2,9 +2,10 @@
 const clamp = x => Math.max(0, Math.min(1, x));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 export function isPerfectRelease(angle, omega, window = [.55, .95]) {
-  const middle = (window[0] + window[1]) / 2;
-  const radius = Math.min(.09, (window[1] - window[0]) * .225);
-  return omega > 1.1 && Math.abs(angle - middle) <= radius;
+  return omega > 1.1 && angle >= window[0] - .05 && angle <= window[1] + .05;
+}
+export function releaseCueProgress(angle, omega, window = [.55, .95]) {
+  return omega > 0 ? clamp((angle - (window[0] - .6)) / .55) : 0;
 }
 export function flipPose(age, duration) {
   const phase = clamp(age / duration);
