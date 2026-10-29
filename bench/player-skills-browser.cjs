@@ -96,9 +96,9 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         if (layout.touch) {
           const labels = await page.evaluate(() => {
             const banner = document.getElementById('decoyBanner').getBoundingClientRect(), toast = document.querySelector('.toast').getBoundingClientRect();
-            return { banner: {top:banner.top,bottom:banner.bottom}, toast: {top:toast.top,bottom:toast.bottom} };
+            return { banner: {x:banner.x,y:banner.y,width:banner.width,height:banner.height}, toast: {x:toast.x,y:toast.y,width:toast.width,height:toast.height} };
           });
-          assert.ok(labels.banner.bottom < labels.toast.top || labels.toast.bottom < labels.banner.top, 'skill status overlaps toast: ' + JSON.stringify(labels));
+          assert.equal(intersects(labels.banner, labels.toast), false, 'skill status overlaps toast: ' + JSON.stringify(labels));
         }
         await page.screenshot({ path: `browser-evidence/${id}-active.png` });
         if (map === 'index.html' && ['desktop', 'touch'].includes(layout.name)) console.log('SKILL_IMAGE_' + layout.name + ':' + (await page.screenshot({type:'jpeg',quality:60})).toString('base64'));
