@@ -174,6 +174,26 @@ const { fixture } = require('./human-running.test.cjs');
     assert.ok(body.geometry.attributes.position.array.every(Number.isFinite));assert.ok(body.geometry.attributes.normal.array.every(Number.isFinite));
   }
   c.state='normal';c.onGround=true;c.yaw=0;c.pitch=0;sky.Se.rotation.set(0,0,0);update(30,false);
+  sky.U.gunOn=false;c.vel.set(0,0,0);update(30,false);
+  c.onGround=false;c.vel.y=-5;update(20,false);
+  c.onGround=true;c.vel.set(0,0,0);
+  const physical=JSON.stringify({p:c.pos.toArray(),v:c.vel.toArray(),yaw:c.yaw,state:c.state});
+  update(3,false);
+  assert.equal(dataset.skyHumanClip,'landing');
+  const landWeight=weights[body.morphTargetDictionary.parkourLand_compress];
+  assert.ok(landWeight>.3,'the real mesh visibly compresses on ordinary touchdown');
+  holder.updateMatrixWorld(true);
+  const minBoot=Math.min(...footVertices.map(i=>deformed(body,i).applyMatrix4(body.matrixWorld).y))-c.pos.y;
+  assert.ok(minBoot>-.06,`landing boots stay above the floor (${minBoot})`);
+  assert.equal(JSON.stringify({p:c.pos.toArray(),v:c.vel.toArray(),yaw:c.yaw,state:c.state}),physical,'landing visuals never move the player capsule');
+  mode='pause';const heldLand=[...weights];update(10,false);assert.deepEqual([...weights],heldLand);mode='play';
+  c.vel.set(0,0,-6);update(20);assert.equal(dataset.skyHumanClip,'runForward');
+  c.onGround=false;c.swingFlight={age:.12,angle:.7,direction:[0,-1]};update(1,false);
+  assert.ok(+dataset.skyHumanReleaseAccent>.9,'bar release adds a visible compact turn');
+  const flightState=JSON.stringify({p:c.pos.toArray(),v:c.vel.toArray(),yaw:c.yaw,state:c.state});
+  update(1,false);assert.equal(JSON.stringify({p:c.pos.toArray(),v:c.vel.toArray(),yaw:c.yaw,state:c.state}),flightState);
+  c.swingFlight=null;c.onGround=false;update(1,false);assert.equal(+dataset.skyHumanReleaseAccent,0,'another airborne action cancels the visual turn immediately');
+  c.onGround=true;c.vel.set(0,0,0);update(20,false);sky.U.gunOn=true;
   // Return from first person or a respawn without accumulating an old distance.
   keys.get('keydown')({ code: 'KeyV', repeat: false }); update(1, false); assert.equal(dataset.skyHumanView, 'first');
   keys.get('keydown')({ code: 'KeyV', repeat: false }); c.pos.z -= 100; c.vel.z = -6; update(1, false);
