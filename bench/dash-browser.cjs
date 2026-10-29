@@ -23,6 +23,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
      // This measures sprint/boost FOV. Autonomous combat deliberately narrows
      // that FOV while firing, so keep combat out of this movement-only scene.
      g.S.autoFire=false;g.S.aimAuto=false;g.S.aimAssist=false;
+     g.SCR.off=g.PACE.off=g.MARK.off=true;g.GAME.spawnT=g.GAME.surgeT=1e9;
      for(const z of sky.Jt){z.dead=true;z.m.root.visible=false;}
      g.frameOnce(1/60);
      const placements=window.skyDash.pickups;
@@ -63,8 +64,23 @@ fs.mkdirSync('browser-evidence',{recursive:true});
       if(nearby)continue;
       const route=g.wp(n,n.x+dx*length,n.z+dz*length,n.y);
       if(!route||route.climb>.05||route.drop>.05||!sky.oe(n.x,n.y+.05,n.z,.3,1.8))continue;
-      c.pos.set(n.x,n.y+.01,n.z);c.vel.set(0,0,0);c.state='normal';c.onGround=true;c.ledge=null;c.yaw=Math.atan2(-dx,-dz);c.pitch=-.12;c.camY=undefined;c.invuln=1e9;
-      return{x:n.x,y:n.y,z:n.z,dx,dz};
+      // A planner route can detour around a hole. The speed probe itself
+      // goes straight, so require a continuous, full-height walking lane.
+      const floors=g.solids.filter(s=>s.solid&&!s.off&&s.type!=='mono'&&Math.abs(s.maxY-n.y)<.05);
+      const supported=(x,z)=>floors.some(s=>x>s.minX+.02&&x<s.maxX-.02&&z>s.minZ+.02&&z<s.maxZ-.02);
+      let clear=true;
+      for(let d=0;d<=length;d+=.2){
+       const x=n.x+dx*d,z=n.z+dz*d;
+       if(!sky.oe(x,n.y+.03,z,c.r,1.8)||![0,-.2,.2].every(side=>supported(x-dz*side,z+dx*side))){clear=false;break;}
+      }
+      if(!clear)continue;
+      window.__dashPlaceLane=l=>{
+       c.pos.set(l.x,l.y+.01,l.z);c.vel.set(0,0,0);c.state='normal';c.onGround=true;c.h=1.75;
+       c.ledge=c.ladder=c.zip=c.hook=null;c.jumpBuf=c.slideBuf=c.slideT=0;c.crouchPressed=false;c.edgeJump=false;c.edgeOff=null;
+       c.yaw=Math.atan2(-l.dx,-l.dz);c.pitch=-.12;c.camY=undefined;c.invuln=1e9;
+       c.lastGround.copy(c.pos);c.safe?.copy(c.pos);window.skySwing?.reset();window.skyLandingRoll?.reset();window.skyFollowCamera?.reset();
+      };
+      const lane={x:n.x,y:n.y,z:n.z,dx,dz};window.__dashPlaceLane(lane);return lane;
      }throw Error('No real flat corridor for boost verification');
     });
     await page.keyboard.down('w');
@@ -86,14 +102,14 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     const ended=await page.evaluate(()=>window.__dashState());assert.equal(ended.remaining,0);assert.equal(ended.boost,0);assert.ok(ended.fov<105,JSON.stringify(ended));assert.equal(ended.gl,0);
     await capture('ended');
     // The same lane returns to the configured sprint speed after expiry.
-    await page.evaluate(l=>{const c=window.__game.P;c.pos.set(l.x,l.y+.01,l.z);c.vel.set(0,0,0);c.state='normal';c.onGround=true;c.yaw=Math.atan2(-l.dx,-l.dz);},lane);
+    await page.evaluate(l=>window.__dashPlaceLane(l),lane);
     await page.keyboard.down('w');
     const normal=await page.evaluate(()=>window.__dashFrames(35));await page.keyboard.up('w');
     assert.ok(Math.abs(normal.speed-6)<.05&&normal.fov>98&&normal.distance>3.8,JSON.stringify(normal));await capture('sprint');
     await page.keyboard.press('v');await page.evaluate(()=>window.__game.frameOnce(1/60));assert.equal(await page.evaluate(()=>document.body.dataset.skyHumanView),'first');
     await page.evaluate(()=>window.__game.startGame());
     assert.equal(await page.evaluate(()=>window.skyDash.remaining),0);assert.ok(await page.evaluate(()=>window.skyDash.pickups.every(p=>p.cooldown===0)));
-    assert.deepEqual(errors,[]);results.push({id,placements,baseline,boost:running,normal,paused,ended,status:'passed'});
+    assert.deepEqual(errors,[]);results.push({id,placements,lane,baseline,boost:running,normal,paused,ended,status:'passed'});
     console.log(`PASS ${id}: connected real-map pickups, keyboard collection, ${running.speed.toFixed(2)}m/s boost → ${normal.speed.toFixed(2)}m/s normal, camera/FOV, dash morph, expiry/pause/reset, first person, WebGL`);
    }catch(e){await capture('failure').catch(()=>{});results.push({id,status:'failed',error:e.message,errors});throw e;}finally{await context.close();}
   }
