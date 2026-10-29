@@ -24,6 +24,9 @@ const wait = (page, predicate, argument) => page.waitForFunction(predicate, argu
       const context = await browser.newContext({ viewport: touch ? { width: 844, height: 390 } : { width: 1280, height: 800 },
         hasTouch: touch, isMobile: touch });
       context.setDefaultTimeout(45000);
+      // This checks saved layouts, not movement. Keep the game and its
+      // editor iframe from rendering continuously during reloads in CI.
+      await context.addInitScript(() => window.__hold = true);
       try {
         const editor = await context.newPage(), game = await context.newPage(), errors = [];
         for (const page of [editor, game]) page.on('pageerror', error => errors.push(error.message));

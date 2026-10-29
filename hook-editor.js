@@ -6,7 +6,7 @@ const FOV = Math.PI / 3;
 let game, api, wallApi, internals, solids = [], layout = [], selected = -1;
 let wallJumps = [], selectedWallJump = -1, bars = [], selectedBar = -1, mode = 'hook', selectedCandidate = -1;
 const DRAFT_KEY='gunrun-old-town-marker-draft-v2', DRAFT_FORMAT='gunrun-old-town-marker-draft-v2';
-const SOURCE_VERSION='20261029-escape-v1';
+const SOURCE_VERSION='20261029-pillar-v1';
 let draft, published, storageOK=true;
 let tool = 'add', viewPan = false, dirty = {hook:false,walljump:false,bar:false}, drag = null, hover = null, booted = false;
 let launch = {x: -42, y: 0, z: 8};
@@ -258,7 +258,7 @@ const rows=kind=>kind==='hook'?layout:kind==='walljump'?wallJumps:bars;
 const selection=()=>mode==='hook'?selected:mode==='walljump'?selectedWallJump:selectedBar;
 function select(i){if(mode==='hook')selected=i;else if(mode==='walljump')selectedWallJump=i;else selectedBar=i;}
 function assign(kind,value){if(kind==='hook')layout=value;else if(kind==='walljump')wallJumps=value;else bars=value;}
-const validBar=p=>Array.isArray(p)&&p.length===6&&finitePoint(p.slice(0,3))&&finiteWallJump([...p.slice(0,5)])&&p[5]>=1.4&&p[5]<=8;
+const validBar=p=>Array.isArray(p)&&p.length===6&&finitePoint(p.slice(0,3))&&p.slice(3).every(Number.isFinite)&&Math.abs(Math.hypot(p[3],p[4])-1)<.001&&p[5]>=1.4&&p[5]<=8;
 const validRows=(kind,value)=>Array.isArray(value)&&value.length<=(kind==='hook'?64:128)&&value.every(kind==='hook'?finitePoint:kind==='walljump'?finiteWallJump:validBar);
 function validDraft(v){return v?.format===DRAFT_FORMAT&&v.map==='old-town'&&kinds.every(k=>validRows(k,v.baseline?.[k])&&validRows(k,v.points?.[k])&&Array.isArray(v.ids?.[k])&&v.ids[k].length===v.points[k].length&&v.ids[k].every(id=>typeof id==='string'&&id.length<100)&&new Set(v.ids[k]).size===v.ids[k].length)&&v.notes&&typeof v.notes==='object'&&!Array.isArray(v.notes)&&Object.values(v.notes).every(n=>typeof n==='string'&&n.length<=2000);}
 function hitMarker(x,y){let best=-1,depth=Infinity;rows(mode).forEach((q,i)=>{const p=project(q[0],q[1],q[2]);if(p&&Math.hypot(x-p.x,y-p.y)<15&&p.depth<depth){best=i;depth=p.depth;}});return best;}
@@ -290,7 +290,12 @@ function refresh(){
   $('selectedTitle').textContent='選択中の'+labels[kind];$('pointsTitle').firstChild.textContent=labels[kind]+' ';$('count').textContent=points.length+'個';
   $('reset').textContent=draft.sourceVersion===SOURCE_VERSION?'この種類の下書きを戻す':'参照時の配置に戻す';$('saveNote').textContent='マーキング専用：下書きだけを端末に自動保存します。ゲームの配置・判定には反映しません。移動・削除した場所の輪郭は標準配置です。';
   $('normalField').style.display=isWall||isBar?'block':'none';$('normalField').firstChild.textContent=isBar?'飛ぶ向き（鉄棒は直角に伸びます）':'壁の向き';
+  for(const opt of Array.from($('normal').options))if(opt.dataset?.diagonal)opt.remove();
   for(const opt of $('normal').options){const names={'1,0':'東','-1,0':'西','0,1':'南','0,-1':'北'};opt.textContent=names[opt.value]+(isBar?'へ振る':'向きの壁面');}
+  if(isBar&&p&&!Array.from($('normal').options).some(opt=>opt.value===`${p[3]},${p[4]}`)){
+    const opt=document.createElement('option');opt.value=`${p[3]},${p[4]}`;opt.dataset.diagonal='1';
+    opt.textContent=`斜め（X ${p[3].toFixed(2)} / Z ${p[4].toFixed(2)}）へ振る`;$('normal').append(opt);
+  }
   $('barWidthField').hidden=!isBar;$('barWidth').value=isBar&&p?p[5]:2.6;
   $('mapnote').textContent=isBar?'鉄棒の下書き：床・屋根をタップすると3m上に仮置き。高さ・飛ぶ向き・幅を調整できます。紫の線が鉄棒、細線が振る方向。番号のドラッグで移動。ゲームには反映しません。':isWall?'壁走りできる縦の壁面をタップしてマーキング。緑は推奨候補、赤は非推奨候補。番号をドラッグして移動。ゲームの標準5面は変わりません。':'壁や床をタップしてフックをマーキング。番号をドラッグして移動。ゲームの配置は変わりません。';
   $('handoffNote').textContent='3種類をまとめてJSONに保存・読み込みできます。変更依頼文をチャットへ貼って実装を依頼してください。';
