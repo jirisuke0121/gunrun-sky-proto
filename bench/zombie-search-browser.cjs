@@ -81,7 +81,7 @@ const out = 'browser-evidence/zombie-search'; fs.mkdirSync(out, { recursive: tru
         const q=searchQA,e=q.enemy;e.stun=0;q.place(q.chosen.b);
         const used=skyDecoy.activate();q.place(q.chosen.hidden);q.tick(.6);
         const lured=!!skyDecoy.targetFor(e),navigationOwned=!e.lost;
-        e.stun=100;e.pos.set(q.chosen.a.x,q.chosen.a.y+.01,q.chosen.a.z);e.vel.set(0,0,0);q.place(q.chosen.hidden);
+        e.stun=100;e.act=e.rise=e.fall=null;e.pos.set(q.chosen.a.x,q.chosen.a.y+.01,q.chosen.a.z);e.vel.set(0,0,0);q.place(q.chosen.hidden);
         q.tick(6.1);
         return{used,lured,navigationOwned,expired:!skyDecoy.active,lost:e.lost,...q.state()};
       });
