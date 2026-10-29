@@ -1,4 +1,4 @@
-import { createSwing } from './parkour-swing.js?v=20261029-edge-assist-v3';
+import { createSwing } from './parkour-swing.js?v=20261030-frontflip-v1';
 import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
 import { createFlashbang } from './flashbang.js?v=20261028-touch-layout-v1';
 import { createZombieClimb } from './zombie-climb.js?v=20261029-stalled-climb-v3';

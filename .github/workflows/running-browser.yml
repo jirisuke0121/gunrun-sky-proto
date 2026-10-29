@@ -23,6 +23,7 @@ jobs:
           node bench/editor-autosave.test.cjs
           node bench/hook-touch-exits.test.cjs
           node bench/swing-timing.test.cjs
+          node bench/swing-flip.test.cjs
           node bench/human-actions.test.cjs
           node bench/human-view-running.test.cjs
           node bench/dash-boost.test.cjs
@@ -47,6 +48,7 @@ jobs:
           node bench/human-aim-browser.cjs
           node bench/dash-browser.cjs
           node bench/swing-browser.cjs
+          node bench/swing-flip-browser.cjs
           node bench/swing-flow-browser.cjs
           node bench/practice-browser.cjs
           node bench/practice-flow-browser.cjs
