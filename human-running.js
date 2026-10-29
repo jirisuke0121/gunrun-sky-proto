@@ -1,12 +1,13 @@
 // Running style for the existing, baked Unity human. No new model download.
 // Asset-space metres: +Y up, +Z forward, the right hand is on -X.
-import { actionPose } from './human-actions.js?v=20261028-swing-flow-v2';
+import { actionPose, boneMap } from './human-actions.js?v=20261028-swing-flow-v2';
 import { landingRollPose, rollTuck, rollTurn, LANDING_ROLL } from './landing-roll.js?v=20261029-edge-assist-v3';
 export { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
 import { wallRunPose, WALLRUN_SAMPLES } from './human-wallrun.js?v=20261027-wallrun-v2';
 export { wallRunFrame, WALLRUN_STRIDE } from './human-wallrun.js?v=20261027-wallrun-v2';
 export { jumpPhase, ledgeAnchor } from './human-actions.js?v=20261028-swing-flow-v2';
 export const RUN_STRIDE = 3.36;
+export const DASH_STRIDE = 3.8;
 export const RUN_SAMPLES = 24;
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -63,10 +64,54 @@ export function runningVertex(run, unarmed, phase) {
   return leanTorso(p, phase);
 }
 
-export function dashVertex(p, unarmed) {
-  const tilted = rotateX(p, [0, 1.28, -.045], .18);
-  const weight = Math.max(smoothstep(1.05, 1.64, unarmed[1]), armWeight(unarmed));
-  return p.map((v, k) => mix(v, tilted[k], weight));
+// A full sprint cycle, built from the same unarmed mesh as the parkour poses.
+// The recovery leg folds at the knee; stretching the existing run would keep
+// its low feet and would not produce the reference's high heel recovery.
+export function sprintPose(phase) {
+  const theta = phase * TAU, hip = [0, 1.28, -.045];
+  const bob = .025 * Math.cos(theta * 2);
+  const torso = p => {
+    const q = rotateX(rotateY(p, hip, .11 * Math.sin(theta)), hip, .72);
+    return [q[0], q[1] + bob, q[2] + .045];
+  };
+  const arms = {}, legs = {}, hands = {};
+  for (const side of [-1, 1]) {
+    const shoulder = [side * .28, 1.94, -.075], elbow = [side * .43, 1.55, -.105];
+    const hand = [side * .52495, 1.19165, -.0644];
+    const armAngle = -.16 + side * 1.12 * Math.cos(theta);
+    const arm = p => {
+      const bent = rotateX(p, elbow, -1.58);
+      const flexed = p.map((v, k) => mix(v, bent[k], 1 - smoothstep(1.48, 1.67, p[1])));
+      return torso(rotateX(flexed, shoulder, armAngle));
+    };
+    arms[side] = arm;
+    hands[side < 0 ? 'right' : 'left'] = arm(hand);
+    const legPhase = theta + (side < 0 ? Math.PI : 0);
+    const thigh = -.16 - .88 * Math.cos(legPhase);
+    const kneeBend = .25 + 1.8 * Math.pow(Math.max(0, -Math.sin(legPhase)), 1.1);
+    const root = [side * .17, 1.23, -.025], knee = [side * .23, .65, -.09], ankle = [side * .24, .12, -.04];
+    const rootTarget = [root[0], root[1] + bob, root[2] + .045];
+    const upper = p => rotateX(p, root, thigh).map((v, k) => v + rootTarget[k] - root[k]);
+    const kneeTarget = upper(knee);
+    const ankleTarget = upper(rotateX(ankle, knee, kneeBend));
+    legs[side] = { upper, lower: boneMap(knee, ankle, kneeTarget, ankleTarget) };
+  }
+  return { hands, pitch: clamp(-(-1.58 - .16 - 1.12 * Math.cos(theta) + .72 + Math.PI / 2), -1.5, .8),
+    vertex(p) {
+      const side = p[0] < 0 ? -1 : 1;
+      const legPoint = s => {
+        const leg = legs[s], upper = leg.upper(p), lower = leg.lower(p);
+        return upper.map((v, k) => mix(v, lower[k], 1 - smoothstep(.55, .77, p[1])));
+      };
+      let leg = legPoint(side);
+      if (Math.abs(p[0]) < .1) {
+        const other = legPoint(-side), t = smoothstep(-.1, .1, p[0]);
+        leg = leg.map((v, k) => side < 0 ? mix(v, other[k], t) : mix(other[k], v, t));
+      }
+      const body = torso(p), arm = arms[side](p), weight = armWeight(p);
+      return body.map((v, k) => mix(mix(leg[k], v, smoothstep(1.12, 1.42, p[1])), arm[k], weight));
+    }
+  };
 }
 
 export function strideAdvance(phase, distance, stride = RUN_STRIDE) {
@@ -182,12 +227,16 @@ export function addParkourRun(model, motion, Attribute) {
       motion.rollGround.push({ y: .025 - floor, z: hipZ - (hipY * si + hipZ * co) });
     }
   }
-  const dashNames = [], dashGrips = [];
+  const dashNames = [], dashGrips = [], dashPitches = [];
   for (let i = 0; i <= RUN_SAMPLES; i++) {
     const name = `parkourDash_${String(i).padStart(3, '0')}`;
+    const pose = sprintPose(i === RUN_SAMPLES ? 0 : i / RUN_SAMPLES);
+    const vertices = bodyUnarmed.map(p => pose.vertex(p));
+    const lift = Math.max(0, -Math.min(...vertices.map(p => p[1] + model.position.y)));
     dashNames.push(name); frames.push(name);
-    bodyFrames.push(bodyFrames[i].map((p, k) => dashVertex(p, bodyUnarmed[k])));
-    dashGrips.push(rotateX(grips[i], [0, 1.28, -.045], .18));
+    bodyFrames.push(vertices.map(p => [p[0], p[1] + lift, p[2]]));
+    dashGrips.push([pose.hands.right[0], pose.hands.right[1] + lift, pose.hands.right[2]]);
+    dashPitches.push(pose.pitch);
   }
   for (const mesh of meshes) {
     const geometry = mesh.geometry, base = geometry.attributes.position, matrix = matrices.get(mesh);
@@ -244,9 +293,9 @@ export function addParkourRun(model, motion, Attribute) {
   motion.clips.parkourRun = { frames: frames.slice(0, RUN_SAMPLES + 1), times, duration: .56, source: 'procedural reference run over existing Unity run legs' };
   motion.grips.parkourRun = grips;
   motion.gripPitches = { ...motion.gripPitches, parkourRun: pitches };
-  motion.clips.parkourDash = { frames: dashNames, times: [...times], duration: .56, source: 'boosted forward lean over distance-synchronised run' };
+  motion.clips.parkourDash = { frames: dashNames, times: [...times], duration: .56, source: 'reference sprint: deep lean, arm drive, high knees and folded recovery leg' };
   motion.grips.parkourDash = dashGrips;
-  motion.gripPitches.parkourDash = pitches.map(p => p - .18);
+  motion.gripPitches.parkourDash = dashPitches;
   Object.assign(motion.clips, actionClips); Object.assign(motion.grips, actionGrips);
   motion.hands = { ...motion.hands, ...actionHands };
   return true;

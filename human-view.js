@@ -1,5 +1,5 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE } from './human-running.js?v=20261029-edge-assist-v3';
+import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, RUN_STRIDE, DASH_STRIDE } from './human-running.js?v=20261030-boost-sprint-v1';
 import { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
 import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261029-door-motion-v1';
 const sky = window.__skyInternals;
@@ -202,7 +202,8 @@ function updateMotion(dt, speed) {
   const runTarget = parkourRunEnabled && normalGround && front > speed * .6 && !firing && motion.clips.parkourRun
     ? runningBlend(speed, sky.U.walkSpeed, sky.U.sprintSpeed) : 0;
   runPose += (runTarget - runPose) * (1 - Math.exp(-dt * (firing ? 30 : 16)));
-  if (normalGround && !teleported && speed > .2) gaitPhase = strideAdvance(gaitPhase, distance, speed < sky.U.walkSpeed + .15 ? 1.8 : 3.36);
+  const dashStrength = runTarget > 0 && motion.clips.parkourDash ? Math.max(0, Math.min(1, window.skyDash?.boost || 0)) : 0;
+  if (normalGround && !teleported && speed > .2) gaitPhase = strideAdvance(gaitPhase, distance, speed < sky.U.walkSpeed + .15 ? 1.8 : RUN_STRIDE + (DASH_STRIDE - RUN_STRIDE) * dashStrength);
   if (normalGround && speed > .5) {
     const yaw = Math.atan2(c.vel.x, c.vel.z);
     const angle = yaw - (c.yaw + Math.PI);
@@ -292,14 +293,16 @@ function updateMotion(dt, speed) {
   const fraction = span > .0001 ? (time - info.times[lo]) / span : 0;
   const targets = { [info.frames[lo]]: 1 - fraction };
   targets[info.frames[hi]] = (targets[info.frames[hi]] || 0) + fraction;
-  let runSample = null;
-  const runName = window.skyDash?.boost > .12 && motion.clips.parkourDash ? 'parkourDash' : 'parkourRun';
+  const runSamples = [];
   if (runPose > .0001 && motion.clips.parkourRun) {
-    const run = motion.clips[runName];
-    runSample = sampleClip(run, gaitPhase);
     for (const name of Object.keys(targets)) targets[name] *= 1 - runPose;
-    for (const [index, weight] of [[runSample.lo, 1 - runSample.fraction], [runSample.hi, runSample.fraction]]) {
-      const name = run.frames[index]; targets[name] = (targets[name] || 0) + weight * runPose;
+    for (const [name, weight] of [['parkourRun', 1 - dashStrength], ['parkourDash', dashStrength]]) {
+      if (weight <= 0) continue;
+      const run = motion.clips[name], sample = sampleClip(run, gaitPhase);
+      runSamples.push({ name, weight, ...sample });
+      for (const [index, fraction] of [[sample.lo, 1 - sample.fraction], [sample.hi, sample.fraction]]) {
+        const frame = run.frames[index]; targets[frame] = (targets[frame] || 0) + fraction * weight * runPose;
+      }
     }
   }
   const snap = landingRoll.takeSnap();
@@ -311,12 +314,16 @@ function updateMotion(dt, speed) {
   const a = motion.grips[selected][lo], b = motion.grips[selected][hi];
   blendedGrip.set(a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction, a[2] + (b[2] - a[2]) * fraction);
   let wantedPitch = next === 'wallrun' ? -.65 : 0;
-  if (runSample) {
-    const { lo, hi, fraction } = runSample, grips = motion.grips[runName], pitches = motion.gripPitches[runName];
-    blendedGrip.x += (grips[lo][0] + (grips[hi][0] - grips[lo][0]) * fraction - blendedGrip.x) * runPose;
-    blendedGrip.y += (grips[lo][1] + (grips[hi][1] - grips[lo][1]) * fraction - blendedGrip.y) * runPose;
-    blendedGrip.z += (grips[lo][2] + (grips[hi][2] - grips[lo][2]) * fraction - blendedGrip.z) * runPose;
-    wantedPitch = (pitches[lo] + (pitches[hi] - pitches[lo]) * fraction) * runPose;
+  if (runSamples.length) {
+    const carry = [0, 0, 0];
+    for (const { name, weight, lo, hi, fraction } of runSamples) {
+      const grips = motion.grips[name], pitches = motion.gripPitches[name];
+      for (let k = 0; k < 3; k++) carry[k] += (grips[lo][k] + (grips[hi][k] - grips[lo][k]) * fraction) * weight;
+      wantedPitch += (pitches[lo] + (pitches[hi] - pitches[lo]) * fraction) * weight * runPose;
+    }
+    blendedGrip.x += (carry[0] - blendedGrip.x) * runPose;
+    blendedGrip.y += (carry[1] - blendedGrip.y) * runPose;
+    blendedGrip.z += (carry[2] - blendedGrip.z) * runPose;
   }
   gripPoint.lerp(blendedGrip, smooth);
   gripPitch += (wantedPitch - gripPitch) * smooth;
@@ -336,7 +343,8 @@ function updateMotion(dt, speed) {
   document.body.dataset.skyHumanAction = selected;
   if (selected === 'parkourJump') document.body.dataset.skyHumanJumpPhase = (clipTime / info.duration).toFixed(3);
   document.body.dataset.skyHumanRunBlend = runPose.toFixed(3);
-  document.body.dataset.skyHumanRunClip = runSample ? runName : 'existing';
+  document.body.dataset.skyHumanRunClip = runSamples.length ? dashStrength > .001 ? 'parkourDash' : 'parkourRun' : 'existing';
+  document.body.dataset.skyHumanDashBlend = (runSamples.length ? runPose * dashStrength : 0).toFixed(3);
   document.body.dataset.skyHumanGaitPhase = gaitPhase.toFixed(3);
   document.body.dataset.skyHumanWallSide = wallFrame ? String(wallFrame.side) : '';
   document.body.dataset.skyHumanWallPhase = wallPhase.toFixed(3);
