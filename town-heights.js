@@ -37,6 +37,19 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
     }
   };
 
+  // Keep both storeys walkable at standing height. These cross-lane beams
+  // used to leave only 1-1.3m below them, which looked like solid dead ends
+  // from a third-person camera and stopped slow walking before auto-slide.
+  // Lift only their undersides; preserve the walls, floors and stair landings.
+  for (const b of jn) {
+    if (b.type !== 'beam') continue;
+    const westEast = (b.minX === -13 && b.maxX === -11 || b.minX === 11 && b.maxX === 13) && b.minZ >= -11 && b.maxZ <= 11;
+    const northSouth = (b.minZ === -13 && b.maxZ === -11 || b.minZ === 11 && b.maxZ === 13) && b.minX >= -11 && b.maxX <= 11;
+    if (!(westEast || northSouth)) continue;
+    if (b.minY >= 1 && b.minY <= 1.3 && b.maxY <= 3.6) b.minY = 2.5;
+    else if (b.minY === 5.3 && b.maxY === 7.6) b.minY = 6.5;
+  }
+
   // Central building: break the two long ground-floor lanes into escape loops.
   // Cut collision and rendered geometry together, before the spatial/nav indices
   // are built. The upper wall/floor and the existing door openings stay intact.

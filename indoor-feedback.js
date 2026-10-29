@@ -3,7 +3,7 @@ window.skyZombieCrawlSpeed = (speed, stalker = false) => Math.min(speed * .18, s
 const doorClamp = x => Math.max(0, Math.min(1, x));
 const doorEase = x => { const t = doorClamp(x); return t * t * (3 - 2 * t); };
 window.renderSkyDoorSound = function (kind, rate) {
-  const duration = { open: .5, close: .46, hit: .26, strain: .68, break: 1.08 }[kind];
+  const duration = { open: .22, close: .18, hit: .26, strain: .68, break: 1.08 }[kind];
   if (!duration) throw new Error('Unknown door sound');
   const pcm = new Float32Array(Math.ceil(rate * duration));
   let seed = 3917, low = 0;
@@ -36,11 +36,28 @@ window.createSkyDoorFeedback = function ({ THREE: T, scene, audio, player, zombi
     return p.pos[along] > b[d.axis === 'x' ? 'minZ' : 'minX'] + .2 - margin && p.pos[along] < b[d.axis === 'x' ? 'maxZ' : 'maxX'] - .2 + margin && Math.abs(p.pos.y - b.minY) < .5;
   };
   const overlaps = (p, d) => {
-    const b = d.b;
-    return p.pos.x + p.r + .06 > b.minX && p.pos.x - p.r - .06 < b.maxX && p.pos.z + p.r + .06 > b.minZ && p.pos.z - p.r - .06 < b.maxZ && p.pos.y < b.maxY && p.pos.y + p.h > b.minY;
+    const b = d.b, r = p.r - .002;
+    return p.pos.x + r > b.minX && p.pos.x - r < b.maxX && p.pos.z + r > b.minZ && p.pos.z - r < b.maxZ && p.pos.y < b.maxY && p.pos.y + p.h > b.minY;
   };
-  const inSweep = (p, d) => p.pos.y < d.b.maxY && p.pos.y + p.h > d.b.minY && d.fx.pivots.some(pivot => Math.hypot(p.pos.x - pivot.position.x, p.pos.z - pivot.position.z) < d.fx.span + p.r + .08);
-  const occupied = d => overlaps(player(), d) || inSweep(player(), d) || zombies().some(z => !z.dead && (overlaps(z, d) || inSweep(z, d)));
+  // Distance to the sector swept by each leaf, instead of a full circle
+  // around each hinge. A pursuer outside the doorway must not hold it open.
+  const inSweep = (p, d, from = d.progress, to = 0) => {
+    if (p.pos.y >= d.b.maxY || p.pos.y + p.h <= d.b.minY) return false;
+    return d.fx.pivots.some((pivot, i) => {
+      const x = p.pos.x - pivot.position.x, z = p.pos.z - pivot.position.z;
+      const base = (d.axis === 'x' ? Math.PI / 2 : 0) + (i ? Math.PI : 0);
+      const rotation = (i ? 1 : -1) * d.fx.swingSign * .88;
+      const start = base + rotation * from, end = base + rotation * to;
+      const relative = Math.atan2(Math.sin(Math.atan2(z, x) - start), Math.cos(Math.atan2(z, x) - start));
+      const delta = end - start, radius = p.r + .12 - .002;
+      if (relative >= Math.min(0, delta) && relative <= Math.max(0, delta)) return Math.hypot(x, z) < d.fx.span + radius;
+      return [start, end].some(angle => {
+        const dx = Math.cos(angle), dz = Math.sin(angle), along = Math.max(0, Math.min(d.fx.span, x * dx + z * dz));
+        return Math.hypot(x - dx * along, z - dz * along) < radius;
+      });
+    });
+  };
+  const occupied = (d, from = d.progress, to = 0) => [player(), ...zombies().filter(z => !z.dead)].some(p => overlaps(p, d) || inSweep(p, d, from, to));
 
   function sound(kind, d) {
     const a = audio();
@@ -130,12 +147,12 @@ window.createSkyDoorFeedback = function ({ THREE: T, scene, audio, player, zombi
   }
   function beginHuman(kind, d, side) {
     const p = player(), point = contact(d, side);
-    p.doorAction = { kind, door: d, side, age: 0, duration: kind === 'open' ? .66 : .60, phase: 0, contact: point,
+    p.doorAction = { kind, door: d, side, age: 0, duration: kind === 'open' ? .22 : .16, phase: 0, contact: point,
       leaf: point.leaf, yaw: Math.atan2(point.x - p.pos.x, point.z - p.pos.z), weight: 0 };
-    p.vel.x = p.vel.z = 0;
   }
   function open(d, side, human = true) {
     d.reopening = d.phase === 'closing';
+    if (d.reopening) d.b.off = true;
     d.phase = 'opening'; d.elapsed = 0; d.startProgress = d.progress; d.enterSide = side; d.openAge = 0; d.crossed = false;
     d.fx.swingSign = d.axis === 'x' ? -side : side;
     if (human) beginHuman('open', d, side);
@@ -143,7 +160,10 @@ window.createSkyDoorFeedback = function ({ THREE: T, scene, audio, player, zombi
   }
   function close(d, human = true) {
     if (occupied(d)) return false;
-    d.phase = 'closing'; d.elapsed = 0; d.startProgress = d.progress;
+    d.phase = 'closing'; d.elapsed = 0; d.startProgress = d.progress; d.rearm = false;
+    // The doorway is clear now. Reserve its collision plane immediately so
+    // a pursuer cannot enter during the short closing animation.
+    d.b.off = false;
     if (human) beginHuman('close', d, Math.sign(coordinate(player(), d)) || -d.enterSide);
     return true;
   }
@@ -176,7 +196,7 @@ window.createSkyDoorFeedback = function ({ THREE: T, scene, audio, player, zombi
   function reset(doors) {
     player().doorAction = null;
     doors.forEach((d, i) => {
-      initialize(d, i); Object.assign(d, { phase: 'closed', progress: 0, elapsed: 0, hp: 5, maxHp: 5, hitCD: .35, openAge: 0, enterSide: 0, crossed: false });
+      initialize(d, i); Object.assign(d, { phase: 'closed', progress: 0, elapsed: 0, hp: 5, maxHp: 5, hitCD: .35, openAge: 0, enterSide: 0, crossed: false, rearm: true });
       d.fx.shake = d.fx.elapsed = 0; d.b.off = false; placeLeaf(d);
     });
     for (const f of fragments) { f.life = 0; f.mesh.visible = false; }
@@ -195,7 +215,8 @@ window.createSkyDoorFeedback = function ({ THREE: T, scene, audio, player, zombi
       d.elapsed += dt; d.fx.elapsed += dt; d.fx.shake = Math.max(0, d.fx.shake - dt * 5);
       const dist = coordinate(p, d), side = Math.sign(dist) || d.enterSide || 1;
       if (d.phase === 'closed') {
-        if (!p.doorAction && p.onGround && p.h > 1.2 && !window.skyLandingRoll?.active && p.state === 'normal' && beside(p, d) && Math.abs(dist) <= .55) open(d, side);
+        if (Math.abs(dist) > 1.2 || !beside(p, d, .2) || p.vel[d.axis] * side < -.15) d.rearm = true;
+        if (d.rearm && !p.doorAction && p.onGround && p.h > 1.2 && !window.skyLandingRoll?.active && p.state === 'normal' && beside(p, d) && Math.abs(dist) <= 1.1) open(d, side);
         else {
           const attackers = enemies.filter(z => !z.dead && z.spawnT <= 0 && z.stun <= 0 && Math.abs(z.pos.y - d.b.minY) < 1.2 && Math.hypot(Math.max(d.b.minX-z.pos.x,0,z.pos.x-d.b.maxX),Math.max(d.b.minZ-z.pos.z,0,z.pos.z-d.b.maxZ)) < 1.25);
           if (attackers.length) {
@@ -207,25 +228,26 @@ window.createSkyDoorFeedback = function ({ THREE: T, scene, audio, player, zombi
           }
         }
       } else if (d.phase === 'opening') {
-        d.progress = d.startProgress + (1 - d.startProgress) * doorEase((d.elapsed - .12) / .40);
-        d.b.off = d.reopening || d.progress > .92;
-        if (d.elapsed >= .56) { d.phase = 'open'; d.progress = 1; d.b.off = true; d.openAge = 0; }
+        d.progress = d.startProgress + (1 - d.startProgress) * doorEase(d.elapsed / .18);
+        d.b.off = d.reopening || d.progress > .82;
+        if (d.elapsed >= .18) { d.phase = 'open'; d.progress = 1; d.b.off = true; d.openAge = 0; }
       } else if (d.phase === 'open') {
         d.openAge += dt;
-        if (beside(p, d) && side !== d.enterSide && Math.abs(dist) > 1.35) d.crossed = true;
-        if (!p.doorAction && !occupied(d)) {
-          if (d.crossed && beside(p, d, .15) && Math.abs(dist) < 1.8 && p.onGround && p.state === 'normal') close(d, true);
-          else if (d.openAge > 1.5 && (!beside(p, d, .4) || Math.abs(dist) > 2.2)) close(d, false);
+        if (beside(p, d) && side !== d.enterSide && Math.abs(dist) > p.r + .12 + .08) d.crossed = true;
+        if (!p.doorAction) {
+          if (d.crossed) close(d, p.onGround && p.state === 'normal' && beside(p, d, .15) && Math.abs(dist) < 1.8);
+          else if (d.openAge > .6 && (!beside(p, d, .4) || Math.abs(dist) > 2.2)) close(d, false);
         }
       } else if (d.phase === 'closing') {
-        if (occupied(d)) {
+        const next = d.startProgress * (1 - doorEase(d.elapsed / .16));
+        if (occupied(d, d.progress, next)) {
           if (p.doorAction?.door === d) p.doorAction = null;
-          // Reverse smoothly from the current angle; never close on a capsule.
+          // Reverse only for a body actually in the doorway or leaf sweep.
           open(d, d.enterSide, false);
         } else {
-          d.progress = d.startProgress * (1 - doorEase((d.elapsed - .10) / .38));
-          d.b.off = true;
-          if (d.elapsed >= .50) { d.phase = 'closed'; d.progress = 0; d.b.off = false; d.hitCD = .3; sound('close', d); }
+          d.progress = next;
+          d.b.off = false;
+          if (d.elapsed >= .16) { d.phase = 'closed'; d.progress = 0; d.b.off = false; d.hitCD = .3; sound('close', d); }
         }
       }
       placeLeaf(d);
