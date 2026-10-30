@@ -38,10 +38,10 @@ class Visual{
   const listeners={};global.addEventListener=(name,fn)=>(listeners[name]??=[]).push(fn);
   global.document={body:{dataset:{},appendChild(){}},head:{appendChild(){}},getElementById(){return null},querySelector(){return null},createElement(){return{style:{setProperty(){}},dataset:{},getContext(){return{fillRect(){},strokeRect(){},fillText(){}}}}}};
   global.window={skyTelemetryProbe:{jumpAccepted(){}}};
-  function probe(id,{grip=true,angle=.65,offset=0,brake=true}={}){
+  function probe(id,{grip=true,angle=.65,offset=0,brake=true,speed=6}={}){
     const route=map.course.routes.find(r=>r.id===id),bar=map.course.bars.find(b=>b.route===id);
-    const x=id==='south-corner'?-3.75:-.55,z=bar.at[2]+offset;
-    const c={pos:new Vec(x,4.0001,z),vel:new Vec(-6,7.2,0),r:.32,h:1.75,state:'normal',onGround:false};
+    const x=id==='south-corner'?-3.75:speed<4?-2.85:-.55,z=bar.at[2]+offset;
+    const c={pos:new Vec(x,4.0001,z),vel:new Vec(-speed,7.2,0),r:.32,h:1.75,state:'normal',onGround:false};
     const game={stats:{},RL:{events:[]}},clock={t:0,over:false},U={gravity:20,jumpVel:7.2};
     const sky={c,U,z:clock,Geom:{Group:Visual,Standard:Visual,Cylinder:Visual,Mesh:Visual,Vector3:Vec,Box:Visual,Torus:Visual,Sprite:Visual,SpriteMaterial:Visual,CanvasTexture:Visual},ue:{add(){}},oe:free,modeRef:()=> 'play',Tt:{}};
     const swing=createSwing(sky,game,{...map.course,bars:grip?[bar]:[],supports:[],arrows:[]});
@@ -67,12 +67,12 @@ class Visual{
       if(!free(c.pos.x,c.pos.y+.03,c.pos.z)){collision={at:c.pos.toArray(),state:c.state};break;}
       if(c.pos.y<-22)break;
     }
-    return{id,grip,angle,offset,grabs:game.stats.barGrabs||0,released,land,collision,maxY};
+    return{id,grip,angle,offset,speed,grabs:game.stats.barGrabs||0,released,land,collision,maxY};
   }
   const results=[];
   for(const id of ['south-corner','north-corner']){
-    for(const angle of [.55,.65,.8])for(const offset of [-.35,0,.35]){
-      const r=probe(id,{angle,offset});results.push(r);
+    for(const speed of [2.5,6])for(const angle of [.55,.65,.8])for(const offset of [-.35,0,.35]){
+      const r=probe(id,{angle,offset,speed});results.push(r);
       assert.equal(r.collision,null,JSON.stringify(r));assert.equal(r.grabs,1,JSON.stringify(r));
       assert.ok(r.land&&Math.abs(r.land[1]-4.2)<.01&&r.land[0]<-14,JSON.stringify(r));
     }
@@ -97,5 +97,5 @@ class Visual{
   for(const ladder of map.ladders.filter(l=>l.x===-14&&l.z===-5.5))
     for(let y=0;y<7.5;y+=.25)assert.ok(free(-14.55,y+.03,-5.5,.25,1.75),'west roof ladder clearance');
   for(let y=0;y<7.5;y+=.1)assert.ok(free(0,y+.03,-14.54,.32,1.75),'north roof ladder clearance');
-  console.log(JSON.stringify({checks:'18 swing trajectories, no-grip comparison, sampled standing returns, existing bars/ladder',results},null,2));
+  console.log(JSON.stringify({checks:'36 swing trajectories, including slow takeoffs, no-grip comparison, sampled standing returns, existing bars/ladder',results},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1});

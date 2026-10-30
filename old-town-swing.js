@@ -130,7 +130,7 @@
     // a continuous bridge, take the player onto the west-face ledges.
     box('south-corner-launch',[-4.3,3.7,16.4],[-3,4,17.8]);
     // The roof ladder climbs at (0,-14.54). Its entire shaft stays clear.
-    box('north-corner-launch',[-1.1,3.7,-16.7],[.5,4,-15.1]);
+    box('north-corner-launch',[-3.4,3.7,-16.7],[.5,4,-15.1]);
     box('south-corner-ledge',[-17.4,3.9,13],[-14.05,4.2,17.8]);
     box('north-corner-ledge',[-17.4,3.9,-17.4],[-14.05,4.2,-13]);
     // Both corners have a slower walkable return to the existing west street.
@@ -155,7 +155,7 @@
       strut([-14,2.6,z],[-17.1,3.9,z]);
     }
     // Suspend the grips from the facade without blocking the body arc.
-    for(const [x,z] of [[-8.6,17],[-5.7,-15.5]])for(const side of [-1,1]) {
+    for(const [x,z] of [[-6.7,17],[-6.2,-15.5]])for(const side of [-1,1]) {
       const end=[x,6.8,z+side*1.45],mount=[x,8.4,z+side*1.45];
       strut(end,mount);strut(mount,[x,8.4,z>0?14:-14]);
     }
@@ -173,8 +173,8 @@
       {id:'oldtown-east-bar-2',at:[32,8.4,1.5],direction:[1,0],width:2.6,route:'east'},
       {id:'oldtown-east-bar-3',at:[39.5,9.2,1.5],direction:[1,0],width:2.6,route:'east',exitHint:'外側に着地 → 南屋根のフック / 北の屋上'},
       {id:'oldtown-east-pillar-bar',at:pillarBar,direction:[1/Math.sqrt(5),-2/Math.sqrt(5)],width:2.6,route:'east-pillar',exitHint:'北西の縁へ / 離脱後は逆入力で減速'},
-      {id:'oldtown-south-corner-bar',at:[-8.6,6.8,17],direction:[-1,0],width:2.6,route:'south-corner',exitHint:'西の角の縁へ → 既存の屋根フック / 西の通り'},
-      {id:'oldtown-north-corner-bar',at:[-5.7,6.8,-15.5],direction:[-1,0],width:2.6,route:'north-corner',exitHint:'北西の角の縁へ → 西の通り / 屋根フック'},
+      {id:'oldtown-south-corner-bar',at:[-6.7,6.8,17],direction:[-1,0],width:2.6,route:'south-corner',exitHint:'西の角の縁へ → 既存の屋根フック / 西の通り'},
+      {id:'oldtown-north-corner-bar',at:[-6.2,6.8,-15.5],direction:[-1,0],width:2.6,route:'north-corner',exitHint:'北西の角の縁へ → 西の通り / 屋根フック'},
     ];
     const routes=[
       {id:'high',name:'② 北柱→南の空中分岐',approach:[-43.6,14.4,-6.5],pursuitStart:[-45.8,14.4,-6.5],yaw:Math.PI,exit:[-43.6,15,6],
