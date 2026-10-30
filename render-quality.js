@@ -2,7 +2,7 @@
 (() => {
   const storage = 'gunrun-render-quality-v1';
   const presets = {
-    performance: { name: '軽量（推奨）', cap: .8, shadows: false, shadowSize: 512, description: '影を省き、3D描画の細かさを下げて軽くします。文字と操作はそのままです。' },
+    performance: { name: '軽量（推奨）', cap: .7, shadows: false, shadowSize: 512, description: '影を省き、3D描画の細かさを抑えて軽くします。文字と操作はそのままです。' },
     balanced: { name: '標準', cap: 1, shadows: true, shadowSize: 1024, description: '3D描画の細かさを抑え、影を表示します。' },
     high: { name: '高画質', cap: Infinity, shadows: true, shadowSize: null, description: '従来の細かさと影を使います。動作が重いときは軽量を選んでください。' },
   };

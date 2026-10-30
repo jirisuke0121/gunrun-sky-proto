@@ -10,6 +10,8 @@ const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').ma
 const visualSmooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const hipOffset = new Vector3();
 const aimInverse = camera.matrixWorld.clone();
+const morphBindings = new WeakMap();
+let morphBindingBuilds = 0;
 const landingRoll = window.skyLandingRoll = createLandingRoll(sky);
 const choiceButtons = [...document.querySelectorAll('#humanSel button')];
 const status = document.getElementById('humanStatus');
@@ -333,7 +335,17 @@ function updateMotion(dt, speed) {
   const smooth = ledgeAction || rolling || snap || plantedRun ? 1 : 1 - Math.exp(-dt * 18);
   for (const mesh of morphMeshes) {
     const weights = mesh.morphTargetInfluences, names = mesh.morphTargetDictionary;
-    for (const [name, index] of Object.entries(names)) weights[index] += ((targets[name] || 0) - weights[index]) * smooth;
+    // Morph names are fixed for a loaded geometry. Avoid rebuilding hundreds
+    // of entry arrays on every animation update; refresh after a rig change.
+    let binding = morphBindings.get(mesh);
+    if (!binding || binding.dictionary !== names || binding.length !== weights.length) {
+      binding = { dictionary: names, length: weights.length, entries: Object.entries(names) };
+      morphBindings.set(mesh, binding); morphBindingBuilds++;
+    }
+    for (let i = 0; i < binding.entries.length; i++) {
+      const entry = binding.entries[i], index = entry[1];
+      weights[index] += ((targets[entry[0]] || 0) - weights[index]) * smooth;
+    }
   }
   const a = motion.grips[selected][lo], b = motion.grips[selected][hi];
   blendedGrip.set(a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction, a[2] + (b[2] - a[2]) * fraction);
@@ -644,6 +656,8 @@ function createDecoyAvatar(color = 0xff68e2) {
 }
 window.skyHumanView = { update, select, getMuzzleWorld, prepareShot, createDecoyAvatar,
   get aimWork() { return aimRig?.work || null; },
+  get morphBindingWork() { return { revision: 'dictionary-cache-v1', builds: morphBindingBuilds,
+    meshes: morphMeshes.length, entries: morphMeshes.reduce((sum, mesh) => sum + (morphBindings.get(mesh)?.entries.length || 0), 0) }; },
   get canAimBehind() { return canAimBehind(); },
   autoAimReady(target) {
     // Automatic fire waits for the body to unfold. A deliberate shot can still

@@ -1,0 +1,1536 @@
+{
+  "date": "2026-10-31",
+  "scope": {
+    "userDecision": "今回は実装と動作確認まで進める",
+    "finalFpsComparisonAccepted": false,
+    "iPhoneVerified": false,
+    "published": false
+  },
+  "changes": {
+    "performancePixelRatioCap": {
+      "before": 0.8,
+      "after": 0.7,
+      "exampleCss": [
+        1200,
+        762
+      ],
+      "bufferBefore": [
+        960,
+        609
+      ],
+      "bufferAfter": [
+        840,
+        533
+      ],
+      "pixelsBefore": 584640,
+      "pixelsAfter": 447720,
+      "pixelReductionPct": 23.4195
+    },
+    "morphBindings": {
+      "meshes": 7,
+      "dictionaryPairs": 1792,
+      "objectEntriesArraysPerUpdateBefore": 1799,
+      "dictionaryBuildsPerModel": 7,
+      "revision": "dictionary-cache-v1",
+      "invalidatesOn": [
+        "dictionary identity change",
+        "influence array length change"
+      ]
+    }
+  },
+  "poseComparison": [
+    {
+      "map": "index",
+      "pose": "idle",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "index",
+      "pose": "run",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "index",
+      "pose": "walk",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "index",
+      "pose": "jump",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "index",
+      "pose": "slide",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "index",
+      "pose": "shot",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "index",
+      "pose": "aim-up",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "index",
+      "pose": "aim-down",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "canyon",
+      "pose": "idle",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "canyon",
+      "pose": "run",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "canyon",
+      "pose": "walk",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "canyon",
+      "pose": "jump",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "canyon",
+      "pose": "slide",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "canyon",
+      "pose": "shot",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "canyon",
+      "pose": "aim-up",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    },
+    {
+      "map": "canyon",
+      "pose": "aim-down",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitExact": true,
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "bindingWork": {
+        "revision": "dictionary-cache-v1",
+        "builds": 7,
+        "meshes": 7,
+        "entries": 1792
+      }
+    }
+  ],
+  "qualityFixtureChecks": [
+    {
+      "label": "軽量",
+      "map": "index.html",
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "homeValue": "performance",
+      "settingsValue": "performance",
+      "css": [
+        1200,
+        534
+      ],
+      "mode": "menu",
+      "time": 0,
+      "count": 5
+    },
+    {
+      "label": "標準",
+      "map": "index.html",
+      "quality": {
+        "mode": "balanced",
+        "pixelRatio": 1,
+        "nativePixelRatio": 2,
+        "buffer": [
+          1200,
+          533
+        ],
+        "shadows": true
+      },
+      "homeValue": "balanced",
+      "settingsValue": "balanced",
+      "css": [
+        1200,
+        534
+      ],
+      "mode": "menu",
+      "time": 0,
+      "count": 5
+    },
+    {
+      "label": "高画質",
+      "map": "index.html",
+      "quality": {
+        "mode": "high",
+        "pixelRatio": 2,
+        "nativePixelRatio": 2,
+        "buffer": [
+          2400,
+          1066
+        ],
+        "shadows": true
+      },
+      "homeValue": "high",
+      "settingsValue": "high",
+      "css": [
+        1200,
+        534
+      ],
+      "mode": "menu",
+      "time": 0,
+      "count": 5
+    },
+    {
+      "label": "マップ移動後",
+      "map": "canyon.html",
+      "quality": {
+        "mode": "high",
+        "pixelRatio": 2,
+        "nativePixelRatio": 2,
+        "buffer": [
+          2400,
+          1066
+        ],
+        "shadows": true
+      },
+      "homeValue": "high",
+      "settingsValue": "high",
+      "css": [
+        1200,
+        534
+      ],
+      "mode": "menu",
+      "time": 0,
+      "count": 2
+    },
+    {
+      "label": "初期値へ戻す",
+      "map": "canyon.html",
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "homeValue": "performance",
+      "settingsValue": "performance",
+      "css": [
+        1200,
+        534
+      ],
+      "mode": "menu",
+      "time": 0,
+      "count": 2
+    },
+    {
+      "label": "マップ移動後",
+      "map": "index.html",
+      "quality": {
+        "mode": "performance",
+        "pixelRatio": 0.7,
+        "nativePixelRatio": 2,
+        "buffer": [
+          840,
+          373
+        ],
+        "shadows": false
+      },
+      "homeValue": "performance",
+      "settingsValue": "performance",
+      "css": [
+        1200,
+        534
+      ],
+      "mode": "menu",
+      "time": 0,
+      "count": 5
+    }
+  ],
+  "realPageQualityChecks": [
+    {
+      "bodyMode": "performance",
+      "buffer": [
+        840,
+        533
+      ],
+      "css": [
+        1200,
+        762
+      ],
+      "description": "影を省き、3D描画の細かさを抑えて軽くします。文字と操作はそのままです。",
+      "mode": "performance",
+      "label": "旧市街・軽量"
+    },
+    {
+      "bodyMode": "balanced",
+      "buffer": [
+        1200,
+        762
+      ],
+      "css": [
+        1200,
+        762
+      ],
+      "description": "3D描画の細かさを抑え、影を表示します。",
+      "mode": "balanced",
+      "label": "旧市街・標準"
+    },
+    {
+      "bodyMode": "high",
+      "buffer": [
+        2400,
+        1524
+      ],
+      "css": [
+        1200,
+        762
+      ],
+      "description": "従来の細かさと影を使います。動作が重いときは軽量を選んでください。",
+      "mode": "high",
+      "label": "旧市街・高画質"
+    },
+    {
+      "bodyMode": "high",
+      "buffer": [
+        2400,
+        1524
+      ],
+      "css": [
+        1200,
+        762
+      ],
+      "description": "従来の細かさと影を使います。動作が重いときは軽量を選んでください。",
+      "mode": "high",
+      "label": "渓谷・高画質の保存"
+    },
+    {
+      "bodyMode": "performance",
+      "buffer": [
+        840,
+        533
+      ],
+      "css": [
+        1200,
+        762
+      ],
+      "description": "影を省き、3D描画の細かさを抑えて軽くします。文字と操作はそのままです。",
+      "mode": "performance",
+      "label": "渓谷・軽量"
+    },
+    {
+      "bodyMode": "performance",
+      "buffer": [
+        840,
+        533
+      ],
+      "css": [
+        1200,
+        762
+      ],
+      "description": "影を省き、3D描画の細かさを抑えて軽くします。文字と操作はそのままです。",
+      "mode": "performance",
+      "label": "旧市街・軽量の保存"
+    }
+  ],
+  "sourceHashes": {
+    "human-view.js": "c734ce964cbf52a7aff190bc4b28ae0d0a4758603e83c2f1003429fb79bf2738",
+    "human-aim.js": "786d5c4cbb39932cdc8082673a18bb53c1a252ac00de0b5aaf9241a57725d478",
+    "render-quality.js": "36b9bcde59eeeea8b8bd6452d31ce3f1d524b0da9db44c5a9f7f7bb9cfc7892c",
+    "world-batching.js": "cc727a01898117a706330c7a8769d46d12191e3feed62b4c92ce96e53c70bfb1",
+    "index.html": "0069ea7226db7ed22d532efa1fdd4fa8a9cd16cc00667bd1a912cec1703c7eb8",
+    "canyon.html": "320b9a83c10215a5990bd6b724ec7476b8db814307687ec679c769d0892d0078",
+    "bench/crowd-performance.js": "181f28e08a7d9471ac9e8f07aabddb750c046210d946b558b529b75e17c4e199",
+    "bench/crowd-performance.html": "7f3981aae9ce2f2348bef0b89cf587de463d2b4503dbefc1510af607baf65ecc",
+    "challenge-difficulty.js": "adb1712fefa6488963133c23af252861f8987d5bceea96d2fecf08ebb89537dd"
+  },
+  "preliminaryTiming": [
+    {
+      "archive": "01-baseline",
+      "createdAt": "2026-10-30T21:31:00.145Z",
+      "schema": 3,
+      "build": "baseline",
+      "variant": "production",
+      "profiled": true,
+      "chaseSeconds": 0.8,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 49.897,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "4fa0c515fb34fed5cb681f9ea33fbb0a355800d4910dcd99ec69af452dd7fdf2"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 52.585,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "4fa0c515fb34fed5cb681f9ea33fbb0a355800d4910dcd99ec69af452dd7fdf2"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 125.176,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "f643902f10de61fa5fbe07eab94d254bf9690db4a91e85a72c4380d226d49aee"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 124.788,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "f643902f10de61fa5fbe07eab94d254bf9690db4a91e85a72c4380d226d49aee"
+        }
+      ]
+    },
+    {
+      "archive": "02-current",
+      "createdAt": "2026-10-30T21:35:30.221Z",
+      "schema": 3,
+      "build": "current",
+      "variant": "production",
+      "profiled": true,
+      "chaseSeconds": 0.8,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 56.367,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 46.955,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 83.896,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 82.685,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        }
+      ]
+    },
+    {
+      "archive": "03-current-fresh",
+      "createdAt": "2026-10-30T21:37:57.783Z",
+      "schema": 3,
+      "build": "current",
+      "variant": "production",
+      "profiled": true,
+      "chaseSeconds": 0.8,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 50.097,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 47.141,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 102.463,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 96.08,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        }
+      ]
+    },
+    {
+      "archive": "04-baseline-fresh",
+      "createdAt": "2026-10-30T21:40:42.818Z",
+      "schema": 3,
+      "build": "baseline",
+      "variant": "production",
+      "profiled": true,
+      "chaseSeconds": 0.8,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 53.028,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "4fa0c515fb34fed5cb681f9ea33fbb0a355800d4910dcd99ec69af452dd7fdf2"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 51.141,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "4fa0c515fb34fed5cb681f9ea33fbb0a355800d4910dcd99ec69af452dd7fdf2"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 86.292,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "f643902f10de61fa5fbe07eab94d254bf9690db4a91e85a72c4380d226d49aee"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 81.97,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "f643902f10de61fa5fbe07eab94d254bf9690db4a91e85a72c4380d226d49aee"
+        }
+      ]
+    },
+    {
+      "archive": "05-noaim-canyon",
+      "createdAt": "2026-10-30T21:44:02.896Z",
+      "schema": 3,
+      "build": "noaim",
+      "variant": "production",
+      "profiled": true,
+      "chaseSeconds": 0.8,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 98.873,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 93.219,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": null,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        }
+      ]
+    },
+    {
+      "archive": "06-pure-baseline",
+      "createdAt": "2026-10-30T21:50:25.298Z",
+      "schema": 4,
+      "build": "baseline",
+      "variant": "production",
+      "profiled": false,
+      "chaseSeconds": 0.8,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 47.01,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "4fa0c515fb34fed5cb681f9ea33fbb0a355800d4910dcd99ec69af452dd7fdf2"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 45.395,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "4fa0c515fb34fed5cb681f9ea33fbb0a355800d4910dcd99ec69af452dd7fdf2"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 96.723,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "f643902f10de61fa5fbe07eab94d254bf9690db4a91e85a72c4380d226d49aee"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 92.651,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "f643902f10de61fa5fbe07eab94d254bf9690db4a91e85a72c4380d226d49aee"
+        }
+      ]
+    },
+    {
+      "archive": "07-pure-current",
+      "createdAt": "2026-10-30T21:53:05.913Z",
+      "schema": 4,
+      "build": "current",
+      "variant": "production",
+      "profiled": false,
+      "chaseSeconds": 0.8,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 56.613,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 53.88,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 103.35,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 96.225,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        }
+      ]
+    },
+    {
+      "archive": "08-pure-current",
+      "createdAt": "2026-10-30T21:55:33.911Z",
+      "schema": 4,
+      "build": "current",
+      "variant": "production",
+      "profiled": false,
+      "chaseSeconds": 0.8,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 55.287,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 54.42,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 101.405,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 95.789,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        }
+      ]
+    },
+    {
+      "archive": "09-pure-baseline",
+      "createdAt": "2026-10-30T21:57:03.223Z",
+      "schema": 4,
+      "build": "baseline",
+      "variant": "production",
+      "profiled": false,
+      "chaseSeconds": 0.8,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 28.726,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "4fa0c515fb34fed5cb681f9ea33fbb0a355800d4910dcd99ec69af452dd7fdf2"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 14.557,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "4fa0c515fb34fed5cb681f9ea33fbb0a355800d4910dcd99ec69af452dd7fdf2"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 39.075,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "f643902f10de61fa5fbe07eab94d254bf9690db4a91e85a72c4380d226d49aee"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 45.543,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "f643902f10de61fa5fbe07eab94d254bf9690db4a91e85a72c4380d226d49aee"
+        }
+      ]
+    },
+    {
+      "archive": "10-fresh-current-08",
+      "createdAt": "2026-10-30T22:00:44.044Z",
+      "schema": 4,
+      "build": "current",
+      "variant": "production",
+      "profiled": false,
+      "chaseSeconds": 0.8,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 41.499,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 39.218,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 120.759,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 120.777,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        }
+      ]
+    },
+    {
+      "archive": "11-fresh-current-07",
+      "createdAt": "2026-10-30T22:05:07.579Z",
+      "schema": 4,
+      "build": "current",
+      "variant": "pixel-0.7",
+      "profiled": false,
+      "chaseSeconds": 0.8,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 64.169,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            840,
+            533
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 62.264,
+          "geometryAndFocusValid": false,
+          "allVisiblePct": 97.588,
+          "focusedPct": 100,
+          "buffer": [
+            840,
+            533
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 129.564,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            840,
+            533
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 130.192,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            840,
+            533
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        }
+      ]
+    },
+    {
+      "archive": "12-fresh-baseline-06chase",
+      "createdAt": "2026-10-30T22:09:29.935Z",
+      "schema": 5,
+      "build": "baseline",
+      "variant": "production",
+      "profiled": false,
+      "chaseSeconds": 0.6,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 25.103,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "4fa0c515fb34fed5cb681f9ea33fbb0a355800d4910dcd99ec69af452dd7fdf2"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 26.188,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "4fa0c515fb34fed5cb681f9ea33fbb0a355800d4910dcd99ec69af452dd7fdf2"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 38.443,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "f643902f10de61fa5fbe07eab94d254bf9690db4a91e85a72c4380d226d49aee"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 34.654,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "f643902f10de61fa5fbe07eab94d254bf9690db4a91e85a72c4380d226d49aee"
+        }
+      ]
+    },
+    {
+      "archive": "13-fresh-current-07-06chase",
+      "createdAt": "2026-10-30T22:13:23.897Z",
+      "schema": 5,
+      "build": "current",
+      "variant": "pixel-0.7",
+      "profiled": false,
+      "chaseSeconds": 0.6,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 31.262,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            840,
+            533
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 30.756,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            840,
+            533
+          ],
+          "htmlHash": "86e6da4361ec85bc3a2ab3690f1f81c2b1466998575596e015adbc14b82b8362"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 42.589,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            840,
+            533
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 37.697,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            840,
+            533
+          ],
+          "htmlHash": "305f6daa95172021a228fe10c96a44b8da62fb214bdba72d284aab8a4758a09d"
+        }
+      ]
+    },
+    {
+      "archive": "14-production-cached-07",
+      "createdAt": "2026-10-30T22:28:58.530Z",
+      "schema": 5,
+      "build": "current",
+      "variant": "production",
+      "profiled": false,
+      "chaseSeconds": 0.6,
+      "acceptedForFinalFpsComparison": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "fps": 11.74,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            840,
+            533
+          ],
+          "htmlHash": "0069ea7226db7ed22d532efa1fdd4fa8a9cd16cc00667bd1a912cec1703c7eb8"
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "fps": 11.406,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            840,
+            533
+          ],
+          "htmlHash": "0069ea7226db7ed22d532efa1fdd4fa8a9cd16cc00667bd1a912cec1703c7eb8"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "fps": 13.837,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            840,
+            533
+          ],
+          "htmlHash": "320b9a83c10215a5990bd6b724ec7476b8db814307687ec679c769d0892d0078"
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "fps": 13.691,
+          "geometryAndFocusValid": true,
+          "allVisiblePct": 100,
+          "focusedPct": 100,
+          "buffer": [
+            840,
+            533
+          ],
+          "htmlHash": "320b9a83c10215a5990bd6b724ec7476b8db814307687ec679c769d0892d0078"
+        }
+      ]
+    }
+  ]
+}
