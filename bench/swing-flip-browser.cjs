@@ -135,10 +135,11 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
             return getComputedStyle(e).display !== 'none' && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top;
           });
           return { x:r.x, y:r.y, width:r.width, height:r.height, vw:innerWidth, vh:innerHeight, overlaps,
+            underLife: document.getElementById('dashStatus').previousElementSibling?.classList.contains('life'),
             text: document.getElementById('dashStatus').textContent, hidden: document.getElementById('dashStatus').hidden };
         });
         assert.ok(!layout.hidden && layout.x >= 0 && layout.y >= 0 && layout.x + layout.width <= layout.vw && layout.y + layout.height <= layout.vh, JSON.stringify(layout));
-        assert.deepEqual(layout.overlaps, []); await p.screenshot({ path: `${out}/${id}-${name}.png` }); return layout;
+        assert.deepEqual(layout.overlaps, []); assert.ok(layout.underLife); assert.match(layout.text, /^速度 \+\d+% ↑$/); await p.screenshot({ path: `${out}/${id}-${name}.png` }); return layout;
       };
       const layouts = [await statusLayout('speed-status')];
       if (touch) { await p.setViewportSize({width:390,height:844}); await p.waitForTimeout(150); layouts.push(await statusLayout('speed-status-portrait')); }
