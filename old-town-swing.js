@@ -125,6 +125,41 @@
     // The original straight three-bar lane at z1.5 remains open.
     box('east-pillar-recovery',[21.5,-1.4,-1.45],[34,-1.1,2.6]);
 
+    // The two central-building corners are optional escapes from the upper
+    // south landing and north balcony. Keep real gaps: the bars, rather than
+    // a continuous bridge, take the player onto the west-face ledges.
+    box('south-corner-launch',[-4.3,3.7,16.4],[-3,4,17.8]);
+    // The roof ladder climbs at (0,-14.54). Its entire shaft stays clear.
+    box('north-corner-launch',[-3.4,3.7,-16.7],[.5,4,-15.1]);
+    box('south-corner-ledge',[-17.4,3.9,13],[-14.05,4.2,17.8]);
+    box('north-corner-ledge',[-17.4,3.9,-17.4],[-14.05,4.2,-13]);
+    // Both corners have a slower walkable return to the existing west street.
+    // These stairs stay behind the landing, out of the bar's flight lane;
+    // pursuers can reach the ledges without crossing either aerial shortcut.
+    for(let i=0;i<14;i++) {
+      const top=4.2-i*.3;
+      box('south-corner-return-'+i,[-15.8,-.3,13-(i+1)*.4],[-14.2,top,13-i*.4],'slab',0xe39a4a);
+      box('north-corner-return-'+i,[-17.4,-.3,-13+i*.4],[-15.6,top,-13+(i+1)*.4],'slab',0xe39a4a);
+    }
+    // The last treads overlap the old ground floor; no unsupported final step.
+    box('south-corner-foot',[-15.8,-.3,7.1],[-14.2,0,7.8]);
+    box('north-corner-foot',[-17.4,-.3,-7.8],[-15.6,0,-7.1]);
+    // The north gap used to have no floor. A miss costs height, with a lower
+    // route back to the street instead of a forced fall into the void.
+    box('north-corner-recovery',[-19.5,-3.8,-17.4],[1,-3.5,-14]);
+    for(let i=0;i<10;i++) {
+      const z=-14+i*.65,top=-3.5+(i+1)*.35;
+      box('north-corner-recovery-stair-'+i,[-19.5,-3.8,z],[-17.7,top,z+.65],'slab',0xe39a4a);
+    }
+    for(const z of [-16.7,-13.7,13.7,17.1]) {
+      strut([-14,2.6,z],[-17.1,3.9,z]);
+    }
+    // Suspend the grips from the facade without blocking the body arc.
+    for(const [x,z] of [[-6.7,17],[-6.2,-15.5]])for(const side of [-1,1]) {
+      const end=[x,6.8,z+side*1.45],mount=[x,8.4,z+side*1.45];
+      strut(end,mount);strut(mount,[x,8.4,z>0?14:-14]);
+    }
+
     // Local turning space and a lower return, without filling the 4m jump.
     box('south-bridge-turn',[20.8,-.35,22.8],[23.2,0,25.2]);
     box('south-bridge-launch',[34.7,-.35,20],[37.3,0,22]);
@@ -138,6 +173,8 @@
       {id:'oldtown-east-bar-2',at:[32,8.4,1.5],direction:[1,0],width:2.6,route:'east'},
       {id:'oldtown-east-bar-3',at:[39.5,9.2,1.5],direction:[1,0],width:2.6,route:'east',exitHint:'外側に着地 → 南屋根のフック / 北の屋上'},
       {id:'oldtown-east-pillar-bar',at:pillarBar,direction:[1/Math.sqrt(5),-2/Math.sqrt(5)],width:2.6,route:'east-pillar',exitHint:'北西の縁へ / 離脱後は逆入力で減速'},
+      {id:'oldtown-south-corner-bar',at:[-6.7,6.8,17],direction:[-1,0],width:2.6,route:'south-corner',exitHint:'西の角の縁へ → 既存の屋根フック / 西の通り'},
+      {id:'oldtown-north-corner-bar',at:[-6.2,6.8,-15.5],direction:[-1,0],width:2.6,route:'north-corner',exitHint:'北西の角の縁へ → 西の通り / 屋根フック'},
     ];
     const routes=[
       {id:'high',name:'② 北柱→南の空中分岐',approach:[-43.6,14.4,-6.5],pursuitStart:[-45.8,14.4,-6.5],yaw:Math.PI,exit:[-43.6,15,6],
@@ -154,11 +191,19 @@
        escape:[[38.8,7.4,-13.9],[30.8,7.4,-13.9],[30.8,7.4,-12.6],[36.4,3.4,-13],[38.5,0,-13]],
        alternate:[[38.8,7.4,-11.7],[39.46,7.4,-11],[39.46,14.4,-11],[43,14.4,-11]],
        returnVia:[36.5,3.4,-13],fallback:[33,-1.1,0],sharedBars:['oldtown-east-bar-1']},
+      {id:'south-corner',name:'⑤ 南の踊り場→鉄棒→西の角',approach:[-2,4,17],yaw:Math.PI/2,exit:[-15.5,4.2,17],
+       escape:[[-15,4.2,13.4],[-15,2.1,10.4],[-15,0,7.2],[-15,0,-1]],
+       returnVia:[-15,0,7.2],fallback:[-10,0,16]},
+      {id:'north-corner',name:'⑥ 北バルコニー→鉄棒→北西の角',approach:[2,4,-15.5],yaw:Math.PI/2,exit:[-15.5,4.2,-15.5],
+       escape:[[-16.5,4.2,-13.3],[-16.5,2.1,-10.4],[-16.5,0,-7.2],[-20,0,-5]],
+       returnVia:[-16.5,0,-7.2],fallback:[-10,-3.5,-15.5]},
     ];
     window.skyOldTownSwingCourse={id:'oldtown-swing-escape-v1',oldTown:true,name:'旧市街の鉄棒と逃走分岐',bars,routes,supports,
       approach:routes[0].approach,approachYaw:routes[0].yaw,pad:routes[0].approach,exit:routes[0].exit,
-      signs:[],arrows:[{at:[31.5,7.025,-.65],direction:[1,0]},{at:[35.7,7.025,-1.8],direction:[1/Math.sqrt(5),-2/Math.sqrt(5)]}],
-      instructions:'橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連→外側回廊、左へ曲がると柱の縁→鉄棒→次の柱の縁。既存の南屋根フック・北の屋上も使えます。空中で自動につかみ、前へ振れたらジャンプを押し直す。下入力で離す。',
+      signs:[],arrows:[{at:[31.5,7.025,-.65],direction:[1,0]},{at:[35.7,7.025,-1.8],direction:[1/Math.sqrt(5),-2/Math.sqrt(5)]},
+        {at:[-3.5,4.025,17],direction:[-1,0]},{at:[-.3,4.025,-15.5],direction:[-1,0]},
+        {at:[-15,4.225,13.5],direction:[0,-1]},{at:[-16.5,4.225,-13.5],direction:[0,1]}],
+      instructions:'橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連、左は柱の縁へ。⑤南の踊り場と⑥北バルコニーは西の角の縁へ渡り、西の通りや既存の屋根フックへ。空中で自動につかみ、前へ振れたらジャンプを押し直す。下入力で離す。',
     };
   };
   addEventListener('load',()=>{
@@ -168,7 +213,7 @@
     card.style.cssText='margin:0 0 16px;padding:12px;border:1px solid #ffb647;border-radius:10px;background:#2c3028;color:#fff4df';
     const title=document.createElement('strong');title.textContent='旧市街・鉄棒から逃走分岐へ';
     const note=document.createElement('p');note.style.cssText='font-size:13px;line-height:1.6;margin:8px 0';
-    note.textContent=(preview?'この練習入口からの記録は送信しません。':'各経路の入口から試せます。')+'④は最初の鉄棒で分岐。直進は3連→外側回廊、左は柱の縁→鉄棒→次の縁。柱の間は約7m。鉄棒の離脱後は逆入力で減速します。';
+    note.textContent=(preview?'この練習入口からの記録は送信しません。':'各経路の入口から試せます。')+'④は最初の鉄棒で分岐。⑤は南の踊り場、⑥は北バルコニーから西の角へ。縁に着地したら西の通りへ下りるか、既存の屋根フックへ。鉄棒の離脱後は逆入力で減速します。';
     card.append(title,note);
     for(const route of course.routes){
       const control=document.createElement(preview?'button':'a');control.textContent=route.name;
