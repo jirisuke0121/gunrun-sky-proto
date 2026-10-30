@@ -136,7 +136,9 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
   rail(-1.5, -17, -1.35, -14, 0);
   rail(13.85, -17, 14, -14, 0);
   rail(.5, -17, 14, -16.85, 4);
-  rail(.5, -17, .65, -14, 4);
+  // Leave a marked jump opening for the north balcony's westward swing.
+  rail(.5, -17, .65, -16.7, 4);
+  rail(.5, -14.3, .65, -14, 4);
   rail(13.85, -17, 14, -14, 4);
   window.skyNorthEscapeRoutes = [
     { id: 'north-east-ground', route: [[12, 0, -10], [12, 0, -15.5], [0, 0, -15.5], [0, 0, -19]] },
