@@ -38,7 +38,7 @@ fs.mkdirSync(out, { recursive: true });
         window.stickSpawn=lane.at;window.stickYaw=lane.yaw;
         window.stickReset=()=>{skySwing.reset();c.pos.fromArray(stickSpawn);c.vel.set(0,0,0);c.state='normal';c.onGround=true;c.h=1.75;c.jumpBuf=c.slideBuf=0;c.edgeJump=false;c.edgeOff=null;c.lastGround.copy(c.pos);c.yaw=stickYaw;c.pitch=0;skyFollowCamera.reset();};
         window.stickTick=n=>{for(let i=0;i<n;i++)g.frameOnce(1/60);};
-        stickReset();stickTick(2);skyDash.rewardSwing();g.cam(0);
+        stickReset();stickTick(2);g.cam(0);
       });
       const cdp = await ctx.newCDPSession(p);
       const point = async (x,y,id=1) => p.evaluate(({x,y,id})=>{
@@ -54,15 +54,19 @@ fs.mkdirSync(out, { recursive: true });
       });
       const idle = await snapshot();
       assert.ok(!idle.on && idle.opacity > 0 && idle.opacity < .5 && idle.pointer === 'none');
-      assert.equal(idle.status,'速度 +8% ↑');assert.ok(idle.underLife);
+      assert.equal(idle.status,'速度 +0%');assert.ok(idle.underLife);
       assert.ok(idle.rect.x>=0&&idle.rect.y>=0&&idle.rect.x+idle.rect.width<=idle.vw&&idle.rect.y+idle.rect.height<=idle.vh,JSON.stringify(idle));
       await p.screenshot({path:`${out}/${id}-idle.png`});
+      assert.ok(await p.locator('#dashStatus').isVisible());
+      await p.evaluate(()=>{skyDash.rewardSwing();__game.cam(0);});
       const starts = [{x:95,y:215},{x:290,y:280},{x:350,y:175}], probes = [];
       for (const start of starts) {
         await p.evaluate(()=>stickReset());
         const a=await point(start.x,start.y),b=await point(start.x,start.y-56);
         await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[a]});
         await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[b]});
+        // Pointer moves may be coalesced until the next browser frame.
+        await p.waitForFunction(()=>__skyInternals.inputState.y<=-.99,null,{timeout:3000});
         await p.evaluate(()=>stickTick(8));const active=await snapshot();
         assert.ok(active.on&&active.opacity>.8&&Math.abs(active.left-start.x)<1&&Math.abs(active.top-start.y)<1,JSON.stringify(active));
         assert.ok(active.speed>1&&active.knob.includes('-56px'),JSON.stringify(active));
@@ -87,7 +91,7 @@ fs.mkdirSync(out, { recursive: true });
       await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
       await p.evaluate(()=>__game.setMode('play'));
       assert.ok(!(await snapshot()).on,'pause returns the visual to its waiting marker');
-      await p.evaluate(()=>{skyDash.reset(false);__game.cam(0);});assert.ok(await p.locator('#dashStatus').isHidden());
+      await p.evaluate(()=>{skyDash.step(5);__game.cam(0);});assert.equal(await p.evaluate(()=>skyDash.swingRemaining),0);assert.ok(await p.locator('#dashStatus').isVisible());assert.equal(await p.locator('#dashStatus').innerText(),'速度 +0%');
       assert.deepEqual(errors,[]);results.push({id,idle,probes,errors});
       fs.writeFileSync(`${out}/results.json`,JSON.stringify(results,null,2));
       console.log('PASS',id,'three left-zone origins, movement, second-finger look/release, idle marker, pause, speed below life');

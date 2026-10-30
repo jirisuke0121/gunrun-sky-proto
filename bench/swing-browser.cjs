@@ -140,7 +140,7 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
         const before=__game.stats.barJumps||0;let warning=false,elapsed=0;
         while(skySwing.active&&elapsed<9){
           stepSwing(1,false);elapsed+=1/30;
-          if(elapsed>6.5&&skySwing.active)warning=/手が離れるまで/.test(document.getElementById('swingHint').textContent);
+          if(elapsed>6.5&&skySwing.active){const h=document.getElementById('swingHint');warning ||= h.dataset.expiring==='true' && h.dataset.ready!=='true' && getComputedStyle(h).borderColor==='rgb(255, 214, 123)';}
         }
         return{elapsed,warning,active:!!skySwing.active,jumps:(__game.stats.barJumps||0)-before};
       });

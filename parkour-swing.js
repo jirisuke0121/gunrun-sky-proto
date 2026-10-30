@@ -100,7 +100,7 @@ export function createSwing(sky, game, course) {
   for (const sign of course.signs || []) label(sign.text, sign.at, sign.scale);
   for (const mark of course.arrows || []) arrow(...mark.at, ...mark.direction);
   const style = document.createElement('style');
-  style.textContent = '#swingHint{position:fixed;top:24%;left:50%;transform:translateX(-50%);padding:9px 14px;border-radius:8px;color:#fff4d6;background:#25354cf2;font:700 14px system-ui;pointer-events:none;z-index:26;text-align:center;max-width:85vw;box-sizing:border-box}#swingHint:after{content:"";display:block;height:4px;margin-top:6px;background:currentColor;opacity:.8;transform:scaleX(var(--swing-progress,0));transform-origin:left}body[data-sky-swing] #hint{visibility:hidden}#swingHint[hidden]{display:none}#swingHint[data-ready=true]{color:#103424;border:2px solid #d5ffe6;background:#7ef0aa;box-shadow:0 0 18px #7ef0aa99;font-size:16px}#tJump[data-swing-ready=true]{color:#103424!important;border-color:#d5ffe6!important;background:#7ef0aa!important;box-shadow:0 0 0 3px #7ef0aa,0 0 18px #7ef0aa80}';
+  style.textContent = '#swingHint{position:fixed;top:24%;left:50%;transform:translateX(-50%);padding:9px 14px;border-radius:8px;color:#fff4d6;background:#25354cf2;font:700 14px system-ui;pointer-events:none;z-index:26;text-align:center;min-width:76px;max-width:85vw;box-sizing:border-box}#swingHint:after{content:"";display:block;height:4px;margin-top:6px;background:currentColor;opacity:.8;transform:scaleX(var(--swing-progress,0));transform-origin:left}body[data-sky-swing] #hint{visibility:hidden}#swingHint[hidden]{display:none}#swingHint[data-expiring=true]:not([data-ready=true]){border:2px solid #ffd67b;box-shadow:0 0 12px #ffd67b66}#swingHint[data-ready=true]{color:#103424;border:2px solid #d5ffe6;background:#7ef0aa;box-shadow:0 0 18px #7ef0aa99;font-size:16px}#tJump[data-swing-ready=true]{color:#103424!important;border-color:#d5ffe6!important;background:#7ef0aa!important;box-shadow:0 0 0 3px #7ef0aa,0 0 18px #7ef0aa80}';
   document.head.appendChild(style);
   const hint = document.createElement('div'); hint.id = 'swingHint'; hint.hidden = true; document.body.appendChild(hint);
   if (bars.length) {
@@ -160,9 +160,9 @@ export function createSwing(sky, game, course) {
     }
     active = { bar, pivot, direction, angle, omega, age: 0 };
     c.swingFlight = null;
-    jumpPressed = false; hint.dataset.ready = 'false'; hint.style.setProperty('--swing-progress', 0);
+    jumpPressed = false; hint.dataset.ready = 'false'; hint.dataset.expiring = 'false'; hint.style.setProperty('--swing-progress', 0);
     setGripCue(bar.id, false);
-    hint.textContent = '前へ振れたらジャンプ / 下で離す';
+    hint.textContent = '';
     chain = chainTime > 0 && lastBar !== bar.id ? chain + 1 : 1; chainTime = 2; lastBar = bar.id;
     c.edgeJump = false;
     c.state = 'swing'; c.swing = active; c.pos.set(...p); c.onGround = false; c.h = 1.75;
@@ -202,13 +202,11 @@ export function createSwing(sky, game, course) {
       const launchWindow = a.bar.launchWindow;
       const ready = isPerfectRelease(a.angle, a.omega, launchWindow);
       hint.hidden = false; hint.dataset.ready = String(ready);
+      hint.dataset.expiring = String(a.age >= MAX_GRIP_SECONDS - 2);
       hint.style.setProperty('--swing-progress', releaseCueProgress(a.angle, a.omega, launchWindow));
       setGripCue(a.bar.id, ready);
-      const progress = course.oldTown ? '鉄棒' : `鉄棒 ${chain}/${bars.length}`;
-      hint.textContent = ready ? `${progress}　今！前宙ジャンプ` : `${progress}　前へ振る → 緑でジャンプ / 下で離す`;
-      if (a.bar.exitHint) hint.textContent += ` / ${a.bar.exitHint}`;
-      if (a.age >= MAX_GRIP_SECONDS - 2) hint.textContent += ` / 手が離れるまで ${Math.ceil(MAX_GRIP_SECONDS - a.age)}秒`;
-      if (jumpButton) {jumpButton.dataset.swingReady = String(ready);jumpButton.textContent=ready?'前宙！':'跳び移る';}
+      hint.textContent = ready ? '今！' : '';
+      if (jumpButton) { jumpButton.dataset.swingReady = String(ready); jumpButton.textContent = jumpLabel; }
       document.body.dataset.skySwing = JSON.stringify({ bar: a.bar.id, angle: a.angle, chain, age: a.age });
       previous = c.pos.toArray(); return true;
     }
