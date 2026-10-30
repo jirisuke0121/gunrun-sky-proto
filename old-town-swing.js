@@ -3,7 +3,7 @@
   const params = new URLSearchParams(location.search);
   const preview = params.get('oldtown_swing') === '1';
   window.skyOldTownSwingPreview = preview;
-  window.buildOldTownSwingCourse = ({ ne }) => {
+  window.buildOldTownSwingCourse = ({ ne, us = [] }) => {
     const box = (id, a, b, type='beam', tint=0x8ea4bd) => {
       const solid=ne(...a,...b,type);solid.oldTownSwing=id;solid.tint=tint;return solid;
     };
@@ -61,7 +61,8 @@
     for(let i=0;i<90;i++)box('east-tower-stair-'+i,[44+i*.2,3.3,-14.2],[44+(i+1)*.2,14.4-i*.12,-11.8],'slab',0xe39a4a);
     box('east-outer-screen',[61.85,3.6,-14.2],[62.1,6.2,4.2],'mono',0xb5604a);
     box('east-south-rail',[51.5,3.6,4.05],[61.85,4.5,4.2]);
-    box('east-north-rail',[60,3.6,-14.2],[61.85,4.5,-14.05]);
+    // The north corner landing joins here; keep the eastern rail cap.
+    box('east-north-rail',[61.4,3.6,-14.2],[61.85,4.5,-14.05]);
     box('east-lower-recovery',[46,-1.3,1.2],[62,-1,4.2]);
     // Recover south of the 3m roof face, with steps within ordinary foot reach.
     box('east-recovery-step-1',[46.5,-1.1,3.2],[47,-2/3,4.2],'slab',0xe39a4a);
@@ -160,6 +161,32 @@
       strut(end,mount);strut(mount,[x,8.4,z>0?14:-14]);
     }
 
+    // Photo 1: the 0m footing north of the EAST tower, underneath the orange
+    // stairs. Step outside the stair's north edge before grappling eastward.
+    // The 3.6m landing attaches to the existing outer walk, not a new exit.
+    box('tower-corner-launch',[44.4,-.3,-15.8],[46.4,0,-13.8]);
+    box('tower-corner-arrival',[59.6,3.3,-16.5],[61.85,3.6,-14.05]);
+    const towerHook=[60.9,5.8,-15.25];
+    us.push(towerHook);
+    strut([61.85,5.8,-15.25],towerHook);
+    strut([61.85,3.3,-15.25],[61.85,5.8,-15.25]);
+
+    // Photo 2: turn EAST from the LOWER north balcony, then swing south
+    // along the east facade to its existing 0m side-exit landing.
+    box('north-east-launch',[13.8,-.3,-17],[16.5,0,-14]);
+    box('north-east-recovery', [14.25,-3.8,-14.5],[18.2,-3.5,-5.6]);
+    // Return outside the upper balcony's footprint, with standing clearance.
+    box('north-east-recovery-top',[14,-.3,-18.6],[18.2,0,-17.8]);
+    box('north-east-recovery-turn',[14,-.3,-17.8],[16.4,0,-16.5]);
+    for(let i=0;i<10;i++) {
+      const z=-17.8+i*.65,top=-(i+1)*.35;
+      box('north-east-recovery-stair-'+i,[16.4,-3.8,z],[18.2,top,z+.65],'slab',0xe39a4a);
+    }
+    for(const x of [14.05,16.95]) {
+      strut([x,2.8,-10.2],[x,5,-10.2]);
+    }
+    strut([14,5,-10.2],[16.95,5,-10.2]);
+
     // Local turning space and a lower return, without filling the 4m jump.
     box('south-bridge-turn',[20.8,-.35,22.8],[23.2,0,25.2]);
     box('south-bridge-launch',[34.7,-.35,20],[37.3,0,22]);
@@ -175,6 +202,7 @@
       {id:'oldtown-east-pillar-bar',at:pillarBar,direction:[1/Math.sqrt(5),-2/Math.sqrt(5)],width:2.6,route:'east-pillar',exitHint:'北西の縁へ / 離脱後は逆入力で減速'},
       {id:'oldtown-south-corner-bar',at:[-6.7,6.8,17],direction:[-1,0],width:2.6,route:'south-corner',exitHint:'西の角の縁へ → 既存の屋根フック / 西の通り'},
       {id:'oldtown-north-corner-bar',at:[-6.2,6.8,-15.5],direction:[-1,0],width:2.6,route:'north-corner',exitHint:'北西の角の縁へ → 西の通り / 屋根フック'},
+      {id:'oldtown-north-east-bar',at:[15.5,2.8,-10.2],direction:[0,1],width:2.6,route:'north-east-corner',exitHint:'東側の既存通路へ → 右の出入口から建物の中へ'},
     ];
     const routes=[
       {id:'high',name:'② 北柱→南の空中分岐',approach:[-43.6,14.4,-6.5],pursuitStart:[-45.8,14.4,-6.5],yaw:Math.PI,exit:[-43.6,15,6],
@@ -197,12 +225,22 @@
       {id:'north-corner',name:'⑥ 北バルコニー→鉄棒→北西の角',approach:[2,4,-15.5],yaw:Math.PI/2,exit:[-15.5,4.2,-15.5],
        escape:[[-16.5,4.2,-13.3],[-16.5,2.1,-10.4],[-16.5,0,-7.2],[-20,0,-5]],
        returnVia:[-16.5,0,-7.2],fallback:[-10,-3.5,-15.5]},
+      {id:'tower-corner',name:'⑦ 東塔の足元→フック→外側回廊',approach:[45,0,-13],yaw:-Math.PI/2,exit:[60.7,3.6,-15.25],
+       escape:[[60.7,3.6,-14.5],[60.7,3.6,-13],[60.7,3.6,-7],[60.7,3.6,2]],
+       returnVia:[60.7,3.6,-13],hook:towerHook,fallback:[44.5,0,-13]},
+      {id:'north-east-corner',name:'⑧ 北の下段→鉄棒→東側通路',approach:[12,0,-15.5],yaw:-Math.PI/2,exit:[15.5,0,-4.8],
+       escape:[[15.5,0,-3.7],[12,0,-3.7],[12,0,-9]],
+       returnVia:[12,0,-3.7],fallback:[15.5,-3.5,-10.2]},
     ];
     window.skyOldTownSwingCourse={id:'oldtown-swing-escape-v1',oldTown:true,name:'旧市街の鉄棒と逃走分岐',bars,routes,supports,
       approach:routes[0].approach,approachYaw:routes[0].yaw,pad:routes[0].approach,exit:routes[0].exit,
       signs:[],arrows:[{at:[31.5,7.025,-.65],direction:[1,0]},{at:[35.7,7.025,-1.8],direction:[1/Math.sqrt(5),-2/Math.sqrt(5)]},
         {at:[-3.5,4.025,17],direction:[-1,0]},{at:[-.3,4.025,-15.5],direction:[-1,0]},
-        {at:[-15,4.225,13.5],direction:[0,-1]},{at:[-16.5,4.225,-13.5],direction:[0,1]}],
+        {at:[-15,4.225,13.5],direction:[0,-1]},{at:[-16.5,4.225,-13.5],direction:[0,1]},
+        {at:[45,0.025,-13.5],direction:[0,-1]},{at:[45.5,0.025,-15.1],direction:[1,0]},
+        {at:[60.7,3.625,-14.7],direction:[0,1]},
+        {at:[12.8,.025,-15.5],direction:[1,0]},{at:[15.5,.025,-14.4],direction:[0,1]},
+        {at:[15.5,.025,-3.7],direction:[-1,0]},{at:[15.3,-3.475,-12.5],direction:[1,0]}],
       instructions:'橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連、左は柱の縁へ。⑤南の踊り場と⑥北バルコニーは西の角の縁へ渡り、西の通りや既存の屋根フックへ。空中で自動につかみ、前へ振れたらジャンプを押し直す。下入力で離す。',
     };
   };
@@ -213,7 +251,7 @@
     card.style.cssText='margin:0 0 16px;padding:12px;border:1px solid #ffb647;border-radius:10px;background:#2c3028;color:#fff4df';
     const title=document.createElement('strong');title.textContent='旧市街・鉄棒から逃走分岐へ';
     const note=document.createElement('p');note.style.cssText='font-size:13px;line-height:1.6;margin:8px 0';
-    note.textContent=(preview?'この練習入口からの記録は送信しません。':'各経路の入口から試せます。')+'④は最初の鉄棒で分岐。⑤は南の踊り場、⑥は北バルコニーから西の角へ。縁に着地したら西の通りへ下りるか、既存の屋根フックへ。鉄棒の離脱後は逆入力で減速します。';
+    note.textContent=(preview?'この練習入口からの記録は送信しません。':'各経路の入口から試せます。')+'④は最初の鉄棒で分岐。⑤⑥は西の角の縁へ。⑦は東塔の足元から階段の外の縁へ出てフック、⑧は北の下段から角を回って鉄棒で東側通路へ。空中移動の後は逆入力で減速します。';
     card.append(title,note);
     for(const route of course.routes){
       const control=document.createElement(preview?'button':'a');control.textContent=route.name;
