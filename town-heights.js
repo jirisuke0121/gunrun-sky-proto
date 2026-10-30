@@ -134,7 +134,9 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
   rail(-1.5, -17, -.9, -16.85, 0);
   rail(.9, -17, 14, -16.85, 0); // open at x=0 onto the existing north street
   rail(-1.5, -17, -1.35, -14, 0);
-  rail(13.85, -17, 14, -14, 0);
+  // Lower northeast corner: leave the launch opening; retain both rail caps.
+  rail(13.85, -17, 14, -16.4, 0);
+  rail(13.85, -14.6, 14, -14, 0);
   rail(.5, -17, 14, -16.85, 4);
   // Leave a marked jump opening for the north balcony's westward swing.
   rail(.5, -17, .65, -16.7, 4);
@@ -367,7 +369,7 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
     const m = mo[i];
     if (m.x < -30 && m.x > -72 && m.z > -14 && m.z < 20) mo.splice(i, 1);
   }
-  window.buildOldTownSwingCourse?.({ ne });
+  window.buildOldTownSwingCourse?.({ ne, us });
 };
 
 // Zombies may use jump and drop edges only inside the west district (x -72..-30).
