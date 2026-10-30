@@ -38,7 +38,7 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
               .dot(new s.Geom.Vector3(-Math.sin(c.yaw), 0, -Math.cos(c.yaw))),
             reward: { remaining: skyDash.swingRemaining, factor: skyDash.speed(1), status: document.getElementById('dashStatus').textContent, hidden: document.getElementById('dashStatus').hidden },
             heading: c.yaw, clip: document.body.dataset.skyHumanClip,
-            cue: { ready: document.getElementById('swingHint').dataset.ready === 'true',
+            cue: { text: document.getElementById('swingHint').textContent, jumpText: document.getElementById('tJump').textContent, ready: document.getElementById('swingHint').dataset.ready === 'true',
               visible: !document.getElementById('swingHint').hidden,
               progress: +document.getElementById('swingHint').style.getPropertyValue('--swing-progress'),
               hintColor: getComputedStyle(document.getElementById('swingHint')).backgroundColor,
@@ -88,7 +88,7 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
             const release = await p.evaluate(() => { window.flipCueAge = null; const frame = flipTick(); flipTrace.push(frame); return frame; });
             assert.ok(release.flight, JSON.stringify(release));
             assert.equal(release.flight.perfect, perfect);
-            assert.ok(perfect ? release.reward.remaining > 3.9 && Math.abs(release.reward.factor - 1.08) < 1e-8 && !release.reward.hidden && release.reward.status.includes('速度 +8% ↑') : release.reward.remaining === 0 && release.reward.hidden, 'only successful timing grants and displays the movement reward');
+            assert.ok(perfect ? release.reward.remaining > 3.9 && Math.abs(release.reward.factor - 1.08) < 1e-8 && !release.reward.hidden && release.reward.status.includes('速度 +8% ↑') : release.reward.remaining === 0 && !release.reward.hidden && release.reward.status === '速度 +0%', 'only successful timing grants and displays the movement reward');
             assert.ok(!release.cue.visible && release.cue.buttonColor !== 'rgb(126, 240, 170)', 'cue clears on release');
             releases.push(release);
             console.log(id, perfect ? 'perfect' : 'ordinary', part.bar, 'duration', release.flight.flipDuration);
@@ -104,6 +104,8 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
         assert.ok(last?.ground && last.pos[1] >= (map === 'canyon.html' ? 7.99 : 14.99), JSON.stringify({ id, perfect, last }));
         if (perfect) {
           const green = trace.filter(f => f.bar && f.cue.ready && f.cue.visible);
+          assert.ok(green.every(f => f.cue.text === '今！' && f.cue.jumpText === 'ジャンプ'), 'green timing only shows the minimal cue and the original jump label');
+          assert.ok(trace.filter(f => f.bar && !f.cue.ready).every(f => f.cue.text === ''), 'preparation meter has no instructional text');
           assert.ok(green.length >= 2, 'green cue remains visible during response delay');
           assert.ok(green.every(f => f.cue.hintColor === 'rgb(126, 240, 170)' && f.cue.buttonColor === 'rgb(126, 240, 170)' && f.cue.grips.length === 2 && f.cue.grips.every(c => c === 0x7ef0aa)), 'hint, touch button and held grip are bright green together');
           assert.ok(trace.some(f => f.bar && !f.cue.ready && f.cue.progress > 0 && f.cue.progress < 1), 'preparation meter progresses before green');

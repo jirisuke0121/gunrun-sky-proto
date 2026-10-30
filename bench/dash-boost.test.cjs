@@ -19,7 +19,7 @@ const {fixture}=require('./human-running.test.cjs');
  const Vector3=gltf.scene.position.constructor,Geometry=body.geometry.constructor;
  class Material{constructor(o){Object.assign(this,o);}clone(){return new Material({...this});}}
  const Geom={Vector3,Group:gltf.scene.constructor,Mesh:body.constructor,Torus:Geometry,Box:Geometry,Basic:Material,BufferGeometry:Geometry,Float32Attribute:body.geometry.attributes.position.constructor};
- const node=()=>({style:{},hidden:false,append(){},appendChild(){}});
+ const node=()=>({style:{},dataset:{},hidden:false,append(){},appendChild(){}});
  global.document={head:node(),body:{...node(),dataset:{}},createElement:()=>node(),querySelector:()=>null,getElementById:()=>null};
  global.window={matchMedia:()=>({matches:false})};
  let mode='play';const c={pos:new Vector3(),vel:new Vector3(),onGround:true,state:'normal',yaw:0};

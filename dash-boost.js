@@ -81,7 +81,7 @@ export function createDash(sky, game) {
   });
   const burst = new Mesh(ringGeometry, cyan.clone()); burst.visible = false; root.add(burst); burst.rotation.x = Math.PI / 2;
   const style = document.createElement('style');
-  style.textContent = '#dashSpeedFx{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;background:repeating-conic-gradient(from 3deg at 50% 48%,#b5fbff88 0deg .35deg,transparent .35deg 19deg);-webkit-mask:radial-gradient(ellipse at 50% 48%,transparent 37%,#000 93%);mask:radial-gradient(ellipse at 50% 48%,transparent 37%,#000 93%)}#dashPickupFlash{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse at center,transparent 25%,#a2f9ff);opacity:0}#dashStatus{position:static;margin-top:2px;padding:0;border:0;background:none;color:#a8ffca;font:700 11px/1.4 system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;pointer-events:none}#dashStatus[hidden]{display:none}html.touch #hud:has(#dashStatus:not([hidden])) #weaponSupplyStatus{top:calc(var(--touch-top) + 78px)}';
+  style.textContent = '#dashSpeedFx{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;background:repeating-conic-gradient(from 3deg at 50% 48%,#b5fbff88 0deg .35deg,transparent .35deg 19deg);-webkit-mask:radial-gradient(ellipse at 50% 48%,transparent 37%,#000 93%);mask:radial-gradient(ellipse at 50% 48%,transparent 37%,#000 93%)}#dashPickupFlash{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse at center,transparent 25%,#a2f9ff);opacity:0}#dashStatus{position:static;margin-top:2px;padding:0;border:0;background:none;color:#cfc6aa;font:700 12px/1.4 system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;pointer-events:none}#dashStatus[data-boosted=true]{color:#a8ffca}#dashStatus[hidden]{display:none}html.touch #hud:has(#dashStatus:not([hidden])) #weaponSupplyStatus{top:calc(var(--touch-top) + 78px)}';
   document.head.appendChild(style);
   const lines = document.createElement('div'); lines.id = 'dashSpeedFx'; document.body.appendChild(lines);
   const flash = document.createElement('div'); flash.id = 'dashPickupFlash'; document.body.appendChild(flash);
@@ -168,8 +168,10 @@ export function createDash(sky, game) {
       const practiceSpeed = document.getElementById('practiceSpeed');
       if (practiceSpeed && status.parentElement !== practiceSpeed.parentElement) practiceSpeed.after(status);
     }
-    status.hidden = remaining <= 0 && swingRemaining <= 0;
-    label.textContent = `速度 +${Math.round((factor() - 1) * 100)}% ↑`;
+    status.hidden = false;
+    const percent = Math.round((factor() - 1) * 100);
+    status.dataset.boosted = String(percent > 0);
+    label.textContent = `速度 +${percent}%${percent > 0 ? ' ↑' : ''}`;
     for (const item of items) {
       item.group.visible = !!item.node && item.cooldown <= 0;
       if (!item.node) continue;

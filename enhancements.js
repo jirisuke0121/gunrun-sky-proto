@@ -1,17 +1,18 @@
-import { createSwing } from './parkour-swing.js?v=20261030-swing-speed-v1';
+import { createSwing } from './parkour-swing.js?v=20261030-static-route-v1';
 import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
 import { createFlashbang } from './flashbang.js?v=20261030-decoy-v1';
 import { installSkillDock } from './player-skills.js?v=20261030-decoy-v1';
 import { createDecoy } from './skill-decoy.js?v=20261030-decoy-lock-v2';
-import { createZombieClimb } from './zombie-climb.js?v=20261030-search-decoy-v3';
-import { createZombieSearch } from './zombie-search.js?v=20261030-search-decoy-v3';
+import { createZombieClimb } from './zombie-climb.js?v=20261030-pursuit-recovery-v1';
+import { createZombieSearch } from './zombie-search.js?v=20261030-pursuit-recovery-v1';
 import { createGhostReplay } from './ghost-replay.js?v=20261028-compact-hud-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261030-auto-fire-controls-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261029-door-motion-v1';
 import { createJumpPickups } from './jump-pickups.js?v=20261028-playground-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261028-compact-hud-v1';
-import { createDash } from './dash-boost.js?v=20261030-compact-speed-v3';
+import { createDash } from './dash-boost.js?v=20261030-always-speed-v1';
+import { mergeStaticMaterialGroups } from './world-batching.js?v=20261030-material-groups-v2';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -365,6 +366,7 @@ window.addEventListener('storage', (event) => {
 for (const ladder of mo) {
   const marker = new Group();
   marker.name = 'Sky ladder access';
+  marker.userData.skyStaticBatch = true;
   marker.position.set(ladder.x + ladder.nx * 0.17, ladder.y1 + 0.31, ladder.z + ladder.nz * 0.17);
   box(marker, ladder.nz ? ladder.w + 0.25 : 0.10, 0.10, ladder.nx ? ladder.w + 0.25 : 0.10, palette.amber);
   box(marker, 0.14, 0.18, 0.14, palette.steel, 0, -0.12, 0);
@@ -386,6 +388,7 @@ for (const line of zipLines) {
   for (const point of [line.a, line.b]) {
     const terminal = new Group();
     terminal.name = 'Sky zipline terminal';
+    terminal.userData.skyStaticBatch = true;
     terminal.position.set(point[0], point[1] - 0.33, point[2]);
     box(terminal, 0.45, 0.16, 0.45, palette.steel);
     box(terminal, 0.22, 0.22, 0.06, palette.amber, 0, 0.15, 0);
@@ -994,6 +997,8 @@ window.__skyGhost = window.skyReplay;
     [35.4, 38.4, 7, 5.9, 2.4, 2.0, 'red'], [42, 45, 5, 4.2, 2.6, 2.3, 'ochre'],
   ];
   const decor = new Group();
+  decor.name = 'Old-town static details';
+  decor.userData.skyStaticBatch = true;
   for (const [ax0, ax1, wz, oz, yt, yl, col] of awnings) {
     const dz = oz - wz, dy = yl - yt, len = Math.hypot(dz, dy);
     const m = box(decor, ax1 - ax0, 0.05, len, mat[col], (ax0 + ax1) / 2, (yt + yl) / 2, (wz + oz) / 2);
@@ -2046,6 +2051,7 @@ if (/[?&]perf=1/.test(location.search)) {
       }
       for (const o of victims) { o.parent && o.parent.remove(o); o.geometry.dispose(); }
       window.__staticMerge = { merged: victims.length, meshes: made };
+      window.__staticMerge.materialGroups = mergeStaticMaterialGroups(game);
     }
   } catch (e) { console.warn('static merge skipped', e); }
 }

@@ -1,6 +1,6 @@
 // Per-enemy sight memory. Hidden players never supply navigation destinations.
 export const ZOMBIE_SEARCH = Object.freeze({ duration: 10, scan: 0.2, recognition: 0.45,
-  memoryLimit: 2.5, radius: 7, walkSpeed: 1.35, fieldCacheSize: 12 });
+  memoryLimit: 2.5, climbMemory: 8, radius: 7, walkSpeed: 1.35, fieldCacheSize: 12 });
 
 export function createZombieSearch(game, runtime, flashbang, random = Math.random) {
   const { c: player, z: run, U, Jt: enemies, searchNav: nav } = game;
@@ -41,15 +41,20 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
   function clearSight(enemy, state) {
     if (flashbang.blinded(enemy)) return false;
     const dx = player.pos.x - enemy.pos.x, dz = player.pos.z - enemy.pos.z;
-    const dy = player.pos.y + 1.25 - (enemy.pos.y + Math.min(1.5, enemy.h - 0.1));
-    const length = Math.hypot(dx, dy, dz), horizontal = Math.hypot(dx, dz);
-    if (length > (U.sightR || 40)) return false;
-    // A chasing zombie keeps its target in attention. Searching zombies must
-    // actually turn toward it, except for unobstructed very close encounters.
-    if (state.phase !== 'chase' && horizontal > 2.2 &&
+    const eye = enemy.pos.y + Math.min(1.5, enemy.h - 0.1);
+    const horizontal = Math.hypot(dx, dz), moving = Math.hypot(player.vel?.x || 0, player.vel?.z || 0) > 0.5;
+    const hearsSteps = player.onGround && moving && distance(player.pos, enemy.pos) <= (U.hearR || 8);
+    // A brief visible cue holds attention while the body turns.
+    // Nearby footsteps turn attention toward the source. A solid still blocks
+    // visual recognition; chest-height cover must not hide an exposed head.
+    if (state.phase !== 'chase' && state.recognized <= 0 && !hearsSteps && horizontal > 2.2 &&
         (-Math.sin(enemy.yaw) * dx - Math.cos(enemy.yaw) * dz) / (horizontal || 1) < Math.cos(80 * Math.PI / 180)) return false;
-    return !game.raycast(enemy.pos.x, enemy.pos.y + Math.min(1.5, enemy.h - 0.1), enemy.pos.z,
-      dx / (length || 1), dy / (length || 1), dz / (length || 1), Math.max(0, length - 0.1));
+    for (const height of [Math.max(0.5, (player.h || 1.75) - 0.12), Math.min(1.25, (player.h || 1.75) * 0.7)]) {
+      const dy = player.pos.y + height - eye, length = Math.hypot(dx, dy, dz);
+      if (length <= (U.sightR || 40) && !game.raycast(enemy.pos.x, eye, enemy.pos.z,
+          dx / (length || 1), dy / (length || 1), dz / (length || 1), Math.max(0, length - 0.1))) return true;
+    }
+    return false;
   }
   function change(enemy, state, phase) {
     if (state.phase === phase) return;
@@ -76,11 +81,11 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
       state.lookAt = run.t; state.nextLook = run.t + ZOMBIE_SEARCH.scan;
       const visible = !distracted && clearSight(enemy, state);
       if (visible) {
-        if (state.phase !== 'chase') state.recognized += elapsed;
+        if (state.phase !== 'chase') state.recognized = Math.max(Number.EPSILON, state.recognized + elapsed);
         if (state.phase === 'chase' || state.recognized >= ZOMBIE_SEARCH.recognition) {
           const returning = state.phase !== 'chase' && state.wasChasing;
           change(enemy, state, 'chase'); state.wasChasing = true;
-          state.last = point(player.pos); state.lastNode = nodeAt(state.last);
+          state.last = point(player.pos); state.lastGrounded = player.onGround; state.lastNode = nodeAt(state.last);
           hadChase = true;
           if (returning) {
             stats.reacquired++; event('zombieReacquired', { enemy: state.id });
@@ -95,11 +100,22 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
           state.anchor = point(state.last || enemy.pos);
         }
       }
+      if (!visible && !distracted && !flashbang.blinded(enemy) && state.phase !== 'chase' &&
+          run.t >= (state.nextNoise || 0) && player.onGround && Math.hypot(player.vel?.x || 0, player.vel?.z || 0) > 0.5 &&
+          distance(enemy.pos, player.pos) <= (U.hearR || 8)) {
+        state.nextNoise = run.t + 1;
+        state.last = point(player.pos); state.lastGrounded = player.onGround; state.lastNode = nodeAt(state.last);
+        state.hiddenAt = run.t; change(enemy, state, 'memory');
+        enemy.yaw = Math.atan2(enemy.pos.x - state.last.x, enemy.pos.z - state.last.z);
+      }
     }
     if (state.phase === 'memory') {
       const age = run.t - state.hiddenAt;
-      if (age >= Math.max(0.6, U.loseDelay || 0) &&
-          (distance(enemy.pos, state.last || state.anchor) < 1.3 || age >= ZOMBIE_SEARCH.memoryLimit)) beginSearch(enemy, state);
+      // Leave time for the four-second stall detector at a known upper ledge.
+      // Once committed, finish that remembered route even if its lip hides the player.
+      const limit = state.lastGrounded && state.last.y > enemy.pos.y + 1.25 ? ZOMBIE_SEARCH.climbMemory : ZOMBIE_SEARCH.memoryLimit;
+      if (enemy.act?.kind !== 'pillar' && age >= Math.max(0.6, U.loseDelay || 0) &&
+          (distance(enemy.pos, state.last || state.anchor) < 1.3 || age >= limit)) beginSearch(enemy, state);
     } else if (state.phase === 'search' && run.t >= state.until) {
       // Expiry changes search to ordinary local patrol. It grants no knowledge
       // of the player's current position, even when the old field is stale.
@@ -170,7 +186,7 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
       if (!active(enemy) || distance(enemy.pos, origin) > radius) continue;
       const state = track(enemy);
       if (state.phase === 'chase') continue;
-      state.last = point(origin); state.lastNode = nodeAt(origin);
+      state.last = point(origin); state.lastGrounded = player.onGround; state.lastNode = nodeAt(origin);
       state.hiddenAt = run.t; change(enemy, state, 'memory');
       enemy.lost = true; enemy.seen = false;
     }
@@ -223,8 +239,24 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
     for (const name of Object.keys(stats)) stats[name] = 0;
     refreshUI();
   }
+  function recoveryTarget(enemy) {
+    if (!enabled()) return player;
+    const state = tracks.get(enemy);
+    if (state?.phase === 'chase') return player;
+    if (state?.phase !== 'memory' || !state.last) return null;
+    const target = state.recovery || (state.recovery = {});
+    target.pos = state.last; target.onGround = state.lastGrounded;
+    return target;
+  }
+  function recoveryField(enemy) {
+    if (!enabled() || tracks.get(enemy)?.phase === 'chase') return runtime.FIELD;
+    const state = tracks.get(enemy), id = state?.lastNode;
+    // A lower node is not the remembered roof. Its field cannot validate a
+    // recovery route; only a checked direct path on that roof can do so.
+    return state?.phase === 'memory' && id >= 0 && Math.abs(nodes[id].y - state.last.y) < 0.35 ? field(id, enemy) : null;
+  }
   const suppressSpawns = () => enabled() && run.t < quietUntil;
-  return { config: ZOMBIE_SEARCH, stats, observe, pickEdge, hearShot, afterStep, reset,
+  return { config: ZOMBIE_SEARCH, stats, observe, pickEdge, hearShot, recoveryTarget, recoveryField, afterStep, reset,
     modeChanged: () => { if (status) status.hidden = true; },
     suppressSpawns, deferSpawn: e => suppressSpawns() && (!!e.rise && e.rise.t < 0 || !!e.fall && e.fall.wait > 0 || !!e.act?.emerge && e.act.wait > 0),
     speed: (e, speed) => !enabled() || !e.lost ? speed : Math.min(speed, track(e).phase === 'memory' ? 2.2 : ZOMBIE_SEARCH.walkSpeed),

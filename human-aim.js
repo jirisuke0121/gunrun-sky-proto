@@ -74,6 +74,18 @@ export function createHumanAim(model,motion,T) {
   }
   const neutralBasis=basis(landmarks.map(i=>neutral[i]));
   let active=false,prepared=false,torsoBlend=0;
+  // Many vertices share the same waist weight (especially the hood and bag).
+  // Their interpolated rotation is identical, so solve it once per weight.
+  const torsoRotations=new Map();
+  for(const r of records){
+    r.torsoVertices=[];r.rotations=[];
+    for(let i=0;i<r.torso.length;i++){
+      const weight=r.torso[i];if(weight<.0001)continue;
+      let entry=torsoRotations.get(weight);
+      if(!entry)torsoRotations.set(weight,entry={weight,rotation:q.clone()});
+      r.torsoVertices.push(i);r.rotations[i]=entry.rotation;
+    }
+  }
   function compose(r) {
     r.composed.set(r.original);
     r.node.morphTargetInfluences?.forEach((w,j)=>{
@@ -97,9 +109,10 @@ export function createHumanAim(model,motion,T) {
     // keep their movement pose; the waist smoothly distributes the correction.
     const desired=q.clone().setFromEuler(new model.rotation.constructor(-pitch+lean,yaw,0,'YXZ')).multiply(neutralBasis);
     q.copy(desired).multiply(basis(current).invert());
-    for(const r of records)for(let i=0;i<r.base.count;i++){
-      if(r.torso[i]<.0001)continue;
-      p.fromArray(r.composed,i*3).applyMatrix4(r.toModel);rotate(p,r.torso[i]*blend).applyMatrix4(r.toMesh).toArray(r.final,i*3);
+    for(const entry of torsoRotations.values())entry.rotation.slerpQuaternions(identity,q,entry.weight*blend);
+    for(const r of records)for(const i of r.torsoVertices){
+      p.fromArray(r.composed,i*3).applyMatrix4(r.toModel).sub(pivot)
+        .applyQuaternion(r.rotations[i]).add(pivot).applyMatrix4(r.toMesh).toArray(r.final,i*3);
     }
     prepared=true;
     return {yaw,pitch};
@@ -147,5 +160,6 @@ export function createHumanAim(model,motion,T) {
     active=true;prepared=false;
     return Math.max(...errors);
   }
-  return {prepare,shoulders,apply,reset};
+  const work={revision:"rotation-cache-v2",meshes:records.length,torsoVertices:records.reduce((sum,r)=>sum+r.torsoVertices.length,0),torsoRotations:torsoRotations.size};
+  return {prepare,shoulders,apply,reset,work};
 }

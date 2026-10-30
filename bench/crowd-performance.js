@@ -16,14 +16,14 @@ const digest = async text => [...new Uint8Array(await crypto.subtle.digest('SHA-
 async function load(map) {
   const previous = activeWindow?.__game?.debug?.renderer;
   if (previous) { previous.dispose(); previous.getContext().getExtension('WEBGL_lose_context')?.loseContext(); }
-  const base = new URL('../', location.href).href;
+  const base = new URL($('build').value==='baseline'?'../../gunrun-render-baseline/':'../', location.href).href;
   let source = await fetch(base+map, {cache:'no-store'}).then(r => { if (!r.ok) throw Error('ゲーム取得失敗'); return r.text(); });
   const hash = await digest(source);
   const token=++loadToken;
-  for(const [name,key] of [['Da','simulation'],['gd','player'],['xp','presentation']]) {
-    const declaration=`function ${name}(n){`, renamed=`__crowd_${name}`;
+  for(const [name,key,args='n'] of [['Da','simulation'],['gd','player'],['xp','presentation'],['bd','camera'],['jv','hud'],['Av','hudCore'],['Rv','hook','']]) {
+    const declaration=`function ${name}(${args}){`, renamed=`__crowd_${name}`;
     if(source.split(declaration).length!==2)throw Error(`CPU区間の計測対象が一致しません: ${name}`);
-    source=source.replace(declaration,`function ${name}(n){const t=performance.now();try{return ${renamed}(n)}finally{if(window.__crowdSections)window.__crowdSections.${key}+=performance.now()-t}}function ${renamed}(n){`);
+    source=source.replace(declaration,`function ${name}(${args}){const t=performance.now();try{return ${renamed}(${args})}finally{if(window.__crowdSections)window.__crowdSections.${key}+=performance.now()-t}}function ${renamed}(${args}){`);
   }
   const guard = `window.__crowdToken=${token};window.__hold=true;const m=new Map;const storage={getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k),clear:()=>m.clear()};Object.defineProperty(window,'localStorage',{value:storage});Object.defineProperty(window,'sessionStorage',{value:storage});const net=window.fetch.bind(window);window.fetch=(u,o)=>new URL(typeof u==='string'?u:u.url,${JSON.stringify(base)}).origin===${JSON.stringify(location.origin)}?net(u,o):Promise.resolve(new Response('{}',{status:403}));navigator.sendBeacon=()=>true;`;
   source = source.replace('<head>', `<head><base href="${base}"><script>${guard}<\/script>`).replace(/RECORD_URL="[^"]*"/, 'RECORD_URL=""');
@@ -32,7 +32,7 @@ async function load(map) {
   while (performance.now()<until) {
     if (stopped) throw Error('中止');
     const w = frame.contentWindow, g = w?.__game, s = w?.__skyInternals;
-    if (w?.__crowdToken===token && g && s && w.skyHumanView && w.skyRenderQuality?.snapshot().buffer && w.__staticMerge && !g.debug.renderer.getContext().isContextLost() && !w.document.getElementById('bStart').disabled && s.zombieModels().some(m => m.kind==='unity-standard')) {
+    if (w?.__crowdToken===token && g && s && w.skyHumanView && w.document.getElementById('humanStatus')?.textContent.includes('Unityアニメーション') && ($('build').value==='baseline'||w.skyHumanView.aimWork?.revision==='rotation-cache-v2') && w.__skyUpgrade?.loaded && ['hg','sg','smg','mg','glove','knife','ladder','hook','anchor','trolley','flashbang'].every(key=>w.__skyUpgrade.loaded[key]) && w.skyRenderQuality?.snapshot().buffer && w.__staticMerge && !g.debug.renderer.getContext().isContextLost() && !w.document.getElementById('bStart').disabled && s.zombieModels().some(m => m.kind==='unity-standard')) {
       activeWindow = w; g.runlogUse(null); g.RL.on = false;
       return { w, g, s, hash };
     }
@@ -101,7 +101,7 @@ function setup(ctx, count, mode, repeat) {
   if(variant==='no-shadow')renderer.shadowMap.enabled=false;
   if(variant==='pixel-1')renderer.setPixelRatio(1);
   renderer.info.autoReset=false;
-  return {count,mode,variant,quality:w.skyRenderQuality?.snapshot(),lane,css:[w.innerWidth,w.innerHeight],buffer:[renderer.domElement.width,renderer.domElement.height],pixelRatio:renderer.getPixelRatio(),gpu:gl.getParameter(ext?ext.UNMASKED_RENDERER_WEBGL:gl.RENDERER),antialias:gl.getContextAttributes().antialias,models:g.zombies.map(e=>({kind:e.m.src?.kind||null,meshy:!!e.m.meshy})),staticMerge:w.__staticMerge,settings:{renderScale:g.S.renderScale,zLook:g.S.zLook,showBody:g.S.showBody,shadow:renderer.shadowMap.enabled},hash:ctx.hash};
+  return {count,mode,variant,quality:w.skyRenderQuality?.snapshot(),lane,css:[w.innerWidth,w.innerHeight],buffer:[renderer.domElement.width,renderer.domElement.height],pixelRatio:renderer.getPixelRatio(),gpu:gl.getParameter(ext?ext.UNMASKED_RENDERER_WEBGL:gl.RENDERER),antialias:gl.getContextAttributes().antialias,models:g.zombies.map(e=>({kind:e.m.src?.kind||null,meshy:!!e.m.meshy})),staticMerge:w.__staticMerge,assets:{...w.__skyUpgrade.loaded},cameraAspect:g.debug.camera.aspect,aimWork:w.skyHumanView.aimWork,settings:{renderScale:g.S.renderScale,zLook:g.S.zLook,showBody:g.S.showBody,shadow:renderer.shadowMap.enabled},hash:ctx.hash};
 }
 
 function resetCrowd(ctx) {
@@ -122,6 +122,35 @@ function inView(ctx,auditTerrain=true) {
   return {projected,clear};
 }
 
+function auditDraws(ctx) {
+  const {g,s}=ctx, renderer=g.debug.renderer, oldRender=renderer.render, saved=[], objects=new Map();
+  const enemyRoots=new Set(g.zombies.map(enemy=>enemy.m.root));
+  for(const scene of [s.ue,s.fo])scene.traverse(object=>{
+    if(!object.isMesh&&!object.isLine&&!object.isPoints&&!object.isSprite)return;
+    const original=object.onBeforeRender;saved.push([object,original]);
+    object.onBeforeRender=function(...args){
+      const [,,camera,geometry,material,group]=args;
+      if(camera===g.debug.camera){
+        let entry=objects.get(object.uuid);
+        if(!entry){
+          const parents=[];let enemy=false;
+          for(let p=object;p&&p!==s.ue;p=p.parent){if(enemyRoots.has(p))enemy=true;if(p.name)parents.push(p.name);}
+          const position=new s.Geom.Vector3();object.getWorldPosition(position);
+          entry={name:object.name,parents,enemy,skinned:!!object.isSkinnedMesh,geometry:geometry.type,attributes:Object.keys(geometry.attributes),matrixAutoUpdate:object.matrixAutoUpdate,parentIsScene:object.parent===s.ue,multiMaterial:Array.isArray(object.material),frustumCulled:object.frustumCulled,castShadow:object.castShadow,receiveShadow:object.receiveShadow,position:position.toArray().map(round),materials:[],calls:0,triangles:0};objects.set(object.uuid,entry);
+        }
+        entry.calls++;entry.triangles+=(group?.count??geometry.index?.count??geometry.attributes.position?.count??0)/3;
+        if(!entry.materials.some(item=>item.uuid===material.uuid))entry.materials.push({uuid:material.uuid,name:material.name,type:material.type,map:material.map?.uuid??null,transparent:material.transparent,opacity:material.opacity,side:material.side,color:material.color?.getHexString()??null});
+      }
+      return original.apply(this,args);
+    };
+  });
+  renderer.render=function(...args){if(args[1]===g.debug.camera)lockCamera(ctx);return oldRender.apply(this,args);};
+  try{g.frameOnce(0);}finally{renderer.render=oldRender;for(const [object,original]of saved)object.onBeforeRender=original;}
+  const records=[...objects.values()],groups=new Map();
+  for(const o of records){const key=[o.enemy?'enemy':o.skinned?'avatar':o.name||'unnamed',o.geometry,o.parentIsScene?'root':'nested',o.matrixAutoUpdate?'auto':'fixed',o.multiMaterial?'multi':'single'].join(' / ');let group=groups.get(key);if(!group)groups.set(key,group={key,objects:0,calls:0,triangles:0});group.objects++;group.calls+=o.calls;group.triangles+=o.triangles;}
+  return {summary:{calls:records.reduce((sum,o)=>sum+o.calls,0),objects:records.length,groups:[...groups.values()].sort((a,b)=>b.calls-a.calls)},objects:records};
+}
+
 function timer(renderer) {
   const gl=renderer.getContext(),ext=$('gpuProbe').value==='on'?gl.getExtension('EXT_disjoint_timer_query_webgl2'):null,pending=[],samples=[];
   let q,disjoint=0;
@@ -138,6 +167,10 @@ async function segment(ctx,count,mode,seconds,capture=false) {
   const {w,g,s}=ctx,renderer=g.debug.renderer,gpu=timer(renderer),frames=[];
   const size=[renderer.domElement.width,renderer.domElement.height];let previous=null,start=null,lastReset=-Infinity,nextShot=0,index=0,currentAI=0,currentRender=0,lastClear=count;
   const oldUpdates=g.zombies.map(e=>e.update),oldRender=renderer.render;
+  const methods=[];
+  for(const [object,name,key]of [[w.skyHumanView,'update','humanView'],[w.skyFollowCamera,'frame','followCamera'],[w.skyChallengeScore,'sync','scoreHUD'],[w.skyFirstPersonView,'update','firstPerson']]){
+    if(!object?.[name])continue;const original=object[name];methods.push([object,name,original]);object[name]=function(...args){const t=performance.now();try{return original.apply(this,args);}finally{if(w.__crowdSections)w.__crowdSections[key]+=performance.now()-t;}};
+  }
   g.zombies.forEach(e=>{const update=e.update;e.update=function(dt){const t=performance.now();try{return update.call(this,dt);}finally{currentAI+=performance.now()-t;}};});
   renderer.render=function(...args){const t=performance.now();try{if(args[1]===g.debug.camera)lockCamera(ctx);return oldRender.apply(this,args);}finally{currentRender+=performance.now()-t;}};
   try{return await new Promise((resolve,reject)=>{
@@ -157,7 +190,7 @@ async function segment(ctx,count,mode,seconds,capture=false) {
       g.P.invuln=1e9;g.P.life=3;g.P.yaw=Math.atan2(-lane.dx,-lane.dz);g.P.pitch=-.08;
       g.GAME.spawnT=g.GAME.safeT=g.GAME.surgeT=1e9;g.GAME.t=100;g.G.recoil=0;
       currentAI=currentRender=0;renderer.info.reset();gpu.collect();gpu.begin(index);
-      w.__crowdSections={simulation:0,player:0,presentation:0};let fxMs=0;
+      w.__crowdSections={simulation:0,player:0,presentation:0,camera:0,hud:0,hudCore:0,hook:0,humanView:0,followCamera:0,scoreHUD:0,firstPerson:0};let fxMs=0;
       const before=performance.now();
       try{
         if(mode==='chase'&&elapsed>=nextShot){g.G.ammo=12;g.G.reloadT=g.G.fireCD=0;g.fire();nextShot+=.4;}
@@ -174,29 +207,31 @@ async function segment(ctx,count,mode,seconds,capture=false) {
     }w.requestAnimationFrame(step);
   });}finally{
     renderer.render=oldRender;g.zombies.forEach((e,i)=>e.update=oldUpdates[i]);gpu.close();
-    if(capture&&location.hostname==='127.0.0.1'){g.frameOnce(0);lockCamera(ctx);renderer.clear();renderer.render(s.ue,g.debug.camera);try{await fetch(`/__crowd/image/${ctx.map.replace('.html','')}-${mode}-${count}`,{method:'POST',body:JSON.stringify({image:renderer.domElement.toDataURL('image/png')})});}catch{}}
+    for(const [object,name,original]of methods)object[name]=original;
+    if(capture&&location.hostname==='127.0.0.1'){g.frameOnce(0);lockCamera(ctx);renderer.clear();renderer.render(s.ue,g.debug.camera);try{await fetch(`/__crowd/image/${$('build').value}-${$('quality').value}-${ctx.map.replace('.html','')}-${mode}-${count}`,{method:'POST',body:JSON.stringify({image:renderer.domElement.toDataURL('image/png')})});}catch{}}
   }
 }
 
 function summarize(part,count){
   const f=part.frames,intervals=[...f.map(f=>f.interval),part.tailInterval].filter(n=>n>0),total=intervals.reduce((a,b)=>a+b,0),visible=f.filter(f=>f.projected===count&&f.clear===count&&f.alive===count).length;
-  return {fps:round(intervals.length*1000/total),frames:f.length,elapsed:round(part.elapsed),intervalMs:summary(intervals),over33Pct:round(100*intervals.filter(n=>n>33.34).length/intervals.length),over50Pct:round(100*intervals.filter(n=>n>50).length/intervals.length),cpuMs:summary(f.map(f=>f.cpu)),aiMs:summary(f.map(f=>f.ai)),renderSubmitMs:summary(f.map(f=>f.render)),sectionsMs:Object.fromEntries(['simulation','player','presentation','fxMs'].map(key=>[key,summary(f.map(frame=>frame[key]))])),groundedPct:round(100*f.filter(frame=>frame.grounded).length/f.length),gpuMs:summary(part.gpuMs),gpuSamples:part.gpuMs.length,gpuSupported:part.gpuSupported,gpuDisjoint:part.gpuDisjoint,minProjected:Math.min(...f.map(f=>f.projected)),minUnobstructed:Math.min(...f.map(f=>f.clear)),allVisiblePct:round(100*visible/f.length),minAlive:Math.min(...f.map(f=>f.alive)),drawCalls:summary(f.map(f=>f.calls)),triangles:summary(f.map(f=>f.triangles)),valid:visible===f.length&&part.gpuDisjoint===0};
+  return {fps:round(intervals.length*1000/total),frames:f.length,elapsed:round(part.elapsed),intervalMs:summary(intervals),over33Pct:round(100*intervals.filter(n=>n>33.34).length/intervals.length),over50Pct:round(100*intervals.filter(n=>n>50).length/intervals.length),cpuMs:summary(f.map(f=>f.cpu)),aiMs:summary(f.map(f=>f.ai)),renderSubmitMs:summary(f.map(f=>f.render)),sectionsMs:Object.fromEntries(['simulation','player','presentation','camera','hud','hudCore','hook','humanView','followCamera','scoreHUD','firstPerson','fxMs'].map(key=>[key,summary(f.map(frame=>frame[key]))])),groundedPct:round(100*f.filter(frame=>frame.grounded).length/f.length),gpuMs:summary(part.gpuMs),gpuSamples:part.gpuMs.length,gpuSupported:part.gpuSupported,gpuDisjoint:part.gpuDisjoint,minProjected:Math.min(...f.map(f=>f.projected)),minUnobstructed:Math.min(...f.map(f=>f.clear)),allVisiblePct:round(100*visible/f.length),minAlive:Math.min(...f.map(f=>f.alive)),drawCalls:summary(f.map(f=>f.calls)),triangles:summary(f.map(f=>f.triangles)),valid:visible===f.length&&part.gpuDisjoint===0};
 }
 
 async function run(quick=false){
   if(busy)return;busy=true;stopped=false;invalid=null;document.body.classList.add('running');$('start').disabled=$('quick').disabled=true;$('stop').disabled=false;$('rows').replaceChildren();
-  result={schema:2,createdAt:new Date().toISOString(),scope:'Mac browser comparison, not physical iPhone performance',userAgent:navigator.userAgent,dpr:devicePixelRatio,viewport:[innerWidth,innerHeight],hardwareConcurrency:navigator.hardwareConcurrency,otherGameStopped:$('otherStopped').checked,seconds:quick?2:Number($('seconds').value),repeats:quick?1:Number($('repeats').value),notes:['Production game source and assets; memory-only settings; no gameplay records sent.','All enemies must project inside the camera and have clear terrain line of sight. Other zombies may naturally overlap.','Player vertical physics is preserved; grounded state is not reset every frame. CPU section wrappers are diagnostic only.','Fixed positions run full enemy updates each frame. Chase repeats .8 second approaches with HG fire every .4s and durable enemies.','Real rAF intervals, CPU frame work and asynchronous GPU timer queries are reported separately.','Camera is held at consistent third-person framing; graphics follow the recorded quality preset. Diagnostic variants are tagged. Zombie model LOD is unchanged.','Background tabs or resizing invalidate a run.'],trials:[]};
+  result={schema:3,quick,createdAt:new Date().toISOString(),scope:'Mac browser comparison, not physical iPhone performance',userAgent:navigator.userAgent,dpr:devicePixelRatio,viewport:[innerWidth,innerHeight],hardwareConcurrency:navigator.hardwareConcurrency,otherGameStopped:$('otherStopped').checked,seconds:quick?2:Number($('seconds').value),repeats:quick?1:Number($('repeats').value),notes:['Production game source and assets; memory-only settings; no gameplay records sent.','All enemies must project inside the camera and have clear terrain line of sight. Other zombies may naturally overlap.','Player vertical physics is preserved; grounded state is not reset every frame. CPU section wrappers are diagnostic only.','Fixed positions run full enemy updates each frame. Chase repeats .8 second approaches with HG fire every .4s and durable enemies.','Real rAF intervals, CPU frame work and asynchronous GPU timer queries are reported separately.','Camera is held at consistent third-person framing; graphics follow the recorded quality preset. Diagnostic variants are tagged. Zombie model LOD is unchanged.','Background tabs or resizing invalidate a run.'],trials:[]};
   try{
     await wait(200);
     const selectedCounts=$('counts').value.split(',').map(Number),selectedMaps=$('maps').value==='both'?['index.html','canyon.html']:[$('maps').value],selectedModes=$('modes').value==='both'?['fixed','chase']:[$('modes').value];
-    result.variant=$('variant').value;result.quality=$('quality').value;result.counts=selectedCounts;result.gpuProbe=$('gpuProbe').value;
-    for(const map of quick?['index.html']:selectedMaps){
+    result.build=$('build').value;result.variant=$('variant').value;result.quality=$('quality').value;result.counts=selectedCounts;result.gpuProbe=$('gpuProbe').value;
+    for(const map of quick?[selectedMaps[0]]:selectedMaps){
       status(`${map} 読込中`);const ctx=await load(map);ctx.map=map;await chooseFloor(ctx);
       for(let repeat=0;repeat<result.repeats;repeat++)for(const mode of quick?['fixed']:selectedModes)for(const count of (quick?[6]:repeat%3===1?[...selectedCounts].reverse():repeat%3===2?[...selectedCounts.slice(1),selectedCounts[0]]:selectedCounts)){
         status(`${map} ${mode==='fixed'?'固定密集':'接近＋HG射撃'} ${count}体 ${repeat+1}/${result.repeats} 準備`);
         const fixture=setup(ctx,count,mode,repeat);await segment(ctx,count,mode,quick?1:(repeat===0&&mode==='fixed'&&count===selectedCounts[0]?8:3));
+        if(repeat===0&&mode==='fixed'&&count===(quick?6:selectedCounts[0])){const audit=auditDraws(ctx);fixture.drawAudit=audit.summary;if(location.hostname==='127.0.0.1')await fetch('/__crowd/json/draw-audit-'+$('build').value+'-'+map.replace('.html',''),{method:'POST',body:JSON.stringify(audit)});}
         status(`${map} ${mode==='fixed'?'固定密集':'接近＋HG射撃'} ${count}体 ${repeat+1}/${result.repeats} ${result.seconds}秒計測中`);
-        const part=await segment(ctx,count,mode,result.seconds,repeat===0),data={map,mode,count,repeat:repeat+1,fixture,summary:summarize(part,count),...part};result.trials.push(data);
+        fixture.aimWork=ctx.w.skyHumanView.aimWork;const part=await segment(ctx,count,mode,result.seconds,repeat===0),data={map,mode,count,repeat:repeat+1,fixture,summary:summarize(part,count),...part};result.trials.push(data);
         const row=document.createElement('tr');for(const value of [`${map==='index.html'?'旧市街':'渓谷'} ${mode} #${repeat+1}`,count,data.summary.fps,data.summary.intervalMs.p95,data.summary.over33Pct,data.summary.cpuMs.p95,data.summary.gpuMs.p95??($('gpuProbe').value==='on'?'非対応':'未計測'),`${data.summary.minUnobstructed}/${count}${data.summary.valid?'':' 無効'}`]){const c=document.createElement('td');c.textContent=String(value);row.append(c);}$('rows').append(row);await progress();
       }
     }
