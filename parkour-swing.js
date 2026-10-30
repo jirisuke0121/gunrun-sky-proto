@@ -105,7 +105,7 @@ export function createSwing(sky, game, course) {
   const hint = document.createElement('div'); hint.id = 'swingHint'; hint.hidden = true; document.body.appendChild(hint);
   if (bars.length) {
     const rule = document.querySelector('#ovStart .rules .keys');
-    if (rule) { const li = document.createElement('li'); li.textContent = (course.instructions || '西の橙色ルート：壁蹴り→小足場→鉄棒2本→中央高台。空中で鉄棒を自動つかみ。体が前へ振れた瞬間にジャンプを押して次へ。鉄棒ごとに押し直す。下入力で手を離す。高台で左右へ曲がる') + ' 緑の合図に合わせてジャンプすると前宙し、少し遠くへ飛べます。'; rule.appendChild(li); }
+    if (rule) { const li = document.createElement('li'); li.textContent = (course.instructions || '西の橙色ルート：壁蹴り→小足場→鉄棒2本→中央高台。空中で鉄棒を自動つかみ。体が前へ振れた瞬間にジャンプを押して次へ。鉄棒ごとに押し直す。下入力で手を離す。高台で左右へ曲がる') + ' 緑の合図に合わせてジャンプすると前宙し、少し遠くへ飛べます。成功後は4秒間、移動速度＋8％。'; rule.appendChild(li); }
   }
   function event(type, detail = {}) {
     if (game.RL?.events?.length < 300) game.RL.events.push({ e: type, t: +z.t.toFixed(3), x: c.pos.x, y: c.pos.y, z: c.pos.z, ...detail });
@@ -131,6 +131,7 @@ export function createSwing(sky, game, course) {
     c.vel.set(...(drop ? [a.direction[0] * 2, -1, a.direction[1] * 2] : launch));
     c.swingFlight = drop ? null : { age: 0, angle: a.angle, direction: [...a.direction], perfect,
       flipDuration: perfect ? flipDuration(c.pos.toArray(), launch, U.gravity, sky.oe, bars, a.bar.id, c.r) : 0 };
+    if (perfect) window.skyDash?.rewardSwing();
     if (perfect && U.autoFire && sky.Et) sky.Et.trigger = 0;
     event(drop ? 'barDrop' : 'barJump', { bar: a.bar.id, chain, angle: +a.angle.toFixed(3), omega: +a.omega.toFixed(3), perfect });
     if (!drop) { window.skyTelemetryProbe?.jumpAccepted(z.t, 'bar_release'); game.stats.barJumps = (game.stats.barJumps || 0) + 1; sky.Tt.jump?.(); }
