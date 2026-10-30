@@ -6,7 +6,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
  let server,browser;const results=[];
  try{
   if(!process.env.RUNNING_QA_URL){server=spawn('python3',['-m','http.server','8773','--bind','127.0.0.1'],{stdio:'ignore'});for(let i=0;i<100;i++){if(await fetch(base).then(r=>r.ok,()=>false))break;await new Promise(r=>setTimeout(r,100));}}
-  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:process.platform==='darwin'?['--no-sandbox']:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   for(const touch of [false,true])for(const map of ['index.html','canyon.html']){
    const id=`dash-${touch?'touch':'desktop'}-${map.split('.')[0]}`;
    const context=await browser.newContext({viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch,deviceScaleFactor:1});
@@ -86,6 +86,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     await page.keyboard.down('w');
     const running=await page.evaluate(()=>window.__dashFrames(35));
     assert.ok(Math.abs(running.speed-7.8)<.05,JSON.stringify(running));
+    assert.match(await page.locator('#dashStatus').innerText(),/速度 \+30% ↑/);
     assert.equal(running.clip,'parkourDash');assert.ok(running.distance>4.05&&running.fov>106,JSON.stringify(running));assert.equal(running.gl,0);
     await capture('boost');
     if(!touch&&map==='index.html'){
@@ -106,10 +107,25 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     await page.keyboard.down('w');
     const normal=await page.evaluate(()=>window.__dashFrames(35));await page.keyboard.up('w');
     assert.ok(Math.abs(normal.speed-6)<.05&&normal.fov>98&&normal.distance>3.8,JSON.stringify(normal));await capture('sprint');
+    await page.evaluate(l=>{window.__dashPlaceLane(l);window.skyDash.rewardSwing();},lane);
+    await page.keyboard.down('w');const swing=await page.evaluate(()=>window.__dashFrames(35));await page.keyboard.up('w');
+    assert.ok(Math.abs(swing.speed-6.48)<.05&&swing.swingRemaining>3,JSON.stringify(swing));
+    assert.match(await page.locator('#dashStatus').innerText(),/速度 \+8% ↑/);await capture('swing-reward');
+    await page.evaluate(l=>__dashPlaceLane(l),lane);await page.keyboard.down('Shift');await page.keyboard.down('w');
+    const swingWalk=await page.evaluate(()=>__dashFrames(35));await page.keyboard.up('w');await page.keyboard.up('Shift');
+    assert.ok(Math.abs(swingWalk.speed-4.968)<.05,JSON.stringify(swingWalk));
+    const refresh=await page.evaluate(()=>{skyDash.rewardSwing();return{remaining:skyDash.swingRemaining,speed:skyDash.speed(6)};});
+    assert.equal(refresh.remaining,4);assert.equal(refresh.speed,6.48);
+    const pauseSwing=await page.evaluate(()=>{__game.setMode('pause');const before=skyDash.swingRemaining;__dashFrames(30);const after=skyDash.swingRemaining;__game.setMode('play');return{before,after};});
+    assert.equal(pauseSwing.before,pauseSwing.after);
+    await page.evaluate(()=>{__game.P.vel.set(0,0,0);__dashFrames(250);});
+    assert.equal(await page.evaluate(()=>skyDash.swingRemaining),0);assert.ok(await page.locator('#dashStatus').isHidden());
+    await page.evaluate(l=>__dashPlaceLane(l),lane);await page.keyboard.down('w');
+    const afterSwing=await page.evaluate(()=>__dashFrames(35));await page.keyboard.up('w');assert.ok(Math.abs(afterSwing.speed-6)<.05);
     await page.keyboard.press('v');await page.evaluate(()=>window.__game.frameOnce(1/60));assert.equal(await page.evaluate(()=>document.body.dataset.skyHumanView),'first');
     await page.evaluate(()=>window.__game.startGame());
     assert.equal(await page.evaluate(()=>window.skyDash.remaining),0);assert.ok(await page.evaluate(()=>window.skyDash.pickups.every(p=>p.cooldown===0)));
-    assert.deepEqual(errors,[]);results.push({id,placements,lane,baseline,boost:running,normal,paused,ended,status:'passed'});
+    assert.deepEqual(errors,[]);results.push({id,placements,lane,baseline,boost:running,normal,swing,swingWalk,refresh,pauseSwing,afterSwing,paused,ended,status:'passed'});
     console.log(`PASS ${id}: connected real-map pickups, keyboard collection, ${running.speed.toFixed(2)}m/s boost → ${normal.speed.toFixed(2)}m/s normal, camera/FOV, dash morph, expiry/pause/reset, first person, WebGL`);
    }catch(e){await capture('failure').catch(()=>{});results.push({id,status:'failed',error:e.message,errors});throw e;}finally{await context.close();}
   }
