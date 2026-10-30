@@ -1,0 +1,571 @@
+{
+  "date": "2026-10-31",
+  "integratedMain": "d10f46e1e22bdb923da67a037c0e97306e845a78",
+  "comparedWith": "10ad40d4d96cca5751e0d7275e71f1489668c991",
+  "scope": "Manual browser runtime verification. No accepted FPS comparison. No publication.",
+  "optimizationModulesUnchanged": [
+    "human-view.js",
+    "human-aim.js",
+    "render-quality.js",
+    "world-batching.js"
+  ],
+  "checks": {
+    "index.html": [
+      {
+        "pose": "idle",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 745,
+        "solidsAfter": 791,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "run",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 745,
+        "solidsAfter": 791,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "walk",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 745,
+        "solidsAfter": 791,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "jump",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 745,
+        "solidsAfter": 791,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "slide",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 745,
+        "solidsAfter": 791,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "shot",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 745,
+        "solidsAfter": 791,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "aim-up",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 745,
+        "solidsAfter": 791,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "aim-down",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 745,
+        "solidsAfter": 791,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "door-open",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 745,
+        "solidsAfter": 791,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "door-close",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 745,
+        "solidsAfter": 791,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      }
+    ],
+    "canyon.html": [
+      {
+        "pose": "idle",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 319,
+        "solidsAfter": 319,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "run",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 319,
+        "solidsAfter": 319,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "walk",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 319,
+        "solidsAfter": 319,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "jump",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 319,
+        "solidsAfter": 319,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "slide",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 319,
+        "solidsAfter": 319,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "shot",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 319,
+        "solidsAfter": 319,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "aim-up",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 319,
+        "solidsAfter": 319,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      },
+      {
+        "pose": "aim-down",
+        "equal": {
+          "state": true,
+          "grounded": true,
+          "position": true,
+          "life": true,
+          "stats": true,
+          "meshes": true,
+          "human": true
+        },
+        "solidsBefore": 319,
+        "solidsAfter": 319,
+        "morphBindingWork": {
+          "revision": "dictionary-cache-v1",
+          "builds": 7,
+          "meshes": 7,
+          "entries": 1792
+        },
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.7,
+          "nativePixelRatio": 2,
+          "buffer": [
+            840,
+            373
+          ],
+          "shadows": false
+        }
+      }
+    ]
+  },
+  "sourceHashes": {
+    "index.html": "ff32b4627ce20be3267b3b3eca84ffd949e93580852b6e20b0a5fc00c2baadec",
+    "canyon.html": "f632a136feffaf94da0c0b22cb144b00d9a6415d632ea57004d32f09453b7426",
+    "enhancements.js": "d90a5da30be52e849c98ea99ac4dbd3d798b98db8a3230adb52ce4406fd9fcc5",
+    "human-view.js": "c734ce964cbf52a7aff190bc4b28ae0d0a4758603e83c2f1003429fb79bf2738",
+    "human-aim.js": "786d5c4cbb39932cdc8082673a18bb53c1a252ac00de0b5aaf9241a57725d478",
+    "render-quality.js": "36b9bcde59eeeea8b8bd6452d31ce3f1d524b0da9db44c5a9f7f7bb9cfc7892c",
+    "world-batching.js": "cc727a01898117a706330c7a8769d46d12191e3feed62b4c92ce96e53c70bfb1",
+    "zombie-search.js": "de407aa313ae87c110e941e728e98f208f0e8535835eb612e7dc279f79ca3d30",
+    "old-town-swing.js": "64850c153fead010e5e1274bf65e2db57542d87d1c93e21b9655b6aafdbe2a1e",
+    "town-heights.js": "adaa8bf7cb7047743a34d0c49a44e442273c412d51e709f57265666449597078"
+  },
+  "note": "Player geometry, normals, morphs, motion state, shot and hits exactly match in 16 poses and two door snapshots. Oldtown solids 745 to 791 reflects main new routes. c6544cc baseline is frozen, not same-AI evidence after this integration."
+}
