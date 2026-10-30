@@ -81,13 +81,14 @@ export function createDash(sky, game) {
   });
   const burst = new Mesh(ringGeometry, cyan.clone()); burst.visible = false; root.add(burst); burst.rotation.x = Math.PI / 2;
   const style = document.createElement('style');
-  style.textContent = '#dashSpeedFx{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;background:repeating-conic-gradient(from 3deg at 50% 48%,#b5fbff88 0deg .35deg,transparent .35deg 19deg);-webkit-mask:radial-gradient(ellipse at 50% 48%,transparent 37%,#000 93%);mask:radial-gradient(ellipse at 50% 48%,transparent 37%,#000 93%)}#dashPickupFlash{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse at center,transparent 25%,#a2f9ff);opacity:0}#dashStatus{position:absolute;left:50%;bottom:112px;transform:translateX(-50%);z-index:26;pointer-events:none;color:#caffdf;background:#132a24de;border:1px solid #7ef0aa66;border-radius:7px;padding:5px 9px;font:700 11px/1.4 system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;text-align:center;max-width:calc(100% - 40px);box-sizing:border-box}#dashStatus[hidden]{display:none}#dashStatus small{display:block;font-size:10px;font-weight:500;color:#b9d8c5}#dashStatus i{display:block;height:2px;margin-top:3px;background:#7ef0aa;transform-origin:left}.practice-mode #dashStatus{bottom:112px}html.touch #app #dashStatus{bottom:calc(var(--touch-bottom) + clamp(48px,calc(var(--control-height,100dvh) * .145),58px) + 34px)}';
+  style.textContent = '#dashSpeedFx{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;background:repeating-conic-gradient(from 3deg at 50% 48%,#b5fbff88 0deg .35deg,transparent .35deg 19deg);-webkit-mask:radial-gradient(ellipse at 50% 48%,transparent 37%,#000 93%);mask:radial-gradient(ellipse at 50% 48%,transparent 37%,#000 93%)}#dashPickupFlash{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse at center,transparent 25%,#a2f9ff);opacity:0}#dashStatus{position:static;margin-top:2px;padding:0;border:0;background:none;color:#a8ffca;font:700 11px/1.4 system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;pointer-events:none}#dashStatus[hidden]{display:none}html.touch #hud:has(#dashStatus:not([hidden])) #weaponSupplyStatus{top:calc(var(--touch-top) + 78px)}';
   document.head.appendChild(style);
   const lines = document.createElement('div'); lines.id = 'dashSpeedFx'; document.body.appendChild(lines);
   const flash = document.createElement('div'); flash.id = 'dashPickupFlash'; document.body.appendChild(flash);
   const status = document.createElement('div'); status.id = 'dashStatus'; status.hidden = true;
-  const label = document.createElement('span'), detail = document.createElement('small'), meter = document.createElement('i');
-  status.append(label, detail, meter); (document.getElementById('hud') || document.body).appendChild(status);
+  const label = document.createElement('span'); status.append(label);
+  const life = document.querySelector('.hud-tl .life');
+  if (life) life.after(status); else (document.getElementById('hud') || document.body).appendChild(status);
   const rule = document.querySelector('#ovStart .rules .keys');
   if (rule) { const li = document.createElement('li'); li.textContent = '青いDASHリングを取ると5秒間、速度が1.3倍。再出現は36秒後'; rule.appendChild(li); }
   let swingRemaining = 0;
@@ -165,9 +166,6 @@ export function createDash(sky, game) {
     flash.style.opacity = String(reduced ? 0 : .13 * pulse / .42);
     status.hidden = remaining <= 0 && swingRemaining <= 0;
     label.textContent = `速度 +${Math.round((factor() - 1) * 100)}% ↑`;
-    detail.textContent = [swingRemaining > 0 ? `前宙 ${swingRemaining.toFixed(1)}秒` : '',
-      remaining > 0 ? `DASH ${remaining.toFixed(1)}秒` : ''].filter(Boolean).join(' / ');
-    meter.style.transform = `scaleX(${Math.max(remaining / DASH_SECONDS, swingRemaining / SWING_BOOST_SECONDS)})`;
     for (const item of items) {
       item.group.visible = !!item.node && item.cooldown <= 0;
       if (!item.node) continue;
