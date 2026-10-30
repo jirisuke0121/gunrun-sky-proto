@@ -166,6 +166,13 @@
     // The 3.6m landing attaches to the existing outer walk, not a new exit.
     box('tower-corner-launch',[44.4,-.3,-15.8],[46.4,0,-13.8]);
     box('tower-corner-arrival',[59.6,3.3,-16.5],[61.85,3.6,-14.05]);
+    // The original stair's south edge drops about 1m onto the outer walk.
+    // Break that drop into ordinary steps so grounded edge assistance lets
+    // the player continue after landing, without another forced jump.
+    for(let i=0;i<4;i++) {
+      const z=-11.8+i*.55,top=[4.6,4.25,3.9,3.6][i];
+      box('tower-corner-runout-'+i,[59.8,3.3,z],[61.85,top,z+.55],'slab',0xe39a4a);
+    }
     const towerHook=[60.9,5.8,-15.25];
     us.push(towerHook);
     strut([61.85,5.8,-15.25],towerHook);
