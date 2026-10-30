@@ -164,6 +164,10 @@ export function createDash(sky, game) {
     const moving = smooth(.7, U.sprintSpeed, speed), trailOn = boost * moving;
     lines.style.opacity = String((reduced ? .16 : .38) * run * (.35 + .65 * boost));
     flash.style.opacity = String(reduced ? 0 : .13 * pulse / .42);
+    if (window.skyPracticeMode) {
+      const practiceSpeed = document.getElementById('practiceSpeed');
+      if (practiceSpeed && status.parentElement !== practiceSpeed.parentElement) practiceSpeed.after(status);
+    }
     status.hidden = remaining <= 0 && swingRemaining <= 0;
     label.textContent = `速度 +${Math.round((factor() - 1) * 100)}% ↑`;
     for (const item of items) {
