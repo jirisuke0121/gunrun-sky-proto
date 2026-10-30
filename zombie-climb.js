@@ -25,8 +25,8 @@ export function createZombieClimb(game, runtime, flashbang) {
   }
   let nextScan = 0, scan = null, pumpedAt = -Infinity;
   let targetTime = -Infinity, targetTop = null, targetKey = '';
-  const targetFor = () => realPlayer;
-  const fieldFor = () => runtime.FIELD;
+  const targetFor = enemy => window.skyZombieSearch ? window.skyZombieSearch.recoveryTarget(enemy) : realPlayer;
+  const fieldFor = enemy => window.skyZombieSearch ? window.skyZombieSearch.recoveryField(enemy) : runtime.FIELD;
 
   function lineInterval(bounds, strict = true) {
     let enter = 0, leave = 1;
@@ -419,6 +419,8 @@ export function createZombieClimb(game, runtime, flashbang) {
 
   const originalUpdate = ri.prototype.update, originalAnim = ri.prototype.anim;
   ri.prototype.update = function updateWithPillarClimb(dt) {
+    if (window.skyZombieSearch?.deferSpawn(this)) { this.anim(0); return; }
+    window.skyZombieSearch?.observe(this, dt);
     // Visible decoys own navigation; never recover toward the real player.
     if (window.skyDecoy?.targetFor(this)) {
       if (this.act?.kind === 'pillar') interrupt(this);
