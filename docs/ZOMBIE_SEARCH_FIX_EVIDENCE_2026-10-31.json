@@ -1,0 +1,2349 @@
+{
+  "method": "Manual controls in a real in-app browser using actual game physics, models and collision; held simulation clock and diagnostic placement; not human difficulty or device performance evidence",
+  "sourceMain": "c6544cce6f789d636cc7955a26266ce953a251b6",
+  "observations": {
+    "canyon-approach.json": [
+      {
+        "chosen": {
+          "a": {
+            "id": 923,
+            "x": -21,
+            "y": 4,
+            "z": -10,
+            "i": 13,
+            "j": 16
+          },
+          "b": {
+            "id": 1018,
+            "x": -20,
+            "y": 4,
+            "z": -6,
+            "i": 14,
+            "j": 20
+          },
+          "hidden": {
+            "id": 932,
+            "x": -21,
+            "y": 4,
+            "z": -4,
+            "i": 13,
+            "j": 22
+          },
+          "cost": 7.41421365737915
+        }
+      },
+      {
+        "time": 0.3,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "approach": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -21,
+            4,
+            -10
+          ],
+          "phase": "approach",
+          "last": {
+            "x": -21,
+            "y": 4.0001,
+            "z": -4
+          },
+          "lost": true,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -21,
+          4.0001,
+          -4
+        ]
+      },
+      {
+        "time": 0.9,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "approach": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -21,
+            4,
+            -10
+          ],
+          "phase": "approach",
+          "last": {
+            "x": -21,
+            "y": 4.0001,
+            "z": -4
+          },
+          "lost": true,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -23,
+          3.8834333333333335,
+          12
+        ]
+      },
+      {
+        "time": 3.9,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "chase": 1
+        },
+        "speeds": [
+          6.45
+        ],
+        "enemy": {
+          "position": [
+            -21.09,
+            4,
+            7.87
+          ],
+          "phase": "chase",
+          "last": {
+            "x": -23,
+            "y": 3.8834333333333335,
+            "z": 12
+          },
+          "lost": false,
+          "speed": 6.45,
+          "action": null,
+          "edge": 34033
+        },
+        "player": [
+          -23,
+          3.8834333333333335,
+          12
+        ]
+      }
+    ],
+    "canyon-cover.json": [
+      {
+        "chosen": {
+          "a": {
+            "id": 923,
+            "x": -21,
+            "y": 4,
+            "z": -10,
+            "i": 13,
+            "j": 16
+          },
+          "b": {
+            "id": 1018,
+            "x": -20,
+            "y": 4,
+            "z": -6,
+            "i": 14,
+            "j": 20
+          },
+          "hidden": {
+            "id": 932,
+            "x": -21,
+            "y": 4,
+            "z": -4,
+            "i": 13,
+            "j": 22
+          },
+          "cost": 7.41421365737915
+        }
+      },
+      {
+        "time": 1,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "chase": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -21,
+            4,
+            -10
+          ],
+          "phase": "chase",
+          "last": {
+            "x": -20,
+            "y": 4.0001,
+            "z": -6
+          },
+          "lost": false,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -20,
+          4.0001,
+          -6
+        ]
+      },
+      {
+        "time": 4.1,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 1,
+          "reacquired": 0,
+          "searches": 1,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 9.466666666666669,
+        "status": "追跡を振り切った",
+        "statusHidden": false,
+        "alive": 1,
+        "phases": {
+          "search": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -21,
+            4,
+            -10
+          ],
+          "phase": "search",
+          "last": {
+            "x": -20,
+            "y": 4.0001,
+            "z": -6
+          },
+          "lost": true,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -21,
+          4.0001,
+          -4
+        ]
+      },
+      {
+        "respiteSpawns": {
+          "before": 1,
+          "after": 1,
+          "squeeze": null
+        }
+      },
+      {
+        "pause": {
+          "before": 9.466666666666669,
+          "after": 9.466666666666669
+        }
+      },
+      {
+        "time": 14.2,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 1,
+          "reacquired": 0,
+          "searches": 1,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "patrol": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -21,
+            4,
+            -10
+          ],
+          "phase": "patrol",
+          "last": {
+            "x": -20,
+            "y": 4.0001,
+            "z": -6
+          },
+          "lost": true,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -21,
+          4.0001,
+          -4
+        ]
+      },
+      {
+        "time": 15.1,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 1,
+          "reacquired": 1,
+          "searches": 1,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "chase": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -21,
+            4,
+            -10
+          ],
+          "phase": "chase",
+          "last": {
+            "x": -20,
+            "y": 4.0001,
+            "z": -6
+          },
+          "lost": false,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -20,
+          4.0001,
+          -6
+        ]
+      }
+    ],
+    "canyon-decoy.json": [
+      {
+        "used": true,
+        "lured": true
+      },
+      {
+        "time": 1.6,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "memory": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -21,
+            4,
+            -10
+          ],
+          "phase": "memory",
+          "last": {
+            "x": -20,
+            "y": 4.0001,
+            "z": -6
+          },
+          "lost": false,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -21,
+          4.0001,
+          -4
+        ]
+      },
+      {
+        "active": null,
+        "lured": false,
+        "time": 7.7,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 1,
+          "reacquired": 0,
+          "searches": 1,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 5.866666666666681,
+        "status": "ゾンビが周辺を捜索中 · 6秒",
+        "statusHidden": false,
+        "alive": 1,
+        "phases": {
+          "search": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -21,
+            4,
+            -10
+          ],
+          "phase": "search",
+          "last": {
+            "x": -20,
+            "y": 4.0001,
+            "z": -6
+          },
+          "lost": true,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -21,
+          4.0001,
+          -4
+        ]
+      }
+    ],
+    "canyon-flash.json": [
+      {
+        "used": true,
+        "blinded": true
+      },
+      {
+        "time": 0.8,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "approach": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -19.98,
+            4,
+            -8.71
+          ],
+          "phase": "approach",
+          "last": {
+            "x": -20,
+            "y": 4.0001,
+            "z": -6
+          },
+          "lost": true,
+          "speed": 0,
+          "action": null,
+          "edge": 35214
+        },
+        "player": [
+          -20,
+          4.0001,
+          -6
+        ]
+      },
+      {
+        "blinded": false,
+        "time": 5.3,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 2,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "chase": 1
+        },
+        "speeds": [
+          5.97
+        ],
+        "enemy": {
+          "position": [
+            -19.73,
+            4.14,
+            -6.36
+          ],
+          "phase": "chase",
+          "last": {
+            "x": -20,
+            "y": 4.0001,
+            "z": -6
+          },
+          "lost": false,
+          "speed": 5.97,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -20.10191711603278,
+          4.0001,
+          -5.861432130943392
+        ]
+      }
+    ],
+    "canyon-idle.json": [
+      {
+        "time": 0,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 0,
+          "dispatched": 0,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 7,
+        "phases": {
+          "continuous": 7
+        },
+        "speeds": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "time": 9.3,
+        "life": 0,
+        "over": true,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 1,
+          "searches": 0,
+          "fields": 2,
+          "dispatched": 9,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 9,
+        "phases": {
+          "chase": 9
+        },
+        "speeds": [
+          6.54,
+          6.56,
+          6.85,
+          6.97,
+          6.66,
+          6.91,
+          6.83,
+          7.52,
+          6.11
+        ]
+      }
+    ],
+    "canyon-opening.json": [
+      {
+        "time": 0,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 0,
+          "dispatched": 0,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 7,
+        "phases": {
+          "continuous": 7
+        },
+        "speeds": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "time": 3,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 2,
+          "dispatched": 7,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 9,
+        "phases": {
+          "approach": 4,
+          "chase": 3,
+          "continuous": 2
+        },
+        "speeds": [
+          6.08,
+          5.92,
+          6.32,
+          6.79,
+          6.37,
+          0,
+          6.41,
+          0,
+          0
+        ]
+      },
+      {
+        "time": 12,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 3,
+          "searches": 0,
+          "fields": 5,
+          "dispatched": 9,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 9,
+        "phases": {
+          "chase": 8,
+          "memory": 1
+        },
+        "speeds": [
+          6.68,
+          6.26,
+          6.55,
+          6.45,
+          6.79,
+          0,
+          6.45,
+          0,
+          0
+        ]
+      },
+      {
+        "time": 30,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 8,
+          "searches": 4,
+          "fields": 13,
+          "dispatched": 11,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 11,
+        "phases": {
+          "chase": 10,
+          "search": 1
+        },
+        "speeds": [
+          5.93,
+          6.21,
+          8.59,
+          6.11,
+          6.71,
+          0,
+          5.36,
+          6.99,
+          6.42,
+          6.69,
+          6.14
+        ]
+      }
+    ],
+    "canyon-recycle.json": [
+      {
+        "far": {
+          "id": 813,
+          "x": -23,
+          "y": 0,
+          "z": 14,
+          "i": 11,
+          "j": 40
+        },
+        "a": {
+          "id": 923,
+          "x": -21,
+          "y": 4,
+          "z": -10,
+          "i": 13,
+          "j": 16
+        }
+      },
+      {
+        "time": 70.3,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 2,
+          "dispatched": 12,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 12,
+        "phases": {
+          "search": 12
+        },
+        "speeds": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "time": 80.6,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 2,
+          "dispatched": 12,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 12,
+        "phases": {
+          "patrol": 12
+        },
+        "speeds": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "full": 12,
+        "blocked": 12,
+        "time": 86.8,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 14,
+          "dispatched": 12,
+          "recycled": 12
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 0,
+        "phases": {},
+        "speeds": []
+      },
+      {
+        "refill": {
+          "before": 0,
+          "after": 3
+        },
+        "time": 88.8,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 15,
+          "dispatched": 14,
+          "recycled": 12
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 3,
+        "phases": {
+          "chase": 1,
+          "approach": 1,
+          "continuous": 1
+        },
+        "speeds": [
+          7.51,
+          5.77,
+          0
+        ]
+      }
+    ],
+    "canyon-wall.json": {
+      "distance": 0.7800000000000011,
+      "withWall": false,
+      "withoutWall": true
+    },
+    "index-approach.json": [
+      {
+        "chosen": {
+          "a": {
+            "id": 19,
+            "x": -69,
+            "y": 4.4,
+            "z": 2,
+            "i": 1,
+            "j": 38
+          },
+          "b": {
+            "id": 126,
+            "x": -64,
+            "y": 4.6,
+            "z": 8,
+            "i": 6,
+            "j": 44
+          },
+          "hidden": {
+            "id": 131,
+            "x": -64,
+            "y": 4.6,
+            "z": 12,
+            "i": 6,
+            "j": 48
+          },
+          "cost": 21.85929298400879
+        }
+      },
+      {
+        "time": 0.3,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "approach": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -69,
+            4.4,
+            2
+          ],
+          "phase": "approach",
+          "last": {
+            "x": -64,
+            "y": 4.600099999999999,
+            "z": 12
+          },
+          "lost": true,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -64,
+          4.600099999999999,
+          12
+        ]
+      },
+      {
+        "time": 0.9,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "approach": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -69,
+            4.4,
+            2
+          ],
+          "phase": "approach",
+          "last": {
+            "x": -64,
+            "y": 4.600099999999999,
+            "z": 12
+          },
+          "lost": true,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -55,
+          4.600099999999999,
+          10
+        ]
+      },
+      {
+        "time": 3.9,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "chase": 1
+        },
+        "speeds": [
+          4.19
+        ],
+        "enemy": {
+          "position": [
+            -55.78,
+            4.6,
+            10
+          ],
+          "phase": "chase",
+          "last": {
+            "x": -55,
+            "y": 4.600099999999999,
+            "z": 10
+          },
+          "lost": false,
+          "speed": 4.19,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -55,
+          4.600099999999999,
+          10
+        ]
+      }
+    ],
+    "index-cover.json": [
+      {
+        "chosen": {
+          "a": {
+            "id": 19,
+            "x": -69,
+            "y": 4.4,
+            "z": 2,
+            "i": 1,
+            "j": 38
+          },
+          "b": {
+            "id": 126,
+            "x": -64,
+            "y": 4.6,
+            "z": 8,
+            "i": 6,
+            "j": 44
+          },
+          "hidden": {
+            "id": 131,
+            "x": -64,
+            "y": 4.6,
+            "z": 12,
+            "i": 6,
+            "j": 48
+          },
+          "cost": 21.85929298400879
+        }
+      },
+      {
+        "time": 1,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "chase": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -69,
+            4.4,
+            2
+          ],
+          "phase": "chase",
+          "last": {
+            "x": -64,
+            "y": 4.600099999999999,
+            "z": 8
+          },
+          "lost": false,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -64,
+          4.600099999999999,
+          8
+        ]
+      },
+      {
+        "time": 4.1,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 1,
+          "reacquired": 0,
+          "searches": 1,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 9.466666666666669,
+        "status": "追跡を振り切った",
+        "statusHidden": false,
+        "alive": 1,
+        "phases": {
+          "search": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -69,
+            4.4,
+            2
+          ],
+          "phase": "search",
+          "last": {
+            "x": -64,
+            "y": 4.600099999999999,
+            "z": 8
+          },
+          "lost": true,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -64,
+          4.600099999999999,
+          12
+        ]
+      },
+      {
+        "respiteSpawns": {
+          "before": 1,
+          "after": 1,
+          "squeeze": null
+        }
+      },
+      {
+        "pause": {
+          "before": 9.466666666666669,
+          "after": 9.466666666666669
+        }
+      },
+      {
+        "time": 14.2,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 1,
+          "reacquired": 0,
+          "searches": 1,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "patrol": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -69,
+            4.4,
+            2
+          ],
+          "phase": "patrol",
+          "last": {
+            "x": -64,
+            "y": 4.600099999999999,
+            "z": 8
+          },
+          "lost": true,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -64,
+          4.600099999999999,
+          12
+        ]
+      },
+      {
+        "time": 15.1,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 1,
+          "reacquired": 1,
+          "searches": 1,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "chase": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -69,
+            4.4,
+            2
+          ],
+          "phase": "chase",
+          "last": {
+            "x": -64,
+            "y": 4.600099999999999,
+            "z": 8
+          },
+          "lost": false,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -64,
+          4.600099999999999,
+          8
+        ]
+      }
+    ],
+    "index-decoy.json": [
+      {
+        "used": true,
+        "lured": true
+      },
+      {
+        "time": 1.6,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "memory": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -69,
+            4.4,
+            2
+          ],
+          "phase": "memory",
+          "last": {
+            "x": -64,
+            "y": 4.600099999999999,
+            "z": 8
+          },
+          "lost": false,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -64,
+          4.600099999999999,
+          12
+        ]
+      },
+      {
+        "active": null,
+        "lured": false,
+        "time": 7.7,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 1,
+          "reacquired": 0,
+          "searches": 1,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 5.866666666666681,
+        "status": "ゾンビが周辺を捜索中 · 6秒",
+        "statusHidden": false,
+        "alive": 1,
+        "phases": {
+          "search": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -69,
+            4.4,
+            2
+          ],
+          "phase": "search",
+          "last": {
+            "x": -64,
+            "y": 4.600099999999999,
+            "z": 8
+          },
+          "lost": true,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -64,
+          4.600099999999999,
+          12
+        ]
+      }
+    ],
+    "index-flash.json": [
+      {
+        "used": true,
+        "blinded": true
+      },
+      {
+        "time": 0.8,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "approach": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -68.78,
+            4.4,
+            3.22
+          ],
+          "phase": "approach",
+          "last": {
+            "x": -64,
+            "y": 4.600099999999999,
+            "z": 8
+          },
+          "lost": true,
+          "speed": 0,
+          "action": null,
+          "edge": 74
+        },
+        "player": [
+          -64,
+          4.600099999999999,
+          8
+        ]
+      },
+      {
+        "blinded": false,
+        "time": 5.3,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 2,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "chase": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -66.82,
+            5.75,
+            5.5
+          ],
+          "phase": "chase",
+          "last": {
+            "x": -64,
+            "y": 4.600099999999999,
+            "z": 8
+          },
+          "lost": false,
+          "speed": 0,
+          "action": "leap",
+          "edge": 30070
+        },
+        "player": [
+          -64,
+          4.600099999999999,
+          8
+        ]
+      }
+    ],
+    "index-idle.json": [
+      {
+        "time": 0,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 0,
+          "dispatched": 0,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "alive": 7,
+        "phases": {
+          "continuous": 7
+        },
+        "speeds": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "time": 10,
+        "life": 2,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 3,
+          "dispatched": 9,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "alive": 9,
+        "phases": {
+          "approach": 6,
+          "memory": 1,
+          "chase": 2
+        },
+        "speeds": [
+          1.38,
+          6.51,
+          0,
+          6.03,
+          6.73,
+          0,
+          0,
+          6.58,
+          6.76
+        ]
+      },
+      {
+        "time": 12.92,
+        "life": 0,
+        "over": true,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 1,
+          "searches": 0,
+          "fields": 4,
+          "dispatched": 9,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "alive": 8,
+        "phases": {
+          "chase": 6,
+          "approach": 2
+        },
+        "speeds": [
+          0.34,
+          0.35,
+          0.55,
+          7.65,
+          0.17,
+          6.76,
+          6.1,
+          0
+        ]
+      }
+    ],
+    "index-opening.json": [
+      {
+        "time": 0,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 0,
+          "dispatched": 0,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "alive": 7,
+        "phases": {
+          "continuous": 7
+        },
+        "speeds": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "time": 3,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 2,
+          "dispatched": 7,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "alive": 9,
+        "phases": {
+          "approach": 7,
+          "continuous": 2
+        },
+        "speeds": [
+          4.47,
+          4.08,
+          5.78,
+          6.09,
+          3.45,
+          6.12,
+          5.87,
+          0,
+          0
+        ]
+      },
+      {
+        "time": 12,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 1,
+          "searches": 1,
+          "fields": 7,
+          "dispatched": 9,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "alive": 9,
+        "phases": {
+          "chase": 3,
+          "search": 2,
+          "approach": 4
+        },
+        "speeds": [
+          0,
+          4.61,
+          0,
+          8.17,
+          1.35,
+          0,
+          0,
+          5.01,
+          6.4
+        ]
+      },
+      {
+        "time": 30,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 2,
+          "searches": 2,
+          "fields": 40,
+          "dispatched": 11,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "alive": 11,
+        "phases": {
+          "chase": 4,
+          "patrol": 5,
+          "search": 2
+        },
+        "speeds": [
+          4.92,
+          5.78,
+          0,
+          4.4,
+          1.28,
+          1.35,
+          1.35,
+          0.9,
+          0,
+          3.94,
+          1.34
+        ]
+      }
+    ],
+    "index-recycle.json": [
+      {
+        "far": {
+          "id": 1443,
+          "x": -23,
+          "y": 6.4,
+          "z": -11,
+          "i": 47,
+          "j": 25,
+          "weaponDropHeight": 6
+        },
+        "a": {
+          "id": 19,
+          "x": -69,
+          "y": 4.4,
+          "z": 2,
+          "i": 1,
+          "j": 38
+        }
+      },
+      {
+        "time": 70.3,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 2,
+          "dispatched": 12,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 12,
+        "phases": {
+          "search": 12
+        },
+        "speeds": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "time": 80.6,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 2,
+          "dispatched": 12,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 12,
+        "phases": {
+          "patrol": 12
+        },
+        "speeds": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "full": 12,
+        "blocked": 12,
+        "time": 86.8,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 13,
+          "dispatched": 12,
+          "recycled": 12
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 0,
+        "phases": {},
+        "speeds": []
+      },
+      {
+        "refill": {
+          "before": 0,
+          "after": 3
+        },
+        "time": 88.8,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 15,
+          "dispatched": 14,
+          "recycled": 12
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 3,
+        "phases": {
+          "approach": 2,
+          "continuous": 1
+        },
+        "speeds": [
+          0,
+          6.1,
+          0
+        ]
+      }
+    ],
+    "index-roof.json": [
+      {
+        "top": {
+          "x": -34,
+          "y": 12,
+          "z": -18.95
+        },
+        "foot": {
+          "x": -34,
+          "y": 0,
+          "z": -23
+        }
+      },
+      {
+        "time": 0,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 0,
+          "dispatched": 0,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "continuous": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -34,
+            0.01,
+            -23
+          ],
+          "phase": "continuous",
+          "lost": false,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -34,
+          12.01,
+          -18.95
+        ],
+        "climbs": {
+          "scans": 0,
+          "started": 0,
+          "finished": 0,
+          "interrupted": 0,
+          "candidates": 0,
+          "maxScanMs": 0
+        }
+      },
+      {
+        "time": 6,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 0,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "memory": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -35.14,
+            0.85,
+            -19.39
+          ],
+          "phase": "memory",
+          "last": {
+            "x": -34,
+            "y": 12.0001,
+            "z": -18.95
+          },
+          "lost": true,
+          "speed": 0,
+          "action": "pillar",
+          "edge": -1
+        },
+        "player": [
+          -34,
+          12.0001,
+          -18.25
+        ],
+        "climbs": {
+          "scans": 1,
+          "started": 1,
+          "finished": 0,
+          "interrupted": 0,
+          "candidates": 11,
+          "maxScanMs": 0.7999999970197678
+        }
+      },
+      {
+        "time": 11,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 0,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "memory": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -35.14,
+            4.85,
+            -19.39
+          ],
+          "phase": "memory",
+          "last": {
+            "x": -34,
+            "y": 12.0001,
+            "z": -18.95
+          },
+          "lost": true,
+          "speed": 0,
+          "action": "pillar",
+          "edge": -1
+        },
+        "player": [
+          -34,
+          12.0001,
+          -18.25
+        ],
+        "climbs": {
+          "scans": 1,
+          "started": 1,
+          "finished": 0,
+          "interrupted": 0,
+          "candidates": 11,
+          "maxScanMs": 0.7999999970197678
+        }
+      },
+      {
+        "time": 16,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 0,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "memory": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -35.14,
+            8.85,
+            -19.39
+          ],
+          "phase": "memory",
+          "last": {
+            "x": -34,
+            "y": 12.0001,
+            "z": -18.95
+          },
+          "lost": true,
+          "speed": 0,
+          "action": "pillar",
+          "edge": -1
+        },
+        "player": [
+          -34,
+          12.0001,
+          -18.25
+        ],
+        "climbs": {
+          "scans": 1,
+          "started": 1,
+          "finished": 0,
+          "interrupted": 0,
+          "candidates": 11,
+          "maxScanMs": 0.7999999970197678
+        }
+      },
+      {
+        "time": 21,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 1,
+          "searches": 0,
+          "fields": 0,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "chase": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -35.14,
+            12,
+            -18.71
+          ],
+          "phase": "chase",
+          "last": {
+            "x": -34,
+            "y": 12.0001,
+            "z": -18.25
+          },
+          "lost": false,
+          "speed": 0,
+          "action": "pillar",
+          "edge": -1
+        },
+        "player": [
+          -34,
+          12.0001,
+          -18.25
+        ],
+        "climbs": {
+          "scans": 1,
+          "started": 1,
+          "finished": 0,
+          "interrupted": 0,
+          "candidates": 11,
+          "maxScanMs": 0.7999999970197678
+        }
+      },
+      {
+        "time": 26,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 1,
+          "searches": 0,
+          "fields": 0,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "chase": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -31.41,
+            12,
+            -17.76
+          ],
+          "phase": "chase",
+          "last": {
+            "x": -31.405735103563774,
+            "y": 12.0001,
+            "z": -17.240103718230674
+          },
+          "lost": false,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -31.405735103563774,
+          12.0001,
+          -17.240103718230674
+        ],
+        "climbs": {
+          "scans": 1,
+          "started": 1,
+          "finished": 1,
+          "interrupted": 0,
+          "candidates": 11,
+          "maxScanMs": 0.7999999970197678
+        }
+      },
+      {
+        "time": 31,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 1,
+          "searches": 0,
+          "fields": 0,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "chase": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -31.41,
+            12,
+            -17.76
+          ],
+          "phase": "chase",
+          "last": {
+            "x": -31.405735103563774,
+            "y": 12.0001,
+            "z": -17.240103718230674
+          },
+          "lost": false,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -31.405735103563774,
+          12.0001,
+          -17.240103718230674
+        ],
+        "climbs": {
+          "scans": 1,
+          "started": 1,
+          "finished": 1,
+          "interrupted": 0,
+          "candidates": 11,
+          "maxScanMs": 0.7999999970197678
+        }
+      }
+    ],
+    "index-view.json": [
+      {
+        "time": 1,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 0,
+          "reacquired": 0,
+          "searches": 0,
+          "fields": 1,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 0,
+        "status": "ゾンビが周辺を捜索中 · 0秒",
+        "statusHidden": true,
+        "alive": 1,
+        "phases": {
+          "chase": 1
+        },
+        "speeds": [
+          0
+        ],
+        "enemy": {
+          "position": [
+            -69,
+            4.4,
+            2
+          ],
+          "phase": "chase",
+          "last": {
+            "x": -64,
+            "y": 4.600099999999999,
+            "z": 8
+          },
+          "lost": false,
+          "speed": 0,
+          "action": null,
+          "edge": -1
+        },
+        "player": [
+          -64,
+          4.600099999999999,
+          8
+        ]
+      },
+      {
+        "time": 4.4,
+        "life": 3,
+        "over": false,
+        "searchStats": {
+          "escapes": 1,
+          "reacquired": 0,
+          "searches": 1,
+          "fields": 2,
+          "dispatched": 1,
+          "recycled": 0
+        },
+        "remaining": 9.16666666666667,
+        "status": "追跡を振り切った",
+        "statusHidden": false,
+        "alive": 1,
+        "phases": {
+          "search": 1
+        },
+        "speeds": [
+          1.28
+        ],
+        "enemy": {
+          "position": [
+            -68.8,
+            4.4,
+            2.2
+          ],
+          "phase": "search",
+          "last": {
+            "x": -64,
+            "y": 4.600099999999999,
+            "z": 8
+          },
+          "lost": true,
+          "speed": 1.28,
+          "action": null,
+          "edge": 69
+        },
+        "player": [
+          -64,
+          4.600099999999999,
+          12
+        ]
+      }
+    ],
+    "index-wall.json": {
+      "distance": 1.0399999999999991,
+      "withWall": false,
+      "withoutWall": true
+    }
+  }
+}

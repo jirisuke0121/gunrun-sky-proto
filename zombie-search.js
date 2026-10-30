@@ -1,13 +1,14 @@
-// Per-enemy sight memory. Hidden players never supply navigation destinations.
+// One dispatch snapshot per spawn; later destination updates require sight or sound.
 export const ZOMBIE_SEARCH = Object.freeze({ duration: 10, scan: 0.2, recognition: 0.45,
-  memoryLimit: 2.5, climbMemory: 8, radius: 7, walkSpeed: 1.35, fieldCacheSize: 12 });
+  memoryLimit: 2.5, climbMemory: 8, approachLimit: 20, recycleDelay: 6, recycleDistance: 18,
+  radius: 7, walkSpeed: 1.35, fieldCacheSize: 12 });
 
 export function createZombieSearch(game, runtime, flashbang, random = Math.random) {
   const { c: player, z: run, U, Jt: enemies, searchNav: nav } = game;
   const { nodes, out, E: edges } = runtime.NAV;
   let tracks = new WeakMap(), fields = new Map(), quietUntil = 0, escapedAt = -Infinity;
   let hadChase = false, escaped = false, nextGraphCheck = 0, graphKey = '', serial = 0;
-  const stats = { escapes: 0, reacquired: 0, searches: 0, fields: 0 };
+  const stats = { escapes: 0, reacquired: 0, searches: 0, fields: 0, dispatched: 0, recycled: 0 };
   const enabled = () => !!U.loseSight && !run.mission;
   const playing = () => runtime.mode === 'play' && !run.over;
   const point = p => ({ x: p.x, y: p.y, z: p.z });
@@ -31,9 +32,15 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
   function track(enemy) {
     let state = tracks.get(enemy);
     if (!state) {
-      state = { id: ++serial, phase: 'patrol', anchor: point(enemy.pos), last: null, target: -1,
+      // Spawns are dispatched to one known location, rather than starting as
+      // unaware patrols. This snapshot does not follow a hidden moving player.
+      const last = point(player.pos);
+      state = { id: ++serial, phase: 'approach', anchor: last, last, lastNode: nodeAt(last),
+        lastGrounded: player.onGround, dispatchedAt: run.t, target: -1,
         nextLook: -Infinity, nextWalk: 0, recognized: 0, wasChasing: false, observedAt: -Infinity };
       tracks.set(enemy, state);
+      enemy.yaw = Math.atan2(enemy.pos.x - last.x, enemy.pos.z - last.z);
+      stats.dispatched++;
     }
     return state;
   }
@@ -60,6 +67,7 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
     if (state.phase === phase) return;
     state.phase = phase; enemy.edge = -1; enemy.navT = 0; enemy.PF = null; enemy.LF = null;
     enemy.atkT = 0; state.target = -1; state.nextWalk = 0;
+    if (phase === 'patrol') state.patrolAt = run.t;
   }
   function beginSearch(enemy, state) {
     change(enemy, state, 'search'); state.until = run.t + duration();
@@ -109,7 +117,10 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
         enemy.yaw = Math.atan2(enemy.pos.x - state.last.x, enemy.pos.z - state.last.z);
       }
     }
-    if (state.phase === 'memory') {
+    if (state.phase === 'approach') {
+      if (enemy.act?.kind !== 'pillar' && (distance(enemy.pos, state.last) < 1.3 ||
+          run.t - state.dispatchedAt >= ZOMBIE_SEARCH.approachLimit)) beginSearch(enemy, state);
+    } else if (state.phase === 'memory') {
       const age = run.t - state.hiddenAt;
       // Leave time for the four-second stall detector at a known upper ledge.
       // Once committed, finish that remembered route even if its lip hides the player.
@@ -165,7 +176,7 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
     const state = track(enemy), source = nodeAt(enemy.pos);
     enemy.node = source; enemy.edge = -1;
     if (source < 0) return true;
-    if (state.phase === 'memory') state.target = state.lastNode ?? -1;
+    if (state.phase === 'memory' || state.phase === 'approach') state.target = state.lastNode ?? -1;
     else if (state.target < 0 || run.t >= state.nextWalk || distance(enemy.pos, nodes[state.target]) < 0.8) wander(enemy, state, source);
     const costs = field(state.target, enemy), edgeCost = costFor(enemy);
     if (!costs || !Number.isFinite(costs[source])) return true;
@@ -231,7 +242,29 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
       game.rn('追跡を振り切った — 周辺を捜索している'); cue(true);
       event('chaseEscaped', { seconds: duration() });
     }
+    // Unseen, distant patrols must not occupy the whole live-enemy budget for
+    // the remainder of a run. Normal spawning replaces them after the respite;
+    // the old enemy never learns the hidden player's position or teleports.
+    if (run.t >= quietUntil) for (const enemy of enemies) {
+      const state = tracks.get(enemy);
+      if (!active(enemy) || enemy.act || enemy.stun > 0 || flashbang.blinded(enemy) || nav.decoyTarget?.(enemy) ||
+          state?.phase !== 'patrol' || run.t - state.patrolAt < ZOMBIE_SEARCH.recycleDelay ||
+          distance(enemy.pos, player.pos) < ZOMBIE_SEARCH.recycleDistance || visibleFromPlayer(enemy)) continue;
+      enemy.dead = enemy.remove = true;
+      stats.recycled++; event('zombieRecycled', { enemy: state.id });
+    }
     refreshUI();
+  }
+  function visibleFromPlayer(enemy) {
+    const dx = enemy.pos.x - player.pos.x, dz = enemy.pos.z - player.pos.z;
+    const eye = player.pos.y + Math.max(0.5, (player.h || 1.75) - 0.12);
+    // Unlike recognition, removal uses no facing or sight-range restriction.
+    for (const height of [Math.min(1.5, enemy.h - 0.1), Math.min(0.9, enemy.h * 0.5)]) {
+      const dy = enemy.pos.y + height - eye, length = Math.hypot(dx, dy, dz);
+      if (!game.raycast(player.pos.x, eye, player.pos.z, dx / (length || 1), dy / (length || 1),
+          dz / (length || 1), Math.max(0, length - 0.1))) return true;
+    }
+    return false;
   }
   function reset() {
     tracks = new WeakMap(); fields.clear(); quietUntil = 0; escapedAt = -Infinity;
@@ -243,7 +276,7 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
     if (!enabled()) return player;
     const state = tracks.get(enemy);
     if (state?.phase === 'chase') return player;
-    if (state?.phase !== 'memory' || !state.last) return null;
+    if ((state?.phase !== 'memory' && state?.phase !== 'approach') || !state.last) return null;
     const target = state.recovery || (state.recovery = {});
     target.pos = state.last; target.onGround = state.lastGrounded;
     return target;
@@ -253,13 +286,18 @@ export function createZombieSearch(game, runtime, flashbang, random = Math.rando
     const state = tracks.get(enemy), id = state?.lastNode;
     // A lower node is not the remembered roof. Its field cannot validate a
     // recovery route; only a checked direct path on that roof can do so.
-    return state?.phase === 'memory' && id >= 0 && Math.abs(nodes[id].y - state.last.y) < 0.35 ? field(id, enemy) : null;
+    return (state?.phase === 'memory' || state?.phase === 'approach') && id >= 0 &&
+      Math.abs(nodes[id].y - state.last.y) < 0.35 ? field(id, enemy) : null;
   }
   const suppressSpawns = () => enabled() && run.t < quietUntil;
   return { config: ZOMBIE_SEARCH, stats, observe, pickEdge, hearShot, recoveryTarget, recoveryField, afterStep, reset,
     modeChanged: () => { if (status) status.hidden = true; },
     suppressSpawns, deferSpawn: e => suppressSpawns() && (!!e.rise && e.rise.t < 0 || !!e.fall && e.fall.wait > 0 || !!e.act?.emerge && e.act.wait > 0),
-    speed: (e, speed) => !enabled() || !e.lost ? speed : Math.min(speed, track(e).phase === 'memory' ? 2.2 : ZOMBIE_SEARCH.walkSpeed),
+    speed(e, speed) {
+      if (!enabled() || !e.lost) return speed;
+      const phase = track(e).phase;
+      return phase === 'approach' || phase === 'memory' ? speed : Math.min(speed, ZOMBIE_SEARCH.walkSpeed);
+    },
     state: e => { const s = tracks.get(e); return s ? { phase: s.phase, last: s.last && point(s.last), target: s.target,
       remaining: Math.max(0, (s.until || 0) - run.t) } : null; },
     get remaining() { return Math.max(0, quietUntil - run.t); } };
