@@ -87,3 +87,10 @@ html.touch[data-sky-rotation="1"] #bSettings[aria-expanded="false"]{
 html.touch[data-sky-rotation="-1"] #bSettings[aria-expanded="false"]{
   right:auto;left:max(12px,env(safe-area-inset-left));
 }
+
+/* The marker suggests movement; touches anywhere in the left zone still work. */
+html.touch #stick{pointer-events:none;border:2px solid #e0ffefb3;background:#102c2440;box-shadow:0 1px 8px #0004}
+html.touch #stick:not(.on){left:var(--touch-left)!important;top:auto!important;bottom:calc(var(--touch-bottom) + 10px);margin:0;opacity:.3}
+html.touch #stick.on{opacity:.95}
+html.touch #knob{border:1px solid #e0ffefcc;background:#c5ffde80;box-shadow:0 1px 6px #0004}
+html.touch #stick:not(.on) #knob{transform:none!important}

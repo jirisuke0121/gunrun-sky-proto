@@ -2,6 +2,8 @@
 export const DASH_SECONDS = 5;
 export const DASH_MULTIPLIER = 1.3;
 export const DASH_RESPAWN = 36;
+export const SWING_BOOST_SECONDS = 4;
+export const SWING_BOOST_MULTIPLIER = 1.08;
 const clamp = x => Math.max(0, Math.min(1, x));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 const ease = (from, to, dt, rate) => from + (to - from) * (1 - Math.exp(-dt * rate));
@@ -79,21 +81,24 @@ export function createDash(sky, game) {
   });
   const burst = new Mesh(ringGeometry, cyan.clone()); burst.visible = false; root.add(burst); burst.rotation.x = Math.PI / 2;
   const style = document.createElement('style');
-  style.textContent = '#dashSpeedFx{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;background:repeating-conic-gradient(from 3deg at 50% 48%,#b5fbff88 0deg .35deg,transparent .35deg 19deg);-webkit-mask:radial-gradient(ellipse at 50% 48%,transparent 37%,#000 93%);mask:radial-gradient(ellipse at 50% 48%,transparent 37%,#000 93%)}#dashPickupFlash{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse at center,transparent 25%,#a2f9ff);opacity:0}#dashStatus{position:fixed;left:max(16px,env(safe-area-inset-left));bottom:90px;z-index:6;pointer-events:none;color:#e5ffff;background:#17383fe0;border-left:3px solid #6ff4ff;padding:6px 10px;font:700 12px system-ui;box-shadow:0 0 16px #5cffff22}#dashStatus[hidden]{display:none}#dashStatus i{display:block;height:3px;margin-top:5px;background:#69f3ff;transform-origin:left}';
+  style.textContent = '#dashSpeedFx{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;background:repeating-conic-gradient(from 3deg at 50% 48%,#b5fbff88 0deg .35deg,transparent .35deg 19deg);-webkit-mask:radial-gradient(ellipse at 50% 48%,transparent 37%,#000 93%);mask:radial-gradient(ellipse at 50% 48%,transparent 37%,#000 93%)}#dashPickupFlash{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse at center,transparent 25%,#a2f9ff);opacity:0}#dashStatus{position:static;margin-top:2px;padding:0;border:0;background:none;color:#a8ffca;font:700 11px/1.4 system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;pointer-events:none}#dashStatus[hidden]{display:none}html.touch #hud:has(#dashStatus:not([hidden])) #weaponSupplyStatus{top:calc(var(--touch-top) + 78px)}';
   document.head.appendChild(style);
   const lines = document.createElement('div'); lines.id = 'dashSpeedFx'; document.body.appendChild(lines);
   const flash = document.createElement('div'); flash.id = 'dashPickupFlash'; document.body.appendChild(flash);
   const status = document.createElement('div'); status.id = 'dashStatus'; status.hidden = true;
-  const label = document.createElement('span'), meter = document.createElement('i'); status.append(label, meter); document.body.appendChild(status);
+  const label = document.createElement('span'); status.append(label);
+  const life = document.querySelector('.hud-tl .life');
+  if (life) life.after(status); else (document.getElementById('hud') || document.body).appendChild(status);
   const rule = document.querySelector('#ovStart .rules .keys');
   if (rule) { const li = document.createElement('li'); li.textContent = '青いDASHリングを取ると5秒間、速度が1.3倍。再出現は36秒後'; rule.appendChild(li); }
+  let swingRemaining = 0;
   let remaining = 0, age = 0, time = 0, pulse = 0, run = 0, boost = 0, aimTime = 0, shots = game.stats.shots || 0;
   let previous = null, previousFactor = 1, swingView = 0;
   const trail = [], forward = new Vector3(), right = new Vector3(), centre = new Vector3();
   const camera = { distance: 3.6, shoulder: .62, height: .18 };
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false;
   function reset(round = false) {
-    remaining = age = pulse = boost = aimTime = 0; previousFactor = 1; previous = null; trail.length = 0;
+    swingRemaining = remaining = age = pulse = boost = aimTime = 0; previousFactor = 1; previous = null; trail.length = 0;
     streak.visible = burst.visible = false; echoes.forEach(m => { m.visible = false; });
     lines.style.opacity = flash.style.opacity = '0'; status.hidden = true;
     if (round) { items.forEach(i => { i.cooldown = 0; }); game.stats.dashPickups = 0; }
@@ -110,8 +115,15 @@ export function createDash(sky, game) {
     burst.position.set(c.pos.x, c.pos.y + .2, c.pos.z); trail.length = 0;
     sky.Tt.mark?.(); document.body.dataset.skyDashCollected = String(game.stats.dashPickups);
   }
+  // A successful release refreshes a small reward; it never stacks with itself.
+  function rewardSwing() { swingRemaining = SWING_BOOST_SECONDS; }
+  function factor(sprinting = true) {
+    return (1 + (sprinting ? (DASH_MULTIPLIER - 1) * boostEnvelope(remaining, age) : 0)) *
+      (1 + (SWING_BOOST_MULTIPLIER - 1) * smooth(0, .4, swingRemaining));
+  }
   function step(dt) {
     if (sky.modeRef() !== 'play' || z.over) return;
+    swingRemaining = Math.max(0, swingRemaining - dt);
     remaining = Math.max(0, remaining - dt); age = remaining > 0 ? age + dt : 0; pulse = Math.max(0, pulse - dt); aimTime = Math.max(0, aimTime - dt);
     if ((game.stats.shots || 0) !== shots) { shots = game.stats.shots || 0; aimTime = .28; }
     const from = previous || c.pos.toArray(), to = c.pos.toArray();
@@ -123,13 +135,13 @@ export function createDash(sky, game) {
       if (segmentDistance(p, a, b) < .72) collect(item);
     }
     previous = to;
-    const factor = 1 + (DASH_MULTIPLIER - 1) * boostEnvelope(remaining, age), speed = Math.hypot(c.vel.x, c.vel.z);
+    const speedFactor = factor(), speed = Math.hypot(c.vel.x, c.vel.z);
     // Smoothly remove only the speed granted by this item. Do not cap a hook,
     // slide, explosion or any other source of momentum.
-    if (factor < previousFactor && c.onGround && c.state === 'normal' && speed <= U.sprintSpeed * previousFactor + .15 && speed > U.sprintSpeed * factor) {
-      c.vel.x *= U.sprintSpeed * factor / speed; c.vel.z *= U.sprintSpeed * factor / speed;
+    if (speedFactor < previousFactor && c.onGround && c.state === 'normal' && speed <= U.sprintSpeed * previousFactor + .15 && speed > U.sprintSpeed * speedFactor) {
+      c.vel.x *= U.sprintSpeed * speedFactor / speed; c.vel.z *= U.sprintSpeed * speedFactor / speed;
     }
-    previousFactor = factor;
+    previousFactor = speedFactor;
   }
   function frame(dt) {
     const playing = sky.modeRef() === 'play' && !z.over;
@@ -152,9 +164,12 @@ export function createDash(sky, game) {
     const moving = smooth(.7, U.sprintSpeed, speed), trailOn = boost * moving;
     lines.style.opacity = String((reduced ? .16 : .38) * run * (.35 + .65 * boost));
     flash.style.opacity = String(reduced ? 0 : .13 * pulse / .42);
-    status.hidden = remaining <= 0;
-    label.textContent = `DASH ×${DASH_MULTIPLIER}　${remaining.toFixed(1)}秒`;
-    meter.style.transform = `scaleX(${remaining / DASH_SECONDS})`;
+    if (window.skyPracticeMode) {
+      const practiceSpeed = document.getElementById('practiceSpeed');
+      if (practiceSpeed && status.parentElement !== practiceSpeed.parentElement) practiceSpeed.after(status);
+    }
+    status.hidden = remaining <= 0 && swingRemaining <= 0;
+    label.textContent = `速度 +${Math.round((factor() - 1) * 100)}% ↑`;
     for (const item of items) {
       item.group.visible = !!item.node && item.cooldown <= 0;
       if (!item.node) continue;
@@ -182,10 +197,11 @@ export function createDash(sky, game) {
     });
     burst.visible = pulse > 0 && !reduced;
     burst.scale.setScalar(1 + (1 - pulse / .42) * 5); burst.material.opacity = pulse / .42 * .65;
-    document.body.dataset.skyDash = JSON.stringify({ remaining: +remaining.toFixed(3), factor: +(1 + (DASH_MULTIPLIER - 1) * boostEnvelope(remaining, age)).toFixed(3), run: +run.toFixed(3), boost: +boost.toFixed(3), distance: +camera.distance.toFixed(3), pickups: items.filter(i => i.node && i.cooldown <= 0).length });
+    document.body.dataset.skyDash = JSON.stringify({ remaining: +remaining.toFixed(3), factor: +factor().toFixed(3), swingRemaining: +swingRemaining.toFixed(3), run: +run.toFixed(3), boost: +boost.toFixed(3), distance: +camera.distance.toFixed(3), pickups: items.filter(i => i.node && i.cooldown <= 0).length });
   }
-  return { step, frame, reset, placePickups, camera,
-    speed: base => base * (1 + (DASH_MULTIPLIER - 1) * boostEnvelope(remaining, age)),
+  return { step, frame, reset, placePickups, camera, rewardSwing,
+    speed: (base, sprinting = true) => base * factor(sprinting),
+    get swingRemaining() { return swingRemaining; },
     fov: original => {
       const normal=Math.min(122,Math.max(original,U.fov+U.fovKick*.8*run+7*boost*run));
       return normal+(Math.min(normal,94)-normal)*swingView;

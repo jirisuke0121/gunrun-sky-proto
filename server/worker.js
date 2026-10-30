@@ -32,7 +32,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-10-30-health-v5" }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-10-30-crowd6-v6" }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
@@ -113,7 +113,7 @@ WITH s AS (
          CASE WHEN reason != 'time' THEN 0 WHEN stars > 0 THEN MIN(3, CAST(stars AS INTEGER)) ELSE
            1 + (score >= COALESCE(json_extract(json, '$.settings.star2'), 430)) + (score >= COALESCE(json_extract(json, '$.settings.star3'), 470)) END AS stars,
          (COALESCE(json_array_length(json, '$.ghost.samples'),0) >= 2 OR COALESCE(json_array_length(json, '$.trail'),0) >= 2) AS replay,
-         ${clear ? `CASE json_extract(json, '$.challenge.id') WHEN 'easy' THEN 0 WHEN 'normal' THEN 1 WHEN 'hard' THEN 2 WHEN 'expert' THEN 3 WHEN 'master' THEN 4 WHEN 'ultra' THEN 5 END` : `(CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5') AND json_extract(json, '$.challenge.id') != 'legacy' THEN 0 WHEN reason = 'time' THEN 1000000 ELSE 0 END) + score`} AS k
+         ${clear ? `CASE json_extract(json, '$.challenge.id') WHEN 'easy' THEN 0 WHEN 'normal' THEN 1 WHEN 'hard' THEN 2 WHEN 'expert' THEN 3 WHEN 'master' THEN 4 WHEN 'ultra' THEN 5 END` : `(CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6') AND json_extract(json, '$.challenge.id') != 'legacy' THEN 0 WHEN reason = 'time' THEN 1000000 ELSE 0 END) + score`} AS k
   FROM runs
   WHERE reason IN ('time','caught','fell') AND score IS NOT NULL AND (build IS NULL OR build NOT LIKE '%-dev')
     AND COALESCE(json_extract(json, '$.channel'), 'production') != 'dev'
@@ -150,7 +150,7 @@ async function ranking(env, cors, url) {
   const mode = url.searchParams.get('mode') || 'score';
   if (!['score', 'clear'].includes(mode)) return json({ error: 'bad_mode' }, 400, cors);
   const rules = url.searchParams.get('rules') || 'unity-v1';
-  if (!['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5'].includes(rules)) return json({ error: 'bad_rules' }, 400, cors);
+  if (!['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6'].includes(rules)) return json({ error: 'bad_rules' }, 400, cors);
   const difficulty = url.searchParams.get('difficulty') || 'legacy';
   if (!DIFFICULTIES.includes(difficulty)) return json({ error: 'bad_difficulty' }, 400, cors);
   const map = url.searchParams.get("map") || "old-town";
@@ -167,7 +167,7 @@ async function publicGhost(env, cors, url, id) {
   const mode = url.searchParams.get('mode') || 'score';
   if (!['score', 'clear'].includes(mode)) return json({ error: 'bad_mode' }, 400, cors);
   const rules = url.searchParams.get('rules') || 'unity-v1';
-  if (!['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5'].includes(rules)) return json({ error: 'bad_rules' }, 400, cors);
+  if (!['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6'].includes(rules)) return json({ error: 'bad_rules' }, 400, cors);
   const difficulty = url.searchParams.get('difficulty') || 'legacy';
   if (!DIFFICULTIES.includes(difficulty)) return json({ error: 'bad_difficulty' }, 400, cors);
   const map = url.searchParams.get("map") || "old-town";

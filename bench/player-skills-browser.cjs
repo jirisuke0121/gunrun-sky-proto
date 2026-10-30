@@ -62,6 +62,9 @@ fs.mkdirSync('browser-evidence', { recursive: true });
           window.__skillsLane = lane; window.__skillsPlace(6); g.frameOnce(0);
           const enemy = new sky.ri(lane.x + lane.dx * 10, lane.y + .005, lane.z + lane.dz * 10);
           enemy.spawnT = 0; enemy.flank = false; enemy.onGround = true; enemy.speedMul = 1; sky.Jt.push(enemy); window.__skillsEnemy = enemy;
+          const far = g.NAV.nodes.find(n => Math.hypot(n.x-c.pos.x,n.y-c.pos.y,n.z-c.pos.z)>26 && supported(n.x,n.y,n.z));
+          if (!far) throw Error('No distant enemy fixture');
+          const distant = new sky.ri(far.x,far.y+.005,far.z); distant.spawnT=0; distant.onGround=true; sky.Jt.push(distant); window.__skillsDistant=distant;
           return lane;
         });
         const boxes = await page.evaluate(() => {
@@ -82,10 +85,14 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         if (map === 'index.html' && layout.name === 'desktop') console.log('SKILL_IMAGE_split:' + (await page.screenshot({type:'jpeg',quality:60})).toString('base64'));
         const cast = await page.evaluate(() => {
           const a = window.skyDecoy.active; if (!a) throw Error('Skill input did not cast');
+          const distant=window.__skillsDistant, fresh=new window.__skyInternals.ri(distant.pos.x,distant.pos.y,distant.pos.z);
+          const distantLocked=window.skyDecoy.targetFor(distant)===a.pos;
+          const newbornLocked=window.skyDecoy.targetFor(fresh)===a.pos && !fresh.touching(1000);
+          window.__skyInternals.ue.remove(fresh.m.root);
           window.__skillsPlace(12); window.__game.updateField();
-          return { sameModel: a.body.root.name, lured: window.skyDecoy.lured.size, used: window.skyDecoy.stats.used, life: window.__game.P.life, distance: window.__skillsEnemy.pos.distanceTo(a.pos) };
+          return { distantLocked, newbornLocked, audio: window.skyDecoy.audio.stats, audioActive:window.skyDecoy.audio.active, sameModel: a.body.root.name, lured: window.skyDecoy.lured.size, used: window.skyDecoy.stats.used, life: window.__game.P.life, distance: window.__skillsEnemy.pos.distanceTo(a.pos) };
         });
-        assert.equal(cast.sameModel, 'Player hologram twin'); assert.ok(cast.lured >= 1); assert.equal(cast.used, 1);
+        assert.ok(cast.distantLocked && cast.newbornLocked, JSON.stringify(cast)); assert.equal(cast.audio.casts,1); assert.ok(cast.audioActive); assert.equal(cast.sameModel, 'Player hologram twin'); assert.ok(cast.lured >= 1); assert.equal(cast.used, 1);
         const chase = await page.evaluate(() => {
           window.__skillsFrames(60); const a = window.skyDecoy.active, e = window.__skillsEnemy;
           return { targeted: window.skyDecoy.targetFor(e) === a.pos, distance: e.pos.distanceTo(a.pos), life: window.__game.P.life, touching: e.touching(100), moved: a.pos.distanceTo(a.start), towardPlayer: e.vel.dot(window.__game.P.pos.clone().sub(e.pos)), towardClone: e.vel.dot(a.pos.clone().sub(e.pos)), gl: window.__game.debug.renderer.getContext().getError() };
@@ -104,9 +111,9 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         if (map === 'index.html' && ['desktop', 'touch'].includes(layout.name)) console.log('SKILL_IMAGE_' + layout.name + ':' + (await page.screenshot({type:'jpeg',quality:60})).toString('base64'));
         const paused = await page.evaluate(() => {
           window.__game.setMode('pause'); const before = [window.skyDecoy.remaining, window.skyDecoy.cooldown]; window.__skillsFrames(60);
-          return { before, after: [window.skyDecoy.remaining, window.skyDecoy.cooldown], hidden: getComputedStyle(document.getElementById('tDecoy')).visibility === 'hidden' };
+          return { before, after: [window.skyDecoy.remaining, window.skyDecoy.cooldown], audioStopped:!window.skyDecoy.audio.active, hidden: getComputedStyle(document.getElementById('tDecoy')).visibility === 'hidden' };
         });
-        assert.deepEqual(paused.after, paused.before); assert.equal(paused.hidden, true);
+        assert.deepEqual(paused.after, paused.before); assert.equal(paused.hidden, true); assert.equal(paused.audioStopped,true);
         const ended = await page.evaluate(() => {
           const g = window.__game, e = window.__skillsEnemy;
           g.setMode('play'); window.__skillsFrames(310);

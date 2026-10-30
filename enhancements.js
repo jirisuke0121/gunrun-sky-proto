@@ -1,16 +1,17 @@
-import { createSwing } from './parkour-swing.js?v=20261030-frontflip-cue-v2';
+import { createSwing } from './parkour-swing.js?v=20261030-swing-speed-v1';
 import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
 import { createFlashbang } from './flashbang.js?v=20261030-decoy-v1';
 import { installSkillDock } from './player-skills.js?v=20261030-decoy-v1';
-import { createDecoy } from './skill-decoy.js?v=20261030-decoy-v1';
-import { createZombieClimb } from './zombie-climb.js?v=20261030-decoy-v1';
+import { createDecoy } from './skill-decoy.js?v=20261030-decoy-lock-v2';
+import { createZombieClimb } from './zombie-climb.js?v=20261030-search-decoy-v3';
+import { createZombieSearch } from './zombie-search.js?v=20261030-search-decoy-v3';
 import { createGhostReplay } from './ghost-replay.js?v=20261028-compact-hud-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261030-auto-fire-controls-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity-blast-v10';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261029-door-motion-v1';
 import { createJumpPickups } from './jump-pickups.js?v=20261028-playground-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261028-compact-hud-v1';
-import { createDash } from './dash-boost.js?v=20261028-swing-flow-v2';
+import { createDash } from './dash-boost.js?v=20261030-compact-speed-v3';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -445,6 +446,7 @@ Tt.hg = () => {
 installSkillDock();
 const flashbang = window.skyFlashbang = createFlashbang(game);
 window.skyDecoy = createDecoy(game, window.__game);
+window.skyZombieSearch = createZombieSearch(game, window.__game, flashbang);
 window.skyZombieClimb = createZombieClimb(game, window.__game, flashbang);
 knifeRule?.insertAdjacentHTML('afterend', '<li>高台で追いつけずにいるゾンビは、柱をゆっくり登ってくる。登っている間に撃って落とせる。</li>');
 
@@ -2048,12 +2050,13 @@ if (/[?&]perf=1/.test(location.search)) {
   } catch (e) { console.warn('static merge skipped', e); }
 }
 
-// ---- 2026-10-25: 全武器を公開・ゾンビの見失い無効・ランキング ----
+// ---- Public equipment and ranking; sight memory is managed by zombie-search. ----
 {
   // 武器12種はURLフラグなしでホーム画面から選べる。
-  // 1) ゾンビの見失い・足音/銃声で気づく処理は重いので常にオフ。撒き点は経路コストで数える（index.html の shk2）。
-  Object.defineProperty(U, 'loseSight', { get: () => 0, set: () => {}, enumerable: true, configurable: true });
-  for (const key of ['loseSight', 'hearR', 'senseT', 'gunHearR']) {
+  // The old unconditional loseSight=0 override must not disable the bounded
+  // sight-memory controller. Its search-duration and noise controls stay usable.
+  // The legacy wall-penetrating footstep radius is no longer used.
+  for (const key of ['hearR']) {
     const input = document.getElementById('s_' + key);
     if (input && input.parentElement) input.parentElement.style.display = 'none';
   }

@@ -44,7 +44,7 @@ function setup(w, id, phase, before = false) {
   let seed = 12345; w.Math.random = () => ((seed = (1664525 * seed + 1013904223) >>> 0) / 4294967296);
   g.setMode('menu');
   const select = w.document.getElementById('challengeDifficulty'); select.value = id; select.dispatchEvent(new w.Event('change'));
-  Object.assign(g.S, { sendLog: false, autoFire: false, aimAuto: false, volume: 0, human: 'existing' });
+  Object.assign(g.S, { sendLog: false, autoFire: false, aimAuto: false, loseSight: false, volume: 0, human: 'existing' });
   g.startGame(); g.calibrationInitialAlive = g.zombies.filter(e => !e.dead).length; clearEnemies(w); g.RL.on = false;
   g.SCR.off = g.PACE.off = g.MARK.off = true; g.GAME.spawnT = 1e9; g.GAME.t = phase;
   Object.assign(g.P, { life: 3, invuln: g.time + 1000, state: 'normal', onGround: true, hookCD: 0, jumpBuf: 0 });
@@ -235,7 +235,7 @@ $('forecast').addEventListener('click', async () => {
 });
 $('caps').addEventListener('click', async () => {
   if (busy) return; busy = true;
-  result = { kind: 'actual runtime spawn paths at phase boundaries; initial, ordinary, surge, guard, ambush, two-sided and mixed requests share the 12-alive budget; no published records', maps: [] }; publish();
+  result = { kind: 'actual runtime spawn paths at phase boundaries; presets share alive and corpse display budgets; no published records', maps: [] }; publish();
   try {
     for (const map of ['index.html', 'canyon.html']) {
       const w = await load(map), q = lane(w), data = { map, levels: [] }; result.maps.push(data);
@@ -246,12 +246,12 @@ $('caps').addEventListener('click', async () => {
           const g = setup(w, id, phase), policy = w.skyChallenge, cap = policy.cap(99);
           place(g, { x: q.x + q.dx * 8, y: q.y, z: q.z + q.dz * 8 }, q.dx, q.dz);
           const sample = { phase, cap, initial: g.calibrationInitialAlive, stages: [] }; row.phases.push(sample);
-          if (cap > 12 || sample.initial > policy.limit(0,99)) throw Error(`${map} ${id}: invalid cap/initial`);
+          if (cap > policy.maxAlive || sample.initial > policy.limit(0,99)) throw Error(`${map} ${id}: invalid cap/initial`);
           const check = stage => {
             const alive = g.zombies.filter(e => !e.dead).length;
             const currentCap = policy.cap(99);
-            sample.stages.push({ stage, alive, cap: currentCap });
-            if (currentCap > 12 || alive > currentCap) throw Error(`${map} ${id} ${phase} ${stage}: ${alive}>${currentCap}`);
+            sample.stages.push({ stage, alive, rendered: g.zombies.length, cap: currentCap });
+            if (currentCap > policy.maxAlive || alive > currentCap || g.zombies.length > policy.maxRendered) throw Error(`${map} ${id} ${phase} ${stage}: alive=${alive}, rendered=${g.zombies.length}, cap=${currentCap}`);
           };
           for (let i = 0; i < 20; i++) { g.spawnZombie(12); check('ordinary'); }
           clearEnemies(w); g.surge(99,99); check('surge');
@@ -262,12 +262,15 @@ $('caps').addEventListener('click', async () => {
           g.postAt(q,99,false,'squeeze-back'); check('back');
           g.surge(99,99); check('mixed-surge'); g.spawnZombie(12); check('mixed-ordinary');
           const dead = g.zombies.find(e => !e.dead); dead?.die(false); check('kill');
-          g.postAt(q,99,false,'refill'); check('refill');
+          g.postAt(q,99,false,'fresh-refill'); check('fresh-refill');
+          for (let i = 0; i < 84; i++) { g.GAME.t = phase; g.advance(1/120); }
+          g.GAME.t = phase;
+          g.postAt(q,99,false,'refill'); check('aged-refill');
           if (g.zombies.filter(e => !e.dead).length !== cap) throw Error('refill did not use freed budget');
           g.SCR.off = false; g.GAME.spawnT = 0; g.advance(1/60); check('scheduled-events');
           const counts = policy.profile().counts; policy.profile().counts = counts.map(()=>999);
           sample.clampedFutureCap = policy.cap(99); policy.profile().counts = counts;
-          if (sample.clampedFutureCap !== 12) throw Error('performance cap can be raised by profile');
+          if (sample.clampedFutureCap !== policy.maxAlive) throw Error('performance cap can be raised by profile');
           sample.maxAlive = Math.max(...sample.stages.map(s=>s.alive));
           sample.stages = sample.stages.filter((s,i,a)=>i===0||s.stage!==a[i-1].stage);
           publish(); await wait(0);
