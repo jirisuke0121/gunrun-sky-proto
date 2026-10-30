@@ -36,6 +36,9 @@ const base=process.env.RUNNING_QA_URL||'http://127.0.0.1:8778/';
   }
   if(!landed)console.log(await p.evaluate(()=>({inputs:qaTouch,stick:document.getElementById('stick').className,knob:document.getElementById('knob').style.transform,pos:__game.P.pos.toArray(),velocity:__game.P.vel.toArray(),settings:{sprint:__game.S.sprintSpeed,auto:__game.S.autoSprint},yaw:__game.P.yaw})));
   assert.ok(landed&&maxSpeed>10,JSON.stringify({landed,bars:[...bars],maxSpeed}));
+  assert.ok(await p.locator('#dashStatus').isVisible(),'speed reward is visible in practice, whose life panel is hidden');
+  assert.match(await p.locator('#dashStatus').innerText(),/^速度 \+\d+% ↑$/);
+  assert.ok(await p.locator('#practicePanel #dashStatus').count());
   if(touch)await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});else await p.keyboard.up('KeyW');
   await p.evaluate(()=>{__game.keys.KeyW=false;tickPractice(2);__game.frameOnce(0);});
   await p.screenshot({path:`browser-evidence/practice/${touch?'touch':'desktop'}-swing.png`});

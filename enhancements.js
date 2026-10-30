@@ -11,7 +11,7 @@ import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261025-unity
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261029-door-motion-v1';
 import { createJumpPickups } from './jump-pickups.js?v=20261028-playground-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261028-compact-hud-v1';
-import { createDash } from './dash-boost.js?v=20261030-compact-speed-v2';
+import { createDash } from './dash-boost.js?v=20261030-compact-speed-v3';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
