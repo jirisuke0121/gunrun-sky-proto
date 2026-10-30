@@ -96,5 +96,6 @@ class Visual{
   assert.deepEqual(Array.from(map.course.bars.slice(2,5),b=>Array.from(b.at)),[[24,8.4,1.5],[32,8.4,1.5],[39.5,9.2,1.5]]);
   for(const ladder of map.ladders.filter(l=>l.x===-14&&l.z===-5.5))
     for(let y=0;y<7.5;y+=.25)assert.ok(free(-14.55,y+.03,-5.5,.25,1.75),'west roof ladder clearance');
+  for(let y=0;y<7.5;y+=.1)assert.ok(free(0,y+.03,-14.54,.32,1.75),'north roof ladder clearance');
   console.log(JSON.stringify({checks:'18 swing trajectories, no-grip comparison, sampled standing returns, existing bars/ladder',results},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1});

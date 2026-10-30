@@ -129,7 +129,8 @@
     // south landing and north balcony. Keep real gaps: the bars, rather than
     // a continuous bridge, take the player onto the west-face ledges.
     box('south-corner-launch',[-4.3,3.7,16.4],[-3,4,17.8]);
-    box('north-corner-launch',[-1.1,3.7,-16.7],[.5,4,-14.3]);
+    // The roof ladder climbs at (0,-14.54). Its entire shaft stays clear.
+    box('north-corner-launch',[-1.1,3.7,-16.7],[.5,4,-15.1]);
     box('south-corner-ledge',[-17.4,3.9,13],[-14.05,4.2,17.8]);
     box('north-corner-ledge',[-17.4,3.9,-17.4],[-14.05,4.2,-13]);
     // Both corners have a slower walkable return to the existing west street.
