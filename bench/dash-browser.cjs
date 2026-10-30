@@ -119,7 +119,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     const pauseSwing=await page.evaluate(()=>{__game.setMode('pause');const before=skyDash.swingRemaining;__dashFrames(30);const after=skyDash.swingRemaining;__game.setMode('play');return{before,after};});
     assert.equal(pauseSwing.before,pauseSwing.after);
     await page.evaluate(()=>{__game.P.vel.set(0,0,0);__dashFrames(250);});
-    assert.equal(await page.evaluate(()=>skyDash.swingRemaining),0);assert.ok(await page.locator('#dashStatus').isHidden());
+    assert.equal(await page.evaluate(()=>skyDash.swingRemaining),0);assert.ok(await page.locator('#dashStatus').isVisible());assert.equal(await page.locator('#dashStatus').innerText(),'速度 +0%');
     await page.evaluate(l=>__dashPlaceLane(l),lane);await page.keyboard.down('w');
     const afterSwing=await page.evaluate(()=>__dashFrames(35));await page.keyboard.up('w');assert.ok(Math.abs(afterSwing.speed-6)<.05);
     await page.keyboard.press('v');await page.evaluate(()=>window.__game.frameOnce(1/60));assert.equal(await page.evaluate(()=>document.body.dataset.skyHumanView),'first');
