@@ -68,7 +68,7 @@ try{
    let caughtAt=null,enemyPath=[];
    if(enemy&&landed){
     g.keys.KeyW=false;c.vel.set(0,0,0);
-    for(let i=0;i<2100;i++){tick();const z=s.Jt[0];if(i%60===0)enemyPath.push({t:g.GAME.t,pos:z.pos.toArray(),state:z.act?.kind,awareness:skyZombieSearch.state(z)?.phase});if(Math.abs(z.pos.y-c.pos.y)<1.2&&Math.hypot(z.pos.x-c.pos.x,z.pos.z-c.pos.z)<1.5){caughtAt=g.GAME.t;break;}}
+    for(let i=0;i<2100;i++){tick();const z=s.Jt[0];if(!z)break;if(i%60===0)enemyPath.push({t:g.GAME.t,pos:z.pos.toArray(),state:z.act?.kind,awareness:skyZombieSearch.state(z)?.phase});if(Math.abs(z.pos.y-c.pos.y)<1.2&&Math.hypot(z.pos.x-c.pos.x,z.pos.z-c.pos.z)<1.5){caughtAt=g.GAME.t;break;}}
    }
    return{landed,pad,bars:[...bars],offset,yaw,angle,waitCycle,backward,input,time,at,caughtAt,enemyPath,escapes:skyZombieSearch.stats.escapes,trail};
   }
