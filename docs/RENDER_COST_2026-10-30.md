@@ -56,3 +56,13 @@ Mac解除後は競合するゲームを止め、同じ画質・人数・視点�
 | 配信結果を区別する | PR77の作業ブランチを更新、main統合と公開は未実施 | Worker→Pagesの公開と公開先確認 |
 
 構文と差分を確認し、自動テストの追加・手動実行は行っていない。既存CIのRunningブラウザー検証には`bench/touch-stick-browser.cjs:72`の既知の移動失敗がある。同じ失敗が変更前の追跡PR83でも発生している（[変更前の実行](https://github.com/jirisuke0121/gunrun-sky-proto/actions/runs/40999573359)、[前回PR77の実行](https://github.com/jirisuke0121/gunrun-sky-proto/actions/runs/41002272997)）。今回のブランチで自動起動するCI結果はこれと分けて確認する。iPhone実機はユーザー指定により未確認。
+
+## 最新mainの統合と確認手順の初期化
+
+main `c6544cc`の探索アニメーションを取り込み、両HTMLの読み込みタグの競合を解消した。統合後の`bf2530b`でも、上記16姿勢、銃口・射線・命中、物理位置・接地、背景結合数、照準の計算数、扉開閉を再確認した。ここで新しいFPS結果は採用していない。
+
+同コミットのCIではPlayer skillsが合格した。Running browserは移動・照準・ダッシュ・鉄棒・タッチ操作まで通過し、`swing-flow-browser.cjs:110`で失敗した。[変更前PR82の実行](https://github.com/jirisuke0121/gunrun-sky-proto/actions/runs/41035947097)と[今回の実行](https://github.com/jirisuke0121/gunrun-sky-proto/actions/runs/41059543403)は、捕捉時刻17.516666666666953と追手の全記録を含め同一の失敗だった。前のtouch-stick失敗とは分けている。
+
+Escape branch auditは東の下層逃走で捕捉され失敗した。単独のルートではmainと変更後の移動記録が一致して双方ライフ3で到達したが、開始処理と事前移動を含めると変更後で成功・失敗の両方を確認した。既存の確認スクリプトは、初期の出現処理が走るスタートボタンを押した後で乱数を固定していたため、起動時の状態は固定できていなかった。
+
+既存スクリプトへスタート直前の同じ乱数固定を追加した。各ルートでの既存の乱数固定、追手、移動経路、速度、成功・生存の判定は維持する。手動の比較画面で開始直前から乱数を固定すると、main・変更後とも事前移動を経てライフ3で到達した。ゲーム本体と合格条件は変更せず、この初期化修正のCI結果を別途確認する。詳細記録は作業フォルダの`verification/crowd/seeded-sequence/`と`search-integration-verification.json`に保存した。
