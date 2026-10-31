@@ -1,0 +1,42 @@
+name: North wall head clearance
+on:
+  pull_request:
+    paths: ["index.html", "old-town-swing.js", "bench/north-wall*", "bench/central-corners.test.cjs", ".github/workflows/north-wall.yml"]
+permissions:
+  contents: read
+jobs:
+  north-wall:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Wall-kick envelope and both corner escapes
+        run: |
+          node bench/north-wall-clearance.test.cjs
+          node bench/central-corners.test.cjs
+          node bench/stair-walk.test.cjs
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Higher wall kicks, original landing and two-bar escape
+        run: node bench/north-wall-browser.cjs
+      - name: All original marked shortcuts
+        env:
+          WALLRUN_QA_MAP: old
+        run: node bench/wallrun-permissions-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: north-wall-evidence
+          path: browser-evidence/
+          retention-days: 14
