@@ -19,12 +19,15 @@ const {chromium}=require('playwright');
   await page.screenshot({path:'browser-evidence/photo-routes/scenario-end.png'});
   assert.equal(result.pass,true,JSON.stringify(result));assert.deepEqual(errors,[]);
   for(const test of result.results.filter(r=>r.id==='tower-corner-west')){
-    assert.ok(test.landing.p[0]<38&&test.end.p[0]<38,'07 must move west to the original beam');
+    assert.ok(test.landing.p[0]<38&&test.end.p[0]<32&&test.end.p[1]>7,'07 must move west to the original beam');
     assert.equal(test.teleports,0);assert.equal(test.end.life,3);
   }
   // Render the corrected connection in the same orientation as the photo.
   for(const [id,value] of Object.entries({x:'36.2',y:'3.4',z:'-16.2',yaw:'-90',pitch:'0'}))await page.locator('#'+id).fill(value);
   await page.locator('#place').click();
   await page.screenshot({path:'browser-evidence/photo-routes/07-west-arrival.png'});
+  for(const [id,value] of Object.entries({x:'-14.32',y:'0',z:'-5.5',yaw:'0',pitch:'0'}))await page.locator('#'+id).fill(value);
+  await page.locator('#place').click();
+  await page.screenshot({path:'browser-evidence/photo-routes/west-wall-clear-approach.png'});
   console.log('PASS photo 07 west hook and original beam, photo 08 bar and recovery, PC/touch inputs, no in-route repositioning');
 }finally{await browser?.close();server?.kill();}})().catch(e=>{console.error(e);process.exitCode=1;});

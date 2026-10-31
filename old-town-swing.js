@@ -138,7 +138,7 @@
     box('south-corner-arrival-lip',[-15.2,3.9,16.3],[-14.05,4.2,17.8]);
     box('north-corner-arrival-lip',[-15.2,3.9,-17.4],[-14.05,4.2,-15.1]);
     // Keep the original west-wall run and outward kick corridor free.
-    // The inner ledge edge stays 1.2m from the wall; stairs sit 4.2m away.
+    // The inner ledge edge stays 1.2m from the wall; stairs sit 6.6m away.
     // Both corners have a slower walkable return to the existing west street.
     // These stairs stay behind the landing, out of the bar's flight lane;
     // pursuers can reach the ledges without crossing either aerial shortcut.
@@ -166,9 +166,9 @@
       strut(end,mount);strut(mount,[x,8.4,z>0?14:-14]);
     }
 
-    // Photo 1: the 0m footing north of the EAST tower, underneath the orange
-    // stairs. Step outside the stair's north edge before grappling eastward.
-    // The 3.6m landing attaches to the existing outer walk, not a new exit.
+    // Photo 1: the 0m footing north of the east tower, below the orange stairs.
+    // Follow the photo line west to the existing beam and ④'s branch.
+    // Retain the earlier east-facing catwalk option as a separate choice.
     box('tower-corner-launch',[44.4,-.3,-17],[46.4,0,-13.8]);
     // Photo's red line goes WEST, towards the existing beam and ④'s ledges.
     // Keep this landing north of the upper backwalk so the hook arc is open.
@@ -245,7 +245,7 @@
        escape:[[-21.3,4.2,-15.5],[-21.3,4.2,-13.3],[-21.3,2.1,-10.4],[-21.3,0,-7.2],[-20,0,-5]],
        returnVia:[-21.3,0,-7.2],fallback:[-10,-3.5,-15.5]},
       {id:'tower-corner',name:'⑦ 東塔の足元→西のフック→既存の梁',approach:[45,0,-13],yaw:Math.PI/2,exit:[36.2,3.4,-16.2],
-       escape:[[36.2,3.4,-15.7],[36.5,3.4,-13],[38.5,0,-13]],
+       escape:[[36.2,3.4,-15.7],[36.5,3.4,-13],[35.75,3.4,-13],[30.8,7.4,-13],[30.8,7.4,-13.9]],
        alternate:[[45,0,-16.2],[60.7,3.6,-15.25],[60.7,3.6,-7]],
        returnVia:[36.5,3.4,-13],hook:towerWestHook,alternateHook:towerHook,fallback:[44.5,0,-13]},
       {id:'north-east-corner',name:'⑧ 北の下段→鉄棒→東側通路',approach:[12,0,-15.5],yaw:-Math.PI/2,exit:[15.5,0,-4.8],

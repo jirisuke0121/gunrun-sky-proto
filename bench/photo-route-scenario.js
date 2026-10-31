@@ -16,7 +16,7 @@ export async function run(w) {
     let queued;if(touch){const p=new s.Geom.Vector3(...anchor).project(s.Se);queued=g.hookTap((p.x+1)*w.innerWidth/2,(1-p.y)*w.innerHeight/2);}else{queued=g.hookTarget()===anchor;press('KeyQ');}
     if(!queued)throw Error('west hook target unavailable '+JSON.stringify(state()));let hooked=false,landed=false;
     for(let i=0;i<720;i++){if(c.state==='hook')hooked=true;if(hooked&&c.state==='normal'&&!c.onGround){g.keys.KeyS=c.vel.x<-.4;g.keys.KeyW=false;}await step();if(hooked&&c.onGround&&Math.abs(c.pos.y-3.4)<.12){landed=true;break;}}
-    off();if(!landed)throw Error('west hook landing failed '+JSON.stringify(state()));const landing=state();await walk([[36.2,3.4,-15.7],[36.5,3.4,-13]],8);render();return{id:'tower-corner-west',touch,hooked,landing,end:state(),teleports,trail};
+    off();if(!landed)throw Error('west hook landing failed '+JSON.stringify(state()));const landing=state();await walk(route.escape,8);render();return{id:'tower-corner-west',touch,hooked,landing,end:state(),teleports,trail};
   }
   async function north({touch=false,angle=.65,offset=0,drop=false}={}){await reset([12,0,-15.5],-Math.PI/2);await walk([[15.5+offset,0,-15.5]]);c.yaw=Math.PI;g.keys.KeyW=true;for(let i=0;i<120&&c.pos.z<-15.05;i++)await step();jump(touch);let grabbed=false,released=false,landed=false;
     for(let i=0;i<840;i++){const a=w.skySwing.active;if(a){grabbed=a.bar.id==='oldtown-north-east-bar';if(!grabbed)throw Error('unexpected bar '+a.bar.id);if(drop){off();g.keys.KeyS=true;}else if(!released&&a.angle>=angle&&a.omega>1.1){jump(touch);released=true;}}
