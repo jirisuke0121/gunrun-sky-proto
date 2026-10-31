@@ -7,6 +7,7 @@ export const REPLAY_STATES = ['run', 'air', 'slide', 'wallrun', 'vault', 'mantle
 export const MAP_VERSIONS = { 'old-town': 'old-town-beams-20261025', 'rock-canyon': 'rock-canyon-v1' };
 
 export function recordMap(record) {
+  if (['old-town','rock-canyon'].includes(record.mapKey)) return record.mapKey;
   return record.map?.id === 'rock_canyon_v1' || record.mapVersion === 'rock-canyon-v1' ? 'rock-canyon' : 'old-town';
 }
 

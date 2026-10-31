@@ -319,7 +319,7 @@ $('score').addEventListener('click', async () => {
         g.setMode('play'); g.GAME.t = 60; row.at60 = { ...g.calcScore() };
         const records = [];
         g.runlogUse({ collection: () => ({ doc: () => ({ set: value => { records.push(JSON.parse(JSON.stringify(value))); return Promise.resolve(); } }) }) });
-        g.RL.on = true; g.RL.saved = false;
+        g.RL.on = true; g.RL.sealed = false;
         g.GAME.t = 120; g.endGame('time'); g.frameOnce(1.5);
         row.final = { ...g.GAME.final };
         // A background/loaded browser may deliver rAF after the nominal 0.9s.

@@ -1,7 +1,7 @@
 name: Ranked spot starts
 on:
   pull_request:
-    paths: ['index.html', 'canyon.html', 'ranking.js', 'old-town-swing.js', 'enhancements.js', 'bench/ranked-spots*', '.github/workflows/ranked-spots.yml']
+    paths: ['index.html', 'canyon.html', 'ranking.js', 'run-records.js', 'replay-data.js', 'server/worker.js', 'bench/record-integrity*', 'old-town-swing.js', 'enhancements.js', 'bench/ranked-spots*', '.github/workflows/ranked-spots.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,6 +16,7 @@ jobs:
         with: {node-version: '24'}
       - name: Recorder, rankings, menu and audio lifecycle
         run: |
+          node bench/record-integrity.test.cjs
           node bench/ranked-spots.test.cjs
           node bench/ranked-ghost.test.cjs
           node bench/audio-recovery.test.cjs

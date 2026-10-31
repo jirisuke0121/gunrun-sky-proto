@@ -4,6 +4,7 @@ const read = name => fs.readFileSync(new URL('../' + name, 'file://' + __filenam
 
 (async () => {
   const { default: worker } = await import('../server/worker.js');
+  const {createRunRecords} = await import('../run-records.js');
   const db = new DatabaseSync(':memory:'); db.exec(read('server/schema.sql'));
   const DB = { prepare(sql) { let args = []; return {
     bind(...values) { args = values; return this; },
@@ -13,7 +14,7 @@ const read = name => fs.readFileSync(new URL('../' + name, 'file://' + __filenam
   }; } };
   let uploads = 0;
   for (const file of ['index.html', 'canyon.html']) {
-    const html = read(file), events = [], z = { t: 0, over: false }, record = { on: true, saved: false, count: 0 };
+    const html = read(file), events = [], z = { t: 0, over: false }, record = { on: true, sealed: false, count: 0 };
     let placement, audio = 0, mode;
     const env = {
       console, AbortSignal, CustomEvent: class { constructor(type, data) { this.type = type; this.detail = data.detail; } },
@@ -24,6 +25,9 @@ const read = name => fs.readFileSync(new URL('../' + name, 'file://' + __filenam
       document: { dispatchEvent: event => events.push(event) },
       fetch: async (url, options) => { uploads++; return worker.fetch(new Request(url, options), { DB }, {}); },
     };
+    const values = new Map();
+    const records = createRunRecords({storage:{getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)},uuid:()=>crypto.randomUUID(),fetcher:(...a)=>env.fetch(...a),endpoint:'https://fixture.invalid',allowed:()=>env.U.sendLog&&!env.window.skyChallenge.debug,emit:detail=>events.push({type:'sky-run-uploaded',detail}),announce:row=>{record.status=row.state==='excluded'?'オフ・対象外':row.state==='pending'?'送信できません':'';}});
+    env.window.skyRunRecording={...records,submit:records.submit,status:()=>record.status,player:records.player};
     vm.createContext(env);
     vm.runInContext(html.slice(html.indexOf('function br('), html.indexOf('function xr(')), env);
     const start = { x: 45, y: 0, z: -13, yaw: Math.PI / 2 };
@@ -45,7 +49,7 @@ const read = name => fs.readFileSync(new URL('../' + name, 'file://' + __filenam
           samples: [[0, 45, 0, -13, 0, 0, 0, 3, 0], [120, 45, 0, -13, 0, 0, 1, 3, 0]] } };
       await env.sendRec(run);
       assert.equal(events.at(-1).type, 'sky-run-uploaded');
-      const url = `https://fixture.invalid/ranking?map=${map}&rules=corridor-crowd6-v6&me=${run.player}`;
+      const url = `https://fixture.invalid/ranking?map=${map}&rules=corridor-crowd6-v6&me=${records.player}`;
       for (const mode of ['clear', 'score']) {
         const result = await (await worker.fetch(new Request(url + `&mode=${mode}&difficulty=${difficulty}`), { DB }, {})).json();
         assert.equal(result.me.cleared, 1); assert.equal(result.me.difficulty, difficulty);
@@ -59,7 +63,7 @@ const read = name => fs.readFileSync(new URL('../' + name, 'file://' + __filenam
     env.window.skyChallenge.debug = false;
     for (const response of [new Response('{}', { status: 400 }), new Response('{"ok":true}')]) {
       env.fetch = async () => response; const previous = events.length;
-      await env.sendRec({}); assert.match(record.status, /送信できません/); assert.equal(events.length, previous);
+      await env.sendRec({}); assert.equal(records.history[0].state,'pending'); assert.equal(events.length, previous);
     }
   }
   function element(tag) { return { tag, children: [], dataset: {}, style: {}, setAttribute() {},

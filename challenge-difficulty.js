@@ -26,7 +26,7 @@
   let active = selected, game, lastObservation = -1;
   const params = new URLSearchParams(location.search);
   const oldTownSwingPreview = params.get('oldtown_swing') === '1';
-  const debug = params.has('challengeDebug') || oldTownSwingPreview;
+  const debug = params.get('challengeDebug') === '1' || oldTownSwingPreview;
   const level = id => byId[id] || levels[1];
   const profile = () => window.skyPracticeMode || game?.z.mission || active === 'legacy' ? null : level(active);
   const speedScale = () => (game?.U.sprintSpeed || 6) / 6;

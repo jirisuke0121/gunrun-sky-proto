@@ -32,7 +32,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-10-30-crowd6-v6" }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-10-31-record-integrity-v1", recordProtocol: 2 }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
@@ -46,25 +46,39 @@ async function receive(req, env, cors, origin, allowed) {
   if (text.length > MAX_BYTES) return json({ error: "too_large" }, 413, cors);
   let a;
   try { a = JSON.parse(text); } catch { return json({ error: "bad_json" }, 400, cors); }
-  if (!a || typeof a !== "object" || typeof a.t !== "number" || typeof a.reason !== "string") return json({ error: "bad_shape" }, 400, cors);
+  if (!a || typeof a !== "object" || !Number.isFinite(a.t) || a.t < 0 || a.t > 300 || typeof a.reason !== "string") return json({ error: "bad_shape" }, 400, cors);
+  a.mapKey = recordMap(a);
   if (a.ghost != null) {
     const ghost = validateGhost(a.ghost, recordMap(a), a.t);
-    if (!ghost) return json({ error: "bad_ghost" }, 400, cors);
+    if (!ghost) a.replayError = 'bad_ghost';
     a.ghost = ghost;
   }
 
   const player = String(a.player || "anon").slice(0, 40);
+  const requestedId = typeof a.clientRunId === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(a.clientRunId) ? a.clientRunId.toLowerCase() : null;
+  const receipt = row => {
+    const stored = JSON.parse(row.json);
+    return json({ok:true,id:row.id,recordProtocol:2,receipt:{clientRunId:stored.clientRunId || null,map:recordMap(stored),difficulty:stored.challenge?.id || 'legacy',rules:stored.challenge?.version || 'unity-v1',t:row.t,score:row.score,reason:row.reason,replay:!!stored.ghost}},200,cors);
+  };
+  const matching = row => {
+    const old = JSON.parse(row.json);
+    return row.player === player && old.at === a.at && old.reason === a.reason && old.t === a.t && old.score?.total === a.score?.total && recordMap(old) === recordMap(a) && old.challenge?.id === a.challenge?.id && old.challenge?.version === a.challenge?.version;
+  };
+  if (requestedId) {
+    const existing = await env.DB.prepare('SELECT id,player,t,score,reason,json FROM runs WHERE id = ?').bind(requestedId).first();
+    if (existing) return matching(existing) ? receipt(existing) : json({error:'run_id_conflict'},409,cors);
+  }
   const now = new Date();
   const since = new Date(now.getTime() - 60_000).toISOString();
   const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM runs WHERE player = ? AND received_at > ?").bind(player, since).first();
   if (row && row.n >= MAX_PER_MINUTE) return json({ error: "rate_limited" }, 429, cors);
 
-  const id = crypto.randomUUID();
+  const id = requestedId || crypto.randomUUID();
   const sc = a.score && typeof a.score === "object" ? a.score.total : null;
   const st = a.stats && typeof a.stats === "object" ? a.stats : {};
   const scr = Array.isArray(a.screen) ? a.screen : [];
   await env.DB.prepare(
-    "INSERT INTO runs (id, received_at, played_at, build, player, reason, t, stars, score, kills, gun_kills, input, screen_w, screen_h, json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    "INSERT INTO runs (id, received_at, played_at, build, player, reason, t, stars, score, kills, gun_kills, input, screen_w, screen_h, json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING"
   ).bind(
     id, now.toISOString(), typeof a.at === "string" ? a.at.slice(0, 40) : null,
     typeof a.build === "string" ? a.build.slice(0, 40) : null, player,
@@ -74,7 +88,10 @@ async function receive(req, env, cors, origin, allowed) {
     Number.isFinite(scr[0]) ? Math.round(scr[0]) : null, Number.isFinite(scr[1]) ? Math.round(scr[1]) : null,
     JSON.stringify(a)
   ).run();
-  return json({ ok: true, id }, 200, cors);
+  // A successful response is issued only after reading back the stored result.
+  const stored = await env.DB.prepare('SELECT id,player,t,score,reason,json FROM runs WHERE id = ?').bind(id).first();
+  if (!stored || !matching(stored)) return json({error:'receipt_mismatch'},409,cors);
+  return receipt(stored);
 }
 
 function isAdmin(req, env) {
@@ -117,7 +134,7 @@ WITH s AS (
   FROM runs
   WHERE reason IN ('time','caught','fell') AND score IS NOT NULL AND (build IS NULL OR build NOT LIKE '%-dev')
     AND COALESCE(json_extract(json, '$.channel'), 'production') != 'dev'
-    AND (CASE WHEN json_extract(json, '$.map.id') = 'rock_canyon_v1' OR json_extract(json, '$.mapVersion') = 'rock-canyon-v1'
+    AND COALESCE(json_extract(json, '$.mapKey'), CASE WHEN json_extract(json, '$.map.id') = 'rock_canyon_v1' OR json_extract(json, '$.mapVersion') = 'rock-canyon-v1'
               THEN 'rock-canyon' ELSE 'old-town' END) = ?
     ${clear ? `AND reason = 'time' AND json_extract(json, '$.challenge.id') IN ('easy','normal','hard','expert','master','ultra') AND json_extract(json, '$.challenge.version') = ?` : `AND COALESCE(json_extract(json, '$.challenge.id'), 'legacy') = ? AND (? = 'legacy' OR json_extract(json, '$.challenge.version') = ?)`}
 ), b AS (
@@ -157,9 +174,9 @@ async function ranking(env, cors, url) {
   if (!["old-town", "rock-canyon"].includes(map)) return json({ error: "bad_map" }, 400, cors);
   const me = (url.searchParams.get("me") || "").slice(0, 40);
   const query = rankQuery(mode, map, difficulty, rules);
-  const top = await env.DB.prepare(query.sql + " SELECT pos, substr(player,1,4) AS tag, cleared, score, difficulty, stars, t, (player = ?) AS me, CASE WHEN replay THEN id ELSE NULL END AS replayId, played_at AS playedAt, received_at AS receivedAt FROM r ORDER BY pos, score DESC, id LIMIT 20").bind(...query.args, me).all();
+  const top = await env.DB.prepare(query.sql + " SELECT id AS runId, pos, substr(player,1,4) AS tag, cleared, score, difficulty, stars, t, (player = ?) AS me, CASE WHEN replay THEN id ELSE NULL END AS replayId, played_at AS playedAt, received_at AS receivedAt FROM r ORDER BY pos, score DESC, id LIMIT 20").bind(...query.args, me).all();
   const total = await env.DB.prepare(query.sql + " SELECT COUNT(*) AS n FROM r").bind(...query.args).first();
-  const mine = me ? await env.DB.prepare(query.sql + " SELECT pos, cleared, score, difficulty, stars, t, played_at AS playedAt, received_at AS receivedAt FROM r WHERE player = ?").bind(...query.args, me).first() : null;
+  const mine = me ? await env.DB.prepare(query.sql + " SELECT id AS runId, pos, cleared, score, difficulty, stars, t, played_at AS playedAt, received_at AS receivedAt FROM r WHERE player = ?").bind(...query.args, me).first() : null;
   return json({ map, mode, difficulty: mode === 'clear' ? 'all' : difficulty, rules, total: total ? total.n : 0, me: mine ? publicTime(mine) : null, top: top.results.map(publicTime) }, 200, { ...cors, "cache-control": "no-store" });
 }
 
