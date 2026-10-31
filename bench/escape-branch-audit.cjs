@@ -12,6 +12,9 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
   // Initial spawns warm model/animation state before reset() seeds each route.
   // Seed that startup too, so its state cannot depend on an unseeded first run.
   await page.evaluate(()=>{let initialSeed=20261030;Math.random=()=>((initialSeed=(Math.imul(initialSeed,1664525)+1013904223)>>>0)/4294967296);});
+  // This audits accessible terrain with pursuit pressure, not challenge completion.
+  // Pin the beginner preset rather than inheriting the newly harder Normal.
+  await page.locator('#challengeDifficulty').selectOption('easy');
   await page.locator('#bStart').click();
   const result=await page.evaluate(({map,touch})=>{
    const g=__game,s=__skyInternals,c=g.P,dt=1/120,results=[];let seed=20261030;Math.random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
@@ -22,7 +25,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
    function reset(at,yaw=0,enemies=[]){seed=20261030;keysOff();skySwing.reset();skyLandingRoll.reset();skyDash.reset(false);clearEnemies();g.DOOR_FEEDBACK?.reset(g.DOORS||[]);
     g.SCR.off=g.PACE.off=g.MARK.off=true;Object.assign(g.S,{sendLog:false,gunOn:false,autoFire:false,aimAuto:false,stalkerOn:false,stalker2:false,dropShare:0});
     g.GAME.over=false;g.GAME.t=0;g.GAME.spawnT=g.GAME.surgeT=1e9;g.GAME.safeT=0;g.setMode('play');g.placeAt({x:at[0],y:at[1],z:at[2],yaw});
-    Object.assign(c,{jumpBuf:0,coyote:0,slideBuf:0,slideCD:0,catchCD:0,hookPressed:false,crouchPressed:false,life:3,invuln:-1,edgeJump:false,edgeOff:null});
+    Object.assign(c,{jumpBuf:0,coyote:0,slideBuf:0,slideCD:0,catchCD:0,hookPressed:false,crouchPressed:false,life:skyChallenge.maxLives(3),invuln:-1,edgeJump:false,edgeOff:null});
     for(let i=0;i<12;i++)g.advance(dt);
     c.node=g.nodeAt(c.pos.x,c.pos.y+.1,c.pos.z);g.updateField();
     for(const p of enemies){const z=new s.ri(...p);Object.assign(z,{spawnT:0,rise:null,hp:1e6,flank:false,dropper:false,stalker:false,onGround:true});z.node=g.nodeAt(...[p[0],p[1]+.1,p[2]]);s.Jt.push(z);}
@@ -91,7 +94,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
     skySwing.reset();c.pos.set(bar.at[0]-.3*bar.direction[0],bar.at[1]-2.15,bar.at[2]-.3*bar.direction[1]);c.onGround=false;c.vel.set(bar.direction[0]*3,-.2,bar.direction[1]*3);
     for(let i=0;i<10&&!skySwing.active;i++)g.advance(dt);
     const attached=skySwing.active?.bar.id,trail=[];let fell=false,minY=c.pos.y;if(attached)c.crouchPressed=true;
-    for(let i=0;i<8*120&&!g.GAME.over;i++){g.advance(dt);minY=Math.min(minY,c.pos.y);if(i%12===0)trail.push(state());if(c.life<3){fell=true;break;}if(i>12&&c.onGround)break;}
+    for(let i=0;i<8*120&&!g.GAME.over;i++){g.advance(dt);minY=Math.min(minY,c.pos.y);if(i%12===0)trail.push(state());if(c.life<skyChallenge.maxLives(3)){fell=true;break;}if(i>12&&c.onGround)break;}
     results.push({id:'bar-drop-'+bar.id,kind:'bar-drop',attached,fell,minY,end:state(),trail});
    }
    // Shared zip terminal: record selected target for different headings.

@@ -98,7 +98,8 @@ fs.mkdirSync('browser-evidence', { recursive: true });
           return { targeted: window.skyDecoy.targetFor(e) === a.pos, distance: e.pos.distanceTo(a.pos), life: window.__game.P.life, touching: e.touching(100), moved: a.pos.distanceTo(a.start), towardPlayer: e.vel.dot(window.__game.P.pos.clone().sub(e.pos)), towardClone: e.vel.dot(a.pos.clone().sub(e.pos)), gl: window.__game.debug.renderer.getContext().getError() };
         });
         assert.equal(chase.targeted, true); assert.equal(chase.touching, false, 'lured enemy cannot damage the real player');
-        assert.ok(chase.towardClone > 0 && chase.towardPlayer < 0, JSON.stringify(chase));
+        // Faster presets can already reach and slightly overshoot the moving clone.
+        assert.ok((chase.towardClone > 0 || chase.distance < .25) && chase.towardPlayer < 0, JSON.stringify(chase));
         assert.ok(chase.distance < cast.distance + 1, JSON.stringify({ cast, chase })); assert.equal(chase.life, cast.life); assert.ok(chase.moved > 1); assert.equal(chase.gl, 0);
         if (layout.touch) {
           const labels = await page.evaluate(() => {
