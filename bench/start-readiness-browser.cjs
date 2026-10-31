@@ -23,7 +23,14 @@ const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{p
   human.release();await page.waitForFunction(()=>document.body.dataset.skyHumanLoaded==='true');
   assert.equal(await page.locator('#bStart').isDisabled(),true);assert.match(await page.locator('#startReadyStatus').innerText(),/銃/);
   gun.release();await page.waitForFunction(()=>window.skyStartReadiness?.ready&&!document.getElementById('bStart').disabled);
-  const click=async selector=>{if(touch)await page.locator(selector).tap();else await page.locator(selector).click()};
+  const click=async selector=>{
+   // A locked desktop pointer targets the canvas. Use the real PC pause key;
+   // touch users open the same panel with its on-screen button.
+   if(selector==='#bSettings'&&!touch&&await page.evaluate(()=>__game.mode==='play')){
+    await page.keyboard.press('p');await page.waitForFunction(()=>__game.mode==='pause'&&!document.pointerLockElement);return;
+   }
+   if(touch)await page.locator(selector).tap();else await page.locator(selector).click();
+  };
   const state=()=>page.evaluate(()=>{__game.frameOnce(0);const held=__skyInternals.ue.getObjectByName('Unity human held weapon');let model=false;held?.traverse(n=>{if(n.name==='Meshy HG mobile LOD')model=true});return{mode:__game.mode,id:skyChallenge.id,life:__game.P.life,hud:document.getElementById('hLife').textContent,view:skyHumanView.view,renderedView:document.body.dataset.skyHumanView,model,held:held?.visible,audio:__skyInternals.Ut.ctx?.state,t:__game.GAME.t,history:skyRunRecording.history.length}});
   await click('#bStart');const normal=await state();assert.equal(normal.mode,'play');assert.equal(normal.id,'normal');assert.equal(normal.life,5);assert.equal(normal.view,'third');assert.equal(normal.model,true);assert.equal(normal.held,true);assert.equal(normal.audio,'running');
   await click('#bSettings');assert.equal((await state()).mode,'pause');await click('#bResume');assert.equal((await state()).mode,'play');
