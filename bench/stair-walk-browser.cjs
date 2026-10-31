@@ -49,7 +49,9 @@ try{
    }
    g.keys.KeyW=false;w.__skyInternals.inputState.on=false;g.cam(0);g.frameOnce(0);
    // Editor/export callers must still be able to serialize the solids.
-   JSON.stringify(g.solids);
+   const stairSolids=g.solids.filter(b=>b.walkStair);
+   if(stairSolids.some(b=>Object.getOwnPropertyDescriptor(b,'walkStair')?.enumerable))throw Error('stair metadata is enumerable');
+   JSON.stringify(stairSolids.map(({mesh,...b})=>b));
    return{flights:w.skyStairWalk.flights.length,cases,failures};
   });
   results.push({map,...result});
