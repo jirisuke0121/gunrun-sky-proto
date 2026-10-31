@@ -72,7 +72,7 @@ const read = name => fs.readFileSync(new URL('../' + name, 'file://' + __filenam
     const root = element('div'), callbacks = {}, starts = [], game = { startGame: at => starts.push(at) }, sky = { z: {} };
     const env = { URLSearchParams, location: { search: preview ? '?oldtown_swing=1' : '' },
       window: { __game: game, __skyInternals: sky }, addEventListener: (type, callback) => { callbacks[type] = callback; },
-      document: { createElement: element, getElementById: () => root } };
+      document: { createElement: element, getElementById: id => id === 'introEntry' ? null : root } };
     vm.runInNewContext(read('old-town-swing.js'), env);
     env.window.buildOldTownSwingCourse({ ne: () => ({}) });
     // Scramble the registry to prove the screen orders by number, not insertion.
