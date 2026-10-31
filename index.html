@@ -65,7 +65,7 @@ html.touch .hookmark{width:48px;height:48px;margin:-24px;border-width:3px;backgr
 
   <section id="ovStart" class="ov">
     <div class="plate">
-      <section id="introEntry" style="margin:0 0 16px;padding:14px;border:2px solid #477f68;border-radius:10px;background:#e7f0df"><b>はじめての方へ：入門モード</b><p class="note">ライフ無限。攻撃や落下を気にせず、移動・ジャンプ・パルクールを2分間試せます。ランキングには参加しません。</p><button id="bIntro" type="button" class="primary big">入門モードで試す（ライフ無限）</button><p class="note">慣れたら下のイージー・ノーマル・ハードへ。入門を飛ばして選んでも構いません。</p></section>
+      <section id="introEntry" style="margin:0 0 16px;padding:14px;border:2px solid #477f68;border-radius:10px;background:#e7f0df"><b>はじめての方へ：入門モード</b><p class="note">ライフ無限。攻撃や落下を気にせず、移動・ジャンプ・パルクールを2分間試せます。ランキングには参加しません。</p><button id="bIntro" type="button" class="primary big" disabled aria-busy="true">人物・銃を読み込み中…</button><p id="introReadyStatus" class="note" role="status">人物と銃を準備しています。準備ができると開始できます。</p><p class="note">慣れたら下のイージー・ノーマル・ハードへ。入門を飛ばして選んでも構いません。</p></section>
       <p class="eyebrow">GunRun 追跡の試作</p>
       <h1>空中回廊<span>追跡</span></h1>
       <p class="lede">浮かぶ梁と石柱の回廊で、2分間ゾンビから逃げ切る。ゾンビは跳べず、登るのも遅い。隙間を跳び、壁を走って引き離せ。ナイフで押し返せる。細い梁の上なら、落とせる。</p>
@@ -3868,7 +3868,7 @@ three/build/three.module.js:
 <script src="./old-town-swing.js?v=20261031-parkour-v8"></script>
 <script src="./town-heights.js?v=20261031-stairs-west-v2"></script>
 <script src="./indoor-feedback.js?v=20261029-north-escape-doors"></script>
-<script src="./challenge-difficulty.js?v=20261031-parkour-v8"></script>
+<script src="./challenge-difficulty.js?v=20261031-intro-ready-v1"></script>
 <script src="./render-quality.js?v=20261031-light07-v1"></script>
 <link rel="stylesheet" href="./challenge-score.css?v=20261031-parkour-v8">
 <link rel="stylesheet" href="./hud-unify.css?v=20261028-compact-hud-v1">

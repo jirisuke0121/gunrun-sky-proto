@@ -255,9 +255,33 @@
     },
     attach(internals) {
       game = internals;
-      document.getElementById('bIntro').addEventListener('click', () => {
-        if (game.modeRef() !== 'menu') return;
-        launchingIntro = true; game.br();
+      const start = document.getElementById('bStart'), introButton = document.getElementById('bIntro');
+      const introLabel = '入門モードで試す（ライフ無限）';
+      const introStatus = document.getElementById('introReadyStatus');
+      // The first entry can be clicked before deferred modules and GLBs arrive.
+      // Wait for the production presentation, then use the ordinary Start path
+      // so its capture guards, audio activation and other listeners also run.
+      function syncIntroReady() {
+        const humanReady = document.body.dataset.skyHumanLoaded === 'true' && !!window.skyHumanView;
+        const gunReady = !!window.__skyUpgrade?.loaded.hg;
+        introButton.disabled = start.disabled || !humanReady || !gunReady;
+        introButton.setAttribute('aria-busy', String(introButton.disabled));
+        introButton.textContent = introButton.disabled ? '人物・銃を読み込み中…' : introLabel;
+        introStatus.hidden = !introButton.disabled;
+        introStatus.textContent = window.skyHumanView?.choice === 'existing'
+          ? '人物の表示を読み込めませんでした。ページを再読み込みしてください。'
+          : window.__skyUpgrade?.loaded.error?.startsWith('hg:')
+            ? '銃の表示を読み込めませんでした。ページを再読み込みしてください。'
+            : '人物と銃を準備しています。準備ができると開始できます。';
+      }
+      new MutationObserver(syncIntroReady).observe(start, { attributes: true, attributeFilter: ['disabled'] });
+      new MutationObserver(syncIntroReady).observe(document.body, { attributes: true, attributeFilter: ['data-sky-human-loaded', 'data-sky-models', 'data-sky-human-trial'] });
+      syncIntroReady();
+      introButton.addEventListener('click', () => {
+        syncIntroReady();
+        if (game.modeRef() !== 'menu' || introButton.disabled) return;
+        launchingIntro = true;
+        try { start.click(); } finally { launchingIntro = false; }
       });
       const introEntry = document.getElementById('introEntry');
       introEntry.parentElement.prepend(introEntry);
