@@ -13,7 +13,7 @@
   ];
   const intro = { id: 'intro', name: '入門モード', lives: 3, unlimited: true, spacing: 0,
     health: 2, note: 'ライフ無限で、移動・ジャンプ・パルクールを試す', startSpeed: 3.5, maxSpeed: 4.5,
-    counts: [2, 3, 3], initial: 2, interval: 3, flank: 0, ahead: 0, drop: 0, lull: 6, quiet: 0, lead: 6, warn: 3 };
+    counts: [3, 4, 5], initial: 3, interval: 3, flank: 0, ahead: 0, drop: 0, lull: 6, quiet: 0, lead: 6, warn: 3 };
   const presets = [intro, ...levels.filter(p => p.id !== 'legacy')];
   for (const p of presets) p.ramp = 90;
   const byId = Object.fromEntries([intro, ...levels].map(p => [p.id, p]));
