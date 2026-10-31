@@ -39,11 +39,18 @@ const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{p
   // The settings panel opened before play must return to the home screen.
   await click('#bSettings');await click('#bResume');assert.equal((await state()).mode,'menu');
   await click('#bIntro');const intro=await state();assert.equal(intro.mode,'play');assert.equal(intro.id,'intro');assert.equal(intro.hud,'∞');assert.equal(intro.view,'third');assert.equal(intro.model,true);assert.equal(intro.held,true);
+  assert.equal(await page.evaluate(()=>__skyInternals.Jt.filter(e=>!e.dead).length),3,'intro initially spawns three pursuers');
+  const introPopulation=await page.evaluate(()=>{
+   const g=__game,rows=[];
+   for(const t of [0,40,80]){g.GAME.t=t;for(let i=0;i<20;i++)g.spawnZombie(12);rows.push({t,alive:__skyInternals.Jt.filter(e=>!e.dead).length,rendered:__skyInternals.Jt.length,cap:skyChallenge.cap(0)});}
+   g.GAME.t=0;return rows;
+  });
+  assert.deepEqual(introPopulation.map(r=>r.cap),[3,4,5]);assert.deepEqual(introPopulation.map(r=>r.alive),[3,4,5]);assert.ok(introPopulation.every(r=>r.rendered<=6));
   await page.evaluate(()=>{__game.GAME.t=119.98;__game.advance(.04);__game.advance(.04);__game.advance(1.5)});
-  await page.waitForFunction(()=>__game.mode==='over');await click('#unityRetry');assert.equal((await state()).id,'intro');assert.equal((await state()).hud,'∞');
+  await page.waitForFunction(()=>__game.mode==='over');await click('#unityRetry');assert.equal((await state()).id,'intro');assert.equal((await state()).hud,'∞');assert.equal(await page.evaluate(()=>__skyInternals.Jt.filter(e=>!e.dead).length),3,'intro retry starts with three pursuers');
   await click('#bSettings');await click('#bMenu');await page.waitForFunction(()=>__game.mode==='menu');await click('#bStart');const afterIntro=await state();assert.equal(afterIntro.id,'normal');assert.equal(afterIntro.life,5);
   assert.equal(intro.history,afterIntro.history,'intro must not create a stored record');assert.equal(posts,0,'no test records go to the public endpoint');assert.deepEqual(errors,[]);
-  await page.screenshot({path:`${out}/${map}-${touch?'touch':'desktop'}.png`});results.push({map,touch,blocked,normal,intro,afterIntro,posts,errors});console.log('PASS',map,touch?'touch':'desktop','cold load, normal, pause/resume/restart, pre-run settings, intro/retry and normal return');await ctx.close();
+  await page.screenshot({path:`${out}/${map}-${touch?'touch':'desktop'}.png`});results.push({map,touch,blocked,normal,intro,introPopulation,afterIntro,posts,errors});console.log('PASS',map,touch?'touch':'desktop','cold load, normal, pause/resume/restart, pre-run settings, intro/retry and normal return');await ctx.close();
  }
  // A failed gun request must offer recovery instead of a dead-looking Start button.
  const ctx=await browser.newContext(),page=await ctx.newPage();await ctx.addInitScript(()=>window.__hold=true);let fail=true;
