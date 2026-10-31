@@ -158,7 +158,7 @@
                       lift: 1.4 + i % 3 * 0.5 });
       }
       const light = window.T2?.PointLight ? new window.T2.PointLight(0xffaa40, 0, 7) : null;
-      if (light) root.add(light);
+      if (light) { light.layers.disableAll(); root.add(light); } // Preserve the flash geometry without a local light.
       const playerDistance = Math.hypot(game.c.pos.x - barrel.x, game.c.pos.z - barrel.z);
       const screen = playerDistance < 11 ? document.createElement('div') : null;
       if (screen) {

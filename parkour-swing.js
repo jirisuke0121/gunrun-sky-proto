@@ -59,6 +59,7 @@ export function createSwing(sky, game, course) {
   for (const b of bars) {
     const gripMaterial = orange.clone(); gripCues.set(b.id, gripMaterial);
     const tube = new T.Mesh(new T.Cylinder(.065, .065, b.width + .3, 8), steel);
+    tube.userData.skyStaticBatch = true;
     tube.rotation.z = Math.PI / 2; tube.rotation.y = Math.atan2(b.direction[0], b.direction[1]); tube.position.set(...b.at); group.add(tube);
     for (const offset of [-.35, .35]) {
       const grip = new T.Mesh(new T.Cylinder(.078, .078, .24, 8), gripMaterial);
@@ -70,11 +71,13 @@ export function createSwing(sky, game, course) {
   for (const {from,to} of course.supports || []) {
     const start=new T.Vector3(...from),end=new T.Vector3(...to),delta=end.clone().sub(start);
     const mount=new T.Mesh(new T.Cylinder(.055,.055,delta.length(),6),steel);
+    mount.userData.skyStaticBatch = true;
     mount.position.copy(start).add(end).multiplyScalar(.5);
     mount.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),delta.normalize());group.add(mount);
   }
   function arrow(x,y,z,dx,dz) {
     const chevron = new T.Group(); chevron.position.set(x,y,z); chevron.rotation.y=Math.atan2(dx,dz)+Math.PI;
+    chevron.userData.skyStaticBatch = true;
     for(const side of [-1,1]) {
       const stroke=new T.Mesh(new T.Box(.08,.025,.62),orange);
       stroke.position.set(side*.19,0,0);stroke.rotation.y=side*.72;chevron.add(stroke);
@@ -95,6 +98,7 @@ export function createSwing(sky, game, course) {
     arrow(3.2,8.025,-5.5,-.7,1);
     label('<  UPPER  >', [2.8,9.25,-6],.85);
     const pad = new T.Mesh(new T.Torus(.58,.055,5,20),orange);
+    pad.userData.skyStaticBatch = true;
     pad.position.set(course.pad[0],course.pad[1]+.035,course.pad[2]); pad.rotation.x=Math.PI/2;group.add(pad);
   }
   for (const sign of course.signs || []) label(sign.text, sign.at, sign.scale);

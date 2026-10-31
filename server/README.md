@@ -5,7 +5,7 @@
 
 ## 2026-10-27：チャレンジ難易度別の記録
 
-`GET /ranking?map=old-town&difficulty=normal&rules=corridor-cap12-v4` と `GET /ghosts/<id>?map=old-town&difficulty=normal&rules=corridor-cap12-v4` は同じ難易度の記録に絞ります。`easy` / `normal` / `hard` / `expert` / `master` / `ultra` は指定した `challenge.version` の記録が対象です。`rules` は `corridor-cap12-v4`、`corridor-score-v3`、`corridor-v2`、前案の `unity-v1` に対応し、省略時は前案互換の `unity-v1`。`legacy` または難易度省略では従来の記録・自由調整の記録を返します。過去の記録を新しいNormalへ移すことはありません。
+`GET /ranking?map=old-town&difficulty=normal&rules=corridor-crowd6-v6` と `GET /ghosts/<id>?map=old-town&difficulty=normal&rules=corridor-crowd6-v6` は同じ難易度の記録に絞ります。`easy` / `normal` / `hard` / `expert` / `master` / `ultra` は指定した `challenge.version` の記録が対象です。`rules` は `corridor-crowd6-v6`、`corridor-health-v5`、`corridor-cap12-v4`、`corridor-score-v3`、`corridor-v2`、前案の `unity-v1` に対応し、省略時は前案互換の `unity-v1`。`legacy` または難易度省略では従来の記録・自由調整の記録を返します。過去の記録を新しいNormalへ移すことはありません。
 
 記録JSONの `challenge: {id, version}` を既存のJSON列へ保存し、DBスキーマ変更はありません。Workerを先に更新してからゲームを公開します。
 
@@ -63,12 +63,12 @@ Claudeに分析させるときは、この出力のJSONを渡してください�
 - 1回の送信は600KBまで。同じ端末IDからは1分に20回まで
 - 無料枠で足りる量：1プレイ1.5万〜5万バイト、D1の無料枠は5GB。10万プレイ程度までは余裕
 
-`corridor-cap12-v4` / `corridor-score-v3` の6難易度はUnityの得点順（score降順）で比較します。クリア状態は別表示です。旧ルールと自由調整は従来のクリア優先順を維持します。
+`corridor-crowd6-v6` / `corridor-health-v5` / `corridor-cap12-v4` / `corridor-score-v3` の6難易度はUnityの得点順（score降順）で比較します。クリア状態は別表示です。旧ルールと自由調整は従来のクリア優先順を維持します。
 
 
 ## 2026-10-28：難易度クリアとスコア
 
-`GET /ranking?map=old-town&rules=corridor-cap12-v4&mode=clear` は各端末の最高クリア難易度を返します。Easy〜Ultraの2分逃げ切りだけが対象で、同難易度は同順位。同じ端末・難易度の代表記録は得点、時間、受信日時、IDの順で選びます。
+`GET /ranking?map=old-town&rules=corridor-crowd6-v6&mode=clear` は各端末の最高クリア難易度を返します。Easy〜Ultraの2分逃げ切りだけが対象で、同難易度は同順位。同じ端末・難易度の代表記録は得点、時間、受信日時、IDの順で選びます。
 
 `mode=score`（省略時も同じ）は従来どおり `difficulty` の最高得点。両方に難易度 `difficulty`、星 `stars`、クリア状態、得点、日時と再生IDを返します。星を無効化していた版のクリア記録は、保存済みの目標点（省略時430/470点）から星を表示時に補完し、元データは変更しません。
 

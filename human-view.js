@@ -1,7 +1,7 @@
 // Local Unity human trial for the old town and canyon maps.
 import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, RUN_STRIDE, DASH_STRIDE, LANDING_SECONDS, releaseAccent } from './human-running.js?v=20261030-boost-sprint-v3';
 import { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
-import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261029-door-motion-v1';
+import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261030-rotation-cache-v2';
 import { flipPose } from './swing-flip.js?v=20261030-frontflip-cue-v2';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
@@ -9,6 +9,9 @@ const { Group, Vector3 } = Geom;
 const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false;
 const visualSmooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const hipOffset = new Vector3();
+const aimInverse = camera.matrixWorld.clone();
+const morphBindings = new WeakMap();
+let morphBindingBuilds = 0;
 const landingRoll = window.skyLandingRoll = createLandingRoll(sky);
 const choiceButtons = [...document.querySelectorAll('#humanSel button')];
 const status = document.getElementById('humanStatus');
@@ -332,7 +335,17 @@ function updateMotion(dt, speed) {
   const smooth = ledgeAction || rolling || snap || plantedRun ? 1 : 1 - Math.exp(-dt * 18);
   for (const mesh of morphMeshes) {
     const weights = mesh.morphTargetInfluences, names = mesh.morphTargetDictionary;
-    for (const [name, index] of Object.entries(names)) weights[index] += ((targets[name] || 0) - weights[index]) * smooth;
+    // Morph names are fixed for a loaded geometry. Avoid rebuilding hundreds
+    // of entry arrays on every animation update; refresh after a rig change.
+    let binding = morphBindings.get(mesh);
+    if (!binding || binding.dictionary !== names || binding.length !== weights.length) {
+      binding = { dictionary: names, length: weights.length, entries: Object.entries(names) };
+      morphBindings.set(mesh, binding); morphBindingBuilds++;
+    }
+    for (let i = 0; i < binding.entries.length; i++) {
+      const entry = binding.entries[i], index = entry[1];
+      weights[index] += ((targets[entry[0]] || 0) - weights[index]) * smooth;
+    }
   }
   const a = motion.grips[selected][lo], b = motion.grips[selected][hi];
   blendedGrip.set(a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction, a[2] + (b[2] - a[2]) * fraction);
@@ -405,11 +418,15 @@ function previewAim() {
 }
 function aimWeaponAt(target) {
   const carryPosition=worldWeapon.position.clone(),carryRotation=worldWeapon.quaternion.clone();
-  const localTarget=model.worldToLocal(target.clone());
+  // updateWorldWeapon already refreshed the holder hierarchy. Reuse its
+  // matrices instead of updating ancestors and inverting the same matrix for
+  // each shoulder, hand and muzzle conversion.
+  aimInverse.copy(model.matrixWorld).invert();
+  const localTarget=target.clone().applyMatrix4(aimInverse);
   // The chest turns first; shoulder roots and both hand goals then share it.
   const torso=aimRig.prepare(localTarget.toArray(),aimBlend);
   document.body.dataset.skyHumanTorso=JSON.stringify(torso);
-  const roots = aimRig.shoulders().map(p => model.localToWorld(new Vector3(...p)));
+  const roots = aimRig.shoulders().map(p => new Vector3(...p).applyMatrix4(model.matrixWorld));
   const centre = roots[0].clone().add(roots[1]).multiplyScalar(.5);
   aimDirection.copy(target).sub(centre).normalize();
   right.set(-aimDirection.z, 0, aimDirection.x).normalize();
@@ -428,11 +445,11 @@ function aimWeaponAt(target) {
   }
   if(aimBlend<1){worldWeapon.position.lerpVectors(carryPosition,worldWeapon.position,aimBlend);worldWeapon.quaternion.slerpQuaternions(carryRotation,worldWeapon.quaternion,aimBlend);}
   worldWeapon.updateMatrixWorld(true);
-  aimHand.set(...heldWeapon.grip);worldWeapon.localToWorld(aimHand);model.worldToLocal(aimHand);
-  aimSupport.set(...heldWeapon.support);worldWeapon.localToWorld(aimSupport);model.worldToLocal(aimSupport);
-  aimPalm.set(0,-1,0).applyQuaternion(worldWeapon.quaternion).transformDirection(model.matrixWorld.clone().invert());
+  aimHand.set(...heldWeapon.grip).applyMatrix4(worldWeapon.matrixWorld).applyMatrix4(aimInverse);
+  aimSupport.set(...heldWeapon.support).applyMatrix4(worldWeapon.matrixWorld).applyMatrix4(aimInverse);
+  aimPalm.set(0,-1,0).applyQuaternion(worldWeapon.quaternion).transformDirection(aimInverse);
   const error=aimRig.apply([aimHand.toArray(),aimSupport.toArray()],aimPalm.toArray(),aimBlend);
-  gunMuzzle.copy(heldWeapon.muzzle);worldWeapon.localToWorld(gunMuzzle);
+  gunMuzzle.copy(heldWeapon.muzzle).applyMatrix4(worldWeapon.matrixWorld);
   actualDirection.set(0,0,-1).applyQuaternion(worldWeapon.quaternion);
   aimDirection.copy(target).sub(gunMuzzle).normalize();
   document.body.dataset.skyHumanAimError=Math.acos(Math.max(-1,Math.min(1,actualDirection.dot(aimDirection)))).toFixed(7);
@@ -638,6 +655,9 @@ function createDecoyAvatar(color = 0xff68e2) {
   };
 }
 window.skyHumanView = { update, select, getMuzzleWorld, prepareShot, createDecoyAvatar,
+  get aimWork() { return aimRig?.work || null; },
+  get morphBindingWork() { return { revision: 'dictionary-cache-v1', builds: morphBindingBuilds,
+    meshes: morphMeshes.length, entries: morphMeshes.reduce((sum, mesh) => sum + (morphBindings.get(mesh)?.entries.length || 0), 0) }; },
   get canAimBehind() { return canAimBehind(); },
   autoAimReady(target) {
     // Automatic fire waits for the body to unfold. A deliberate shot can still

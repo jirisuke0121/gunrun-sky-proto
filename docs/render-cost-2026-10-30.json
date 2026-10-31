@@ -1,0 +1,470 @@
+{
+  "date": "2026-10-30",
+  "timingAccepted": false,
+  "timingReason": "Mac locked; draw counts and deterministic pose equivalence only",
+  "baseline": "326954d",
+  "maps": {
+    "index": {
+      "drawCallsBefore": {
+        "median": 899,
+        "p95": 935,
+        "p99": 935,
+        "max": 935
+      },
+      "drawCallsAfter": {
+        "median": 363,
+        "p95": 399,
+        "p99": 399,
+        "max": 399
+      },
+      "reductionPct": 59.62,
+      "css": [
+        1200,
+        762
+      ],
+      "buffer": [
+        960,
+        609
+      ],
+      "modelCount": 6,
+      "sourceHashBefore": "e2021c1a14d7711d629dcde1db3f4e0f9e1caec0962ed5235089e201bb4b10de",
+      "sourceHashAfter": "ec64d545e9cb24009dc5e67fac86e3d355c208516a0ab667da286a124813e4b2",
+      "staticMerge": {
+        "merged": 499,
+        "meshes": 59,
+        "materialGroups": {
+          "revision": "material-groups-v2",
+          "objects": 246,
+          "taggedObjects": 161,
+          "groupsBefore": 671,
+          "groupsAfter": 90,
+          "triangles": 14636,
+          "trianglesAfter": 14636,
+          "cellSize": 32
+        }
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      }
+    },
+    "canyon": {
+      "drawCallsBefore": {
+        "median": 95,
+        "p95": 131,
+        "p99": 131,
+        "max": 131
+      },
+      "drawCallsAfter": {
+        "median": 79,
+        "p95": 112,
+        "p99": 115,
+        "max": 115
+      },
+      "reductionPct": 16.84,
+      "css": [
+        1200,
+        762
+      ],
+      "buffer": [
+        960,
+        609
+      ],
+      "modelCount": 6,
+      "sourceHashBefore": "1be4ce2650bdae9bb71a1a53d649b6a01797f185e9491905da871c8b79eac336",
+      "sourceHashAfter": "f8a968e7840c8b3dc052dc18d0139b79ad3da0e8ae81dde7a44bb960d6dd1bbb",
+      "staticMerge": {
+        "merged": 309,
+        "meshes": 17,
+        "materialGroups": {
+          "revision": "material-groups-v2",
+          "objects": 39,
+          "taggedObjects": 39,
+          "groupsBefore": 39,
+          "groupsAfter": 9,
+          "triangles": 696,
+          "trianglesAfter": 696,
+          "cellSize": 32
+        }
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      }
+    }
+  },
+  "poses": [
+    {
+      "map": "index",
+      "pose": "idle",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.02299,
+      "imageMeanAbsoluteRgbDelta": 0.006385
+    },
+    {
+      "map": "index",
+      "pose": "run",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.02739,
+      "imageMeanAbsoluteRgbDelta": 0.006609
+    },
+    {
+      "map": "index",
+      "pose": "walk",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.03643,
+      "imageMeanAbsoluteRgbDelta": 0.004347
+    },
+    {
+      "map": "index",
+      "pose": "jump",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.03154,
+      "imageMeanAbsoluteRgbDelta": 0.002854
+    },
+    {
+      "map": "index",
+      "pose": "slide",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.08045,
+      "imageMeanAbsoluteRgbDelta": 0.005587
+    },
+    {
+      "map": "index",
+      "pose": "shot",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 1,
+        "hits": 1
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.02103,
+      "imageMeanAbsoluteRgbDelta": 0.001596
+    },
+    {
+      "map": "index",
+      "pose": "aim-up",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 1,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.15258,
+      "imageMeanAbsoluteRgbDelta": 0.028874
+    },
+    {
+      "map": "index",
+      "pose": "aim-down",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 1,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.09683,
+      "imageMeanAbsoluteRgbDelta": 0.002757
+    },
+    {
+      "map": "canyon",
+      "pose": "idle",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.00807,
+      "imageMeanAbsoluteRgbDelta": 6e-05
+    },
+    {
+      "map": "canyon",
+      "pose": "run",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.00807,
+      "imageMeanAbsoluteRgbDelta": 5.9e-05
+    },
+    {
+      "map": "canyon",
+      "pose": "walk",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.02103,
+      "imageMeanAbsoluteRgbDelta": 0.00047
+    },
+    {
+      "map": "canyon",
+      "pose": "jump",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.00807,
+      "imageMeanAbsoluteRgbDelta": 0.000135
+    },
+    {
+      "map": "canyon",
+      "pose": "slide",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.02714,
+      "imageMeanAbsoluteRgbDelta": 0.001227
+    },
+    {
+      "map": "canyon",
+      "pose": "shot",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 1,
+        "hits": 1
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.02274,
+      "imageMeanAbsoluteRgbDelta": 0.00013
+    },
+    {
+      "map": "canyon",
+      "pose": "aim-up",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 1,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.06553,
+      "imageMeanAbsoluteRgbDelta": 0.002376
+    },
+    {
+      "map": "canyon",
+      "pose": "aim-down",
+      "verticesNormalsMorphExact": true,
+      "physicsExact": true,
+      "shotExact": true,
+      "hitResultExact": true,
+      "stats": {
+        "shots": 1,
+        "hits": 0
+      },
+      "aimWork": {
+        "revision": "rotation-cache-v2",
+        "meshes": 7,
+        "torsoVertices": 2628,
+        "torsoRotations": 500
+      },
+      "imageChangedPixelsPct": 0.02127,
+      "imageMeanAbsoluteRgbDelta": 0.001871
+    }
+  ],
+  "door": [
+    {
+      "label": "door-open",
+      "closeAccepted": null,
+      "door": {
+        "id": "indoor-door-0",
+        "phase": "open",
+        "progress": 1,
+        "off": true,
+        "leaves": [
+          {
+            "visible": true,
+            "attached": true,
+            "geometry": 24
+          },
+          {
+            "visible": true,
+            "attached": true,
+            "geometry": 24
+          }
+        ]
+      }
+    },
+    {
+      "label": "door-close",
+      "closeAccepted": true,
+      "door": {
+        "id": "indoor-door-0",
+        "phase": "closed",
+        "progress": 0,
+        "off": false,
+        "leaves": [
+          {
+            "visible": true,
+            "attached": true,
+            "geometry": 24
+          },
+          {
+            "visible": true,
+            "attached": true,
+            "geometry": 24
+          }
+        ]
+      }
+    }
+  ],
+  "maxImageChangedPixelsPct": 0.15258,
+  "maxImageMeanAbsoluteRgbDelta": 0.028874
+}

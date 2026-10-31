@@ -1,0 +1,918 @@
+{
+  "date": "2026-10-31",
+  "sourceHeads": {
+    "A": "7f8c3f90e4296d56d56a7e3f45cb96f2832bf142",
+    "B_and_C": "9dfbb72d7dd0d34b29e0e60ace614bb68d65d008"
+  },
+  "meaning": {
+    "A": "Pre-optimization, light pixel ratio .8",
+    "B": "Current code at the same .8 pixel ratio",
+    "C": "Current default light .7"
+  },
+  "createdAt": "2026-10-30T23:59:39.864Z",
+  "hardware": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+    "dpr": 2,
+    "viewport": [
+      1200,
+      762
+    ]
+  },
+  "protocol": {
+    "order": "ABCCBA per map",
+    "measurementSeconds": 4,
+    "samplesPerCondition": 2,
+    "loadedBuildWarmupSeconds": 8,
+    "sceneWarmupSeconds": 1,
+    "cpuSectionsProfiled": false,
+    "gpuProbe": false,
+    "livingEnemies": 6,
+    "corpses": 0,
+    "visibilityAndFocusRequired": true
+  },
+  "scope": "Mac Chrome controlled fixture, not whole-map play or iPhone. Short runs, descriptive results only. Corpse/replenishment performance not measured.",
+  "allTrials": 24,
+  "acceptedTrials": 19,
+  "rejectedTrials": [
+    {
+      "map": "index.html",
+      "mode": "chase",
+      "phase": 1,
+      "cohort": "A",
+      "reason": "terrain occluded at least one enemy",
+      "allVisiblePct": 78.972
+    },
+    {
+      "map": "index.html",
+      "mode": "chase",
+      "phase": 2,
+      "cohort": "B",
+      "reason": "terrain occluded at least one enemy",
+      "allVisiblePct": 78.774
+    },
+    {
+      "map": "index.html",
+      "mode": "chase",
+      "phase": 4,
+      "cohort": "C",
+      "reason": "terrain occluded at least one enemy",
+      "allVisiblePct": 87.288
+    },
+    {
+      "map": "index.html",
+      "mode": "chase",
+      "phase": 5,
+      "cohort": "B",
+      "reason": "terrain occluded at least one enemy",
+      "allVisiblePct": 78.972
+    },
+    {
+      "map": "index.html",
+      "mode": "chase",
+      "phase": 6,
+      "cohort": "A",
+      "reason": "terrain occluded at least one enemy",
+      "allVisiblePct": 71.831
+    }
+  ],
+  "rows": [
+    {
+      "map": "index.html",
+      "mode": "fixed",
+      "comparable": true,
+      "cohorts": {
+        "A": {
+          "accepted": true,
+          "fpsSamples": [
+            54.684,
+            53
+          ],
+          "fpsMedian": 53.842,
+          "cpuMedianMs": 5.9,
+          "p95IntervalMs": [
+            24.3,
+            25.3
+          ],
+          "drawCallsMedian": 928.0,
+          "focusPct": [
+            100,
+            100
+          ],
+          "allVisiblePct": [
+            100,
+            100
+          ],
+          "groundedPct": [
+            100,
+            100
+          ],
+          "buffer": [
+            [
+              960,
+              609
+            ],
+            [
+              960,
+              609
+            ]
+          ],
+          "css": [
+            [
+              1200,
+              762
+            ],
+            [
+              1200,
+              762
+            ]
+          ],
+          "lane": [
+            {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            }
+          ]
+        },
+        "B": {
+          "accepted": true,
+          "fpsSamples": [
+            53.988,
+            54.548
+          ],
+          "fpsMedian": 54.268,
+          "cpuMedianMs": 5.1,
+          "p95IntervalMs": [
+            25,
+            24.6
+          ],
+          "drawCallsMedian": 374.0,
+          "focusPct": [
+            100,
+            100
+          ],
+          "allVisiblePct": [
+            100,
+            100
+          ],
+          "groundedPct": [
+            100,
+            100
+          ],
+          "buffer": [
+            [
+              960,
+              609
+            ],
+            [
+              960,
+              609
+            ]
+          ],
+          "css": [
+            [
+              1200,
+              762
+            ],
+            [
+              1200,
+              762
+            ]
+          ],
+          "lane": [
+            {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            }
+          ]
+        },
+        "C": {
+          "accepted": true,
+          "fpsSamples": [
+            60.247,
+            60.423
+          ],
+          "fpsMedian": 60.335,
+          "cpuMedianMs": 5.15,
+          "p95IntervalMs": [
+            24.9,
+            24.5
+          ],
+          "drawCallsMedian": 374.0,
+          "focusPct": [
+            100,
+            100
+          ],
+          "allVisiblePct": [
+            100,
+            100
+          ],
+          "groundedPct": [
+            100,
+            100
+          ],
+          "buffer": [
+            [
+              840,
+              533
+            ],
+            [
+              840,
+              533
+            ]
+          ],
+          "css": [
+            [
+              1200,
+              762
+            ],
+            [
+              1200,
+              762
+            ]
+          ],
+          "lane": [
+            {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            }
+          ]
+        }
+      },
+      "ABFpsChangePct": 0.7912038928717502,
+      "BCFpsChangePct": 11.179700744453447,
+      "ACFpsChangePct": 12.05935886482672,
+      "baselineFirstLastChangePct": -3.0795113744422453
+    },
+    {
+      "map": "index.html",
+      "mode": "chase",
+      "comparable": false,
+      "cohorts": {
+        "A": {
+          "accepted": false,
+          "fpsSamples": [
+            53.513,
+            53.341
+          ],
+          "fpsMedian": null,
+          "cpuMedianMs": null,
+          "p95IntervalMs": [
+            25.4,
+            25.1
+          ],
+          "drawCallsMedian": 954.0,
+          "focusPct": [
+            100,
+            100
+          ],
+          "allVisiblePct": [
+            78.972,
+            71.831
+          ],
+          "groundedPct": [
+            100,
+            100
+          ],
+          "buffer": [
+            [
+              960,
+              609
+            ],
+            [
+              960,
+              609
+            ]
+          ],
+          "css": [
+            [
+              1200,
+              762
+            ],
+            [
+              1200,
+              762
+            ]
+          ],
+          "lane": [
+            {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            }
+          ]
+        },
+        "B": {
+          "accepted": false,
+          "fpsSamples": [
+            53.201,
+            53.527
+          ],
+          "fpsMedian": null,
+          "cpuMedianMs": null,
+          "p95IntervalMs": [
+            24.6,
+            25
+          ],
+          "drawCallsMedian": 405.5,
+          "focusPct": [
+            100,
+            100
+          ],
+          "allVisiblePct": [
+            78.774,
+            78.972
+          ],
+          "groundedPct": [
+            100,
+            100
+          ],
+          "buffer": [
+            [
+              960,
+              609
+            ],
+            [
+              960,
+              609
+            ]
+          ],
+          "css": [
+            [
+              1200,
+              762
+            ],
+            [
+              1200,
+              762
+            ]
+          ],
+          "lane": [
+            {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            }
+          ]
+        },
+        "C": {
+          "accepted": false,
+          "fpsSamples": [
+            58.857,
+            59.219
+          ],
+          "fpsMedian": null,
+          "cpuMedianMs": null,
+          "p95IntervalMs": [
+            25,
+            23.7
+          ],
+          "drawCallsMedian": 400.0,
+          "focusPct": [
+            100,
+            100
+          ],
+          "allVisiblePct": [
+            100,
+            87.288
+          ],
+          "groundedPct": [
+            100,
+            100
+          ],
+          "buffer": [
+            [
+              840,
+              533
+            ],
+            [
+              840,
+              533
+            ]
+          ],
+          "css": [
+            [
+              1200,
+              762
+            ],
+            [
+              1200,
+              762
+            ]
+          ],
+          "lane": [
+            {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "map": "canyon.html",
+      "mode": "fixed",
+      "comparable": true,
+      "cohorts": {
+        "A": {
+          "accepted": true,
+          "fpsSamples": [
+            128.692,
+            124.641
+          ],
+          "fpsMedian": 126.66650000000001,
+          "cpuMedianMs": 3.7,
+          "p95IntervalMs": [
+            9.3,
+            9.5
+          ],
+          "drawCallsMedian": 95.0,
+          "focusPct": [
+            100,
+            100
+          ],
+          "allVisiblePct": [
+            100,
+            100
+          ],
+          "groundedPct": [
+            100,
+            100
+          ],
+          "buffer": [
+            [
+              960,
+              609
+            ],
+            [
+              960,
+              609
+            ]
+          ],
+          "css": [
+            [
+              1200,
+              762
+            ],
+            [
+              1200,
+              762
+            ]
+          ],
+          "lane": [
+            {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            }
+          ]
+        },
+        "B": {
+          "accepted": true,
+          "fpsSamples": [
+            125.412,
+            126.348
+          ],
+          "fpsMedian": 125.88,
+          "cpuMedianMs": 3.55,
+          "p95IntervalMs": [
+            10,
+            9.4
+          ],
+          "drawCallsMedian": 79.0,
+          "focusPct": [
+            100,
+            100
+          ],
+          "allVisiblePct": [
+            100,
+            100
+          ],
+          "groundedPct": [
+            100,
+            100
+          ],
+          "buffer": [
+            [
+              960,
+              609
+            ],
+            [
+              960,
+              609
+            ]
+          ],
+          "css": [
+            [
+              1200,
+              762
+            ],
+            [
+              1200,
+              762
+            ]
+          ],
+          "lane": [
+            {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            }
+          ]
+        },
+        "C": {
+          "accepted": true,
+          "fpsSamples": [
+            128.173,
+            128.247
+          ],
+          "fpsMedian": 128.21,
+          "cpuMedianMs": 3.5,
+          "p95IntervalMs": [
+            9.1,
+            9.8
+          ],
+          "drawCallsMedian": 79.0,
+          "focusPct": [
+            100,
+            100
+          ],
+          "allVisiblePct": [
+            100,
+            100
+          ],
+          "groundedPct": [
+            100,
+            100
+          ],
+          "buffer": [
+            [
+              840,
+              533
+            ],
+            [
+              840,
+              533
+            ]
+          ],
+          "css": [
+            [
+              1200,
+              762
+            ],
+            [
+              1200,
+              762
+            ]
+          ],
+          "lane": [
+            {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            }
+          ]
+        }
+      },
+      "ABFpsChangePct": -0.6209218696340502,
+      "BCFpsChangePct": 1.8509691769939662,
+      "ACFpsChangePct": 1.2185542349397727,
+      "baselineFirstLastChangePct": -3.1478258166785844
+    },
+    {
+      "map": "canyon.html",
+      "mode": "chase",
+      "comparable": true,
+      "cohorts": {
+        "A": {
+          "accepted": true,
+          "fpsSamples": [
+            128.478,
+            124.785
+          ],
+          "fpsMedian": 126.6315,
+          "cpuMedianMs": 3.9,
+          "p95IntervalMs": [
+            9.7,
+            10.1
+          ],
+          "drawCallsMedian": 121.5,
+          "focusPct": [
+            100,
+            100
+          ],
+          "allVisiblePct": [
+            100,
+            100
+          ],
+          "groundedPct": [
+            100,
+            100
+          ],
+          "buffer": [
+            [
+              960,
+              609
+            ],
+            [
+              960,
+              609
+            ]
+          ],
+          "css": [
+            [
+              1200,
+              762
+            ],
+            [
+              1200,
+              762
+            ]
+          ],
+          "lane": [
+            {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            }
+          ]
+        },
+        "B": {
+          "accepted": true,
+          "fpsSamples": [
+            125.444,
+            126.997
+          ],
+          "fpsMedian": 126.2205,
+          "cpuMedianMs": 3.8,
+          "p95IntervalMs": [
+            9.1,
+            9.2
+          ],
+          "drawCallsMedian": 105.0,
+          "focusPct": [
+            100,
+            100
+          ],
+          "allVisiblePct": [
+            100,
+            100
+          ],
+          "groundedPct": [
+            100,
+            100
+          ],
+          "buffer": [
+            [
+              960,
+              609
+            ],
+            [
+              960,
+              609
+            ]
+          ],
+          "css": [
+            [
+              1200,
+              762
+            ],
+            [
+              1200,
+              762
+            ]
+          ],
+          "lane": [
+            {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            }
+          ]
+        },
+        "C": {
+          "accepted": true,
+          "fpsSamples": [
+            130.35,
+            128.682
+          ],
+          "fpsMedian": 129.516,
+          "cpuMedianMs": 3.8,
+          "p95IntervalMs": [
+            9.4,
+            9.2
+          ],
+          "drawCallsMedian": 105.0,
+          "focusPct": [
+            100,
+            100
+          ],
+          "allVisiblePct": [
+            100,
+            100
+          ],
+          "groundedPct": [
+            100,
+            100
+          ],
+          "buffer": [
+            [
+              840,
+              533
+            ],
+            [
+              840,
+              533
+            ]
+          ],
+          "css": [
+            [
+              1200,
+              762
+            ],
+            [
+              1200,
+              762
+            ]
+          ],
+          "lane": [
+            {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            }
+          ]
+        }
+      },
+      "ABFpsChangePct": -0.32456379336894825,
+      "BCFpsChangePct": 2.6109071030458564,
+      "ACFpsChangePct": 2.2778692505419196,
+      "baselineFirstLastChangePct": -2.8744220800448472
+    }
+  ],
+  "interpretation": [
+    "Oldtown fixed six: current .7 raises mean-of-two FPS by about 12 percent over baseline .8. Same-quality .8 FPS difference is small.",
+    "Canyon: baseline drift is comparable to small FPS differences; no robust FPS improvement claimed.",
+    "Oldtown approach/fire did not retain all-six terrain visibility in all phases, so no final comparison for that scenario.",
+    "CPU frame work and draw-call reductions are separate observations, not FPS multipliers. No stable-60 guarantee."
+  ]
+}

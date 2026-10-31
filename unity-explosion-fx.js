@@ -79,6 +79,7 @@ export function createUnityExplosionFx(THREE, scene, player) {
       return { mesh, velocity: new THREE.Vector3(), delay: 0 };
     });
     const light = new THREE.PointLight(0xffd661, 0, 10);
+    light.layers.disableAll(); // Flame and smoke sprites remain visible.
     scene.add(light);
     return { flames, dust, smokingBall, debris, light,
       origin: new THREE.Vector3(), t: 5, scale: 1 };

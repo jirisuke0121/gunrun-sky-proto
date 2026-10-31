@@ -1,0 +1,4395 @@
+{
+  "schema": 2,
+  "measuredOn": "2026-10-30",
+  "reviewedSourceSha256": {
+    "index.html": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+    "canyon.html": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+    "challenge-difficulty.js": "adb1712fefa6488963133c23af252861f8987d5bceea96d2fecf08ebb89537dd",
+    "render-quality.js": "a894ab85c2d91ab26a89a15b3964c1c4c441474b4b1224d9fda9e2fcd2380b0b",
+    "bench/crowd-performance.js": "202e2a905104969ce11926dacc6424161d8037d81b126a95c462aea186ec1541",
+    "bench/crowd-performance.html": "a0e64e57c995be875c48f04f1a0aeab11c052983588e2a400d361c11bcbed343",
+    "server/worker.js": "57bcb8f4c5ab5bc77d694f7a1893827ca5d2ab08518bc3cde985c1bcf3a3190d"
+  },
+  "sourceNote": "Trial hashes cover original game HTML. Reviewed source hashes also identify final assets; trial capture did not hash each fetched asset separately.",
+  "environment": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+    "dpr": 2,
+    "viewport": [
+      1200,
+      762
+    ],
+    "hardwareConcurrency": 8
+  },
+  "protocol": {
+    "secondsPerCondition": 10,
+    "repeats": 1,
+    "conditions": 16,
+    "gpuTimer": "off",
+    "views": [
+      "fixed crowd with full enemy updates",
+      "short approaches with HG every .4 seconds"
+    ],
+    "models": "Unity standard",
+    "visibility": "100% of recorded frames have all requested actors projected and clear of terrain",
+    "simulation": "Normal vertical player physics; FX expiry advanced with the held diagnostic driver; fixed comparison camera",
+    "isolation": "Other local game stopped by user; its owner confirmed no restart. Only this Chrome game tab remained. No physical iPhone."
+  },
+  "decision": {
+    "bodyBudget": 6,
+    "easyMaxAlive": 5,
+    "otherPresetMaxAlive": 6,
+    "defaultQuality": "performance",
+    "health": [
+      4,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "fpsGuarantee": false
+  },
+  "controlledRuns": [
+    {
+      "schema": 2,
+      "createdAt": "2026-10-30T04:03:15.361Z",
+      "scope": "Mac browser comparison, not physical iPhone performance",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+      "dpr": 2,
+      "viewport": [
+        1200,
+        762
+      ],
+      "hardwareConcurrency": 8,
+      "otherGameStopped": true,
+      "seconds": 10,
+      "repeats": 1,
+      "notes": [
+        "Production game source and assets; memory-only settings; no gameplay records sent.",
+        "All enemies must project inside the camera and have clear terrain line of sight. Other zombies may naturally overlap.",
+        "Player vertical physics is preserved; grounded state is not reset every frame. CPU section wrappers are diagnostic only.",
+        "Fixed positions run full enemy updates each frame. Chase repeats .8 second approaches with HG fire every .4s and durable enemies.",
+        "Real rAF intervals, CPU frame work and asynchronous GPU timer queries are reported separately.",
+        "Camera is held at consistent third-person framing; graphics follow the recorded quality preset. Diagnostic variants are tagged. Zombie model LOD is unchanged.",
+        "Background tabs or resizing invalidate a run."
+      ],
+      "variant": "production",
+      "quality": "high",
+      "counts": [
+        6
+      ],
+      "gpuProbe": "off",
+      "complete": true,
+      "file": "controlled-high.json",
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "count": 6,
+          "repeat": 1,
+          "fixture": {
+            "count": 6,
+            "mode": "fixed",
+            "variant": "production",
+            "quality": {
+              "mode": "high",
+              "pixelRatio": 2,
+              "nativePixelRatio": 2,
+              "buffer": [
+                2400,
+                1524
+              ],
+              "shadows": true
+            },
+            "lane": {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              2400,
+              1524
+            ],
+            "pixelRatio": 2,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 499,
+              "meshes": 59
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": true
+            },
+            "hash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2"
+          },
+          "summary": {
+            "fps": 13.199,
+            "frames": 131,
+            "elapsed": 10.001,
+            "intervalMs": {
+              "median": 76.7,
+              "p95": 82.3,
+              "p99": 83.5,
+              "max": 84.4
+            },
+            "over33Pct": 99.242,
+            "over50Pct": 99.242,
+            "cpuMs": {
+              "median": 12.6,
+              "p95": 14.2,
+              "p99": 18,
+              "max": 18.3
+            },
+            "aiMs": {
+              "median": 0.5,
+              "p95": 0.7,
+              "p99": 0.7,
+              "max": 0.7
+            },
+            "renderSubmitMs": {
+              "median": 3.1,
+              "p95": 3.7,
+              "p99": 4.1,
+              "max": 4.8
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.8,
+                "p95": 1.2,
+                "p99": 6.3,
+                "max": 7.2
+              },
+              "player": {
+                "median": 0.1,
+                "p95": 0.2,
+                "p99": 0.3,
+                "max": 0.3
+              },
+              "presentation": {
+                "median": 11.8,
+                "p95": 12.8,
+                "p99": 15.8,
+                "max": 17.1
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 6,
+            "minUnobstructed": 6,
+            "allVisiblePct": 100,
+            "minAlive": 6,
+            "drawCalls": {
+              "median": 1659,
+              "p95": 1660,
+              "p99": 1670,
+              "max": 1676
+            },
+            "triangles": {
+              "median": 191418,
+              "p95": 191658,
+              "p99": 191778,
+              "max": 191850
+            },
+            "valid": true
+          },
+          "tailInterval": 73,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.0007
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "count": 6,
+          "repeat": 1,
+          "fixture": {
+            "count": 6,
+            "mode": "chase",
+            "variant": "production",
+            "quality": {
+              "mode": "high",
+              "pixelRatio": 2,
+              "nativePixelRatio": 2,
+              "buffer": [
+                2400,
+                1524
+              ],
+              "shadows": true
+            },
+            "lane": {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              2400,
+              1524
+            ],
+            "pixelRatio": 2,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 499,
+              "meshes": 59
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": true
+            },
+            "hash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2"
+          },
+          "summary": {
+            "fps": 13.131,
+            "frames": 131,
+            "elapsed": 10.053,
+            "intervalMs": {
+              "median": 76.6,
+              "p95": 84.4,
+              "p99": 87.7,
+              "max": 161.6
+            },
+            "over33Pct": 98.485,
+            "over50Pct": 98.485,
+            "cpuMs": {
+              "median": 13.8,
+              "p95": 24.9,
+              "p99": 27.1,
+              "max": 27.5
+            },
+            "aiMs": {
+              "median": 0.7,
+              "p95": 1.2,
+              "p99": 1.3,
+              "max": 1.3
+            },
+            "renderSubmitMs": {
+              "median": 3.1,
+              "p95": 4.5,
+              "p99": 5,
+              "max": 5.2
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 1,
+                "p95": 1.8,
+                "p99": 6.2,
+                "max": 6.9
+              },
+              "player": {
+                "median": 0.1,
+                "p95": 0.2,
+                "p99": 0.2,
+                "max": 0.2
+              },
+              "presentation": {
+                "median": 12.2,
+                "p95": 15.6,
+                "p99": 16.8,
+                "max": 17
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 6,
+            "minUnobstructed": 6,
+            "allVisiblePct": 100,
+            "minAlive": 6,
+            "drawCalls": {
+              "median": 1685,
+              "p95": 1709,
+              "p99": 1717,
+              "max": 1720
+            },
+            "triangles": {
+              "median": 187590,
+              "p95": 192482,
+              "p99": 192650,
+              "max": 192668
+            },
+            "valid": true
+          },
+          "tailInterval": 79.19999999999709,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.0528
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "count": 6,
+          "repeat": 1,
+          "fixture": {
+            "count": 6,
+            "mode": "fixed",
+            "variant": "production",
+            "quality": {
+              "mode": "high",
+              "pixelRatio": 2,
+              "nativePixelRatio": 2,
+              "buffer": [
+                2400,
+                1524
+              ],
+              "shadows": true
+            },
+            "lane": {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              2400,
+              1524
+            ],
+            "pixelRatio": 2,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 309,
+              "meshes": 17
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": true
+            },
+            "hash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28"
+          },
+          "summary": {
+            "fps": 102.86,
+            "frames": 1028,
+            "elapsed": 10.004,
+            "intervalMs": {
+              "median": 8.4,
+              "p95": 16.6,
+              "p99": 17.1,
+              "max": 18.2
+            },
+            "over33Pct": 0,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 9.1,
+              "p95": 9.7,
+              "p99": 10,
+              "max": 17.7
+            },
+            "aiMs": {
+              "median": 0.1,
+              "p95": 0.3,
+              "p99": 0.3,
+              "max": 0.5
+            },
+            "renderSubmitMs": {
+              "median": 1,
+              "p95": 1.5,
+              "p99": 1.7,
+              "max": 1.9
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.3,
+                "p95": 0.4,
+                "p99": 0.5,
+                "max": 8.5
+              },
+              "player": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.2,
+                "max": 0.5
+              },
+              "presentation": {
+                "median": 8.8,
+                "p95": 9.4,
+                "p99": 9.7,
+                "max": 10.1
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 6,
+            "minUnobstructed": 6,
+            "allVisiblePct": 100,
+            "minAlive": 6,
+            "drawCalls": {
+              "median": 153,
+              "p95": 158,
+              "p99": 158,
+              "max": 158
+            },
+            "triangles": {
+              "median": 106164,
+              "p95": 106490,
+              "p99": 106490,
+              "max": 106490
+            },
+            "valid": true
+          },
+          "tailInterval": 8.600000000002183,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.003900000000002
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "count": 6,
+          "repeat": 1,
+          "fixture": {
+            "count": 6,
+            "mode": "chase",
+            "variant": "production",
+            "quality": {
+              "mode": "high",
+              "pixelRatio": 2,
+              "nativePixelRatio": 2,
+              "buffer": [
+                2400,
+                1524
+              ],
+              "shadows": true
+            },
+            "lane": {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              2400,
+              1524
+            ],
+            "pixelRatio": 2,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 309,
+              "meshes": 17
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": true
+            },
+            "hash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28"
+          },
+          "summary": {
+            "fps": 94.826,
+            "frames": 948,
+            "elapsed": 10.008,
+            "intervalMs": {
+              "median": 8.5,
+              "p95": 16.8,
+              "p99": 17.7,
+              "max": 24.3
+            },
+            "over33Pct": 0,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 9.3,
+              "p95": 10.2,
+              "p99": 17.3,
+              "max": 18.8
+            },
+            "aiMs": {
+              "median": 0.2,
+              "p95": 0.4,
+              "p99": 0.5,
+              "max": 1.1
+            },
+            "renderSubmitMs": {
+              "median": 1.1,
+              "p95": 1.5,
+              "p99": 1.8,
+              "max": 2
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.4,
+                "p95": 0.6,
+                "p99": 0.8,
+                "max": 9.6
+              },
+              "player": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.2,
+                "max": 0.3
+              },
+              "presentation": {
+                "median": 8.8,
+                "p95": 9.5,
+                "p99": 9.9,
+                "max": 11.5
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.3
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 6,
+            "minUnobstructed": 6,
+            "allVisiblePct": 100,
+            "minAlive": 6,
+            "drawCalls": {
+              "median": 168,
+              "p95": 190,
+              "p99": 195,
+              "max": 199
+            },
+            "triangles": {
+              "median": 106412,
+              "p95": 106974,
+              "p99": 107126,
+              "max": 107162
+            },
+            "valid": true
+          },
+          "tailInterval": 8.399999999997817,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.0078
+        }
+      ]
+    },
+    {
+      "schema": 2,
+      "createdAt": "2026-10-30T04:07:21.822Z",
+      "scope": "Mac browser comparison, not physical iPhone performance",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+      "dpr": 2,
+      "viewport": [
+        1200,
+        762
+      ],
+      "hardwareConcurrency": 8,
+      "otherGameStopped": true,
+      "seconds": 10,
+      "repeats": 1,
+      "notes": [
+        "Production game source and assets; memory-only settings; no gameplay records sent.",
+        "All enemies must project inside the camera and have clear terrain line of sight. Other zombies may naturally overlap.",
+        "Player vertical physics is preserved; grounded state is not reset every frame. CPU section wrappers are diagnostic only.",
+        "Fixed positions run full enemy updates each frame. Chase repeats .8 second approaches with HG fire every .4s and durable enemies.",
+        "Real rAF intervals, CPU frame work and asynchronous GPU timer queries are reported separately.",
+        "Camera is held at consistent third-person framing; graphics follow the recorded quality preset. Diagnostic variants are tagged. Zombie model LOD is unchanged.",
+        "Background tabs or resizing invalidate a run."
+      ],
+      "variant": "production",
+      "quality": "performance",
+      "counts": [
+        6,
+        8,
+        12
+      ],
+      "gpuProbe": "off",
+      "complete": true,
+      "file": "controlled-performance.json",
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "count": 6,
+          "repeat": 1,
+          "fixture": {
+            "count": 6,
+            "mode": "fixed",
+            "variant": "production",
+            "quality": {
+              "mode": "performance",
+              "pixelRatio": 0.8,
+              "nativePixelRatio": 2,
+              "buffer": [
+                960,
+                609
+              ],
+              "shadows": false
+            },
+            "lane": {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              960,
+              609
+            ],
+            "pixelRatio": 0.8,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 499,
+              "meshes": 59
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": false
+            },
+            "hash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2"
+          },
+          "summary": {
+            "fps": 53.261,
+            "frames": 532,
+            "elapsed": 10.007,
+            "intervalMs": {
+              "median": 17.1,
+              "p95": 25.1,
+              "p99": 27.6,
+              "max": 36.8
+            },
+            "over33Pct": 0.188,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 11.6,
+              "p95": 12,
+              "p99": 12.3,
+              "max": 18.1
+            },
+            "aiMs": {
+              "median": 0.3,
+              "p95": 0.4,
+              "p99": 0.4,
+              "max": 0.5
+            },
+            "renderSubmitMs": {
+              "median": 2.3,
+              "p95": 2.5,
+              "p99": 2.6,
+              "max": 2.7
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.5,
+                "p95": 0.7,
+                "p99": 0.8,
+                "max": 7.1
+              },
+              "player": {
+                "median": 0.1,
+                "p95": 0.2,
+                "p99": 0.2,
+                "max": 0.6
+              },
+              "presentation": {
+                "median": 11,
+                "p95": 11.4,
+                "p99": 11.6,
+                "max": 11.8
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 6,
+            "minUnobstructed": 6,
+            "allVisiblePct": 100,
+            "minAlive": 6,
+            "drawCalls": {
+              "median": 899,
+              "p95": 902,
+              "p99": 902,
+              "max": 902
+            },
+            "triangles": {
+              "median": 142293,
+              "p95": 142547,
+              "p99": 142547,
+              "max": 142547
+            },
+            "valid": true
+          },
+          "tailInterval": 23,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.0074
+        },
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "count": 8,
+          "repeat": 1,
+          "fixture": {
+            "count": 8,
+            "mode": "fixed",
+            "variant": "production",
+            "quality": {
+              "mode": "performance",
+              "pixelRatio": 0.8,
+              "nativePixelRatio": 2,
+              "buffer": [
+                960,
+                609
+              ],
+              "shadows": false
+            },
+            "lane": {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              960,
+              609
+            ],
+            "pixelRatio": 0.8,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 499,
+              "meshes": 59
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": false
+            },
+            "hash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2"
+          },
+          "summary": {
+            "fps": 51.956,
+            "frames": 519,
+            "elapsed": 10.008,
+            "intervalMs": {
+              "median": 17.4,
+              "p95": 25.7,
+              "p99": 30.1,
+              "max": 37.2
+            },
+            "over33Pct": 0.192,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 11.6,
+              "p95": 12,
+              "p99": 12.5,
+              "max": 16.2
+            },
+            "aiMs": {
+              "median": 0.4,
+              "p95": 0.5,
+              "p99": 0.6,
+              "max": 0.8
+            },
+            "renderSubmitMs": {
+              "median": 2.3,
+              "p95": 2.5,
+              "p99": 2.6,
+              "max": 2.7
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.7,
+                "p95": 0.9,
+                "p99": 1,
+                "max": 5.6
+              },
+              "player": {
+                "median": 0.1,
+                "p95": 0.2,
+                "p99": 0.2,
+                "max": 0.4
+              },
+              "presentation": {
+                "median": 10.9,
+                "p95": 11.3,
+                "p99": 11.4,
+                "max": 12.2
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 8,
+            "minUnobstructed": 8,
+            "allVisiblePct": 100,
+            "minAlive": 8,
+            "drawCalls": {
+              "median": 901,
+              "p95": 904,
+              "p99": 904,
+              "max": 904
+            },
+            "triangles": {
+              "median": 150701,
+              "p95": 150955,
+              "p99": 150955,
+              "max": 150955
+            },
+            "valid": true
+          },
+          "tailInterval": 25.80000000000291,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.008400000000002
+        },
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "count": 12,
+          "repeat": 1,
+          "fixture": {
+            "count": 12,
+            "mode": "fixed",
+            "variant": "production",
+            "quality": {
+              "mode": "performance",
+              "pixelRatio": 0.8,
+              "nativePixelRatio": 2,
+              "buffer": [
+                960,
+                609
+              ],
+              "shadows": false
+            },
+            "lane": {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              960,
+              609
+            ],
+            "pixelRatio": 0.8,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 499,
+              "meshes": 59
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": false
+            },
+            "hash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2"
+          },
+          "summary": {
+            "fps": 49.68,
+            "frames": 496,
+            "elapsed": 10.004,
+            "intervalMs": {
+              "median": 20.6,
+              "p95": 25.7,
+              "p99": 30.5,
+              "max": 33.4
+            },
+            "over33Pct": 0.201,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 11.9,
+              "p95": 12.2,
+              "p99": 16.1,
+              "max": 17.4
+            },
+            "aiMs": {
+              "median": 0.5,
+              "p95": 0.7,
+              "p99": 0.8,
+              "max": 0.9
+            },
+            "renderSubmitMs": {
+              "median": 2.3,
+              "p95": 2.6,
+              "p99": 2.7,
+              "max": 2.7
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.9,
+                "p95": 1.1,
+                "p99": 5,
+                "max": 6.2
+              },
+              "player": {
+                "median": 0.1,
+                "p95": 0.2,
+                "p99": 0.2,
+                "max": 0.2
+              },
+              "presentation": {
+                "median": 11,
+                "p95": 11.3,
+                "p99": 11.4,
+                "max": 11.6
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 12,
+            "minUnobstructed": 12,
+            "allVisiblePct": 100,
+            "minAlive": 12,
+            "drawCalls": {
+              "median": 905,
+              "p95": 908,
+              "p99": 908,
+              "max": 908
+            },
+            "triangles": {
+              "median": 167517,
+              "p95": 167771,
+              "p99": 167771,
+              "max": 167771
+            },
+            "valid": true
+          },
+          "tailInterval": 17.19999999999709,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.004
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "count": 6,
+          "repeat": 1,
+          "fixture": {
+            "count": 6,
+            "mode": "chase",
+            "variant": "production",
+            "quality": {
+              "mode": "performance",
+              "pixelRatio": 0.8,
+              "nativePixelRatio": 2,
+              "buffer": [
+                960,
+                609
+              ],
+              "shadows": false
+            },
+            "lane": {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              960,
+              609
+            ],
+            "pixelRatio": 0.8,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 499,
+              "meshes": 59
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": false
+            },
+            "hash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2"
+          },
+          "summary": {
+            "fps": 52.397,
+            "frames": 523,
+            "elapsed": 10.001,
+            "intervalMs": {
+              "median": 17.7,
+              "p95": 28.8,
+              "p99": 34.9,
+              "max": 40.3
+            },
+            "over33Pct": 1.336,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 11.8,
+              "p95": 16.4,
+              "p99": 20.8,
+              "max": 24.6
+            },
+            "aiMs": {
+              "median": 0.4,
+              "p95": 0.5,
+              "p99": 0.6,
+              "max": 0.7
+            },
+            "renderSubmitMs": {
+              "median": 2.4,
+              "p95": 2.6,
+              "p99": 2.8,
+              "max": 3
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.7,
+                "p95": 0.9,
+                "p99": 5.1,
+                "max": 6.1
+              },
+              "player": {
+                "median": 0.1,
+                "p95": 0.2,
+                "p99": 0.2,
+                "max": 0.3
+              },
+              "presentation": {
+                "median": 11.1,
+                "p95": 11.4,
+                "p99": 11.7,
+                "max": 12.1
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.2
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 6,
+            "minUnobstructed": 6,
+            "allVisiblePct": 100,
+            "minAlive": 6,
+            "drawCalls": {
+              "median": 926,
+              "p95": 936,
+              "p99": 943,
+              "max": 945
+            },
+            "triangles": {
+              "median": 142819,
+              "p95": 143135,
+              "p99": 143159,
+              "max": 143195
+            },
+            "valid": true
+          },
+          "tailInterval": 16.400000000001455,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.000600000000006
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "count": 8,
+          "repeat": 1,
+          "fixture": {
+            "count": 8,
+            "mode": "chase",
+            "variant": "production",
+            "quality": {
+              "mode": "performance",
+              "pixelRatio": 0.8,
+              "nativePixelRatio": 2,
+              "buffer": [
+                960,
+                609
+              ],
+              "shadows": false
+            },
+            "lane": {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              960,
+              609
+            ],
+            "pixelRatio": 0.8,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 499,
+              "meshes": 59
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": false
+            },
+            "hash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2"
+          },
+          "summary": {
+            "fps": 49.733,
+            "frames": 497,
+            "elapsed": 10.013,
+            "intervalMs": {
+              "median": 21.3,
+              "p95": 32.4,
+              "p99": 37.3,
+              "max": 41.9
+            },
+            "over33Pct": 3.213,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 12,
+              "p95": 16.4,
+              "p99": 21.5,
+              "max": 25.2
+            },
+            "aiMs": {
+              "median": 0.4,
+              "p95": 0.7,
+              "p99": 0.8,
+              "max": 0.9
+            },
+            "renderSubmitMs": {
+              "median": 2.4,
+              "p95": 2.7,
+              "p99": 3,
+              "max": 3.3
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.8,
+                "p95": 1,
+                "p99": 5.2,
+                "max": 5.8
+              },
+              "player": {
+                "median": 0.1,
+                "p95": 0.2,
+                "p99": 0.2,
+                "max": 0.3
+              },
+              "presentation": {
+                "median": 11.1,
+                "p95": 11.7,
+                "p99": 12.1,
+                "max": 12.5
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 8,
+            "minUnobstructed": 8,
+            "allVisiblePct": 100,
+            "minAlive": 8,
+            "drawCalls": {
+              "median": 928,
+              "p95": 939,
+              "p99": 945,
+              "max": 946
+            },
+            "triangles": {
+              "median": 151239,
+              "p95": 151555,
+              "p99": 151591,
+              "max": 151603
+            },
+            "valid": true
+          },
+          "tailInterval": 20.90000000000873,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.013400000000008
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "count": 12,
+          "repeat": 1,
+          "fixture": {
+            "count": 12,
+            "mode": "chase",
+            "variant": "production",
+            "quality": {
+              "mode": "performance",
+              "pixelRatio": 0.8,
+              "nativePixelRatio": 2,
+              "buffer": [
+                960,
+                609
+              ],
+              "shadows": false
+            },
+            "lane": {
+              "x": -32,
+              "y": 0,
+              "z": 10,
+              "dx": 1,
+              "dz": 0,
+              "lx": 0,
+              "lz": 1
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              960,
+              609
+            ],
+            "pixelRatio": 0.8,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 499,
+              "meshes": 59
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": false
+            },
+            "hash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2"
+          },
+          "summary": {
+            "fps": 48.485,
+            "frames": 484,
+            "elapsed": 10.003,
+            "intervalMs": {
+              "median": 21.1,
+              "p95": 33.2,
+              "p99": 42.2,
+              "max": 68
+            },
+            "over33Pct": 3.505,
+            "over50Pct": 0.206,
+            "cpuMs": {
+              "median": 12.2,
+              "p95": 20,
+              "p99": 21.4,
+              "max": 62.8
+            },
+            "aiMs": {
+              "median": 0.6,
+              "p95": 0.9,
+              "p99": 1,
+              "max": 1.2
+            },
+            "renderSubmitMs": {
+              "median": 2.4,
+              "p95": 2.8,
+              "p99": 3.2,
+              "max": 53.3
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 1,
+                "p95": 1.3,
+                "p99": 5.9,
+                "max": 6.1
+              },
+              "player": {
+                "median": 0.1,
+                "p95": 0.2,
+                "p99": 0.2,
+                "max": 0.3
+              },
+              "presentation": {
+                "median": 11.2,
+                "p95": 11.7,
+                "p99": 12.1,
+                "max": 61.9
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.2
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 12,
+            "minUnobstructed": 12,
+            "allVisiblePct": 100,
+            "minAlive": 12,
+            "drawCalls": {
+              "median": 932,
+              "p95": 943,
+              "p99": 947,
+              "max": 950
+            },
+            "triangles": {
+              "median": 168061,
+              "p95": 168383,
+              "p99": 168419,
+              "max": 168431
+            },
+            "valid": true
+          },
+          "tailInterval": 16.10000000000582,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.003
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "count": 6,
+          "repeat": 1,
+          "fixture": {
+            "count": 6,
+            "mode": "fixed",
+            "variant": "production",
+            "quality": {
+              "mode": "performance",
+              "pixelRatio": 0.8,
+              "nativePixelRatio": 2,
+              "buffer": [
+                960,
+                609
+              ],
+              "shadows": false
+            },
+            "lane": {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              960,
+              609
+            ],
+            "pixelRatio": 0.8,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 309,
+              "meshes": 17
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": false
+            },
+            "hash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28"
+          },
+          "summary": {
+            "fps": 104.674,
+            "frames": 1046,
+            "elapsed": 10.002,
+            "intervalMs": {
+              "median": 8.3,
+              "p95": 16.5,
+              "p99": 17.4,
+              "max": 20
+            },
+            "over33Pct": 0,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 8.8,
+              "p95": 9.5,
+              "p99": 9.8,
+              "max": 16.9
+            },
+            "aiMs": {
+              "median": 0.2,
+              "p95": 0.3,
+              "p99": 0.3,
+              "max": 0.5
+            },
+            "renderSubmitMs": {
+              "median": 0.9,
+              "p95": 1.1,
+              "p99": 1.3,
+              "max": 1.4
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.3,
+                "p95": 0.5,
+                "p99": 0.6,
+                "max": 7.9
+              },
+              "player": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.2,
+                "max": 0.3
+              },
+              "presentation": {
+                "median": 8.5,
+                "p95": 9.1,
+                "p99": 9.4,
+                "max": 9.9
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 6,
+            "minUnobstructed": 6,
+            "allVisiblePct": 100,
+            "minAlive": 6,
+            "drawCalls": {
+              "median": 95,
+              "p95": 100,
+              "p99": 100,
+              "max": 100
+            },
+            "triangles": {
+              "median": 69955,
+              "p95": 70281,
+              "p99": 70281,
+              "max": 70281
+            },
+            "valid": true
+          },
+          "tailInterval": 9.200000000000728,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.0025
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "count": 8,
+          "repeat": 1,
+          "fixture": {
+            "count": 8,
+            "mode": "fixed",
+            "variant": "production",
+            "quality": {
+              "mode": "performance",
+              "pixelRatio": 0.8,
+              "nativePixelRatio": 2,
+              "buffer": [
+                960,
+                609
+              ],
+              "shadows": false
+            },
+            "lane": {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              960,
+              609
+            ],
+            "pixelRatio": 0.8,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 309,
+              "meshes": 17
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": false
+            },
+            "hash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28"
+          },
+          "summary": {
+            "fps": 104.549,
+            "frames": 1045,
+            "elapsed": 10.005,
+            "intervalMs": {
+              "median": 8.4,
+              "p95": 16.7,
+              "p99": 18.1,
+              "max": 22.2
+            },
+            "over33Pct": 0,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 8.8,
+              "p95": 9.3,
+              "p99": 9.8,
+              "max": 16.6
+            },
+            "aiMs": {
+              "median": 0.2,
+              "p95": 0.4,
+              "p99": 0.4,
+              "max": 0.6
+            },
+            "renderSubmitMs": {
+              "median": 0.9,
+              "p95": 1.1,
+              "p99": 1.3,
+              "max": 2
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.3,
+                "p95": 0.6,
+                "p99": 0.7,
+                "max": 8.2
+              },
+              "player": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.2,
+                "max": 0.2
+              },
+              "presentation": {
+                "median": 8.4,
+                "p95": 8.9,
+                "p99": 9.2,
+                "max": 10.6
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 8,
+            "minUnobstructed": 8,
+            "allVisiblePct": 100,
+            "minAlive": 8,
+            "drawCalls": {
+              "median": 97,
+              "p95": 102,
+              "p99": 102,
+              "max": 102
+            },
+            "triangles": {
+              "median": 78363,
+              "p95": 78689,
+              "p99": 78689,
+              "max": 78689
+            },
+            "valid": true
+          },
+          "tailInterval": 7.799999999999272,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.004900000000001
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "count": 12,
+          "repeat": 1,
+          "fixture": {
+            "count": 12,
+            "mode": "fixed",
+            "variant": "production",
+            "quality": {
+              "mode": "performance",
+              "pixelRatio": 0.8,
+              "nativePixelRatio": 2,
+              "buffer": [
+                960,
+                609
+              ],
+              "shadows": false
+            },
+            "lane": {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              960,
+              609
+            ],
+            "pixelRatio": 0.8,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 309,
+              "meshes": 17
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": false
+            },
+            "hash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28"
+          },
+          "summary": {
+            "fps": 101.274,
+            "frames": 1012,
+            "elapsed": 10.003,
+            "intervalMs": {
+              "median": 8.4,
+              "p95": 16.7,
+              "p99": 18.1,
+              "max": 24.9
+            },
+            "over33Pct": 0,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 9,
+              "p95": 9.7,
+              "p99": 10.4,
+              "max": 17.5
+            },
+            "aiMs": {
+              "median": 0.3,
+              "p95": 0.5,
+              "p99": 0.7,
+              "max": 1.1
+            },
+            "renderSubmitMs": {
+              "median": 0.9,
+              "p95": 1.3,
+              "p99": 1.5,
+              "max": 1.6
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.5,
+                "p95": 0.8,
+                "p99": 0.9,
+                "max": 8.8
+              },
+              "player": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.2,
+                "max": 0.4
+              },
+              "presentation": {
+                "median": 8.5,
+                "p95": 9.1,
+                "p99": 9.4,
+                "max": 10.3
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 12,
+            "minUnobstructed": 12,
+            "allVisiblePct": 100,
+            "minAlive": 12,
+            "drawCalls": {
+              "median": 101,
+              "p95": 106,
+              "p99": 106,
+              "max": 106
+            },
+            "triangles": {
+              "median": 95179,
+              "p95": 95505,
+              "p99": 95505,
+              "max": 95505
+            },
+            "valid": true
+          },
+          "tailInterval": 12,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.002600000000006
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "count": 6,
+          "repeat": 1,
+          "fixture": {
+            "count": 6,
+            "mode": "chase",
+            "variant": "production",
+            "quality": {
+              "mode": "performance",
+              "pixelRatio": 0.8,
+              "nativePixelRatio": 2,
+              "buffer": [
+                960,
+                609
+              ],
+              "shadows": false
+            },
+            "lane": {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              960,
+              609
+            ],
+            "pixelRatio": 0.8,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 309,
+              "meshes": 17
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": false
+            },
+            "hash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28"
+          },
+          "summary": {
+            "fps": 97.58,
+            "frames": 975,
+            "elapsed": 10.002,
+            "intervalMs": {
+              "median": 8.5,
+              "p95": 17.1,
+              "p99": 21.5,
+              "max": 27.7
+            },
+            "over33Pct": 0,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 8.9,
+              "p95": 9.6,
+              "p99": 16.6,
+              "max": 17.4
+            },
+            "aiMs": {
+              "median": 0.2,
+              "p95": 0.4,
+              "p99": 0.5,
+              "max": 0.7
+            },
+            "renderSubmitMs": {
+              "median": 0.9,
+              "p95": 1.2,
+              "p99": 1.3,
+              "max": 1.5
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.4,
+                "p95": 0.6,
+                "p99": 7.2,
+                "max": 8.6
+              },
+              "player": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.2,
+                "max": 0.2
+              },
+              "presentation": {
+                "median": 8.5,
+                "p95": 9,
+                "p99": 9.2,
+                "max": 9.4
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 6,
+            "minUnobstructed": 6,
+            "allVisiblePct": 100,
+            "minAlive": 6,
+            "drawCalls": {
+              "median": 122,
+              "p95": 134,
+              "p99": 138,
+              "max": 140
+            },
+            "triangles": {
+              "median": 70463,
+              "p95": 70869,
+              "p99": 70917,
+              "max": 70965
+            },
+            "valid": true
+          },
+          "tailInterval": 8.299999999995634,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.002
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "count": 8,
+          "repeat": 1,
+          "fixture": {
+            "count": 8,
+            "mode": "chase",
+            "variant": "production",
+            "quality": {
+              "mode": "performance",
+              "pixelRatio": 0.8,
+              "nativePixelRatio": 2,
+              "buffer": [
+                960,
+                609
+              ],
+              "shadows": false
+            },
+            "lane": {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              960,
+              609
+            ],
+            "pixelRatio": 0.8,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 309,
+              "meshes": 17
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": false
+            },
+            "hash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28"
+          },
+          "summary": {
+            "fps": 97.266,
+            "frames": 972,
+            "elapsed": 10.003,
+            "intervalMs": {
+              "median": 8.4,
+              "p95": 16.9,
+              "p99": 21.3,
+              "max": 25.7
+            },
+            "over33Pct": 0,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 8.9,
+              "p95": 9.6,
+              "p99": 17,
+              "max": 17.7
+            },
+            "aiMs": {
+              "median": 0.3,
+              "p95": 0.4,
+              "p99": 0.5,
+              "max": 0.7
+            },
+            "renderSubmitMs": {
+              "median": 0.9,
+              "p95": 1.2,
+              "p99": 1.4,
+              "max": 9
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.4,
+                "p95": 0.6,
+                "p99": 0.8,
+                "max": 8.8
+              },
+              "player": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.2,
+                "max": 0.2
+              },
+              "presentation": {
+                "median": 8.5,
+                "p95": 9,
+                "p99": 9.3,
+                "max": 16.8
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 8,
+            "minUnobstructed": 8,
+            "allVisiblePct": 100,
+            "minAlive": 8,
+            "drawCalls": {
+              "median": 124,
+              "p95": 135,
+              "p99": 138,
+              "max": 140
+            },
+            "triangles": {
+              "median": 78871,
+              "p95": 79269,
+              "p99": 79313,
+              "max": 79349
+            },
+            "valid": true
+          },
+          "tailInterval": 7.69999999999709,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.003499999999992
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "count": 12,
+          "repeat": 1,
+          "fixture": {
+            "count": 12,
+            "mode": "chase",
+            "variant": "production",
+            "quality": {
+              "mode": "performance",
+              "pixelRatio": 0.8,
+              "nativePixelRatio": 2,
+              "buffer": [
+                960,
+                609
+              ],
+              "shadows": false
+            },
+            "lane": {
+              "x": -30,
+              "y": 0,
+              "z": -20,
+              "dx": 0,
+              "dz": 1,
+              "lx": -1,
+              "lz": 0
+            },
+            "css": [
+              1200,
+              762
+            ],
+            "buffer": [
+              960,
+              609
+            ],
+            "pixelRatio": 0.8,
+            "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+            "antialias": true,
+            "models": [
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              },
+              {
+                "kind": "unity-standard",
+                "meshy": true
+              }
+            ],
+            "staticMerge": {
+              "merged": 309,
+              "meshes": 17
+            },
+            "settings": {
+              "renderScale": 1,
+              "zLook": 1,
+              "showBody": true,
+              "shadow": false
+            },
+            "hash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28"
+          },
+          "summary": {
+            "fps": 94.584,
+            "frames": 945,
+            "elapsed": 10.002,
+            "intervalMs": {
+              "median": 8.6,
+              "p95": 16.9,
+              "p99": 21.8,
+              "max": 25.7
+            },
+            "over33Pct": 0,
+            "over50Pct": 0,
+            "cpuMs": {
+              "median": 9.2,
+              "p95": 10.1,
+              "p99": 17.1,
+              "max": 24.1
+            },
+            "aiMs": {
+              "median": 0.4,
+              "p95": 0.6,
+              "p99": 0.7,
+              "max": 1.7
+            },
+            "renderSubmitMs": {
+              "median": 1,
+              "p95": 1.3,
+              "p99": 1.5,
+              "max": 2
+            },
+            "sectionsMs": {
+              "simulation": {
+                "median": 0.5,
+                "p95": 0.8,
+                "p99": 7.8,
+                "max": 10
+              },
+              "player": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.2,
+                "max": 0.2
+              },
+              "presentation": {
+                "median": 8.6,
+                "p95": 9.2,
+                "p99": 9.5,
+                "max": 11.8
+              },
+              "fxMs": {
+                "median": 0,
+                "p95": 0.1,
+                "p99": 0.1,
+                "max": 0.1
+              }
+            },
+            "groundedPct": 100,
+            "gpuMs": {
+              "median": null,
+              "p95": null,
+              "p99": null,
+              "max": null
+            },
+            "gpuSamples": 0,
+            "gpuSupported": false,
+            "gpuDisjoint": 0,
+            "minProjected": 12,
+            "minUnobstructed": 12,
+            "allVisiblePct": 100,
+            "minAlive": 12,
+            "drawCalls": {
+              "median": 128,
+              "p95": 139,
+              "p99": 142,
+              "max": 144
+            },
+            "triangles": {
+              "median": 95687,
+              "p95": 96093,
+              "p99": 96129,
+              "max": 96153
+            },
+            "valid": true
+          },
+          "tailInterval": 9.099999999991269,
+          "gpuSupported": false,
+          "gpuDisjoint": 0,
+          "elapsed": 10.001699999999998
+        }
+      ]
+    }
+  ],
+  "uncontrolledReferenceRuns": [
+    {
+      "file": "quality-performance-corrected.json",
+      "createdAt": "2026-10-30T03:41:07.698Z",
+      "quality": "performance",
+      "externalGameStopped": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "count": 6,
+          "fps": 13.171,
+          "intervalMs": {
+            "median": 119.3,
+            "p95": 141.1,
+            "p99": 148.7,
+            "max": 155.3
+          },
+          "cpuMs": {
+            "median": 11.3,
+            "p95": 15,
+            "p99": 16.8,
+            "max": 20.4
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "count": 6,
+          "fps": 13.367,
+          "intervalMs": {
+            "median": 73,
+            "p95": 86,
+            "p99": 148.8,
+            "max": 170
+          },
+          "cpuMs": {
+            "median": 13.6,
+            "p95": 22.6,
+            "p99": 24.9,
+            "max": 26.2
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "count": 6,
+          "fps": 16.019,
+          "intervalMs": {
+            "median": 87.8,
+            "p95": 107.4,
+            "p99": 112.9,
+            "max": 114.7
+          },
+          "cpuMs": {
+            "median": 9,
+            "p95": 12.8,
+            "p99": 19.4,
+            "max": 21.9
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "count": 6,
+          "fps": 13.296,
+          "intervalMs": {
+            "median": 95.1,
+            "p95": 111.5,
+            "p99": 134.6,
+            "max": 567.9
+          },
+          "cpuMs": {
+            "median": 9.4,
+            "p95": 17.4,
+            "p99": 28.3,
+            "max": 562.8
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        }
+      ]
+    },
+    {
+      "file": "quality-high-corrected.json",
+      "createdAt": "2026-10-30T03:43:01.957Z",
+      "quality": "high",
+      "externalGameStopped": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "count": 6,
+          "fps": 7.513,
+          "intervalMs": {
+            "median": 120.4,
+            "p95": 197.9,
+            "p99": 200,
+            "max": 200
+          },
+          "cpuMs": {
+            "median": 11.7,
+            "p95": 15,
+            "p99": 16.2,
+            "max": 16.2
+          },
+          "buffer": [
+            2400,
+            1524
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "count": 6,
+          "fps": 11.185,
+          "intervalMs": {
+            "median": 78,
+            "p95": 188.5,
+            "p99": 208.6,
+            "max": 300.1
+          },
+          "cpuMs": {
+            "median": 11.8,
+            "p95": 19.5,
+            "p99": 25,
+            "max": 175.5
+          },
+          "buffer": [
+            2400,
+            1524
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "count": 6,
+          "fps": 104.299,
+          "intervalMs": {
+            "median": 8.4,
+            "p95": 16.9,
+            "p99": 18,
+            "max": 41.7
+          },
+          "cpuMs": {
+            "median": 8.7,
+            "p95": 9.3,
+            "p99": 9.5,
+            "max": 10.1
+          },
+          "buffer": [
+            2400,
+            1524
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "count": 6,
+          "fps": 97.394,
+          "intervalMs": {
+            "median": 8.5,
+            "p95": 17.2,
+            "p99": 18.1,
+            "max": 24.6
+          },
+          "cpuMs": {
+            "median": 9,
+            "p95": 9.8,
+            "p99": 16.8,
+            "max": 24
+          },
+          "buffer": [
+            2400,
+            1524
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        }
+      ]
+    },
+    {
+      "file": "quality-balanced-corrected.json",
+      "createdAt": "2026-10-30T03:45:51.594Z",
+      "quality": "balanced",
+      "externalGameStopped": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "count": 6,
+          "fps": 36.427,
+          "intervalMs": {
+            "median": 26,
+            "p95": 33.4,
+            "p99": 38.2,
+            "max": 50.8
+          },
+          "cpuMs": {
+            "median": 11.5,
+            "p95": 12.6,
+            "p99": 12.9,
+            "max": 15.5
+          },
+          "buffer": [
+            1200,
+            762
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "count": 6,
+          "fps": 35.546,
+          "intervalMs": {
+            "median": 27.4,
+            "p95": 35.7,
+            "p99": 39.6,
+            "max": 42.6
+          },
+          "cpuMs": {
+            "median": 11.7,
+            "p95": 18.6,
+            "p99": 19.5,
+            "max": 23.2
+          },
+          "buffer": [
+            1200,
+            762
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "count": 6,
+          "fps": 104.8,
+          "intervalMs": {
+            "median": 8.3,
+            "p95": 16.7,
+            "p99": 17.4,
+            "max": 17.7
+          },
+          "cpuMs": {
+            "median": 8.9,
+            "p95": 9.5,
+            "p99": 10,
+            "max": 16.4
+          },
+          "buffer": [
+            1200,
+            762
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "count": 6,
+          "fps": 96.199,
+          "intervalMs": {
+            "median": 8.4,
+            "p95": 16.9,
+            "p99": 17.6,
+            "max": 25.7
+          },
+          "cpuMs": {
+            "median": 9.1,
+            "p95": 9.9,
+            "p99": 17,
+            "max": 18.1
+          },
+          "buffer": [
+            1200,
+            762
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        }
+      ]
+    },
+    {
+      "file": "quality-performance-repeat.json",
+      "createdAt": "2026-10-30T03:47:15.561Z",
+      "quality": "performance",
+      "externalGameStopped": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "count": 6,
+          "fps": 56.459,
+          "intervalMs": {
+            "median": 16.7,
+            "p95": 25,
+            "p99": 25.7,
+            "max": 27.6
+          },
+          "cpuMs": {
+            "median": 10.4,
+            "p95": 10.9,
+            "p99": 11.2,
+            "max": 11.7
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "count": 6,
+          "fps": 53.673,
+          "intervalMs": {
+            "median": 16.8,
+            "p95": 25.7,
+            "p99": 33.4,
+            "max": 41.7
+          },
+          "cpuMs": {
+            "median": 10.7,
+            "p95": 15,
+            "p99": 18.5,
+            "max": 19
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "count": 6,
+          "fps": 103.908,
+          "intervalMs": {
+            "median": 8.4,
+            "p95": 16.7,
+            "p99": 17.1,
+            "max": 17.6
+          },
+          "cpuMs": {
+            "median": 8.9,
+            "p95": 9.4,
+            "p99": 9.6,
+            "max": 17.2
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "count": 6,
+          "fps": 98.92,
+          "intervalMs": {
+            "median": 8.4,
+            "p95": 16.9,
+            "p99": 17.5,
+            "max": 25.6
+          },
+          "cpuMs": {
+            "median": 8.8,
+            "p95": 9.5,
+            "p99": 16.8,
+            "max": 17.3
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        }
+      ]
+    },
+    {
+      "file": "quality-final-crowd-comparison.json",
+      "createdAt": "2026-10-30T03:49:01.991Z",
+      "quality": "performance",
+      "externalGameStopped": false,
+      "trials": [
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "count": 6,
+          "fps": 53.999,
+          "intervalMs": {
+            "median": 16.8,
+            "p95": 25.2,
+            "p99": 25.7,
+            "max": 28.3
+          },
+          "cpuMs": {
+            "median": 10.4,
+            "p95": 10.8,
+            "p99": 11,
+            "max": 11.2
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "count": 8,
+          "fps": 52.276,
+          "intervalMs": {
+            "median": 17,
+            "p95": 25.4,
+            "p99": 28.3,
+            "max": 32.7
+          },
+          "cpuMs": {
+            "median": 10.4,
+            "p95": 10.8,
+            "p99": 11.1,
+            "max": 15.5
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "index.html",
+          "mode": "fixed",
+          "count": 12,
+          "fps": 48.649,
+          "intervalMs": {
+            "median": 20.3,
+            "p95": 26.3,
+            "p99": 30.3,
+            "max": 32.8
+          },
+          "cpuMs": {
+            "median": 10.8,
+            "p95": 11.2,
+            "p99": 14.2,
+            "max": 15.1
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "count": 6,
+          "fps": 52.076,
+          "intervalMs": {
+            "median": 17.4,
+            "p95": 26.3,
+            "p99": 33.2,
+            "max": 42.8
+          },
+          "cpuMs": {
+            "median": 10.5,
+            "p95": 15.3,
+            "p99": 18.6,
+            "max": 23.1
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "count": 8,
+          "fps": 50.517,
+          "intervalMs": {
+            "median": 17.8,
+            "p95": 26.3,
+            "p99": 29.8,
+            "max": 41
+          },
+          "cpuMs": {
+            "median": 10.6,
+            "p95": 16,
+            "p99": 18.4,
+            "max": 22.7
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "index.html",
+          "mode": "chase",
+          "count": 12,
+          "fps": 47.755,
+          "intervalMs": {
+            "median": 21.4,
+            "p95": 28.5,
+            "p99": 36.9,
+            "max": 45.5
+          },
+          "cpuMs": {
+            "median": 11.1,
+            "p95": 18,
+            "p99": 19.1,
+            "max": 22.4
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "34b400f88c6cb1454d5ab641624cb8b3b2292aca2817e494a424e76707b5f4f2",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "count": 6,
+          "fps": 106.397,
+          "intervalMs": {
+            "median": 8.4,
+            "p95": 16.8,
+            "p99": 17.9,
+            "max": 18.7
+          },
+          "cpuMs": {
+            "median": 8.7,
+            "p95": 9.2,
+            "p99": 9.5,
+            "max": 16.3
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "count": 8,
+          "fps": 105.398,
+          "intervalMs": {
+            "median": 8.4,
+            "p95": 16.8,
+            "p99": 18.1,
+            "max": 18.5
+          },
+          "cpuMs": {
+            "median": 8.7,
+            "p95": 9.4,
+            "p99": 10.5,
+            "max": 19.4
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "fixed",
+          "count": 12,
+          "fps": 103.682,
+          "intervalMs": {
+            "median": 8.4,
+            "p95": 16.9,
+            "p99": 17.9,
+            "max": 25.1
+          },
+          "cpuMs": {
+            "median": 8.9,
+            "p95": 9.4,
+            "p99": 9.9,
+            "max": 17.8
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "count": 6,
+          "fps": 97.797,
+          "intervalMs": {
+            "median": 8.4,
+            "p95": 17.2,
+            "p99": 18.2,
+            "max": 25
+          },
+          "cpuMs": {
+            "median": 8.9,
+            "p95": 9.7,
+            "p99": 16.9,
+            "max": 18.1
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "count": 8,
+          "fps": 96.322,
+          "intervalMs": {
+            "median": 8.6,
+            "p95": 17.3,
+            "p99": 18.3,
+            "max": 26.3
+          },
+          "cpuMs": {
+            "median": 9,
+            "p95": 9.7,
+            "p99": 16.8,
+            "max": 24.8
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        },
+        {
+          "map": "canyon.html",
+          "mode": "chase",
+          "count": 12,
+          "fps": 92.697,
+          "intervalMs": {
+            "median": 8.7,
+            "p95": 17.2,
+            "p99": 18.4,
+            "max": 25.3
+          },
+          "cpuMs": {
+            "median": 9.4,
+            "p95": 10.4,
+            "p99": 17.3,
+            "max": 18.3
+          },
+          "buffer": [
+            960,
+            609
+          ],
+          "htmlHash": "efb7f89bc8de61d74e43edbfea985fddce7c2344277f776733a69168bec04f28",
+          "validVisibility": true
+        }
+      ]
+    }
+  ],
+  "excludedEarlierProtocol": "Pre-correction results that re-lifted player ground state or omitted separate FX advancement are not direct comparisons.",
+  "functional": {
+    "oldTown": [
+      {
+        "id": "easy",
+        "initial": [
+          4,
+          4,
+          4
+        ],
+        "shots": 4,
+        "hits": 4,
+        "dead": true,
+        "full": [
+          5,
+          5
+        ],
+        "fresh": [
+          5,
+          6,
+          1
+        ],
+        "aged": [
+          5,
+          6,
+          1
+        ],
+        "cap": 5,
+        "version": "corridor-crowd6-v6"
+      },
+      {
+        "id": "normal",
+        "initial": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "shots": 6,
+        "hits": 6,
+        "dead": true,
+        "full": [
+          6,
+          6
+        ],
+        "fresh": [
+          5,
+          6,
+          1
+        ],
+        "aged": [
+          6,
+          6,
+          0
+        ],
+        "cap": 6,
+        "version": "corridor-crowd6-v6"
+      },
+      {
+        "id": "hard",
+        "initial": [
+          7,
+          7,
+          7,
+          7
+        ],
+        "shots": 7,
+        "hits": 7,
+        "dead": true,
+        "full": [
+          6,
+          6
+        ],
+        "fresh": [
+          5,
+          6,
+          1
+        ],
+        "aged": [
+          6,
+          6,
+          0
+        ],
+        "cap": 6,
+        "version": "corridor-crowd6-v6"
+      },
+      {
+        "id": "expert",
+        "initial": [
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "shots": 8,
+        "hits": 8,
+        "dead": true,
+        "full": [
+          6,
+          6
+        ],
+        "fresh": [
+          5,
+          6,
+          1
+        ],
+        "aged": [
+          6,
+          6,
+          0
+        ],
+        "cap": 6,
+        "version": "corridor-crowd6-v6"
+      },
+      {
+        "id": "master",
+        "initial": [
+          9,
+          9,
+          9,
+          9,
+          9
+        ],
+        "shots": 9,
+        "hits": 9,
+        "dead": true,
+        "full": [
+          6,
+          6
+        ],
+        "fresh": [
+          5,
+          6,
+          1
+        ],
+        "aged": [
+          6,
+          6,
+          0
+        ],
+        "cap": 6,
+        "version": "corridor-crowd6-v6"
+      },
+      {
+        "id": "ultra",
+        "initial": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        "shots": 10,
+        "hits": 10,
+        "dead": true,
+        "full": [
+          6,
+          6
+        ],
+        "fresh": [
+          5,
+          6,
+          1
+        ],
+        "aged": [
+          6,
+          6,
+          0
+        ],
+        "cap": 6,
+        "version": "corridor-crowd6-v6"
+      }
+    ],
+    "canyon": [
+      {
+        "id": "easy",
+        "initial": [
+          4,
+          4,
+          4
+        ],
+        "shots": 4,
+        "hits": 4,
+        "dead": true,
+        "full": [
+          5,
+          5
+        ],
+        "fresh": [
+          5,
+          6,
+          1
+        ],
+        "aged": [
+          5,
+          6,
+          1
+        ],
+        "cap": 5,
+        "version": "corridor-crowd6-v6"
+      },
+      {
+        "id": "normal",
+        "initial": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "shots": 6,
+        "hits": 6,
+        "dead": true,
+        "full": [
+          6,
+          6
+        ],
+        "fresh": [
+          5,
+          6,
+          1
+        ],
+        "aged": [
+          6,
+          6,
+          0
+        ],
+        "cap": 6,
+        "version": "corridor-crowd6-v6"
+      },
+      {
+        "id": "hard",
+        "initial": [
+          7,
+          7,
+          7,
+          7
+        ],
+        "shots": 7,
+        "hits": 7,
+        "dead": true,
+        "full": [
+          6,
+          6
+        ],
+        "fresh": [
+          5,
+          6,
+          1
+        ],
+        "aged": [
+          6,
+          6,
+          0
+        ],
+        "cap": 6,
+        "version": "corridor-crowd6-v6"
+      },
+      {
+        "id": "expert",
+        "initial": [
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "shots": 8,
+        "hits": 8,
+        "dead": true,
+        "full": [
+          6,
+          6
+        ],
+        "fresh": [
+          5,
+          6,
+          1
+        ],
+        "aged": [
+          6,
+          6,
+          0
+        ],
+        "cap": 6,
+        "version": "corridor-crowd6-v6"
+      },
+      {
+        "id": "master",
+        "initial": [
+          9,
+          9,
+          9,
+          9,
+          9
+        ],
+        "shots": 9,
+        "hits": 9,
+        "dead": true,
+        "full": [
+          6,
+          6
+        ],
+        "fresh": [
+          5,
+          6,
+          1
+        ],
+        "aged": [
+          6,
+          6,
+          0
+        ],
+        "cap": 6,
+        "version": "corridor-crowd6-v6"
+      },
+      {
+        "id": "ultra",
+        "initial": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        "shots": 10,
+        "hits": 10,
+        "dead": true,
+        "full": [
+          6,
+          6
+        ],
+        "fresh": [
+          5,
+          6,
+          1
+        ],
+        "aged": [
+          6,
+          6,
+          0
+        ],
+        "cap": 6,
+        "version": "corridor-crowd6-v6"
+      }
+    ],
+    "allSpawnPaths": {
+      "conditions": 108,
+      "error": null,
+      "maps": [
+        {
+          "map": "index.html",
+          "conditions": 54,
+          "maxAlive": 6,
+          "maxRendered": 6,
+          "futureCounts999Clamp": [
+            6
+          ],
+          "legacyLimit": 23
+        },
+        {
+          "map": "canyon.html",
+          "conditions": 54,
+          "maxAlive": 6,
+          "maxRendered": 6,
+          "futureCounts999Clamp": [
+            6
+          ],
+          "legacyLimit": 23
+        }
+      ]
+    },
+    "localWorker": {
+      "scope": "local Worker/D1 with fictional fixtures only",
+      "build": "2026-10-30-crowd6-v6",
+      "newRuleRanking": 200,
+      "oldRulesPreserved": 200,
+      "scoreSelectedSamePlayerFailed500OverClear396": true,
+      "clearOrder": [
+        "master",
+        "normal"
+      ],
+      "rockCanyonRanking": 200,
+      "newRuleGhost": 200,
+      "sameGhostRequestedUnderOldRule": 404
+    },
+    "renderQualityUI": [
+      {
+        "reviewStep": "old-town-settings-balanced",
+        "map": "index.html",
+        "mode": "pause",
+        "quality": {
+          "mode": "balanced",
+          "pixelRatio": 1,
+          "nativePixelRatio": 2,
+          "buffer": [
+            1280,
+            417
+          ],
+          "shadows": true
+        },
+        "difficulty": "ultra",
+        "time": 0,
+        "rendered": 6,
+        "corpses": [],
+        "configuredHealth": 10,
+        "currentScore": {
+          "elapsed": 0,
+          "kills": 0,
+          "difficulty": 1.5,
+          "growth": 1,
+          "timeCoefficient": 1.5,
+          "killCoefficient": 3,
+          "survival": 0,
+          "kill": 0,
+          "total": 0,
+          "bonus": 0,
+          "fellExtra": 0,
+          "shake": 0,
+          "scoring": "unity-challenge-v1"
+        }
+      },
+      {
+        "reviewStep": "old-town-settings-high",
+        "map": "index.html",
+        "mode": "pause",
+        "quality": {
+          "mode": "high",
+          "pixelRatio": 1.5,
+          "nativePixelRatio": 2,
+          "buffer": [
+            1920,
+            625
+          ],
+          "shadows": true
+        },
+        "difficulty": "ultra",
+        "time": 0,
+        "rendered": 6,
+        "corpses": [],
+        "configuredHealth": 10,
+        "currentScore": {
+          "elapsed": 0,
+          "kills": 0,
+          "difficulty": 1.5,
+          "growth": 1,
+          "timeCoefficient": 1.5,
+          "killCoefficient": 3,
+          "survival": 0,
+          "kill": 0,
+          "total": 0,
+          "bonus": 0,
+          "fellExtra": 0,
+          "shake": 0,
+          "scoring": "unity-challenge-v1"
+        }
+      },
+      {
+        "reviewStep": "old-town-resume-performance",
+        "map": "index.html",
+        "mode": "play",
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.8,
+          "nativePixelRatio": 2,
+          "buffer": [
+            1024,
+            333
+          ],
+          "shadows": false
+        },
+        "difficulty": "ultra",
+        "time": 0,
+        "rendered": 6,
+        "corpses": [],
+        "configuredHealth": 10,
+        "currentScore": {
+          "elapsed": 0,
+          "kills": 0,
+          "difficulty": 1.5,
+          "growth": 1,
+          "timeCoefficient": 1.5,
+          "killCoefficient": 3,
+          "survival": 0,
+          "kill": 0,
+          "total": 0,
+          "bonus": 0,
+          "fellExtra": 0,
+          "shake": 0,
+          "scoring": "unity-challenge-v1"
+        }
+      },
+      {
+        "reviewStep": "all-six-corpses-protected",
+        "map": "index.html",
+        "mode": "play",
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.8,
+          "nativePixelRatio": 2,
+          "buffer": [
+            1024,
+            333
+          ],
+          "shadows": false
+        },
+        "difficulty": "ultra",
+        "time": 100,
+        "rendered": 6,
+        "corpses": [
+          {
+            "age": 0,
+            "removed": false
+          },
+          {
+            "age": 0,
+            "removed": false
+          },
+          {
+            "age": 0,
+            "removed": false
+          },
+          {
+            "age": 0,
+            "removed": false
+          },
+          {
+            "age": 0,
+            "removed": false
+          },
+          {
+            "age": 0,
+            "removed": false
+          }
+        ],
+        "configuredHealth": 10,
+        "currentScore": {
+          "elapsed": 100,
+          "kills": 6,
+          "difficulty": 1.5,
+          "growth": 2.6666665077209473,
+          "timeCoefficient": 3.999999761581421,
+          "killCoefficient": 7.999999523162842,
+          "survival": 399,
+          "kill": 47,
+          "total": 446,
+          "bonus": 0,
+          "fellExtra": 0,
+          "shake": 0,
+          "scoring": "unity-challenge-v1"
+        }
+      },
+      {
+        "reviewStep": "all-six-corpses-replaced",
+        "map": "index.html",
+        "mode": "play",
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.8,
+          "nativePixelRatio": 2,
+          "buffer": [
+            1024,
+            333
+          ],
+          "shadows": false
+        },
+        "difficulty": "ultra",
+        "time": 100.70000000000056,
+        "rendered": 6,
+        "corpses": [],
+        "configuredHealth": 10,
+        "currentScore": {
+          "elapsed": 100.69999694824219,
+          "kills": 6,
+          "difficulty": 1.5,
+          "growth": 2.678333282470703,
+          "timeCoefficient": 4.017499923706055,
+          "killCoefficient": 8.03499984741211,
+          "survival": 404,
+          "kill": 48,
+          "total": 452,
+          "bonus": 0,
+          "fellExtra": 0,
+          "shake": 0,
+          "scoring": "unity-challenge-v1"
+        }
+      },
+      {
+        "reviewStep": "old-town-home-high",
+        "map": "index.html",
+        "mode": "menu",
+        "quality": {
+          "mode": "high",
+          "pixelRatio": 1.5,
+          "nativePixelRatio": 2,
+          "buffer": [
+            1920,
+            625
+          ],
+          "shadows": true
+        },
+        "difficulty": "ultra",
+        "time": 100.70000000000056,
+        "rendered": 6,
+        "corpses": [],
+        "configuredHealth": 10,
+        "currentScore": {
+          "elapsed": 100.69999694824219,
+          "kills": 6,
+          "difficulty": 1.5,
+          "growth": 2.678333282470703,
+          "timeCoefficient": 4.017499923706055,
+          "killCoefficient": 8.03499984741211,
+          "survival": 404,
+          "kill": 48,
+          "total": 452,
+          "bonus": 0,
+          "fellExtra": 0,
+          "shake": 0,
+          "scoring": "unity-challenge-v1"
+        }
+      },
+      {
+        "reviewStep": "canyon-load-persisted-high",
+        "map": "canyon.html",
+        "mode": "menu",
+        "quality": {
+          "mode": "high",
+          "pixelRatio": 1.5,
+          "nativePixelRatio": 2,
+          "buffer": [
+            1920,
+            625
+          ],
+          "shadows": true
+        },
+        "difficulty": "ultra",
+        "time": 0,
+        "rendered": 2,
+        "corpses": [],
+        "configuredHealth": 10,
+        "currentScore": {
+          "elapsed": 0,
+          "difficulty": 1.5,
+          "growth": 1,
+          "timeCoefficient": 1.5,
+          "killCoefficient": 3,
+          "survival": 0,
+          "kill": null,
+          "total": null,
+          "bonus": 0,
+          "fellExtra": 0,
+          "shake": 0,
+          "scoring": "unity-challenge-v1"
+        }
+      },
+      {
+        "reviewStep": "canyon-balanced",
+        "map": "canyon.html",
+        "mode": "pause",
+        "quality": {
+          "mode": "balanced",
+          "pixelRatio": 1,
+          "nativePixelRatio": 2,
+          "buffer": [
+            1280,
+            417
+          ],
+          "shadows": true
+        },
+        "difficulty": "ultra",
+        "time": 0,
+        "rendered": 6,
+        "corpses": [],
+        "configuredHealth": 10,
+        "currentScore": {
+          "elapsed": 0,
+          "kills": 0,
+          "difficulty": 1.5,
+          "growth": 1,
+          "timeCoefficient": 1.5,
+          "killCoefficient": 3,
+          "survival": 0,
+          "kill": 0,
+          "total": 0,
+          "bonus": 0,
+          "fellExtra": 0,
+          "shake": 0,
+          "scoring": "unity-challenge-v1"
+        }
+      },
+      {
+        "reviewStep": "canyon-reset-performance",
+        "map": "canyon.html",
+        "mode": "pause",
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.8,
+          "nativePixelRatio": 2,
+          "buffer": [
+            1024,
+            333
+          ],
+          "shadows": false
+        },
+        "difficulty": "ultra",
+        "time": 0,
+        "rendered": 6,
+        "corpses": [],
+        "configuredHealth": 10,
+        "currentScore": {
+          "elapsed": 0,
+          "kills": 0,
+          "difficulty": 1.5,
+          "growth": 1,
+          "timeCoefficient": 1.5,
+          "killCoefficient": 3,
+          "survival": 0,
+          "kill": 0,
+          "total": 0,
+          "bonus": 0,
+          "fellExtra": 0,
+          "shake": 0,
+          "scoring": "unity-challenge-v1"
+        }
+      },
+      {
+        "reviewStep": "canyon-retry-performance",
+        "map": "canyon.html",
+        "mode": "play",
+        "quality": {
+          "mode": "performance",
+          "pixelRatio": 0.8,
+          "nativePixelRatio": 2,
+          "buffer": [
+            1024,
+            333
+          ],
+          "shadows": false
+        },
+        "difficulty": "ultra",
+        "time": 0,
+        "rendered": 6,
+        "corpses": [],
+        "configuredHealth": 10,
+        "currentScore": {
+          "elapsed": 0,
+          "kills": 0,
+          "difficulty": 1.5,
+          "growth": 1,
+          "timeCoefficient": 1.5,
+          "killCoefficient": 3,
+          "survival": 0,
+          "kill": 0,
+          "total": 0,
+          "bonus": 0,
+          "fellExtra": 0,
+          "shake": 0,
+          "scoring": "unity-challenge-v1"
+        }
+      }
+    ]
+  },
+  "unverified": [
+    "physical iPhone FPS and controls",
+    "all terrain and free camera motion",
+    "evolved/mixed zombie models",
+    "human difficulty balance",
+    "fixed 60 FPS across the full game",
+    "main merge and Worker/Pages publication"
+  ]
+}
