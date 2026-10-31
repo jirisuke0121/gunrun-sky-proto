@@ -37,6 +37,12 @@ const {DatabaseSync}=require('node:sqlite');
  // Optional diagnostic failures must not prevent a completed result submission.
  for(const file of ['index.html','canyon.html']){
   const html=fs.readFileSync(file,'utf8'),captured=[],Z={on:true,sealed:false,runId:crypto.randomUUID(),pend:[],zone:{}};
+  const transitions=[],lifecycle={window:{skyTelemetryProbe:{reset(){}}},crypto:{randomUUID:()=> 'new-run'},Z:{on:true,sealed:false,runId:'old-run'},z:{t:12,over:false},ho(){transitions.push(this.Z.runId)},hp(){}};
+  vm.createContext(lifecycle);vm.runInContext(html.slice(html.indexOf('function UM(){'),html.indexOf('function ps(',html.indexOf('function UM(){'))),lifecycle);
+  lifecycle.ho=()=>transitions.push(lifecycle.Z.runId);lifecycle.UM();assert.deepEqual(transitions,['old-run']);assert.equal(lifecycle.Z.runId,'new-run');
+  const resetStart=html.indexOf('Object.assign(z,{t:0,final:null'),resetEnd=html.indexOf('),$e.off',resetStart)+1;
+  assert.ok(resetStart>0&&resetEnd>resetStart);const reset={z:{final:{total:999},stars:3,pb:true}};
+  vm.runInNewContext(html.slice(resetStart,resetEnd),reset);assert.equal(reset.z.final,null);assert.equal(reset.z.stars,0);assert.equal(reset.z.pb,false);
   const env={window:{skyChallenge:{debug:false},skyReplay:{snapshot(){throw Error('replay broken')}},skyTelemetryProbe:{snapshot(){throw Error('diagnostics broken')}}},Z,on:false,z:{t:120,final:{total:396},stars:1,challenge:{id:'normal',version:'corridor-crowd6-v6'}},Jn:{},U:{sendLog:true},ft:{},c:{life:3},Vi:1,jn:[],Hn:false,__VW:()=>100,__VH:()=>100,Ct:n=>n,co:[],ve:{log:[]},pp(){throw Error('path detail broken')},dp(){},Fh(){},sendRec:a=>{captured.push(a);return Promise.resolve()}};
   vm.createContext(env);vm.runInContext(html.slice(html.indexOf('function recordSafe('),html.indexOf('async function sendRec(')),env);
   vm.runInContext(html.slice(html.indexOf('function ho(n){'),html.indexOf('function Fh(){')),env);env.ho('time');
