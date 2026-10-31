@@ -1,0 +1,36 @@
+name: Audio interruption recovery
+on:
+  pull_request:
+    paths: ['audio-recovery.js', 'index.html', 'canyon.html', 'bench/audio-recovery*', '.github/workflows/audio-recovery.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Recovery state transitions and existing audio
+        run: |
+          node bench/audio-recovery.test.cjs
+          node bench/decoy-audio.test.cjs
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Restore real audio in both maps with desktop and touch input
+        run: node bench/audio-recovery-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audio-recovery-evidence
+          path: browser-evidence/audio-recovery.json
+          retention-days: 7
