@@ -232,7 +232,7 @@ export function createSwing(sky, game, course) {
         SWING_LENGTH * Math.sin(a.angle) * a.omega, a.direction[1] * SWING_LENGTH * Math.cos(a.angle) * a.omega);
       const launchWindow = a.bar.launchWindow;
       const ready = a.slipAge===undefined && isPerfectRelease(a.angle, a.omega, launchWindow);
-      hint.hidden = false; hint.dataset.ready = String(ready);
+      hint.hidden = a.slipAge!==undefined; hint.dataset.ready = String(ready);
       hint.dataset.expiring = String(a.fatigue>=.65);
       updateGripStatus(a);
       hint.style.setProperty('--swing-progress', releaseCueProgress(a.angle, a.omega, launchWindow));
@@ -271,7 +271,7 @@ export function createSwing(sky, game, course) {
     return false;
   }
   function frame() {
-    hint.hidden = !active || sky.modeRef() !== 'play' || z.over;
+    hint.hidden = !active || active.slipAge!==undefined || sky.modeRef() !== 'play' || z.over;
     gripStatus.hidden = !active || sky.modeRef() !== 'play' || z.over;
     if (sky.modeRef() !== 'play' || z.over) {
       setGripCue(null, false);
