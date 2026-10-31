@@ -6,7 +6,7 @@ function extract(source,name){const at=source.indexOf('function '+name+'(',16000
  Vec.prototype.copy=function(v){return this.set(v.x,v.y,v.z)};
  const a=source.indexOf('Jn={walkSpeed:'),end=source.indexOf('},uo=',a),U=vm.runInNewContext('('+source.slice(a+3,end+1)+')');
  const listeners={},c={pos:new Vec,vel:new Vec,lastGround:new Vec,r:.32,h:1.75,yaw:0,state:'normal',onGround:true,slideCD:0,slideT:0,slideBuf:0,jumpBuf:0,coyote:0,catchCD:0,airT:0,eye:1.62,life:3,hookCD:0};
- global.document={body:{dataset:{},appendChild(){}},head:{appendChild(){}},getElementById(){return null},querySelector(){return null},createElement(){return{style:{setProperty(){}},dataset:{},getContext(){return{fillRect(){},strokeRect(){},fillText(){}}}}}};global.addEventListener=(type,fn)=>(listeners[type]??=[]).push(fn);
+ global.document={body:{dataset:{},appendChild(){}},head:{appendChild(){}},getElementById(){return null},querySelector(){return null},createElement(){return{setAttribute(){},querySelector(){return{style:{}}},style:{setProperty(){}},dataset:{},getContext(){return{fillRect(){},strokeRect(){},fillText(){}}}}}};global.addEventListener=(type,fn)=>(listeners[type]??=[]).push(fn);
  let input=0;
  const ctx={window:{},jn,Ja:[],c,U,ft:{topSpeed:0,jumps:0},Tt:{slide(){},step(){},jump(){},wall(){},land(){},vault(){}},ke:.32,sn:1.75,Je:.9,ei:.0001,ie:'play',z:{over:false,t:0},Oe:{},Ot:{on:false},ge:(x,a,b)=>Math.max(a,Math.min(b,x)),Mt:(a,b,t)=>a+(b-a)*t,md:()=>({fwdIn:input,strIn:0,tmag:Math.abs(input)}),zn:()=>jn,jc:()=>null,H_:()=>false,Y_:()=>false,J_:()=>false,ah:()=>false,z_:()=>{},U_:()=>{},D_:()=>{},ja:()=>true};
  vm.createContext(ctx);for(const name of ['Vc','oe','Dn','F_','k_','gd','N_','O_','X_'])vm.runInContext(extract(source,name),ctx);

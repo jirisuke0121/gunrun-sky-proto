@@ -137,14 +137,14 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
       assert.ok(lifecycle.grabbed);assert.deepEqual(lifecycle.before,lifecycle.paused);assert.equal(lifecycle.dropped,'normal');assert.equal(lifecycle.reset,'normal');assert.equal(lifecycle.ammo,lifecycle.heldAmmo);
       const gripLimit=await p.evaluate(()=>{
         startSwingQA([-12.9,6.05,-6]);const c=__game.P;c.onGround=false;c.vel.x=5;stepSwing(1,false);
-        const before=__game.stats.barJumps||0;let warning=false,elapsed=0;
+        const before=__game.stats.barJumps||0;let warning=false,elapsed=0,turns=0,slipping=false;
         while(skySwing.active&&elapsed<9){
           stepSwing(1,false);elapsed+=1/30;
-          if(elapsed>6.5&&skySwing.active){const h=document.getElementById('swingHint');warning ||= h.dataset.expiring==='true' && h.dataset.ready!=='true' && getComputedStyle(h).borderColor==='rgb(255, 214, 123)';}
+          if(skySwing.active){const a=skySwing.active;turns=a.turns;slipping ||= a.slipAge!==undefined;const h=document.getElementById('swingHint');warning ||= h.dataset.expiring==='true' && h.dataset.ready!=='true' && getComputedStyle(h).borderColor==='rgb(255, 214, 123)';}
         }
-        return{elapsed,warning,active:!!skySwing.active,jumps:(__game.stats.barJumps||0)-before};
+        return{elapsed,turns,slipping,warning,active:!!skySwing.active,fall:!!c.swingFall,jumps:(__game.stats.barJumps||0)-before};
       });
-      assert.ok(gripLimit.elapsed>=7.8&&gripLimit.elapsed<8.1&&gripLimit.warning&&!gripLimit.active&&gripLimit.jumps===0,JSON.stringify(gripLimit));
+      assert.ok(gripLimit.elapsed>4&&gripLimit.elapsed<8.5&&gripLimit.turns===6&&gripLimit.slipping&&gripLimit.fall&&gripLimit.warning&&!gripLimit.active&&gripLimit.jumps===0,JSON.stringify(gripLimit));
       const nav=await p.evaluate(()=>{
         const g=__game.NAV,nearest=p=>g.nodes.reduce((best,n)=>Math.hypot(n.x-p[0],n.y-p[1],n.z-p[2])<Math.hypot(g.nodes[best].x-p[0],g.nodes[best].y-p[1],g.nodes[best].z-p[2])?n.id:best,0);
         const visited=new Set(),q=[nearest(skySwingCourse.approach)];visited.add(q[0]);

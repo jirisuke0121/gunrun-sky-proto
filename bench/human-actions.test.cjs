@@ -43,7 +43,7 @@ const { fixture } = require('./human-running.test.cjs');
       if (i === 12) assert.equal(p.contactWeight, 0);
     }
   }
-  for(const kind of ['parkourSwing','parkourSwingFlight']) {
+  for(const kind of ['parkourSwing','parkourSwingFlight','parkourGripSlip']) {
     for(const name of motion.clips[kind].frames)gltf.scene.traverse(mesh=>{
       if(!mesh.isMesh)return;
       const index=mesh.morphTargetDictionary[name];assert.ok(Number.isInteger(index));

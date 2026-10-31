@@ -1,4 +1,4 @@
-import { createSwing } from './parkour-swing.js?v=20261030-static-route-v1';
+import { createSwing } from './parkour-swing.js?v=20261031-grip-v1';
 import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
 import { createFlashbang } from './flashbang.js?v=20261031-no-point-lights-v1';
 import { installSkillDock } from './player-skills.js?v=20261030-decoy-v1';
@@ -9,7 +9,7 @@ import { createZombieSearchMotion } from './zombie-search-motion.js?v=20261030-s
 import { createGhostReplay } from './ghost-replay.js?v=20261028-compact-hud-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261030-auto-fire-controls-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261031-no-point-lights-v1';
-import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261029-door-motion-v1';
+import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261031-grip-v1';
 import { createJumpPickups } from './jump-pickups.js?v=20261028-playground-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261028-compact-hud-v1';
 import { createDash } from './dash-boost.js?v=20261030-always-speed-v1';
