@@ -75,8 +75,47 @@
     });
   };
 
+  // A descending player may catch an approved face without already having
+  // running speed. The capsule must actually touch that face; the ordinary
+  // wider side probes must never turn a nearby fall into an automatic catch.
+  window.__skyFindFallingWallRun = (player, getWall) => {
+    if (player.onGround || player.state !== 'normal' || player.vel.y >= -1) return null;
+    for (const [nx,nz] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      const normal={x:nx,z:nz};
+      const wall=getWall(player.pos.x-nx*(player.r+.16),player.pos.y+1,player.pos.z-nz*(player.r+.16));
+      if (!wall || !window.__skyCanWallRunOnFace?.(wall,normal) || wall.wf && !wall.wf[nx+','+nz]) continue;
+      const plane=nx?(nx>0?wall.maxX:wall.minX):(nz>0?wall.maxZ:wall.minZ);
+      const distance=(nx?player.pos.x-plane:player.pos.z-plane)*(nx||nz);
+      if (distance<player.r-.04 || distance>player.r+.16) continue;
+      let tx=nx?0:player.vel.x,tz=nz?0:player.vel.z;
+      let length=Math.hypot(tx,tz);
+      if (length<1) {
+        tx=nx?0:-Math.sin(player.yaw);tz=nz?0:-Math.cos(player.yaw);length=Math.hypot(tx,tz);
+        if (length<.25) {
+          const routes=window.skyPracticeMode?window.skyPracticeCourse.wallSpots:defaults;
+          const route=routes.find(p=>p.normal[0]===nx&&p.normal[1]===nz&&Math.abs((nx?p.at[0]:p.at[2])-plane)<.05);
+          [tx,tz]=route?.direction||[-nz,nx];length=Math.hypot(tx,tz);
+        }
+      }
+      tx/=length;tz/=length;
+      return {w:wall,n:normal,side:(-tz*nx+tx*nz)<0?1:-1,direction:[tx,tz],falling:true};
+    }
+    return null;
+  };
+
   function matchingPoint(player, getWall, wallNormal) {
     const radius = player.r + 0.55;
+    // Falling catches use their actual contact height on the same approved
+    // face. Ordinary runs keep the original marked take-off areas.
+    if (player.state==='wallrun' && player.wallDrop && wallNormal) {
+      const {x:nx,z:nz}=wallNormal;
+      const wall=getWall(player.pos.x-nx*radius,player.pos.y+1,player.pos.z-nz*radius);
+      if (wall===player.wallDrop && window.__skyCanWallRunOnFace?.(wall,wallNormal)) {
+        const plane=nx?(nx>0?wall.maxX:wall.minX):(nz>0?wall.maxZ:wall.minZ);
+        const distance=(nx?player.pos.x-plane:player.pos.z-plane)*(nx||nz);
+        if (distance>=player.r-.04 && distance<=player.r+.25) return {at:[player.pos.x,player.pos.y,player.pos.z],normal:[nx,nz]};
+      }
+    }
     return (window.skyPracticeMode ? [...window.skyPracticeCourse.wallSpots,window.skySwingCourse.wall] : window.skySwingCourse ? [window.skySwingCourse.wall] : defaults).find(({ at, normal }) => {
       const [x, y, z] = at;
       const [nx, nz] = normal;
@@ -121,6 +160,7 @@
     player.jumpBuf = 0;
     player.airT = 0;
     player.wallT = 0;
+    player.wallDrop = null;
     window.skyTelemetryProbe?.jumpAccepted(time, "walljump");
     stats.walljumps = (stats.walljumps || 0) + 1;
     audio.jump();

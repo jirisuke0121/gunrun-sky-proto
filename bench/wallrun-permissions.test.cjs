@@ -35,9 +35,44 @@ const wall=faces[0].wall,normal=faces[0].normal;
 Object.assign(context,{c:{pos:{x:26,y:1.9,z:-1.5+.38},vel:{x:8,y:1.8,z:0},airT:.1,wallKey:null,state:'normal',onGround:false,jumpBuf:0},ke:.34,U:{wallRunSpeed:9.3,wallRunTime:1.5,gravity:20,wallRunGravity:.15},jn:[wall],zn:()=>[wall],ge:(v,a,b)=>Math.max(a,Math.min(b,v)),Dn:()=>{},ft:{wallruns:0},Tt:{wall(){}},z:{t:0}});
 vm.runInContext(html.slice(start,end),context);
 vm.runInContext('J_(8)',context);assert.equal(context.c.state,'wallrun');
+const permitted=context.window.__skyCanWallRunOnFace;
 context.window.__skyCanWallRunOnFace=()=>false;
 vm.runInContext('K_(1/60,1)',context);assert.equal(context.c.state,'normal','continued runs stop at an unapproved face');
 context.c.wallKey=null;vm.runInContext('J_(8)',context);assert.equal(context.c.state,'normal','unapproved face cannot start a run');
 delete context.window.__skyCanWallRunOnFace;
 vm.runInContext('J_(8)',context);assert.equal(context.c.state,'normal','missing registry cannot enable arbitrary walls');
+context.window.__skyCanWallRunOnFace=permitted;
+context.c.r=.34;context.zn=()=>context.jn;
+Object.assign(context.U,{jumpVel:7.2,wallJumpPush:7});context.Tt.jump=()=>{};
+let fallingCases=0;
+for(const speed of [0,1,6])for(const vertical of [-8,-24,-40]){
+ Object.assign(context.c,{pos:{x:26,y:5,z:-1.5+.38},vel:{x:speed,y:vertical,z:0},yaw:-Math.PI/2,airT:.2,wallKey:null,wallDrop:null,state:'normal',onGround:false,jumpBuf:0});
+ vm.runInContext('J_(Math.hypot(c.vel.x,c.vel.z))',context);
+ assert.equal(context.c.state,'wallrun','descending contact '+speed+'/'+vertical);
+ assert.ok(context.c.vel.y>=-2.2&&context.c.vel.y<=0,'catch brakes the fall without an upward teleport');
+ assert.ok(context.c.vel.x>=context.U.wallRunSpeed);
+ assert.equal(w.__skyCanWallJumpAtSpot(context.c,()=>wall,normal),true,'upper contact uses its actual height');
+ assert.equal(w.__skyTryRegisteredWallJump(context.c,context.U,()=>wall,0,context.ft,context.Tt),true);
+ assert.ok(context.c.vel.y>0&&context.c.vel.z>0,'normal wall jump pushes away from the wall');
+ assert.equal(context.c.wallDrop,null);assert.equal(context.c.state,'normal');fallingCases++;
+}
+for(const distance of [.1,.9,1.4]){
+ Object.assign(context.c,{pos:{x:26,y:5,z:-1.5+distance},vel:{x:0,y:-20,z:0},yaw:Math.PI/2,airT:.2,wallKey:null,wallDrop:null,state:'normal',onGround:false});
+ vm.runInContext('J_(0)',context);assert.equal(context.c.state,'normal','no capture away from the actual face');
+}
+Object.assign(context.c,{pos:{x:26,y:5,z:-1.5+.38},vel:{x:0,y:-20,z:0},yaw:0,airT:.2,wallKey:null,wallDrop:null,state:'normal',onGround:false});
+vm.runInContext('J_(0)',context);assert.equal(context.c.state,'wallrun','vertical fall facing into the wall chooses its existing route direction');
+context.c.state='normal';
+assert.equal(w.__skyCanWallJumpAtSpot(context.c,()=>wall,normal),false,'leaving the catch cannot retain an upper jump permission');
+context.c.wallDrop=null;context.c.wallKey=null;context.jn=[{...wall,off:true}];
+vm.runInContext('J_(0)',context);assert.equal(context.c.state,'normal','closed face denies falling capture');
+// Both bundles must wire falling contact and buffered jump input. Canyon
+// retains its practice-only wall-run boundary.
+const canyon=fs.readFileSync('canyon.html','utf8');
+for(const source of [html,canyon]){
+ assert.ok(source.includes('window.__skyFindFallingWallRun?.(c,'));
+ assert.ok(/\([lt]>0\|\|c.jumpBuf>0\)&&J_\(p\)/.test(source));
+}
+assert.ok(canyon.includes('function $_(n,t){if(!window.skyPracticeMode)return null;'));
+console.log('PASS '+fallingCases+' falling captures/jumps, upper contact height, vertical falls, actual face contact and permission lifetime');
 console.log('PASS five shortcut permissions: allowed face only, opposite/nearby/old faces denied, marked jump area, actual entry/continuation and missing-registry checks');
