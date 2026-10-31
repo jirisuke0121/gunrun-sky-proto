@@ -89,10 +89,10 @@ const {chromium}=require('playwright');
    console.log('PASS falling catch and jump',touch?'touch':'desktop',vertical,speed);
   }
   // A purely vertical fall can use a buffered jump with no running input.
-  await page.evaluate(()=>{roofQA.reset([-14.36,5.6,6.8],Math.PI);const c=__game.P;c.onGround=false;c.airT=.2;c.vel.set(0,-24,0);});
+  await page.evaluate(()=>{roofQA.reset([-14.36,5.6,6.8],-Math.PI/2);const c=__game.P;c.onGround=false;c.airT=.2;c.vel.set(0,-24,0);});
   const before=await page.evaluate(()=>__game.stats.walljumps||0);await jump();
   const verticalJump=await page.evaluate(()=>{for(let i=0;i<4;i++)__game.playerStep(1/120);roofQA.render();return roofQA.state()});
-  assert.equal(verticalJump.jumps,before+1);assert.ok(verticalJump.v[0]<0&&verticalJump.v[1]>0);
+  assert.equal(verticalJump.jumps,before+1);assert.ok(verticalJump.v[0]<0&&verticalJump.v[1]>0&&verticalJump.v[2]>0,'fall facing into the south segment follows its south arrow');
   await page.screenshot({path:`browser-evidence/roof-drop/${touch?'touch':'desktop'}-fall-wall-jump.png`});
   await jump();const second=await page.evaluate(()=>{for(let i=0;i<4;i++)__game.playerStep(1/120);return roofQA.state()});
   assert.equal(second.jumps,verticalJump.jumps,'one falling catch cannot grant repeated airborne jumps');

@@ -64,6 +64,12 @@ Object.assign(context.c,{pos:{x:26,y:5,z:-1.5+.38},vel:{x:0,y:-20,z:0},yaw:0,air
 vm.runInContext('J_(0)',context);assert.equal(context.c.state,'wallrun','vertical fall facing into the wall chooses its existing route direction');
 context.c.state='normal';
 assert.equal(w.__skyCanWallJumpAtSpot(context.c,()=>wall,normal),false,'leaving the catch cannot retain an upper jump permission');
+for(const {wall:face,normal:n} of faces.filter(f=>f.normal.x===-1)){
+ const marker=(face.minZ+face.maxZ)/2;
+ const player={r:.34,pos:{x:-14.38,y:4,z:marker},vel:{x:0,y:-20,z:0},state:'normal',onGround:false,yaw:-Math.PI/2};
+ const caught=w.__skyFindFallingWallRun(player,()=>face);
+ assert.ok(caught);assert.equal(caught.direction[1],marker<0?-1:1,'vertical fall follows the direction of this wall segment');
+}
 context.c.wallDrop=null;context.c.wallKey=null;context.jn=[{...wall,off:true}];
 vm.runInContext('J_(0)',context);assert.equal(context.c.state,'normal','closed face denies falling capture');
 // Both bundles must wire falling contact and buffered jump input. Canyon

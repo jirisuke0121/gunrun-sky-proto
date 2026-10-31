@@ -93,7 +93,11 @@
         tx=nx?0:-Math.sin(player.yaw);tz=nz?0:-Math.cos(player.yaw);length=Math.hypot(tx,tz);
         if (length<.25) {
           const routes=window.skyPracticeMode?window.skyPracticeCourse.wallSpots:defaults;
-          const route=routes.find(p=>p.normal[0]===nx&&p.normal[1]===nz&&Math.abs((nx?p.at[0]:p.at[2])-plane)<.05);
+          const route=routes.find(p=>{
+            const along=nx?p.at[2]:p.at[0];
+            return p.normal[0]===nx&&p.normal[1]===nz&&Math.abs((nx?p.at[0]:p.at[2])-plane)<.05&&
+              along>(nx?wall.minZ:wall.minX)&&along<(nx?wall.maxZ:wall.maxX);
+          });
           [tx,tz]=route?.direction||[-nz,nx];length=Math.hypot(tx,tz);
         }
       }
