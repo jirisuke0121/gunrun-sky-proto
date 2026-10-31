@@ -33,7 +33,7 @@ const fs = require('node:fs');
   for (const file of ['index.html','canyon.html']) {
     const html = fs.readFileSync(file,'utf8');
     assert.ok(html.includes('z.t+=n;window.skyFlashbang?.tick(n);'));
-    const start = html.indexOf('function ol(){');
+    const start = html.lastIndexOf('function ol(');
     assert.ok(start>=0&&html.slice(start,start+250).includes('window.skyFlashbang?.reset();'));
     assert.ok(html.includes('window.skyFlashbang?.modeChanged(n)'));
     assert.ok(html.includes('id="tFlash"')&&html.includes('id="hFlash"'));

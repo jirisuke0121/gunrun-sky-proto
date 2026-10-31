@@ -65,6 +65,11 @@ export function installRanking(game) {
   const reset = state => { state.mode = policy.id === 'legacy' ? 'score' : 'clear'; state.difficulty = policy.id; state.box.querySelector('select').value = state.difficulty; return refresh(state); };
   new MutationObserver(() => { if (!$('ovStart').hidden) reset(title); }).observe($('ovStart'), { attributes: true, attributeFilter: ['hidden'] });
   document.addEventListener('sky-difficulty-change', () => { reset(title); ++over.token; });
+  document.addEventListener('sky-run-uploaded', () => {
+    // Refresh on acknowledgement, including uploads beyond initial polling.
+    if (!$('ovOver').hidden && !game.z.mission && game.z.final) refresh(over);
+    if (!$('ovStart').hidden) refresh(title);
+  });
   let resultToken = 0, presentedRun;
   new MutationObserver(async () => {
     if ($('ovOver').hidden) { ++resultToken; ++over.token; return; }
