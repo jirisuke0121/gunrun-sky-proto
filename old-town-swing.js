@@ -4,8 +4,16 @@
   const preview = params.get('oldtown_swing') === '1';
   window.skyOldTownSwingPreview = preview;
   window.buildOldTownSwingCourse = ({ ne, us = [] }) => {
+    const stairGroups = new Map();
     const box = (id, a, b, type='beam', tint=0x8ea4bd) => {
-      const solid=ne(...a,...b,type);solid.oldTownSwing=id;solid.tint=tint;return solid;
+      const solid=ne(...a,...b,type);solid.oldTownSwing=id;solid.tint=tint;
+      // Groups are authored stair runs, never unrelated nearby props.
+      if (/-(?:stair|return|runout)-\d+$/.test(id)) {
+        const key=id.replace(/-\d+$/, '');
+        if(!stairGroups.has(key))stairGroups.set(key, []);
+        stairGroups.get(key).push(solid);
+      }
+      return solid;
     };
     const supports=[];
     const strut=(from,to)=>supports.push({from,to});
@@ -57,8 +65,8 @@
     box('east-outer-walk',[59.5,3.3,-14.2],[62,3.6,4.2]);
     box('east-tower-return',[42,14.1,-14.2],[44.4,14.4,-10.8]);
     // Ascend to the existing tower instead of returning into the chaser's
-    // ground-level approach. The ordinary vault/mantle still applies here.
-    for(let i=0;i<90;i++)box('east-tower-stair-'+i,[44+i*.2,3.3,-14.2],[44+(i+1)*.2,14.4-i*.12,-11.8],'slab',0xe39a4a);
+    // ground-level approach. End before the screen so a full capsule fits.
+    for(let i=0;i<90;i++)box('east-tower-stair-'+i,[44+i*17.5/90,3.3,-14.2],[44+(i+1)*17.5/90,14.4-i*.12,-11.8],'slab',0xe39a4a);
     box('east-outer-screen',[61.85,3.6,-14.2],[62.1,6.2,4.2],'mono',0xb5604a);
     box('east-south-rail',[51.5,3.6,4.05],[61.85,4.5,4.2]);
     // The north corner landing joins here; keep the eastern rail cap.
@@ -117,9 +125,13 @@
       const x=35.5-i*.5,top=3.4+i*.4;
       box('east-pillar-next-stair-'+i,[x,3.1,-13.4],[x+.5,top,-11.8],'slab',0xe39a4a);
     }
-    for(let i=0;i<9;i++) {
-      const z=-8.5-(i+1)*.45,top=Math.min(3.4,.4*(i+1));
-      box('east-pillar-next-lower-stair-'+i,[34.4,-.25,z],[35.9,top,z+.45],'slab',0xe39a4a);
+    // Meet the first (3.4m) upper tread from its east side. The previous
+    // overlap crossed the 4.2m tread, creating an unavoidable 0.8m cliff.
+    // Start north of the existing ground-level parapet, with a clear turn.
+    box('east-pillar-next-lower-landing',[35.5,3.1,-13.4],[37,3.4,-11.8],'slab',0xe39a4a);
+    for(let i=0;i<34;i++) {
+      const z=-9.2-(i+1)*2.6/34,top=.1*(i+1);
+      box('east-pillar-next-lower-stair-'+i,[35.5,-.25,z],[37,top,z+2.6/34],'slab',0xe39a4a);
     }
     for(const x of [34,37])strut([x,3.4,-13],[x,7.12,-14.6]);
     // A missed northern landing has a low return to the old east footing.
@@ -200,6 +212,7 @@
     box('south-bridge-recovery',[34.5,-3.85,14],[39.4,-3.5,20]);
     for(let i=0;i<10;i++){const z=14+i*.4,top=-(i+1)*.35;
       box('south-bridge-return-'+i,[37.5,-3.85,z],[39.4,top,z+.4],'slab',0xe39a4a);}
+    for(const [id,steps] of stairGroups)window.skyStairWalk?.tag(steps,id);
     const bars=[
       {id:'oldtown-high-bar-1',at:[-43.6,17.6,-3.9],direction:[0,1],width:2.6,route:'high'},
       {id:'oldtown-warehouse-bar-1',at:[-62.5,7.8,3.6],direction:[1,0],width:2.6,route:'warehouse'},

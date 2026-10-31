@@ -6,7 +6,7 @@ function geometry(){
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const env={window:{},location:{search:''},URLSearchParams,addEventListener(){},console};
   vm.createContext(env);
-  for(const name of ['old-town-swing.js','town-heights.js'])vm.runInContext(fs.readFileSync(path.join(root,name),'utf8'),env);
+  for(const name of ['stair-walk.js','old-town-swing.js','town-heights.js'])vm.runInContext(fs.readFileSync(path.join(root,name),'utf8'),env);
   let build=html.slice(html.indexOf('ms(-70,-12,-22,18,0)'),html.indexOf('var fd={'));
   // This block only draws the original south handrails. It creates no solids.
   const visual=build.indexOf('{let n=new ze({color:3814962');
@@ -16,7 +16,7 @@ function geometry(){
   const declarations=html.slice(html.indexOf('var pn=(n,t,e,i,s,r=1.4)'),html.indexOf('var Ja=[]'));
   const walls=html.slice(html.indexOf('function Ka(n,t,e,i,s,r,a,o=[]'),html.indexOf('ms(-70,-12,-22,18,0)'));
   vm.runInContext(`var jn=[],A_=[],Ja=[];function ne(n,t,e,i,s,r,a,o=true){const b={minX:Math.min(n,i),minY:Math.min(t,s),minZ:Math.min(e,r),maxX:Math.max(n,i),maxY:Math.max(t,s),maxZ:Math.max(e,r),type:a,solid:o};(o?jn:A_).push(b);return b;}\n${declarations}\n${walls}\n${build}`,env);
-  return{solids:env.jn,hooks:env.us,ladders:env.mo,course:env.window.skyOldTownSwingCourse};
+  return{solids:env.jn,hooks:env.us,ladders:env.mo,course:env.window.skyOldTownSwingCourse,stairWalk:env.window.skyStairWalk};
 }
 class Vec{
   constructor(x=0,y=0,z=0){this.set(x,y,z)}

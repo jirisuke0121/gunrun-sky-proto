@@ -21,7 +21,12 @@
   ];
   window.skyPracticeCourse = {sections,start:sections[0],dashPositions:[[9,11.2,8]],jumpPositions:[[-27,2,5.8]],wallSpots:[]};
   window.buildSkyCanyon = function({ne,Mh,ld,us,jn,hd}) {
-    const add=(id,a,b,type='beam',tier='M')=>{const s=ne(...a,...b,type);s.practice=id;s.canyonTier=tier;return s;};
+    const stairGroups=new Map();
+    const add=(id,a,b,type='beam',tier='M')=>{
+      const s=ne(...a,...b,type);s.practice=id;s.canyonTier=tier;
+      if(id.endsWith('-stair')){if(!stairGroups.has(id))stairGroups.set(id,[]);stairGroups.get(id).push(s);}
+      return s;
+    };
     add('downhill-start',[30,7.6,6],[33,8,12]);
     hd('x',14,30,7,11,0,8,.3);
     add('floor',[-34,-.6,-26],[34,0,26],'slab','G');
@@ -56,12 +61,15 @@
     barrel.step=add('blast-step',[-17.65,0,15.52],[-16.35,.55,16.28],'prop','G');
     window.SKY_CANYON_BLAST_BARRELS=[barrel];
     // The loop can also be walked back without a special move.
-    for(let i=0;i<10;i++)add('return-stair',[-28,0,10+i*.6],[-25,2-i*.2,10.6+i*.6]);
-    for(let i=0;i<10;i++)add('start-stair',[-28,0,-13+i*.6],[-25,2-i*.2,-12.4+i*.6]);
+    // Start beyond the return pad: its old overlap hid three treads and
+    // left a 60cm drop. Keep the other flight clear of the wall-kick deck.
+    for(let i=0;i<10;i++)add('return-stair',[-28,0,12+i*.6],[-25,2-i*.2,12.6+i*.6]);
+    for(let i=0;i<10;i++)add('start-stair',[-28.5,0,-13+i*.6],[-25.5,2-i*.2,-12.4+i*.6]);
     // A jump-gun launch has a broad destination; walking remains a fallback.
     add('jumpgun-target',[-31,7.6,-17],[-25,8,1]);
     for(let i=0;i<20;i++){const z0=-17-i*.35,y=8-i*.3;add('loop-stair',[-32,y-.4,z0-.35],[-29,y,z0]);}
     add('loop-bottom',[-32,1.6,-25],[-25,2,-18]);
+    for(const [id,steps] of stairGroups)window.skyStairWalk?.tag(steps,'practice-'+id);
     us.push([-28,9,1]);
   };
   const finish=window.finishSkyCanyon;
