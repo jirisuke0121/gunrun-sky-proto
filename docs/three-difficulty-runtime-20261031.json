@@ -1,0 +1,295 @@
+{
+  "base": "88c9e80",
+  "version": "corridor-three-v7",
+  "scope": "manual rendered UI and local Worker review, not published or device difficulty proof",
+  "profileOrder": [
+    "easy",
+    "normal",
+    "hard"
+  ],
+  "shots": [
+    {
+      "map": "index.html",
+      "id": "easy",
+      "initial": [
+        4,
+        4,
+        4
+      ],
+      "human": "true",
+      "shotCount": 4,
+      "hits": 4,
+      "target": {
+        "hp": 0,
+        "dead": true,
+        "stalker": false,
+        "invulnerable": false
+      },
+      "filled": 5,
+      "fresh": 6,
+      "protectedCorpses": 1,
+      "refilled": 6,
+      "remainingCorpses": 1,
+      "health": 4,
+      "options": [
+        {
+          "id": "easy",
+          "name": "イージー"
+        },
+        {
+          "id": "normal",
+          "name": "ノーマル"
+        },
+        {
+          "id": "hard",
+          "name": "ハード"
+        }
+      ],
+      "description": "走って距離を取り、逃げ方と技を練習。群れの上限 3 → 4 → 5体、体力 4（HGで4発）、通常追跡 4.3 → 5.4m/s。死体を含め表示は最大6体。終盤ほど強くなる2分間。"
+    },
+    {
+      "map": "index.html",
+      "id": "normal",
+      "initial": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "human": "true",
+      "shotCount": 6,
+      "hits": 6,
+      "target": {
+        "hp": 0,
+        "dead": true,
+        "stalker": false,
+        "invulnerable": false
+      },
+      "filled": 6,
+      "fresh": 6,
+      "protectedCorpses": 1,
+      "refilled": 6,
+      "remainingCorpses": 0,
+      "health": 6,
+      "options": [
+        {
+          "id": "easy",
+          "name": "イージー"
+        },
+        {
+          "id": "normal",
+          "name": "ノーマル"
+        },
+        {
+          "id": "hard",
+          "name": "ハード"
+        }
+      ],
+      "description": "後半は技で距離を作り、2分間逃げ切る。群れの上限 4 → 5 → 6体、体力 6（HGで6発）、通常追跡 5.2 → 6.4m/s。死体を含め表示は最大6体。終盤ほど強くなる2分間。"
+    },
+    {
+      "map": "index.html",
+      "id": "hard",
+      "initial": [
+        8,
+        8,
+        8,
+        8,
+        8
+      ],
+      "human": "true",
+      "shotCount": 8,
+      "hits": 8,
+      "target": {
+        "hp": 0,
+        "dead": true,
+        "stalker": false,
+        "invulnerable": false
+      },
+      "filled": 6,
+      "fresh": 6,
+      "protectedCorpses": 1,
+      "refilled": 6,
+      "remainingCorpses": 0,
+      "health": 8,
+      "options": [
+        {
+          "id": "easy",
+          "name": "イージー"
+        },
+        {
+          "id": "normal",
+          "name": "ノーマル"
+        },
+        {
+          "id": "hard",
+          "name": "ハード"
+        }
+      ],
+      "description": "速い追跡と予告付き包囲を、技とスキルで切り抜ける。群れの上限 5 → 6 → 6体、体力 8（HGで8発）、通常追跡 6.0 → 7.2m/s。死体を含め表示は最大6体。終盤ほど強くなる2分間。"
+    },
+    {
+      "map": "canyon.html",
+      "id": "easy",
+      "initial": [
+        4,
+        4,
+        4
+      ],
+      "human": "true",
+      "shotCount": 4,
+      "hits": 4,
+      "target": {
+        "hp": 0,
+        "dead": true,
+        "stalker": false,
+        "invulnerable": false
+      },
+      "filled": 5,
+      "fresh": 6,
+      "protectedCorpses": 1,
+      "refilled": 6,
+      "remainingCorpses": 1,
+      "health": 4,
+      "description": "走って距離を取り、逃げ方と技を練習。群れの上限 3 → 4 → 5体、体力 4（HGで4発）、通常追跡 4.3 → 5.4m/s。死体を含め表示は最大6体。終盤ほど強くなる2分間。"
+    },
+    {
+      "map": "canyon.html",
+      "id": "normal",
+      "initial": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "human": "true",
+      "shotCount": 6,
+      "hits": 6,
+      "target": {
+        "hp": 0,
+        "dead": true,
+        "stalker": false,
+        "invulnerable": false
+      },
+      "filled": 6,
+      "fresh": 6,
+      "protectedCorpses": 1,
+      "refilled": 6,
+      "remainingCorpses": 0,
+      "health": 6,
+      "description": "後半は技で距離を作り、2分間逃げ切る。群れの上限 4 → 5 → 6体、体力 6（HGで6発）、通常追跡 5.2 → 6.4m/s。死体を含め表示は最大6体。終盤ほど強くなる2分間。"
+    },
+    {
+      "map": "canyon.html",
+      "id": "hard",
+      "initial": [
+        8,
+        8,
+        8,
+        8,
+        8
+      ],
+      "human": "true",
+      "shotCount": 8,
+      "hits": 8,
+      "target": {
+        "hp": 0,
+        "dead": true,
+        "stalker": false,
+        "invulnerable": false
+      },
+      "filled": 6,
+      "fresh": 6,
+      "protectedCorpses": 1,
+      "refilled": 6,
+      "remainingCorpses": 0,
+      "health": 8,
+      "description": "速い追跡と予告付き包囲を、技とスキルで切り抜ける。群れの上限 5 → 6 → 6体、体力 8（HGで8発）、通常追跡 6.0 → 7.2m/s。死体を含め表示は最大6体。終盤ほど強くなる2分間。"
+    }
+  ],
+  "custom": {
+    "free": {
+      "health": 11,
+      "input": {
+        "value": "11",
+        "disabled": false
+      },
+      "custom": true
+    },
+    "hard": {
+      "health": 8,
+      "input": {
+        "value": "8",
+        "disabled": true
+      },
+      "custom": false
+    },
+    "restored": {
+      "health": 11,
+      "input": {
+        "value": "11",
+        "disabled": false
+      },
+      "custom": true
+    },
+    "legacyStart": {
+      "profile": null,
+      "record": {
+        "id": "legacy",
+        "version": "corridor-three-v7"
+      },
+      "health": [
+        11,
+        11,
+        11,
+        11,
+        11
+      ]
+    },
+    "errors": []
+  },
+  "worker": {
+    "createdLocally": 16,
+    "newClearOrder": "hard and tie hard / normal / easy",
+    "newScoreOrder": "failed hard 900 / clear hard 500 / clear hard 450",
+    "oldSixExcluded": true,
+    "ghostsSeparated": true,
+    "legacyV6UltraStillReadable": true,
+    "v7ExpertUltraRejected": true
+  },
+  "migration": {
+    "expert": "hard",
+    "ultra": "hard",
+    "oldBestUntouched": true,
+    "oldScoresNotRelabeled": true
+  },
+  "retry": {
+    "map": "canyon.html",
+    "initialHP": [
+      8,
+      8,
+      8,
+      8,
+      8
+    ],
+    "challenge": {
+      "id": "hard",
+      "version": "corridor-three-v7"
+    }
+  },
+  "limits": [
+    "no new automatic tests added or executed",
+    "no FPS measurement",
+    "no iPhone or human difficulty-feel verification",
+    "no shared main merge, Worker deployment or Pages publication"
+  ],
+  "sourceSha256": {
+    "challenge-difficulty.js": "939c8302bc403e9ceb5d0ae20b96917900e7d78d74dafb57402edeabe9fb344a",
+    "challenge-score.js": "51f4193d56ac6aa387b74e84e8e64ce6836f2556a0db990b243c4fc895a79677",
+    "index.html": "3bcb212121b06f86fc3ed1694183b8be51fb4706ef9f012a38ad36420c62776a",
+    "canyon.html": "4b7801488c69cb0372c5f254348b03dc96c701a03e11987dacfd1d88f77dd120",
+    "ranking.js": "78f92d5daf67f84e523028d5da31336159aeb4598c6f2459358acd0376fd1345",
+    "enhancements.js": "d5102e815f89dedbe212f142060f8b9a968cb992aaeea9ccebe50fb66b0550db",
+    "server/worker.js": "8fcc648955abb974d69714f1f08e2a33011373b4316ffbf81c89ba176f05f9a7"
+  }
+}

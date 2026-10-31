@@ -19,6 +19,10 @@ Workerの修正にはスキーマ変更は不要。`node bench/record-integrity.
 ゲームが1プレイ終わるごとに、記録（結果・操作・画面サイズなど）をここへ送ります。
 個人名・メールなどは送りません。端末ごとのランダムID（`gunrun-pid`）だけが付きます。
 
+## 2026-10-31：3段階のチャレンジ
+
+新しい `corridor-three-v7` はeasy/normal/hardの3段階。ランキングとゴーストはこの版だけを対象にし、クリア順位はハード→ノーマル→イージー。同じ難易度は同順位、スコアは得点順。v7でexpert/master/ultraを指定すると400を返します。旧corridor-crowd6-v6等のAPIは従来の6段階を維持し、過去のデータを変更しません。DBスキーマの変更は不要です。公開時はWorker→ゲームの順で反映します。今回の変更は未公開です。
+
 ## 2026-10-27：チャレンジ難易度別の記録
 
 `GET /ranking?map=old-town&difficulty=normal&rules=corridor-crowd6-v6` と `GET /ghosts/<id>?map=old-town&difficulty=normal&rules=corridor-crowd6-v6` は同じ難易度の記録に絞ります。`easy` / `normal` / `hard` / `expert` / `master` / `ultra` は指定した `challenge.version` の記録が対象です。`rules` は `corridor-crowd6-v6`、`corridor-health-v5`、`corridor-cap12-v4`、`corridor-score-v3`、`corridor-v2`、前案の `unity-v1` に対応し、省略時は前案互換の `unity-v1`。`legacy` または難易度省略では従来の記録・自由調整の記録を返します。過去の記録を新しいNormalへ移すことはありません。
@@ -89,3 +93,7 @@ Claudeに分析させるときは、この出力のJSONを渡してください�
 `mode=score`（省略時も同じ）は従来どおり `difficulty` の最高得点。両方に難易度 `difficulty`、星 `stars`、クリア状態、得点、日時と再生IDを返します。星を無効化していた版のクリア記録は、保存済みの目標点（省略時430/470点）から星を表示時に補完し、元データは変更しません。
 
 `GET /ghosts/<id>?map=...&rules=...&mode=clear` は難易度クリア順位に選んだその記録を再生します。スコアの場合は `mode=score&difficulty=...` を渡します。ランキング画面で表示している難易度を使い、ゲーム開始時の選択とは分離します。スキーマ変更はありません。
+
+## 2026-10-31：入門除外とparkour-v8（未公開）
+
+`corridor-parkour-v8` はEasy/Normal/Hardの3段階で、v7以前とランキング・ゴーストを分離します。`challenge.id=intro` のPOSTは400 `intro_not_recorded`、ランキングの `difficulty=intro` も400。通常のライフ8/5/3のゴーストを受け付け、旧版の読取りを維持します。記録プロトコルは2のまま、D1スキーマ変更なし。公開時はWorkerを先に更新してください。ローカルD1での確認のみで、本番へは未反映です。

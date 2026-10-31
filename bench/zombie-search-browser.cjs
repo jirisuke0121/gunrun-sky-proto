@@ -47,28 +47,29 @@ const out = 'browser-evidence/zombie-search'; fs.mkdirSync(out, { recursive: tru
           state(){return{phase:skyZombieSearch.state(enemy)?.phase,last:skyZombieSearch.state(enemy)?.last,remaining:skyZombieSearch.remaining,
             position:enemy.pos.toArray(),player:c.pos.toArray(),mode:g.mode,actualMode:s.modeRef(),time:g.GAME.t,over:g.GAME.over,mission:g.GAME.mission,loseSight:g.S.loseSight,
             spawn:enemy.spawnT,rise:enemy.rise,fall:enemy.fall,dead:enemy.dead,count:g.zombies.length,
-            hud:document.getElementById('zombieSearchStatus').textContent,hidden:document.getElementById('zombieSearchStatus').hidden};}};
+            hud:document.getElementById('zombieSearchStatus')?.textContent || '',hidden:document.getElementById('zombieSearchStatus')?.hidden ?? true};}};
         return {a:chosen.a,b:chosen.b,hidden:chosen.hidden};
       });
       const chase = await page.evaluate(() => searchQA.tick(.9));assert.equal(chase.phase,'chase',JSON.stringify(chase));
       const escaped = await page.evaluate(() => { searchQA.place(searchQA.chosen.hidden);return searchQA.tick(3.1); });
-      assert.equal(escaped.phase,'search',JSON.stringify(escaped));assert.ok(escaped.remaining>9,JSON.stringify(escaped));
-      assert.ok(Math.abs(escaped.last.x-setup.b.x)<.05&&Math.abs(escaped.last.z-setup.b.z)<.05,'last sight is frozen at the visible point');
-      assert.equal(escaped.hidden,false);assert.match(escaped.hud,/追跡を振り切った/);
+      assert.equal(escaped.phase,'chase',JSON.stringify(escaped));assert.equal(escaped.remaining,0,JSON.stringify(escaped));
+      assert.ok(Math.abs(escaped.last.x-escaped.player[0])<.05&&Math.abs(escaped.last.z-escaped.player[2])<.05,'pursuit continues toward the current player behind the wall');
+      assert.equal(escaped.hidden,true);assert.equal(escaped.loseSight,0);
       await page.screenshot({path:`${out}/${id}-escaped.png`});
-      const gates=await page.evaluate(()=>{const q=searchQA,g=q.g,n=g.zombies.length;g.spawnZombie();g.surge();g.postAt(q.chosen.b,2,0,'test');return{before:n,after:g.zombies.length,squeeze:g.trySqueeze(2,2),warn:g.SCR.warn};});
-      assert.equal(gates.after,gates.before,'rest blocks replacements, surges and ambushes');assert.equal(gates.squeeze,null);assert.equal(gates.warn,null);
-      const midway=await page.evaluate(()=>searchQA.tick(5));assert.equal(midway.phase,'search');assert.ok(midway.remaining>4);assert.match(midway.hud,/捜索中/);
+      const skyLimit=await page.evaluate(()=>skyChallenge.maxRendered);
+      const gates=await page.evaluate(()=>{const q=searchQA,g=q.g,n=g.zombies.length;g.spawnZombie();g.surge();g.postAt(q.chosen.b,2,0,'test');return{before:n,after:g.zombies.length,squeeze:g.trySqueeze(2,2),warn:g.SCR.warn,suppressed:skyZombieSearch.suppressSpawns()};});
+      assert.equal(gates.suppressed,false,'sight loss must not suppress spawning');assert.ok(gates.after>=gates.before&&gates.after<=skyLimit,'spawns still obey the shared budget');
+      const midway=await page.evaluate(()=>searchQA.tick(5));assert.equal(midway.phase,'chase');assert.equal(midway.remaining,0);assert.equal(midway.hidden,true);
       await page.screenshot({path:`${out}/${id}-search.png`});
-      const pause=await page.evaluate(()=>{const q=searchQA,before=skyZombieSearch.remaining;q.g.setMode('pause');q.tick(1);return{before,after:skyZombieSearch.remaining,hidden:document.getElementById('zombieSearchStatus').hidden};});
+      const pause=await page.evaluate(()=>{const q=searchQA,before=skyZombieSearch.remaining;q.g.setMode('pause');q.tick(1);return{before,after:skyZombieSearch.remaining,hidden:document.getElementById('zombieSearchStatus')?.hidden ?? true};});
       assert.equal(pause.after,pause.before);assert.equal(pause.hidden,true);
       const expired=await page.evaluate(()=>{searchQA.g.setMode('play');return searchQA.tick(5.1);});
-      assert.equal(expired.phase,'patrol');assert.equal(expired.remaining,0);assert.equal(expired.hidden,true);
+      assert.equal(expired.phase,'chase');assert.equal(expired.remaining,0);assert.equal(expired.hidden,true);
       const walking=await page.evaluate(()=>{
         const q=searchQA,e=q.enemy;e.stun=0;
-        // Only the wandering motion is isolated here; hide the player behind a
-        // real solid plus a far location so no re-encounter changes the probe.
-        q.place({x:250,y:0,z:250});q.g.P.invuln=Infinity;
+        // Use a real reachable destination to check motion without leaving the map.
+        for(const z of [...q.g.zombies])if(z!==e){q.s.ue.remove(z.m.root);q.g.zombies.splice(q.g.zombies.indexOf(z),1);}
+        q.place(q.chosen.b);q.g.updateField();q.g.P.invuln=Infinity;
         const start=e.pos.clone();let max=0;
         for(let i=0;i<180;i++){q.g.advance(1/60);max=Math.max(max,e.pos.distanceTo(start));}
         return{...q.state(),moved:max,finite:e.pos.toArray().every(Number.isFinite)};
@@ -85,9 +86,9 @@ const out = 'browser-evidence/zombie-search'; fs.mkdirSync(out, { recursive: tru
         q.tick(6.1);
         return{used,lured,navigationOwned,expired:!skyDecoy.active,lost:e.lost,...q.state()};
       });
-      assert.ok(decoy.used&&decoy.lured&&decoy.navigationOwned&&decoy.expired&&decoy.lost,JSON.stringify(decoy));
-      assert.equal(decoy.phase,'search','decoy expiry restores visual memory rather than live player tracking');
-      assert.ok(Math.abs(decoy.last.x-setup.b.x)<.05&&Math.abs(decoy.last.z-setup.b.z)<.05,'decoy does not reveal the real player after release');
+      assert.ok(decoy.used&&decoy.lured&&decoy.navigationOwned&&decoy.expired&&!decoy.lost,JSON.stringify(decoy));
+      assert.equal(decoy.phase,'chase','pursuit resumes after the temporary decoy');
+      assert.ok(Math.abs(decoy.last.x-decoy.player[0])<.05&&Math.abs(decoy.last.z-decoy.player[2])<.05,'after release the current player remains the pursuit target');
       assert.equal(await page.evaluate(()=>__game.debug.renderer.getContext().getError()),0);
       assert.deepEqual(errors,[]);results.push({id,setup,chase,escaped,gates,midway,pause,expired,walking,reacquired,decoy});
       console.log('PASS',id,JSON.stringify({remaining:escaped.remaining,moved:walking.moved,errors}));await ctx.close();

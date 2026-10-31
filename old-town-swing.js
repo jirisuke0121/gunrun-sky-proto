@@ -317,7 +317,9 @@
       const home=document.createElement('a');home.href='./index.html';
       home.textContent='本番ホームへ（ランキング対象）';home.style.cssText='display:block;padding:12px 0;color:#ffe0a0';card.append(home);
     }
-    (document.getElementById('ovStart')?.querySelector('.plate')||document.getElementById('ovStart'))?.prepend(card);
+    const introEntry=document.getElementById('introEntry');
+    if(introEntry)introEntry.after(card);
+    else (document.getElementById('ovStart')?.querySelector('.plate')||document.getElementById('ovStart'))?.prepend(card);
     if(preview){const n=document.getElementById('recNote');if(n)n.textContent='鉄棒の練習入口：プレイ記録は送信しません。';}
   });
 })();

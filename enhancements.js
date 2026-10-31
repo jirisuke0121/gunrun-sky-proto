@@ -1,13 +1,12 @@
-import { installRunRecords } from './run-records.js?v=20261031-record-integrity-v1';
+import { installRunRecords } from './run-records.js?v=20261031-parkour-v8';
 import { createSwing } from './parkour-swing.js?v=20261031-grip-v1';
-import { installRanking } from './ranking.js?v=20261031-record-integrity-v1';
+import { installRanking } from './ranking.js?v=20261031-parkour-v8';
 import { createFlashbang } from './flashbang.js?v=20261031-no-point-lights-v1';
 import { installSkillDock } from './player-skills.js?v=20261030-decoy-v1';
 import { createDecoy } from './skill-decoy.js?v=20261030-decoy-lock-v2';
 import { createZombieClimb } from './zombie-climb.js?v=20261030-pursuit-recovery-v1';
-import { createZombieSearch } from './zombie-search.js?v=20261031-search-dispatch-v1';
-import { createZombieSearchMotion } from './zombie-search-motion.js?v=20261030-search-motion-v1';
-import { createGhostReplay } from './ghost-replay.js?v=20261028-compact-hud-v1';
+import { createZombiePursuit } from './zombie-pursuit.js?v=20261031-parkour-v8';
+import { createGhostReplay } from './ghost-replay.js?v=20261031-parkour-v8';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261030-auto-fire-controls-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261031-no-point-lights-v1';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261031-grip-v1';
@@ -452,9 +451,8 @@ Tt.hg = () => {
 installSkillDock();
 const flashbang = window.skyFlashbang = createFlashbang(game);
 window.skyDecoy = createDecoy(game, window.__game);
-window.skyZombieSearch = createZombieSearch(game, window.__game, flashbang);
+window.skyZombieSearch = createZombiePursuit(game, window.__game);
 window.skyZombieClimb = createZombieClimb(game, window.__game, flashbang);
-window.skyZombieSearchMotion = createZombieSearchMotion(game, window.__game, window.skyZombieSearch, flashbang);
 knifeRule?.insertAdjacentHTML('afterend', '<li>高台で追いつけずにいるゾンビは、柱をゆっくり登ってくる。登っている間に撃って落とせる。</li>');
 
 // Knife readability: a white slash streak across the view during the swing,
@@ -2060,11 +2058,9 @@ if (/[?&]perf=1/.test(location.search)) {
   } catch (e) { console.warn('static merge skipped', e); }
 }
 
-// ---- Public equipment and ranking; sight memory is managed by zombie-search. ----
+// ---- Public equipment and ranking; persistent pursuit is installed above. ----
 {
   // 武器12種はURLフラグなしでホーム画面から選べる。
-  // The old unconditional loseSight=0 override must not disable the bounded
-  // sight-memory controller. Its search-duration and noise controls stay usable.
   // The legacy wall-penetrating footstep radius is no longer used.
   for (const key of ['hearR']) {
     const input = document.getElementById('s_' + key);

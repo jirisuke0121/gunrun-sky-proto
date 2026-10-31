@@ -2,7 +2,7 @@ document.body.classList.toggle('presentation',new URLSearchParams(location.searc
 const $ = id => document.getElementById(id), frame = $('game');
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 const round = n => Number(n.toFixed(3));
-const baseline = { easy: 2.5, normal: 3, hard: 3.3, expert: 3.6, master: 3.6, ultra: 4.4 };
+const baseline = { easy: 2.5, normal: 3, hard: 3.3 };
 let result = { kind: 'controlled real-runtime measurement', maps: [] }, busy = false, loadToken = 0;
 function publish() { $('results').textContent = JSON.stringify(result, null, 2); }
 async function load(map) {
@@ -43,7 +43,9 @@ function setup(w, id, phase, before = false) {
   if (before) { p.maxSpeed = baseline[id]; p.startSpeed = p.maxSpeed - 2; p.ramp = 80; }
   let seed = 12345; w.Math.random = () => ((seed = (1664525 * seed + 1013904223) >>> 0) / 4294967296);
   g.setMode('menu');
-  const select = w.document.getElementById('challengeDifficulty'); select.value = id; select.dispatchEvent(new w.Event('change'));
+  const custom = w.document.getElementById('challengeCustom');
+  if (custom.checked !== (id === 'legacy')) custom.click();
+  const select = w.document.getElementById('challengeDifficulty'); if(id !== 'legacy'){select.value = id; select.dispatchEvent(new w.Event('change'));}
   Object.assign(g.S, { sendLog: false, autoFire: false, aimAuto: false, loseSight: false, volume: 0, human: 'existing' });
   g.startGame(); g.calibrationInitialAlive = g.zombies.filter(e => !e.dead).length; clearEnemies(w); g.RL.on = false;
   g.SCR.off = g.PACE.off = g.MARK.off = true; g.GAME.spawnT = 1e9; g.GAME.t = phase;
@@ -110,7 +112,7 @@ async function measure() {
     for (const map of ['index.html', 'canyon.html']) {
       const w = await load(map), q = lane(w), data = { map, inventory: inventory(w.__game), lane: q, flat: [] };
       result.maps.push(data);
-      for (const id of ['easy', 'normal', 'hard', 'expert', 'master', 'ultra']) for (const phase of [0, 60, 100]) for (const before of [true, false]) {
+      for (const id of ['easy', 'normal', 'hard']) for (const phase of [0, 60, 100]) for (const before of [true, false]) {
         $('status').textContent = `${map} ${id} ${phase}秒 ${before ? '前案' : '調整後'}`;
         data.flat.push(flat(w, q, id, phase, before)); publish(); await wait(0);
       }
@@ -190,7 +192,7 @@ function hooks(w) {
   return out;
 }
 function surround(w) {
-  const g = setup(w, 'expert', 80), samples = [];
+  const g = setup(w, 'hard', 80), samples = [];
   const candidates = g.NAV.nodes.filter(q => g.NAV.out[q.id].length >= 3 && w.__skyInternals.oe(q.x, q.y + .05, q.z, .35, 1.8));
   for (let j = 0; j < Math.min(candidates.length, 48); j++) {
     const q = candidates[Math.floor(j * candidates.length / 48)];
@@ -239,7 +241,7 @@ $('caps').addEventListener('click', async () => {
   try {
     for (const map of ['index.html', 'canyon.html']) {
       const w = await load(map), q = lane(w), data = { map, levels: [] }; result.maps.push(data);
-      for (const id of ['easy', 'normal', 'hard', 'expert', 'master', 'ultra']) {
+      for (const id of ['easy', 'normal', 'hard']) {
         const row = { id, phases: [] }; data.levels.push(row);
         for (const phase of [0, 39.99, 40, 59.99, 60, 79.99, 80, 100, 119]) {
           $('status').textContent = `${map} ${id} ${phase}秒 生存上限`;
@@ -287,11 +289,11 @@ $('caps').addEventListener('click', async () => {
 $('capPreview').addEventListener('click', async () => {
   if (busy) return; busy = true;
   try {
-    const w = await load('index.html'), q = lane(w), g = setup(w,'ultra',100);
+    const w = await load('index.html'), q = lane(w), g = setup(w,'hard',100);
     place(g,{x:q.x+q.dx*8,y:q.y,z:q.z+q.dz*8},-q.dx,-q.dz);
     g.postAt(q,99,false,'cap-preview'); g.frameOnce(0);
     const alive = g.zombies.filter(e=>!e.dead).length;
-    $('status').textContent = `Ultra・100秒・生存${alive}体 / 上限${w.skyChallenge.cap(99)}体の確認表示`;
+    $('status').textContent = `ハード・100秒・生存${alive}体 / 上限${w.skyChallenge.cap(99)}体の確認表示`;
   } finally { busy = false; }
 });
 function eliminate(w, q, fall = false) {
@@ -306,7 +308,7 @@ $('score').addEventListener('click', async () => {
   try {
     for (const map of ['index.html', 'canyon.html']) {
       const w = await load(map), q = lane(w), data = { map, levels: [] }; result.maps.push(data);
-      for (const id of ['easy', 'normal', 'hard', 'expert', 'master', 'ultra', 'legacy']) {
+      for (const id of ['easy', 'normal', 'hard', 'legacy']) {
         $('status').textContent = `${map} ${id} 得点`;
         const g = setup(w, id, 30), score = w.skyChallengeScore;
         place(g, { x: q.x + q.dx * 8, y: q.y, z: q.z + q.dz * 8 }, q.dx, q.dz);
@@ -371,7 +373,7 @@ $('scorePerf').addEventListener('click', async () => {
   result = { kind: 'controlled score HUD CPU/DOM work, 1000 unchanged updates; rAF-paced CPU frame submission at 12 live enemies, not physical device FPS', maps: [] }; publish();
   try {
     for (const map of ['index.html', 'canyon.html']) {
-      const w = await load(map), q = lane(w), g = setup(w, 'ultra', 100);
+      const w = await load(map), q = lane(w), g = setup(w, 'hard', 100);
       place(g, { x: q.x + q.dx * 8, y: q.y, z: q.z + q.dz * 8 }, q.dx, q.dz); g.frameOnce(0);
       let mutations = 0;
       const observer = new w.MutationObserver(m => mutations += m.length);
@@ -406,7 +408,7 @@ $('population').addEventListener('click', async () => {
       const w = await load(map), q = lane(w), data = { map, counts: [] }; result.maps.push(data);
       for (const count of [7,10,12]) {
         $('status').textContent = `${map} ${count}体 負荷`;
-        const g = setup(w, 'ultra', 100);
+        const g = setup(w, 'hard', 100);
         place(g, { x: q.x + q.dx * 8, y: q.y, z: q.z + q.dz * 8 }, q.dx, q.dz);
         const nodes = g.NAV.nodes.filter(n => Math.abs(n.y) < .1 && Math.hypot(n.x - g.P.pos.x, n.z - g.P.pos.z) > 9);
         let aiMs = 0, renderMs = 0;

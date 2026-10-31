@@ -41,7 +41,7 @@ jobs:
           else
             npx playwright install --with-deps chromium
           fi
-      - name: Zombie search in both maps
+      - name: Persistent zombie pursuit in both maps
         run: node bench/zombie-search-browser.cjs
       - name: Editor auto-save in desktop and touch browsers
         run: |

@@ -1,5 +1,5 @@
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
-import { MAP_VERSIONS, REPLAY_LIMIT, REPLAY_STEP, REPLAY_STATES, sampleReplay, validateGhost } from './replay-data.js?v=20261026-feedback-v1';
+import { MAP_VERSIONS, REPLAY_LIMIT, REPLAY_STEP, REPLAY_STATES, sampleReplay, validateGhost } from './replay-data.js?v=20261031-parkour-v8';
 
 export function createGhostReplay(game) {
   if(window.skyPracticeMode)return {start(){},finish(){},update(){},snapshot(){return null;},get active(){return null;}};
@@ -65,7 +65,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
   document.getElementById('challengeSettingsNote').before(chip);
   function toggleBest() { showBest = !showBest; syncBest(); }
   function syncBest() {
-    chip.hidden = !best || z.mission || !!active;
+    chip.hidden = !best || z.mission || window.skyChallenge.isIntro || !!active;
     bestLabel.textContent = `ゴースト ベスト ${best?.total ?? 0}点`;
     bestToggle.textContent = showBest ? 'ゴーストを隠す' : 'ゴーストを表示';
     bestToggle.setAttribute('aria-pressed', String(showBest));
@@ -88,7 +88,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     const cut = last && (c.life < last[7] || Math.hypot(c.pos.x - last[1], c.pos.y - last[2], c.pos.z - last[3]) > 6) ? 1 : 0;
     samples.push([t, round(c.pos.x), round(c.pos.y), round(c.pos.z), round(c.yaw), round(c.pitch), Math.max(0, REPLAY_STATES.indexOf(state)), Math.max(0, c.life), cut]);
   }
-  function start() { loadBest(); samples = []; recording = !z.mission; capture(true); }
+  function start() { loadBest(); samples = []; recording = !z.mission && !window.skyChallenge.isIntroRun; capture(true); }
   function snapshot() {
     if (z.mission || !recording) return null;
     capture(true);

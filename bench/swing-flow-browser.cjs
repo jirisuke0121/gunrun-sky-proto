@@ -21,16 +21,16 @@ try{
    g.S.sendLog=false;g.startGame();skySwing.reset();clearEnemies();
    for(const e of N.E)if(e.jamT)e.jamT=0;
    g.SCR.off=g.PACE.off=g.MARK.off=true;g.GAME.spawnT=g.GAME.surgeT=1e9;g.GAME.over=false;g.GAME.t=0;
-   Object.assign(g.S,{sendLog:false,stalkerOn:false,stalker2:false,dropShare:0,autoFire:false,aimAuto:false,loseSight:1});
+   Object.assign(g.S,{sendLog:false,stalkerOn:false,stalker2:false,dropShare:0,autoFire:false,aimAuto:false,loseSight:0});
    Object.keys(g.keys).forEach(k=>g.keys[k]=false);
-   c.pos.set(-20.39,4.0001,-6+offset);c.vel.set(0,0,0);c.state='normal';c.onGround=true;c.h=1.75;c.jumpBuf=0;c.coyote=.15;c.edgeOff=null;c.hookPressed=false;c.catchCD=0;c.life=3;c.invuln=1e9;c.yaw=-Math.PI/2;c.pitch=0;
+   c.pos.set(-20.39,4.0001,-6+offset);c.vel.set(0,0,0);c.state='normal';c.onGround=true;c.h=1.75;c.jumpBuf=0;c.coyote=.15;c.edgeOff=null;c.hookPressed=false;c.catchCD=0;c.life=skyChallenge.maxLives(3);c.invuln=1e9;c.yaw=-Math.PI/2;c.pitch=0;
    c.node=node(c.pos.toArray());g.updateField();
   }
   const tick=()=>{g.advance(dt);if(!c.pos.toArray().every(Number.isFinite))throw Error('nonfinite player');};
   function route({offset=0,yaw=0,angle=.7,waitCycle=false,backward=false,enemy=false,knownTarget=false}={}){
    setup(offset);const bars=new Set(),trail=[];let input=0,landed=false;
    // A separate navigation-only probe retains the original arrival bound.
-   // Normal gameplay must let this real parkour escape break visual contact.
+   // Normal gameplay now keeps pursuing after visual contact breaks.
    if(knownTarget)g.S.loseSight=0;
    if(enemy){
     let from={x:-20,y:4,z:-11};
@@ -44,8 +44,7 @@ try{
     const z=new s.ri(from.x,from.y+.01,from.z);z.spawnT=0;z.rise=null;z.node=node(z.pos.toArray());z.hp=1e6;z.flank=z.dropper=z.stalker=false;z.onGround=true;
     z.yaw=Math.atan2(z.pos.x-c.pos.x,z.pos.z-c.pos.z);s.Jt.push(z);
     if(!knownTarget){
-     // Establish an actual sighted chase before testing whether the parkour
-     // route breaks it. Randomly facing away is an unaware patrol, not escape.
+     // Establish a chase before exercising the route under persistent pursuit.
      z.stun=2;for(let i=0;i<48;i++)tick();z.stun=0;
      if(skyZombieSearch.state(z)?.phase!=='chase')throw Error('Swing escape did not start from a confirmed visual chase');
     }
@@ -101,13 +100,14 @@ try{
     const delta=v.sign.map((x,k)=>x-v.from[k]),length=Math.hypot(...delta),hit=s.raycast(...v.from,...delta.map(x=>x/length),length-.15);
     return{...v,visible:!hit,angle:Math.acos((delta[0]*v.facing[0]+delta[2]*v.facing[1])/Math.hypot(delta[0],delta[2]))};
   });
-  return{cases,mistimed,chase,informedChase,walkEstimate:dist[goal],exit:{from:exitFrom,to:exitTo,ground:exitGround},fallback,visibility,settings:{difficulty:skyChallenge.id,sprint:g.S.sprintSpeed},note:'Synthetic controller: normal visual escape plus a separate known-target navigation arrival probe; not a human fun study.'};
+  return{cases,mistimed,chase,informedChase,walkEstimate:dist[goal],exit:{from:exitFrom,to:exitTo,ground:exitGround},fallback,visibility,settings:{difficulty:skyChallenge.id,sprint:g.S.sprintSpeed},note:'Synthetic controller: persistent pursuit after parkour plus a separate navigation arrival probe; not a human fun study.'};
  });
  fs.mkdirSync('browser-evidence/swing',{recursive:true});fs.writeFileSync('browser-evidence/swing/flow-results.json',JSON.stringify(result,null,2));
  assert.ok(result.cases.every(x=>x.landed),JSON.stringify(result.cases.map(({trail,...r})=>r)));
  assert.ok(result.mistimed.every(x=>!x.landed&&x.input===4&&x.bars.length===1),'early/returning presses must not be corrected into a successful chain');
  assert.ok(Number.isFinite(result.walkEstimate)&&result.walkEstimate-result.cases[0].time>2,'at least two seconds saved against an optimistic walk/climb lower bound (ladder exit overhead omitted)');
- assert.ok(result.chase.landed&&result.chase.caughtAt===null&&result.chase.escapes>0&&result.chase.enemyPath.some(p=>p.awareness==='search')&&result.chase.enemyPath.some(p=>p.awareness==='patrol'),JSON.stringify({...result.chase,trail:undefined}));
+ assert.ok(result.chase.landed&&result.chase.escapes===0&&result.chase.enemyPath.length>1&&result.chase.enemyPath.every(p=>p.awareness==='chase'),JSON.stringify({...result.chase,trail:undefined}));
+ assert.ok(result.chase.caughtAt===null||result.chase.caughtAt>result.chase.time+2,'parkour creates time without ending pursuit');
  assert.ok(result.informedChase.landed&&result.informedChase.caughtAt>result.informedChase.time+2&&result.informedChase.caughtAt<35,JSON.stringify({...result.informedChase,trail:undefined}));
  assert.ok(result.fallback.ground&&result.fallback.lifeBefore===result.fallback.lifeAfter);
  assert.ok(result.visibility.every(v=>v.visible&&v.angle<Math.PI/3.6));

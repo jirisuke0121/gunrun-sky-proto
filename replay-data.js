@@ -21,7 +21,7 @@ export function validateGhost(value, map, duration) {
     if (t <= previous || t < 0 || t > 300 || t > duration + 0.11 ||
         Math.max(Math.abs(x), Math.abs(y), Math.abs(z)) > 10000 || Math.abs(yaw) > 100000 || Math.abs(pitch) > 1.6 ||
         !Number.isInteger(state) || state < 0 || state >= REPLAY_STATES.length ||
-        !Number.isInteger(life) || life < 0 || life > 3 || (cut !== 0 && cut !== 1)) return null;
+        !Number.isInteger(life) || life < 0 || life > 8 || (cut !== 0 && cut !== 1)) return null;
     previous = t;
   }
   return { v: REPLAY_VERSION, map, mapVersion: value.mapVersion, source: 'recorded', samples: value.samples };

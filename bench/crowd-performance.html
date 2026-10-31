@@ -9,4 +9,4 @@ body{margin:0;background:#15232b;color:#edf4f2;font:15px/1.6 system-ui}main{max-
 <label class="controls">GPU時間の計測<select id="gpuProbe"><option value="off">オフ（FPS比較用）</option><option value="on">オン（GPU切り分け用）</option></select></label><button id="stop" disabled>中止</button><p id="status" role="status">待機中</p><iframe id="game" title="密集状態の実ゲーム"></iframe>
 <p class="note">FPSとフレーム間隔はこのMac・ブラウザでの観測値です。CPUの描画命令発行時間とGPU時間は別々に記録します。GPU計測非対応時は空欄。画面内人数不足・背景タブ・サイズ変更・モデル未読込は無効として残します。</p>
 <table><thead><tr><th>条件</th><th>人数</th><th>FPS</th><th>p95間隔 ms</th><th>33.3ms超 %</th><th>CPU p95 ms</th><th>GPU p95 ms</th><th>画面内 最小</th></tr></thead><tbody id="rows"></tbody></table><details><summary>計測データの概要</summary><pre id="result"></pre></details></main>
-<script type="module" src="./crowd-performance.js?v=20261031-fps-v1"></script></html>
+<script type="module" src="./crowd-performance.js?v=20261031-three-v7"></script></html>
