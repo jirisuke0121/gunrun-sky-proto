@@ -152,10 +152,10 @@
     // The roof ladder climbs at (0,-14.54). Its entire shaft stays clear.
     box('north-corner-launch',[-3.4,3.7,-16.7],[.5,4,-15.1]);
     box('south-corner-ledge',[-22,3.9,13],[-15.2,4.2,17.8]);
-    box('north-corner-ledge',[-22,3.9,-17.4],[-15.2,4.2,-13]);
+    // Reserve the entire northbound wall-kick envelope at every height.
+    box('north-corner-ledge',[-24,3.9,-17.4],[-20,4.2,-13]);
     // Small arrival lips stay beyond the ends of the original wall-run faces.
     box('south-corner-arrival-lip',[-15.2,3.9,16.3],[-14.05,4.2,17.8]);
-    box('north-corner-arrival-lip',[-15.2,3.9,-17.4],[-14.05,4.2,-15.1]);
     // Keep the original west-wall run and outward kick corridor free.
     // The inner ledge edge stays 1.2m from the wall; stairs sit 6.6m away.
     // Both corners have a slower walkable return to the existing west street.
@@ -180,7 +180,7 @@
       strut([-21.9,2.6,z],[-20.9,3.9,z]);
     }
     // Suspend the grips from the facade without blocking the body arc.
-    for(const [x,z] of [[-6.7,17],[-6.2,-15.5]])for(const side of [-1,1]) {
+    for(const [x,z] of [[-6.7,17],[-6.2,-15.5],[-11.2,-15.5]])for(const side of [-1,1]) {
       const end=[x,6.8,z+side*1.45],mount=[x,8.4,z+side*1.45];
       strut(end,mount);strut(mount,[x,8.4,z>0?14:-14]);
     }
@@ -240,8 +240,9 @@
       {id:'oldtown-east-bar-3',at:[39.5,9.2,1.5],direction:[1,0],width:2.6,route:'east',exitHint:'外側に着地 → 南屋根のフック / 北の屋上'},
       {id:'oldtown-east-pillar-bar',at:pillarBar,direction:[1/Math.sqrt(5),-2/Math.sqrt(5)],width:2.6,route:'east-pillar',exitHint:'北西の縁へ / 離脱後は逆入力で減速'},
       {id:'oldtown-south-corner-bar',at:[-6.7,6.8,17],direction:[-1,0],width:2.6,route:'south-corner',exitHint:'西の角の縁へ → 既存の屋根フック / 西の通り'},
-      {id:'oldtown-north-corner-bar',at:[-6.2,6.8,-15.5],direction:[-1,0],width:2.6,route:'north-corner',exitHint:'北西の角の縁へ → 西の通り / 屋根フック'},
+      {id:'oldtown-north-corner-bar',at:[-6.2,6.8,-15.5],direction:[-1,0],width:2.6,route:'north-corner',exitHint:'次の鉄棒へ → もう一度ジャンプして北西の縁へ'},
       {id:'oldtown-north-east-bar',at:[15.5,2.8,-10.2],direction:[0,1],width:2.6,route:'north-east-corner',exitHint:'東側の既存通路へ → 右の出入口から建物の中へ'},
+      {id:'oldtown-north-corner-bar-2',at:[-11.2,6.8,-15.5],direction:[-1,0],width:2.6,route:'north-corner',exitHint:'もう一度ジャンプ → 壁ジャンプの外側の縁へ'},
     ];
     const routes=[
       {id:'high',name:'② 北柱→南の空中分岐',approach:[-43.6,14.4,-6.5],pursuitStart:[-45.8,14.4,-6.5],yaw:Math.PI,exit:[-43.6,15,6],
@@ -261,7 +262,7 @@
       {id:'south-corner',name:'⑤ 南の踊り場→鉄棒→西の角',approach:[-2,4,17],yaw:Math.PI/2,exit:[-15.5,4.2,17],
        escape:[[-21.3,4.2,16.4],[-21.3,4.2,13.2],[-21.3,2.1,10.4],[-21.3,0,7.2],[-20,0,-1]],
        returnVia:[-21.3,0,7.2],fallback:[-10,0,16]},
-      {id:'north-corner',name:'⑥ 北バルコニー→鉄棒→北西の角',approach:[2,4,-15.5],yaw:Math.PI/2,exit:[-15.5,4.2,-15.5],
+      {id:'north-corner',name:'⑥ 北バルコニー→鉄棒2本→北西の角',approach:[2,4,-15.5],yaw:Math.PI/2,exit:[-21.3,4.2,-15.5],
        escape:[[-21.3,4.2,-15.5],[-21.3,4.2,-13.3],[-21.3,2.1,-10.4],[-21.3,0,-7.2],[-20,0,-5]],
        returnVia:[-21.3,0,-7.2],fallback:[-10,-3.5,-15.5]},
       {id:'tower-corner',name:'⑦ 東塔の足元→西のフック→既存の梁',approach:[45,0,-13],yaw:Math.PI/2,exit:[36.2,3.4,-16.2],
@@ -281,7 +282,7 @@
         {at:[60.7,3.625,-14.7],direction:[0,1]},
         {at:[12.8,.025,-15.5],direction:[1,0]},{at:[15.5,.025,-14.4],direction:[0,1]},
         {at:[15.5,.025,-3.7],direction:[-1,0]},{at:[15.3,-3.475,-12.5],direction:[1,0]}],
-      instructions:'橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連、左は柱の縁へ。⑤南の踊り場と⑥北バルコニーは西の角の縁へ渡り、西の通りや既存の屋根フックへ。⑦は東塔の足元から西のフックで既存の梁へ、⑧は北の下段から鉄棒で東側通路へ。空中で自動につかみ、前へ振れたらジャンプを押し直す。下入力で離す。',
+      instructions:'橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連、左は柱の縁へ。⑤南の踊り場は鉄棒1本、⑥北バルコニーは鉄棒2本で西の角の縁へ渡り、西の通りや既存の屋根フックへ。⑦は東塔の足元から西のフックで既存の梁へ、⑧は北の下段から鉄棒で東側通路へ。空中で自動につかみ、前へ振れたらジャンプを押し直す。下入力で離す。',
     };
   };
   addEventListener('load',()=>{
