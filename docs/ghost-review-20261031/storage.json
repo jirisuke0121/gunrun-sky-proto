@@ -1,0 +1,12 @@
+{
+  "observedAt": "2026-10-31 18:45 JST",
+  "database": "gunrun-runs",
+  "currentStorageMB": 8.64,
+  "source": "Cloudflare dashboard / D1 / gunrun-runs / Overview",
+  "readOnly": true,
+  "cliMetadataAttempt": "Authentication error 10000; read successfully through existing dashboard session",
+  "d1Pricing": "https://developers.cloudflare.com/d1/platform/pricing/",
+  "d1Limits": "https://developers.cloudflare.com/d1/platform/limits/",
+  "freeSingleDatabaseLimitMB": 500,
+  "planChanged": false
+}

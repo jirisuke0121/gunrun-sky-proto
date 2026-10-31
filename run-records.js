@@ -1,9 +1,14 @@
-import { recordMap } from './replay-data.js?v=20261031-parkour-v8';
+import { recordMap } from './replay-data.js?v=20261031-ghost-scene-v1';
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 
 export const RECORD_ENDPOINT = 'https://gunrun-runs.jirisuke0121.workers.dev';
 const OUTBOX = 'gunrun-run-outbox-v1', HISTORY = 'gunrun-run-history-v1';
 const copy = value => JSON.parse(JSON.stringify(value));
+export function movementOnly(value) {
+  if (!value.ghost?.detail) return value;
+  const { detail, ...ghost } = value.ghost;
+  return { ...value, ghost };
+}
 const timeout = ms => typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function' ? {signal:AbortSignal.timeout(ms)} : {};
 export function resultOnly(a) {
   const keys = ['v','clientRunId','player','at','build','channel','mapVersion','mapKey','map','kind','mission','challenge','reason','t','score','stars','lives','input','screen','_deliveryUncertain'];
@@ -30,7 +35,9 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => crypto
   function persist() {
     try { storage.setItem(OUTBOX, JSON.stringify(queue)); return true; }
     catch {
-      // Preserve results before optional replay/diagnostic detail on quota errors.
+      // Drop combat detail before sacrificing the movement replay or result.
+      const movement = Object.fromEntries(Object.entries(queue).map(([id, a]) => [id, movementOnly(a)]));
+      try { storage.setItem(OUTBOX, JSON.stringify(movement)); Object.assign(queue, movement); return true; } catch {}
       const compact = Object.fromEntries(Object.entries(queue).map(([id,a]) => [id,resultOnly(a)]));
       try { storage.setItem(OUTBOX, JSON.stringify(compact)); Object.assign(queue,compact); return true; } catch { return false; }
     }
@@ -75,14 +82,15 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => crypto
       }
       update(id,{state:'sending',error:null,uncertain:true});
       a._deliveryUncertain = true; persist();
-      let payload = a;
+      let payload = JSON.stringify(a).length > 580000 ? movementOnly(a) : a;
       try {
         let response = await fetcher(endpoint + '/runs', requestOptions(payload));
         let body; try { body = await response.json(); } catch { body = null; }
-        if ((response.status === 400 && body?.error === 'bad_ghost') || response.status === 413) {
-          // Old deployed servers may reject optional replay detail. Never drop
-          // the score with it; an explicit rejection proves no insert occurred.
-          payload = resultOnly(a); queue[id] = payload; persist();
+        for (let attempt = 0; attempt < 2 && ((response.status === 400 && body?.error === 'bad_ghost') || response.status === 413); attempt++) {
+          // An explicit rejection proves no insert occurred. Keep the movement
+          // replay on size errors whenever removing combat detail is enough.
+          const compact = response.status === 413 ? movementOnly(payload) : payload;
+          payload = compact !== payload ? compact : resultOnly(payload); queue[id] = payload; persist();
           response = await fetcher(endpoint + '/runs', requestOptions(payload));
           try { body = await response.json(); } catch { body = null; }
         }

@@ -4,7 +4,7 @@ import { recordMap, replayFromRecord, validateGhost } from '../replay-data.js';
 //   GET  /runs            記録の一覧（要 ADMIN_TOKEN）  ?since=ISO&build=...&limit=200&full=1
 //   GET  /runs/<id>       1件の完全な記録（要 ADMIN_TOKEN）
 //   GET  /ranking         公開ランキング（誰でも）  ?me=<端末ID> で自分の順位も返す
-const MAX_BYTES = 600_000;       // 1プレイの上限（実測は 1.5万〜5万バイト程度）
+const MAX_BYTES = 600_000;       // 移動・任意の戦闘情報・診断を含む1プレイの上限
 const MAX_PER_MINUTE = 20;       // 同じ端末IDからの送信上限
 
 const json = (obj, status = 200, extra = {}) =>
@@ -32,7 +32,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-10-31-parkour-v8", recordProtocol: 2 }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-10-31-ghost-scene-v1", recordProtocol: 2, replayDetail: 1 }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);

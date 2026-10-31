@@ -1,0 +1,306 @@
+[
+  {
+    "touch": false,
+    "map": "index.html",
+    "clicked": true,
+    "clickError": "",
+    "ui": {
+      "width": 1200,
+      "scrollWidth": 1200,
+      "controls": [
+        {
+          "id": "replayClose",
+          "x": 1052.578125,
+          "y": 18,
+          "right": 1178,
+          "bottom": 60,
+          "visible": true
+        },
+        {
+          "id": "replayToggle",
+          "x": 22,
+          "y": 700,
+          "right": 69.859375,
+          "bottom": 742,
+          "visible": true
+        },
+        {
+          "id": "replayRestart",
+          "x": 77.859375,
+          "y": 700,
+          "right": 151.578125,
+          "bottom": 742,
+          "visible": true
+        },
+        {
+          "id": "replaySpeed",
+          "x": 159.578125,
+          "y": 700,
+          "right": 245.578125,
+          "bottom": 742,
+          "visible": true
+        },
+        {
+          "id": "replayView",
+          "x": 253.578125,
+          "y": 700,
+          "right": 343.578125,
+          "bottom": 742,
+          "visible": true
+        },
+        {
+          "id": "replayAudio",
+          "x": 351.578125,
+          "y": 700,
+          "right": 425.296875,
+          "bottom": 742,
+          "visible": true
+        }
+      ],
+      "detail": {
+        "human": true,
+        "actors": 3,
+        "allocatedActors": 3,
+        "audio": {
+          "played": 1,
+          "voices": 0,
+          "buffers": 1
+        }
+      }
+    },
+    "practice": {
+      "ammo": 11,
+      "ghost": null
+    },
+    "errors": [],
+    "posts": 0
+  },
+  {
+    "touch": false,
+    "map": "canyon.html",
+    "clicked": true,
+    "clickError": "",
+    "ui": {
+      "width": 1200,
+      "scrollWidth": 1200,
+      "controls": [
+        {
+          "id": "replayClose",
+          "x": 1052.578125,
+          "y": 18,
+          "right": 1178,
+          "bottom": 60,
+          "visible": true
+        },
+        {
+          "id": "replayToggle",
+          "x": 22,
+          "y": 700,
+          "right": 69.859375,
+          "bottom": 742,
+          "visible": true
+        },
+        {
+          "id": "replayRestart",
+          "x": 77.859375,
+          "y": 700,
+          "right": 151.578125,
+          "bottom": 742,
+          "visible": true
+        },
+        {
+          "id": "replaySpeed",
+          "x": 159.578125,
+          "y": 700,
+          "right": 245.578125,
+          "bottom": 742,
+          "visible": true
+        },
+        {
+          "id": "replayView",
+          "x": 253.578125,
+          "y": 700,
+          "right": 343.578125,
+          "bottom": 742,
+          "visible": true
+        },
+        {
+          "id": "replayAudio",
+          "x": 351.578125,
+          "y": 700,
+          "right": 425.296875,
+          "bottom": 742,
+          "visible": true
+        }
+      ],
+      "detail": {
+        "human": true,
+        "actors": 4,
+        "allocatedActors": 4,
+        "audio": {
+          "played": 1,
+          "voices": 0,
+          "buffers": 1
+        }
+      }
+    },
+    "practice": {
+      "ammo": 11,
+      "ghost": null
+    },
+    "errors": [],
+    "posts": 0
+  },
+  {
+    "touch": true,
+    "map": "index.html",
+    "clicked": true,
+    "clickError": "",
+    "ui": {
+      "width": 844,
+      "scrollWidth": 844,
+      "controls": [
+        {
+          "id": "replayClose",
+          "x": 696.578125,
+          "y": 18,
+          "right": 822,
+          "bottom": 60,
+          "visible": true
+        },
+        {
+          "id": "replayToggle",
+          "x": 22,
+          "y": 330,
+          "right": 69.859375,
+          "bottom": 372,
+          "visible": true
+        },
+        {
+          "id": "replayRestart",
+          "x": 77.859375,
+          "y": 330,
+          "right": 151.578125,
+          "bottom": 372,
+          "visible": true
+        },
+        {
+          "id": "replaySpeed",
+          "x": 159.578125,
+          "y": 330,
+          "right": 245.578125,
+          "bottom": 372,
+          "visible": true
+        },
+        {
+          "id": "replayView",
+          "x": 253.578125,
+          "y": 330,
+          "right": 343.578125,
+          "bottom": 372,
+          "visible": true
+        },
+        {
+          "id": "replayAudio",
+          "x": 351.578125,
+          "y": 330,
+          "right": 425.296875,
+          "bottom": 372,
+          "visible": true
+        }
+      ],
+      "detail": {
+        "human": true,
+        "actors": 3,
+        "allocatedActors": 3,
+        "audio": {
+          "played": 1,
+          "voices": 0,
+          "buffers": 1
+        }
+      }
+    },
+    "practice": {
+      "ammo": 11,
+      "ghost": null
+    },
+    "errors": [],
+    "posts": 0
+  },
+  {
+    "touch": true,
+    "map": "canyon.html",
+    "clicked": true,
+    "clickError": "",
+    "ui": {
+      "width": 844,
+      "scrollWidth": 844,
+      "controls": [
+        {
+          "id": "replayClose",
+          "x": 696.578125,
+          "y": 18,
+          "right": 822,
+          "bottom": 60,
+          "visible": true
+        },
+        {
+          "id": "replayToggle",
+          "x": 22,
+          "y": 330,
+          "right": 69.859375,
+          "bottom": 372,
+          "visible": true
+        },
+        {
+          "id": "replayRestart",
+          "x": 77.859375,
+          "y": 330,
+          "right": 151.578125,
+          "bottom": 372,
+          "visible": true
+        },
+        {
+          "id": "replaySpeed",
+          "x": 159.578125,
+          "y": 330,
+          "right": 245.578125,
+          "bottom": 372,
+          "visible": true
+        },
+        {
+          "id": "replayView",
+          "x": 253.578125,
+          "y": 330,
+          "right": 343.578125,
+          "bottom": 372,
+          "visible": true
+        },
+        {
+          "id": "replayAudio",
+          "x": 351.578125,
+          "y": 330,
+          "right": 425.296875,
+          "bottom": 372,
+          "visible": true
+        }
+      ],
+      "detail": {
+        "human": true,
+        "actors": 4,
+        "allocatedActors": 4,
+        "audio": {
+          "played": 1,
+          "voices": 0,
+          "buffers": 1
+        }
+      }
+    },
+    "practice": {
+      "ammo": 11,
+      "ghost": null
+    },
+    "errors": [],
+    "posts": 0
+  }
+]

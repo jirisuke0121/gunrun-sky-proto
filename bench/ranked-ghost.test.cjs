@@ -13,6 +13,24 @@ const { readFileSync } = require('node:fs');
   const samples = [[0, 0, 0, 0, 3.1, 0, 0, 3, 0], [1, 4, 0, 0, -3.1, 0.5, 7, 3, 0], [2, 30, 5, 0, 0, 0, 1, 2, 1]];
   const ghost = { v: 1, map: 'old-town', mapVersion: 'old-town-beams-20261025', samples };
   assert.ok(validateGhost(ghost, 'old-town', 2));
+  const { sampleEnemies, DETAIL_MAX_BYTES } = await import('../replay-detail.js');
+  const detail = { v: 1, shots: [[.5, 0, 0, 140, 0, 0, 140, -1000]], frames: [[0, [[1, 0, 0, 0, 3100, 0, 1100, 1, 0]]], [1, [[1, 200, 0, 0, -3100, 0, 1100, 1, 500]]]], private: 'never-public' };
+  const detailed = validateGhost({ ...ghost, detail }, 'old-town', 2);
+  assert.ok(detailed.detail);
+  assert.ok(!JSON.stringify(detailed).includes('never-public'), 'public detail uses a fixed allowlist');
+  assert.equal(sampleEnemies(detail.frames, .5)[0][1], 100);
+  assert.ok(Math.abs(Math.abs(sampleEnemies(detail.frames, .5)[0][4] / 1000) - Math.PI) < .001);
+  for (const bad of [
+    { ...detail, shots: [[3, 0, 0, 0, 0, 0, 0, 0]] },
+    { ...detail, frames: [[0, Array(7).fill(detail.frames[0][1][0])]] },
+    { ...detail, shots: [[.5, 0, NaN, 0, 0, 0, 0, 0]] },
+    { ...detail, extra: 'x'.repeat(DETAIL_MAX_BYTES) }
+  ]) {
+    const movement = validateGhost({ ...ghost, detail: bad }, 'old-town', 2);
+    assert.ok(movement, 'bad optional detail must not discard movement');
+    assert.equal(movement.detail, undefined);
+  }
+
   assert.equal(validateGhost(ghost, 'rock-canyon', 2), null);
   assert.equal(validateGhost({ ...ghost, mapVersion: 'old-map' }, 'old-town', 2), null);
   assert.equal(validateGhost({ ...ghost, samples: [samples[0], samples[0]] }, 'old-town', 2), null);
@@ -41,7 +59,7 @@ const { readFileSync } = require('node:fs');
       .run(id, '2026-10-26T00:00:00Z', player, reason, score, data.t, build, JSON.stringify(data));
   };
   add('old-low', 'person-secret-1', 10, { ...legacy, ghost, input: 'touch', settings: { private: true } });
-  add('old-high', 'person-secret-1', 20, { ...legacy, ghost, input: 'touch', settings: { private: true } });
+  add('old-high', 'person-secret-1', 20, { ...legacy, ghost: detailed, input: 'touch', settings: { private: true } });
   add('legacy', 'second-secret-2', 15, legacy);
   add('no-path', 'third-secret-3', 5, { t: 2 });
   add('canyon', 'person-secret-1', 100, { ...legacy, mapVersion: 'rock-canyon-v1' });
@@ -69,6 +87,8 @@ const { readFileSync } = require('node:fs');
   assert.equal(data.score, 20);
   assert.equal(data.playedAt, '2026-10-25T17:23:45.000Z');
   assert.equal(data.ghost.source, 'recorded');
+  assert.deepEqual(data.ghost.detail, detailed.detail);
+  assert.ok(!JSON.stringify(data).includes('never-public'));
   assert.deepEqual(Object.keys(data).sort(), ['ghost', 'playedAt', 'score', 'tag']);
   assert.ok(!JSON.stringify(data).includes('person-secret'));
   assert.equal((await request('/ghosts/old-low?map=old-town')).status, 404, 'only the exact ranking run is public');

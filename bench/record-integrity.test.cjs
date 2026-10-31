@@ -28,6 +28,16 @@ const {DatabaseSync}=require('node:sqlite');
  records=createRunRecords({storage:disk,fetcher:async(url,options)=>{if(options?.method==='POST'){posts++;bodies.push(JSON.parse(options.body));if(posts===1)return Response.json({error:'bad_ghost'},{status:400})}return request(url,options)}});
  a=run({ghost:{broken:true}});await records.submit(a);assert.equal(posts,2);assert.equal(bodies[1].ghost,null);assert.equal(bodies[1].score.total,396);assert.equal(records.history[0].state,'saved');
  const bad=await request('https://fixture/runs',{method:'POST',body:JSON.stringify({...run({ghost:{broken:true}}),player:'replay-error'})});assert.equal(bad.status,200);assert.equal((await bad.json()).receipt.replay,false);
+ // A 413 drops combat detail first, preserving the playable movement replay.
+ disk=storage();posts=0;const sized=[];
+ const movement={v:1,map:'old-town',mapVersion:'old-town-beams-20261025',samples:[[0,0,0,0,0,0,0,3,0],[1,1,0,0,0,0,0,3,0]]};
+ records=createRunRecords({storage:disk,fetcher:async(url,options)=>{if(options?.method==='POST'){posts++;sized.push(JSON.parse(options.body));if(posts===1)return Response.json({error:'too_large'},{status:413})}return request(url,options)}});
+ await records.submit(run({ghost:{...movement,detail:{v:1,shots:[],frames:[]}}}));
+ assert.equal(posts,2);assert.deepEqual(sized[1].ghost,movement);assert.equal(records.history[0].state,'saved');
+ // A quota-limited outbox also retains the movement before dropping it.
+ disk=storage();const saveMovement=disk.setItem;disk.setItem=(k,v)=>{if(v.length>1500)throw Error('quota');saveMovement(k,v)};
+ records=createRunRecords({storage:disk,fetcher:async()=>{throw Error('offline')}});a=run({ghost:{...movement,detail:{v:1,shots:[],frames:[],large:'x'.repeat(5000)}}});await records.submit(a);
+ assert.deepEqual(JSON.parse(disk.values.get('gunrun-run-outbox-v1'))[a.clientRunId].ghost,movement);
  // Sending off still records a local result, with no network transmission.
  disk=storage();let calls=0;records=createRunRecords({storage:disk,allowed:()=>false,fetcher:()=>{calls++;throw Error('must not send')}});await records.submit(run());assert.equal(calls,0);assert.equal(records.history[0].state,'excluded');assert.equal(records.pending,0);
  // Storage quota failure strips optional detail before ever losing a result.

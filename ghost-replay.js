@@ -1,5 +1,8 @@
+import { createDetailRecorder } from './replay-detail.js?v=20261031-ghost-scene-v1';
+import { createReplayScene } from './replay-scene.js?v=20261031-ghost-scene-v1';
+import { createReplayAudio } from './replay-audio.js?v=20261031-ghost-scene-v1';
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
-import { MAP_VERSIONS, REPLAY_LIMIT, REPLAY_STEP, REPLAY_STATES, sampleReplay, validateGhost } from './replay-data.js?v=20261031-parkour-v8';
+import { MAP_VERSIONS, REPLAY_LIMIT, REPLAY_STEP, REPLAY_STATES, sampleReplay, validateGhost } from './replay-data.js?v=20261031-ghost-scene-v1';
 
 export function createGhostReplay(game) {
   if(window.skyPracticeMode)return {start(){},finish(){},update(){},snapshot(){return null;},get active(){return null;}};
@@ -75,10 +78,13 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
   overlay.id = 'ghostReplay'; overlay.hidden = true; overlay.setAttribute('aria-label', 'ゴースト閲覧');
   overlay.innerHTML = `<div class="replay-panel replay-top"><h2 id="replayTitle">ゴースト</h2><button id="replayClose" type="button">ランキングに戻る</button><p id="replayDate"></p></div>
 <div class="replay-panel replay-bottom"><p id="replayNote" role="status"></p><input id="replaySeek" aria-label="再生位置" type="range" min="0" max="1" step="0.01" value="0">
-<div class="replay-controls"><button id="replayToggle" type="button">一時停止</button><button id="replayRestart" type="button">最初から</button><select id="replaySpeed" aria-label="再生速度"><option value="0.5">0.5倍速</option><option value="1" selected>1倍速</option><option value="2">2倍速</option></select><select id="replayView" aria-label="再生視点"><option value="follow">追従視点</option><option value="first">本人視点</option></select><output id="replayClock"></output></div></div>`;
+<div class="replay-controls"><button id="replayToggle" type="button">一時停止</button><button id="replayRestart" type="button">最初から</button><select id="replaySpeed" aria-label="再生速度"><option value="0.5">0.5倍速</option><option value="1" selected>1倍速</option><option value="2">2倍速</option></select><select id="replayView" aria-label="再生視点"><option value="follow">追従視点</option><option value="first">本人視点</option></select><button id="replayAudio" type="button" aria-pressed="true">銃声オン</button><output id="replayClock"></output></div></div>`;
   document.body.append(overlay);
   const el = id => overlay.querySelector('#' + id);
-  const controls = ['replaySeek', 'replayToggle', 'replayRestart', 'replaySpeed', 'replayView'].map(el);
+  const controls = ['replaySeek', 'replayToggle', 'replayRestart', 'replaySpeed', 'replayView', 'replayAudio'].map(el);
+  const detailRecorder = createDetailRecorder(game);
+  const scene = createReplayScene({ ...game, sampleReplay }, avatar);
+  const audio = createReplayAudio(game);
   const round = n => Math.round(n * 1000) / 1000;
   function capture(force = false) {
     if (!recording || z.mission || active || samples.length >= REPLAY_LIMIT) return;
@@ -87,13 +93,14 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     const state = c.state === 'normal' ? (c.onGround ? 'run' : 'air') : c.state === 'ledge' ? c.ledge?.kind || 'vault' : c.state === 'swing' ? 'air' : c.state;
     const cut = last && (c.life < last[7] || Math.hypot(c.pos.x - last[1], c.pos.y - last[2], c.pos.z - last[3]) > 6) ? 1 : 0;
     samples.push([t, round(c.pos.x), round(c.pos.y), round(c.pos.z), round(c.yaw), round(c.pitch), Math.max(0, REPLAY_STATES.indexOf(state)), Math.max(0, c.life), cut]);
+    detailRecorder.capture(force);
   }
-  function start() { loadBest(); samples = []; recording = !z.mission && !window.skyChallenge.isIntroRun; capture(true); }
+  function start() { loadBest(); samples = []; detailRecorder.reset(); recording = !z.mission && !window.skyChallenge.isIntroRun; capture(true); }
   function snapshot() {
     if (z.mission || !recording) return null;
     capture(true);
-    const ghost = validateGhost({ v: 1, map, mapVersion, samples }, map, z.t);
-    return ghost ? { ...ghost, samples: ghost.samples.map(row => row.slice()) } : null;
+    const ghost = validateGhost({ v: 1, map, mapVersion, samples, detail: detailRecorder.snapshot() }, map, z.t);
+    return ghost ? JSON.parse(JSON.stringify(ghost)) : null;
   }
   function finish() {
     const ghost = snapshot();
@@ -116,7 +123,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
   function close() {
     ++fetchToken;
     if (!active) return;
-    const saved = active.saved; active = null;
+    const saved = active.saved; active = null; audio.close(); scene.hide();
     document.body.classList.remove('sky-replaying'); window.dispatchEvent(new Event('resize')); overlay.hidden = true; avatar.visible = false;
     U.showBody = saved.showBody; game.U.volume = saved.volume; game.Ut.master?.gain.setValueAtTime(saved.volume, game.Ut.ctx.currentTime);
     c.pos.copy(saved.position); c.yaw = saved.yaw; c.pitch = saved.pitch;
@@ -129,6 +136,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     const token = ++fetchToken;
     const visibility = game.Jt.flatMap(zombie => [zombie.m?.root, zombie.pool].filter(Boolean)).map(object => [object, object.visible]);
     active = { saved: { mode: game.modeRef(), showBody: U.showBody, volume: U.volume, position: c.pos.clone(), yaw: c.yaw, pitch: c.pitch, fov: camera.fov, visibility, focus: button }, ghost: null, time: 0, paused: false };
+    game.initAudio?.();
     game.An('replay'); document.exitPointerLock?.(); U.showBody = false;
     U.volume = 0; game.Ut.master?.gain.setValueAtTime(0, game.Ut.ctx.currentTime);
     for (const [object] of visibility) object.visible = false;
@@ -142,22 +150,34 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
       if (token !== fetchToken || !active) return;
       if (data.ghost?.map !== map || (data.ghost.source !== 'legacy-trail' && !validateGhost(data.ghost, map, 300))) throw new Error('incompatible');
       if (!Array.isArray(data.ghost.samples) || data.ghost.samples.length < 2) throw new Error('empty');
+      if (data.ghost.source !== 'legacy-trail') data.ghost = validateGhost(data.ghost, map, 300);
+      await audio.prepare(data.ghost.detail?.shots || [], active.saved.volume);
+      if (token !== fetchToken || !active) return;
       active.ghost = data.ghost; active.time = data.ghost.samples[0][0];
       el('replayTitle').textContent = `${data.tag} のゴースト · ${data.score}点`;
       el('replayDate').textContent = `記録 ${formatReplayTime(data.playedAt)}${data.playedAt ? '（日本時間）' : ''}`;
-      el('replayNote').textContent = data.ghost.source === 'legacy-trail' ? '旧記録：1秒間隔の軌跡からの再生です。動き・向きは目安で、敵は再現しません。' : '記録した移動・視点を再生します。敵は再現しません。';
+      el('replayNote').textContent = data.ghost.source === 'legacy-trail' ? '旧記録：1秒間隔のおおまかな軌跡です。発砲・敵の記録はありません。人間の動作は近似です。' : data.ghost.detail ? `移動・視点・発砲と近くの敵（最大6体）を再生します。人間の動作と敵の補間は近似です。${data.ghost.detail.shotsComplete ? '' : '発砲は一部のみ記録されています。'}` : '移動・視点を再生します。この記録には発砲・敵の情報がありません。人間の動作は近似です。';
       el('replayView').querySelector('[value="first"]').disabled = data.ghost.source === 'legacy-trail';
       el('replayView').value = 'follow'; el('replaySpeed').value = '1';
       el('replaySeek').min = active.time; el('replaySeek').max = data.ghost.samples.at(-1)[0];
       el('replayToggle').textContent = '一時停止'; controls.forEach(control => { control.disabled = false; });
+      el('replayAudio').disabled = !data.ghost.detail?.shots.length;
+      syncAudio();
     } catch {
       if (token === fetchToken && active) el('replayNote').textContent = 'この記録のゴーストを読み込めませんでした。ランキングに戻って選び直してください。';
     }
   }
+  function syncAudio() {
+    const hasShots = !!active?.ghost?.detail?.shots.length;
+    el('replayAudio').textContent = !hasShots ? active?.ghost?.detail ? '発砲なし' : '銃声の記録なし' : audio.muted ? '銃声オフ' : '銃声オン';
+    el('replayAudio').setAttribute('aria-pressed', String(hasShots && !audio.muted));
+  }
+  el('replayAudio').addEventListener('click', () => { audio.toggle(); syncAudio(); });
+  el('replaySpeed').addEventListener('change', () => audio.stop());
   el('replayClose').addEventListener('click', close);
   el('replayToggle').addEventListener('click', () => { if (active) { active.paused = !active.paused; update(0); } });
-  el('replayRestart').addEventListener('click', () => { if (active?.ghost) { active.time = active.ghost.samples[0][0]; active.paused = false; update(0); } });
-  el('replaySeek').addEventListener('input', event => { if (active?.ghost) { active.time = Number(event.target.value); update(0); } });
+  el('replayRestart').addEventListener('click', () => { if (active?.ghost) { active.time = active.ghost.samples[0][0]; audio.seek(active.ghost.detail?.shots || [], active.time - .001); active.paused = false; update(0); } });
+  el('replaySeek').addEventListener('input', event => { if (active?.ghost) { active.time = Number(event.target.value); audio.seek(active.ghost.detail?.shots || [], active.time); update(0); } });
   el('replayView').addEventListener('change', () => update(0));
   document.addEventListener('keydown', event => {
     if (active && event.code === 'Escape') { event.preventDefault(); close(); }
@@ -172,6 +192,8 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
       if (active.time >= end) active.paused = true;
       const pose = sampleReplay(path, active.time); poseAvatar(pose);
       const first = el('replayView').value === 'first'; avatar.visible = !first;
+      scene.update(active.ghost, active.time, pose, first);
+      audio.update(active.ghost.detail?.shots || [], active.time, !active.paused);
       camera.fov = 75; camera.updateProjectionMatrix();
       if (first) { camera.position.set(pose[1], pose[2] + (pose[6] === 2 ? 0.86 : 1.62), pose[3]); camera.rotation.set(pose[5], pose[4], 0, 'YXZ'); }
       else {
@@ -193,5 +215,8 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     const pose = sampleReplay(best.ghost.samples, z.t); poseAvatar(pose);
     avatar.visible = Math.hypot(pose[1] - c.pos.x, pose[2] - c.pos.y, pose[3] - c.pos.z) > 1.2;
   }
-  return { start, snapshot, finish, update, open, close, get active() { return active; }, get samples() { return samples; }, get best() { return best; }, ghost: avatar };
+  function recordShot(origin, target, weapon) {
+    if (recording && !active && !z.over && !z.mission && game.modeRef() === 'play') detailRecorder.shot(origin, target, weapon);
+  }
+  return { start, snapshot, finish, update, open, close, recordShot, get detailStats() { return { ...scene.stats, audio: audio.stats }; }, get active() { return active; }, get samples() { return samples; }, get best() { return best; }, ghost: avatar };
 }

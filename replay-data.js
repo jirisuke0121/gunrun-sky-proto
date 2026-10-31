@@ -1,3 +1,4 @@
+import { validateReplayDetail } from './replay-detail.js?v=20261031-ghost-scene-v1';
 // Shared by the recorder, viewer and Worker. Samples use recorded positions;
 // playback never re-runs physics or interpolates across a respawn.
 export const REPLAY_VERSION = 1;
@@ -24,7 +25,8 @@ export function validateGhost(value, map, duration) {
         !Number.isInteger(life) || life < 0 || life > 8 || (cut !== 0 && cut !== 1)) return null;
     previous = t;
   }
-  return { v: REPLAY_VERSION, map, mapVersion: value.mapVersion, source: 'recorded', samples: value.samples };
+  const detail = validateReplayDetail(value.detail, duration);
+  return { v: REPLAY_VERSION, map, mapVersion: value.mapVersion, source: 'recorded', samples: value.samples, ...(detail ? { detail } : {}) };
 }
 
 export function replayFromRecord(record) {

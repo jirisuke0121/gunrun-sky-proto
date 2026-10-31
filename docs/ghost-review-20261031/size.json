@@ -1,0 +1,34 @@
+[
+  {
+    "duration": 120,
+    "actors": 6,
+    "shotCadenceSeconds": 0.2,
+    "shots": 601,
+    "shotsComplete": true,
+    "enemyFrames": 241,
+    "firstFrame": 0,
+    "lastFrame": 120,
+    "movementBytes": 97472,
+    "detailBytes": 77488,
+    "totalBytes": 174970,
+    "detailGzipBytes": 17815,
+    "captureMeanMs": 0.0004014550756839107,
+    "captureP95Ms": 0.0020419999999958804
+  },
+  {
+    "duration": 300,
+    "actors": 6,
+    "shotCadenceSeconds": 0.2,
+    "shots": 1501,
+    "shotsComplete": true,
+    "enemyFrames": 151,
+    "firstFrame": 0,
+    "lastFrame": 300,
+    "movementBytes": 246117,
+    "detailBytes": 91712,
+    "totalBytes": 337839,
+    "detailGzipBytes": 20434,
+    "captureMeanMs": 0.00025392750402754055,
+    "captureP95Ms": 0.0002080000000006521
+  }
+]

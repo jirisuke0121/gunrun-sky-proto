@@ -1,0 +1,16 @@
+[
+  {
+    "detail": false,
+    "records": 300,
+    "recordBytes": 82116,
+    "rankingMeanMs": 29.161929299999986,
+    "rankingP95Ms": 29.50204199999996
+  },
+  {
+    "detail": true,
+    "records": 300,
+    "recordBytes": 136405,
+    "rankingMeanMs": 41.22184169999997,
+    "rankingP95Ms": 41.545708000000104
+  }
+]
