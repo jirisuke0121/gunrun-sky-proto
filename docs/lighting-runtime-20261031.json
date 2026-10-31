@@ -1,0 +1,1813 @@
+{
+  "date": "2026-10-31",
+  "approvedLighting": {
+    "pointLightCameraLayers": 0,
+    "outdoorHemisphereIntensity": 2,
+    "indoorHemisphereIntensity": 5,
+    "indoorBlend": "Existing room volumes and exp(-dt*6) smoothing; no new triggers or geometry."
+  },
+  "beforeLighting": {
+    "localCommit": "cce621e04ced398ca5fe9d01a64bff927b24daa7",
+    "githubEquivalentCommit": "1d0f39e9605c1530e6bfe3f90ed49b8f690d324a",
+    "tree": "88df65e86604b1f2ab18fd4ba071d2b6cd6a395a"
+  },
+  "sourceHashes": {
+    "index.html": "bba98867436e96dfcf24eb9579943a5d8cb4249eb7c2d65a16d1826e9f1763ff",
+    "canyon.html": "3686f3bf2cc0b1539c99522038fa4f4a91e57518187a76230b8b207b32189657",
+    "enhancements.js": "1385e08cb1b26f3c817ce0313cbab24b86f62def1b3162a2e7e7d6d1543f616b",
+    "flashbang.js": "74d6ae03bf52782e311567675cdb68e5a196e3f0fe578b892d5718354c8fa93e",
+    "unity-explosion-fx.js": "3330ca6f30aa582253ac81a0ab7b4491252f10a033f3bd494b2f25c1379addcf",
+    "blast-barrels.js": "5de8390daf6b1a2e37503d49049fd6e5ce4babc1d8509b3a403b5a22ab524ef4",
+    "render-quality.js": "36b9bcde59eeeea8b8bd6452d31ce3f1d524b0da9db44c5a9f7f7bb9cfc7892c",
+    "human-view.js": "c734ce964cbf52a7aff190bc4b28ae0d0a4758603e83c2f1003429fb79bf2738",
+    "human-aim.js": "786d5c4cbb39932cdc8082673a18bb53c1a252ac00de0b5aaf9241a57725d478",
+    "old-town-swing.js": "138dc0be29a30e31624f787685f0526fe4caed767764084875ace2c7fbe8f7dc",
+    "town-heights.js": "5c1d323045b7a356ce9917161b656de9b71678b125cb665ff7568311053a0324"
+  },
+  "manualRuntimeChecks": [
+    {
+      "map": "index.html",
+      "case": "outside-before-entry",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 34,
+        "activePointLightsForCamera": 25,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -16,
+        0.0001,
+        0
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 9,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": null,
+      "meshSignature": "3e03ca23073d53a5ac60afd569ead6ddc9d6247ba86f63afe5c8d12b25ed9efb"
+    },
+    {
+      "map": "index.html",
+      "case": "inside-after-walk",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 34,
+        "activePointLightsForCamera": 26,
+        "ambient": [
+          2.5999999962847715
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          4.999999981423857
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -11.3201,
+        0.0001,
+        -7.284097107428494e-16
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 9,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": [
+        {
+          "frame": 0,
+          "position": [
+            -15.970833333333333,
+            0.0001,
+            -1.7859432487565568e-18
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "position": [
+            -15.004166666666654,
+            0.0001,
+            -6.097720520754529e-17
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 20,
+          "position": [
+            -14.00416666666664,
+            0.0001,
+            -1.2220954516491305e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 30,
+          "position": [
+            -13.344266666666659,
+            0.0001,
+            -1.8344188512228082e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              3.8963616764856734
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 40,
+          "position": [
+            -12.344266666666645,
+            0.0001,
+            -2.446742250796486e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              4.593994150290163
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 50,
+          "position": [
+            -11.34426666666663,
+            0.0001,
+            -3.0590656503701636e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              4.850638794896408
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 60,
+          "position": [
+            -11.3201,
+            0.0001,
+            -3.6713890499438413e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              4.945053083333798
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 70,
+          "position": [
+            -11.3201,
+            0.0001,
+            -4.283712449517519e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              4.979786159002744
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 80,
+          "position": [
+            -11.3201,
+            0.0001,
+            -4.896035849091189e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              4.992563743470001
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 90,
+          "position": [
+            -11.3201,
+            0.0001,
+            -5.508359248664857e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              4.997264354103336
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 100,
+          "position": [
+            -11.3201,
+            0.0001,
+            -6.120682648238525e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              4.998993612116292
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 110,
+          "position": [
+            -11.3201,
+            0.0001,
+            -6.733006047812193e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              4.99962977058774
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        }
+      ],
+      "meshSignature": "616269cd29f538642e5c46812094f6e77abb47498e96da52dd7cc81cf6d1232d"
+    },
+    {
+      "map": "index.html",
+      "case": "outside-after-walk",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 34,
+        "activePointLightsForCamera": 26,
+        "ambient": [
+          2.0000000005028014
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2.0000000025140077
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -23.6799,
+        0.0001,
+        1.1128297427919254e-16
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 9,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": [
+        {
+          "frame": 0,
+          "position": [
+            -11.349266666666667,
+            0.0001,
+            -7.266237674940928e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              4.999999983191611
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "position": [
+            -12.245322222222212,
+            0.0001,
+            -6.717561890956266e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              4.999999993816539
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 20,
+          "position": [
+            -13.0599,
+            0.0001,
+            -6.154224363348477e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              4.999999997725231
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 30,
+          "position": [
+            -13.893122222222214,
+            0.0001,
+            -5.590886835740689e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              4.999999999163159
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 40,
+          "position": [
+            -14.813122222222201,
+            0.0001,
+            -5.0275493081329e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              3.1036383232064697
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 50,
+          "position": [
+            -15.733122222222189,
+            0.0001,
+            -4.464211780525111e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2.4060058495965837
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 60,
+          "position": [
+            -16.653122222222176,
+            0.0001,
+            -3.9008742529173325e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2.1493612050619277
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 70,
+          "position": [
+            -17.573122222222164,
+            0.0001,
+            -3.3375367253095537e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2.0549469166508754
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 80,
+          "position": [
+            -18.49312222222215,
+            0.0001,
+            -2.774199197701775e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2.0202138409916177
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 90,
+          "position": [
+            -19.41312222222214,
+            0.0001,
+            -2.210861670093996e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2.007436256527925
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 100,
+          "position": [
+            -20.333122222222126,
+            0.0001,
+            -1.6475241424862123e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2.0027356458959003
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 110,
+          "position": [
+            -21.253122222222114,
+            0.0001,
+            -1.0841866148784286e-16
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2.001006387883427
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 120,
+          "position": [
+            -22.1731222222221,
+            0.0001,
+            -5.20849087270645e-17
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2.0003702294121566
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 130,
+          "position": [
+            -23.09312222222209,
+            0.0001,
+            4.248844033713746e-18
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2.0001361997892495
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        },
+        {
+          "frame": 140,
+          "position": [
+            -23.6799,
+            0.0001,
+            6.0582596794492e-17
+          ],
+          "lighting": {
+            "pointObjects": 34,
+            "pointLightsForCamera": 0,
+            "activePointLightsForCamera": 0,
+            "ambient": [
+              2.000050105102357
+            ],
+            "pointMasks": [
+              0
+            ]
+          }
+        }
+      ],
+      "meshSignature": "82a3dbb130fe8af3dbc6b6b54f8240c76947ff00acc022ee4aa1ec1b16a500c9"
+    },
+    {
+      "map": "index.html",
+      "case": "quality-performance",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 34,
+        "activePointLightsForCamera": 26,
+        "ambient": [
+          2.0000000005028014
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2.0000000025140077
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -23.6799,
+        0.0001,
+        1.1128297427919254e-16
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 9,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": null,
+      "meshSignature": "82a3dbb130fe8af3dbc6b6b54f8240c76947ff00acc022ee4aa1ec1b16a500c9"
+    },
+    {
+      "map": "index.html",
+      "case": "quality-balanced",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 34,
+        "activePointLightsForCamera": 26,
+        "ambient": [
+          2.0000000005028014
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2.0000000025140077
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -23.6799,
+        0.0001,
+        1.1128297427919254e-16
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 9,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": null,
+      "meshSignature": "82a3dbb130fe8af3dbc6b6b54f8240c76947ff00acc022ee4aa1ec1b16a500c9"
+    },
+    {
+      "map": "index.html",
+      "case": "quality-high",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 34,
+        "activePointLightsForCamera": 26,
+        "ambient": [
+          2.0000000005028014
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2.0000000025140077
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -23.6799,
+        0.0001,
+        1.1128297427919254e-16
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 9,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": null,
+      "meshSignature": "82a3dbb130fe8af3dbc6b6b54f8240c76947ff00acc022ee4aa1ec1b16a500c9"
+    },
+    {
+      "map": "index.html",
+      "case": "quality-performance",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 34,
+        "activePointLightsForCamera": 26,
+        "ambient": [
+          2.0000000005028014
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2.0000000025140077
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -23.6799,
+        0.0001,
+        1.1128297427919254e-16
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 9,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": null,
+      "meshSignature": "82a3dbb130fe8af3dbc6b6b54f8240c76947ff00acc022ee4aa1ec1b16a500c9"
+    },
+    {
+      "map": "index.html",
+      "case": "hg-shot",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 34,
+        "activePointLightsForCamera": 27,
+        "ambient": [
+          2.000000000000062
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2.0000000000003104
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -32,
+        0.0001,
+        10
+      ],
+      "stats": {
+        "shots": 1,
+        "hits": 1
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 9,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": null,
+      "meshSignature": "c2a3d79ccbc247bb2b921b2a3ce929b9762b975388450e561a41f3a2f3f09182"
+    },
+    {
+      "map": "index.html",
+      "case": "flashbang-burst",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 34,
+        "activePointLightsForCamera": 27,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -32,
+        0.0001,
+        10
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 17,
+      "flashbang": {
+        "charges": 0,
+        "thrown": 1,
+        "detonated": 1,
+        "affected": 1
+      },
+      "transition": null,
+      "meshSignature": "7767b597701643e54d0080e90d8464e21300bcd4274cb63d3f9b255a8bb8f3ac"
+    },
+    {
+      "map": "index.html",
+      "case": "rocket-explosion",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 34,
+        "activePointLightsForCamera": 27,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -32,
+        0.0001,
+        10
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 24,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 1,
+        "detonated": 1,
+        "affected": 1
+      },
+      "transition": null,
+      "meshSignature": "a80c6825777039279f208990ec8ecbfc56ebf0afc0d66190c8c6c0705329c79c"
+    },
+    {
+      "map": "index.html",
+      "case": "barrel-explosion",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 34,
+        "activePointLightsForCamera": 26,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 34,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -48,
+        1.131,
+        7.2
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 1,
+      "blastLaunches": 1,
+      "visibleEffectSprites": 26,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 1,
+        "detonated": 1,
+        "affected": 1
+      },
+      "transition": null,
+      "meshSignature": "49622b6b5027e3b3b26771fa0895ee65f1a4bd56d0ad53d35d83e63fd93ec03d"
+    },
+    {
+      "map": "canyon.html",
+      "case": "canyon-outdoor",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 9,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -30,
+        0.0001,
+        -20
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 15,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": null,
+      "meshSignature": "0b328e9e7502e9b2f0dbb68c635fa6131a9e4c140a3ec88fc735bd82e9387171"
+    },
+    {
+      "map": "canyon.html",
+      "case": "quality-performance",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 9,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -30,
+        0.0001,
+        -20
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 15,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": null,
+      "meshSignature": "0b328e9e7502e9b2f0dbb68c635fa6131a9e4c140a3ec88fc735bd82e9387171"
+    },
+    {
+      "map": "canyon.html",
+      "case": "quality-balanced",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 9,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -30,
+        0.0001,
+        -20
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 15,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": null,
+      "meshSignature": "0b328e9e7502e9b2f0dbb68c635fa6131a9e4c140a3ec88fc735bd82e9387171"
+    },
+    {
+      "map": "canyon.html",
+      "case": "quality-high",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 9,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -30,
+        0.0001,
+        -20
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 15,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": null,
+      "meshSignature": "0b328e9e7502e9b2f0dbb68c635fa6131a9e4c140a3ec88fc735bd82e9387171"
+    },
+    {
+      "map": "canyon.html",
+      "case": "quality-performance",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 9,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -30,
+        0.0001,
+        -20
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 15,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": null,
+      "meshSignature": "0b328e9e7502e9b2f0dbb68c635fa6131a9e4c140a3ec88fc735bd82e9387171"
+    },
+    {
+      "map": "canyon.html",
+      "case": "hg-shot",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 9,
+        "activePointLightsForCamera": 1,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -30,
+        0.0001,
+        -20
+      ],
+      "stats": {
+        "shots": 1,
+        "hits": 1
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 15,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "transition": null,
+      "meshSignature": "513609d593da9f7c4098382c1d4ebb1dd31e4fd8272ccb0aa52a45f7d6e08a41"
+    },
+    {
+      "map": "canyon.html",
+      "case": "flashbang-burst",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 9,
+        "activePointLightsForCamera": 1,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -30,
+        0.0001,
+        -20
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 23,
+      "flashbang": {
+        "charges": 0,
+        "thrown": 1,
+        "detonated": 1,
+        "affected": 1
+      },
+      "transition": null,
+      "meshSignature": "7767b597701643e54d0080e90d8464e21300bcd4274cb63d3f9b255a8bb8f3ac"
+    },
+    {
+      "map": "canyon.html",
+      "case": "rocket-explosion",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 9,
+        "activePointLightsForCamera": 1,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -30,
+        0.0001,
+        -20
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 0,
+      "blastLaunches": 0,
+      "visibleEffectSprites": 30,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 1,
+        "detonated": 1,
+        "affected": 1
+      },
+      "transition": null,
+      "meshSignature": "a80c6825777039279f208990ec8ecbfc56ebf0afc0d66190c8c6c0705329c79c"
+    },
+    {
+      "map": "canyon.html",
+      "case": "barrel-explosion",
+      "equalBeforeAfter": {
+        "label": true,
+        "state": true,
+        "grounded": true,
+        "position": true,
+        "life": true,
+        "stats": true,
+        "meshes": true,
+        "human": true,
+        "blasts": true,
+        "blastLaunches": true,
+        "accepted": true
+      },
+      "beforeLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 9,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          1
+        ]
+      },
+      "afterLighting": {
+        "pointObjects": 9,
+        "pointLightsForCamera": 0,
+        "activePointLightsForCamera": 0,
+        "ambient": [
+          2
+        ],
+        "pointMasks": [
+          0
+        ]
+      },
+      "playerPosition": [
+        -15.2,
+        1.131,
+        -7
+      ],
+      "stats": {
+        "shots": 0,
+        "hits": 0
+      },
+      "blasts": 1,
+      "blastLaunches": 1,
+      "visibleEffectSprites": 32,
+      "flashbang": {
+        "charges": 1,
+        "thrown": 1,
+        "detonated": 1,
+        "affected": 1
+      },
+      "transition": null,
+      "meshSignature": "7fb8a02992566773747e0f6bd11b26030760c1da6674f7c85de58b75fe65c8d8"
+    }
+  ],
+  "actualCaptureStates": [
+    {
+      "view": {
+        "id": "outdoor",
+        "label": "屋外：点光源なし・環境光2",
+        "player": [
+          -32,
+          0.015,
+          10
+        ],
+        "benchmark": true
+      },
+      "ambient": [
+        2
+      ],
+      "pointObjects": 34,
+      "pointLightsForCamera": 0,
+      "position": [
+        -32,
+        0.0001,
+        10
+      ]
+    },
+    {
+      "view": {
+        "id": "indoor",
+        "label": "屋内：点光源なし・環境光5",
+        "player": [
+          -12,
+          0.015,
+          2
+        ],
+        "camera": [
+          -12,
+          1.7,
+          1
+        ],
+        "target": [
+          -12,
+          1.7,
+          -9
+        ]
+      },
+      "ambient": [
+        4.999999082293038
+      ],
+      "pointObjects": 34,
+      "pointLightsForCamera": 0,
+      "position": [
+        -12,
+        0.0001,
+        2
+      ]
+    },
+    {
+      "view": {
+        "id": "return-outdoor",
+        "label": "屋外へ戻った状態",
+        "player": [
+          -32,
+          0.015,
+          10
+        ],
+        "benchmark": true
+      },
+      "ambient": [
+        2.000000917706681
+      ],
+      "pointObjects": 34,
+      "pointLightsForCamera": 0,
+      "position": [
+        -32,
+        0.0001,
+        10
+      ]
+    }
+  ],
+  "findings": [
+    "Twenty before/after runtime records matched player state, grounding, position, life, shots/hits, actual human mesh/morph data, barrel blast and blast-launch outcomes.",
+    "All three quality modes kept zero PointLights in camera render layers on both maps.",
+    "Doorway walking settled at outdoor 2, indoor 5, then outdoor 2.",
+    "HG muzzle effect, flashbang detonation/stun markers, rocket flames/smoke and barrel blast geometry remained visible.",
+    "PointLight instances and intensity bookkeeping remain for effect logic; layers.mask=0 excludes them from GPU lighting even if they become bright or visible."
+  ],
+  "limits": [
+    "No new controlled FPS/GPU comparison for this implementation. Prior 13.15 to 0.95 ms figures describe render-only diagnosis at 9dfbb72, not a new release benchmark.",
+    "No physical iPhone check or publication.",
+    "Existing PR-triggered CI is separate from these manual browser checks."
+  ]
+}

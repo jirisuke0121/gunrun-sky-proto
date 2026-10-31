@@ -1,0 +1,401 @@
+{
+  "date": "2026-10-31",
+  "head": "9dfbb72d7dd0d34b29e0e60ace614bb68d65d008",
+  "scope": "Mac M1 Pro/Chrome, same fixed viewpoint, ratio .7, shadows off, six alive enemies. GPU timer diagnostics, not production FPS promise. All removals are diagnostic render-only; game physics/AI remain active. No source changes or release.",
+  "protocol": {
+    "gpuTimer": "EXT_disjoint_timer_query_webgl2",
+    "measurementSeconds": 5,
+    "warmupPerVariantSeconds": 2,
+    "normalControls": 5,
+    "separateCpuProfileSeconds": 6,
+    "trialsTotal": 25,
+    "focusEveryTrial": 100,
+    "gpuDisjointEveryTrial": 0
+  },
+  "sourceHashes": {
+    "index.html": "ff32b4627ce20be3267b3b3eca84ffd949e93580852b6e20b0a5fc00c2baadec",
+    "canyon.html": "f632a136feffaf94da0c0b22cb144b00d9a6415d632ea57004d32f09453b7426",
+    "enhancements.js": "d90a5da30be52e849c98ea99ac4dbd3d798b98db8a3230adb52ce4406fd9fcc5",
+    "human-view.js": "c734ce964cbf52a7aff190bc4b28ae0d0a4758603e83c2f1003429fb79bf2738",
+    "human-aim.js": "786d5c4cbb39932cdc8082673a18bb53c1a252ac00de0b5aaf9241a57725d478",
+    "render-quality.js": "36b9bcde59eeeea8b8bd6452d31ce3f1d524b0da9db44c5a9f7f7bb9cfc7892c",
+    "world-batching.js": "cc727a01898117a706330c7a8769d46d12191e3feed62b4c92ce96e53c70bfb1"
+  },
+  "lights": {
+    "index.html": {
+      "total": 36,
+      "point": 34,
+      "activePoint": 25,
+      "zeroPoint": 9
+    },
+    "canyon.html": {
+      "total": 11,
+      "point": 9,
+      "activePoint": 0,
+      "zeroPoint": 9
+    }
+  },
+  "rows": [
+    {
+      "map": "index.html",
+      "variant": "normal",
+      "trials": 5,
+      "fps": 56.85,
+      "fpsSamples": [
+        56.85,
+        57.792,
+        58.898,
+        55.277,
+        55.58
+      ],
+      "gpuMedianMs": 13.145,
+      "gpuSamplesByTrial": [
+        71,
+        72,
+        73,
+        69,
+        69
+      ],
+      "cpuMedianMs": 5.3,
+      "callsMedian": 374,
+      "trianglesMedian": 143421,
+      "focusedPct": [
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
+    },
+    {
+      "map": "index.html",
+      "variant": "pixel-0.35",
+      "trials": 1,
+      "fps": 90.198,
+      "fpsSamples": [
+        90.198
+      ],
+      "gpuMedianMs": 7.07,
+      "gpuSamplesByTrial": [
+        112
+      ],
+      "cpuMedianMs": 5.1,
+      "callsMedian": 374,
+      "trianglesMedian": 143421,
+      "focusedPct": [
+        100
+      ]
+    },
+    {
+      "map": "index.html",
+      "variant": "no-world",
+      "trials": 2,
+      "fps": 125.5035,
+      "fpsSamples": [
+        127.629,
+        123.378
+      ],
+      "gpuMedianMs": 4.7795000000000005,
+      "gpuSamplesByTrial": [
+        160,
+        154
+      ],
+      "cpuMedianMs": 3.95,
+      "callsMedian": 13.0,
+      "trianglesMedian": 32069.0,
+      "focusedPct": [
+        100,
+        100
+      ]
+    },
+    {
+      "map": "index.html",
+      "variant": "no-actors",
+      "trials": 1,
+      "fps": 65.603,
+      "fpsSamples": [
+        65.603
+      ],
+      "gpuMedianMs": 10.316,
+      "gpuSamplesByTrial": [
+        82
+      ],
+      "cpuMedianMs": 4.9,
+      "callsMedian": 361,
+      "trianglesMedian": 111352,
+      "focusedPct": [
+        100
+      ]
+    },
+    {
+      "map": "index.html",
+      "variant": "no-equipment",
+      "trials": 1,
+      "fps": 61.027,
+      "fpsSamples": [
+        61.027
+      ],
+      "gpuMedianMs": 10.045,
+      "gpuSamplesByTrial": [
+        76
+      ],
+      "cpuMedianMs": 5.4,
+      "callsMedian": 347,
+      "trianglesMedian": 55455,
+      "focusedPct": [
+        100
+      ]
+    },
+    {
+      "map": "index.html",
+      "variant": "no-sky",
+      "trials": 1,
+      "fps": 57.168,
+      "fpsSamples": [
+        57.168
+      ],
+      "gpuMedianMs": 12.365,
+      "gpuSamplesByTrial": [
+        71
+      ],
+      "cpuMedianMs": 5.3,
+      "callsMedian": 373,
+      "trianglesMedian": 142461,
+      "focusedPct": [
+        100
+      ]
+    },
+    {
+      "map": "index.html",
+      "variant": "basic-materials",
+      "trials": 2,
+      "fps": 128.999,
+      "fpsSamples": [
+        130.07,
+        127.928
+      ],
+      "gpuMedianMs": 0.6785,
+      "gpuSamplesByTrial": [
+        163,
+        160
+      ],
+      "cpuMedianMs": 4.6,
+      "callsMedian": 374.0,
+      "trianglesMedian": 143421.0,
+      "focusedPct": [
+        100,
+        100
+      ]
+    },
+    {
+      "map": "index.html",
+      "variant": "no-textures",
+      "trials": 1,
+      "fps": 52.674,
+      "fpsSamples": [
+        52.674
+      ],
+      "gpuMedianMs": 12.197,
+      "gpuSamplesByTrial": [
+        66
+      ],
+      "cpuMedianMs": 5.7,
+      "callsMedian": 374,
+      "trianglesMedian": 143421,
+      "focusedPct": [
+        100
+      ]
+    },
+    {
+      "map": "index.html",
+      "variant": "no-lights",
+      "trials": 2,
+      "fps": 126.43700000000001,
+      "fpsSamples": [
+        129.491,
+        123.383
+      ],
+      "gpuMedianMs": 0.741,
+      "gpuSamplesByTrial": [
+        162,
+        155
+      ],
+      "cpuMedianMs": 4.75,
+      "callsMedian": 374.0,
+      "trianglesMedian": 143421.0,
+      "focusedPct": [
+        100,
+        100
+      ]
+    },
+    {
+      "map": "index.html",
+      "variant": "no-point-lights",
+      "trials": 2,
+      "fps": 123.55600000000001,
+      "fpsSamples": [
+        124.79,
+        122.322
+      ],
+      "gpuMedianMs": 0.952,
+      "gpuSamplesByTrial": [
+        156,
+        153
+      ],
+      "cpuMedianMs": 4.7,
+      "callsMedian": 374.0,
+      "trianglesMedian": 143421.0,
+      "focusedPct": [
+        100,
+        100
+      ]
+    },
+    {
+      "map": "index.html",
+      "variant": "no-off-point-lights",
+      "trials": 1,
+      "fps": 85.193,
+      "fpsSamples": [
+        85.193
+      ],
+      "gpuMedianMs": 7.408,
+      "gpuSamplesByTrial": [
+        106
+      ],
+      "cpuMedianMs": 4.9,
+      "callsMedian": 374,
+      "trianglesMedian": 143421,
+      "focusedPct": [
+        100
+      ]
+    },
+    {
+      "map": "index.html",
+      "variant": "no-transparent",
+      "trials": 1,
+      "fps": 57.712,
+      "fpsSamples": [
+        57.712
+      ],
+      "gpuMedianMs": 12.328,
+      "gpuSamplesByTrial": [
+        72
+      ],
+      "cpuMedianMs": 5.2,
+      "callsMedian": 348,
+      "trianglesMedian": 142089,
+      "focusedPct": [
+        100
+      ]
+    },
+    {
+      "map": "index.html",
+      "variant": "no-draw",
+      "trials": 1,
+      "fps": 127.475,
+      "fpsSamples": [
+        127.475
+      ],
+      "gpuMedianMs": 0,
+      "gpuSamplesByTrial": [
+        160
+      ],
+      "cpuMedianMs": 3,
+      "callsMedian": 0,
+      "trianglesMedian": 0,
+      "focusedPct": [
+        100
+      ]
+    },
+    {
+      "map": "canyon.html",
+      "variant": "normal",
+      "trials": 2,
+      "fps": 128.8365,
+      "fpsSamples": [
+        128.174,
+        129.499
+      ],
+      "gpuMedianMs": 0.9969999999999999,
+      "gpuSamplesByTrial": [
+        161,
+        162
+      ],
+      "cpuMedianMs": 3.45,
+      "callsMedian": 79.0,
+      "trianglesMedian": 70075.0,
+      "focusedPct": [
+        100,
+        100
+      ]
+    },
+    {
+      "map": "canyon.html",
+      "variant": "pixel-0.35",
+      "trials": 1,
+      "fps": 130.207,
+      "fpsSamples": [
+        130.207
+      ],
+      "gpuMedianMs": 0.939,
+      "gpuSamplesByTrial": [
+        163
+      ],
+      "cpuMedianMs": 3.4,
+      "callsMedian": 79,
+      "trianglesMedian": 70075,
+      "focusedPct": [
+        100
+      ]
+    }
+  ],
+  "cpuProfile": {
+    "total": {
+      "median": 5.4,
+      "p95": 5.9,
+      "p99": 6.6,
+      "max": 11.2
+    },
+    "humanView": {
+      "median": 2.6,
+      "p95": 2.9,
+      "p99": 2.9,
+      "max": 3
+    },
+    "enemyUpdates": {
+      "median": 0.3,
+      "p95": 0.4,
+      "p99": 0.5,
+      "max": 0.6
+    },
+    "renderSubmission": {
+      "median": 2,
+      "p95": 2.3,
+      "p99": 2.5,
+      "max": 2.8
+    },
+    "note": "Nested CPU sections are not additive; CPU and GPU pipeline times must not simply be added."
+  },
+  "sourceProof": {
+    "lampFactory": {
+      "file": "index.html",
+      "line": 7560,
+      "snippet": "let r=new sr(16765594,9,13,1.4);r.position.set(n,t-.5,e),ue.add(r)"
+    },
+    "rendererLightCollection": "else if(v.isLight)m.pushLight(v),v.castShadow&&m.pushShadow(v)",
+    "zeroIntensityCheckInCollection": false
+  },
+  "finding": "Dominant oldtown bottleneck in this view is GPU point-light shading. Removing all 34 point lights drops GPU median from about 13.15 to 0.95 ms and raises diagnostic FPS from about 56.9 to 123.6 without changing 374 calls or 143421 submitted triangles.",
+  "secondaryFinding": "Nine zero-intensity PointLights remain visible in renderer light collection. Removing only these produced 85.2 FPS and 7.41 ms GPU in one diagnostic trial. Repeat and visual equivalence validation are required before a release claim.",
+  "nextChanges": [
+    "Exclude zero-intensity pooled lights from renderer light collection while inactive; ensure firing/explosion lights re-enable correctly.",
+    "Reduce the simultaneously evaluated 25 stationary lamps by visibility/distance budgets or baked/emissive appearance, with visual review."
+  ],
+  "limits": [
+    "Selected fixed scene only, not every map location.",
+    "No production optimization implemented in this diagnosis.",
+    "Point-light removal changes scene lighting; full removal is causal evidence, not proposed final appearance.",
+    "Zero-intensity-only exclusion measured once; no image-equivalence check in this run.",
+    "No iPhone device measurement."
+  ]
+}

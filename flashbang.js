@@ -26,7 +26,7 @@ export function createFlashbang(game) {
   const grenades = [], bursts = [], affected = new Map();
   const stats = { thrown: 0, detonated: 0, affected: 0 };
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const light = new PointLight(0xbceeff, 0, 13, 2); light.castShadow = false; root.add(light);
+  const light = new PointLight(0xbceeff, 0, 13, 2); light.castShadow = false; light.layers.disableAll(); root.add(light); // Keep the visible burst; skip local-light shading.
   const materials = {
     yellow: new Basic({ color: 0xffd453, fog: false }),
     dark: new Basic({ color: 0x192c35 }),
