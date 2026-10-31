@@ -20,6 +20,7 @@ for(const cross of [2,2.9,3.8])for(const reverse of [false,true])for(const speed
 // The rerouted return must meet the pre-existing southern roof at 4.4m.
 const foot=jn.find(b=>b.oldTownSwing==='east-pillar-return-foot');
 assert.ok(foot.minZ>4.5+.32&&foot.maxX>40.5&&foot.maxY===4.4);
+for(let x=35.3;x<=38;x+=.1)for(const z of [1.15,1.5,2,2.5])assert.ok(ctx.oe(x,6.25,z,.32,1.75),'original three-bar swing lane stays open');
 console.log('PASS '+roofCases+' full-height roof traversals, both directions and speeds, original roof collision retained');
 `;
 vm.runInNewContext(setup+checks,{require,__dirname,URLSearchParams,console});

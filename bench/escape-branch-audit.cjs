@@ -54,7 +54,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
     walk('east-lower-recovery-south-detour',[54,-1,2.5],[[48,-1,3.6],[44,0,3.6]],{maxSeconds:7});
     walk('east-lower-recovery-jump',[54,-1,2.5],[[44,0,2.5]],{maxSeconds:7,jumpX:47.4});
     walk('pillar-lower-recovery',[29,-1.1,0],[[38,0,0]],{maxSeconds:5});
-    walk('east-pillar-stair-return',[36,7,-.3],[[36,3.4,5.4],[38,3,5.4]],{maxSeconds:5});
+    walk('east-pillar-stair-return',[36,7,-.3],[[36,5.8,6],[41,4.4,6]],{maxSeconds:5});
     walk('north-lower-cross-east',[-30,-3.5,-34],[[38,-3.5,-34]],{maxSeconds:14});
     walk('south-gap-no-jump',[36,0,22.5],[[36,0,14]],{maxSeconds:3});
     for(const jumpZ of [21.5,20.5,19.95])walk('south-gap-jump-'+jumpZ,[36,0,23.5],[[36,0,14]],{jumpZ,maxSeconds:4});

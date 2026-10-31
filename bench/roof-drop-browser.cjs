@@ -38,7 +38,8 @@ const {chromium}=require('playwright');
    }
    // Keep the new return connected, with no intermediate position changes.
    roofQA.reset([36,7,-.5],Math.PI);g.S.walkSpeed=g.S.sprintSpeed=6;
-   for(const point of [[36,7,6],[41,4.4,6]]){
+   for(let i=0;i<12;i++)g.playerStep(1/120);
+   for(const point of [[36,5.8,6],[41,4.4,6]]){
     let done=false;g.keys.KeyW=true;
     for(let i=0;i<900;i++){
      const dx=point[0]-c.pos.x,dz=point[2]-c.pos.z;
@@ -51,8 +52,24 @@ const {chromium}=require('playwright');
    const returnEnd=roofQA.state();roofQA.reset([35.6,1.65,2.9],-Math.PI/2);roofQA.render();return{states,returnEnd};
   });
   await page.screenshot({path:`browser-evidence/roof-drop/${touch?'touch':'desktop'}-roof-clear.png`});
-  const falls=[];
+  console.log('PASS standing roof and connected return',touch?'touch':'desktop');
   const jump=async()=>{if(touch)await page.locator('#tJump').tap();else await page.keyboard.press('Space');};
+  // The return passage must also leave the original three-bar lane open.
+  await page.evaluate(()=>{roofQA.reset([20.25,5.7,3],-Math.PI/2);for(let i=0;i<12;i++)__game.playerStep(1/120);__game.keys.KeyW=true;for(let i=0;i<24;i++)__game.playerStep(1/120);});
+  await jump();const bars=new Set();let threeBarEnd=null;
+  for(let i=0;i<360;i++){
+   const state=await page.evaluate(()=>{
+    for(let i=0;i<4;i++)__game.playerStep(1/120);
+    const a=skySwing.active;return{...roofQA.state(),bar:a?.bar.id,angle:a?.angle,omega:a?.omega};
+   });
+   if(state.bar)bars.add(state.bar);
+   if(state.bar&&state.angle>=.7&&state.omega>1.1)await jump();
+   if(bars.size&&state.ground){threeBarEnd=state;break;}
+  }
+  assert.deepEqual([...bars],['oldtown-east-bar-1','oldtown-east-bar-2','oldtown-east-bar-3']);
+  assert.ok(threeBarEnd&&threeBarEnd.p[0]>51&&Math.abs(threeBarEnd.p[1]-3.6)<.1,JSON.stringify({bars:[...bars],threeBarEnd}));
+  console.log('PASS original three-bar lane',touch?'touch':'desktop',threeBarEnd.p);
+  const falls=[];
   // Real gravity from above, approaching the face with normal velocity.
   for(const vertical of [-9,-24,-40])for(const speed of [0,2,6]){
    const caught=await page.evaluate(({vertical,speed})=>{
@@ -69,6 +86,7 @@ const {chromium}=require('playwright');
    const after=await page.evaluate(()=>{for(let i=0;i<4;i++)__game.playerStep(1/120);return roofQA.state()});
    assert.equal(after.jumps,caught.jumpCount+1);assert.ok(after.v[1]>0&&after.v[2]>0);assert.equal(after.state,'normal');
    falls.push({vertical,speed,...caught,after});
+   console.log('PASS falling catch and jump',touch?'touch':'desktop',vertical,speed);
   }
   // A purely vertical fall can use a buffered jump with no running input.
   await page.evaluate(()=>{roofQA.reset([-14.36,5.6,6.8],Math.PI);const c=__game.P;c.onGround=false;c.airT=.2;c.vel.set(0,-24,0);});
@@ -78,7 +96,7 @@ const {chromium}=require('playwright');
   await page.screenshot({path:`browser-evidence/roof-drop/${touch?'touch':'desktop'}-fall-wall-jump.png`});
   await jump();const second=await page.evaluate(()=>{for(let i=0;i<4;i++)__game.playerStep(1/120);return roofQA.state()});
   assert.equal(second.jumps,verticalJump.jumps,'one falling catch cannot grant repeated airborne jumps');
-  assert.deepEqual(errors,[]);results.push({touch,roof,falls,verticalJump});await context.close();
+  assert.deepEqual(errors,[]);results.push({touch,roof,threeBarEnd,falls,verticalJump});await context.close();
  }
  console.log('PASS roof standing traversal and connected return; falling contact, wallrun and keyboard/touch jump, including zero horizontal speed and no movement input');
 }finally{fs.mkdirSync('browser-evidence/roof-drop',{recursive:true});fs.writeFileSync('browser-evidence/roof-drop/results.json',JSON.stringify(results,null,2));await browser?.close();server?.kill();}})().catch(e=>{console.error(e);process.exitCode=1;});

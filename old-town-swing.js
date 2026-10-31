@@ -112,14 +112,18 @@
 
     // Walkable returns connect both ledges to existing roofs and ground.
     // Chasers take these longer mantle/stair paths instead of the new bar.
-    // The old descending flight blocked the original tiled ramp at
-    // x35..39.5, z1.5..4.5. Cross well ABOVE it, then descend outside it.
-    box('east-pillar-return-gallery',[35.3,6.7,.25],[36.7,7,6.7]);
-    for(let i=0;i<7;i++) {
-      const x=36.7+i*.5,top=Math.max(4.4,7-(i+1)*.4);
+    // Cross above the tiled ramp but BELOW the original three-bar flight.
+    // Lower the approach before reaching its z1.5 swing lane.
+    for(let i=0;i<6;i++) {
+      const z=.25+i*.15,top=6.8-i*.2;
+      box('east-pillar-return-entry-stair-'+i,[35.3,top-.2,z],[36.7,top,z+.15],'slab',0xe39a4a);
+    }
+    box('east-pillar-return-gallery',[35.3,5.52,1.15],[36.7,5.8,6.7]);
+    for(let i=0;i<4;i++) {
+      const x=36.7+i*.5,top=Math.max(4.4,5.8-(i+1)*.4);
       box('east-pillar-return-stair-'+i,[x,top-.28,5.3],[x+.5,top,6.7],'slab',0xe39a4a);
     }
-    box('east-pillar-return-foot',[40.2,4.12,5.3],[41.5,4.4,6.7]);
+    box('east-pillar-return-foot',[38.7,4.12,5.3],[41.5,4.4,6.7]);
     // The original outer-tower stair occupies the tower's northeast side.
     // Return around the northwest terrace instead of building into it or
     // bridging the new swing gap. The existing tower ladder stays usable.
