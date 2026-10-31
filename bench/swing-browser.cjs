@@ -157,7 +157,7 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
     // The old town now uses the shared movement hook for its published escape routes.
     const p=await browser.newPage();await p.addInitScript(()=>window.__hold=true);await p.route('https://**/*',r=>r.abort());await p.goto(base+'index.html');await p.waitForFunction(()=>window.skySwing);
     const town=await p.evaluate(()=>({oldTown:skySwing.course.oldTown,bars:skySwing.course.bars.length,routes:skySwing.course.routes.map(r=>r.id),active:!!skySwing.active}));
-    assert.deepEqual(town,{oldTown:true,bars:9,routes:['high','warehouse','east','east-pillar','south-corner','north-corner','tower-corner','north-east-corner'],active:false},'all eight published old-town routes are installed without a menu-time grip');await p.close();
+    assert.deepEqual(town,{oldTown:true,bars:10,routes:['high','warehouse','east','east-pillar','south-corner','north-corner','tower-corner','north-east-corner'],active:false},'all eight published old-town routes are installed without a menu-time grip');await p.close();
     console.log('PASS: wall kick → pad → two actual bar catches/releases → upper spine, grip contact, PC/touch widths, pause/drop/reset, grip timeout, published old-town escape routes');
   } finally {
     fs.writeFileSync(`${output}/results.json`,JSON.stringify(results,null,2));

@@ -39,16 +39,17 @@ class Visual{
   global.document={body:{dataset:{},appendChild(){}},head:{appendChild(){}},getElementById(){return null},querySelector(){return null},createElement(){return{setAttribute(){},querySelector(){return{style:{}}},style:{setProperty(){}},dataset:{},getContext(){return{fillRect(){},strokeRect(){},fillText(){}}}}}};
   global.window={skyTelemetryProbe:{jumpAccepted(){}}};
   function probe(id,{grip=true,angle=.65,offset=0,brake=true,speed=6}={}){
-    const route=map.course.routes.find(r=>r.id===id),bar=map.course.bars.find(b=>b.route===id);
+    const route=map.course.routes.find(r=>r.id===id),routeBars=map.course.bars.filter(b=>b.route===id),bar=routeBars[0];
     const x=id==='south-corner'?-3.75:speed<4?-2.85:-.55,z=bar.at[2]+offset;
     const c={pos:new Vec(x,4.0001,z),vel:new Vec(-speed,7.2,0),r:.32,h:1.75,state:'normal',onGround:false};
     const game={stats:{},RL:{events:[]}},clock={t:0,over:false},U={gravity:20,jumpVel:7.2};
     const sky={c,U,z:clock,Geom:{Group:Visual,Standard:Visual,Cylinder:Visual,Mesh:Visual,Vector3:Vec,Box:Visual,Torus:Visual,Sprite:Visual,SpriteMaterial:Visual,CanvasTexture:Visual},ue:{add(){}},oe:free,modeRef:()=> 'play',Tt:{}};
-    const swing=createSwing(sky,game,{...map.course,bars:grip?[bar]:[],supports:[],arrows:[]});
-    let released=false,collision=null,land=null,maxY=c.pos.y;const dt=1/120;
+    const swing=createSwing(sky,game,{...map.course,bars:grip?routeBars:[],supports:[],arrows:[]});
+    const releases=new Set();let released=false,collision=null,land=null,maxY=c.pos.y;const dt=1/120;
     for(let i=0;i<900;i++){
       clock.t+=dt;
-      if(swing.active&&!released&&swing.active.angle>=angle&&swing.active.omega>1.1){
+      if(swing.active&&!releases.has(swing.active.bar.id)&&swing.active.angle>=angle&&swing.active.omega>1.1){
+        releases.add(swing.active.bar.id);
         for(const fn of listeners.keydown||[])fn({code:'Space',repeat:false});
         for(const fn of listeners.keyup||[])fn({code:'Space'});
         released=true;
@@ -56,7 +57,7 @@ class Visual{
       const previous=c.pos.toArray(),handled=swing.step(dt,{fwdIn:1});
       if(!handled){
         // Opposite input slows the flight when stopping distance reaches the ledge.
-        if(released&&brake&&c.pos.x+15.8<c.vel.x*c.vel.x/28+.2)c.vel.x=Math.min(0,c.vel.x+14*dt);
+        if(releases.size===routeBars.length&&brake&&c.pos.x+(id==='north-corner'?21.3:15.8)<c.vel.x*c.vel.x/28+.2)c.vel.x=Math.min(0,c.vel.x+14*dt);
         c.vel.y-=20*dt;c.pos.x+=c.vel.x*dt;c.pos.y+=c.vel.y*dt;c.pos.z+=c.vel.z*dt;
         if(c.vel.y<0){
           const top=floorAt(c.pos.x,c.pos.z,previous[1]);
@@ -73,8 +74,8 @@ class Visual{
   for(const id of ['south-corner','north-corner']){
     for(const speed of [2.5,6])for(const angle of [.55,.65,.8])for(const offset of [-.35,0,.35]){
       const r=probe(id,{angle,offset,speed});results.push(r);
-      assert.equal(r.collision,null,JSON.stringify(r));assert.equal(r.grabs,1,JSON.stringify(r));
-      assert.ok(r.land&&Math.abs(r.land[1]-4.2)<.01&&r.land[0]<-14,JSON.stringify(r));
+      assert.equal(r.collision,null,JSON.stringify(r));assert.equal(r.grabs,id==='north-corner'?2:1,JSON.stringify(r));
+      assert.ok(r.land&&Math.abs(r.land[1]-4.2)<.01&&r.land[0]<(id==='north-corner'?-20:-14),JSON.stringify(r));
     }
     const without=probe(id,{grip:false});results.push(without);
     assert.ok(!without.land||without.land[1]<4,'ordinary jump cannot replace the bar');
