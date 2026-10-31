@@ -10,7 +10,7 @@ export function installRanking(game) {
   const boxes = [];
   function create(id, limit) {
     const box = document.createElement('section'); box.className = 'rankbox'; box.id = id;
-    box.innerHTML = `<h3>ランキング <small>${map === 'old-town' ? '旧市街' : '岩壁渓谷'}</small></h3><div class="rank-tabs" role="group" aria-label="ランキングの種類"><button type="button" data-mode="clear" aria-pressed="true">難易度クリア</button><button type="button" data-mode="score" aria-pressed="false">スコア</button></div><label class="rank-filter" hidden>スコアの難易度 <select aria-label="スコアの難易度">${policy.levels.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select></label><p class="rank-note"></p><div class="rank-body" aria-live="polite"></div>`;
+    box.innerHTML = `<h3>ランキング <small>${map === 'old-town' ? '旧市街' : '岩壁渓谷'}</small></h3><div class="rank-tabs" role="group" aria-label="ランキングの種類"><button type="button" data-mode="clear" aria-pressed="true">難易度クリア</button><button type="button" data-mode="score" aria-pressed="false">スコア</button></div><label class="rank-filter" hidden>スコアの区分 <select aria-label="スコアの区分">${policy.levels.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select></label><p class="rank-note"></p><div class="rank-body" aria-live="polite"></div>`;
     const state = { box, limit, mode: policy.id === 'legacy' ? 'score' : 'clear', difficulty: policy.id, token: 0, data: null };
     box.querySelector('select').value = state.difficulty;
     box.addEventListener('click', event => {
@@ -44,6 +44,7 @@ export function installRanking(game) {
   }
   async function refresh(state) {
     const token = ++state.token; controls(state);
+    state.box.hidden = !!policy.isIntro; if(policy.isIntro)return null;
     const body = state.box.querySelector('.rank-body'); body.textContent = '記録を読み込み中…';
     const query = new URLSearchParams({ map, mode: state.mode, difficulty: state.difficulty, rules: policy.version });
     const me = player(); if (me) query.set('me', me);
@@ -73,7 +74,7 @@ export function installRanking(game) {
   let resultToken = 0, presentedRun;
   new MutationObserver(async () => {
     if ($('ovOver').hidden) { ++resultToken; ++over.token; return; }
-    if (game.z.mission || !game.z.final) return;
+    if (game.z.mission || policy.isIntroRun || !game.z.final) return;
     if (window.skyChallengeScore.enabled()) $('unityScoreRanking').append(over.box);
     else $('oStats').before(over.box);
     const token = ++resultToken;

@@ -83,7 +83,7 @@ function setup(ctx, count, mode, repeat) {
   let seed=0x512e7+repeat;
   w.Math.random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
   g.setMode('menu');
-  const selector=w.document.getElementById('challengeDifficulty'); selector.value='ultra'; selector.dispatchEvent(new w.Event('change'));
+  const selector=w.document.getElementById('challengeDifficulty'); selector.value='hard'; selector.dispatchEvent(new w.Event('change'));
   w.document.querySelector('[data-zombie="unity-standard"]')?.click();
   Object.assign(g.S,{sendLog:false,autoFire:false,aimAuto:true,aimAssist:false,volume:0,weapon:0,showBody:true});
   g.startGame(); g.runlogUse(null); g.RL.on=false;

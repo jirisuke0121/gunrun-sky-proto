@@ -1,0 +1,169 @@
+{
+  "rules": "corridor-parkour-v8",
+  "scope": "Local manual UI and local Worker/D1 only; no publication or FPS claim",
+  "regular": [
+    {
+      "difficulty": "easy",
+      "lives": 8,
+      "healthAndHGHits": 4,
+      "initial": 3
+    },
+    {
+      "difficulty": "normal",
+      "lives": 5,
+      "healthAndHGHits": 8,
+      "initial": 4
+    },
+    {
+      "difficulty": "hard",
+      "lives": 3,
+      "healthAndHGHits": 12,
+      "initial": 5
+    }
+  ],
+  "intro": {
+    "maps": [
+      "old-town",
+      "rock-canyon"
+    ],
+    "hud": "infinite",
+    "livesUnaffectedByHitAndFall": true,
+    "recordPosts": 0,
+    "historyRows": 0,
+    "bestSaved": false
+  },
+  "pursuit": {
+    "wallOcclusionSeconds": 25,
+    "lifetimeProbeStunned": true,
+    "phase": "chase",
+    "spawnSuppression": false,
+    "actualThreeSecondMovementMeters": {
+      "old-town": 7.9617527119,
+      "rock-canyon": 1.0067260134
+    }
+  },
+  "spacing": [
+    {
+      "map": "canyon",
+      "difficulty": "normal",
+      "minimumConfigured": 4,
+      "minimumObserved": 5.232627161053034,
+      "rendered": 6
+    },
+    {
+      "map": "canyon",
+      "difficulty": "hard",
+      "minimumConfigured": 7,
+      "minimumObserved": 7.499688386363611,
+      "rendered": 6
+    },
+    {
+      "map": "oldtown",
+      "difficulty": "normal",
+      "minimumConfigured": 4,
+      "minimumObserved": 5.905394344238314,
+      "rendered": 6
+    },
+    {
+      "map": "oldtown",
+      "difficulty": "hard",
+      "minimumConfigured": 7,
+      "minimumObserved": 7.568699259047842,
+      "rendered": 6
+    }
+  ],
+  "corpse": {
+    "immediateRendered": 6,
+    "immediateProtected": 1,
+    "afterPointSevenSecondsRendered": 6
+  },
+  "skills": {
+    "decoyActive": {
+      "flash": {
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "blinded": false,
+      "decoy": true,
+      "lured": true,
+      "lost": false,
+      "stun": 0
+    },
+    "decoyAfter": {
+      "flash": {
+        "thrown": 0,
+        "detonated": 0,
+        "affected": 0
+      },
+      "blinded": false,
+      "decoy": false,
+      "lured": false,
+      "lost": false,
+      "stun": 0
+    },
+    "flashDuring": {
+      "flash": {
+        "thrown": 1,
+        "detonated": 1,
+        "affected": 1
+      },
+      "blinded": true,
+      "decoy": false,
+      "lured": false,
+      "lost": false,
+      "stun": 0.0009999999999999992
+    },
+    "flashAfter": {
+      "flash": {
+        "thrown": 1,
+        "detonated": 1,
+        "affected": 1
+      },
+      "blinded": false,
+      "decoy": false,
+      "lured": false,
+      "lost": false,
+      "stun": -0.007333333333333334
+    },
+    "phase": {
+      "phase": "chase",
+      "remaining": 0,
+      "last": {
+        "x": -61.14418042171183,
+        "y": 11.700099999999999,
+        "z": -8.526290291785115
+      },
+      "target": 160
+    }
+  },
+  "worker": {
+    "recordProtocol": 2,
+    "postStatus": {
+      "easy": 200,
+      "normal": 200,
+      "hard": 200,
+      "old-hard": 200,
+      "intro": 400
+    },
+    "sourceGhostLives": [
+      8,
+      8,
+      8
+    ],
+    "oldRulesSeparated": true,
+    "crossVersionGhostStatus": 404
+  },
+  "validation": {
+    "syntax": "passed",
+    "workerDryRun": "passed",
+    "automatedTestsRun": false
+  },
+  "unverified": [
+    "human two-minute difficulty and camping balance",
+    "iPhone device",
+    "new population FPS",
+    "CI",
+    "public delivery"
+  ]
+}

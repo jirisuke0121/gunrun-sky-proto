@@ -1,7 +1,7 @@
 // Port of saved Unity ChallengeScoreMath / ChallengeScorePresentation /
 // ChallengeResultMotion. Gameplay owns points; presentation never awards them.
 (() => {
-  const f = Math.fround, ids = ['easy', 'normal', 'hard', 'expert', 'master', 'ultra'];
+  const f = Math.fround, ids = ['easy', 'normal', 'hard'];
   const assets = './assets/challenge-score/';
   let game, frozen, previousMinute = -1, animation = 0, readyAt = 0, lastResult;
   let cachedScore, cachedTime, cachedKills, cachedLevel, hudKey = '', pauseKey = '';
@@ -78,11 +78,15 @@
   function showResult(b, reason, best) {
     if (lastResult === b) return;
     lastResult = b; cancelAnimationFrame(animation); fit();
+    const intro = window.skyChallenge.isIntroRun;
     const failed = reason !== 'time';
+    $('unityResultCard').classList.toggle('intro-result', intro);
+    $('introNext').hidden = !intro;
+    $('unityRetry').textContent = intro ? '入門をもう一度' : 'もう一度逃げる';
     $('unityResultCard').dataset.score = JSON.stringify(b);
     $('unityResultCard').dataset.failed = String(failed);
     $('unityResultCard').dataset.complete = 'false';
-    const stars = failed ? 0 : 1 + Number(b.total >= game.U.star2) + Number(b.total >= game.U.star3);
+    const stars = intro || failed ? 0 : 1 + Number(b.total >= game.U.star2) + Number(b.total >= game.U.star3);
     $('unityResultStars').setAttribute('aria-label', `星${stars}個、3個中`);
     $('unityResultStars').innerHTML = [1, 2, 3].map(i => `<span class="${i <= stars ? 'earned' : ''}" style="--star-index:${i}" aria-hidden="true">★</span>`).join('');
     $('unityResultStars').dataset.stars = stars;
@@ -103,9 +107,15 @@
     set('unityResultEquation', `${b.survival} + ${b.kill} = ${b.total}点`);
     set('unityResultBest', best ? 'スコアベスト更新' : '今回のスコア');
     set('unityRunDetails', `生存 ${b.elapsed.toFixed(1)}秒 / 撃破 ${b.kills}体（落下撃破 ${window.__game.stats.drops}体）`);
+    if (intro) {
+      set('unityResultTitle', '入門モード、おつかれさま！');
+      set('unityResultGoal', '次はイージー・ノーマル・ハードから選んで挑戦できます。');
+      set('unityEscapeRecord', 'ライフ無限の入門体験 · ランキング対象外');
+      set('unityResultBest', 'この入門の記録は保存・送信しません');
+    }
     $('unityScoreDetails').hidden = true;
     $('unityResultCard').hidden = false;
-    const buttons = [$('unityRetry'), $('unityMenu'), $('unityMore')];
+    const buttons = [$('unityRetry'), $('unityMenu'), $('unityMore'), $('introNext')];
     buttons.forEach(e => e.disabled = true);
     const started = performance.now(), reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     readyAt = started + (reduced ? 0 : 700);
@@ -144,6 +154,14 @@
     const result = document.createElement('div'); result.id = 'unityScoreResult';
     result.innerHTML = `<article id="unityResultCard"><header><span class="uc-caption">空中回廊 / 逃走の記録</span><span id="unityResultDifficulty"></span><h2 id="unityResultTitle"></h2></header><div id="unityResultContent"><section class="uc-achievement"><div id="unityResultStars" role="img"></div><p id="unityEscapeRecord"></p><div class="uc-star-goals"><span id="unityStarGoal1"></span><span id="unityStarGoal2"></span><span id="unityStarGoal3"></span></div><p id="unityResultGoal"></p></section><section class="uc-points"><span id="unityResultBest"></span><div class="uc-total"><b id="unityResultTotal">0</b><small> pt</small></div><div class="uc-breakdown"><div><span>生存</span><b id="unityResultSurvival"></b><small id="unitySurvivalFormula"></small></div><div><span>撃破</span><b id="unityResultKill"></b><small id="unityKillFormula"></small></div></div><small id="unityResultBonus"></small><small id="unityResultEquation"></small></section><p id="unityRunMoves"></p></div><footer id="unityResultActions"><button id="unityRetry" type="button">もう一度逃げる</button><button id="unityMore" type="button">ランキング・記録</button><button id="unityMenu" type="button">メニュー</button></footer></article><section id="unityScoreDetails" hidden><h2>ランキング・プレイの記録</h2><p id="unityRunDetails"></p><div id="unityScoreRanking"></div><p id="unityRecordStatus"></p><button id="unityDetailsBack" type="button">リザルトに戻る</button></section>`;
     $('ovOver').append(result);
+    const next = document.createElement('button'); next.id = 'introNext'; next.type = 'button';
+    next.textContent = 'イージーから挑戦する'; next.hidden = true;
+    $('unityResultActions').prepend(next);
+    next.addEventListener('click', async () => {
+      window.__game.setMode('menu'); await Promise.resolve();
+      const custom = $('challengeCustom'); if (custom.checked) custom.click();
+      $('challengeDifficulty').value = 'easy'; $('challengeDifficulty').dispatchEvent(new Event('change'));
+    });
     $('unityScoreDetails').setAttribute('role', 'dialog');
     $('unityScoreDetails').setAttribute('aria-label', 'ランキング・プレイの記録');
     $('unityResultCard').setAttribute('role', 'dialog');

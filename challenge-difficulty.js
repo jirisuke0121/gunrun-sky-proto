@@ -1,29 +1,35 @@
 // Unity Challenge pacing, adapted to the 120-second aerial-corridor course.
 // Source settings and intentional adaptations are documented in CHALLENGE_DIFFICULTY.md.
 (() => {
-  const version = 'corridor-crowd6-v6', storage = 'gunrun-challenge-difficulty-v1';
-  // Shared across all six presets. A corpse also occupies a rendered body slot.
+  const version = 'corridor-parkour-v8', storage = 'gunrun-challenge-difficulty-v1';
+  // Shared across the three presets. A corpse also occupies a rendered body slot.
   // This is a conservative population budget, not a device-FPS guarantee.
   const maxAlive = 6, corpseMinimum = .65;
   const levels = [
-    { id: 'easy', health: 4, name: 'Easy', note: '走って距離を取り、技を練習', startSpeed: 4.3, maxSpeed: 5.4, counts: [3, 4, 5], initial: 3, interval: 2.2, flank: .05, ahead: .1, drop: 0, lull: 5, quiet: 0, lead: 6, warn: 2.5 },
-    { id: 'normal', health: 6, name: 'Normal', note: '後半は走るだけでは少しずつ追いつかれる', startSpeed: 5.2, maxSpeed: 6.4, counts: [4, 5, 6], initial: 4, interval: 1.7, flank: .2, ahead: .25, drop: .1, lull: 4, quiet: 22, lead: 5, warn: 2.5 },
-    { id: 'hard', health: 7, name: 'Hard', note: '技で引き離し、次の逃げ道へつなぐ', startSpeed: 5.6, maxSpeed: 6.8, counts: [4, 5, 6], initial: 4, interval: 1.4, flank: .3, ahead: .3, drop: .15, lull: 3.5, quiet: 20, lead: 4.5, warn: 2.3 },
-    { id: 'expert', health: 8, name: 'Expert', note: '速い追跡と予告付きの包囲', startSpeed: 5.9, maxSpeed: 7.1, counts: [5, 6, 6], initial: 5, interval: 1.2, flank: .35, ahead: .35, drop: .2, lull: 3, quiet: 18, lead: 4, warn: 2.2 },
-    { id: 'master', health: 9, name: 'Master', note: '逃げ技とクールダウンの管理が必要', startSpeed: 6.1, maxSpeed: 7.35, counts: [5, 6, 6, 6, 6, 6], initial: 5, interval: 1, flank: .4, ahead: .4, drop: .25, lull: 2.5, quiet: 16, lead: 3.5, warn: 2 },
-    { id: 'ultra', health: 10, name: 'Ultra', note: '最大6体・速い追跡と短い補充間隔', startSpeed: 6.3, maxSpeed: 7.6, counts: [6, 6, 6, 6, 6, 6], initial: 6, interval: .85, flank: .45, ahead: .4, drop: .3, lull: 2, quiet: 14, lead: 3, warn: 1.8 },
+    { id: 'easy', lives: 8, spacing: 1, health: 4, name: 'イージー', note: '基本のジャンプや段差移動を使い、余裕をもって逃げる', startSpeed: 4.3, maxSpeed: 5.4, counts: [3, 4, 5], initial: 3, interval: 2.2, flank: .05, ahead: .1, drop: 0, lull: 5, quiet: 0, lead: 6, warn: 2.5 },
+    { id: 'normal', lives: 5, spacing: 4, health: 8, name: 'ノーマル', note: '段差・隙間・壁走りで繰り返し追跡を引き離す。銃で逃げる時間を作る', startSpeed: 6, maxSpeed: 6.8, counts: [4, 5, 6], initial: 4, interval: 1.6, flank: .3, ahead: .35, drop: .15, lull: 4, quiet: 18, lead: 5, warn: 2.5 },
+    { id: 'hard', lives: 3, spacing: 7, health: 12, name: 'ハード', note: '技を連続させ、敵の配置から着地点と逃走路を選ぶ。銃は押し落としと足止めに使う', startSpeed: 6.8, maxSpeed: 8, counts: [5, 6, 6], initial: 5, interval: 1.1, flank: .5, ahead: .5, drop: .25, lull: 3, quiet: 12, lead: 4, warn: 2.2 },
     { id: 'legacy', name: '自由調整', note: '従来の設定・追跡者・ランキング', counts: [] },
   ];
-  for (const p of levels) if (p.id !== 'legacy') p.ramp = 90;
-  const byId = Object.fromEntries(levels.map(p => [p.id, p]));
-  for (const p of levels) if (p.id !== 'legacy') p.values = {
+  const intro = { id: 'intro', name: '入門モード', lives: 3, unlimited: true, spacing: 0,
+    health: 2, note: 'ライフ無限で、移動・ジャンプ・パルクールを試す', startSpeed: 3.5, maxSpeed: 4.5,
+    counts: [2, 3, 3], initial: 2, interval: 3, flank: 0, ahead: 0, drop: 0, lull: 6, quiet: 0, lead: 6, warn: 3 };
+  const presets = [intro, ...levels.filter(p => p.id !== 'legacy')];
+  for (const p of presets) p.ramp = 90;
+  const byId = Object.fromEntries([intro, ...levels].map(p => [p.id, p]));
+  for (const p of presets) p.values = {
     zombieSpeed: p.maxSpeed, zombieHealth: p.health, maxZombies: Math.min(maxAlive, p.counts.at(-1)), flankShare: p.flank, aheadShare: p.ahead,
     dropperShare: p.drop, dropShare: p.drop, killLull: p.lull, paceGap: p.quiet,
-    stalkerOn: false, stalker2: false, stalkerAt: 120, stalkerSpeed: 0,
+    stalkerOn: false, stalker2: false, stalkerAt: 120, stalkerSpeed: 0, loseSight: 0,
   };
   let selected = 'normal';
-  try { const saved = localStorage.getItem(storage); if (levels.some(p => p.id === saved)) selected = saved; } catch {}
-  let active = selected, game, lastObservation = -1;
+  try {
+    const saved = localStorage.getItem(storage);
+    if (levels.some(p => p.id === saved)) selected = saved;
+    else if (['expert', 'master', 'ultra'].includes(saved)) selected = 'hard';
+  } catch {}
+  let lastPreset = selected === 'legacy' ? 'normal' : selected;
+  let active = selected, game, lastObservation = -1, launchingIntro = false, introTip = -1;
   const params = new URLSearchParams(location.search);
   const oldTownSwingPreview = params.get('oldtown_swing') === '1';
   const debug = params.get('challengeDebug') === '1' || oldTownSwingPreview;
@@ -69,26 +75,30 @@
     return game.Jt.length < maxAlive;
   }
   function events(fallback) {
-    const index = levels.findIndex(p => p.id === active);
-    if (index === 6) return fallback;
-    if (index < 2) return [];
-    if (index === 2) return [{ t: 60, do: 'surge', n: 2 }];
+    if (active === 'legacy') return fallback;
+    if (active === 'normal') return [{ t: 60, do: 'surge', n: 1 }, { t: 90, do: 'squeeze', front: 1, back: 1 }];
+    if (active !== 'hard') return [];
     return [
-      { t: 40, do: 'surge', n: index },
-      { t: 65, do: 'squeeze', front: Math.min(index - 1, 3), back: Math.min(index - 1, 3) },
-      { t: 85, do: 'surge', n: index + 1 },
-      { t: 100, do: 'squeeze', front: Math.min(index, 3), back: Math.min(index, 3) },
+      { t: 40, do: 'surge', n: 2 },
+      { t: 65, do: 'squeeze', front: 1, back: 1 },
+      { t: 85, do: 'surge', n: 2 },
+      { t: 100, do: 'squeeze', front: 2, back: 2 },
     ];
   }
   const owned = ['zombieSpeed', 'zombieHealth', 'maxZombies', 'flankShare', 'aheadShare', 'dropperShare', 'dropShare', 'killLull', 'paceGap', 'stalkerOn', 'stalker2', 'stalkerAt', 'stalkerSpeed'];
   function sync() {
-    const p = level(selected), preset = selected !== 'legacy';
-    document.getElementById('challengeDifficulty').value = selected;
+    const p = level(active), preset = active !== 'legacy';
+    const selector = document.getElementById('challengeDifficulty');
+    selector.value = selected !== 'legacy' ? selected : lastPreset;
+    selector.disabled = selected === 'legacy';
+    const custom = document.getElementById('challengeCustom');
+    custom.checked = selected === 'legacy';
+    custom.disabled = game.modeRef() !== 'menu';
     document.getElementById('challengeDescription').textContent = preset
-      ? `${p.note}。群れの上限 ${p.counts.join(' → ')}体、体力 ${p.health}（HGで${p.health}発）、通常追跡 ${range(p).start.toFixed(1)} → ${range(p).end.toFixed(1)}m/s。死体を含め表示は最大${maxAlive}体。終盤ほど強くなる2分間。`
+      ? `${p.note}。ライフ${p.unlimited ? '無限（ランキング対象外）' : p.lives}。群れの上限 ${p.counts.join(' → ')}体、体力 ${p.health}（HGで${p.health}発）、通常追跡 ${range(p).start.toFixed(1)} → ${range(p).end.toFixed(1)}m/s。死体を含め表示は最大${maxAlive}体。引き離しても追跡は続きます。`
       : 'メニューのゾンビ調整値を使います。6体の表示制限は対象外で、数を増やすほど負荷も増えます。これまでの記録はこちら。';
     document.getElementById('challengeSettingsNote').textContent = preset
-      ? `${p.name}：ゾンビ数・体力・速さ・増援は難易度に従います。個別に変える場合はホームで「自由調整」を選択。`
+      ? `${p.name}：ゾンビ数・体力・速さ・増援は難易度に従います。個別に変える場合はホームの詳細設定で「自由調整」を有効にします。`
       : '自由調整：ゾンビ数・体力・速さ・追跡者を個別に調整できます。';
     for (const name of owned) {
       const input = document.getElementById('s_' + name) || document.getElementById('t_' + name);
@@ -107,17 +117,22 @@
     }
     const badge = document.getElementById('hDifficulty');
     badge.textContent = game?.z.mission ? '技の練習' : level(active).name;
+    document.getElementById('bestLine').hidden = active === 'intro';
+    document.body.classList.toggle('intro-run', active === 'intro');
   }
   function begin() {
-    active = selected;
-    lastObservation = -1;
+    active = launchingIntro || active === 'intro' && game.modeRef() !== 'menu' ? 'intro' : selected;
+    launchingIntro = false;
+    lastObservation = introTip = -1;
     game.z.challenge = { id: active, version };
     game.refreshChallengeBest();
     sync();
+    document.dispatchEvent(new CustomEvent('sky-difficulty-change'));
   }
   function select(id) {
     if (!levels.some(p => p.id === id) || game.modeRef() !== 'menu') return;
     selected = active = id;
+    if (id !== 'legacy') lastPreset = id;
     try { localStorage.setItem(storage, selected); } catch {}
     game.refreshChallengeBest(); game.nl(); sync();
     document.dispatchEvent(new CustomEvent('sky-difficulty-change'));
@@ -126,6 +141,25 @@
     version, debug, maxAlive, maxRendered: maxAlive, corpseMinimum, levels, key, profile, limit, value, room, reserve, events, begin,
     get id() { return active; }, get selected() { return selected; },
     get name() { return level(active).name; },
+    get isIntro() { return active === 'intro' && !game?.z.mission; },
+    get isIntroRun() { return !game?.z.mission && game?.z.challenge?.id === 'intro'; },
+    maxLives(fallback = 3) { return profile()?.lives ?? fallback; },
+    damageLife() {
+      if (!profile()?.unlimited) game.c.life = Math.max(0, game.c.life - 1);
+      return game.c.life;
+    },
+    lifeLabel(life) { return profile()?.unlimited ? '∞' : String(life); },
+    lifeDisplay(life, fallback = 3) {
+      if (profile()?.unlimited) return '∞';
+      const maximum = profile()?.lives ?? fallback;
+      return '●'.repeat(Math.max(0, Math.min(maximum, life))) + '○'.repeat(Math.max(0, maximum - life));
+    },
+    spawnAllowed(point) {
+      const spacing = profile()?.spacing || 0;
+      const far = p => Math.hypot(p.x - point.x, p.z - point.z, (p.y - point.y) * 1.5) >= spacing;
+      return !game || !spacing || game.Jt.every(e => e.dead || e.remove ||
+        (far(e.pos) && (!(e.fall || e.rise || e.act?.emerge) || !e.spawnAnchor || far(e.spawnAnchor))));
+    },
     speed(multiplier, fallback) {
       const p = profile();
       return p ? Math.min(range(p).end, currentSpeed(p) * (1 + (multiplier - 1) * .4)) : fallback;
@@ -198,6 +232,14 @@
     extra(fallback) { return profile() ? 0 : fallback; },
     count(alive, ordinary) { return profile() ? alive : ordinary; },
     observe() {
+      if (active === 'intro' && game.modeRef() === 'play') {
+        const tips = ['移動してみよう。ライフは無限。落ちても近くから再開できます。',
+          '段差を跳び、壁やはしごを使って上の通路へ移動してみよう。',
+          '銃は押し返す道具にもなります。縁にいるゾンビを落としてみよう。',
+          '高低差や隙間で距離を作ろう。引き離してもゾンビの追跡は続きます。'];
+        const tip = Math.min(3, Math.floor(game.z.t / 30));
+        if (tip !== introTip) { introTip = tip; game.rn(tips[tip]); }
+      }
       if (game.z.t < lastObservation) lastObservation = -1;
       if (!debug || game.z.t < lastObservation + .5) return;
       lastObservation = game.z.t;
@@ -205,7 +247,7 @@
       document.getElementById('hDifficulty').dataset.challenge = JSON.stringify({
         id: game.z.mission ? "mission" : active, t: +game.z.t.toFixed(2), cap: limit(game.z.t, game.U.maxZombies),
         alive: alive.length, rendered: game.Jt.length, corpses: game.Jt.filter(e => e.dead).length, stalkers: alive.filter(e => e.stalker).length,
-        health: value('zombieHealth', game.U.zombieHealth),
+        health: value('zombieHealth', game.U.zombieHealth), lives: game.c.life, maximumLives: profile()?.unlimited ? 'infinite' : profile()?.lives ?? 3,
         speed: +(profile() ? currentSpeed(profile()) : game.U.zombieSpeed).toFixed(3),
         moving: alive.filter(e => !e.act && !e.fall && !e.rise && e.onGround && e.stun <= 0 && e.atkT <= 0)
           .map(e => +Math.hypot(e.vel.x, e.vel.z).toFixed(3)),
@@ -213,11 +255,26 @@
     },
     attach(internals) {
       game = internals;
+      document.getElementById('bIntro').addEventListener('click', () => {
+        if (game.modeRef() !== 'menu') return;
+        launchingIntro = true; game.br();
+      });
+      const introEntry = document.getElementById('introEntry');
+      introEntry.parentElement.prepend(introEntry);
       const selector = document.getElementById('challengeDifficulty');
-      for (const p of levels) selector.add(new Option(p.name, p.id));
+      for (const p of levels) if (p.id !== 'legacy') selector.add(new Option(p.name, p.id));
       selector.addEventListener('change', () => select(selector.value));
+      document.getElementById('challengeCustom').addEventListener('change', event => {
+        select(event.target.checked ? 'legacy' : lastPreset);
+        sync();
+      });
       new MutationObserver(sync).observe(document.getElementById('hud'), { attributes: true, attributeFilter: ['class'] });
-      for (const id of ['ovPause', 'ovStart']) new MutationObserver(() => { game.nl(); sync(); })
+      for (const id of ['ovPause', 'ovStart']) new MutationObserver(() => {
+        if (!document.getElementById('ovStart').hidden && active === 'intro') {
+          active = selected; game.refreshChallengeBest(); document.dispatchEvent(new CustomEvent('sky-difficulty-change'));
+        }
+        game.nl(); sync();
+      })
         .observe(document.getElementById(id), { attributes: true, attributeFilter: ['hidden'] });
       document.getElementById('setGrid').addEventListener('input', sync);
       document.getElementById('bReset').addEventListener('click', sync);

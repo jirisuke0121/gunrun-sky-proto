@@ -1,3 +1,4 @@
+// Retired module kept for historical checks; game pages import zombie-pursuit.js.
 // One dispatch snapshot per spawn; later destination updates require sight or sound.
 export const ZOMBIE_SEARCH = Object.freeze({ duration: 10, scan: 0.2, recognition: 0.45,
   memoryLimit: 2.5, climbMemory: 8, approachLimit: 20, recycleDelay: 6, recycleDistance: 18,

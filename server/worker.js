@@ -32,7 +32,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-10-31-record-integrity-v1", recordProtocol: 2 }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-10-31-parkour-v8", recordProtocol: 2 }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
@@ -47,6 +47,7 @@ async function receive(req, env, cors, origin, allowed) {
   let a;
   try { a = JSON.parse(text); } catch { return json({ error: "bad_json" }, 400, cors); }
   if (!a || typeof a !== "object" || !Number.isFinite(a.t) || a.t < 0 || a.t > 300 || typeof a.reason !== "string") return json({ error: "bad_shape" }, 400, cors);
+  if (a.challenge?.id === 'intro') return json({ error: 'intro_not_recorded' }, 400, cors);
   a.mapKey = recordMap(a);
   if (a.ghost != null) {
     const ghost = validateGhost(a.ghost, recordMap(a), a.t);
@@ -121,32 +122,32 @@ async function one(req, env, cors, id) {
   return new Response(r.json, { status: 200, headers: { "content-type": "application/json; charset=utf-8", ...cors } });
 }
 
-// ランキング：端末ごとの最高記録。corridor-score-v3以降の6難易度は得点順、旧版・自由調整はクリア優先。
+// ランキング：端末ごとの最高記録。corridor-score-v3以降のチャレンジは得点順（v7は3段階、旧版は6段階）、旧版・自由調整はクリア優先。
 // 対象は本番（map）の記録のみ（ミッションは score が null）。dev版（build が -dev で終わる）と途中終了（quit）は除く。
-function rankCte(clear) { return `
+function rankCte(clear, three = false) { return `
 WITH s AS (
   SELECT id, player, score, t, played_at, received_at, (reason = 'time') AS cleared,
          COALESCE(json_extract(json, '$.challenge.id'), 'legacy') AS difficulty,
          CASE WHEN reason != 'time' THEN 0 WHEN stars > 0 THEN MIN(3, CAST(stars AS INTEGER)) ELSE
            1 + (score >= COALESCE(json_extract(json, '$.settings.star2'), 430)) + (score >= COALESCE(json_extract(json, '$.settings.star3'), 470)) END AS stars,
          (COALESCE(json_array_length(json, '$.ghost.samples'),0) >= 2 OR COALESCE(json_array_length(json, '$.trail'),0) >= 2) AS replay,
-         ${clear ? `CASE json_extract(json, '$.challenge.id') WHEN 'easy' THEN 0 WHEN 'normal' THEN 1 WHEN 'hard' THEN 2 WHEN 'expert' THEN 3 WHEN 'master' THEN 4 WHEN 'ultra' THEN 5 END` : `(CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6') AND json_extract(json, '$.challenge.id') != 'legacy' THEN 0 WHEN reason = 'time' THEN 1000000 ELSE 0 END) + score`} AS k
+         ${clear ? `CASE json_extract(json, '$.challenge.id') WHEN 'easy' THEN 0 WHEN 'normal' THEN 1 WHEN 'hard' THEN 2 WHEN 'expert' THEN 3 WHEN 'master' THEN 4 WHEN 'ultra' THEN 5 END` : `(CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6', 'corridor-three-v7', 'corridor-parkour-v8') AND json_extract(json, '$.challenge.id') != 'legacy' THEN 0 WHEN reason = 'time' THEN 1000000 ELSE 0 END) + score`} AS k
   FROM runs
   WHERE reason IN ('time','caught','fell') AND score IS NOT NULL AND (build IS NULL OR build NOT LIKE '%-dev')
     AND COALESCE(json_extract(json, '$.channel'), 'production') != 'dev'
     AND COALESCE(json_extract(json, '$.mapKey'), CASE WHEN json_extract(json, '$.map.id') = 'rock_canyon_v1' OR json_extract(json, '$.mapVersion') = 'rock-canyon-v1'
               THEN 'rock-canyon' ELSE 'old-town' END) = ?
-    ${clear ? `AND reason = 'time' AND json_extract(json, '$.challenge.id') IN ('easy','normal','hard','expert','master','ultra') AND json_extract(json, '$.challenge.version') = ?` : `AND COALESCE(json_extract(json, '$.challenge.id'), 'legacy') = ? AND (? = 'legacy' OR json_extract(json, '$.challenge.version') = ?)`}
+    ${clear ? `AND reason = 'time' AND json_extract(json, '$.challenge.id') IN (${three ? "'easy','normal','hard'" : "'easy','normal','hard','expert','master','ultra'"}) AND json_extract(json, '$.challenge.version') = ?` : `AND COALESCE(json_extract(json, '$.challenge.id'), 'legacy') = ? AND (? = 'legacy' OR json_extract(json, '$.challenge.version') = ?)`}
 ), b AS (
   SELECT *, ROW_NUMBER() OVER (PARTITION BY player ORDER BY k DESC, ${clear ? 'score DESC,' : ''} t DESC, received_at DESC, id DESC) AS rn FROM s
 ), r AS (
   SELECT id, player, replay, cleared, score, difficulty, stars, played_at, received_at, ROUND(t) AS t, RANK() OVER (ORDER BY k DESC) AS pos FROM b WHERE rn = 1
 )`; }
 
-const RANK_CTE = rankCte(false), CLEAR_RANK_CTE = rankCte(true);
+const RANK_CTE = rankCte(false), CLEAR_RANK_CTE = rankCte(true), THREE_CLEAR_RANK_CTE = rankCte(true, true);
 
 function rankQuery(mode, map, difficulty, rules) {
-  return mode === 'clear' ? { sql: CLEAR_RANK_CTE, args: [map, rules] }
+  return mode === 'clear' ? { sql: ['corridor-three-v7', 'corridor-parkour-v8'].includes(rules) ? THREE_CLEAR_RANK_CTE : CLEAR_RANK_CTE, args: [map, rules] }
     : { sql: RANK_CTE, args: [map, difficulty, difficulty, rules] };
 }
 
@@ -162,14 +163,16 @@ function publicTime(row) {
 }
 
 const DIFFICULTIES = ['easy', 'normal', 'hard', 'expert', 'master', 'ultra', 'legacy'];
+const RULES = ['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6', 'corridor-three-v7', 'corridor-parkour-v8'];
+const validDifficulty = (rules, difficulty) => (['corridor-three-v7', 'corridor-parkour-v8'].includes(rules) ? ['easy', 'normal', 'hard', 'legacy'] : DIFFICULTIES).includes(difficulty);
 
 async function ranking(env, cors, url) {
   const mode = url.searchParams.get('mode') || 'score';
   if (!['score', 'clear'].includes(mode)) return json({ error: 'bad_mode' }, 400, cors);
   const rules = url.searchParams.get('rules') || 'unity-v1';
-  if (!['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6'].includes(rules)) return json({ error: 'bad_rules' }, 400, cors);
+  if (!RULES.includes(rules)) return json({ error: 'bad_rules' }, 400, cors);
   const difficulty = url.searchParams.get('difficulty') || 'legacy';
-  if (!DIFFICULTIES.includes(difficulty)) return json({ error: 'bad_difficulty' }, 400, cors);
+  if (!validDifficulty(rules, difficulty)) return json({ error: 'bad_difficulty' }, 400, cors);
   const map = url.searchParams.get("map") || "old-town";
   if (!["old-town", "rock-canyon"].includes(map)) return json({ error: "bad_map" }, 400, cors);
   const me = (url.searchParams.get("me") || "").slice(0, 40);
@@ -184,9 +187,9 @@ async function publicGhost(env, cors, url, id) {
   const mode = url.searchParams.get('mode') || 'score';
   if (!['score', 'clear'].includes(mode)) return json({ error: 'bad_mode' }, 400, cors);
   const rules = url.searchParams.get('rules') || 'unity-v1';
-  if (!['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6'].includes(rules)) return json({ error: 'bad_rules' }, 400, cors);
+  if (!RULES.includes(rules)) return json({ error: 'bad_rules' }, 400, cors);
   const difficulty = url.searchParams.get('difficulty') || 'legacy';
-  if (!DIFFICULTIES.includes(difficulty)) return json({ error: 'bad_difficulty' }, 400, cors);
+  if (!validDifficulty(rules, difficulty)) return json({ error: 'bad_difficulty' }, 400, cors);
   const map = url.searchParams.get("map") || "old-town";
   if (!["old-town", "rock-canyon"].includes(map)) return json({ error: "bad_map" }, 400, cors);
   // Publish only the ranking's selected run and its movement. Full diagnostic

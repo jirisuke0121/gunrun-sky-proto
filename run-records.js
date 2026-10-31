@@ -1,4 +1,4 @@
-import { recordMap } from './replay-data.js?v=20261031-record-integrity-v1';
+import { recordMap } from './replay-data.js?v=20261031-parkour-v8';
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 
 export const RECORD_ENDPOINT = 'https://gunrun-runs.jirisuke0121.workers.dev';
@@ -107,6 +107,7 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => crypto
     flights.set(id,flight); try { return await flight; } finally { flights.delete(id); }
   }
   async function submit(value) {
+    if (value?.challenge?.id === 'intro') return null;
     let a;
     try { a = copy(value); } catch { a = copy(resultOnly(value)); }
     a.clientRunId ||= uuid(); a.player = player; a.mapKey = recordMap(a);
@@ -131,10 +132,10 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => crypto
 
 export function installRunRecords(game, win = window, doc = document) {
   const panels = [];
-  const scope = () => win.skyPracticeMode ? '練習場：ランキング対象外' : win.skyChallenge.debug ? '検証モード：ランキング対象外' : game.U.sendLog ? '記録送信オン' : '記録送信オフ：結果はこの端末だけに保存';
+  const scope = () => win.skyChallenge.isIntro ? '入門モード：ランキング対象外・記録送信なし' : win.skyPracticeMode ? '練習場：ランキング対象外' : win.skyChallenge.debug ? '検証モード：ランキング対象外' : game.U.sendLog ? '記録送信オン' : '記録送信オフ：結果はこの端末だけに保存';
   let current;
   const message = row => {
-    if (!row) return scope();
+    if (!row || win.skyChallenge.isIntro) return scope();
     if (row.state === 'excluded') return '端末に結果を保存。' + scope();
     if (row.state === 'sending') return '端末保存済み・サーバーへ送信中…';
     if (row.state === 'pending') return `${row.localStored === false ? '端末への保存に失敗・画面を閉じないでください。' : '端末保存済み・未送信。'} ${row.error || ''}`;
@@ -147,7 +148,7 @@ export function installRunRecords(game, win = window, doc = document) {
     for (const panel of panels) {
       panel.querySelector('[data-record-status]').textContent = message(current);
       panel.querySelector('input').checked = !!game.U.sendLog;
-      panel.querySelector('input').disabled = !!win.skyPracticeMode || win.skyChallenge.debug;
+      panel.querySelector('input').disabled = !!win.skyPracticeMode || win.skyChallenge.debug || win.skyChallenge.isIntro;
       panel.querySelector('button').hidden = !store?.pending;
       panel.querySelector('small').textContent = `${scope()}${store?.pending ? ` ・ 未送信 ${store.pending}件` : ''}`;
       const history = panel.querySelector('ol'); history.replaceChildren();
@@ -163,7 +164,7 @@ export function installRunRecords(game, win = window, doc = document) {
   }
   const storage = {getItem:key=>{try{return win.localStorage.getItem(key);}catch{return null;}},setItem:(key,value)=>win.localStorage.setItem(key,value)};
   store = createRunRecords({ storage,fetcher:(...args)=>win.fetch(...args),uuid:()=>win.crypto.randomUUID(),
-    allowed:()=>!win.skyPracticeMode&&!win.skyChallenge.debug&&!!game.U.sendLog,
+    allowed:()=>!win.skyPracticeMode&&!win.skyChallenge.debug&&!win.skyChallenge.isIntro&&!!game.U.sendLog,
     announce:row=>render(row),emit:detail=>doc.dispatchEvent(new CustomEvent('sky-run-uploaded',{detail})) });
   for (const [id,target] of [['recordDeliveryHome',doc.getElementById('recNote')],['recordDeliveryResult',doc.getElementById('unityRecordStatus') || doc.getElementById('oLog')]]) {
     if (!target) continue;
@@ -176,6 +177,7 @@ export function installRunRecords(game, win = window, doc = document) {
   doc.getElementById('unityResultActions')?.before(live);
   const style = doc.createElement('style'); style.textContent = '.record-delivery{padding:12px;margin:12px 0;border:1px solid #8a98a6;border-radius:8px;font-size:13px;line-height:1.5}.record-delivery p{margin:6px 0}.record-delivery small{display:block}.record-delivery button{margin:8px 0;padding:8px}.record-delivery ol{padding-left:20px}.record-delivery input{margin-right:6px}#runRecordStatus{font-size:12px;line-height:1.5}';doc.head.append(style);
   doc.getElementById('t_sendLog')?.addEventListener('change',()=>{render();if(game.U.sendLog)store.retry();});
+  doc.addEventListener('sky-difficulty-change',()=>{render();if(!win.skyChallenge.isIntro)store.retry();});
   win.addEventListener('online',()=>store.retry());
   win.addEventListener('pageshow',()=>{render();store.retry();});
   render(store.history[0]); store.retry();
