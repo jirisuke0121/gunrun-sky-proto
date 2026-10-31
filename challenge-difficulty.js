@@ -255,9 +255,12 @@
     },
     attach(internals) {
       game = internals;
-      document.getElementById('bIntro').addEventListener('click', () => {
-        if (game.modeRef() !== 'menu') return;
-        launchingIntro = true; game.br();
+      const start = document.getElementById('bStart'), introButton = document.getElementById('bIntro');
+      const readiness = window.installSkyStartReadiness(game);
+      introButton.addEventListener('click', () => {
+        if (game.modeRef() !== 'menu' || !readiness.sync()) return;
+        launchingIntro = true;
+        try { start.click(); } finally { launchingIntro = false; }
       });
       const introEntry = document.getElementById('introEntry');
       introEntry.parentElement.prepend(introEntry);

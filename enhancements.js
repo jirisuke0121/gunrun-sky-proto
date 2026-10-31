@@ -2069,3 +2069,6 @@ if (/[?&]perf=1/.test(location.search)) {
 
   if(!window.skyPracticeMode)installRanking(game);
 }
+
+// Startup buttons must wait until the complete gameplay extension has installed.
+document.body.dataset.skyGameExtensionsReady = 'true';

@@ -1,7 +1,7 @@
 name: Ranked spot starts
 on:
   pull_request:
-    paths: ['index.html', 'canyon.html', 'ranking.js', 'run-records.js', 'replay-data.js', 'server/worker.js', 'bench/record-integrity*', 'old-town-swing.js', 'enhancements.js', 'bench/ranked-spots*', '.github/workflows/ranked-spots.yml']
+    paths: ['index.html', 'canyon.html', 'challenge-difficulty.js', 'start-readiness.js', 'bench/start-readiness*', 'ranking.js', 'run-records.js', 'replay-data.js', 'server/worker.js', 'bench/record-integrity*', 'old-town-swing.js', 'enhancements.js', 'bench/ranked-spots*', '.github/workflows/ranked-spots.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,6 +16,7 @@ jobs:
         with: {node-version: '24'}
       - name: Recorder, rankings, menu and audio lifecycle
         run: |
+          node bench/start-readiness.test.cjs
           node bench/record-integrity.test.cjs
           node bench/ranked-spots.test.cjs
           node bench/ranked-ghost.test.cjs
@@ -28,11 +29,15 @@ jobs:
           else
             npx playwright install --with-deps chromium
           fi
+      - name: Cold loading, normal and intro starts, transitions and reload recovery
+        run: node bench/start-readiness-browser.cjs
       - name: Desktop and touch spot start, audible effect, clear upload and result ranking
         run: node bench/ranked-spots-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ranked-spots-evidence
-          path: browser-evidence/ranked-spots.json
+          path: |
+            browser-evidence/ranked-spots.json
+            browser-evidence/start-readiness/
           retention-days: 14
