@@ -2,7 +2,7 @@
 // few points above 10 m, so rooftop running never felt high. This adds three
 // towers on the west side (where the run starts), each with its own way up.
 // No new ziplines (the three original ones are the only ones):
-//   West tower  (14.2 m): a 6-step staircase beside it (no ladders anywhere).
+//   West tower  (14.2 m): a walkable staircase beside it (no ladders anywhere).
 //   Plank       (14.2 m): 0.6 m wide beam from the west tower to the bell tower,
 //                       over the alley, so the ground is visible below.
 //   Bell tower  (14.2 m): the start of the sky chain.
@@ -51,8 +51,11 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
     // with a small landing and two 0.35m steps, using ordinary pursuit rather
     // than granting east-side jump permissions or changing climb abilities.
     box(26.5, 10.9, -7.4, 28.5, 11.3, -6.8, 'beam', SKY.steel);
-    box(26.5, 10.9, -6.8, 28.5, 11.65, -6.3, 'slab', SKY.stair);
-    box(26.5, 10.9, -6.3, 28.5, 12, -6, 'slab', SKY.stair);
+    const roofSteps = [
+      box(26.5, 10.9, -6.8, 28.5, 11.65, -6.3, 'slab', SKY.stair),
+      box(26.5, 10.9, -6.3, 28.5, 12, -6, 'slab', SKY.stair)
+    ];
+    window.skyStairWalk?.tag(roofSteps, 'east-wall-roof');
   }
 
   // Keep both storeys walkable at standing height. These cross-lane beams
@@ -147,12 +150,21 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
     { id: 'north-upper-bypass', route: [[1.3, 4, -12], [1.3, 4, -15.5], [12, 4, -15.5], [12, 4, -12]] },
   ];
 
-  // Each tower stands on the back half of its roof, with a staircase beside it: six steps
-  // (1.25 m rises, 1.08 m treads, 1.5 m wide, a 2.5 m landing at the top), so anything going up, people or zombies,
-  // goes up in single file. The plank, the grapple and the sky chain are the fast ways.
-  // The steps are 1 m treads so the zombie path grid (1 m) has a node on every step.
+  // Preserve both main flights' height, narrow lane and widened landing.
+  // The old 1.25m blocks forced a mantle at every step. Fine 10cm treads
+  // keep the leading edge of the capsule within the 42cm walking solver.
   const stairs = (x0, x1, base, wide) => {
-    for (let i = 0; i < 6; i++) box(x0, base, -5.5 - 1.083 * (i + 1), i === 5 ? x1 : x0 + wide, base + 1.25 * (i + 1), -5.5 - 1.083 * i, 'slab', SKY.stair);
+    const steps = [], count = 75, length = 6 * 1.083;
+    for (let i = 0; i < count; i++) steps.push(box(x0, base, -5.5-length*(i+1)/count,
+      i >= count-count/6 ? x1 : x0+wide, base+7.5*(i+1)/count,
+      -5.5-length*i/count, 'slab', SKY.stair));
+    // The bell tower's red approach crate is 40cm below its roof. Bridge
+    // that seam before the first tread rather than making a 50cm wall.
+    if (base === 4.4) {
+      steps.push(box(x0,4,-5.2,x0+wide,4.2,-4.9,'slab',SKY.stair));
+      steps.push(box(x0,4,-5.5,x0+wide,4.4,-5.2,'slab',SKY.stair));
+    }
+    window.skyStairWalk?.tag(steps, 'tower-'+x0);
   };
   // Small crate stacks on the roofs: cover, and 1.2 m / 2.4 m hops.
   const crates = (list) => list.forEach(([x0, z0, x1, z1, h]) => box(x0, 0, z0, x1, h, z1, 'prop', SKY.crate));
@@ -325,10 +337,12 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
 
   // A small T landing permits a turn without widening the entire beam road.
   box(-42.8,4,7.2,-41.2,4.4,8.8,'beam',SKY.beam);
+  const beamReturnSteps=[];
   for(let i=1;i<=4;i++){
     const z=4.6-i*.45,top=4.4-i*.35;
-    box(-42.6,top-.25,z,-41.4,top,z+.45,'slab',SKY.stair);
+    beamReturnSteps.push(box(-42.6,top-.25,z,-41.4,top,z+.45,'slab',SKY.stair));
   }
+  window.skyStairWalk?.tag(beamReturnSteps, 'beam-road-return');
   // These two props used to pinch the east recovery's ground exit to 5cm of
   // steering tolerance. Put them on the neighbouring roof instead.
   for(const b of jn){

@@ -22,6 +22,7 @@ jobs:
           node bench/wallrun-permissions.test.cjs
           node bench/editor-autosave.test.cjs
           node bench/hook-touch-exits.test.cjs
+          node bench/stair-walk.test.cjs
           node bench/swing-timing.test.cjs
           node bench/swing-flip.test.cjs
           node bench/slope-slide.test.cjs
