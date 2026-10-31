@@ -1,8 +1,10 @@
 import { recordMap } from './replay-data.js?v=20261031-record-integrity-v1';
+import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 
 export const RECORD_ENDPOINT = 'https://gunrun-runs.jirisuke0121.workers.dev';
 const OUTBOX = 'gunrun-run-outbox-v1', HISTORY = 'gunrun-run-history-v1';
 const copy = value => JSON.parse(JSON.stringify(value));
+const timeout = ms => typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function' ? {signal:AbortSignal.timeout(ms)} : {};
 export function resultOnly(a) {
   const keys = ['v','clientRunId','player','at','build','channel','mapVersion','mapKey','map','kind','mission','challenge','reason','t','score','stars','lives','input','screen','_deliveryUncertain'];
   const result = Object.fromEntries(keys.filter(key => key in a).map(key => [key, a[key]]));
@@ -35,7 +37,7 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => crypto
   }
   async function capability() {
     try {
-      const response = await fetcher(endpoint + '/', { cache:'no-store' });
+      const response = await fetcher(endpoint + '/', { cache:'no-store',...timeout(10000) });
       if (response.ok) protocol = Number((await response.json()).recordProtocol) || 1;
     } catch {}
     return protocol;
@@ -50,7 +52,7 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => crypto
     if (a.kind !== 'map' || !['time','caught','fell'].includes(a.reason) || !Number.isFinite(a.score?.total)) return 'excluded';
     const query = new URLSearchParams({ map:recordMap(a), mode:'score', difficulty:a.challenge?.id || 'legacy', rules:a.challenge?.version || 'unity-v1', me:a.player });
     try {
-      const response = await fetcher(endpoint + '/ranking?' + query, { cache:'no-store' });
+      const response = await fetcher(endpoint + '/ranking?' + query, { cache:'no-store',...timeout(10000) });
       if (!response.ok) return 'unconfirmed';
       const data = await response.json(), own = data.top?.find(row => row.me);
       if (data.map !== recordMap(a) || data.difficulty !== (a.challenge?.id || 'legacy') || data.rules !== (a.challenge?.version || 'unity-v1')) return 'unconfirmed';
@@ -151,11 +153,13 @@ export function installRunRecords(game, win = window, doc = document) {
       const history = panel.querySelector('ol'); history.replaceChildren();
       for (const entry of (store?.history || []).slice(0,5)) {
         const li = doc.createElement('li');
-        li.textContent = `${new Date(entry.at).toLocaleString('ja-JP')} ${entry.difficulty} ${entry.score ?? '—'}点：${message(entry)}`;
+        li.textContent = `${formatReplayTime(entry.at)} ${entry.difficulty} ${entry.score ?? '—'}点：${message(entry)}`;
         history.append(li);
       }
     }
     const result = doc.getElementById('runRecordStatus'); if (result) result.textContent = message(current);
+    if (win.__game?.RL) win.__game.RL.status = message(current);
+    const legacy = doc.getElementById('oLog'); if (legacy && legacy.textContent !== message(current)) legacy.textContent = message(current);
   }
   const storage = {getItem:key=>{try{return win.localStorage.getItem(key);}catch{return null;}},setItem:(key,value)=>win.localStorage.setItem(key,value)};
   store = createRunRecords({ storage,fetcher:(...args)=>win.fetch(...args),uuid:()=>win.crypto.randomUUID(),
