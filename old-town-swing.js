@@ -132,19 +132,24 @@
     box('south-corner-launch',[-4.3,3.7,16.4],[-3,4,17.8]);
     // The roof ladder climbs at (0,-14.54). Its entire shaft stays clear.
     box('north-corner-launch',[-3.4,3.7,-16.7],[.5,4,-15.1]);
-    box('south-corner-ledge',[-17.4,3.9,13],[-14.05,4.2,17.8]);
-    box('north-corner-ledge',[-17.4,3.9,-17.4],[-14.05,4.2,-13]);
+    box('south-corner-ledge',[-22,3.9,13],[-15.2,4.2,17.8]);
+    box('north-corner-ledge',[-22,3.9,-17.4],[-15.2,4.2,-13]);
+    // Small arrival lips stay beyond the ends of the original wall-run faces.
+    box('south-corner-arrival-lip',[-15.2,3.9,16.3],[-14.05,4.2,17.8]);
+    box('north-corner-arrival-lip',[-15.2,3.9,-17.4],[-14.05,4.2,-15.1]);
+    // Keep the original west-wall run and outward kick corridor free.
+    // The inner ledge edge stays 1.2m from the wall; stairs sit 6.6m away.
     // Both corners have a slower walkable return to the existing west street.
     // These stairs stay behind the landing, out of the bar's flight lane;
     // pursuers can reach the ledges without crossing either aerial shortcut.
     for(let i=0;i<14;i++) {
       const top=4.2-i*.3;
-      box('south-corner-return-'+i,[-15.8,-.3,13-(i+1)*.4],[-14.2,top,13-i*.4],'slab',0xe39a4a);
-      box('north-corner-return-'+i,[-17.4,-.3,-13+i*.4],[-15.6,top,-13+(i+1)*.4],'slab',0xe39a4a);
+      box('south-corner-return-'+i,[-22,-.3,13-(i+1)*.4],[-20.6,top,13-i*.4],'slab',0xe39a4a);
+      box('north-corner-return-'+i,[-22,-.3,-13+i*.4],[-20.6,top,-13+(i+1)*.4],'slab',0xe39a4a);
     }
     // The last treads overlap the old ground floor; no unsupported final step.
-    box('south-corner-foot',[-15.8,-.3,7.1],[-14.2,0,7.8]);
-    box('north-corner-foot',[-17.4,-.3,-7.8],[-15.6,0,-7.1]);
+    box('south-corner-foot',[-22,-.3,7.1],[-20.6,0,7.8]);
+    box('north-corner-foot',[-22,-.3,-7.8],[-20.6,0,-7.1]);
     // The north gap used to have no floor. A miss costs height, with a lower
     // route back to the street instead of a forced fall into the void.
     box('north-corner-recovery',[-19.5,-3.8,-17.4],[1,-3.5,-14]);
@@ -153,7 +158,7 @@
       box('north-corner-recovery-stair-'+i,[-19.5,-3.8,z],[-17.7,top,z+.65],'slab',0xe39a4a);
     }
     for(const z of [-16.7,-13.7,13.7,17.1]) {
-      strut([-14,2.6,z],[-17.1,3.9,z]);
+      strut([-21.9,2.6,z],[-20.9,3.9,z]);
     }
     // Suspend the grips from the facade without blocking the body arc.
     for(const [x,z] of [[-6.7,17],[-6.2,-15.5]])for(const side of [-1,1]) {
@@ -161,10 +166,15 @@
       strut(end,mount);strut(mount,[x,8.4,z>0?14:-14]);
     }
 
-    // Photo 1: the 0m footing north of the EAST tower, underneath the orange
-    // stairs. Step outside the stair's north edge before grappling eastward.
-    // The 3.6m landing attaches to the existing outer walk, not a new exit.
-    box('tower-corner-launch',[44.4,-.3,-15.8],[46.4,0,-13.8]);
+    // Photo 1: the 0m footing north of the east tower, below the orange stairs.
+    // Follow the photo line west to the existing beam and ④'s branch.
+    // Retain the earlier east-facing catwalk option as a separate choice.
+    box('tower-corner-launch',[44.4,-.3,-17],[46.4,0,-13.8]);
+    // Photo's red line goes WEST, towards the existing beam and ④'s ledges.
+    // Keep this landing north of the upper backwalk so the hook arc is open.
+    box('tower-west-arrival',[34.4,3.1,-17.2],[38,3.4,-13.2]);
+    const towerWestHook=[36.2,5.6,-16.2];
+    // Append after the previous east hook to preserve every existing index.
     box('tower-corner-arrival',[59.6,3.3,-16.5],[61.85,3.6,-14.05]);
     // The original stair's south edge drops about 1m onto the outer walk.
     // Break that drop into ordinary steps so grounded edge assistance lets
@@ -174,7 +184,9 @@
       box('tower-corner-runout-'+i,[59.8,3.3,z],[61.85,top,z+.55],'slab',0xe39a4a);
     }
     const towerHook=[60.9,5.8,-15.25];
-    us.push(towerHook);
+    us.push(towerHook,towerWestHook);
+    strut([34.5,3.1,-16.2],[34.5,5.6,-16.2]);
+    strut([34.5,5.6,-16.2],towerWestHook);
     strut([61.85,5.8,-15.25],towerHook);
     strut([61.85,3.3,-15.25],[61.85,5.8,-15.25]);
 
@@ -227,14 +239,15 @@
        alternate:[[38.8,7.4,-11.7],[39.46,7.4,-11],[39.46,14.4,-11],[43,14.4,-11]],
        returnVia:[36.5,3.4,-13],fallback:[33,-1.1,0],sharedBars:['oldtown-east-bar-1']},
       {id:'south-corner',name:'⑤ 南の踊り場→鉄棒→西の角',approach:[-2,4,17],yaw:Math.PI/2,exit:[-15.5,4.2,17],
-       escape:[[-15,4.2,13.4],[-15,2.1,10.4],[-15,0,7.2],[-15,0,-1]],
-       returnVia:[-15,0,7.2],fallback:[-10,0,16]},
+       escape:[[-21.3,4.2,16.4],[-21.3,4.2,13.2],[-21.3,2.1,10.4],[-21.3,0,7.2],[-20,0,-1]],
+       returnVia:[-21.3,0,7.2],fallback:[-10,0,16]},
       {id:'north-corner',name:'⑥ 北バルコニー→鉄棒→北西の角',approach:[2,4,-15.5],yaw:Math.PI/2,exit:[-15.5,4.2,-15.5],
-       escape:[[-16.5,4.2,-13.3],[-16.5,2.1,-10.4],[-16.5,0,-7.2],[-20,0,-5]],
-       returnVia:[-16.5,0,-7.2],fallback:[-10,-3.5,-15.5]},
-      {id:'tower-corner',name:'⑦ 東塔の足元→フック→外側回廊',approach:[45,0,-13],yaw:-Math.PI/2,exit:[60.7,3.6,-15.25],
-       escape:[[60.7,3.6,-14.5],[60.7,3.6,-13],[60.7,3.6,-7],[60.7,3.6,2]],
-       returnVia:[60.7,3.6,-13],hook:towerHook,fallback:[44.5,0,-13]},
+       escape:[[-21.3,4.2,-15.5],[-21.3,4.2,-13.3],[-21.3,2.1,-10.4],[-21.3,0,-7.2],[-20,0,-5]],
+       returnVia:[-21.3,0,-7.2],fallback:[-10,-3.5,-15.5]},
+      {id:'tower-corner',name:'⑦ 東塔の足元→西のフック→既存の梁',approach:[45,0,-13],yaw:Math.PI/2,exit:[36.2,3.4,-16.2],
+       escape:[[36.2,3.4,-15.7],[36.5,3.4,-13],[35.75,3.4,-13],[30.8,7.4,-13],[30.8,7.4,-13.9]],
+       alternate:[[45,0,-16.2],[60.7,3.6,-15.25],[60.7,3.6,-7]],
+       returnVia:[36.5,3.4,-13],hook:towerWestHook,alternateHook:towerHook,fallback:[44.5,0,-13]},
       {id:'north-east-corner',name:'⑧ 北の下段→鉄棒→東側通路',approach:[12,0,-15.5],yaw:-Math.PI/2,exit:[15.5,0,-4.8],
        escape:[[15.5,0,-3.7],[12,0,-3.7],[12,0,-9]],
        returnVia:[12,0,-3.7],fallback:[15.5,-3.5,-10.2]},
@@ -243,12 +256,12 @@
       approach:routes[0].approach,approachYaw:routes[0].yaw,pad:routes[0].approach,exit:routes[0].exit,
       signs:[],arrows:[{at:[31.5,7.025,-.65],direction:[1,0]},{at:[35.7,7.025,-1.8],direction:[1/Math.sqrt(5),-2/Math.sqrt(5)]},
         {at:[-3.5,4.025,17],direction:[-1,0]},{at:[-.3,4.025,-15.5],direction:[-1,0]},
-        {at:[-15,4.225,13.5],direction:[0,-1]},{at:[-16.5,4.225,-13.5],direction:[0,1]},
-        {at:[45,0.025,-13.5],direction:[0,-1]},{at:[45.5,0.025,-15.1],direction:[1,0]},
+        {at:[-21.3,4.225,13.5],direction:[0,-1]},{at:[-21.3,4.225,-13.5],direction:[0,1]},
+        {at:[45,0.025,-13.5],direction:[0,-1]},{at:[45,0.025,-16.2],direction:[-1,0]},{at:[36.2,3.425,-16.2],direction:[0,1]},
         {at:[60.7,3.625,-14.7],direction:[0,1]},
         {at:[12.8,.025,-15.5],direction:[1,0]},{at:[15.5,.025,-14.4],direction:[0,1]},
         {at:[15.5,.025,-3.7],direction:[-1,0]},{at:[15.3,-3.475,-12.5],direction:[1,0]}],
-      instructions:'橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連、左は柱の縁へ。⑤南の踊り場と⑥北バルコニーは西の角の縁へ渡り、西の通りや既存の屋根フックへ。⑦は東塔の足元から外側回廊へフック、⑧は北の下段から鉄棒で東側通路へ。空中で自動につかみ、前へ振れたらジャンプを押し直す。下入力で離す。',
+      instructions:'橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連、左は柱の縁へ。⑤南の踊り場と⑥北バルコニーは西の角の縁へ渡り、西の通りや既存の屋根フックへ。⑦は東塔の足元から西のフックで既存の梁へ、⑧は北の下段から鉄棒で東側通路へ。空中で自動につかみ、前へ振れたらジャンプを押し直す。下入力で離す。',
     };
   };
   addEventListener('load',()=>{
@@ -258,7 +271,7 @@
     card.style.cssText='margin:0 0 16px;padding:12px;border:1px solid #ffb647;border-radius:10px;background:#2c3028;color:#fff4df';
     const title=document.createElement('strong');title.textContent='旧市街・鉄棒から逃走分岐へ';
     const note=document.createElement('p');note.style.cssText='font-size:13px;line-height:1.6;margin:8px 0';
-    note.textContent=(preview?'この練習入口からの記録は送信しません。':'各経路の入口から試せます。')+'④は最初の鉄棒で分岐。⑤⑥は西の角の縁へ。⑦は東塔の足元から階段の外の縁へ出てフック、⑧は北の下段から角を回って鉄棒で東側通路へ。空中移動の後は逆入力で減速します。';
+    note.textContent=(preview?'この練習入口からの記録は送信しません。':'各経路の入口から試せます。')+'④は最初の鉄棒で分岐。⑤⑥は西の角の縁へ。⑦は東塔の足元から北の縁へ出て、西（写真の左）のフックで既存の梁へ、⑧は北の下段から角を回って鉄棒で東側通路へ。空中移動の後は逆入力で減速します。';
     card.append(title,note);
     for(const route of course.routes){
       const control=document.createElement(preview?'button':'a');control.textContent=route.name;

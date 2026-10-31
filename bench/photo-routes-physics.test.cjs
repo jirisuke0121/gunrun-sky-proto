@@ -21,9 +21,13 @@ function extract(source,name){const at=source.indexOf('function '+name+'(',16000
  function jump(){c.jumpBuf=U.jumpBuffer;for(const f of listeners.keydown||[])f({code:'Space',repeat:false});for(const f of listeners.keyup||[])f({code:'Space'});}
  function walk(points){for(const p of points){let done=false;for(let i=0;i<1800;i++){const dx=p[0]-c.pos.x,dz=p[2]-c.pos.z;if(Math.hypot(dx,dz)<.18&&Math.abs(c.pos.y-p[1])<.7&&c.onGround){done=true;break;}c.yaw=Math.atan2(-dx,-dz);input=1;step();}assert.ok(done,'walk '+p+' '+JSON.stringify(c.pos.toArray()));input=0;for(let i=0;i<12;i++)step();}}
  // Real hook pulling, release, gravity, braking and capsule collision at defaults.
- reset([45,0,-15.25],-Math.PI/2);c.state='hook';c.hook=map.hooks.at(-1);c.hookT=0;c.onGround=false;
+ reset([45,0,-15.25],-Math.PI/2);c.state='hook';c.hook=map.hooks.at(-2);c.hookT=0;c.onGround=false;
  let landed=false;for(let i=0;i<720;i++){if(c.state==='normal')input=c.vel.x>.4?-1:0;step();if(c.onGround&&Math.abs(c.pos.y-3.6)<.1){landed=true;break;}}
  assert.ok(landed,'default hook reaches outer ledge');results.push({id:'tower-hook-default',p:c.pos.toArray(),seconds:ctx.z.t});
+ // The corrected photo line goes west, then rejoins the existing 3.4m beam.
+ reset([45,0,-16.2],Math.PI/2);c.state='hook';c.hook=map.hooks.at(-1);c.hookT=0;c.onGround=false;
+ landed=false;for(let i=0;i<720;i++){if(c.state==='normal')input=c.vel.x<-.4?-1:0;step();if(c.onGround&&Math.abs(c.pos.y-3.4)<.1){landed=true;break;}}
+ assert.ok(landed,'west hook reaches the beam ledge');walk([[36.2,3.4,-15.7],[36.5,3.4,-13],[35.75,3.4,-13],[30.8,7.4,-13],[30.8,7.4,-13.9]]);results.push({id:'tower-west-hook-default',p:c.pos.toArray(),seconds:ctx.z.t});
  for(const angle of [.55,.65,.8])for(const offset of [-.25,0,.25]){
   reset([12,0,-15.5],-Math.PI/2);walk([[15.5+offset,0,-15.5]]);c.yaw=Math.PI;input=1;for(let i=0;i<120&&c.pos.z<-15.05;i++)step();const takeoff={p:c.pos.toArray(),speed:Math.hypot(c.vel.x,c.vel.z)};jump();let grabbed=false,released=false;landed=false;
   for(let i=0;i<840;i++){const active=swing.active;if(active){grabbed=true;if(!released&&active.angle>=angle&&active.omega>1.1){jump();released=true;}}if(grabbed&&!active&&c.state==='normal'&&!c.onGround)input=c.vel.z>.4&&(-3.6-c.pos.z<c.vel.z*c.vel.z/28+.25)?-1:0;step();if(grabbed&&c.onGround&&c.state==='normal'&&Math.abs(c.pos.y)<.1){landed=true;break;}}
