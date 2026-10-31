@@ -19,3 +19,19 @@ assert.ok(route.exit[0]<=-20,'north swing landing stays outside the wall-jump pa
 assert.equal(map.course.bars.filter(b=>b.route==='north-corner').length,2);
 assert.equal(map.course.routes.length,8);
 console.log('PASS '+samples+' wall-kick capsule samples, low/high takeoffs and early/late inputs; previous ledge would collide '+previousHits+' times');
+// The screenshot's wall-facing END is still hit when northward momentum is
+// weak. The previous 0.65s / -9.3m/s-only probe never reached that end.
+const circledEnd={minX:-24,maxX:-20,minY:3.9,maxY:4.2,minZ:-17.4,maxZ:-13};
+let cornerSamples=0,circledHits=0;
+for(const height of [1.4,1.8,2.05])for(const startZ of [-13.4,-13.9])for(const push of [6,7,8,10])for(const forward of [0,2,4,6,9.3]){
+ for(let t=0;t<=1.2;t+=1/120){
+  const x=-14.36-push*t,y=height+6.84*t-10*t*t,z=startZ-forward*t;
+  if(y<-.1)break;
+  if(overlaps(circledEnd,x,y,z))circledHits++;
+  const block=solids.find(b=>overlaps(b,x,y,z));
+  assert.ok(!block,'circled ledge end blocks sideways kick '+JSON.stringify({height,startZ,push,forward,t,x,y,z,block}));cornerSamples++;
+ }
+}
+assert.ok(circledHits>100,'negative control must reproduce the currently published end obstruction');
+assert.equal(solids.find(b=>b.oldTownSwing==='north-corner-ledge').maxX,-21.5,'remove the actual visible end, not just its collision');
+console.log('PASS '+cornerSamples+' sideways/diagonal capsule samples; previous circled end collided '+circledHits+' times');

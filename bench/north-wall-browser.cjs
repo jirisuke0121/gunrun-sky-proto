@@ -50,6 +50,25 @@ const {chromium}=require('playwright');
    }
   }
   console.log('PASS higher north wall-kick takeoffs and original beam landing',touch?'touch':'desktop');
+  // Real capsule movement through the exact removed end, at head height.
+  record.circledEnd = await page.evaluate(() => {
+   const g=__game,c=g.P,old={minX:-24,maxX:-20,minY:3.9,maxY:4.2,minZ:-17.4,maxZ:-13};
+   northQA.reset([-19.55,2.3,-14.5],Math.PI/2);
+   c.onGround=false;c.airT=.3;c.vel.set(-10,.8,-2);g.keys.KeyW=true;
+   let previousHits=0;const frames=[];
+   for(let i=0;i<48;i++){
+    const previous=c.vel.y;g.playerStep(1/120);
+    const p=c.pos;
+    if(p.x+.32>old.minX&&p.x-.32<old.maxX&&p.z+.32>old.minZ&&p.z-.32<old.maxZ&&p.y+1.75>old.minY&&p.y<old.maxY)previousHits++;
+    if(previous>.2&&c.vel.y<.01)throw Error('head was stopped at circled end');
+    frames.push(northQA.state());
+   }
+   northQA.render();return{previousHits,frames};
+  });
+  assert.ok(record.circledEnd.previousHits>0,'real flight must overlap the removed end');
+  assert.ok(record.circledEnd.frames.at(-1).p[0]<-21.5,'must pass the former obstacle');
+  await page.screenshot({path:`browser-evidence/north-wall/${touch?'touch':'desktop'}-circled-end-clear.png`});
+
   // Keep ⑥ usable as a two-bar chain to its relocated outer landing.
   await page.evaluate(()=>{
    const g=__game,c=g.P;northQA.reset([2,4,-15.5],Math.PI/2);
@@ -61,7 +80,7 @@ const {chromium}=require('playwright');
    const s=await page.evaluate(()=>{
     const g=__game,c=g.P;
     for(let i=0;i<4;i++){
-     if(window.northBrake&&!skySwing.active){g.keys.KeyW=false;g.keys.KeyS=c.vel.x<-.4&&c.pos.x+21.3<c.vel.x*c.vel.x/28+.2;}
+     if(window.northBrake&&!skySwing.active){g.keys.KeyW=false;g.keys.KeyS=c.vel.x<-.4&&c.pos.x+22.5<c.vel.x*c.vel.x/28+.2;}
      g.playerStep(1/120);
     }
     const a=skySwing.active;return{...northQA.state(),bar:a?.bar.id,angle:a?.angle,omega:a?.omega};

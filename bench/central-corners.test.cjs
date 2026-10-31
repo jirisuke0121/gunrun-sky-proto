@@ -57,7 +57,7 @@ class Visual{
       const previous=c.pos.toArray(),handled=swing.step(dt,{fwdIn:1});
       if(!handled){
         // Opposite input slows the flight when stopping distance reaches the ledge.
-        if(releases.size===routeBars.length&&brake&&c.pos.x+(id==='north-corner'?21.3:15.8)<c.vel.x*c.vel.x/28+.2)c.vel.x=Math.min(0,c.vel.x+14*dt);
+        if(releases.size===routeBars.length&&brake&&c.pos.x+(id==='north-corner'?22.5:15.8)<c.vel.x*c.vel.x/28+.2)c.vel.x=Math.min(0,c.vel.x+14*dt);
         c.vel.y-=20*dt;c.pos.x+=c.vel.x*dt;c.pos.y+=c.vel.y*dt;c.pos.z+=c.vel.z*dt;
         if(c.vel.y<0){
           const top=floorAt(c.pos.x,c.pos.z,previous[1]);
