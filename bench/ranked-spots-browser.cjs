@@ -72,7 +72,7 @@ const base = 'http://127.0.0.1:8793/';
         await page.waitForFunction(() => __skyInternals.modeRef() === 'over');
         await page.waitForFunction(() => window.skyRunRecording.history[0]?.receiptId);
         await page.locator('#unityMore').click();
-        await page.waitForFunction(() => document.querySelector('#resultRanking li.me .rank-clear')?.textContent.includes('Normal クリア'));
+        await page.waitForFunction(() => document.querySelector('#resultRanking li.me .rank-clear')?.textContent.includes('ノーマル クリア'));
         assert.equal(uploadStatuses.at(-1), 200); assert.equal(uploads.at(-1).reason, 'time');
         assert.equal(uploads.at(-1).challenge.version, 'corridor-parkour-v8');
         if(selector===selectors[0])assert.ok(uploads.at(-1).ghost.samples.length>1800,'full 120-second recorder path, not only a final-time shortcut');
