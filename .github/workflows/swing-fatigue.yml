@@ -1,0 +1,39 @@
+name: Swing grip and exhaustion animation
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  grip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Grip behavior and real character animation
+        run: |
+          node bench/swing-fatigue.test.cjs
+          node bench/human-running.test.cjs
+          node bench/human-actions.test.cjs
+          node bench/human-view-running.test.cjs
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Exercise fatigue, hand release and falling in both maps
+        run: node bench/swing-fatigue-browser.cjs
+      - name: Existing timed release and swing traversal
+        run: node bench/swing-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: swing-fatigue-evidence
+          path: browser-evidence/swing*
+          retention-days: 7

@@ -1,6 +1,6 @@
 // Running style for the existing, baked Unity human. No new model download.
 // Asset-space metres: +Y up, +Z forward, the right hand is on -X.
-import { actionPose, boneMap, solveLimb, landingPose, LANDING_SECONDS } from './human-actions.js?v=20261030-landing-release-v1';
+import { actionPose, boneMap, solveLimb, landingPose, LANDING_SECONDS } from './human-actions.js?v=20261031-grip-v1';
 export { LANDING_SECONDS, releaseAccent } from './human-actions.js?v=20261030-landing-release-v1';
 import { landingRollPose, rollTuck, rollTurn, LANDING_ROLL } from './landing-roll.js?v=20261029-edge-assist-v3';
 export { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
@@ -233,9 +233,9 @@ export function addParkourRun(model, motion, Attribute) {
     actionClips[kind] = { frames: names, times: seconds, duration: 1, source: 'distance-synchronised wall contact cycle' };
     actionGrips[kind] = rightHands; actionHands[kind] = bothHands;
   }
-  for (const kind of ['parkourJump', 'parkourVault', 'parkourMantle', 'parkourCatch', 'parkourSwing', 'parkourSwingFlight']) {
+  for (const kind of ['parkourJump', 'parkourVault', 'parkourMantle', 'parkourCatch', 'parkourSwing', 'parkourSwingFlight', 'parkourGripSlip']) {
     const names = [], seconds = [], rightHands = [], bothHands = [];
-    const samples=kind==='parkourSwingFlight'?4:kind==='parkourSwing'?8:12;
+    const samples=kind==='parkourGripSlip'?3:kind==='parkourSwingFlight'?4:kind==='parkourSwing'?8:12;
     for (let i = 0; i <= samples; i++) {
       const phase = i / samples, pose = actionPose(kind, phase), name = `${kind}_${String(i).padStart(3, '0')}`;
       names.push(name); seconds.push(phase); frames.push(name);
@@ -246,7 +246,7 @@ export function addParkourRun(model, motion, Attribute) {
     actionGrips[kind] = rightHands; actionHands[kind] = bothHands;
   }
   {
-    // One additional target reaches, but does not exceed, the 256-layer floor.
+    // One landing-compression target, with the neutral endpoints shared.
     const pose = landingPose(.25), name = 'parkourLand_compress';
     frames.push(name); bodyFrames.push(bodyUnarmed.map(p => pose.vertex(p, armWeight(p))));
     actionClips.parkourLand = { frames: [unarmed, name, unarmed], times: [0, .055, LANDING_SECONDS], duration: LANDING_SECONDS, source: 'grounded knee compression and stride recovery' };
@@ -282,6 +282,15 @@ export function addParkourRun(model, motion, Attribute) {
     dashGrips.push([pose.hands.right[0], pose.hands.right[1] + lift, pose.hands.right[2]]);
     dashPitches.push(pose.pitch);
   }
+  // Four cyclic endpoint poses are identical to their first frame. Share
+  // them to make room for slipping without exceeding WebGL2's 256 layers.
+  // Original exported targets and their indices are never changed.
+  const loopAliases=new Map([
+    [`parkourRun_${String(RUN_SAMPLES).padStart(3,'0')}`,'parkourRun_000'],
+    [`parkourDash_${String(RUN_SAMPLES).padStart(3,'0')}`,'parkourDash_000'],
+    ...['parkourWallLeft','parkourWallRight'].map(kind=>[`${kind}_${String(WALLRUN_SAMPLES).padStart(3,'0')}`,`${kind}_000`])
+  ]);
+  for(const clip of Object.values(actionClips))clip.frames=clip.frames.map(name=>loopAliases.get(name)||name);
   for (const mesh of meshes) {
     const geometry = mesh.geometry, base = geometry.attributes.position, matrix = matrices.get(mesh);
     const inverse = matrix.clone().invert().elements;
@@ -309,6 +318,7 @@ export function addParkourRun(model, motion, Attribute) {
     const missingOriginal = positions.length ? [] : originalBodyNames;
     const frameNames = [...missingOriginal, ...frames];
     for (let frame = 0; frame < frameNames.length; frame++) {
+      if(loopAliases.has(frameNames[frame]))continue;
       const absolute = new Float32Array(base.count * 3), delta = new Float32Array(base.count * 3);
       for (let i = 0; i < base.count; i++) {
         let p;
@@ -334,10 +344,10 @@ export function addParkourRun(model, motion, Attribute) {
     // GLTFLoader restores exported names separately from updateMorphTargets.
     mesh.morphTargetDictionary = Object.fromEntries(names.map((name, i) => [name, i]));
   }
-  motion.clips.parkourRun = { frames: frames.slice(0, RUN_SAMPLES + 1), times, duration: .56, source: 'procedural reference run over existing Unity run legs' };
+  motion.clips.parkourRun = { frames: frames.slice(0, RUN_SAMPLES + 1).map(name=>loopAliases.get(name)||name), times, duration: .56, source: 'procedural reference run over existing Unity run legs' };
   motion.grips.parkourRun = grips;
   motion.gripPitches = { ...motion.gripPitches, parkourRun: pitches };
-  motion.clips.parkourDash = { frames: dashNames, times: [...times], duration: .56, source: 'reference sprint: deep lean, arm drive, high knees and folded recovery leg' };
+  motion.clips.parkourDash = { frames: dashNames.map(name=>loopAliases.get(name)||name), times: [...times], duration: .56, source: 'reference sprint: deep lean, arm drive, high knees and folded recovery leg' };
   motion.grips.parkourDash = dashGrips;
   motion.gripPitches.parkourDash = dashPitches;
   Object.assign(motion.clips, actionClips); Object.assign(motion.grips, actionGrips);

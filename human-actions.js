@@ -76,6 +76,7 @@ export function boneMap(a, b, targetA, targetB) {
 export function actionPose(kind, phase) {
   if (kind === 'parkourSwing') return swingPose(phase);
   if (kind === 'parkourSwingFlight') return swingFlightPose(phase);
+  if (kind === 'parkourGripSlip') return gripSlipPose(phase);
   const t = clamp(phase), jump = kind === 'parkourJump', vault = kind === 'parkourVault';
   const release = jump ? smooth(.78, 1, t) : smooth(.74, 1, t);
   const tuck = jump ? Math.sin(Math.PI * clamp(t / .86)) : Math.sin(Math.PI * t);
@@ -128,6 +129,33 @@ export function actionPose(kind, phase) {
       return lerp(body, a, armWeight);
     }
   };
+}
+
+// Sagged shoulders and loose legs, then the right hand slips before the left.
+// These four poses share the same mesh/limb lengths as all other actions.
+export function gripSlipPose(phase) {
+  const t=clamp(phase),arms={},legs={},hands={};
+  const torso=p=>[p[0],p[1]-.10*smooth(1.15,1.9,p[1]),p[2]+.14*smooth(1.3,2.1,p[1])];
+  for(const side of [-1,1]){
+    const shoulder=[side*.28,1.94,-.075],elbow=[side*.43,1.55,-.105],hand=[side*.52495,1.19165,-.0644];
+    const released=smooth(side<0?.06:.32,side<0?.34:.66,t);
+    const goal=lerp([side*.32,2.62,.03],[side*.64,1.42,.42],released);
+    const arm=solveLimb(torso(shoulder),goal,length(sub(elbow,shoulder)),length(sub(hand,elbow)),[side,-.15,-.3]);
+    hands[side<0?'right':'left']=arm.end;
+    arms[side]={upper:boneMap(shoulder,elbow,torso(shoulder),arm.joint),lower:boneMap(elbow,hand,arm.joint,arm.end),
+      palm:boneMap(hand,add(hand,[0,-1,0]),arm.end,add(arm.end,lerp([0,0,1],[side*.25,-.25,1],released)))};
+    const hip=[side*.17,1.23,-.025],knee=[side*.23,.65,-.09],ankle=[side*.24,.12,-.04];
+    const foot=[side*(.25+.08*t),.18+(side>0?.10:0)*(1-t),-.12+side*.17*t];
+    const leg=solveLimb(torso(hip),foot,length(sub(knee,hip)),length(sub(ankle,knee)),[0,.1,1]);
+    legs[side]={upper:boneMap(hip,knee,torso(hip),leg.joint),lower:boneMap(knee,ankle,leg.joint,leg.end)};
+  }
+  return {hands,vertex(p,armWeight){
+    const side=p[0]<0?-1:1,arm=arms[side],leg=legs[side];
+    let a=lerp(arm.upper(p),arm.lower(p),1-smooth(1.48,1.67,p[1]));
+    a=lerp(a,arm.palm(p),1-smooth(1.21,1.34,p[1]));
+    const l=lerp(leg.upper(p),leg.lower(p),1-smooth(.55,.77,p[1]));
+    return lerp(lerp(torso(p),l,1-smooth(1.12,1.42,p[1])),a,armWeight);
+  }};
 }
 
 // Hands stay above the shoulders; the movement state's angle rotates the whole

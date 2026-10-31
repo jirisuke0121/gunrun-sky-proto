@@ -1,7 +1,8 @@
 import { isPerfectRelease, releaseCueProgress, flipDuration } from './swing-flip.js?v=20261030-frontflip-cue-v2';
+import { advanceGrip, GRIP_TURNS, MAX_GRIP_SECONDS, GRIP_LET_GO_SECONDS, GRIP_SLIP_SECONDS } from './swing-fatigue.js?v=20261031-grip-v1';
+export { MAX_GRIP_SECONDS } from './swing-fatigue.js?v=20261031-grip-v1';
 // Pendulum traversal is a movement state, not a camera-only animation.
 export const SWING_LENGTH = 2.15;
-export const MAX_GRIP_SECONDS = 8;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export function pendulumPoint(bar, direction, angle, length = SWING_LENGTH) {
   return [bar[0] + direction[0] * length * Math.sin(angle), bar[1] - length * Math.cos(angle),
@@ -23,6 +24,7 @@ export function createSwing(sky, game, course) {
   const bars = course?.bars || [];
   let active = null, cooldown = 0, previous = null, lastBar = '', chain = 0, chainTime = 0, releasedBar = '', recatch = 0;
   let jumpHeld = false, touchHeld = false, jumpPressed = false;
+  let gripBudget = null, exhaustedBar = '';
   function press() {
     if (active && sky.modeRef() === 'play' && !z.over) jumpPressed = true;
   }
@@ -107,6 +109,19 @@ export function createSwing(sky, game, course) {
   style.textContent = '#swingHint{position:fixed;top:24%;left:50%;transform:translateX(-50%);padding:9px 14px;border-radius:8px;color:#fff4d6;background:#25354cf2;font:700 14px system-ui;pointer-events:none;z-index:26;text-align:center;min-width:76px;max-width:85vw;box-sizing:border-box}#swingHint:after{content:"";display:block;height:4px;margin-top:6px;background:currentColor;opacity:.8;transform:scaleX(var(--swing-progress,0));transform-origin:left}body[data-sky-swing] #hint{visibility:hidden}#swingHint[hidden]{display:none}#swingHint[data-expiring=true]:not([data-ready=true]){border:2px solid #ffd67b;box-shadow:0 0 12px #ffd67b66}#swingHint[data-ready=true]{color:#103424;border:2px solid #d5ffe6;background:#7ef0aa;box-shadow:0 0 18px #7ef0aa99;font-size:16px}#tJump[data-swing-ready=true]{color:#103424!important;border-color:#d5ffe6!important;background:#7ef0aa!important;box-shadow:0 0 0 3px #7ef0aa,0 0 18px #7ef0aa80}';
   document.head.appendChild(style);
   const hint = document.createElement('div'); hint.id = 'swingHint'; hint.hidden = true; document.body.appendChild(hint);
+  const gripStatus = document.createElement('div'); gripStatus.id = 'swingGripStatus'; gripStatus.hidden = true;
+  gripStatus.innerHTML = '<span>握力</span><i><b></b></i><small></small>';
+  gripStatus.setAttribute('role','progressbar');gripStatus.setAttribute('aria-label','鉄棒の握力');
+  gripStatus.setAttribute('aria-valuemin','0');gripStatus.setAttribute('aria-valuemax','100');
+  const gripFill=gripStatus.querySelector('b'),gripWarning=gripStatus.querySelector('small');
+  style.textContent += '#swingGripStatus{position:fixed;top:calc(24% + 62px);left:50%;transform:translateX(-50%);width:154px;display:grid;grid-template-columns:auto 1fr;gap:5px 8px;padding:5px 9px;border-radius:6px;background:#25354ce8;color:#fff4d6;font:600 11px system-ui;pointer-events:none;z-index:26}#swingGripStatus[hidden]{display:none}#swingGripStatus i{height:5px;align-self:center;background:#ffffff40;overflow:hidden;border-radius:3px}#swingGripStatus b{display:block;height:100%;background:#a2e4b4;transform-origin:left}#swingGripStatus small{grid-column:1/-1;color:#ffd58b;text-align:center;font-size:11px}#swingGripStatus[data-tired=true] b{background:#ffb369}';
+  document.body.appendChild(gripStatus);
+  function updateGripStatus(a) {
+    const left=Math.max(0,1-Math.max(a.turns/GRIP_TURNS,a.heldSeconds/MAX_GRIP_SECONDS));
+    gripStatus.hidden=false;gripStatus.dataset.tired=String(a.fatigue>.65);
+    gripFill.style.transform='scaleX('+left+')';gripStatus.setAttribute('aria-valuenow',String(Math.round(left*100)));
+    gripWarning.textContent=a.slipAge!==undefined?'力尽きた…':a.fatigue>.65?'手が滑る… ジャンプ！':'';
+  }
   if (bars.length) {
     const rule = document.querySelector('#ovStart .rules .keys');
     if (rule) { const li = document.createElement('li'); li.textContent = (course.instructions || '西の橙色ルート：壁蹴り→小足場→鉄棒2本→中央高台。空中で鉄棒を自動つかみ。体が前へ振れた瞬間にジャンプを押して次へ。鉄棒ごとに押し直す。下入力で手を離す。高台で左右へ曲がる') + ' 緑の合図に合わせてジャンプすると前宙し、少し遠くへ飛べます。成功後は4秒間、移動速度＋8％。'; rule.appendChild(li); }
@@ -116,7 +131,8 @@ export function createSwing(sky, game, course) {
   }
   function reset() {
     if (c.state === 'swing') c.state = 'normal';
-    active = null; c.swing = null; c.swingFlight = null; cooldown = 0; previous = null; lastBar = ''; chain = 0; chainTime = 0;
+    active = null; c.swing = null; c.swingFlight = null; c.swingFall = null; cooldown = 0; previous = null; lastBar = ''; chain = 0; chainTime = 0;
+    gripBudget=null;exhaustedBar='';gripStatus.hidden=true;
     releasedBar = ''; recatch = 0;
     hint.hidden = true;
     setGripCue(null, false);
@@ -124,22 +140,25 @@ export function createSwing(sky, game, course) {
     delete jumpButton?.dataset.swingReady;
     if(jumpButton)jumpButton.textContent=jumpLabel;
   }
-  function detach(drop = false) {
+  function detach(drop = false, exhausted = false) {
     const a = active;
     if (!a) return;
     c.edgeJump = !drop;
     c.state = 'normal'; c.swing = null; c.jumpBuf = 0; c.coyote = 0; c.airT = 0; c.catchCD = .25;
     c.hookPressed = false; c.edgeOff = null; cooldown = .08; releasedBar = a.bar.id; recatch = .45;
+    gripBudget={bar:a.bar.id,heldSeconds:a.heldSeconds,turns:a.turns,turnSide:a.turnSide};
+    c.swingFall=exhausted?{age:a.slipAge,angle:a.angle,direction:[...a.direction],bar:a.bar.id}:null;
+    if(exhausted){exhaustedBar=a.bar.id;c.catchCD=.6;game.stats.barExhaustions=(game.stats.barExhaustions||0)+1;}
     const perfect = !drop && isPerfectRelease(a.angle, a.omega, a.bar.launchWindow);
     const launch = releaseVelocity(a.direction, a.angle, a.omega, U.jumpVel, perfect);
-    c.vel.set(...(drop ? [a.direction[0] * 2, -1, a.direction[1] * 2] : launch));
+    c.vel.set(...(exhausted ? [c.vel.x*.3,Math.min(-1,c.vel.y),c.vel.z*.3] : drop ? [a.direction[0] * 2, -1, a.direction[1] * 2] : launch));
     c.swingFlight = drop ? null : { age: 0, angle: a.angle, direction: [...a.direction], perfect,
       flipDuration: perfect ? flipDuration(c.pos.toArray(), launch, U.gravity, sky.oe, bars, a.bar.id, c.r) : 0 };
     if (perfect) window.skyDash?.rewardSwing();
     if (perfect && U.autoFire && sky.Et) sky.Et.trigger = 0;
-    event(drop ? 'barDrop' : 'barJump', { bar: a.bar.id, chain, angle: +a.angle.toFixed(3), omega: +a.omega.toFixed(3), perfect });
+    event(exhausted ? 'barExhausted' : drop ? 'barDrop' : 'barJump', { bar: a.bar.id, chain, turns:a.turns, heldSeconds:+a.heldSeconds.toFixed(3), angle: +a.angle.toFixed(3), omega: +a.omega.toFixed(3), perfect });
     if (!drop) { window.skyTelemetryProbe?.jumpAccepted(z.t, 'bar_release'); game.stats.barJumps = (game.stats.barJumps || 0) + 1; sky.Tt.jump?.(); }
-    active = null; jumpPressed = false; previous = c.pos.toArray(); hint.hidden = true;
+    active = null; jumpPressed = false; previous = c.pos.toArray(); hint.hidden = true;gripStatus.hidden=true;
     setGripCue(null, false);
     delete jumpButton?.dataset.swingReady;
     if(jumpButton)jumpButton.textContent=jumpLabel;
@@ -162,7 +181,10 @@ export function createSwing(sky, game, course) {
       const f=i/8, q=p.map((v,k)=>c.pos.getComponent(k)+(v-c.pos.getComponent(k))*f);
       if (!sky.oe(q[0],q[1]+.03,q[2],c.r,1.75)) return false;
     }
-    active = { bar, pivot, direction, angle, omega, age: 0 };
+    const carried=gripBudget?.bar===bar.id?gripBudget:null;
+    active = { bar, pivot, direction, angle, omega, age: 0,heldSeconds:carried?.heldSeconds||0,turns:carried?.turns||0,turnSide:carried?.turnSide||0,fatigue:0 };
+    if(gripBudget?.bar!==bar.id){gripBudget=null;exhaustedBar='';}
+    c.swingFall=null;
     c.swingFlight = null;
     jumpPressed = false; hint.dataset.ready = 'false'; hint.dataset.expiring = 'false'; hint.style.setProperty('--swing-progress', 0);
     setGripCue(bar.id, false);
@@ -177,41 +199,47 @@ export function createSwing(sky, game, course) {
   function step(dt, input = {}) {
     if (!bars.length) return false;
     if (sky.modeRef() !== 'play' || z.over) { jumpPressed = false; return false; }
+    if(c.onGround){gripBudget=null;exhaustedBar='';c.swingFall=null;}
+    if(c.swingFall){c.swingFall.age+=dt;if(c.state!=='normal'||c.swingFall.age>=GRIP_SLIP_SECONDS)c.swingFall=null;}
     if (c.swingFlight) {
       c.swingFlight.age += dt;
       if (c.onGround || c.state !== 'normal' || c.swingFlight.age > 1.2) c.swingFlight = null;
     }
     cooldown = Math.max(0, cooldown - dt); recatch = Math.max(0,recatch-dt); if (!active) chainTime = Math.max(0, chainTime - dt);
-    if (active && c.state !== 'swing') { active = null; c.swing = null; hint.hidden = true; setGripCue(null, false); }
+    if (active && c.state !== 'swing') { active = null; c.swing = null; hint.hidden = true;gripStatus.hidden=true; setGripCue(null, false); }
     if (active) {
       const a = active;
       a.age += dt;
       // Approach buffers and held/repeated inputs never release a grip. Only a
       // fresh press made while attached is consumed, at this exact swing phase.
       c.jumpBuf = 0;
-      if (jumpPressed) { detach(); return true; }
-      if (input.fwdIn < -.55 || c.crouchPressed || a.age >= MAX_GRIP_SECONDS) { c.crouchPressed = false; detach(true); return true; }
+      if (a.slipAge===undefined && jumpPressed) { detach(); return true; }
+      if (a.slipAge===undefined && (input.fwdIn < -.55 || c.crouchPressed)) { c.crouchPressed = false; detach(true); return true; }
+      if(a.slipAge!==undefined){a.slipAge+=dt;jumpPressed=false;c.crouchPressed=false;if(a.slipAge>=GRIP_LET_GO_SECONDS){detach(true,true);return true;}}
       // Pump in the direction of motion, below a bounded swing energy. This
       // lets a missed window come round again without an automatic launch.
       const energy = .5 * SWING_LENGTH ** 2 * a.omega ** 2 + U.gravity * SWING_LENGTH * (1 - Math.cos(a.angle));
-      const pump = energy < U.gravity * SWING_LENGTH * (1 - Math.cos(1.1))
+      const previousOmega=a.omega;
+      const pump = a.slipAge===undefined && energy < U.gravity * SWING_LENGTH * (1 - Math.cos(1.1))
         ? (input.fwdIn > .1 ? 2.4 : .9) * Math.sign(a.omega || 1) : 0;
       a.omega += (-U.gravity / SWING_LENGTH * Math.sin(a.angle) + pump - .15 * a.omega) * dt;
       a.angle += a.omega * dt;
+      if(a.slipAge===undefined&&advanceGrip(a,dt,previousOmega)){a.slipAge=0;a.fatigue=1;}
       const p = pendulumPoint(a.pivot, a.direction, a.angle);
-      if (!sky.oe(p[0], p[1] + .03, p[2], c.r, 1.75)) { detach(true); return true; }
+      if (!sky.oe(p[0], p[1] + .03, p[2], c.r, 1.75)) { detach(true,a.slipAge!==undefined); return true; }
       c.pos.set(...p);
       c.vel.set(a.direction[0] * SWING_LENGTH * Math.cos(a.angle) * a.omega,
         SWING_LENGTH * Math.sin(a.angle) * a.omega, a.direction[1] * SWING_LENGTH * Math.cos(a.angle) * a.omega);
       const launchWindow = a.bar.launchWindow;
-      const ready = isPerfectRelease(a.angle, a.omega, launchWindow);
-      hint.hidden = false; hint.dataset.ready = String(ready);
-      hint.dataset.expiring = String(a.age >= MAX_GRIP_SECONDS - 2);
+      const ready = a.slipAge===undefined && isPerfectRelease(a.angle, a.omega, launchWindow);
+      hint.hidden = a.slipAge!==undefined; hint.dataset.ready = String(ready);
+      hint.dataset.expiring = String(a.fatigue>=.65);
+      updateGripStatus(a);
       hint.style.setProperty('--swing-progress', releaseCueProgress(a.angle, a.omega, launchWindow));
       setGripCue(a.bar.id, ready);
       hint.textContent = ready ? '今！' : '';
       if (jumpButton) { jumpButton.dataset.swingReady = String(ready); jumpButton.textContent = jumpLabel; }
-      document.body.dataset.skySwing = JSON.stringify({ bar: a.bar.id, angle: a.angle, chain, age: a.age });
+      document.body.dataset.skySwing = JSON.stringify({ bar: a.bar.id, angle: a.angle, chain, age: a.age,turns:a.turns,fatigue:a.fatigue,slipAge:a.slipAge });
       previous = c.pos.toArray(); return true;
     }
     const to = c.pos.toArray();
@@ -219,7 +247,7 @@ export function createSwing(sky, game, course) {
     previous = c.pos.toArray();
     if (cooldown || c.onGround || c.state !== 'normal' || c.vel.y < (course.oldTown ? -12 : -8) || Math.hypot(c.vel.x,c.vel.z) < 1) return false;
     for (const b of bars) {
-      if (b.id===releasedBar && recatch>0) continue;
+      if (b.id===exhaustedBar || b.id===releasedBar && recatch>0) continue;
       const side = [-b.direction[1], b.direction[0]];
       const across = (c.pos.x-b.at[0])*side[0]+(c.pos.z-b.at[2])*side[1];
       const margin = course.oldTown ? .3 : .35;
@@ -243,7 +271,8 @@ export function createSwing(sky, game, course) {
     return false;
   }
   function frame() {
-    hint.hidden = !active || sky.modeRef() !== 'play' || z.over;
+    hint.hidden = !active || active.slipAge!==undefined || sky.modeRef() !== 'play' || z.over;
+    gripStatus.hidden = !active || sky.modeRef() !== 'play' || z.over;
     if (sky.modeRef() !== 'play' || z.over) {
       setGripCue(null, false);
       jumpHeld = touchHeld = jumpPressed = false;
@@ -252,5 +281,16 @@ export function createSwing(sky, game, course) {
     }
     if (!active) delete document.body.dataset.skySwing;
   }
-  return { step, frame, reset, get active() { return active; }, get course() { return course; }, get cameraSpeed() { return active ? Math.max(6,SWING_LENGTH*Math.abs(active.omega)) : 0; } };
+  function handPose(side) {
+    const a=active,fall=c.swingFall;
+    if(!a&&!fall)return null;
+    const phase=(a?.slipAge??fall?.age??0)/GRIP_SLIP_SECONDS;
+    const t=clamp((phase-(side>0?.06:.32))/(side>0?.28:.34),0,1),release=t*t*(3-2*t);
+    const tired=a?.fatigue??1;
+    const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const shake=a&&a.slipAge===undefined?Math.sin(a.age*34+side)*.008*tired*(reduced?.15:1):0;
+    return {position:[side*(.22+.16*release)+shake,.30-.72*release-.035*tired,-.30-.12*release],
+      rotation:[1.5-1.15*release,0,side*.3*release],curl:.95*(1-release)+.08*release};
+  }
+  return { step, frame, reset, handPose, get active() { return active; }, get course() { return course; }, get cameraSpeed() { return active ? Math.max(6,SWING_LENGTH*Math.abs(active.omega)) : 0; } };
 }

@@ -7,6 +7,7 @@ const { fixture } = require('./human-running.test.cjs');
   const running = await import('../human-running.js');
   const aim = await import('../human-aim.js');
   const flip = await import('../swing-flip.js');
+  const fatigue = await import('../swing-fatigue.js');
   const { gltf, motion } = await fixture();
   const Group = gltf.scene.constructor, Vector3 = gltf.scene.position.constructor;
   let body; gltf.scene.traverse(o => { if (o.name.startsWith('Body_mesh')) body = o; });
@@ -42,7 +43,7 @@ const { fixture } = require('./human-running.test.cjs');
     getElementById(id) { if (!nodes.has(id)) nodes.set(id, { textContent: '', addEventListener() {} }); return nodes.get(id); },
     addEventListener(type, listener) { keys.set(type, listener); } };
   const context = vm.createContext({ window: { __skyInternals: sky }, document, sessionStorage: { getItem() { return null; }, setItem() {} },
-    T2: { GLTFLoader: class {} }, console, ...running, ...aim, ...flip, gltf, motionFixture: motion });
+    T2: { GLTFLoader: class {} }, console, ...running, ...aim, ...flip, ...fatigue, gltf, motionFixture: motion });
   const source = fs.readFileSync('human-view.js', 'utf8').replace(/^import .*;\n/gm, '');
   // Function declarations are hoisted: replace loading before the module's
   // default Unity model starts, rather than after its initial async call.
@@ -106,6 +107,16 @@ const { fixture } = require('./human-running.test.cjs');
     `both hands share the horizontal bar after turning (${Math.abs(contacts[1].y - contacts[0].y)})`);
   const carried = sky.ue.children.find(o => o.name === 'Unity human held weapon');
   assert.equal(carried.visible, false, 'both hands are occupied on a bar');
+  c.swing.fatigue=.9;c.swing.age=5.5;update(1,false);
+  assert.ok(weights[body.morphTargetDictionary[motion.clips.parkourGripSlip.frames[0]]]>.6,'tired shoulders and dangling legs use the actual slip pose');
+  c.swing.slipAge=.20;update(1,false);
+  assert.equal(dataset.skyHumanClip,'gripSlip');assert.ok(+dataset.skyHumanHandError<.002,'the remaining hand stays on the bar');
+  mode='pause';const pausedSlip=[...weights];update(12,false);assert.deepEqual([...weights],pausedSlip);mode='play';
+  c.state='normal';c.swing=null;c.swingFall={age:.36,angle:.6,direction:[1,0]};
+  const fallPhysics=JSON.stringify({p:c.pos.toArray(),v:c.vel.toArray(),yaw:c.yaw});update(1,false);
+  assert.equal(dataset.skyHumanClip,'swingFall');assert.equal(carried.visible,false,'slipping hands do not immediately hold a gun');
+  assert.equal(JSON.stringify({p:c.pos.toArray(),v:c.vel.toArray(),yaw:c.yaw}),fallPhysics,'the slip animation does not move the capsule');
+  c.swingFall=null;
   c.state = 'normal'; c.swing = null; c.swingFlight = { age: .1, angle: .7, direction: [1, 0] };
   c.vel.set(8, 4, 0); update(1, false);
   assert.equal(dataset.skyHumanClip, 'swingFlight');

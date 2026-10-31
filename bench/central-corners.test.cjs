@@ -36,7 +36,7 @@ class Visual{
   const free=(x,y,z,r=.32,h=1.75)=>!solids.some(b=>x+r>b.minX+1e-5&&x-r<b.maxX-1e-5&&z+r>b.minZ+1e-5&&z-r<b.maxZ-1e-5&&y+h>b.minY+1e-5&&y<b.maxY-1e-5);
   const floorAt=(x,z,y)=>Math.max(-Infinity,...solids.filter(b=>x>=b.minX-1e-5&&x<=b.maxX+1e-5&&z>=b.minZ-1e-5&&z<=b.maxZ+1e-5&&b.maxY<=y+.42).map(b=>b.maxY));
   const listeners={};global.addEventListener=(name,fn)=>(listeners[name]??=[]).push(fn);
-  global.document={body:{dataset:{},appendChild(){}},head:{appendChild(){}},getElementById(){return null},querySelector(){return null},createElement(){return{style:{setProperty(){}},dataset:{},getContext(){return{fillRect(){},strokeRect(){},fillText(){}}}}}};
+  global.document={body:{dataset:{},appendChild(){}},head:{appendChild(){}},getElementById(){return null},querySelector(){return null},createElement(){return{setAttribute(){},querySelector(){return{style:{}}},style:{setProperty(){}},dataset:{},getContext(){return{fillRect(){},strokeRect(){},fillText(){}}}}}};
   global.window={skyTelemetryProbe:{jumpAccepted(){}}};
   function probe(id,{grip=true,angle=.65,offset=0,brake=true,speed=6}={}){
     const route=map.course.routes.find(r=>r.id===id),bar=map.course.bars.find(b=>b.route===id);
