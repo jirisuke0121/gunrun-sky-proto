@@ -12,7 +12,7 @@ import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261031-no-po
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261031-grip-v1';
 import { createJumpPickups } from './jump-pickups.js?v=20261028-playground-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261028-compact-hud-v1';
-import { createDash } from './dash-boost.js?v=20261030-always-speed-v1';
+import { createDash } from './dash-boost.js?v=20261101-run-feel-v1';
 import { mergeStaticMaterialGroups } from './world-batching.js?v=20261030-material-groups-v2';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.

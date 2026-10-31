@@ -154,15 +154,19 @@ export function createDash(sky, game) {
     time += dt;
     const speed = Math.hypot(c.vel.x, c.vel.z), aiming = aimTime > 0 || Et.reloadT > 0 || window.skyHumanView?.isFiring;
     const free = c.state !== 'ladder' && c.state !== 'ledge';
-    const strength = free ? smooth(U.walkSpeed + .12, U.sprintSpeed - .05, Math.max(speed,window.skySwing?.cameraSpeed||0)) * (aiming ? .22 : 1) : 0;
+    // A vault or mantle zeroes velocity while the body is carried along a fixed path. Hold the
+    // run feel through it so the FOV does not dip and re-widen on every obstacle.
+    const strength = c.state === 'ledge' ? run : free ? smooth(U.walkSpeed + .12, U.sprintSpeed - .05, Math.max(speed,window.skySwing?.cameraSpeed||0)) * (aiming ? .22 : 1) : 0;
     run = ease(run, strength, dt, 7); boost = ease(boost, remaining > 0 ? boostEnvelope(remaining, age) : 0, dt, 12);
     const swingTarget=window.skySwing?.active ? 1 : c.swingFlight ? Math.exp(-c.swingFlight.age*2.5) : 0;
     swingView = ease(swingView, swingTarget, dt, reduced ? 5 : 9);
     camera.distance = 3.6 + run * .25 + boost * run * .3 + .25 * swingView;
     camera.shoulder = .62 - run * .28 - boost * run * .1 + 1.4 * swingView;
     camera.height = .18 - run * .3 - boost * run * .07 + .28 * swingView;
-    const moving = smooth(.7, U.sprintSpeed, speed), trailOn = boost * moving;
-    lines.style.opacity = String((reduced ? .16 : .38) * run * (.35 + .65 * boost));
+    const moving = smooth(.7, U.sprintSpeed, speed), ringsOn = boost * moving;
+    // Normal sprint draws thin side streaks too; the DASH ring still adds the full trail and echo rings.
+    const trailOn = Math.max(boost, reduced ? 0 : .55 * run) * moving;
+    lines.style.opacity = String((reduced ? .16 : .38) * run * (.62 + .38 * boost));
     flash.style.opacity = String(reduced ? 0 : .13 * pulse / .42);
     if (window.skyPracticeMode) {
       const practiceSpeed = document.getElementById('practiceSpeed');
@@ -192,10 +196,10 @@ export function createDash(sky, game) {
     }
     streakGeometry.attributes.position.needsUpdate = true; streakGeometry.setDrawRange(0, at / 3); streak.visible = at > 0; streak.material.opacity = .5 * trailOn;
     echoes.forEach((m, i) => {
-      m.visible = trailOn > .1 && !reduced && free;
+      m.visible = ringsOn > .1 && !reduced && free;
       const phase = (time * 2 + i / 3) % 1;
       m.position.copy(centre).addScaledVector(forward, -.2 - phase * 1.9);
-      m.quaternion.setFromUnitVectors(new Vector3(0, 0, 1), forward); m.scale.setScalar(.6 + phase * .65); m.material.opacity = (1 - phase) * .32 * trailOn;
+      m.quaternion.setFromUnitVectors(new Vector3(0, 0, 1), forward); m.scale.setScalar(.6 + phase * .65); m.material.opacity = (1 - phase) * .32 * ringsOn;
     });
     burst.visible = pulse > 0 && !reduced;
     burst.scale.setScalar(1 + (1 - pulse / .42) * 5); burst.material.opacity = pulse / .42 * .65;
