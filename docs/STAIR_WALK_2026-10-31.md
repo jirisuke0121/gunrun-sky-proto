@@ -22,11 +22,15 @@
 - `bench/hook-touch-exits.test.cjs`
 - `bench/wallrun-permissions.test.cjs`
 
-## 未確認・公開状況
+## ブラウザ検証と公開
 
-この実行環境のブラウザはWebGLの初期化に失敗したため、今回の描画・アニメーション・iPhone実機の操作感は未確認。上記は実マップ生成処理と移動・衝突・縁判定を使った、描画を伴わない処理テスト。
+ローカル環境のブラウザはWebGLの初期化に失敗したため、上記の処理テストと、GitHub Actions上の実ゲームのブラウザ検証を分けて実施。iPhone実機の操作感は未確認。
 
-PC／タッチ入力で実ゲームを動かす `bench/stair-walk-browser.cjs` と専用GitHub Actionsを用意済み。ただしGitHubへの送信が自動承認審査で拒否されたため、GitHub側の検証は未実行で、公開版にも未反映。
+PC／タッチ入力で実ゲームを動かす `bench/stair-walk-browser.cjs` がGitHub Actionsで成功。旧市街580ケース＋練習場72ケース、合計652ケースで失敗0・ブラウザ実行エラー0。塔の入口も含む。[検証実行 41157079150](https://github.com/jirisuke0121/gunrun-sky-proto/actions/runs/41157079150)にログと `stair-walk-evidence`（スクリーンショット・結果JSON）を保存。
+
+同じゲームソースで、⑦ルートと壁ジャンプのブラウザ検証、全逃走分岐の実ゲーム監査も成功。
+
+2026-10-31に公開の指示を受領。公開先は既存の https://jirisuke0121.github.io/gunrun-sky-proto/ を維持。⑦ルートと壁ジャンプの修正 `c252a70` を統合した状態で検証する。
 
 対象リポジトリ：`jirisuke0121/gunrun-sky-proto`
 
