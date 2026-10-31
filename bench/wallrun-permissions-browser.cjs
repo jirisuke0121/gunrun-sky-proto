@@ -12,7 +12,7 @@ const {chromium}=require('playwright');
     }
     browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
     fs.mkdirSync('browser-evidence',{recursive:true});
-    for(const mobile of [false,true])for(const map of ['old','canyon']){
+    for(const mobile of [false,true])for(const map of (process.env.WALLRUN_QA_MAP?[process.env.WALLRUN_QA_MAP]:['old','canyon'])){
       const context=await browser.newContext({viewport:mobile?{width:844,height:390}:{width:1280,height:720},hasTouch:mobile,isMobile:mobile});
       const page=await context.newPage(),id=`wallrun-${mobile?'touch':'desktop'}-${map}`,errors=[];
       page.on('pageerror',e=>errors.push(e.message));
