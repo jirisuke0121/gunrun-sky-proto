@@ -1,0 +1,134 @@
+[
+  {
+    "map": "index.html",
+    "samples": 161,
+    "shots": 12,
+    "enemyFrames": 33,
+    "maxActors": 3,
+    "movementBytes": 5500,
+    "detailBytes": 3461,
+    "visible": {
+      "detail": {
+        "human": true,
+        "actors": 3,
+        "allocatedActors": 3,
+        "audio": {
+          "played": 1,
+          "voices": 1,
+          "buffers": 1
+        }
+      },
+      "mode": "replay",
+      "note": "移動・視点・発砲と近くの敵（最大6体）を再生します。人間の動作と敵の補間は近似です。",
+      "clock": "2.0 / 8.0秒"
+    },
+    "paused": {
+      "same": true,
+      "voices": 0
+    },
+    "sought": {
+      "time": 4,
+      "voices": 0
+    },
+    "first": true,
+    "sound": {
+      "played": 4,
+      "voices": 3,
+      "buffers": 1
+    },
+    "muted": {
+      "voices": 0,
+      "text": "銃声オフ"
+    },
+    "closed": {
+      "mode": "menu",
+      "volume": 0.7,
+      "active": false,
+      "hidden": true,
+      "actors": 0,
+      "voices": 0
+    },
+    "legacy": {
+      "note": "移動・視点を再生します。この記録には発砲・敵の情報がありません。人間の動作は近似です。",
+      "audioDisabled": true,
+      "detail": {
+        "human": true,
+        "actors": 0,
+        "allocatedActors": 3,
+        "audio": {
+          "played": 0,
+          "voices": 0,
+          "buffers": 1
+        }
+      }
+    },
+    "errors": [],
+    "posts": 0
+  },
+  {
+    "map": "canyon.html",
+    "samples": 161,
+    "shots": 12,
+    "enemyFrames": 33,
+    "maxActors": 4,
+    "movementBytes": 5333,
+    "detailBytes": 4326,
+    "visible": {
+      "detail": {
+        "human": true,
+        "actors": 4,
+        "allocatedActors": 4,
+        "audio": {
+          "played": 1,
+          "voices": 1,
+          "buffers": 1
+        }
+      },
+      "mode": "replay",
+      "note": "移動・視点・発砲と近くの敵（最大6体）を再生します。人間の動作と敵の補間は近似です。",
+      "clock": "2.0 / 8.0秒"
+    },
+    "paused": {
+      "same": true,
+      "voices": 0
+    },
+    "sought": {
+      "time": 4,
+      "voices": 0
+    },
+    "first": true,
+    "sound": {
+      "played": 4,
+      "voices": 3,
+      "buffers": 1
+    },
+    "muted": {
+      "voices": 0,
+      "text": "銃声オフ"
+    },
+    "closed": {
+      "mode": "menu",
+      "volume": 0.7,
+      "active": false,
+      "hidden": true,
+      "actors": 0,
+      "voices": 0
+    },
+    "legacy": {
+      "note": "移動・視点を再生します。この記録には発砲・敵の情報がありません。人間の動作は近似です。",
+      "audioDisabled": true,
+      "detail": {
+        "human": true,
+        "actors": 0,
+        "allocatedActors": 4,
+        "audio": {
+          "played": 0,
+          "voices": 0,
+          "buffers": 1
+        }
+      }
+    },
+    "errors": [],
+    "posts": 0
+  }
+]

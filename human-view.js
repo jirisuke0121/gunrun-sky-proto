@@ -647,16 +647,18 @@ function createDecoyAvatar(color = 0xff68e2) {
   if (!holder || !model) return null;
   const root = holder.clone(true), meshes = [];
   root.name = 'Player hologram twin'; root.visible = true;
-  const material = new Geom.Basic({ color, transparent: true, opacity: .72, depthWrite: false, fog: false, toneMapped: false, blending: 1 });
+  const material = color === null ? null : new Geom.Basic({ color, transparent: true, opacity: .72, depthWrite: false, fog: false, toneMapped: false, blending: 1 });
   root.traverse(node => {
     if (!node.isMesh) return;
-    node.material = material; node.castShadow = node.receiveShadow = false;
+    if (material) node.material = material; node.castShadow = node.receiveShadow = false;
     node.frustumCulled = false;
     if (node.morphTargetInfluences) { node.morphTargetInfluences = [...node.morphTargetInfluences]; meshes.push(node); }
   });
   return { root, material,
-    animate(time, moving = true) {
-      const clip = moving ? motion?.clips.parkourRun || motion?.clips.runForward : motion?.clips.idle;
+    animate(time, moving = true, state = 0) {
+      const special = { 1: 'parkourJump', 2: 'slide', 3: 'parkourWallRight', 4: 'parkourVault', 5: 'parkourMantle', 6: 'parkourCatch', 9: 'ladder', 10: 'shoot' }[state];
+      const key = motion?.clips[special] ? special : moving ? motion?.clips.parkourRun ? 'parkourRun' : 'runForward' : 'idle';
+      const clip = motion?.clips[key];
       if (!clip) return;
       const sample = sampleClip(clip, (time / (clip.duration || .56)) % 1);
       for (const mesh of meshes) {
@@ -665,11 +667,17 @@ function createDecoyAvatar(color = 0xff68e2) {
         if (a !== undefined) mesh.morphTargetInfluences[a] += 1 - sample.fraction;
         if (b !== undefined) mesh.morphTargetInfluences[b] += sample.fraction;
       }
+      if (color === null && motion?.grips[key]) {
+        const a = motion.grips[key][sample.lo], b = motion.grips[key][sample.hi];
+        const point = new Vector3(...a.map((v, i) => v + (b[i] - v) * sample.fraction));
+        root.updateMatrixWorld(true); return root.children[0].localToWorld(point);
+      }
     },
-    dispose() { root.removeFromParent(); material.dispose(); }
+    dispose() { root.removeFromParent(); material?.dispose(); }
   };
 }
 window.skyHumanView = { update, select, getMuzzleWorld, prepareShot, createDecoyAvatar,
+  createReplayAvatar: () => createDecoyAvatar(null),
   get aimWork() { return aimRig?.work || null; },
   get morphBindingWork() { return { revision: 'dictionary-cache-v1', builds: morphBindingBuilds,
     meshes: morphMeshes.length, entries: morphMeshes.reduce((sum, mesh) => sum + (morphBindings.get(mesh)?.entries.length || 0), 0) }; },

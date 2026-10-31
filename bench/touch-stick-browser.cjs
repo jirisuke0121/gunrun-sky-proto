@@ -24,6 +24,11 @@ fs.mkdirSync(out, { recursive: true });
       await p.evaluate(() => {
         const g=__game,c=g.P;window.stickEvents=[];for(const type of ['pointerdown','pointermove','pointerup','pointercancel'])document.addEventListener(type,e=>stickEvents.push([type,e.pointerId,e.target.id,e.clientX,e.clientY]),true);
         g.S.sendLog=g.S.autoFire=false;c.invuln=Infinity;
+        // This probes touch movement on a clear terrain lane. Randomly spawned
+        // enemies can overlap that lane and push the player even during their
+        // spawn delay; invulnerability does not disable those collisions.
+        for (const enemy of g.zombies) { enemy.dead=true; enemy.remove=true; }
+        g.GAME.spawnT=Infinity;
         let lane;
         for(const n of g.NAV.nodes){
           const floors=g.solids.filter(s=>s.solid&&!s.off&&s.type!=='mono'&&Math.abs(s.maxY-n.y)<.05);

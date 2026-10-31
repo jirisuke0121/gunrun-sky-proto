@@ -1,0 +1,274 @@
+[
+  {
+    "map": "index.html",
+    "variant": "before",
+    "hardware": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+    "frames": 180,
+    "fps": 59.66982695750183,
+    "intervalP95": 16.799999999999272,
+    "cpuMean": 1.673333333681027,
+    "cpuP95": 2.0999999940395355,
+    "drawCalls": 168,
+    "triangles": 24000,
+    "buffer": "840x532",
+    "detail": null,
+    "enemyAIUpdates": 0,
+    "actors": [],
+    "errors": []
+  },
+  {
+    "map": "index.html",
+    "variant": "after",
+    "hardware": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+    "frames": 180,
+    "fps": 59.66982695750183,
+    "intervalP95": 16.700000000000728,
+    "cpuMean": 2.1244444442292054,
+    "cpuP95": 2.9000000059604645,
+    "drawCalls": 177,
+    "triangles": 50589,
+    "buffer": "840x532",
+    "detail": {
+      "human": true,
+      "actors": 6,
+      "allocatedActors": 6,
+      "audio": {
+        "played": 0,
+        "voices": 0,
+        "buffers": 1
+      }
+    },
+    "enemyAIUpdates": 0,
+    "actors": [
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "map": "index.html",
+    "variant": "after",
+    "hardware": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+    "frames": 179,
+    "fps": 59.66666666666667,
+    "intervalP95": 16.799999999999272,
+    "cpuMean": 2.174301676493783,
+    "cpuP95": 2.8999999910593033,
+    "drawCalls": 177,
+    "triangles": 50589,
+    "buffer": "840x532",
+    "detail": {
+      "human": true,
+      "actors": 6,
+      "allocatedActors": 6,
+      "audio": {
+        "played": 0,
+        "voices": 0,
+        "buffers": 1
+      }
+    },
+    "enemyAIUpdates": 0,
+    "actors": [
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "map": "index.html",
+    "variant": "before",
+    "hardware": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+    "frames": 180,
+    "fps": 59.67180507210342,
+    "intervalP95": 16.700000000000728,
+    "cpuMean": 1.691666666087177,
+    "cpuP95": 2,
+    "drawCalls": 168,
+    "triangles": 24000,
+    "buffer": "840x532",
+    "detail": null,
+    "enemyAIUpdates": 0,
+    "actors": [],
+    "errors": []
+  },
+  {
+    "map": "canyon.html",
+    "variant": "before",
+    "hardware": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+    "frames": 180,
+    "fps": 59.66982695750182,
+    "intervalP95": 16.799999999999272,
+    "cpuMean": 1.124444443318579,
+    "cpuP95": 2.2000000029802322,
+    "drawCalls": 61,
+    "triangles": 4656,
+    "buffer": "840x532",
+    "detail": null,
+    "enemyAIUpdates": 0,
+    "actors": [],
+    "errors": []
+  },
+  {
+    "map": "canyon.html",
+    "variant": "after",
+    "hardware": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+    "frames": 181,
+    "fps": 60.00331510028177,
+    "intervalP95": 16.700000000000728,
+    "cpuMean": 1.6790055253064435,
+    "cpuP95": 2,
+    "drawCalls": 70,
+    "triangles": 31245,
+    "buffer": "840x532",
+    "detail": {
+      "human": true,
+      "actors": 6,
+      "allocatedActors": 6,
+      "audio": {
+        "played": 0,
+        "voices": 0,
+        "buffers": 1
+      }
+    },
+    "enemyAIUpdates": 0,
+    "actors": [
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "map": "canyon.html",
+    "variant": "after",
+    "hardware": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+    "frames": 180,
+    "fps": 59.67180507210343,
+    "intervalP95": 16.800000000000182,
+    "cpuMean": 1.731666666517655,
+    "cpuP95": 2.2000000029802322,
+    "drawCalls": 70,
+    "triangles": 31245,
+    "buffer": "840x532",
+    "detail": {
+      "human": true,
+      "actors": 6,
+      "allocatedActors": 6,
+      "audio": {
+        "played": 0,
+        "voices": 0,
+        "buffers": 1
+      }
+    },
+    "enemyAIUpdates": 0,
+    "actors": [
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      },
+      {
+        "inFrustum": true,
+        "unoccluded": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "map": "canyon.html",
+    "variant": "before",
+    "hardware": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+    "frames": 179,
+    "fps": 59.340295043925074,
+    "intervalP95": 16.800000000000182,
+    "cpuMean": 1.177653631518007,
+    "cpuP95": 1.699999988079071,
+    "drawCalls": 61,
+    "triangles": 4656,
+    "buffer": "840x532",
+    "detail": null,
+    "enemyAIUpdates": 0,
+    "actors": [],
+    "errors": []
+  }
+]
