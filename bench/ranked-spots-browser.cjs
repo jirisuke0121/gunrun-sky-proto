@@ -31,7 +31,7 @@ const base = 'http://127.0.0.1:8793/';
       });
       const page = await context.newPage(), errors = []; page.on('pageerror', error => errors.push(error.message));
       page.setDefaultTimeout(60000); await page.goto(base + map);
-      await page.waitForFunction(() => window.__game && window.skyReplay && window.skyAudioRecovery && window.skyDecoy, null, { timeout: 120000 });
+      await page.waitForFunction(() => window.__game && window.skyReplay && window.skyAudioRecovery && window.skyDecoy && window.skyRunRecording, null, { timeout: 120000 });
       const selectors = map === 'index.html'
         ? await page.locator('.parkour-spot-list button').evaluateAll(nodes => nodes.map(node => `[data-route="${node.dataset.route}"]`))
         : ['#bStart'];
@@ -63,15 +63,19 @@ const base = 'http://127.0.0.1:8793/';
           return Math.max(...pcm.map(Math.abs));
         });
         assert.ok(peak > .001, 'spot start produces game audio without using the ordinary Start button');
-        await page.evaluate(() => {
-          const g = __game; g.GAME.t = 119.98; g.advance(.04); g.advance(.04); g.advance(1.5);
-        });
+        await page.evaluate(full => {
+          const g = __game;
+          if(full){for(let i=0;i<7300&&!g.GAME.over;i++){g.advance(1/60);skyReplay.update(1/60);}}
+          else{g.GAME.t=119.98;g.advance(.04);g.advance(.04);}
+          g.advance(1.5);
+        }, selector===selectors[0]);
         await page.waitForFunction(() => __skyInternals.modeRef() === 'over');
-        await page.waitForFunction(() => document.getElementById('oLog').textContent.includes('反映しました'));
+        await page.waitForFunction(() => window.skyRunRecording.history[0]?.receiptId);
         await page.locator('#unityMore').click();
         await page.waitForFunction(() => document.querySelector('#resultRanking li.me .rank-clear')?.textContent.includes('Normal クリア'));
         assert.equal(uploadStatuses.at(-1), 200); assert.equal(uploads.at(-1).reason, 'time');
         assert.equal(uploads.at(-1).challenge.version, 'corridor-crowd6-v6');
+        if(selector===selectors[0])assert.ok(uploads.at(-1).ghost.samples.length>1800,'full 120-second recorder path, not only a final-time shortcut');
         assert.deepEqual(uploads.at(-1).ghost.samples[0].slice(1, 4), start.position.map(n => Math.round(n * 1000) / 1000));
         evidence.push({ map, touch, selector, ...start, peak, uploadBytes: Buffer.byteLength(JSON.stringify(uploads.at(-1))), ranking: 'Normal clear' });
         await page.locator('#unityDetailsBack').click(); await page.locator('#unityMenu').click();

@@ -6,7 +6,7 @@ export function installRanking(game) {
   const map = window.SKY_CANYON_MAP ? 'rock-canyon' : 'old-town';
   const esc = value => String(value).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
   const name = id => policy.levels.find(p => p.id === id)?.name || id;
-  const player = () => { try { return localStorage.getItem('gunrun-pid') || ''; } catch { return ''; } };
+  const player = () => { try { return window.skyRunRecording?.player || localStorage.getItem('gunrun-pid') || ''; } catch { return ''; } };
   const boxes = [];
   function create(id, limit) {
     const box = document.createElement('section'); box.className = 'rankbox'; box.id = id;

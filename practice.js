@@ -41,7 +41,7 @@
   function begin(){
     for(const key of ['jumpVel','gravity','airAccel','mantleReach','wallRunTime','wallRunSpeed','wallRunGravity','wallJumpPush','ladderSpeed','zipSpeed','hookRange','hookSpeed','hookCooldown','momentumDecay','jumpGunUp','jumpGunPush','stompUp','kickUp','kickBack','kickPush','slideBoost','slideFriction','coyote','jumpBuffer','groundAccel','groundBrake','edgeCatch','edgeSafeR','slideCool'])U[key]=g.DEF[key];
     Object.assign(U,{sendLog:false,gunOn:true,autoFire:false,aimAuto:false,stalkerOn:false,stalker2:false,reserveAmmo:99,autoSprint:true,sprintSpeed:6,walkSpeed:4.6});
-    g.RL.on=false;g.RL.saved=true;g.SCR.off=g.PACE.off=g.MARK.off=true;g.MARK.goal=null;
+    g.RL.on=false;g.RL.sealed=true;g.SCR.off=g.PACE.off=g.MARK.off=true;g.MARK.goal=null;
     z.challenge=null;z.over=false;z.mission=null;z.t=0;g.G.ammo=12;falls=0;
     restoreTargets();place(section);
   }
