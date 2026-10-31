@@ -1,5 +1,5 @@
 import { createSwing } from './parkour-swing.js?v=20261031-grip-v1';
-import { installRanking } from './ranking.js?v=20261028-result-stars-v1';
+import { installRanking } from './ranking.js?v=20261031-ranked-spots-v1';
 import { createFlashbang } from './flashbang.js?v=20261031-no-point-lights-v1';
 import { installSkillDock } from './player-skills.js?v=20261030-decoy-v1';
 import { createDecoy } from './skill-decoy.js?v=20261030-decoy-lock-v2';

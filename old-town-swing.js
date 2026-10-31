@@ -290,17 +290,31 @@
     if(!game||!sky||!course)return;
     const card=document.createElement('section');card.id='oldTownSwingPreview';
     card.style.cssText='margin:0 0 16px;padding:12px;border:1px solid #ffb647;border-radius:10px;background:#2c3028;color:#fff4df';
-    const title=document.createElement('strong');title.textContent='旧市街・鉄棒から逃走分岐へ';
+    const title=document.createElement('strong');title.textContent=preview?'旧市街・スポット検証（ランキング対象外）':'スポットから本番をはじめる';
     const note=document.createElement('p');note.style.cssText='font-size:13px;line-height:1.6;margin:8px 0';
-    note.textContent=(preview?'この練習入口からの記録は送信しません。':'各経路の入口から試せます。')+'④は最初の鉄棒で分岐。⑤⑥は西の角の縁へ。⑦は東塔の足元から北の縁へ出て、西（写真の左）のフックで既存の梁へ、⑧は北の下段から角を回って鉄棒で東側通路へ。空中移動の後は逆入力で減速します。';
+    note.textContent=preview?'検証モードのためクリアしても記録は送信しません。ランキングに参加する場合は本番ホームへ戻ってください。':'選んだ場所から2分チャレンジを開始します。記録送信がオンならクリア・スコアがランキングに反映されます。①は撤去済みです。';
     card.append(title,note);
-    for(const route of course.routes){
-      const control=document.createElement(preview?'button':'a');control.textContent=route.name;
-      control.style.cssText='display:inline-block;margin:4px;padding:8px;color:'+(preview?'#292218':'#ffe0a0');
+    const list=document.createElement('div');list.className='parkour-spot-list';
+    list.setAttribute('role','group');list.setAttribute('aria-label','パルクールのスポット（番号順）');
+    list.style.cssText='display:grid;grid-template-columns:minmax(0,1fr);gap:6px';
+    // NFKC normalizes circled digits. Sort a copy to preserve course geometry order.
+    const ordered=[...course.routes].sort((a,b)=>parseInt(a.name.normalize('NFKC'),10)-parseInt(b.name.normalize('NFKC'),10)||Number(a.id==='east-pillar')-Number(b.id==='east-pillar'));
+    for(const route of ordered){
+      const control=document.createElement('button');control.type='button';
+      control.textContent=route.id==='east'?route.name.replace('④ ','④ 直進：'):route.name;
+      control.dataset.route=route.id;
+      control.style.cssText='display:block;width:100%;padding:10px;text-align:left;white-space:normal;line-height:1.5;color:#292218;background:#ffe0a0;border:1px solid #b18c4b;border-radius:6px';
       if(params.get('swing_route')===route.id)control.style.outline='3px solid #7ee4c4';
-      if(preview){control.type='button';control.onclick=()=>{game.startGame();game.placeAt({x:route.approach[0],y:route.approach[1],z:route.approach[2],yaw:route.yaw});sky.z.safeT=5;};}
-      else control.href='./index.html?oldtown_swing=1&swing_route='+route.id;
-      card.append(control);
+      control.onclick=()=>{
+        game.startGame({x:route.approach[0],y:route.approach[1],z:route.approach[2],yaw:route.yaw});
+        if(preview)sky.z.safeT=5;
+      };
+      list.append(control);
+    }
+    card.append(list);
+    if(preview){
+      const home=document.createElement('a');home.href='./index.html';
+      home.textContent='本番ホームへ（ランキング対象）';home.style.cssText='display:block;padding:12px 0;color:#ffe0a0';card.append(home);
     }
     (document.getElementById('ovStart')?.querySelector('.plate')||document.getElementById('ovStart'))?.prepend(card);
     if(preview){const n=document.getElementById('recNote');if(n)n.textContent='鉄棒の練習入口：プレイ記録は送信しません。';}
