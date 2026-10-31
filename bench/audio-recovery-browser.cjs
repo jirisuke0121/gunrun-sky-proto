@@ -53,7 +53,7 @@ const base = 'http://127.0.0.1:8792/';
       const evidence = await page.evaluate(async () => {
         const a = __skyInternals.Ut, ctx = a.ctx;
         if (!Object.entries(originalAudio).every(([key, node]) => a[key] === node)) throw Error('audio graph was replaced');
-        if (__skyInternals.U.volume !== .35 || a.master.gain.value !== .35) throw Error('volume was changed');
+        if (__skyInternals.U.volume !== .35 || Math.abs(a.master.gain.value - .35) > 1e-6) throw Error('volume was changed');
         const analyser = ctx.createAnalyser(); a.master.connect(analyser);
         const oscillator = ctx.createOscillator(), amp = ctx.createGain(); amp.gain.value = .1;
         oscillator.connect(amp); amp.connect(a.master); oscillator.start();
