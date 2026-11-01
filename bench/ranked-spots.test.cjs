@@ -20,7 +20,7 @@ const read = name => fs.readFileSync(new URL('../' + name, 'file://' + __filenam
       console, AbortSignal, CustomEvent: class { constructor(type, data) { this.type = type; this.detail = data.detail; } },
       window: { skyChallenge: { debug: false, begin() { z.challenge = { id: 'normal', version: 'corridor-crowd6-v6' }; } }, skyChallengeScore: { reset() {} }, skyReplay: { start() {} } },
       z, Z: record, on: false, U: { sendLog: true }, RECORD_URL: 'https://fixture.invalid/runs',
-      recPid: () => 'fixture-' + file, J: () => ({}), Xd() {}, An: m => { mode = m; }, el() {},
+      recPid: () => 'fixture-' + file, J: () => ({classList:{remove(){}}}), hh: 0, ch: 0, Xd() {}, An: m => { mode = m; }, el() {},
       wh: () => { audio++; }, ho() {}, Nh() {}, ol: at => { placement = at; z.t = 0; z.over = false; },
       document: { dispatchEvent: event => events.push(event) },
       fetch: async (url, options) => { uploads++; return worker.fetch(new Request(url, options), { DB }, {}); },

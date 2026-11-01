@@ -218,7 +218,7 @@ window.createSkyDoorFeedback = function ({ THREE: T, scene, audio, player, zombi
         if (Math.abs(dist) > 1.2 || !beside(p, d, .2) || p.vel[d.axis] * side < -.15) d.rearm = true;
         if (d.rearm && !p.doorAction && p.onGround && p.h > 1.2 && !window.skyLandingRoll?.active && p.state === 'normal' && beside(p, d) && Math.abs(dist) <= 1.1) open(d, side);
         else {
-          const attackers = enemies.filter(z => !z.dead && z.spawnT <= 0 && z.stun <= 0 && Math.abs(z.pos.y - d.b.minY) < 1.2 && Math.hypot(Math.max(d.b.minX-z.pos.x,0,z.pos.x-d.b.maxX),Math.max(d.b.minZ-z.pos.z,0,z.pos.z-d.b.maxZ)) < 1.25);
+          const attackers = window.skyIndoorAccess?.doorAllowed(d.b) === false ? [] : enemies.filter(z => !z.dead && z.spawnT <= 0 && z.stun <= 0 && Math.abs(z.pos.y - d.b.minY) < 1.2 && Math.hypot(Math.max(d.b.minX-z.pos.x,0,z.pos.x-d.b.maxX),Math.max(d.b.minZ-z.pos.z,0,z.pos.z-d.b.maxZ)) < 1.25);
           if (attackers.length) {
             d.hitCD -= dt * Math.min(2.5, attackers.reduce((sum, z) => sum + (z.stalker ? 2 : 1), 0));
             if (d.hitCD <= 0) {
