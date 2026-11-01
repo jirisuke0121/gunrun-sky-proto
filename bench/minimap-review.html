@@ -1,0 +1,7 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ミニマップ検証</title>
+<style>body{background:#101c28;color:#e3eceb;font:14px/1.6 system-ui;margin:16px}button,select{font:inherit;margin:4px;padding:8px}iframe{display:block;border:1px solid #789;max-width:100%;margin:12px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere}#status{color:#b5efca}.stage{overflow:auto}</style>
+<h1>ミニマップ・隔離した実ゲーム検証</h1><p>開発専用サーバー <code>node bench/minimap-review-server.cjs</code> で使用。ゲームは固定乱数・記録送信なし。端末はメディア特性の模擬で、iPhone実機ではありません。</p>
+<button id="verify">両マップ・4レイアウトの検証</button><button id="performance">描画オン／オフ比較（約1分）</button>
+<select id="map"><option value="index.html">旧市街</option><option value="canyon.html">岩壁渓谷</option></select><select id="layout"><option value="desktop">PC</option><option value="landscape">横持ちタッチ</option><option value="portrait">縦持ち・右回転</option><option value="portraitLeft">縦持ち・左回転</option></select><button id="preview">表示する</button>
+<p id="status">待機中</p><div class="stage"><iframe id="game" title="実ゲームのミニマップ検証" width="1100" height="620"></iframe></div><pre id="results"></pre>
+<script type="module" src="./minimap-review.js"></script></html>

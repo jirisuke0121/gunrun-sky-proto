@@ -1,6 +1,6 @@
 import { recordMap, replayFromRecord, validateGhost } from '../replay-data.js';
 import rankedRules from '../ranked-rules.js';
-import threatScore from '../threat-score.js';
+import survivalScore from '../survival-score.js';
 const sharedRules = rules => ['corridor-shared-score-v9', rankedRules.version].includes(rules);
 import { receiveTelemetry, telemetryOverview } from './telemetry.js';
 // GunRun 試作 — プレイ記録の受け口（Cloudflare Workers + D1）
@@ -41,7 +41,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-01-threat-score-v1", recordProtocol: 2, replayDetail: 1, rankedRules: rankedRules.version }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-01-time-score-v1", recordProtocol: 2, replayDetail: 1, rankedRules: rankedRules.version }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
@@ -50,16 +50,16 @@ export default {
 };
 
 // Arithmetic consistency, not a claim of server-authoritative game simulation.
-function validThreatScore(record) {
+function validSurvivalScore(record) {
   const b = record.score;
-  if (b?.scoring !== 'threat-survival-v1' || !Number.isFinite(b.pressureSeconds) ||
+  if (b?.scoring !== 'time-survival-v1' ||
       !Number.isFinite(b.elapsed) || Math.abs(b.elapsed - record.t) > .10001 ||
-      b.elapsed < 0 || b.elapsed > 120 || b.pressureSeconds < 0 || b.pressureSeconds > b.elapsed * 3 + 1e-7 ||
+      b.elapsed < 0 || b.elapsed > 120 ||
       !Number.isFinite(b.damageUnits) || b.damageUnits < 0 ||
       !Number.isInteger(b.kills) || b.kills < 0 || b.kills !== (record.stats?.kills || 0)) return false;
   const difficulty = ['easy', 'normal', 'hard'].indexOf(record.challenge.id);
-  const expected = threatScore.evaluate(b.elapsed, b.kills, difficulty, b);
-  return ['survival', 'damage', 'kill', 'total'].every(key => b[key] === expected[key]);
+  const expected = survivalScore.evaluate(b.elapsed, b.kills, difficulty, b);
+  return ['difficulty', 'survival', 'damage', 'kill', 'total'].every(key => b[key] === expected[key]);
 }
 
 async function receive(req, env, cors, origin, allowed) {
@@ -73,7 +73,7 @@ async function receive(req, env, cors, origin, allowed) {
   // Keep the result even when it cannot participate in the fixed competition.
   // Eligibility is server-owned; a client-supplied flag is never trusted.
   if (sharedRules(a.challenge?.version) && a.challenge.id !== 'legacy') {
-    a.rankingEligible = !!rankedRules.eligible(a) && (a.challenge.version !== rankedRules.version || validThreatScore(a));
+    a.rankingEligible = !!rankedRules.eligible(a) && (a.challenge.version !== rankedRules.version || validSurvivalScore(a));
     a.stars = 0;
   }
   a.mapKey = recordMap(a);
