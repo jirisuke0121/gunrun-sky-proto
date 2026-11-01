@@ -1,7 +1,8 @@
 // Unity Challenge pacing, adapted to the 120-second aerial-corridor course.
 // Source settings and intentional adaptations are documented in CHALLENGE_DIFFICULTY.md.
 (() => {
-  const version = 'corridor-parkour-v8', storage = 'gunrun-challenge-difficulty-v1';
+  const { version, settings: fixedSettings } = window.skyRankedRules;
+  const storage = 'gunrun-challenge-difficulty-v1';
   // Shared across the three presets. A corpse also occupies a rendered body slot.
   // This is a conservative population budget, not a device-FPS guarantee.
   const maxAlive = 6, corpseMinimum = .65;
@@ -44,7 +45,8 @@
     return ladderExits.get(edge.ladder);
   }
   const currentSpeed = p => { const r = range(p); return r.start + (r.end - r.start) * Math.min(1, Math.max(0, game?.z.t || 0) / (p.ramp || 80)); };
-  const key = base => (active === 'legacy' ? base : `${base}-${version}-${active}`) + (oldTownSwingPreview ? '-oldtown-swing-preview' : debug ? '-debug' : '');
+  const rankingDifficulty = id => ['easy', 'normal', 'hard'].includes(id) ? 'all' : id;
+  const key = base => (active === 'legacy' ? base : `${base}-${version}-${rankingDifficulty(active)}`) + (oldTownSwingPreview ? '-oldtown-swing-preview' : debug ? '-debug' : '');
   function limit(time, fallback) {
     const p = profile();
     return p ? Math.min(maxAlive, p.counts[Math.min(p.counts.length - 1, Math.floor(Math.max(0, time) / (p.counts.length === 3 ? 40 : 20)))]) : fallback;
@@ -86,8 +88,20 @@
     ];
   }
   const owned = ['zombieSpeed', 'zombieHealth', 'maxZombies', 'flankShare', 'aheadShare', 'dropperShare', 'dropShare', 'killLull', 'paceGap', 'stalkerOn', 'stalker2', 'stalkerAt', 'stalkerSpeed'];
+  const fixedKeys = Object.keys(fixedSettings);
+  let customSettings, fixedApplied = false;
+  const snapshotSettings = source => Object.fromEntries(fixedKeys.map(key => [key, source[key]]));
+  function applySettings() {
+    const fixed = active !== 'legacy' && !window.skyPracticeMode && !game.z.mission;
+    if (fixed && !fixedApplied) customSettings = snapshotSettings(game.U);
+    if (fixed) Object.assign(game.U, fixedSettings);
+    else if (fixedApplied) Object.assign(game.U, customSettings);
+    fixedApplied = fixed;
+  }
   function sync() {
-    const p = level(active), preset = active !== 'legacy';
+    applySettings();
+    game.nl();
+    const p = level(active), preset = !!profile();
     const selector = document.getElementById('challengeDifficulty');
     selector.value = selected !== 'legacy' ? selected : lastPreset;
     selector.disabled = selected === 'legacy';
@@ -98,19 +112,19 @@
       ? `${p.note}。ライフ${p.unlimited ? '無限（ランキング対象外）' : p.lives}。群れの上限 ${p.counts.join(' → ')}体、体力 ${p.health}（HGで${p.health}発）、通常追跡 ${range(p).start.toFixed(1)} → ${range(p).end.toFixed(1)}m/s。死体を含め表示は最大${maxAlive}体。引き離しても追跡は続きます。`
       : 'メニューのゾンビ調整値を使います。6体の表示制限は対象外で、数を増やすほど負荷も増えます。これまでの記録はこちら。';
     document.getElementById('challengeSettingsNote').textContent = preset
-      ? `${p.name}：ゾンビ数・体力・速さ・増援は難易度に従います。個別に変える場合はホームの詳細設定で「自由調整」を有効にします。`
+      ? `${p.name}：移動・戦闘の条件は固定です。得点倍率はイージー×1.0・ノーマル×1.1・ハード×1.2。全難易度のスコアを同じランキングで競います。カメラ・音量・画質は変更できます。個別に調整する場合はホームの詳細設定で「自由調整」を有効にします。`
       : '自由調整：ゾンビ数・体力・速さ・追跡者を個別に調整できます。';
-    for (const name of owned) {
+    for (const name of [...owned, ...fixedKeys]) {
       const input = document.getElementById('s_' + name) || document.getElementById('t_' + name);
       if (input) {
         input.disabled = preset && !game?.z.mission;
         input.closest('.sl,.tg')?.classList.toggle('challenge-locked', input.disabled);
         if (input.disabled) {
-          if (input.type === 'checkbox') input.checked = !!p.values[name];
+          if (input.type === 'checkbox') input.checked = !!(fixedSettings[name] ?? p.values[name]);
           else {
-            input.value = value(name, p.values[name]);
+            input.value = fixedSettings[name] ?? value(name, p.values[name]);
             const output = document.getElementById('o_' + name);
-            if (output) output.textContent = name === 'maxZombies' ? `${p.values[name]} 体（終盤）` : name === 'zombieSpeed' ? `${range(p).end.toFixed(1)} m/s（終盤）` : name === 'zombieHealth' ? `${p.health}（HGで${p.health}発）` : String(p.values[name]);
+            if (output && !Object.hasOwn(fixedSettings, name)) output.textContent = name === 'maxZombies' ? `${p.values[name]} 体（終盤）` : name === 'zombieSpeed' ? `${range(p).end.toFixed(1)} m/s（終盤）` : name === 'zombieHealth' ? `${p.health}（HGで${p.health}発）` : String(p.values[name]);
           }
         }
       }
@@ -124,7 +138,9 @@
     active = launchingIntro || active === 'intro' && game.modeRef() !== 'menu' ? 'intro' : selected;
     launchingIntro = false;
     lastObservation = introTip = -1;
-    game.z.challenge = { id: active, version };
+    game.z.challenge = { id: active, version, rankingScope: rankingDifficulty(active) };
+    applySettings();
+    if (active !== 'legacy') game.z.challenge.fixedSettings = snapshotSettings(game.U);
     game.refreshChallengeBest();
     sync();
     document.dispatchEvent(new CustomEvent('sky-difficulty-change'));
@@ -138,7 +154,8 @@
     document.dispatchEvent(new CustomEvent('sky-difficulty-change'));
   }
   window.skyChallenge = {
-    version, debug, maxAlive, maxRendered: maxAlive, corpseMinimum, levels, key, profile, limit, value, room, reserve, events, begin,
+    version, debug, maxAlive, maxRendered: maxAlive, corpseMinimum, levels, key, profile, limit, value, room, reserve, events, begin, rankingDifficulty,
+    settingsForStorage() { return game ? (fixedApplied ? { ...game.U, ...customSettings } : game.U) : undefined; },
     get id() { return active; }, get selected() { return selected; },
     get name() { return level(active).name; },
     get isIntro() { return active === 'intro' && !game?.z.mission; },
@@ -280,7 +297,10 @@
       })
         .observe(document.getElementById(id), { attributes: true, attributeFilter: ['hidden'] });
       document.getElementById('setGrid').addEventListener('input', sync);
-      document.getElementById('bReset').addEventListener('click', sync);
+      document.getElementById('bReset').addEventListener('click', () => {
+        if (fixedApplied) customSettings = snapshotSettings(game.Jn);
+        sync(); game.Ua();
+      });
       game.refreshChallengeBest(); sync();
     },
   };

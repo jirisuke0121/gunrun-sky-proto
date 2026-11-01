@@ -156,7 +156,7 @@ function ladders(w) {
     let entered = false, elapsed = null;
     for (let i = 0; i < 720; i++) {
       g.GAME.t = 100; g.advance(1 / 60); entered ||= g.P.state === 'ladder';
-      if (entered && g.P.state !== 'ladder' && g.P.pos.y >= l.y1 - .1) { elapsed = i / 60; break; }
+      if (entered && g.P.state === 'normal' && g.P.onGround && g.P.pos.y >= l.y1 - .1) { elapsed = i / 60; break; }
     }
     const target = { x: g.P.pos.x, y: g.P.pos.y, z: g.P.pos.z };
     const enemySeconds = elapsed !== null ? arrival(w, origin, target) : null;

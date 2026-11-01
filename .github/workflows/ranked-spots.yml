@@ -1,7 +1,7 @@
 name: Ranked spot starts
 on:
   pull_request:
-    paths: ['index.html', 'canyon.html', 'challenge-difficulty.js', 'start-readiness.js', 'bench/start-readiness*', 'ranking.js', 'run-records.js', 'replay-data.js', 'server/worker.js', 'bench/record-integrity*', 'old-town-swing.js', 'enhancements.js', 'bench/ranked-spots*', '.github/workflows/ranked-spots.yml']
+    paths: ['index.html', 'canyon.html', 'ranked-rules.js', 'challenge-difficulty.js', 'challenge-score.*', 'start-readiness.js', 'bench/start-readiness*', 'ranking.js', 'run-records.js', 'replay-data.js', 'ghost-replay.js', 'server/worker.js', 'bench/shared-score*', 'bench/record-integrity*', 'old-town-swing.js', 'enhancements.js', 'bench/ranked-spots*', '.github/workflows/ranked-spots.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,6 +18,7 @@ jobs:
         run: |
           node bench/start-readiness.test.cjs
           node bench/record-integrity.test.cjs
+          node bench/shared-score.test.cjs
           node bench/ranked-spots.test.cjs
           node bench/ranked-ghost.test.cjs
           node bench/audio-recovery.test.cjs

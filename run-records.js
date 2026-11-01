@@ -57,12 +57,13 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => crypto
   }
   async function verify(a, receiptId) {
     if (a.kind !== 'map' || !['time','caught','fell'].includes(a.reason) || !Number.isFinite(a.score?.total)) return 'excluded';
-    const query = new URLSearchParams({ map:recordMap(a), mode:'score', difficulty:a.challenge?.id || 'legacy', rules:a.challenge?.version || 'unity-v1', me:a.player });
+    const difficulty = a.challenge?.rankingScope || a.challenge?.id || 'legacy';
+    const query = new URLSearchParams({ map:recordMap(a), mode:'score', difficulty, rules:a.challenge?.version || 'unity-v1', me:a.player });
     try {
       const response = await fetcher(endpoint + '/ranking?' + query, { cache:'no-store',...timeout(10000) });
       if (!response.ok) return 'unconfirmed';
       const data = await response.json(), own = data.top?.find(row => row.me);
-      if (data.map !== recordMap(a) || data.difficulty !== (a.challenge?.id || 'legacy') || data.rules !== (a.challenge?.version || 'unity-v1')) return 'unconfirmed';
+      if (data.map !== recordMap(a) || data.difficulty !== difficulty || data.rules !== (a.challenge?.version || 'unity-v1')) return 'unconfirmed';
       if (own?.replayId === receiptId || own?.runId === receiptId || data.me?.runId === receiptId) return 'confirmed';
       if (data.me && Number(data.me.score) >= a.score.total) return 'best-only';
     } catch {}
@@ -102,7 +103,7 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => crypto
         update(id,{state:'saved',receiptId:body.id,uncertain:false,error:null});
         delete queue[id]; persist();
         emit({id:body.id,clientRunId:id});
-        const ranking = await verify(payload, body.id);
+        const ranking = body.receipt?.ranked === false ? 'excluded' : await verify(payload, body.id);
         update(id,{ranking,state:'saved'});
         return { id:body.id,clientRunId:id,ranking };
       } catch (error) {
@@ -143,8 +144,8 @@ export function installRunRecords(game, win = window, doc = document) {
   const scope = () => win.skyChallenge.isIntro ? '入門モード：ランキング対象外・記録送信なし' : win.skyPracticeMode ? '練習場：ランキング対象外' : win.skyChallenge.debug ? '検証モード：ランキング対象外' : game.U.sendLog ? '記録送信オン' : '記録送信オフ：結果はこの端末だけに保存';
   let current;
   const message = row => {
-    if (!row || win.skyChallenge.isIntro) return scope();
-    if (row.state === 'excluded') return '端末に結果を保存。' + scope();
+    if (!row) return scope();
+    if (row.state === 'excluded') return 'この端末に結果を保存（送信なし）';
     if (row.state === 'sending') return '端末保存済み・サーバーへ送信中…';
     if (row.state === 'pending') return `${row.localStored === false ? '端末への保存に失敗・画面を閉じないでください。' : '端末保存済み・未送信。'} ${row.error || ''}`;
     if (row.state === 'saved') return row.ranking === 'confirmed' ? 'サーバー保存済み・ランキング確認済み' : row.ranking === 'best-only' ? 'サーバー保存済み・ランキングは自己ベストを表示' : row.ranking === 'excluded' ? 'サーバー保存済み（ランキング対象外のプレイ）' : 'サーバー保存済み・ランキングの反映は未確認';
@@ -154,11 +155,12 @@ export function installRunRecords(game, win = window, doc = document) {
   function render(row) {
     if (row && (!current || row.clientRunId === current.clientRunId || row.clientRunId === store?.history[0]?.clientRunId)) current = row;
     for (const panel of panels) {
-      panel.querySelector('[data-record-status]').textContent = message(current);
+      panel.querySelector('[data-record-status]').textContent = win.skyChallenge.isIntro ? scope() :
+        (panel.id === 'recordDeliveryHome' && current ? '直近の結果：' : '') + message(current);
       panel.querySelector('input').checked = !!game.U.sendLog;
       panel.querySelector('input').disabled = !!win.skyPracticeMode || win.skyChallenge.debug || win.skyChallenge.isIntro;
       panel.querySelector('button').hidden = !store?.pending;
-      panel.querySelector('small').textContent = `${scope()}${store?.pending ? ` ・ 未送信 ${store.pending}件` : ''}`;
+      panel.querySelector('small').textContent = `現在の設定：${scope()}${store?.pending ? ` ・ 未送信 ${store.pending}件` : ''}`;
       const history = panel.querySelector('ol'); history.replaceChildren();
       for (const entry of (store?.history || []).slice(0,5)) {
         const li = doc.createElement('li');
@@ -166,9 +168,10 @@ export function installRunRecords(game, win = window, doc = document) {
         history.append(li);
       }
     }
-    const result = doc.getElementById('runRecordStatus'); if (result) result.textContent = message(current);
-    if (win.__game?.RL) win.__game.RL.status = message(current);
-    const legacy = doc.getElementById('oLog'); if (legacy && legacy.textContent !== message(current)) legacy.textContent = message(current);
+    const status = win.skyChallenge.isIntro ? scope() : message(current);
+    const result = doc.getElementById('runRecordStatus'); if (result) result.textContent = status;
+    if (win.__game?.RL) win.__game.RL.status = status;
+    const legacy = doc.getElementById('oLog'); if (legacy && legacy.textContent !== status) legacy.textContent = status;
   }
   const storage = {getItem:key=>{try{return win.localStorage.getItem(key);}catch{return null;}},setItem:(key,value)=>win.localStorage.setItem(key,value)};
   store = createRunRecords({ storage,fetcher:(...args)=>win.fetch(...args),uuid:()=>win.crypto.randomUUID(),
@@ -180,15 +183,17 @@ export function installRunRecords(game, win = window, doc = document) {
     panel.innerHTML = '<strong>プレイ記録</strong><p data-record-status role="status"></p><label><input type="checkbox">記録を送信してランキングに参加</label><small></small><button type="button" hidden>未送信の記録を再送</button><details><summary>この端末の最近の記録</summary><ol></ol></details>';
     panel.querySelector('input').addEventListener('change',event=>{game.U.sendLog=event.target.checked;game.Ua();game.nl();render();if(game.U.sendLog)store.retry();});
     panel.querySelector('button').addEventListener('click',()=>store.retry()); target.before(panel); panels.push(panel);
+    if (target.id === 'recNote') target.hidden = true;
   }
   const live = doc.createElement('p'); live.id = 'runRecordStatus'; live.setAttribute('role','status');
   doc.getElementById('unityResultActions')?.before(live);
   const style = doc.createElement('style'); style.textContent = '.record-delivery{padding:12px;margin:12px 0;border:1px solid #8a98a6;border-radius:8px;font-size:13px;line-height:1.5}.record-delivery p{margin:6px 0}.record-delivery small{display:block}.record-delivery button{margin:8px 0;padding:8px}.record-delivery ol{padding-left:20px}.record-delivery input{margin-right:6px}#runRecordStatus{font-size:12px;line-height:1.5}';doc.head.append(style);
   doc.getElementById('t_sendLog')?.addEventListener('change',()=>{render();if(game.U.sendLog)store.retry();});
+  doc.getElementById('bReset')?.addEventListener('click',()=>render());
   doc.addEventListener('sky-difficulty-change',()=>{render();if(!win.skyChallenge.isIntro)store.retry();});
   win.addEventListener('online',()=>store.retry());
   win.addEventListener('pageshow',()=>{render();store.retry();});
   render(store.history[0]); store.retry();
   return { ...store,submit:store.submit,retry:store.retry,newRunId:store.newRunId,
-    status:()=>message(current),get player(){return store.player;},get history(){return store.history;},get pending(){return store.pending;} };
+    status:()=>win.skyChallenge.isIntro ? scope() : message(current),get player(){return store.player;},get history(){return store.history;},get pending(){return store.pending;} };
 }

@@ -1,5 +1,7 @@
 # Unityチャレンジを参考にした空中回廊の難易度
 
+現在の変更版は `corridor-shared-score-v9`（公開前）。星評価を廃止し、Easy×1.0 / Normal×1.1 / Hard×1.2の得点を同じ順位表で比較します。マップ間・自由調整・v8以前の記録は分離します。通常の移動・戦闘条件は `ranked-rules.js`、人数・体力・速度・補充は下記の3段階を維持します。カメラ・感度・音量・画質・自動射撃は好みで変更できます。以下のv8の公開状態・星に関する記述や過去計測は履歴です。
+
 ## 参照した設定
 
 2026-10-27にGunRun本体の保存済みソースを確認。`newdemo.unity` が参照する `Assets/MyPrefabs/Common/Enemy.prefab`、`Level.cs`、`Appear.cs`、`TigerScript.cs`、`EnemyArchetype.cs` を基準にした。Unity Editorでの再実行・公開済みUnityビルドとの一致は今回確認していない。

@@ -1,5 +1,9 @@
 # Unityチャレンジの得点・表示移植
 
+## 現在の変更版（2026-11-01、公開前）
+
+`corridor-shared-score-v9` では星評価を廃止。下記のUnity得点式と難易度係数（Easy×1.0 / Normal×1.1 / Hard×1.2）は維持し、マップごとに全3段階のスコアを同じ順位表で比較する。途中終了でもその時点の得点を使い、クリア状態は順位とは別の情報として表示する。同一端末は全難易度を通じた最高得点1件。通常ランキングの移動・戦闘条件は固定、自由調整は別区分。v8以前の記録はそのまま保持し、新ルールへ変換しない。以下の星評価や難易度別順位の説明は旧仕様の履歴。
+
 ## 対象と正本
 
 2026-10-27、保存済みUnity本体 `integration-20261007/unity-project` の `ChallengeScoreMath.cs`、`Score.cs`、`KillCount.cs`、`PassTimeScript.cs`、`ChallengeScorePresentation.cs`、`ChallengeResultMotion.cs`、`GunRunSession.cs` を読み取り確認。計算元のSHA-256は `24a43e8ca32780e20f1f25d8178917b332d04bb6555fc71f821fe73f44c85198`。感染モードの得点式は使用しない。Unity Editorの実行・変更はしていない。
