@@ -1,14 +1,14 @@
-// Threat survival owns points; HUD, hit, kill and escape cues only present them.
+// Simulation time and actual combat own points; presentation never awards them.
 (() => {
   const ids = ['easy', 'normal', 'hard'];
   const assets = './assets/challenge-score/';
   let game, frozen, previousMinute = -1, animation = 0, readyAt = 0, lastResult;
-  let tracker, hudKey = '', threatKey = '', pauseKey = '', hitAt = -Infinity, hitDamage = 0;
+  let tracker, hudKey = '', pauseKey = '', hitAt = -Infinity, hitDamage = 0;
   let hitUntil = 0, feedbackUntil = 0;
   const $ = id => document.getElementById(id);
   const enabled = () => !!window.skyChallenge?.profile();
   const level = () => Math.max(0, ids.indexOf(window.skyChallenge.id));
-  const evaluate = (...args) => window.skyThreatScore.evaluate(...args);
+  const evaluate = (...args) => window.skySurvivalScore.evaluate(...args);
   const playing = () => game && enabled() && !game.z.over && !game.z.mission &&
     !window.skyPracticeMode && !game.demoActive?.() && game.modeRef() === 'play';
   function current() {
@@ -63,8 +63,8 @@
   }
   function reset() {
     cancelAnimationFrame(animation); frozen = null; lastResult = null; previousMinute = -1;
-    tracker = window.skyThreatScore.createTracker(game, window.__game, () => feedback(true));
-    hudKey = threatKey = pauseKey = ''; hitDamage = 0; hitAt = -Infinity; hitUntil = feedbackUntil = 0;
+    tracker = window.skySurvivalScore.createTracker(game, window.__game, () => feedback(true));
+    hudKey = pauseKey = ''; hitDamage = 0; hitAt = -Infinity; hitUntil = feedbackUntil = 0;
     for (const id of ['threatHit', 'threatFeedback']) if ($(id)) $(id).hidden = true;
     if ($('unityScoreDetails')) $('unityScoreDetails').hidden = true;
     sync();
@@ -75,18 +75,10 @@
     const b = current(), mode = game.modeRef();
     const active = mode === 'play' && !game.z.over;
     $('unityScoreHud').hidden = !active;
-    $('threatScoreHud').hidden = !active;
     if (!active) for (const id of ['threatHit', 'threatFeedback']) $(id).hidden = true;
     const remaining = Math.max(0, window.__game.RUN_LEN - b.elapsed).toFixed(0);
-    const threat = tracker?.snapshot() || {};
-    const timeFactor = Math.round((threat.rate || 0) * b.difficulty), killFactor = Math.round(100 * b.difficulty);
-    const nextThreatKey = `${threat.count}|${threat.pressure}|${timeFactor}|${threat.repetition < .05}`;
-    if (nextThreatKey !== threatKey) {
-      threatKey = nextThreatKey;
-    set('threatStatus', `${threat.count || 0}体 · 脅威 ${Number(threat.pressure || 0).toFixed(1)}/3`);
-    set('threatRate', `+${timeFactor}点/秒`);
-    set('threatHint', !threat.count ? '追跡得点は停止中' : threat.repetition < .05 ? '同じ場所での加点上限' : timeFactor < 1 ? '移動して追跡をしのごう' : '追跡をしのいで加点中');
-    }
+    const timeFactor = Math.round(window.skySurvivalScore.config.perSecond * b.difficulty);
+    const killFactor = Math.round(window.skySurvivalScore.config.perKill * b.difficulty);
     const key = `${window.skyChallenge.id}|${remaining}|${timeFactor}|${killFactor}|${b.kills}|${b.total}`;
     if (key !== hudKey) {
       hudKey = key;
@@ -103,7 +95,7 @@
     if (mode === 'pause' && detailKey !== pauseKey) {
       pauseKey = detailKey;
       set('unityPauseIdentity', `${window.skyChallenge.name}　${bonus(b)}`);
-      set('unityPauseSurvival', `逃走 ${b.chasedSeconds.toFixed(1)}秒（脅威度を加味） → ${b.survival}点`);
+      set('unityPauseSurvival', `生存 ${b.elapsed.toFixed(1)}秒 → ${b.survival}点`);
       set('unityPauseKill', `撃破 ${b.kills}体 → ${b.kill}点 ／ ダメージ ${b.damageUnits.toFixed(1)} → ${b.damage}点`);
       set('unityPauseTotal', `合計 ${b.total}点`);
     }
@@ -132,10 +124,10 @@
     set('unityRunMoves', `フック ${window.__game.stats.hooks || 0}　壁走り ${window.__game.stats.wallruns || 0}　乗り越え ${window.__game.stats.vaults || 0}　落下 ${window.__game.stats.falls || 0}`);
     set('unityResultDifficulty', `難易度　${window.skyChallenge.name}`);
     set('unityResultBonus', '×' + b.difficulty.toFixed(1));
-    set('unitySurvivalMetric', '追跡 ' + b.chasedSeconds.toFixed(1) + '秒');
+    set('unitySurvivalMetric', b.elapsed.toFixed(1) + '秒');
     set('unityResultSurvival', b.survival.toLocaleString('ja-JP') + ' pt');
     set('unityResultKill', b.kill.toLocaleString('ja-JP') + ' pt');
-    set('unitySurvivalFormula', `追跡の重み ${b.pressureSeconds.toFixed(2)} × 120 × ${b.difficulty.toFixed(1)}`);
+    set('unitySurvivalFormula', `${b.elapsed.toFixed(2)}秒 × 120点 × ${b.difficulty.toFixed(1)}`);
     set('unityResultDamage', b.damage.toLocaleString('ja-JP') + ' pt');
     set('unityDamageFormula', `有効ダメージ ${b.damageUnits.toFixed(1)} × 2点 × ${b.difficulty.toFixed(1)}`);
     set('unityKillFormula', `${b.kills}体 × 100点 × ${b.difficulty.toFixed(1)}`);
@@ -178,11 +170,8 @@
     for (const name of ['star2', 'star3']) $('s_' + name)?.closest('.sl')?.setAttribute('hidden', '');
     for (const name of ['milestoneBonus', 'shakePts', 'star2', 'star3']) $('s_' + name)?.closest('.sl')?.classList.add('legacy-score-setting');
     const hud = document.createElement('div'); hud.id = 'unityScoreHud';
-    hud.innerHTML = `<div id="unityDifficulty"></div><div class="unity-counter">${image('clock')}<b id="unityTime">120</b><small>秒</small><span>逃走 <strong id="unityTimeFactor">+0/秒</strong></span></div><div class="unity-counter">${image('skull')}<b id="unityKills">0</b><small>撃破</small><span>撃破 <strong id="unityKillFactor">100点/体</strong></span></div><div class="unity-counter unity-score"><b id="unityTotal">0</b><small>点</small><span>SCORE</span></div>`;
+    hud.innerHTML = `<div id="unityDifficulty"></div><div class="unity-counter">${image('clock')}<b id="unityTime">120</b><small>秒</small><span>生存 <strong id="unityTimeFactor">+0/秒</strong></span></div><div class="unity-counter">${image('skull')}<b id="unityKills">0</b><small>撃破</small><span>撃破 <strong id="unityKillFactor">100点/体</strong></span></div><div class="unity-counter unity-score"><b id="unityTotal">0</b><small>点</small><span>SCORE</span></div>`;
     $('hud').append(hud);
-    const threatHud = document.createElement('div'); threatHud.id = 'threatScoreHud';
-    threatHud.innerHTML = '<b id="threatStatus"></b><strong id="threatRate"></strong><small id="threatHint"></small>';
-    $('hud').append(threatHud);
     for (const id of ['threatHit', 'threatFeedback']) {
       const node = document.createElement('div'); node.id = id; node.hidden = true;
       node.setAttribute('aria-hidden', 'true'); $('hud').append(node);
@@ -190,7 +179,7 @@
     // Difficulty belongs with the other status lines, not floating under the header (it collided with hints).
     $('hud').querySelector('.hud-tl')?.prepend($('unityDifficulty'));
     const pause = document.createElement('aside'); pause.id = 'unityScorePause';
-    pause.innerHTML = `<h3>得点の内訳</h3><p id="unityPauseIdentity"></p><p id="unityPauseSurvival"></p><p id="unityPauseKill"></p><b id="unityPauseTotal"></b><small>近くの追手から移動して逃げるほど加点。同じ場所の周回・安全な待機は加点が減ります。技とESCAPED自体の加点はありません。難易度ボーナスは反映済み。</small>`;
+    pause.innerHTML = `<h3>得点の内訳</h3><p id="unityPauseIdentity"></p><p id="unityPauseSurvival"></p><p id="unityPauseKill"></p><b id="unityPauseTotal"></b><small>生き残った時間と、有効ダメージ・撃破で得点。難易度ボーナスは反映済み。</small>`;
     $('challengeSettingsNote').after(pause);
     const result = document.createElement('div'); result.id = 'unityScoreResult';
     result.innerHTML = `
@@ -204,12 +193,12 @@
             <p class="uc-total-label">合計スコア</p>
             <div class="uc-total"><b id="unityResultTotal">0</b><small>pt</small></div>
             <span id="unityResultBest"></span>
-            <p class="uc-score-help">逃走点は追手の近さ・人数・移動で変動。倍率は反映済み。端数切り捨て、小数表示は概数。</p>
+            <p class="uc-score-help">生存時間と戦闘の得点に難易度倍率を反映済み。各得点の端数は切り捨て。表示秒数は概数。</p>
           </section>
           <section class="uc-ledger" aria-label="スコア内訳">
             <div class="uc-ledger-heading"><h3>スコア内訳</h3><span>難易度 <b id="unityResultBonus"></b></span></div>
             <div class="uc-breakdown">
-              <div>${image('clock')}<div class="uc-entry"><div><span>逃走点</span><small id="unitySurvivalMetric"></small></div><p id="unitySurvivalFormula"></p></div><b id="unityResultSurvival"></b></div>
+              <div>${image('clock')}<div class="uc-entry"><div><span>生存点</span><small id="unitySurvivalMetric"></small></div><p id="unitySurvivalFormula"></p></div><b id="unityResultSurvival"></b></div>
               <div><span class="uc-damage-icon" aria-hidden="true">＋</span><div class="uc-entry"><span>ダメージ点</span><p id="unityDamageFormula"></p></div><b id="unityResultDamage"></b></div>
               <div>${image('skull')}<div class="uc-entry"><span>撃破点</span><p id="unityKillFormula"></p></div><b id="unityResultKill"></b></div>
             </div>
@@ -240,13 +229,16 @@
     for (const id of ['hud', 'ovPause', 'ovStart']) new MutationObserver(sync).observe($(id), { attributes: true, attributeFilter: ['hidden', 'class'] });
     new MutationObserver(() => set('unityRecordStatus', $('oLog').textContent)).observe($('oLog'), { childList: true, characterData: true, subtree: true });
     document.addEventListener('sky-difficulty-change', () => { frozen = null; sync(); });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && playing()) window.__game.setMode('pause');
+    });
     window.addEventListener('keydown', e => {
       if (enabled() && game.modeRef() === 'over' && performance.now() < readyAt && ['KeyR', 'Enter', 'Space'].includes(e.code)) { e.preventDefault(); e.stopImmediatePropagation(); }
     }, true);
     fit(); sync();
   }
   window.skyChallengeScore = { enabled, level, evaluate, current, reset, sync, attach, showResult, step, damaged,
-    threat: () => tracker?.snapshot(),
+    pursuit: () => tracker?.snapshot(),
     freeze() { return frozen ||= Object.freeze({ ...current() }); },
     killed() { if (playing()) { feedback(false); sync(); pulse('unityKills', 1.2); } },
   };
