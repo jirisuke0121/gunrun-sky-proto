@@ -4,7 +4,7 @@
 #ovPause .pauseKeysTouch{display:none}
 html.touch #ovPause .pauseKeysDesktop{display:none}
 html.touch #ovPause .pauseKeysTouch{display:block}
-#pauseBasic{max-height:none;overflow:visible}
+#ovPause #pauseBasic{max-height:none;overflow:visible}
 #pauseBasic>h4{grid-column:1 / -1;margin:0;font-size:12px;letter-spacing:.1em;color:var(--dim)}
 #pauseBasic .follow-camera-settings .note{display:none}
 #pauseAdvanced{border-top:1px solid #cdbf9c;padding-top:8px}
