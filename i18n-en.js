@@ -3,6 +3,12 @@
 (() => {
   const tr = text => window.skyI18n.tr(text);
   const exact = {
+ "合計スコア": "Total score",
+ "内訳の合計": "Breakdown total",
+ "逃走点": "Evasion",
+ "ダメージ点": "Damage",
+ "撃破点": "Kills",
+ "逃走点は追手の近さ・人数・移動で変動。倍率は反映済み。端数切り捨て、小数表示は概数。": "Chaser distance, count and movement set evasion. Difficulty included. Scores round down; decimals are approximate.",
  "逃走点 ＋ ダメージ点 ＋ 撃破点": "Evasion + damage + kills",
  "難易度ボーナスは各得点に反映済み": "The difficulty bonus is included in every score",
  "逃走点：": "Evasion:",
@@ -400,6 +406,10 @@
  "橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連、左は柱の縁へ。⑤南の踊り場は鉄棒1本、⑥北バルコニーは鉄棒2本で西の角の縁へ渡り、西の通りや既存の屋根フックへ。⑦は東塔の足元から西のフックで既存の梁へ、⑧は北の下段から鉄棒で東側通路へ": "From an orange bar, take an escape branch. ② south air branch, ③ warehouse upper corridor. ④ straight from the first bar is a triple, left goes to the pillar edge. ⑤ south dance floor has one bar, ⑥ north balcony crosses two bars to the west corner edge, then to the west street or the existing roof hook. ⑦ from the east tower base, the west hook to the existing beam; ⑧ from the north lower tier, a bar to the east corridor"
 };
   const patterns = [
+  [/^追跡 ([\d.]+)秒$/, 'Chased $1 s'],
+  [/^追跡の重み ([\d.]+) × 120 × ([\d.]+)$/, 'Threat weight $1 × 120 × $2'],
+  [/^有効ダメージ ([\d.]+) × 2点 × ([\d.]+)$/, 'Effective damage $1 × 2 pts × $2'],
+  [/^(\d+)体 × 100点 × ([\d.]+)$/, '$1 kills × 100 pts × $2'],
   [/^脅威積算 ([\d.]+) ×120 ×([\d.]+)$/, 'Weighted threat $1 ×120 ×$2'],
   [/^(イージー|ノーマル|ハード) 難易度ボーナス ×([\d.]+)（\+(\d+)%）$/, (m,d,x,p) => `${tr(d)} difficulty bonus ×${x} (+${p}%)`],
   [/^(\d+)体 · 脅威 ([\d.]+)\/3$/, '$1 chasers · Threat $2/3'],

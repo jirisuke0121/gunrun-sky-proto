@@ -133,14 +133,17 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
       assert.equal(JSON.parse(result).total,evidence.total,'result freezes the earned total');
       if(lang==='en')assert.doesNotMatch(await page.locator('#unityResultCard').innerText(),/[\u3040-\u30ff\u4e00-\u9fff]/,'result fully translated');
       assert.equal(await page.locator('.uc-breakdown>div').count(),3,'evasion, damage and kill rows survive the lobby/result merge');
-      await page.locator('#unityScoreMath>summary').click();
-      if(lang==='en')assert.doesNotMatch(await page.locator('#unityResultCard').innerText(),/[\u3040-\u30ff\u4e00-\u9fff]/,'score math fully translated');
-      await page.locator('#unityScoreMath>summary').click();
+      for(const id of ['unitySurvivalFormula','unityDamageFormula','unityKillFormula','unityResultEquation'])
+        assert.equal(await page.locator('#'+id).isVisible(),true,'score arithmetic is visible without expanding: '+id);
+      const frozen=JSON.parse(result);
+      assert.equal(await page.locator('#unityResultEquation').innerText(),
+        [frozen.survival,frozen.damage,frozen.kill].map(n=>n.toLocaleString('ja-JP')).join(' + ')+' = '+frozen.total.toLocaleString('ja-JP')+' pt');
+      assert.equal(await page.locator('#unityScoreMath').count(),0,'core breakdown is never collapsed');
       await page.screenshot({path:`${out}/${map}-${lang}-result.png`});
       if(touch){
         await page.setViewportSize({width:844,height:320});
         await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.tiny==='true');
-        for(const id of ['unityRetry','unityMenu','unityMore']){
+        for(const id of ['unityResultTotal','unityResultSurvival','unityResultDamage','unityResultKill','unitySurvivalFormula','unityDamageFormula','unityKillFormula','unityResultEquation','unityRetry','unityMenu','unityMore']){
           const box=await page.locator('#'+id).boundingBox();
           assert.ok(box&&box.y>=0&&box.y+box.height<=320,id+' remains in the tiny viewport');
         }

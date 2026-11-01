@@ -123,6 +123,7 @@
     $('introNext').hidden = !intro;
     $('unityRetry').textContent = intro ? '入門をもう一度' : 'もう一度逃げる';
     $('unityResultCard').dataset.score = JSON.stringify(b);
+    $('unityResultCard').dataset.longScore = String(b.total >= 100000);
     $('unityResultCard').dataset.failed = String(failed);
     $('unityResultCard').dataset.complete = 'false';
     set('unityResultTitle', failed ? (reason === 'fell' ? '落ちてしまった' : 'つかまった') : '逃げ切った！');
@@ -131,17 +132,16 @@
     set('unityRunMoves', `フック ${window.__game.stats.hooks || 0}　壁走り ${window.__game.stats.wallruns || 0}　乗り越え ${window.__game.stats.vaults || 0}　落下 ${window.__game.stats.falls || 0}`);
     set('unityResultDifficulty', `難易度　${window.skyChallenge.name}`);
     set('unityResultBonus', '×' + b.difficulty.toFixed(1));
-    set('unitySurvivalMetric', b.chasedSeconds.toFixed(1) + '秒');
-    set('unityKillMetric', b.kills + '体');
-    set('unityDamageMetric', b.damageUnits.toFixed(1));
+    set('unitySurvivalMetric', '追跡 ' + b.chasedSeconds.toFixed(1) + '秒');
     set('unityResultSurvival', b.survival.toLocaleString('ja-JP') + ' pt');
     set('unityResultKill', b.kill.toLocaleString('ja-JP') + ' pt');
-    set('unitySurvivalFormula', `脅威積算 ${b.pressureSeconds.toFixed(2)} ×120 ×${b.difficulty.toFixed(1)}`);
+    set('unitySurvivalFormula', `追跡の重み ${b.pressureSeconds.toFixed(2)} × 120 × ${b.difficulty.toFixed(1)}`);
     set('unityResultDamage', b.damage.toLocaleString('ja-JP') + ' pt');
-    set('unityDamageFormula', `有効ダメージ ${b.damageUnits.toFixed(1)} ×${(2 * b.difficulty).toFixed(1)}`);
-    set('unityKillFormula', `${b.kills}体 ×${Math.round(100 * b.difficulty)}`);
-    set('unityResultEquation', `${b.survival} + ${b.damage} + ${b.kill} = ${b.total}点`);
-    set('unityResultBest', best ? '自己ベスト更新' : '今回のスコア');
+    set('unityDamageFormula', `有効ダメージ ${b.damageUnits.toFixed(1)} × 2点 × ${b.difficulty.toFixed(1)}`);
+    set('unityKillFormula', `${b.kills}体 × 100点 × ${b.difficulty.toFixed(1)}`);
+    set('unityResultEquation', [b.survival, b.damage, b.kill].map(n => n.toLocaleString('ja-JP')).join(' + ') + ' = ' + b.total.toLocaleString('ja-JP') + ' pt');
+    set('unityResultTotal', b.total.toLocaleString('ja-JP'));
+    set('unityResultBest', best ? '自己ベスト更新' : '');
     $('unityResultBest').dataset.best = String(!!best);
     set('unityRunDetails', `生存 ${b.elapsed.toFixed(1)}秒 / 撃破 ${b.kills}体（落下撃破 ${window.__game.stats.drops}体）`);
     if (intro) {
@@ -151,7 +151,6 @@
       set('unityResultBest', 'この入門の記録は保存・送信しません');
     }
     $('unityScoreDetails').hidden = true;
-    $('unityScoreMath').open = false;
     $('unityResultCard').hidden = false;
     const buttons = [$('unityRetry'), $('unityMenu'), $('unityMore'), $('introNext')];
     buttons.forEach(e => e.disabled = true);
@@ -159,8 +158,6 @@
     readyAt = started + (reduced ? 0 : 700);
     function tick(now) {
       const t = reduced ? .9 : (now - started) / 1000;
-      const count = Math.min(1, Math.max(0, (t - .2) / .6));
-      set('unityResultTotal', Math.round(b.total * (1 - (1 - count) ** 3)).toLocaleString('ja-JP'));
       const settle = (1 - Math.min(1, t / .3)) ** 2;
       $('unityResultCard').style.transform = `translateY(${10 * settle}px) scale(${1 + .025 * settle})`;
       $('unityResultCard').style.opacity = Math.min(1, t / .18);
@@ -196,7 +193,32 @@
     pause.innerHTML = `<h3>得点の内訳</h3><p id="unityPauseIdentity"></p><p id="unityPauseSurvival"></p><p id="unityPauseKill"></p><b id="unityPauseTotal"></b><small>近くの追手から移動して逃げるほど加点。同じ場所の周回・安全な待機は加点が減ります。技とESCAPED自体の加点はありません。難易度ボーナスは反映済み。</small>`;
     $('challengeSettingsNote').after(pause);
     const result = document.createElement('div'); result.id = 'unityScoreResult';
-    result.innerHTML = `<article id="unityResultCard"><header><div class="uc-result-top"><span class="uc-caption">空中回廊 <span>/ RESULT</span></span><span id="unityResultDifficulty"></span></div><div class="uc-result-heading"><div><h2 id="unityResultTitle"></h2><p id="unityEscapeRecord"></p></div><p id="unityResultGoal"></p></div></header><div id="unityResultContent"><section class="uc-points"><span id="unityResultBest"></span><div class="uc-total"><b id="unityResultTotal">0</b><small>pt</small></div><p class="uc-total-label">逃走点 ＋ ダメージ点 ＋ 撃破点</p></section><section class="uc-ledger" aria-label="スコア内訳"><div class="uc-breakdown"><div>${image('clock')}<span>逃走<small id="unitySurvivalMetric"></small></span><b id="unityResultSurvival"></b></div><div><span class="uc-damage-icon" aria-hidden="true">＋</span><span>ダメージ<small id="unityDamageMetric"></small></span><b id="unityResultDamage"></b></div><div>${image('skull')}<span>撃破<small id="unityKillMetric"></small></span><b id="unityResultKill"></b></div></div><div class="uc-bonuses"><div><span>難易度</span><b id="unityResultBonus"></b></div></div><p class="uc-score-help">難易度ボーナスは各得点に反映済み</p></section><details id="unityScoreMath" class="uc-math"><summary>スコアの計算を見る</summary><div><p>逃走点：<span id="unitySurvivalFormula"></span></p><p>ダメージ点：<span id="unityDamageFormula"></span></p><p>撃破点：<span id="unityKillFormula"></span></p><p id="unityResultEquation"></p><p>近くの追手から移動して逃げるほど加点。同じ場所の周回・安全な待機は加点が減ります。技とESCAPED自体の加点はありません。難易度ボーナスは反映済み。</p><p id="unityRunMoves"></p></div></details></div><footer id="unityResultActions"><button id="unityRetry" type="button">もう一度逃げる</button><button id="unityMenu" type="button">ホームへ</button><button id="unityMore" type="button">ランキング・記録</button></footer></article><section id="unityScoreDetails" hidden><h2>ランキング・プレイの記録</h2><p id="unityRunDetails"></p><div id="unityScoreRanking"></div><p id="unityRecordStatus"></p><button id="unityDetailsBack" type="button">リザルトに戻る</button></section>`;
+    result.innerHTML = `
+      <article id="unityResultCard">
+        <header>
+          <div class="uc-result-top"><span class="uc-caption">空中回廊 <span>/ RESULT</span></span><span id="unityResultDifficulty"></span></div>
+          <div class="uc-result-heading"><div><h2 id="unityResultTitle"></h2><p id="unityEscapeRecord"></p></div><p id="unityResultGoal"></p></div>
+        </header>
+        <div id="unityResultContent">
+          <section class="uc-points" aria-label="合計スコア">
+            <p class="uc-total-label">合計スコア</p>
+            <div class="uc-total"><b id="unityResultTotal">0</b><small>pt</small></div>
+            <span id="unityResultBest"></span>
+            <p class="uc-score-help">逃走点は追手の近さ・人数・移動で変動。倍率は反映済み。端数切り捨て、小数表示は概数。</p>
+          </section>
+          <section class="uc-ledger" aria-label="スコア内訳">
+            <div class="uc-ledger-heading"><h3>スコア内訳</h3><span>難易度 <b id="unityResultBonus"></b></span></div>
+            <div class="uc-breakdown">
+              <div>${image('clock')}<div class="uc-entry"><div><span>逃走点</span><small id="unitySurvivalMetric"></small></div><p id="unitySurvivalFormula"></p></div><b id="unityResultSurvival"></b></div>
+              <div><span class="uc-damage-icon" aria-hidden="true">＋</span><div class="uc-entry"><span>ダメージ点</span><p id="unityDamageFormula"></p></div><b id="unityResultDamage"></b></div>
+              <div>${image('skull')}<div class="uc-entry"><span>撃破点</span><p id="unityKillFormula"></p></div><b id="unityResultKill"></b></div>
+            </div>
+            <p id="unityResultEquation" class="uc-equation" aria-label="内訳の合計"></p>
+          </section>
+        </div>
+        <footer id="unityResultActions"><button id="unityRetry" type="button">もう一度逃げる</button><button id="unityMenu" type="button">ホームへ</button><button id="unityMore" type="button">ランキング・記録</button></footer>
+      </article>
+      <section id="unityScoreDetails" hidden><h2>ランキング・プレイの記録</h2><p id="unityRunDetails"></p><p id="unityRunMoves"></p><div id="unityScoreRanking"></div><p id="unityRecordStatus"></p><button id="unityDetailsBack" type="button">リザルトに戻る</button></section>`;
     $('ovOver').append(result);
     const next = document.createElement('button'); next.id = 'introNext'; next.type = 'button';
     next.textContent = 'イージーから挑戦する'; next.hidden = true;
