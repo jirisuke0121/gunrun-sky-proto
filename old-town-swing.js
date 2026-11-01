@@ -61,7 +61,10 @@
     // ④ Three bars reach a branch 5.5 m beyond the old east roof.
     // The gantry offers the south-roof hook or a northern tower ascent.
     // Its lower catch ledge is 4.6 m below, beyond a normal mantle height.
-    box('east-arrival',[51.5,3.3,1.2],[62,3.6,4.2]);
+    box('east-arrival',[51.5,3.3,.7],[62,3.6,4.2]);
+    // Join the diagonal beam to a visible take-off centred on the swing lane.
+    // This short deck ends before the gap; it cannot replace the first grip.
+    box('east-launch-align',[20,5.25,.65],[21.4,5.5,3.7]);
     box('east-outer-walk',[59.5,3.3,-14.2],[62,3.6,4.2]);
     box('east-tower-return',[42,14.1,-14.2],[44.4,14.4,-10.8]);
     // Ascend to the existing tower instead of returning into the chaser's
@@ -154,7 +157,9 @@
     box('south-corner-ledge',[-22,3.9,13],[-15.2,4.2,17.8]);
     // Remove the 1.5m wall-facing end (the red-circled obstruction).
     // Straight north kicks cleared it; sideways/diagonal kicks did not.
-    box('north-corner-ledge',[-24,3.9,-17.4],[-21.5,4.2,-13]);
+    // Early valid releases carry more horizontal speed. Extend outwards to
+    // receive that arc, keeping the wall-facing jump/run corridor unchanged.
+    box('north-corner-ledge',[-27.2,3.9,-17.4],[-21.5,4.2,-13]);
     // Small arrival lips stay beyond the ends of the original wall-run faces.
     box('south-corner-arrival-lip',[-15.2,3.9,16.3],[-14.05,4.2,17.8]);
     // Keep the original west-wall run and outward kick corridor free.
@@ -172,7 +177,7 @@
     box('north-corner-foot',[-22,-.3,-7.8],[-20.6,0,-7.1]);
     // The north gap used to have no floor. A miss costs height, with a lower
     // route back to the street instead of a forced fall into the void.
-    box('north-corner-recovery',[-19.5,-3.8,-17.4],[1,-3.5,-14]);
+    box('north-corner-recovery',[-29,-3.8,-18.4],[1,-3.5,-13]);
     for(let i=0;i<10;i++) {
       const z=-14+i*.65,top=-3.5+(i+1)*.35;
       box('north-corner-recovery-stair-'+i,[-19.5,-3.8,z],[-17.7,top,z+.65],'slab',0xe39a4a);
@@ -182,7 +187,7 @@
     }
     // Suspend the grips from the facade without blocking the body arc.
     for(const [x,z] of [[-6.7,17],[-6.2,-15.5],[-13,-15.5]])for(const side of [-1,1]) {
-      const end=[x,6.8,z+side*1.45],mount=[x,8.4,z+side*1.45];
+      const end=[x,x===-13?7.2:6.8,z+side*1.45],mount=[x,8.4,z+side*1.45];
       strut(end,mount);strut(mount,[x,8.4,z>0?14:-14]);
     }
 
@@ -236,14 +241,14 @@
     const bars=[
       {id:'oldtown-high-bar-1',at:[-43.6,17.6,-3.9],direction:[0,1],width:2.6,route:'high'},
       {id:'oldtown-warehouse-bar-1',at:[-62.5,7.8,3.6],direction:[1,0],width:2.6,route:'warehouse'},
-      {id:'oldtown-east-bar-1',at:[24,8.4,1.5],direction:[1,0],width:2.6,route:'east',exitHint:'直進：3連 / 左：柱の縁へ'},
+      {id:'oldtown-east-bar-1',at:[24,8.4,1.5],direction:[1,0],width:3.6,route:'east',exitHint:'直進：3連 / 左：柱の縁へ'},
       {id:'oldtown-east-bar-2',at:[32,8.4,1.5],direction:[1,0],width:2.6,route:'east'},
       {id:'oldtown-east-bar-3',at:[39.5,9.2,1.5],direction:[1,0],width:2.6,route:'east',exitHint:'外側に着地 → 南屋根のフック / 北の屋上'},
       {id:'oldtown-east-pillar-bar',at:pillarBar,direction:[1/Math.sqrt(5),-2/Math.sqrt(5)],width:2.6,route:'east-pillar',exitHint:'北西の縁へ / 離脱後は逆入力で減速'},
       {id:'oldtown-south-corner-bar',at:[-6.7,6.8,17],direction:[-1,0],width:2.6,route:'south-corner',exitHint:'西の角の縁へ → 既存の屋根フック / 西の通り'},
-      {id:'oldtown-north-corner-bar',at:[-6.2,6.8,-15.5],direction:[-1,0],width:2.6,route:'north-corner',exitHint:'次の鉄棒へ → もう一度ジャンプして北西の縁へ'},
+      {id:'oldtown-north-corner-bar',at:[-6.2,6.8,-15.5],direction:[-1,0],width:2.6,route:'north-corner',launchWindow:[.65,.9],exitHint:'次の鉄棒へ → もう一度ジャンプして北西の縁へ'},
       {id:'oldtown-north-east-bar',at:[15.5,2.8,-10.2],direction:[0,1],width:2.6,route:'north-east-corner',exitHint:'東側の既存通路へ → 右の出入口から建物の中へ'},
-      {id:'oldtown-north-corner-bar-2',at:[-13,6.8,-15.5],direction:[-1,0],width:2.6,route:'north-corner',exitHint:'もう一度ジャンプ → 壁ジャンプの外側の縁へ'},
+      {id:'oldtown-north-corner-bar-2',at:[-13,7.2,-15.5],direction:[-1,0],width:2.6,route:'north-corner',launchWindow:[.65,.9],exitHint:'もう一度ジャンプ → 壁ジャンプの外側の縁へ'},
     ];
     const routes=[
       {id:'high',name:'② 北柱→南の空中分岐',approach:[-43.6,14.4,-6.5],pursuitStart:[-45.8,14.4,-6.5],yaw:Math.PI,exit:[-43.6,15,6],
@@ -252,7 +257,7 @@
       {id:'warehouse',name:'③ 低い屋根→倉庫の上階通路',approach:[-66,4.4,3.6],yaw:-Math.PI/2,exit:[-55.5,6.4,3.6],
        escape:[[-52.2,6.4,3.6],[-52.2,4.6,8],[-49.3,0,2]],
        returnVia:[-52.2,4.6,8],fallback:[-63,0,3.6]},
-      {id:'east',name:'④ 斜め梁→外側回廊→南屋根／屋上',approach:[20.25,5.7,3],pursuitStart:[17.75,6.7,3],yaw:-Math.PI/2,exit:[56,3.6,2.5],
+      {id:'east',name:'④ 斜め梁→外側回廊→南屋根／屋上',approach:[20.7,5.5,1.5],pursuitStart:[17.75,6.7,3],yaw:-Math.PI/2,exit:[56,3.6,2.5],
        escape:[[56,3.6,2.5],[44.5,6.6,10.5],[43.2,4.4,5.7]],
        alternate:[[60.7,3.6,2.5],[60.7,3.6,-13],[44,14.4,-13],[44,14.4,-10]],
        returnVia:[44,14.4,-10],fallback:[47,-1,2.5]},
@@ -276,7 +281,7 @@
     ];
     window.skyOldTownSwingCourse={id:'oldtown-swing-escape-v1',oldTown:true,name:'旧市街の鉄棒と逃走分岐',bars,routes,supports,
       approach:routes[0].approach,approachYaw:routes[0].yaw,pad:routes[0].approach,exit:routes[0].exit,
-      signs:[],arrows:[{at:[31.5,7.025,-.65],direction:[1,0]},{at:[35.7,7.025,-1.8],direction:[1/Math.sqrt(5),-2/Math.sqrt(5)]},
+      signs:[],arrows:[{at:[20.7,5.525,1.5],direction:[1,0]},{at:[31.5,7.025,-.65],direction:[1,0]},{at:[35.7,7.025,-1.8],direction:[1/Math.sqrt(5),-2/Math.sqrt(5)]},
         {at:[-3.5,4.025,17],direction:[-1,0]},{at:[-.3,4.025,-15.5],direction:[-1,0]},
         {at:[-21.3,4.225,13.5],direction:[0,-1]},{at:[-21.75,4.225,-13.5],direction:[0,1]},
         {at:[45,0.025,-13.5],direction:[0,-1]},{at:[45,0.025,-16.2],direction:[-1,0]},{at:[36.2,3.425,-16.2],direction:[0,1]},

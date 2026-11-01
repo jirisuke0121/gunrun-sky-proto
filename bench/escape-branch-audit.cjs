@@ -1,5 +1,6 @@
 // Diagnostic controller: records successful and unsuccessful traversals without changing game files.
 const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=require('playwright');
+const {revealHomeControl}=require('./home-controls.cjs');
 (async()=>{let browser,server;const output=[];fs.mkdirSync('branch-evidence',{recursive:true});try{
  server=spawn('python3',['-m','http.server','8786','--bind','127.0.0.1'],{stdio:'ignore'});
  for(let i=0;i<60;i++){if(await fetch('http://127.0.0.1:8786/').then(r=>r.ok,()=>false))break;await new Promise(r=>setTimeout(r,100));}
@@ -14,7 +15,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
   await page.evaluate(()=>{let initialSeed=20261030;Math.random=()=>((initialSeed=(Math.imul(initialSeed,1664525)+1013904223)>>>0)/4294967296);});
   // This audits accessible terrain with pursuit pressure, not challenge completion.
   // Pin the beginner preset rather than inheriting the newly harder Normal.
-  if(await page.locator('#homeMore').count())await page.locator('#homeMore > summary').click();
+  await revealHomeControl(page,'#challengeDifficulty');
   await page.locator('#challengeDifficulty').selectOption('easy');
   await page.locator('#bStart').click();
   const result=await page.evaluate(({map,touch})=>{
