@@ -49,7 +49,7 @@
   }
 
   if (lang === 'en') {
-    document.title = 'Sky Corridor — Chase (GunRun prototype)';
+    document.title = 'Zombie Parkour Escape';
     fix(document.body);
     new MutationObserver(records => {
       for (const record of records) {
