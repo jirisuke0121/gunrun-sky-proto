@@ -3,6 +3,7 @@
 (() => {
   const tr = text => window.skyI18n.tr(text);
   const exact = {
+ "連射すると弾がブレる。HG・SMG・MGの自動射撃は近距離で連射、中距離で短い連射、遠距離で単発に切り替わる。少し休むと精度が戻る。": "Sustained fire increases bullet spread. The HG, SMG and MG fire continuously up close, in short bursts at medium range, and single shots at long range. Pause briefly to recover accuracy.",
  "難易度を選ぶ": "Choose difficulty",
  "スコアボーナス": "Score bonus",
  "制限時間": "Time limit",
