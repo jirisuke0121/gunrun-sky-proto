@@ -105,6 +105,9 @@
     const selector = document.getElementById('challengeDifficulty');
     selector.value = selected !== 'legacy' ? selected : lastPreset;
     selector.disabled = selected === 'legacy';
+    const scoreBonus = document.getElementById('challengeScoreBonus');
+    scoreBonus.hidden = !preset || active === 'intro';
+    scoreBonus.textContent = `スコアボーナス ×${(1 + .1 * levels.indexOf(level(selected))).toFixed(1)} ｜ 生存・撃破の両方に適用`;
     const custom = document.getElementById('challengeCustom');
     custom.checked = selected === 'legacy';
     custom.disabled = game.modeRef() !== 'menu';
@@ -282,7 +285,7 @@
       const introEntry = document.getElementById('introEntry');
       introEntry.parentElement.prepend(introEntry);
       const selector = document.getElementById('challengeDifficulty');
-      for (const p of levels) if (p.id !== 'legacy') selector.add(new Option(p.name, p.id));
+      for (const p of levels) if (p.id !== 'legacy') selector.add(new Option(`${p.name}（スコア ×${(1 + .1 * levels.indexOf(p)).toFixed(1)}）`, p.id));
       selector.addEventListener('change', () => select(selector.value));
       document.getElementById('challengeCustom').addEventListener('change', event => {
         select(event.target.checked ? 'legacy' : lastPreset);

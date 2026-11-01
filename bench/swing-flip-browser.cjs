@@ -14,7 +14,7 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
   try {
     for (const touch of [false, true]) for (const map of ['canyon.html', 'index.html']) {
       const id = `${map.split('.')[0]}-${touch ? 'touch' : 'desktop'}`, errors = [];
-      const ctx = await browser.newContext({ viewport: touch ? { width: 844, height: 390 } : { width: 1280, height: 720 }, hasTouch: touch, isMobile: touch });
+      const ctx = await browser.newContext({locale:'ja-JP', viewport: touch ? { width: 844, height: 390 } : { width: 1280, height: 720 }, hasTouch: touch, isMobile: touch });
       await ctx.addInitScript(() => window.__hold = true);
       await ctx.route('https://**/*', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"top":[],"total":0,"ok":true}' }));
       const p = await ctx.newPage(); p.on('pageerror', e => errors.push(e.message));

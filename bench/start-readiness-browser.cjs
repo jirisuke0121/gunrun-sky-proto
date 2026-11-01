@@ -7,7 +7,7 @@ const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{p
  for(let i=0;i<60;i++){if(await fetch(base).then(r=>r.ok,()=>false))break;await new Promise(r=>setTimeout(r,100));}
  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  for(const touch of [false,true])for(const map of ['index.html','canyon.html']){
-  const ctx=await browser.newContext({viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch});
+  const ctx=await browser.newContext({locale:'ja-JP',viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch});
   await ctx.addInitScript(()=>window.__hold=true);const human=deferred(),gun=deferred();let posts=0;const errors=[];
   await ctx.route('**/*',async route=>{const u=new URL(route.request().url());if(u.origin!==new URL(base).origin){if(route.request().method()==='POST')posts++;return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true,"service":"gunrun-runs","recordProtocol":2,"top":[],"total":0,"me":null}'});}
    if(u.pathname.endsWith('human-gunrun-animated.glb.gz')||u.pathname.endsWith('human-gunrun.glb'))await human.promise;
@@ -27,6 +27,7 @@ const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{p
   const click=async selector=>{
    // A locked desktop pointer targets the canvas. Use the real PC pause key;
    // touch users open the same panel with its on-screen button.
+   if(selector==='#bSettings'&&await page.evaluate(()=>__game.mode==='menu')&&await page.locator('#homeSettings').isVisible())selector='#homeSettings';
    if(selector==='#bSettings'&&!touch&&await page.evaluate(()=>__game.mode==='play')){
     await page.keyboard.press('p');await page.waitForFunction(()=>__game.mode==='pause'&&!document.pointerLockElement);return;
    }
@@ -55,7 +56,7 @@ const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{p
   await page.screenshot({path:`${out}/${map}-${touch?'touch':'desktop'}.png`});results.push({map,touch,blocked,normal,intro,introPopulation,afterIntro,posts,errors});console.log('PASS',map,touch?'touch':'desktop','cold load, normal, pause/resume/restart, pre-run settings, intro/retry and normal return');await ctx.close();
  }
  // A failed gun request must offer recovery instead of a dead-looking Start button.
- const ctx=await browser.newContext(),page=await ctx.newPage();await ctx.addInitScript(()=>window.__hold=true);let fail=true;
+ const ctx=await browser.newContext({locale:'ja-JP'}),page=await ctx.newPage();await ctx.addInitScript(()=>window.__hold=true);let fail=true;
  await ctx.route('**/*',route=>{const u=new URL(route.request().url());if(u.origin!==new URL(base).origin)return route.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'});if(fail&&u.pathname.endsWith('hg-meshy-low.glb'))return route.fulfill({status:404,body:'missing'});return route.continue()});
  await page.goto(base+'index.html');await page.waitForFunction(()=>window.skyStartReadiness?.state.phase==='error');assert.equal(await page.locator('#bStart').isDisabled(),true);assert.match(await page.locator('#startReadyStatus').innerText(),/銃/);fail=false;await page.locator('[data-retry-start]').first().click();await page.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:90000});await page.locator('#bStart').click();assert.equal(await page.evaluate(()=>__game.mode),'play');results.push({failure:'HG 404',reloadRecovered:true});await ctx.close();
  fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2));

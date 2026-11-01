@@ -6,7 +6,7 @@ const {revealHomeControl}=require('./home-controls.cjs');
  for(let i=0;i<60;i++){if(await fetch('http://127.0.0.1:8786/').then(r=>r.ok,()=>false))break;await new Promise(r=>setTimeout(r,100));}
  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  for(const touch of [false,true])for(const map of ['index','canyon']){
-  const context=await browser.newContext({viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch});
+  const context=await browser.newContext({locale:'ja-JP',viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch});
   await context.addInitScript(()=>window.__hold=true);await context.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'}));
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(120000);
   await page.goto('http://127.0.0.1:8786/'+map+'.html?challengeDebug=1');await page.waitForFunction(()=>window.__game&&window.skySwing&&window.skyFollowCamera&&window.skyEscapeRoutes&&window.skyHumanView&&document.body.dataset.skyHumanLoaded==='true');
@@ -15,8 +15,8 @@ const {revealHomeControl}=require('./home-controls.cjs');
   await page.evaluate(()=>{let initialSeed=20261030;Math.random=()=>((initialSeed=(Math.imul(initialSeed,1664525)+1013904223)>>>0)/4294967296);});
   // This audits accessible terrain with pursuit pressure, not challenge completion.
   // Pin the beginner preset rather than inheriting the newly harder Normal.
-  await revealHomeControl(page,'#challengeDifficulty');
-  await page.locator('#challengeDifficulty').selectOption('easy');
+  const difficulty = page.locator('[data-difficulty=easy]');
+  if (touch) await difficulty.tap(); else await difficulty.click();
   await page.locator('#bStart').click();
   const result=await page.evaluate(({map,touch})=>{
    const g=__game,s=__skyInternals,c=g.P,dt=1/120,results=[];let seed=20261030;Math.random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);

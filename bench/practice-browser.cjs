@@ -6,7 +6,7 @@ const base=process.env.RUNNING_QA_URL||'http://127.0.0.1:8778/';
  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  fs.mkdirSync('browser-evidence/practice',{recursive:true});
  for(const touch of (process.env.PRACTICE_QA_TOUCH_ONLY?[true]:[false,true])){
-  const ctx=await browser.newContext({viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch});
+  const ctx=await browser.newContext({locale:'ja-JP',viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch});
   const errors=[],posts=[];await ctx.addInitScript(()=>{window.__hold=true;localStorage.setItem('gunrun-sky-proto-v1',JSON.stringify({sprintSpeed:6,sendLog:true}));});
   const p=await ctx.newPage();p.on('pageerror',e=>errors.push(e.message));
   await p.route('https://**/*',r=>{if(r.request().method()==='POST')posts.push(r.request().url());return r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'});});

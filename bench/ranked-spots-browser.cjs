@@ -17,7 +17,7 @@ const base = 'http://127.0.0.1:8793/';
         async all() { return { results: db.prepare(sql).all(...args) }; },
         async run() { return db.prepare(sql).run(...args); },
       }; } };
-      const context = await browser.newContext({ viewport: { width: touch ? 844 : 1280, height: touch ? 390 : 720 }, hasTouch: touch, isMobile: touch });
+      const context = await browser.newContext({locale:'ja-JP', viewport: { width: touch ? 844 : 1280, height: touch ? 390 : 720 }, hasTouch: touch, isMobile: touch });
       await context.addInitScript(() => { window.__hold = true; });
       const uploads = [], uploadStatuses = [];
       // Exercise the production Worker against a disposable DB. No QA scores or

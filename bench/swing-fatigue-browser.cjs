@@ -7,7 +7,7 @@ try{
  if(!process.env.RUNNING_QA_URL){server=spawn('python3',['-m','http.server','8789','--bind','127.0.0.1'],{stdio:'ignore'});for(let i=0;i<50;i++){if(await fetch(base).then(r=>r.ok,()=>false))break;await new Promise(r=>setTimeout(r,100));}}
  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  for(const map of ['canyon.html','index.html'])for(const touch of [false,true]){
-  const id=map.split('.')[0]+'-'+(touch?'touch':'desktop'),ctx=await browser.newContext({viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch}),errors=[];
+  const id=map.split('.')[0]+'-'+(touch?'touch':'desktop'),ctx=await browser.newContext({locale:'ja-JP',viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch}),errors=[];
   await ctx.addInitScript(()=>window.__hold=true);
   await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'}));
   const p=await ctx.newPage();p.on('pageerror',e=>errors.push(e.message));
