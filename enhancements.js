@@ -9,11 +9,11 @@ import { createDecoy } from './skill-decoy.js?v=20261030-decoy-lock-v2';
 import { createZombieClimb } from './zombie-climb.js?v=20261101-drop-entry-v1';
 import { createZombiePursuit } from './zombie-pursuit.js?v=20261031-parkour-v8';
 import { createGhostReplay } from './ghost-replay.js?v=20261101-shared-score-v1';
-import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261030-auto-fire-controls-v1';
+import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261101-jump-stash-v1';
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261031-no-point-lights-v1';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261031-grip-v1';
-import { createJumpPickups } from './jump-pickups.js?v=20261028-playground-v1';
-import { createWeaponDrops } from './weapon-drops.js?v=20261028-compact-hud-v1';
+import { createJumpPickups } from './jump-pickups.js?v=20261101-jump-stash-v1';
+import { createWeaponDrops } from './weapon-drops.js?v=20261101-jump-stash-v1';
 import { createDash } from './dash-boost.js?v=20261101-run-feel-v1';
 import { mergeStaticMaterialGroups } from './world-batching.js?v=20261030-material-groups-v2';
 

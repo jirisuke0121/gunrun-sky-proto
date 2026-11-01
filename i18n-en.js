@@ -3,6 +3,10 @@
 (() => {
   const tr = text => window.skyI18n.tr(text);
   const exact = {
+ "ジャンプ弾": "Jump shot",
+ "ジャンプ弾を使う": "Use jump shot",
+ "ジャンプ弾取得！ Zキー・専用ボタンで使う": "Jump shot ready! Press Z or its button to use it",
+ "金色のJUMPはジャンプ弾を1発補給。通常武器を持ったまま、Zキー・ジャンプ弾ボタンで足元に発射して跳ぶ": "Gold JUMP pickups store one jump shot. Keep your usual weapon; press Z or the Jump shot button to fire at your feet and launch",
  "追手を撒いた": "You lost the chasers",
  "ゾンビ撃破": "Zombie eliminated",
  "ダメージ達成": "Damage milestone",

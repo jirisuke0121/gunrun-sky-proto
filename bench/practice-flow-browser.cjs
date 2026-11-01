@@ -7,7 +7,7 @@ const {chromium}=require('playwright'),{spawn}=require('child_process'),fs=requi
  await p.goto('http://127.0.0.1:8779/canyon.html?practice=1');await p.waitForFunction(()=>window.skyPractice&&__game.mode==='play',null,{timeout:90000});
  const r=await p.evaluate(()=>{
   const g=__game,c=g.P,dt=1/120,trace=[],stages=[];const runStart=g.GAME.t;
-  const key=(code)=>{dispatchEvent(new KeyboardEvent('keydown',{code}));dispatchEvent(new KeyboardEvent('keyup',{code}));};
+  const key=(code)=>{document.dispatchEvent(new KeyboardEvent('keydown',{code,bubbles:true}));document.dispatchEvent(new KeyboardEvent('keyup',{code,bubbles:true}));};
   const tick=()=>{g.advance(dt);trace.push({t:g.GAME.t,p:c.pos.toArray(),state:c.state,stats:{vaults:g.stats.vaults,mantles:g.stats.mantles,wallruns:g.stats.wallruns},section:skyPractice.section.id});};
   function moveTo(x,z,max=1200,action){g.keys.KeyW=true;for(let i=0;i<max;i++){const dx=x-c.pos.x,dz=z-c.pos.z;if(Math.hypot(dx,dz)<.35){g.keys.KeyW=false;return true;}c.yaw=Math.atan2(-dx,-dz);action?.();tick();}g.keys.KeyW=false;return false;}
   function mark(name){stages.push({name,t:g.GAME.t,pos:c.pos.toArray(),state:c.state,stats:{...g.stats},fall:skyPractice.retries});}
@@ -38,7 +38,7 @@ const {chromium}=require('playwright'),{spawn}=require('child_process'),fs=requi
   const tapped=skyBlastBarrels.tapAt(rect.left+(v.x+1)*rect.width/2,rect.top+(1-v.y)*rect.height/2);mark('blast-fired:'+tapped);
   moveTo(-23,8.5,500);mark('blast-landing');
   moveTo(-27,5.8,400);g.keys.KeyW=false;for(let i=0;i<20;i++)tick();mark('jumpgun-pickup');
-  c.yaw=0;key('KeyE');g.keys.KeyW=true;
+  c.yaw=0;key('KeyZ');g.keys.KeyW=true;
   for(let i=0;i<300;i++){tick();if(c.onGround&&c.pos.y>7.9)break;}mark('jumpgun');g.keys.KeyW=false;for(let i=0;i<20;i++)tick();
   moveTo(-30,-16.4,400);moveTo(-30,-23.5,900);moveTo(-26,-23.5,400);moveTo(-26,-16,600);g.keys.KeyW=false;for(let i=0;i<120&&!c.onGround;i++)tick();mark('loop');
   return{stages,trace,falls:skyPractice.retries,time:g.GAME.t-runStart};

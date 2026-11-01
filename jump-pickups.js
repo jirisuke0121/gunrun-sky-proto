@@ -24,7 +24,7 @@ export function createJumpPickups(sky, game) {
   const rule = document.querySelector('#ovStart .rules .keys');
   if (rule) {
     const li = document.createElement('li');
-    li.textContent = '金色のJUMPは定期補給。拾うと1発装備し、発射で足元を自動撃ちして跳ぶ。使用後は元の武器に戻る';
+    li.textContent = '金色のJUMPはジャンプ弾を1発補給。通常武器を持ったまま、Zキー・ジャンプ弾ボタンで足元に発射して跳ぶ';
     rule.appendChild(li);
   }
   let time = 0, previous = null;
@@ -55,7 +55,7 @@ export function createJumpPickups(sky, game) {
         continue;
       }
       item.drop = Math.max(0, item.drop - dt);
-      if (item.drop > 0 || window.skyJumpGun.carrying) continue;
+      if (item.drop > 0 || window.skyJumpGun.carrying || window.skyJumpGun.presenting) continue;
       const point = [item.node.x, item.node.y + 1.05, item.node.z];
       const a = (teleported ? to : from).map((v, k) => v + (k === 1 ? .9 : 0));
       const b = to.map((v, k) => v + (k === 1 ? .9 : 0));

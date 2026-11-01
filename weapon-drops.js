@@ -119,7 +119,7 @@ export function createWeaponDrops(sky, game) {
       if (!item.node) continue;
       item.age += dt;
       if (item.age + 1e-6 >= ITEM_SECONDS) { item.node = null; continue; }
-      if (item.age < FALL_SECONDS || window.skyJumpGun?.carrying || ['ledge', 'ladder', 'swing'].includes(c.state)) continue;
+      if (item.age < FALL_SECONDS || window.skyJumpGun?.presenting || ['ledge', 'ladder', 'swing'].includes(c.state)) continue;
       const point = [item.node.x, item.node.y + 1, item.node.z];
       const a = from.map((v, k) => v + (k === 1 ? .9 : 0)), b = to.map((v, k) => v + (k === 1 ? .9 : 0));
       if (segmentDistance(point, a, b) >= .9) continue;
