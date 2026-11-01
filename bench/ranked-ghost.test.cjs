@@ -89,7 +89,7 @@ const { readFileSync } = require('node:fs');
   assert.equal(data.ghost.source, 'recorded');
   assert.deepEqual(data.ghost.detail, detailed.detail);
   assert.ok(!JSON.stringify(data).includes('never-public'));
-  assert.deepEqual(Object.keys(data).sort(), ['ghost', 'playedAt', 'score', 'tag']);
+  assert.deepEqual(Object.keys(data).sort(), ['ghost', 'name', 'playedAt', 'score', 'tag']);
   assert.ok(!JSON.stringify(data).includes('person-secret'));
   assert.equal((await request('/ghosts/old-low?map=old-town')).status, 404, 'only the exact ranking run is public');
   assert.equal((await request('/ghosts/old-high?map=rock-canyon')).status, 404);

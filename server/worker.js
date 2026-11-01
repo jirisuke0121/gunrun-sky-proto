@@ -1,6 +1,7 @@
 import { recordMap, replayFromRecord, validateGhost } from '../replay-data.js';
 import rankedRules from '../ranked-rules.js';
 import survivalScore from '../survival-score.js';
+import playerName from '../player-name.js';
 const sharedRules = rules => ['corridor-shared-score-v9', 'corridor-threat-score-v10', rankedRules.version].includes(rules);
 import { receiveTelemetry, telemetryOverview } from './telemetry.js';
 // GunRun 試作 — プレイ記録の受け口（Cloudflare Workers + D1）
@@ -81,6 +82,8 @@ async function receive(req, env, cors, origin, allowed) {
   try { a = JSON.parse(text); } catch { return json({ error: "bad_json" }, 400, cors); }
   if (!a || typeof a !== "object" || !Number.isFinite(a.t) || a.t < 0 || a.t > 300 || typeof a.reason !== "string") return json({ error: "bad_shape" }, 400, cors);
   if (a.challenge?.id === 'intro') return json({ error: 'intro_not_recorded' }, 400, cors);
+  // The nickname is shown publicly, so only a name that passes the shared rule is kept.
+  const nickname = playerName.normalize(a.name); if (nickname) a.name = nickname; else delete a.name;
   // Keep the result even when it cannot participate in the fixed competition.
   // Eligibility is server-owned; a client-supplied flag is never trusted.
   if (sharedRules(a.challenge?.version) && a.challenge.id !== 'legacy') {
@@ -219,10 +222,10 @@ async function ranking(env, cors, url) {
   if (!["old-town", "rock-canyon"].includes(map)) return json({ error: "bad_map" }, 400, cors);
   const me = (url.searchParams.get("me") || "").slice(0, 40);
   const query = rankQuery(mode, map, difficulty, rules);
-  const top = await env.DB.prepare(query.sql + " SELECT id AS runId, pos, substr(player,1,4) AS tag, cleared, score, difficulty, stars, t, (player = ?) AS me, CASE WHEN replay THEN id ELSE NULL END AS replayId, played_at AS playedAt, received_at AS receivedAt FROM r ORDER BY pos, score DESC, id LIMIT 20").bind(...query.args, me).all();
+  const top = await env.DB.prepare(query.sql + " SELECT id AS runId, pos, substr(player,1,4) AS tag, (SELECT json_extract(runs.json, '$.name') FROM runs WHERE runs.id = r.id) AS name, cleared, score, difficulty, stars, t, (player = ?) AS me, CASE WHEN replay THEN id ELSE NULL END AS replayId, played_at AS playedAt, received_at AS receivedAt FROM r ORDER BY pos, score DESC, id LIMIT 20").bind(...query.args, me).all();
   const total = await env.DB.prepare(query.sql + " SELECT COUNT(*) AS n FROM r").bind(...query.args).first();
   const mine = me ? await env.DB.prepare(query.sql + " SELECT id AS runId, pos, cleared, score, difficulty, stars, t, played_at AS playedAt, received_at AS receivedAt FROM r WHERE player = ?").bind(...query.args, me).first() : null;
-  return json({ map, mode, difficulty: mode === 'clear' ? 'all' : difficulty, rules, total: total ? total.n : 0, me: mine ? publicTime(mine) : null, top: top.results.map(publicTime) }, 200, { ...cors, "cache-control": "no-store" });
+  return json({ map, mode, difficulty: mode === 'clear' ? 'all' : difficulty, rules, total: total ? total.n : 0, me: mine ? publicTime(mine) : null, top: top.results.map(row => publicTime({ ...row, name: playerName.normalize(row.name) || null })) }, 200, { ...cors, "cache-control": "no-store" });
 }
 
 async function publicGhost(env, cors, url, id) {
@@ -243,5 +246,5 @@ async function publicGhost(env, cors, url, id) {
   if (!row) return json({ error: "not_found" }, 404, cors);
   const ghost = replayFromRecord(JSON.parse(row.json));
   if (!ghost || ghost.map !== map) return json({ error: "unavailable" }, 404, cors);
-  return json({ tag: row.player.slice(0, 4), score: row.score, playedAt: publicTime(row).playedAt, ghost }, 200, { ...cors, "cache-control": "public, max-age=60" });
+  return json({ tag: row.player.slice(0, 4), name: playerName.normalize(JSON.parse(row.json).name) || null, score: row.score, playedAt: publicTime(row).playedAt, ghost }, 200, { ...cors, "cache-control": "public, max-age=60" });
 }

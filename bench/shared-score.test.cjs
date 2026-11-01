@@ -62,14 +62,16 @@ function policyFixture(practice = false) {
   const first=make('one','hard',17280);await post(first);
   const ghost={v:1,map:'old-town',mapVersion:'old-town-beams-20261025',samples:[[0,0,0,0,0,0,0,8,0],[120,1,0,0,0,0,0,8,0]]};
   const winner=make('one','easy',18400,{ghost});const receipt=await post(winner);
-  await post(make('two','normal',18040));
-  await post(make('three','hard',17880,{reason:'caught',t:110}));
+  await post(make('two','normal',18040,{name:'runner_2'}));
+  await post(make('three','hard',17880,{reason:'caught',t:110,name:'x<script>'}));
   const ranking=await get('/ranking?'+scope+'&me=one');
   assert.equal(ranking.total,3);assert.deepEqual(ranking.top.map(r=>r.score),[18400,18040,17880]);
   assert.equal(ranking.top[0].difficulty,'easy');assert.equal(ranking.top[0].runId,receipt.id);
   assert.ok(ranking.top.every(r=>r.stars===0));
   assert.equal(ranking.top[2].cleared,0,'uncleared runs compete on score');
   assert.equal(ranking.me.runId,receipt.id);
+  // Nicknames are shown only when they pass the shared rule (normalised); anything else is dropped by the Worker.
+  assert.deepEqual(ranking.top.map(r=>r.name),[null,'RUNNER_2',null],'valid nickname shown, invalid one dropped, none stays anonymous');
   const replay=await get('/ghosts/'+receipt.id+'?'+scope);
   assert.deepEqual(replay.ghost.samples,ghost.samples,'shared board opens the exact winning run');
   const lower=await fetcher('https://fixture/ghosts/'+first.clientRunId+'?'+scope);

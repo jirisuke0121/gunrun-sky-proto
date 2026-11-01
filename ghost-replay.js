@@ -155,7 +155,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
       await audio.prepare(data.ghost.detail?.shots || [], active.saved.volume);
       if (token !== fetchToken || !active) return;
       active.ghost = data.ghost; active.time = data.ghost.samples[0][0];
-      el('replayTitle').textContent = `${data.tag} のゴースト · ${data.score}点`;
+      el('replayTitle').textContent = `${data.name || data.tag} のゴースト · ${data.score}点`;
       el('replayDate').textContent = `記録 ${formatReplayTime(data.playedAt)}${data.playedAt ? '（日本時間）' : ''}`;
       el('replayNote').textContent = data.ghost.source === 'legacy-trail' ? '旧記録：1秒間隔のおおまかな軌跡です。発砲・敵の記録はありません。人間の動作は近似です。' : data.ghost.detail ? `移動・視点・発砲と近くの敵（最大6体）を再生します。人間の動作と敵の補間は近似です。${data.ghost.detail.shotsComplete ? '' : '発砲は一部のみ記録されています。'}` : '移動・視点を再生します。この記録には発砲・敵の情報がありません。人間の動作は近似です。';
       el('replayView').querySelector('[value="first"]').disabled = data.ghost.source === 'legacy-trail';

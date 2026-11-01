@@ -1,0 +1,31 @@
+/* First-visit guide: same palette as the home screen (home-focus.css). */
+#onboarding{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:12px;background:#070b10e6;color:#e8eef2}
+#onboarding[hidden]{display:none}
+.onb-card{box-sizing:border-box;width:min(640px,100%);max-height:calc(100dvh - 24px);overflow:auto;padding:22px 26px;border:1px solid #3a4756;border-top:3px solid #e8805a;background:#0f1822;display:flex;flex-direction:column;gap:14px}
+.onb-kicker{margin:0;font-size:11px;letter-spacing:.14em;color:#9fb0bd}
+.onb-card h2{margin:2px 0 4px;font-size:26px;color:#f4f0e8}
+.onb-lead{margin:0;font-size:14px;color:#c4d0d9}
+.onb-steps{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.onb-steps li{display:grid;grid-template-columns:96px 1fr;gap:10px;align-items:baseline;padding:8px 10px;background:#15212d;border-left:3px solid #5d7183;font-size:13px;line-height:1.5}
+.onb-steps b{color:#ffdfa0;font-size:14px}
+.onb-steps kbd{display:inline-block;padding:1px 6px;border:1px solid #657380;border-bottom-width:2px;border-radius:4px;background:#0d151d;font:700 11px/1.4 inherit;color:#f4f0e8}
+.onb-touch{display:none}html.touch .onb-pc{display:none}html.touch .onb-touch{display:inline}
+.onb-name{display:grid;gap:5px}.onb-name label{font-size:13px;font-weight:700;color:#f4f0e8}
+.onb-name input{box-sizing:border-box;width:100%;min-height:44px;padding:8px 12px;border:1px solid #657380;border-radius:6px;background:#0b1118;color:#fff;font-size:18px;letter-spacing:.06em}
+.onb-name input[aria-invalid=true]{border-color:#ff7a5c}
+.onb-error{min-height:1.2em;margin:0;font-size:12px;color:#ff9d84}.onb-name small{font-size:11px;color:#9fb0bd}
+#onboarding footer{display:grid;gap:8px}
+#onboarding button{min-height:44px;border-radius:6px;font-size:15px;font-weight:700;cursor:pointer}
+.onb-primary{border:1px solid #e8805a;background:#e8805a;color:#1b0f0a}.onb-primary:disabled{opacity:.55;cursor:default}
+.onb-secondary{border:1px solid #657380;background:transparent;color:#e0e6eb}
+.onb-link{border:0;background:transparent;color:#9fb0bd;font-size:13px;text-decoration:underline}
+#homeGuide{min-height:44px;padding:8px 20px;border:1px solid #657380;background:transparent;color:#e0e6eb;font-size:14px}
+body.onb-open{overflow:hidden}
+@media(max-height:520px){
+ #onboarding{padding:6px}.onb-card{padding:12px 16px;gap:8px;display:grid;grid-template-columns:1.25fr 1fr;grid-template-areas:"head head" "steps name" "steps foot";align-items:start}
+ .onb-card>header{grid-area:head}.onb-steps{grid-area:steps}.onb-name{grid-area:name}#onboarding footer{grid-area:foot}
+ .onb-card h2{font-size:20px;margin:0}.onb-kicker{display:none}.onb-lead{font-size:12px}
+ .onb-steps{gap:4px}.onb-steps li{grid-template-columns:74px 1fr;padding:4px 8px;font-size:11px;line-height:1.35}.onb-steps b{font-size:12px}
+ .onb-name small{display:none}.onb-name input{min-height:38px;font-size:16px}
+ #onboarding button{min-height:40px;font-size:14px}.onb-link{min-height:30px!important}
+}

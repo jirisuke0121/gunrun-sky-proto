@@ -11,7 +11,7 @@ export function movementOnly(value) {
 }
 const timeout = ms => typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function' ? {signal:AbortSignal.timeout(ms)} : {};
 export function resultOnly(a) {
-  const keys = ['v','clientRunId','player','at','build','channel','mapVersion','mapKey','map','kind','mission','challenge','reason','t','score','stars','lives','input','screen','_deliveryUncertain'];
+  const keys = ['v','clientRunId','player','at','build','channel','mapVersion','mapKey','map','kind','mission','challenge','reason','t','score','stars','lives','input','screen','name','_deliveryUncertain'];
   const result = Object.fromEntries(keys.filter(key => key in a).map(key => [key, a[key]]));
   result.ghost = null; result.recordDetail = 'result-only'; return result;
 }
@@ -120,6 +120,8 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => crypto
     let a;
     try { a = copy(value); } catch { a = copy(resultOnly(value)); }
     a.clientRunId ||= uuid(); a.player = player; a.mapKey = recordMap(a);
+    // Optional nickname chosen on the first-visit guide; the Worker validates it again.
+    try { const nick = storage.getItem('gunrun-name'); if (nick) a.name = nick; else delete a.name; } catch {}
     const existing = history.find(row => row.clientRunId === a.clientRunId);
     if (existing?.receiptId) return { id:existing.receiptId,clientRunId:a.clientRunId,ranking:existing.ranking };
     if (!existing) history.unshift({ clientRunId:a.clientRunId,at:a.at,map:a.mapKey,difficulty:a.challenge?.id || 'legacy',reason:a.reason,t:a.t,score:a.score?.total ?? null,state:'local',ranking:null });
