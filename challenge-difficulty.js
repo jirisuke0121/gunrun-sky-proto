@@ -175,6 +175,7 @@
       return '●'.repeat(Math.max(0, Math.min(maximum, life))) + '○'.repeat(Math.max(0, maximum - life));
     },
     spawnAllowed(point) {
+      if (window.skyIndoorAccess?.allows(point) === false) return false;
       const spacing = profile()?.spacing || 0;
       const far = p => Math.hypot(p.x - point.x, p.z - point.z, (p.y - point.y) * 1.5) >= spacing;
       return !game || !spacing || game.Jt.every(e => e.dead || e.remove ||
@@ -258,7 +259,7 @@
           '銃は押し返す道具にもなります。縁にいるゾンビを落としてみよう。',
           '高低差や隙間で距離を作ろう。引き離してもゾンビの追跡は続きます。'];
         const tip = Math.min(3, Math.floor(game.z.t / 30));
-        if (tip !== introTip) { introTip = tip; game.rn(tips[tip]); }
+        if (tip !== introTip) { introTip = tip; if (tip > 0) game.rn(tips[tip]); }
       }
       if (game.z.t < lastObservation) lastObservation = -1;
       if (!debug || game.z.t < lastObservation + .5) return;
