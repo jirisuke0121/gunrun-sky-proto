@@ -18,28 +18,63 @@
 .unity-challenge-score .hud-tr{top:105px;max-width:250px;line-height:1.6}
 #unityScorePause{padding:14px 18px;margin:10px 0 18px;background:#faf8f0;border-top:3px solid #d6232a;color:#252c31;text-shadow:none;font-variant-numeric:tabular-nums}
 #unityScorePause h3{margin:0 0 8px;font-size:20px}#unityScorePause p{margin:4px 0}#unityScorePause small{display:block;margin-top:8px;color:#5a6066}
-/* A result fits the game viewport; its actions stay visible while details scroll. */
+/* The total, all three contributions and their arithmetic are visible together. */
 .unity-challenge-score #ovOver{padding:12px;overflow:auto;background:#090f18e8;align-items:safe center;color:#f4f0e8}
-#unityScoreResult{width:100%;max-width:900px;margin:auto}
-#unityResultCard{position:relative;display:flex;flex-direction:column;box-sizing:border-box;width:100%;max-height:var(--result-height,calc(100svh - 24px));padding:24px 28px 20px;color:#f4f0e8;background:#101a25;border:1px solid #53616c;border-top:3px solid #e98a61;border-radius:8px;box-shadow:0 24px 80px #0008;font-variant-numeric:tabular-nums;text-shadow:none}
-#unityResultCard header{flex:none;border-bottom:1px solid #3a4855;padding-bottom:16px}
-.uc-result-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.uc-caption{font-size:13px;letter-spacing:.08em;color:#dce3e8}.uc-caption>span{font-size:10px;color:#96a7b5;letter-spacing:.16em}#unityResultDifficulty{font-size:12px;color:#edb58e}
-.uc-result-heading{display:flex;align-items:center;justify-content:space-between;gap:20px}#unityResultTitle{font-size:32px;margin:0;line-height:1.25;font-weight:800;letter-spacing:.04em}#unityEscapeRecord{font-size:14px;color:#aebfcb;line-height:1.5;margin:8px 0 0}#unityResultGoal{font-size:13px;color:#edb58e;margin:0;text-align:right;line-height:1.6}
+#unityScoreResult{width:100%;max-width:960px;margin:auto}
+#unityResultCard{position:relative;display:flex;flex-direction:column;box-sizing:border-box;width:100%;max-height:var(--result-height,calc(100svh - 24px));padding:22px 28px 18px;color:#f4f0e8;background:#101a25;border:1px solid #53616c;border-top:3px solid #e98a61;border-radius:8px;box-shadow:0 24px 80px #0008;font-variant-numeric:tabular-nums;text-shadow:none;line-height:1.4;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+#unityResultCard[hidden]{display:none}
+#unityResultCard header{flex:none;border-bottom:1px solid #3a4855;padding-bottom:14px}
+.uc-result-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.uc-caption{font-size:13px;letter-spacing:.08em;color:#dce3e8}.uc-caption>span{font-size:10px;color:#96a7b5;letter-spacing:.16em}
+#unityResultDifficulty{font-size:12px;color:#edb58e}
+.uc-result-heading{display:flex;align-items:center;justify-content:space-between;gap:20px}
+#unityResultTitle{font-size:30px;margin:0;line-height:1.25;font-weight:800;letter-spacing:.04em}
+#unityEscapeRecord{font-size:13px;color:#b9c8d3;line-height:1.5;margin:6px 0 0}
+#unityResultGoal{font-size:13px;color:#edb58e;margin:0;text-align:right;line-height:1.6}
 #unityResultCard[data-failed=true]{border-top-color:#8696a2}#unityResultCard[data-failed=true] #unityResultGoal{color:#b6c2cb}
-#unityResultContent{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:14px 28px;padding-top:20px;min-height:0;overflow:auto;overscroll-behavior:contain}
-.uc-points{display:flex;flex-direction:column;justify-content:center;padding:10px 24px 16px 4px;border-right:1px solid #3a4855;min-width:0}#unityResultBest{font-size:14px;color:#c7d1d8}#unityResultBest[data-best=true]{color:#ffbb8f}.uc-total{display:flex;gap:10px;align-items:baseline;margin:10px 0 7px;color:#fff0da;line-height:1}.uc-total>b{font-size:80px;font-weight:800;letter-spacing:-.04em}.uc-total>small{font-size:22px;color:#b6c5d0}.uc-total-label{font-size:13px;margin:0;color:#aebfcb}
-.uc-ledger{min-width:0}.uc-breakdown{display:grid;gap:0}.uc-breakdown>div{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:12px;padding:8px 0 12px;border-bottom:1px solid #3a4855}.uc-breakdown>div+div{padding-top:12px}.uc-breakdown img{width:27px;height:27px;object-fit:contain}.uc-breakdown>div>span{font-size:15px;color:#edf0ed}.uc-breakdown small{display:block;margin-top:3px;font-size:12px;color:#aebfcb}.uc-breakdown b{font-size:24px;color:#f4f0e8;white-space:nowrap}
-.uc-bonuses{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}.uc-bonuses>div{display:flex;align-items:center;justify-content:space-between;gap:6px}.uc-bonuses span{font-size:11px;color:#aebfcb}.uc-bonuses b{font-size:19px;color:#efb58e}.uc-score-help{margin:8px 0 0;font-size:11px;color:#9eafbd;line-height:1.5}
-.uc-math{grid-column:1/-1;border-top:1px solid #3a4855;margin:0}.uc-math>summary{cursor:pointer;padding:12px 0;font-size:12px;color:#c3ced7;min-height:20px;line-height:1.5}.uc-math>div{padding:0 12px 12px;background:#0b141e;border-radius:5px}.uc-math p{margin:0;padding-top:8px;font-size:12px;color:#bdcbd6;line-height:1.65}#unityRunMoves{font-size:11px;color:#8fa5b6}
-#unityResultActions{flex:none;display:grid;grid-template-columns:1.4fr 1fr auto;gap:10px;padding-top:14px;border-top:1px solid #3a4855;margin-top:4px}
+#unityResultContent{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.65fr);gap:12px 26px;padding-top:18px;min-height:0;overflow:auto;overscroll-behavior:contain}
+.uc-points{display:flex;flex-direction:column;justify-content:center;container-type:inline-size;min-width:0;padding:10px 20px 12px 0;border-right:1px solid #3a4855}
+.uc-total-label{font-size:16px;margin:0;color:#dce3e8;font-weight:700}
+.uc-total{display:flex;gap:8px;align-items:baseline;margin:10px 0;color:#fff0da;line-height:1;white-space:nowrap}
+.uc-total>b{font-size:clamp(28px,22cqi,80px);font-weight:800;letter-spacing:-.045em}
+#unityResultCard[data-long-score=true] .uc-total>b{font-size:clamp(22px,18cqi,64px)}
+.uc-total>small{font-size:clamp(13px,7cqi,22px);color:#b6c5d0}
+#unityResultBest{font-size:12px;color:#ffbb8f;margin-bottom:6px}#unityResultBest:empty{display:none}
+.uc-ledger{min-width:0}.uc-ledger-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.uc-ledger-heading h3{font-size:14px;margin:0;color:#dce3e8}.uc-ledger-heading>span{font-size:11px;color:#b9c8d3;white-space:nowrap}.uc-ledger-heading b{font-size:14px;margin-left:5px;color:#efb58e}
+.uc-breakdown{display:grid}.uc-breakdown>div{display:grid;grid-template-columns:26px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #344351}
+.uc-breakdown img{width:25px;height:25px;object-fit:contain;filter:brightness(0) invert(.9)}
+.uc-entry{font-size:13px;line-height:1.25}.uc-entry>div{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.uc-entry span{font-size:14px;font-weight:700;color:#edf0ed}
+.uc-entry small{font-size:11px;color:#b4c6d2}.uc-entry p{font-size:12px;line-height:1.5;color:#b4c6d2;margin:3px 0 0;overflow-wrap:anywhere}
+.uc-breakdown b{font-size:24px;color:#f4f0e8;white-space:nowrap}
+.uc-equation{font-size:13px;color:#fff0da;text-align:right;margin:9px 0 0;line-height:1.5}
+.uc-score-help{margin:10px 0 0;padding-bottom:0;font-size:11px;color:#b0c2cf;line-height:1.5}
+#unityResultActions{flex:none;display:grid;grid-template-columns:1.4fr 1fr auto;gap:10px;padding-top:12px;border-top:1px solid #3a4855;margin-top:4px}
 #unityResultActions button,#unityScoreDetails button{min-height:46px;cursor:pointer;font:inherit;border:1px solid #657380;border-radius:5px;padding:10px 16px;margin:0;background:transparent;color:#e6edf1;font-size:14px;text-shadow:none}
 #unityResultActions #unityRetry{background:#e98258;color:#15191d;border-color:#ffb18b;font-weight:800}#unityResultActions #unityMore{font-size:12px;border-color:transparent;color:#b7c7d2;padding-inline:8px}
-#unityResultActions button:hover,#unityScoreDetails button:hover{filter:brightness(1.15);background-color:#263542}#unityResultActions #unityRetry:hover{background:#f39b74}#unityResultActions button:disabled{opacity:.5;cursor:wait}#unityResultActions button:focus-visible,#unityScoreDetails button:focus-visible,.uc-math>summary:focus-visible{outline:3px solid #fff1c4;outline-offset:2px}
+#unityResultActions button:hover,#unityScoreDetails button:hover{filter:brightness(1.15);background-color:#263542}#unityResultActions #unityRetry:hover{background:#f39b74}
+#unityResultActions button:disabled{opacity:.5;cursor:wait}#unityResultActions button:focus-visible,#unityScoreDetails button:focus-visible{outline:3px solid #fff1c4;outline-offset:2px}
 #unityScoreDetails{position:absolute;inset:3%;overflow:auto;z-index:2;background:#101a25fa;padding:24px;color:#edf7fc;text-shadow:none;border:1px solid #657380;border-radius:8px}#unityScoreDetails[hidden]{display:none}#unityScoreDetails h2{margin-top:0}
-#unityResultCard[data-compact=true]{padding:12px 20px 10px}#unityResultCard[data-compact=true] header{padding-bottom:10px}#unityResultCard[data-compact=true] .uc-result-top{margin-bottom:6px}#unityResultCard[data-compact=true] #unityResultTitle{font-size:25px}#unityResultCard[data-compact=true] #unityEscapeRecord{margin-top:4px;font-size:12px}#unityResultCard[data-compact=true] #unityResultGoal{font-size:12px}
-#unityResultCard[data-compact=true] #unityResultContent{padding-top:10px;gap:6px 22px}#unityResultCard[data-compact=true] .uc-points{padding-block:6px}#unityResultCard[data-compact=true] .uc-total{margin:7px 0}#unityResultCard[data-compact=true] .uc-total>b{font-size:62px}#unityResultCard[data-compact=true] .uc-total>small{font-size:18px}
-#unityResultCard[data-compact=true] .uc-breakdown>div{padding-block:5px;gap:10px;grid-template-columns:24px 1fr auto}#unityResultCard[data-compact=true] .uc-breakdown img{width:22px;height:22px}#unityResultCard[data-compact=true] .uc-breakdown>div>span{font-size:13px}#unityResultCard[data-compact=true] .uc-breakdown small{display:inline;margin-left:8px;font-size:12px}#unityResultCard[data-compact=true] .uc-breakdown b{font-size:20px}
-#unityResultCard[data-compact=true] .uc-bonuses{gap:12px;margin-top:8px}#unityResultCard[data-compact=true] .uc-bonuses b{font-size:17px}#unityResultCard[data-compact=true] .uc-score-help{margin-top:5px}#unityResultCard[data-compact=true] .uc-math>summary{padding:7px 0}#unityResultCard[data-compact=true] #unityResultActions{padding-top:8px;gap:8px}#unityResultCard[data-compact=true] #unityResultActions button{min-height:44px;padding:8px 10px;font-size:13px}
+#unityRunMoves{font-size:12px;color:#b0c2cf;line-height:1.6}
+#unityResultCard[data-compact=true]{padding:10px 18px 8px}
+#unityResultCard[data-compact=true] header{padding-bottom:8px}#unityResultCard[data-compact=true] .uc-result-top{margin-bottom:5px}
+#unityResultCard[data-compact=true] #unityResultTitle{font-size:24px}#unityResultCard[data-compact=true] #unityEscapeRecord{display:none}#unityResultCard[data-compact=true] #unityResultGoal{font-size:12px}
+#unityResultCard[data-compact=true] #unityResultContent{padding-top:9px;gap:7px 20px}
+#unityResultCard[data-compact=true] .uc-points{padding:6px 16px 6px 0}#unityResultCard[data-compact=true] .uc-total-label{font-size:14px}
+#unityResultCard[data-compact=true] .uc-total{margin:8px 0}
+#unityResultCard[data-compact=true] .uc-breakdown>div{padding:4px 0;gap:8px;grid-template-columns:22px minmax(0,1fr) auto}
+#unityResultCard[data-compact=true] .uc-breakdown img{width:21px;height:21px}#unityResultCard[data-compact=true] .uc-entry span{font-size:13px}
+#unityResultCard[data-compact=true] .uc-entry p{font-size:11px;margin-top:2px}#unityResultCard[data-compact=true] .uc-breakdown b{font-size:20px}
+#unityResultCard[data-compact=true] .uc-equation{margin-top:6px;font-size:12px}#unityResultCard[data-compact=true] .uc-score-help{padding-bottom:4px;font-size:10px}
+#unityResultCard[data-compact=true] #unityResultActions{padding-top:8px;gap:8px}#unityResultCard[data-compact=true] #unityResultActions button{min-height:44px;padding:8px 10px;font-size:13px}
+#unityResultCard[data-tiny=true]{padding-inline:14px}#unityResultCard[data-tiny=true] .uc-result-top{display:none}
+#unityResultCard[data-tiny=true] #unityResultTitle{font-size:22px}#unityResultCard[data-tiny=true] #unityResultContent{padding-top:6px;column-gap:14px;grid-template-columns:minmax(0,.75fr) minmax(0,1.75fr)}
+#unityResultCard[data-tiny=true] .uc-points{padding:2px 12px 2px 0}#unityResultCard[data-tiny=true] .uc-total{gap:4px;margin-block:6px}#unityResultCard[data-tiny=true] .uc-total>b{font-size:clamp(22px,18cqi,44px)}#unityResultCard[data-tiny=true] .uc-score-help{margin-top:6px}#unityResultCard[data-tiny=true] #unityResultBest{margin-bottom:2px}#unityResultCard[data-tiny=true] .uc-breakdown>div{grid-template-columns:minmax(0,1fr) auto}
+#unityResultCard[data-tiny=true] .uc-breakdown img,#unityResultCard[data-tiny=true] .uc-damage-icon{display:none}
+#unityResultCard[data-tiny=true] .uc-breakdown>div{padding-block:3px}#unityResultCard[data-tiny=true] .uc-equation{font-size:11px;line-height:1.3;margin-top:4px}
+#unityResultCard[data-tiny=true] .uc-ledger-heading h3{font-size:12px}#unityResultCard[data-tiny=true] .uc-breakdown b{font-size:18px}
+#unityResultCard #runRecordStatus{flex:none;margin:4px 0 2px;color:#aebfcb;font-size:11px;line-height:1.5}
+.unity-challenge-score #ovOver:has(#unityResultCard[data-tiny=true]){padding:4px}
 @media(prefers-reduced-motion:reduce){#unityResultCard{transform:none!important}}
 
 .unity-challenge-score #hint{top:118px}
@@ -55,14 +90,18 @@
 .rank-note,.rank-scope{font-size:11px;color:#a7c0cd;margin:8px 0}.rank-columns{display:flex;justify-content:space-between;border-bottom:1px solid #88a6b73d;padding-bottom:6px;font-size:10px;color:#a7c0cd}
 .rankbox ol{padding:0;margin:0;list-style:none;max-height:370px;overflow:auto}.rankbox li{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:3px 8px;padding:10px 0;border-bottom:1px solid #88a6b726}.rankbox li.me{background:#9de4df0a}
 .rank-clear{color:#a0e1de;grid-column:2;grid-row:2}.rank-score{grid-column:3;grid-row:1;white-space:nowrap}.rank-stars{grid-column:3;grid-row:2;justify-self:end;color:#ffda7d;letter-spacing:2px}.rank-time{grid-column:2/-1;font-size:10px;color:#91aebf}.rankbox .ghost-button{grid-column:2/-1;justify-self:start;font-size:11px;padding:5px 10px;margin-top:4px}.rank-mine{padding-top:10px;line-height:2}.rank-empty{color:#bbcfda;font-size:12px}
-.intro-result #unityMore,.intro-result .uc-points,.intro-result .uc-ledger,.intro-result .uc-math{display:none!important}
-
-
+.intro-result #unityMore,.intro-result .uc-points,.intro-result .uc-ledger,.intro-result .uc-score-help{display:none!important}
 .intro-result #unityResultActions{grid-template-columns:1.3fr 1fr 1fr}.intro-result #unityResultGoal{max-width:300px}
-#unityResultCard #runRecordStatus{flex:none;margin:4px 0 2px;color:#aebfcb;font-size:11px;line-height:1.5}
-.uc-breakdown img{filter:brightness(0) invert(.9)}
-#unityResultCard[data-compact=true] #unityEscapeRecord{display:none}
-#unityResultCard[data-tiny=true] .uc-score-help{display:none}#unityResultCard[data-tiny=true] .uc-result-top{margin-bottom:4px}#unityResultCard[data-tiny=true] #unityResultTitle{font-size:22px}#unityResultCard[data-tiny=true] header{padding-bottom:7px}#unityResultCard[data-tiny=true] #unityResultContent{padding-top:7px}#unityResultCard[data-tiny=true] #unityResultActions{padding-top:6px;margin-top:2px}#unityResultCard[data-tiny=true] .uc-total>b{font-size:54px}
-#unityResultCard[data-compact=true]{padding-block:10px 8px}#unityResultCard[data-compact=true] header{padding-bottom:8px}#unityResultCard[data-compact=true] #unityResultContent{padding-top:8px;row-gap:4px}
-#unityResultCard[data-tiny=true] #unityResultContent{grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr)}#unityResultCard[data-tiny=true] .uc-math>summary{padding-block:3px;min-height:18px}#unityResultCard[data-tiny=true] .uc-total{gap:6px}#unityResultCard[data-tiny=true] .uc-total>b{font-size:52px}
-.unity-challenge-score #ovOver:has(#unityResultCard[data-tiny=true]){padding:4px}#unityResultCard[data-tiny=true] header{padding-bottom:6px}#unityResultCard[data-tiny=true] #unityResultContent{padding-top:6px}
+
+/* Threat feedback stays above the action, with no shake or opaque screen flash. */
+#threatScoreHud{position:absolute;top:48px;left:50%;transform:translateX(-50%);display:grid;grid-template-columns:1fr auto;gap:2px 14px;padding:5px 12px;border-left:2px solid #85dfdb;background:#071822aa;color:#c0e6ec;font-size:12px;pointer-events:none;min-width:190px;font-variant-numeric:tabular-nums}
+#threatScoreHud strong{color:#9de4df}#threatScoreHud small{grid-column:1/-1;color:#b2c4cf;font-size:10px}
+#threatHit{position:absolute;left:calc(50% + 22px);top:calc(50% - 20px);font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000;pointer-events:none}
+#threatFeedback{position:absolute;top:28%;left:50%;transform:translateX(-50%);font-size:clamp(14px,2vw,22px);font-weight:800;letter-spacing:.08em;color:#ffdd9c;text-shadow:0 2px 8px #000;pointer-events:none;white-space:nowrap}
+#threatFeedback[data-kind=escape]{color:#a7f7ee}
+.uc-breakdown .uc-damage-icon{font-size:28px;line-height:1;text-align:center;color:#dce3e8}
+#hud:has(#threatFeedback:not([hidden])) #startGuide{visibility:hidden}
+#threatScoreHud[hidden],#threatHit[hidden],#threatFeedback[hidden]{display:none}
+body:not(.unity-challenge-score) #threatScoreHud{display:none}
+.unity-challenge-score #hud[hidden] #threatScoreHud{display:none}
+@media(max-height:500px){#threatScoreHud{font-size:10px;padding:4px 8px}#threatScoreHud small{font-size:9px}#threatFeedback{top:34%;font-size:14px}}

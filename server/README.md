@@ -1,5 +1,9 @@
 # プレイ記録サーバー（Cloudflare Workers + D1）
 
+## 2026-11-01：追跡脅威度の得点（v10・未公開）
+
+逃走中の脅威度と継続時間を主得点にし、ダメージ・撃破を補助得点に変更。技・ESCAPED自体の加点はありません。新ルール `corridor-threat-score-v10` で旧記録と分離。Worker更新が先に必要です。[仕様と確認範囲](../docs/THREAT_SCORE_2026-11-01.md)。以下の得点式は過去の仕様です。
+
 ## 2026-11-01：全難易度共通スコア（公開前）
 
 - 新ルール `corridor-shared-score-v9`。`GET /ranking?map=old-town&rules=corridor-shared-score-v9&mode=score&difficulty=all` はEasy/Normal/Hard全体の最高スコアを端末ごとに1件返す。難易度やクリア状態で順位を優先せず、得点順で比較する。各行には実際に挑戦した難易度を残す。星は0。`/ghosts/<id>` も同じクエリで、その順位の記録だけを返す。

@@ -94,7 +94,12 @@ const out = 'outputs/indoor-entry'; fs.mkdirSync(out, { recursive: true });
           await page.waitForFunction(() => __skyInternals.inputState.y < -.99);
         } else await page.keyboard.down('w');
         const crossed = await page.evaluate(() => { indoorQA.tick(1.4); return { position: indoorQA.g.P.pos.toArray(), rooms: indoorQA.access.snapshot(), phase: indoorQA.doors[0].phase }; });
-        if (touch) await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); else await page.keyboard.up('w');
+        if (touch) {
+          await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+          // A CDP drag must be released in the page before switching to normal taps.
+          await page.waitForFunction(() => !__skyInternals.inputState.on && __skyInternals.inputState.id === null);
+          await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        } else await page.keyboard.up('w');
         indoor.crossed = crossed;
         assert.ok(crossed.rooms[2].entered, JSON.stringify(crossed));
         const after = await page.evaluate(() => {
@@ -113,7 +118,12 @@ const out = 'outputs/indoor-entry'; fs.mkdirSync(out, { recursive: true });
         assert.equal(after.independent, true); assert.equal(after.warehouseUnlocked, true); assert.equal(after.pursuitEntered, true);
         indoor.after = after;
         if (touch) await page.locator('#bSettings').tap(); else await page.keyboard.press('p');
-        await page.waitForFunction(() => __game.mode === 'pause');
+        await page.waitForFunction(() => __game.mode === 'pause').catch(async error => {
+          await page.screenshot({ path: `${out}/pause-timeout-${touch ? 'touch' : 'desktop'}.png` });
+          const state = await page.evaluate(() => ({ mode: __game.mode, time: __game.GAME.t, life: __game.P.life,
+            input: __skyInternals.inputState, settings: document.body.dataset.skySettings }));
+          console.error('Pause timeout state:', JSON.stringify(state)); throw error;
+        });
         if (touch) await page.locator('#bRestart').tap(); else await page.locator('#bRestart').click();
         const retry = await page.evaluate(() => ({ mode: __game.mode, rooms: __game.INDOOR_ACCESS.snapshot().map(r => r.entered), doors: __game.DOORS.map(d => d.hp), hint: document.getElementById('hint').classList.contains('on') }));
         assert.equal(retry.mode, 'play'); assert.ok(retry.rooms.every(entered => !entered)); assert.ok(retry.doors.every(hp => hp === 5)); assert.equal(retry.hint, false);

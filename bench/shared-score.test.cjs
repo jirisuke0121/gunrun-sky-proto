@@ -43,11 +43,11 @@ function policyFixture(practice = false) {
   f.get('bReset').click();assert.equal(f.saved().jumpVel,7.2);
   const practice=policyFixture(true);assert.equal(practice.U.jumpVel,10);assert.equal(practice.get('s_jumpVel').disabled,false);
 
-  const scoreEnv={window:{},document:{},Math};
+  const scoreEnv={window:{skyThreatScore:require('../threat-score.js')},document:{},Math};
   vm.runInNewContext(fs.readFileSync('challenge-score.js','utf8'),scoreEnv);
   const evaluate=scoreEnv.window.skyChallengeScore.evaluate;
-  assert.deepEqual([0,1,2].map(i=>evaluate(120,0,i).total),[360,396,432]);
-  assert.deepEqual([0,1,2].map(i=>evaluate(120,10,i).total),[420,462,504]);
+  assert.deepEqual([0,1,2].map(i=>evaluate(120,0,i,{pressureSeconds:3}).total),[360,396,432]);
+  assert.deepEqual([0,1,2].map(i=>evaluate(120,1,i,{pressureSeconds:3,damageUnits:10}).total),[480,528,576]);
 
   const {default:worker}=await import('../server/worker.js');
   const {createRunRecords,resultOnly}=await import('../run-records.js');
@@ -57,7 +57,7 @@ function policyFixture(practice = false) {
   const get=async path=>(await fetcher('https://fixture'+path)).json();
   const map='old-town',scope=`map=${map}&rules=${rules.version}&mode=score&difficulty=all`;
   const make=(player,id,score,extra={})=>({clientRunId:crypto.randomUUID(),player,at:new Date().toISOString(),t:120,reason:'time',kind:'map',channel:'production',build:'shared-score-fixture',mapKey:map,
-    challenge:{id,version:rules.version,rankingScope:'all',fixedSettings:{...rules.settings}},score:{total:score},stars:3,...extra});
+    challenge:{id,version:rules.version,rankingScope:'all',fixedSettings:{...rules.settings}},score:evaluate(extra.t ?? 120,0,['easy','normal','hard'].indexOf(id),{pressureSeconds:score/(120*(1+['easy','normal','hard'].indexOf(id)*.1))}),stars:3,...extra});
   const post=async a=>{const r=await fetcher('https://fixture/runs',{method:'POST',body:JSON.stringify(a)});assert.equal(r.status,200);return r.json();};
   const first=make('one','hard',432);await post(first);
   const ghost={v:1,map:'old-town',mapVersion:'old-town-beams-20261025',samples:[[0,0,0,0,0,0,0,8,0],[120,1,0,0,0,0,0,8,0]]};
@@ -89,6 +89,18 @@ function policyFixture(practice = false) {
   assert.equal((await get('/ranking?'+scope)).top[0].score,480);
   assert.equal((await get('/ranking?map=old-town&rules=corridor-parkour-v8&difficulty=normal')).top[0].score,9999);
 
+  const forged=make('forged','normal',9999);forged.score.total++;
+  assert.equal((await post(forged)).receipt.ranked,false,'inconsistent score arithmetic is saved outside ranking');
+  const overkill=make('bad-kill-count','normal',9999);overkill.score.kills=99;
+  assert.equal((await post(overkill)).receipt.ranked,false,'kill count must match run stats');
+  const rounded=make('rounded','hard',500,{t:119.9,mapKey:'rock-canyon'});
+  rounded.score=evaluate(119.94,0,2,{pressureSeconds:359.8});
+  assert.equal((await post(rounded)).receipt.ranked,true,'record clock rounded to 0.1s does not discard a valid result');
+  const v9=make('previous-shared','normal',462);v9.challenge.version='corridor-shared-score-v9';v9.score={total:462};
+  assert.equal((await post(v9)).receipt.ranked,true,'old clients keep their previous shared ranking');
+  const previous=await get('/ranking?map=old-town&rules=corridor-shared-score-v9&mode=score&difficulty=all');
+  assert.equal(previous.top[0].score,462);assert.equal(previous.top[0].stars,0);
+
   // Both movement-only fallback and a real recorder receipt keep the ranking scope/contract.
   assert.deepEqual(resultOnly(winner).challenge,winner.challenge);
   const storage=new Map();let requestedAll=false;
@@ -99,5 +111,5 @@ function policyFixture(practice = false) {
   await records.submit(make('ignored','normal',9999,{settings:{jumpVel:11}}));
   assert.equal(records.history[0].state,'saved');assert.equal(records.history[0].ranking,'excluded');assert.equal(records.pending,0);
   db.close();
-  console.log('PASS fixed settings/custom preservation, practice/input preferences, Unity multipliers, shared per-player score order, no stars, altered-condition exclusion, retry, old records and map isolation');
+  console.log('PASS fixed settings/custom preservation, practice/input preferences, threat and combat multipliers, shared per-player score order, no stars, altered-condition exclusion, retry, old records and map isolation');
 })().catch(e=>{console.error(e);process.exitCode=1;});
