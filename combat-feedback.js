@@ -91,20 +91,21 @@
       } else { presented = arrived = totalDamage; medals = Math.floor(arrived / 10); fullAt = -Infinity; stack.hidden = true; }
       lastPaint = -Infinity;
     }
+    const layout = () => root.classList.toggle('cf-compact', root.clientHeight <= 500);
     function setActive(active) {
       active = !!active && !document.hidden;
       if (visible === active) return;
       if (visible && !active) clear(false);
-      visible = active; root.hidden = !active;
+      visible = active; root.hidden = !active; if (active) layout();
     }
     function reset() { clear(true); generation++; installAudio(); setActive(isPlaying()); }
     function originFor(pos) {
-      let x = innerWidth / 2 + 40, y = innerHeight / 2 - 16;
+      let x = root.clientWidth / 2 + 40, y = root.clientHeight / 2 - 16;
       if (pos && game.Geom?.Vector3) {
         const p = new game.Geom.Vector3(pos.x, pos.y + 1.1, pos.z).project(game.Se);
-        if (p.z > -1 && p.z < 1 && Math.abs(p.x) < .95 && Math.abs(p.y) < .9) { x = (p.x + 1) * innerWidth / 2 + 20; y = (1 - p.y) * innerHeight / 2 - 20; }
+        if (p.z > -1 && p.z < 1 && Math.abs(p.x) < .95 && Math.abs(p.y) < .9) { x = (p.x + 1) * root.clientWidth / 2 + 20; y = (1 - p.y) * root.clientHeight / 2 - 20; }
       }
-      return { x: Math.max(80, Math.min(innerWidth - 100, x)), y: Math.max(110, Math.min(innerHeight - 110, y)) };
+      return { x: Math.max(80, Math.min(root.clientWidth - 100, x)), y: Math.max(110, Math.min(root.clientHeight - 110, y)) };
     }
     function damage(amount, points, pos) {
       if (!visible || !isPlaying() || !(amount > 0)) return;
@@ -124,7 +125,7 @@
       f.origin = { x: p.x / p.damage, y: p.y / p.damage };
       stack.hidden = false;
       const rect = stack.getBoundingClientRect();
-      f.destination = { x: innerWidth / 2, y: parseFloat(getComputedStyle(root).getPropertyValue('--cf-stack-top')) + 25 };
+      f.destination = { x: root.clientWidth / 2, y: parseFloat(getComputedStyle(root).getPropertyValue('--cf-stack-top')) + 25 };
       if (rect.width && !stack.hidden) f.destination = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
       f.control = { x: (f.origin.x + f.destination.x) / 2 + 55, y: Math.min(f.origin.y, f.destination.y) - 35 };
       f.node.querySelector('b').textContent = '+' + format(f.damage); f.node.querySelector('em').textContent = f.points ? '+' + f.points + ' pt' : '';
@@ -193,7 +194,7 @@
       if (!toast.hidden) paintEvent(at);
     }
     document.addEventListener('visibilitychange', () => { if (document.hidden) { setActive(false); } });
-    window.addEventListener('resize', () => clear(false));
+    window.addEventListener('resize', () => { clear(false); requestAnimationFrame(layout); });
     return { reset, setActive, step, damage, kill: points => event(false, points), escaped: () => event(true),
       snapshot: () => ({ ...counts, activeFlights: flights.filter(f => f.active).length, arrivedDamage: arrived, presentedDamage: presented,
         totalDamage, milestones: medals, pendingDamage: pending?.damage || 0, sounds: history.map(e => ({ ...e })), activeVoices: voices.size,

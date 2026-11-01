@@ -1,7 +1,7 @@
 import { recordMap, replayFromRecord, validateGhost } from '../replay-data.js';
 import rankedRules from '../ranked-rules.js';
-import threatScore from '../threat-score.js';
-const sharedRules = rules => ['corridor-shared-score-v9', rankedRules.version].includes(rules);
+import survivalScore from '../survival-score.js';
+const sharedRules = rules => ['corridor-shared-score-v9', 'corridor-threat-score-v10', rankedRules.version].includes(rules);
 import { receiveTelemetry, telemetryOverview } from './telemetry.js';
 // GunRun 試作 — プレイ記録の受け口（Cloudflare Workers + D1）
 //   POST /runs            ゲームが1プレイ分のJSONを送る（誰でも）
@@ -41,7 +41,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-01-threat-score-v1", recordProtocol: 2, replayDetail: 1, rankedRules: rankedRules.version }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-01-time-score-v2", recordProtocol: 2, replayDetail: 1, rankedRules: rankedRules.version }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
@@ -50,16 +50,27 @@ export default {
 };
 
 // Arithmetic consistency, not a claim of server-authoritative game simulation.
-function validThreatScore(record) {
+function validRankedScore(record) {
   const b = record.score;
-  if (b?.scoring !== 'threat-survival-v1' || !Number.isFinite(b.pressureSeconds) ||
+  const legacyThreat = record.challenge.version === 'corridor-threat-score-v10';
+  if (b?.scoring !== (legacyThreat ? 'threat-survival-v1' : 'time-survival-v1') ||
+      (legacyThreat && (!Number.isFinite(b.pressureSeconds) || b.pressureSeconds < 0 || b.pressureSeconds > b.elapsed * 3 + 1e-7)) ||
       !Number.isFinite(b.elapsed) || Math.abs(b.elapsed - record.t) > .10001 ||
-      b.elapsed < 0 || b.elapsed > 120 || b.pressureSeconds < 0 || b.pressureSeconds > b.elapsed * 3 + 1e-7 ||
+      b.elapsed < 0 || b.elapsed > 120 ||
       !Number.isFinite(b.damageUnits) || b.damageUnits < 0 ||
       !Number.isInteger(b.kills) || b.kills < 0 || b.kills !== (record.stats?.kills || 0)) return false;
   const difficulty = ['easy', 'normal', 'hard'].indexOf(record.challenge.id);
-  const expected = threatScore.evaluate(b.elapsed, b.kills, difficulty, b);
-  return ['survival', 'damage', 'kill', 'total'].every(key => b[key] === expected[key]);
+  const factor = 1 + difficulty * .1;
+  // Old cached clients retain their own board during the release transition.
+  // These legacy points never participate in the v11 board.
+  const expected = legacyThreat ? {
+    difficulty: factor,
+    survival: Math.floor(b.pressureSeconds * 120 * factor + 1e-7),
+    damage: Math.floor(b.damageUnits * 2 * factor + 1e-7),
+    kill: Math.floor(b.kills * 100 * factor + 1e-7),
+  } : survivalScore.evaluate(b.elapsed, b.kills, difficulty, b);
+  if (legacyThreat) expected.total = expected.survival + expected.damage + expected.kill;
+  return ['difficulty', 'survival', 'damage', 'kill', 'total'].every(key => b[key] === expected[key]);
 }
 
 async function receive(req, env, cors, origin, allowed) {
@@ -73,7 +84,7 @@ async function receive(req, env, cors, origin, allowed) {
   // Keep the result even when it cannot participate in the fixed competition.
   // Eligibility is server-owned; a client-supplied flag is never trusted.
   if (sharedRules(a.challenge?.version) && a.challenge.id !== 'legacy') {
-    a.rankingEligible = !!rankedRules.eligible(a) && (a.challenge.version !== rankedRules.version || validThreatScore(a));
+    a.rankingEligible = !!rankedRules.eligible(a) && (a.challenge.version === 'corridor-shared-score-v9' || validRankedScore(a));
     a.stars = 0;
   }
   a.mapKey = recordMap(a);
@@ -156,14 +167,14 @@ function rankCte(clear, three = false, shared = false) { return `
 WITH s AS (
   SELECT id, player, score, t, played_at, received_at, (reason = 'time') AS cleared,
          COALESCE(json_extract(json, '$.challenge.id'), 'legacy') AS difficulty,
-         CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-shared-score-v9', '${rankedRules.version}') THEN 0 WHEN reason != 'time' THEN 0 WHEN stars > 0 THEN MIN(3, CAST(stars AS INTEGER)) ELSE
+         CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-shared-score-v9', 'corridor-threat-score-v10', '${rankedRules.version}') THEN 0 WHEN reason != 'time' THEN 0 WHEN stars > 0 THEN MIN(3, CAST(stars AS INTEGER)) ELSE
            1 + (score >= COALESCE(json_extract(json, '$.settings.star2'), 430)) + (score >= COALESCE(json_extract(json, '$.settings.star3'), 470)) END AS stars,
          (COALESCE(json_array_length(json, '$.ghost.samples'),0) >= 2 OR COALESCE(json_array_length(json, '$.trail'),0) >= 2) AS replay,
-         ${clear ? `CASE json_extract(json, '$.challenge.id') WHEN 'easy' THEN 0 WHEN 'normal' THEN 1 WHEN 'hard' THEN 2 WHEN 'expert' THEN 3 WHEN 'master' THEN 4 WHEN 'ultra' THEN 5 END` : `(CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6', 'corridor-three-v7', 'corridor-parkour-v8', 'corridor-shared-score-v9', '${rankedRules.version}') AND json_extract(json, '$.challenge.id') != 'legacy' THEN 0 WHEN reason = 'time' THEN 1000000 ELSE 0 END) + score`} AS k
+         ${clear ? `CASE json_extract(json, '$.challenge.id') WHEN 'easy' THEN 0 WHEN 'normal' THEN 1 WHEN 'hard' THEN 2 WHEN 'expert' THEN 3 WHEN 'master' THEN 4 WHEN 'ultra' THEN 5 END` : `(CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6', 'corridor-three-v7', 'corridor-parkour-v8', 'corridor-shared-score-v9', 'corridor-threat-score-v10', '${rankedRules.version}') AND json_extract(json, '$.challenge.id') != 'legacy' THEN 0 WHEN reason = 'time' THEN 1000000 ELSE 0 END) + score`} AS k
   FROM runs
   WHERE reason IN ('time','caught','fell') AND score IS NOT NULL AND (build IS NULL OR build NOT LIKE '%-dev')
     AND COALESCE(json_extract(json, '$.channel'), 'production') != 'dev'
-    AND (COALESCE(json_extract(json, '$.challenge.version'), '') NOT IN ('corridor-shared-score-v9', '${rankedRules.version}')
+    AND (COALESCE(json_extract(json, '$.challenge.version'), '') NOT IN ('corridor-shared-score-v9', 'corridor-threat-score-v10', '${rankedRules.version}')
          OR json_extract(json, '$.challenge.id') = 'legacy' OR json_extract(json, '$.rankingEligible') = 1)
     AND COALESCE(json_extract(json, '$.mapKey'), CASE WHEN json_extract(json, '$.map.id') = 'rock_canyon_v1' OR json_extract(json, '$.mapVersion') = 'rock-canyon-v1'
               THEN 'rock-canyon' ELSE 'old-town' END) = ?
@@ -178,7 +189,7 @@ const RANK_CTE = rankCte(false), CLEAR_RANK_CTE = rankCte(true), THREE_CLEAR_RAN
 
 function rankQuery(mode, map, difficulty, rules) {
   if (mode === 'score' && sharedRules(rules) && difficulty === 'all') return {sql: SHARED_SCORE_RANK_CTE, args: [map, rules]};
-  return mode === 'clear' ? { sql: ['corridor-three-v7', 'corridor-parkour-v8', 'corridor-shared-score-v9', rankedRules.version].includes(rules) ? THREE_CLEAR_RANK_CTE : CLEAR_RANK_CTE, args: [map, rules] }
+  return mode === 'clear' ? { sql: ['corridor-three-v7', 'corridor-parkour-v8', 'corridor-shared-score-v9', 'corridor-threat-score-v10', rankedRules.version].includes(rules) ? THREE_CLEAR_RANK_CTE : CLEAR_RANK_CTE, args: [map, rules] }
     : { sql: RANK_CTE, args: [map, difficulty, difficulty, rules] };
 }
 
@@ -194,7 +205,7 @@ function publicTime(row) {
 }
 
 const DIFFICULTIES = ['easy', 'normal', 'hard', 'expert', 'master', 'ultra', 'legacy'];
-const RULES = ['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6', 'corridor-three-v7', 'corridor-parkour-v8', 'corridor-shared-score-v9', rankedRules.version];
+const RULES = ['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6', 'corridor-three-v7', 'corridor-parkour-v8', 'corridor-shared-score-v9', 'corridor-threat-score-v10', rankedRules.version];
 const validDifficulty = (rules, difficulty) => (sharedRules(rules) ? ['all', 'easy', 'normal', 'hard', 'legacy'] : ['corridor-three-v7', 'corridor-parkour-v8'].includes(rules) ? ['easy', 'normal', 'hard', 'legacy'] : DIFFICULTIES).includes(difficulty);
 
 async function ranking(env, cors, url) {

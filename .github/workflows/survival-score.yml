@@ -1,7 +1,7 @@
-name: Threat survival scoring
+name: Time survival scoring
 on:
   pull_request:
-    paths: ['threat-score.js', 'challenge-score.*', 'combat-feedback.*', 'assets/combat-feedback/**', 'start-readiness.js', 'i18n*.js', 'ranked-rules.js', 'server/worker.js', 'index.html', 'canyon.html', 'bench/threat-score*', 'bench/shared-score*', '.github/workflows/threat-score.yml']
+    paths: ['survival-score.js', 'challenge-score.*', 'combat-feedback.*', 'assets/combat-feedback/**', 'start-readiness.js', 'bench/combat-feedback*', 'i18n*.js', 'ranked-rules.js', 'server/worker.js', 'index.html', 'canyon.html', 'bench/survival-score*', 'bench/shared-score*', '.github/workflows/survival-score.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: '24'}
       - run: |
-          node bench/threat-score.test.cjs
+          node bench/survival-score.test.cjs
           node bench/shared-score.test.cjs
           node bench/record-integrity.test.cjs
           node bench/player-skills.test.cjs
@@ -35,17 +35,19 @@ jobs:
           else
             npx playwright install --with-deps chromium
           fi
-      - name: Native terrain, score feedback, audio, languages and results
+      - name: Native clock, damage, pause, languages and results
         run: |
-          node bench/threat-score-browser.cjs
-          node bench/threat-score-wait-browser.cjs
+          node bench/survival-score-browser.cjs
+          node bench/combat-feedback-browser.cjs
+          node bench/survival-score-wait-browser.cjs
           node bench/start-readiness-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: threat-score-evidence
+          name: survival-score-evidence
           path: |
-            browser-evidence/threat-score/
-            browser-evidence/threat-wait/
+            browser-evidence/survival-score/
+            browser-evidence/survival-wait/
+            browser-evidence/combat-feedback/
             browser-evidence/start-readiness/
           retention-days: 14

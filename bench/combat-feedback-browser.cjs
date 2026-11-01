@@ -2,14 +2,14 @@
 // Positions are controlled to isolate eligibility; this is not a human play test.
 const assert = require('node:assert/strict'), fs = require('node:fs');
 const {spawn} = require('node:child_process'), {chromium} = require('playwright');
-const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${port}/`,out='browser-evidence/threat-score';
+const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${port}/`,out='browser-evidence/combat-feedback';
 (async () => {
   let browser, server; const results = [];
   try {
     fs.mkdirSync(out, {recursive: true});
     server = spawn('python3', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], {stdio: 'ignore'});
     for (let i=0;i<60;i++) { if (await fetch(base).then(r=>r.ok,()=>false)) break; await new Promise(r=>setTimeout(r,100)); }
-    for(const file of ['index.html','canyon.html','threat-score.js','challenge-score.js'])
+    for(const file of ['index.html','canyon.html','survival-score.js','challenge-score.js'])
       assert.equal(await fetch(base+file).then(r=>r.text()),fs.readFileSync(file,'utf8'),'local server source: '+file);
     browser = await chromium.launch({headless:true, executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
       args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
@@ -46,42 +46,14 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
           if(follow){enemy.pos.set(x-3,start.y+.0001,start.z);enemy.node=g.nodeAt(enemy.pos.x,enemy.pos.y+.1,enemy.pos.z);}
           g.updateField();g.GAME.t+=.15;score.step(.15);score.sync();
         }};
-        tick(24);const moving={...score.threat()},earned=score.current().survival;
-        if(moving.count!==1||moving.rate<60||earned<=100)throw Error('Native pursuit did not earn');
-        tick(3,{move:false});const stationary=score.current().survival;
-        if(stationary!==earned||score.threat().rate!==0)throw Error('Stopped player kept earning');
-        const stoppedAt=score.threat().pressureSeconds;
-        for(const state of ['swing','ledge']){c.state=state;tick(1);if(score.threat().rate)throw Error(state+' earned');}
-        c.state='normal';c.invuln=g.time+10;tick(1);c.invuln=0;
-        if(score.threat().pressureSeconds!==stoppedAt)throw Error('Invulnerability earned');
-        enemy.stun=4;tick(1);if(score.threat().count)throw Error('Stunned enemy counted');enemy.stun=0;
-        c.yaw=Math.PI/2;
-        if(!skyFlashbang.throw())throw Error('Flashbang unavailable');skyFlashbang.tick(.3);tick(1);
-        if(!skyFlashbang.blinded(enemy)||score.threat().count)throw Error('Flashbang target counted');
-        tick(14);
-        if(!document.getElementById('threatFeedback').hidden&&document.getElementById('threatFeedback').textContent.startsWith('ESCAPED'))throw Error('Nearby flash-blinded enemy falsely escaped');
-        if(/引き離して|pulled away/.test(document.getElementById('threatHint').textContent))throw Error('A disabled nearby enemy is not a separation');
-        skyFlashbang.clear();enemy.stun=0;
-        if(!skyDecoy.activate())throw Error('Decoy unavailable');tick(1);
-        if(score.threat().count)throw Error('Decoy target counted');skyDecoy.clear();
-        enemy.pos.y=start.y+5;tick(1,{follow:false});if(score.threat().count)throw Error('Other floor counted');
-        // Real occluding terrain within the same reachable neighbourhood.
-        const wallNode=nav.nodes.find(n=>Math.abs(n.y-start.y)<.1&&Math.hypot(n.x-c.pos.x,n.z-c.pos.z)>2&&
-          Math.hypot(n.x-c.pos.x,n.z-c.pos.z)<15&&Number.isFinite(g.FIELD[n.id])&&g.FIELD[n.id]<26&&
-          sky.raycast(n.x,n.y+1.1,n.z,(c.pos.x-n.x)/Math.hypot(n.x-c.pos.x,n.z-c.pos.z),0,
-            (c.pos.z-n.z)/Math.hypot(n.x-c.pos.x,n.z-c.pos.z),Math.hypot(n.x-c.pos.x,n.z-c.pos.z)-.15));
-        if(!wallNode)throw Error('No real wall scenario');
-        enemy.pos.set(wallNode.x,wallNode.y,wallNode.z);enemy.node=wallNode.id;
-        tick(1,{move:false,follow:false});if(score.threat().count)throw Error('Wall-separated enemy counted');
-        // Start a fresh chase, then separate without killing its original chaser.
-        score.reset();g.GAME.t=0;x=start.x;c.pos.set(x,start.y+.0001,start.z);tick(24);
-        const beforeEscape=score.current().total;
+        tick(24);const moving={...score.pursuit()};if(moving.count!==1)throw Error('Native pursuit was not detected');
+        const beforeEscape=score.current().damage+score.current().kill;
         const ctx=sky.Ut.ctx,master=sky.Ut.master,notes=[],nativeOsc=ctx.createOscillator.bind(ctx);
         ctx.createOscillator=()=>{const o=nativeOsc();notes.push(o);return o;};
         enemy.pos.set(x-40,start.y,start.z);enemy.node=-1;tick(14,{move:false,follow:false});
         await Promise.resolve();
         const escaped=document.getElementById('threatFeedback').textContent;
-        if(!escaped.startsWith('ESCAPED')||score.current().total!==beforeEscape)throw Error('Escape cue/score');
+        if(!escaped.startsWith('ESCAPED')||score.current().damage+score.current().kill!==beforeEscape)throw Error('Escape cue/score');
         const escapeNotes=notes.map(o=>o.frequency.value);
         if(escapeNotes.length||score.feedbackState().sounds.at(-1)?.key!=='escape')throw Error('Escape must use the ported Unity sample');
         notes.length=0;
@@ -108,44 +80,62 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
         score.killed();await new Promise(r=>setTimeout(r,300));const muted=await readPeak();
         if(audible<.001||muted>.00001)throw Error(`Cue volume/mute graph: audible=${audible}, muted=${muted}, context=${ctx.state}`);
         master.disconnect(meter);meter.disconnect();master.gain.value=sky.U.volume;ctx.createOscillator=nativeOsc;
-        const frozen=score.current().total;tick(14,{move:false,follow:false});
-        if(document.getElementById('threatFeedback').textContent.startsWith('ESCAPED')||score.current().total!==frozen)throw Error('All killed counted as escape');
+        const frozen=score.current().damage+score.current().kill;tick(14,{move:false,follow:false});
+        if(document.getElementById('threatFeedback').textContent.startsWith('ESCAPED')||score.current().damage+score.current().kill!==frozen)throw Error('All killed counted as escape');
         // Real capped HP loss drives the ported damage flights and medal, never
         // another score award when the animation arrives.
         for(let i=0;i<2;i++){
           const target=new g.Zombie(c.pos.x-3,start.y+.0001,c.pos.z);target.spawnT=0;target.rise=null;target.hp=4;g.zombies.push(target);
           target.hurt(99,1,0,.6,0);
         }
-        const beforeFlights=score.current().total;tick(20,{move:false,follow:false});
+        const beforeFlights=score.current().damage+score.current().kill;tick(20,{move:false,follow:false});
         const feedbackState=score.feedbackState();
-        if(score.current().total!==beforeFlights||feedbackState.arrivedDamage!==12||feedbackState.milestones!==1||feedbackState.activeFlights!==0)throw Error('Feedback duplicated points or lost real damage: '+JSON.stringify(feedbackState));
+        if(score.current().damage+score.current().kill!==beforeFlights||feedbackState.arrivedDamage!==12||feedbackState.milestones!==1||feedbackState.activeFlights!==0)throw Error('Feedback duplicated points or lost real damage: '+JSON.stringify(feedbackState));
         const beforePause=score.current().total;g.setMode('pause');score.step(1);score.sync();
         if(score.current().total!==beforePause)throw Error('Pause earned');
-        if(!document.getElementById('threatScoreHud').hidden||!document.getElementById('combatFeedback').hidden||score.feedbackState().activeVoices)throw Error('Feedback must clear and mute in pause');
+        if(!document.getElementById('combatFeedback').hidden||score.feedbackState().activeVoices)throw Error('Feedback must clear and mute in pause');
         await Promise.resolve();const pause=document.getElementById('unityPauseTotal').textContent;
         g.setMode('play');g.cam(0);g.frameOnce(0);score.sync();score.killed();await Promise.resolve();
-        const status=document.getElementById('threatStatus').textContent;
-        return{start:[start.x,start.y,start.z],moving,earned,stationary,wallNode:wallNode.id,escaped,hit,kill,killNotes,escapeNotes,
+        const status=document.getElementById('unityTimeFactor').textContent;
+        return{start:[start.x,start.y,start.z],moving,escaped,hit,kill,killNotes,escapeNotes,
           audible,muted,pause,status,feedbackState,total:score.current().total,score:score.current(),lang:document.documentElement.lang};
       });
       assert.equal(evidence.lang,lang);assert.match(evidence.hit,/DMG/);assert.match(evidence.kill,/KILL/);
-      assert.match(evidence.status,lang==='ja'?/脅威/:/Threat/);
+      assert.match(evidence.status,/132/);
       assert.match(evidence.pause,lang==='ja'?/合計/:/Total/);
       assert.deepEqual(errors,[]);assert.equal(posts,0);
       assert.equal(await page.locator('#threatFeedback').isVisible(),true,'kill cue visible during the first run');
       if(await page.locator('#startGuide').count())assert.equal(await page.locator('#startGuide').isVisible(),false,'first-run guide yields to feedback');
       const feedbackLayout=await page.evaluate(()=>{
         const box=id=>{const r=document.getElementById(id).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
-        return {stack:box('damageStack'),total:box('unityTotal'),menu:box('bSettings'),badge:box('threatFeedback')};
+        return {stack:box('damageStack'),total:box('unityTotal'),menu:box('bSettings'),map:box('skyMinimap'),badge:box('threatFeedback')};
       });
       for(const id of ['stack','badge']){
         const b=feedbackLayout[id];assert.ok(b.x>=0&&b.y>=0&&b.x+b.width<=page.viewportSize().width&&b.y+b.height<=page.viewportSize().height,id+' inside viewport');
-        for(const other of ['total','menu']){const a=feedbackLayout[other];assert.ok(b.x+b.width<=a.x||a.x+a.width<=b.x||b.y+b.height<=a.y||a.y+a.height<=b.y,id+' leaves '+other+' readable');}
+        for(const other of ['total','menu','map']){const a=feedbackLayout[other];assert.ok(b.x+b.width<=a.x||a.x+a.width<=b.x||b.y+b.height<=a.y||a.y+a.height<=b.y,id+' leaves '+other+' readable');}
       }
       await page.screenshot({path:`${out}/${map}-${lang}.png`});
+      if(touch){
+        await page.setViewportSize({width:390,height:844});
+        await page.waitForFunction(()=>document.documentElement.classList.contains('rot'));
+        const portrait=await page.evaluate(()=>{
+          const g=__game,s=skyChallengeScore,c=g.P,target=new g.Zombie(c.pos.x+3,c.pos.y,c.pos.z);
+          target.spawnT=0;target.rise=null;target.hp=4;g.zombies.push(target);target.hurt(99,1,0,.6,0);
+          for(let i=0;i<34;i++)g.advance(1/60);s.sync();
+          const box=id=>{const r=document.getElementById(id).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
+          return {total:s.current().total,stack:box('damageStack'),badge:box('threatFeedback'),map:box('skyMinimap')};
+        });
+        evidence.total=portrait.total;evidence.portrait=portrait;
+        for(const id of ['stack','badge']){const b=portrait[id],m=portrait.map;
+          assert.ok(b.x>=0&&b.y>=0&&b.x+b.width<=390.1&&b.y+b.height<=844.1,id+' inside portrait viewport');
+          assert.ok(b.x+b.width<=m.x||m.x+m.width<=b.x||b.y+b.height<=m.y||m.y+m.height<=b.y,id+' leaves portrait minimap readable');
+        }
+        await page.screenshot({path:`${out}/${map}-${lang}-portrait.png`});
+        await page.setViewportSize({width:844,height:390});
+      }
       await page.evaluate(()=>{__game.endGame('caught');__game.advance(1.5);skyChallengeScore.sync();});
       await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
-      assert.equal(await page.locator('#threatScoreHud').isVisible(),false,'threat HUD hidden on results');
+      assert.equal(await page.locator('#combatFeedback').isVisible(),false,'feedback hidden on results');
       const result=await page.locator('#unityResultCard').getAttribute('data-score');
       assert.equal(JSON.parse(result).total,evidence.total,'result freezes the earned total');
       if(lang==='en')assert.doesNotMatch(await page.locator('#unityResultCard').innerText(),/[\u3040-\u30ff\u4e00-\u9fff]/,'result fully translated');
@@ -167,7 +157,7 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
         await page.screenshot({path:`${out}/${map}-${lang}-tiny.png`});
       }
       results.push({map,lang,touch,...evidence,posts,errors});
-      console.log('PASS',map,lang,'native threat/stop/hang/invulnerability/stun/decoy/floor/wall, HIT/KILL/ESCAPED, audio/mute and pause');
+      console.log('PASS',map,lang,'Infection damage flights/medal, KILL/ESCAPED, audio/mute, pause, minimap coexistence and results');
       await context.close();
     }
     fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2));

@@ -3,7 +3,7 @@
 // to keep the same load running; no position/velocity corrections after setup.
 const fs=require('node:fs'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const {spawn}=require('node:child_process'),{chromium}=require('playwright');
-const port=18802,base=`http://127.0.0.1:${port}/`,out='browser-evidence/threat-load';
+const port=18802,base=`http://127.0.0.1:${port}/`,out='browser-evidence/survival-load';
 const seconds=Number(process.env.THREAT_BENCH_SECONDS||30),longSeconds=Number(process.env.THREAT_BENCH_LONG_SECONDS||120);
 const maps=(process.env.THREAT_BENCH_MAPS||'index.html,canyon.html').split(',');
 const modes=process.env.THREAT_BENCH_PROBE==='1'?[true]:[true,false,false,true];
@@ -12,7 +12,7 @@ const modes=process.env.THREAT_BENCH_PROBE==='1'?[true]:[true,false,false,true];
  server=spawn('python3',['-m','http.server',String(port),'--bind','127.0.0.1'],{stdio:'ignore'});
  for(let i=0;i<60;i++){if(await fetch(base).then(r=>r.ok,()=>false))break;await new Promise(r=>setTimeout(r,100));}
  const provenance={};
- for(const file of ['index.html','canyon.html','threat-score.js','challenge-score.js']){
+ for(const file of ['index.html','canyon.html','survival-score.js','challenge-score.js']){
   const source=fs.readFileSync(file);assert.equal(await fetch(base+file).then(r=>r.text()),source.toString(),'local source: '+file);
   provenance[file]=crypto.createHash('sha256').update(source).digest('hex');
  }
@@ -66,11 +66,11 @@ const modes=process.env.THREAT_BENCH_PROBE==='1'?[true]:[true,false,false,true];
      c.yaw=Math.atan2(c.pos.x-x,c.pos.z-z);g.keys.KeyW=true;
      const started=performance.now();g.frameOnce(dt);cpu.push(performance.now()-started);
      travel+=c.pos.distanceTo(last);last.copy(c.pos);
-     const threat=skyChallengeScore.threat(),near=g.zombies.filter(e=>!e.dead&&Math.abs(e.pos.y-c.pos.y)<3&&e.pos.distanceTo(c.pos)<18).length;
+     const threat=skyChallengeScore.pursuit(),near=g.zombies.filter(e=>!e.dead&&Math.abs(e.pos.y-c.pos.y)<3&&e.pos.distanceTo(c.pos)<18).length;
      if(previous!==undefined){const span=now-previous;intervals.push(span);if((test.enabled?threat.count:near)>=3){qualified++;activeIntervals.push(span)}}
      previous=now;
      if(frame%60===59)trace.push({frame,t:g.GAME.t,p:c.pos.toArray(),life:c.life,near,
-      count:test.enabled?threat.count:null,pressure:test.enabled?threat.pressure:null,rate:test.enabled?threat.rate:null,repetition:test.enabled?threat.repetition:null,
+      count:test.enabled?threat.count:null,survival:skyChallengeScore.current().survival,
       enemies:g.zombies.filter(e=>!e.dead).map(e=>({p:e.pos.toArray(),node:e.node,act:e.act?.kind||null,stun:e.stun}))});
     }
     g.keys.KeyW=false;
