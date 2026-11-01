@@ -165,6 +165,7 @@
     }
     $('unityScoreDetails').hidden = true;
     $('unityResultCard').hidden = false;
+    if (intro) document.dispatchEvent(new CustomEvent('sky-intro-result'));
     const buttons = [$('unityRetry'), $('unityMenu'), $('unityMore'), $('introNext')];
     buttons.forEach(e => e.disabled = true);
     const started = performance.now(), reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;

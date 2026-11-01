@@ -30,3 +30,25 @@ body.onb-open{overflow:hidden}
  .onb-name small{display:none}.onb-name input{min-height:38px;font-size:16px}
  #onboarding button{min-height:40px;font-size:14px}.onb-link{min-height:30px!important}
 }
+
+/* Dialog modes: 遊び方 (again) and the one-time nickname prompt (name). */
+#onboarding[data-mode=name] .onb-steps,#onboarding[data-mode=name] #onbIntro,#onboarding[data-mode=name] #onbSettings,#onboarding[data-mode=name] .onb-lead[data-for=again]{display:none}
+#onboarding[data-mode=again] #onbSave,#onboarding[data-mode=again] .onb-lead[data-for=name]{display:none}
+
+/* First visit: one start card instead of the home screen (NIGHTLINE's first drive). */
+#onbSplash{position:fixed;inset:0;z-index:61;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 35%,#16222f 0%,#0a1017 70%);color:#e8eef2}
+.onb-splash-card{box-sizing:border-box;width:min(520px,100%);display:flex;flex-direction:column;gap:12px;padding:28px 28px 24px;border-top:3px solid #e8805a;background:#0f1822e6;text-align:center}
+.onb-splash-card h1{margin:0;font-size:38px;color:#f4f0e8;line-height:1.1}.onb-splash-card h1 span{margin-left:10px;font-size:22px;color:#e8805a}
+.onb-splash-intro{margin:6px 0 0;font-size:16px;color:#dbe3e9}
+.onb-keys{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;font-size:15px}.onb-keys span{display:inline-flex;align-items:center;gap:8px}
+.onb-keys kbd,.onb-splash-card kbd{display:inline-block;padding:2px 8px;border:1px solid #657380;border-bottom-width:2px;border-radius:4px;background:#0d151d;font:700 13px/1.4 inherit;color:#f4f0e8}
+.onb-touch-line{margin:0;font-size:14px;color:#dbe3e9}
+.onb-splash-note{margin:0;font-size:12px;color:#9fb0bd}
+.onb-start{display:flex;align-items:center;justify-content:center;gap:14px;min-height:56px;margin-top:6px;border:1px solid #e8805a;border-radius:6px;background:#e8805a;color:#1b0f0a;font-size:18px;font-weight:800;letter-spacing:.04em;cursor:pointer}
+.onb-start:disabled{opacity:.55;cursor:default}
+@media(max-height:520px){.onb-splash-card{gap:7px;padding:14px 20px 14px}.onb-splash-card h1{font-size:26px}.onb-splash-card h1 span{font-size:16px}.onb-splash-intro{font-size:13px;margin:0}.onb-keys,.onb-touch-line{font-size:12px}.onb-start{min-height:46px;font-size:16px;margin-top:2px}.onb-splash-card .onb-kicker{display:none}}
+
+/* Coach: one short line per scene during the intro run. */
+#introCoach{position:absolute;top:96px;left:50%;transform:translateX(-50%);max-width:min(560px,calc(100% - 330px));padding:6px 14px;border-radius:18px;background:#0f1822d9;border:1px solid #ffdfa055;color:#ffe9b8;font-size:14px;font-weight:700;text-align:center;pointer-events:none;text-shadow:none}
+#introCoach[hidden]{display:none}
+@media(max-width:1000px){#introCoach{top:84px;font-size:12px;max-width:calc(100% - 250px)}}
