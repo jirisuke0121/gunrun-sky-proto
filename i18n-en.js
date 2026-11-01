@@ -3,6 +3,14 @@
 (() => {
   const tr = text => window.skyI18n.tr(text);
   const exact = {
+ "入門クリア！": "Intro cleared!",
+ "2分間逃げ切れました。次はイージーで本番に挑戦できます。": "You escaped for 2 minutes. Next, try the real run on Easy.",
+ "落下しました。縁・壁へ跳ぶとつかんで越えられます。もう一度入門で試そう。": "You fell. Jump onto ledges and walls to grab them. Try the intro run again.",
+ "追いつかれました。壁走り・フック・はしごで距離をとると逃げやすくなります。もう一度入門で試そう。": "They caught you. Wall runs, hooks and ladders help you gain distance. Try the intro run again.",
+ "動作が重いようです。描画を軽くしますか？": "The game seems to be running slowly. Lighten the graphics?",
+ "軽量にする": "Use light graphics",
+ "そのままにする": "Keep as is",
+ "動作の案内": "Performance tip",
  "2分間、ゾンビから逃げ切るゲームです。30秒ごとにボーナス点が入ります。": "Outrun the zombies for 2 minutes. You earn bonus points every 30 seconds.",
  "ランキングに表示される名前です。あとからでも決められます。": "This is the name shown in the ranking. You can also set it later.",
  "ニックネームを決めよう": "Choose a nickname",
@@ -472,6 +480,7 @@
   [/^(イージー|ノーマル|ハード) 難易度ボーナス ×([\d.]+)（\+(\d+)%）$/, (m,d,x,p) => `${tr(d)} difficulty bonus ×${x} (+${p}%)`],
   [/^\+(\d+)点\/秒$/, '+$1 pts/s'],
   [/^\+(\d+)\/(\d+)秒$/, '+$1 / $2 s'],
+  [/^(\d+)秒生き残りました。次はイージーで本番に挑戦できます。$/, 'You survived $1 s. Next, try the real run on Easy.'],
   [/^(\d+)秒生存$/, '$1 s survived'],
   [/^(\d+)秒ごと (\d+)回 × (\d+)点 ＋ 端数 (\d+)点$/, 'Every $1 s: $2 × $3 pts + partial $4 pts'],
   [/^(\d+)点\/体$/, '$1 pts/kill'],

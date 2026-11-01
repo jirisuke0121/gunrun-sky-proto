@@ -157,9 +157,15 @@
     set('unityResultBest', best ? '自己ベスト更新' : '');
     $('unityResultBest').dataset.best = String(!!best);
     set('unityRunDetails', `生存 ${b.elapsed.toFixed(1)}秒 / 撃破 ${b.kills}体（落下撃破 ${window.__game.stats.drops}体）`);
+    for (const id of ['unityRetry', 'introNext']) $(id).classList.remove('is-recommended');
+    $('unityAdvicePerf').hidden = true;
     if (intro) {
-      set('unityResultTitle', '入門モード、おつかれさま！');
-      set('unityResultGoal', '次はイージー・ノーマル・ハードから選んで挑戦できます。');
+      // The first run's result decides what to recommend next (and whether to offer lighter graphics).
+      const advice = window.skyNextStep.adviseNext({ elapsed: b.elapsed, cleared: !failed, reason });
+      $(advice.primary === 'next' ? 'introNext' : 'unityRetry').classList.add('is-recommended');
+      $('unityAdvicePerf').hidden = !window.skyFoundation?.qualityAdvice?.().heavy;
+      set('unityResultTitle', advice.title);
+      set('unityResultGoal', advice.goal);
       set('unityEscapeRecord', 'ライフ無限の入門体験 · ランキング対象外');
       set('unityResultBest', 'この入門の記録は保存・送信しません');
     }
@@ -228,6 +234,10 @@
       </article>
       <section id="unityScoreDetails" hidden><h2>ランキング・プレイの記録</h2><p id="unityRunDetails"></p><p id="unityRunMoves"></p><div id="unityScoreRanking"></div><p id="unityRecordStatus"></p><button id="unityDetailsBack" type="button">リザルトに戻る</button></section>`;
     $('ovOver').append(result);
+    const perf = document.createElement('div'); perf.id = 'unityAdvicePerf'; perf.hidden = true; perf.setAttribute('role', 'group'); perf.setAttribute('aria-label', '動作の案内');
+    perf.innerHTML = '<p>動作が重いようです。描画を軽くしますか？</p><div><button id="unityAdviceLight" type="button">軽量にする</button><button id="unityAdviceKeep" type="button">そのままにする</button></div>';
+    $('unityResultActions').before(perf);
+    for (const [id, accept] of [['unityAdviceLight', true], ['unityAdviceKeep', false]]) $(id).addEventListener('click', () => { window.skyFoundation?.answerQualityAdvice?.(accept); perf.hidden = true; });
     const next = document.createElement('button'); next.id = 'introNext'; next.type = 'button';
     next.textContent = 'イージーから挑戦する'; next.hidden = true;
     $('unityResultActions').prepend(next);

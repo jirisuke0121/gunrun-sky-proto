@@ -79,6 +79,31 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   assert.equal(await page.evaluate(()=>skyChallenge.isIntroRun),true);
   await ctx.close();
 
+  // The intro run's own result decides the next recommendation (and whether to ask about lighter graphics).
+  ctx=await mk('ja',false,()=>localStorage.setItem('gunrun-onboarding-v1','{"phase":"started","namePrompted":true}'));page=await open(ctx,map+'?onboarding=auto');
+  await page.click('#homeGuide');await page.click('#onbIntro');await page.waitForFunction(()=>__game.mode==='play');
+  const recommended=()=>page.evaluate(()=>['unityRetry','introNext'].filter(id=>document.getElementById(id).classList.contains('is-recommended')));
+  const again=async()=>{await page.click('#unityRetry');await page.waitForFunction(()=>__game.mode==='play'&&skyChallenge.isIntroRun)};
+  await at(page,20);await endIntro(page);
+  assert.match(await page.textContent('#unityResultGoal'),/追いつかれました/);assert.deepEqual(await recommended(),['unityRetry'],'early catch: practise again');
+  assert.equal(await page.locator('#unityAdvicePerf').isVisible(),false,'no performance question when the run was smooth');
+  await again();await at(page,75);await endIntro(page);
+  assert.match(await page.textContent('#unityResultGoal'),/75秒生き残りました。次はイージー/);assert.deepEqual(await recommended(),['introNext'],'60 s or more: go to the real run');
+  await again();await at(page,30);await page.evaluate(()=>{__game.endGame('fell');__game.advance(1.5)});await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
+  assert.match(await page.textContent('#unityResultGoal'),/落下しました/);assert.deepEqual(await recommended(),['unityRetry']);
+  await again();await page.evaluate(()=>{__game.GAME.t=119.95;__game.advance(.2);__game.advance(1.5)});await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
+  assert.equal(await page.textContent('#unityResultTitle'),'入門クリア！');assert.deepEqual(await recommended(),['introNext']);
+  // A slow first run: the result also asks about lighter graphics, and one answer settles the home dialog too.
+  await again();await page.evaluate(()=>{for(let i=0;i<=800;i++)skyFoundation.frame(i*25,true)});await endIntro(page);
+  assert.equal(await page.locator('#unityAdvicePerf').isVisible(),true,'slow run: ask about lighter graphics');
+  await page.click('#unityAdviceLight');
+  assert.equal(await page.locator('#unityAdvicePerf').isVisible(),false);
+  assert.equal(await page.evaluate(()=>skyRenderQuality.mode),'performance');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('gunrun-quality-check-v1')),'done','the question is not asked again');
+  await again();await page.evaluate(()=>{for(let i=0;i<=800;i++)skyFoundation.frame(i*25,true)});await endIntro(page);
+  assert.equal(await page.locator('#unityAdvicePerf').isVisible(),false,'asked once');
+  assert.deepEqual(page.errors,[]);await ctx.close();
+
   // Anyone with a trace of earlier play is not a first-time player.
   for(const seed of [()=>localStorage.setItem('gunrun-run-history-v1',JSON.stringify([{clientRunId:'x'}])),()=>localStorage.setItem('gunrun-sky-ghost-v1','{}'),()=>localStorage.setItem('gunrun-challenge-difficulty-v1','hard')]){
    ctx=await mk('ja',false,seed);page=await open(ctx,map+'?onboarding=auto');
@@ -98,6 +123,6 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   await page.tap('#onbStart');await page.waitForFunction(()=>__game.mode==='play');
   await at(page,2);assert.equal(await coachText(page),'Drag left to move · Jump button to jump');
   assert.deepEqual(page.errors,[]);await ctx.close();
-  console.log('PASS',map,'start card, straight into the intro run, coach tips, one-time nickname prompt, returning player, phone/English');
+  console.log('PASS',map,'start card, straight into the intro run, coach tips, one-time nickname prompt, result-based next step, returning player, phone/English');
  }
 }finally{await browser?.close();server?.kill()}})().catch(e=>{console.error(e);process.exitCode=1});

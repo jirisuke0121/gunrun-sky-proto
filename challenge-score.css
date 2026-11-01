@@ -111,3 +111,10 @@
 #unityTickAward[data-major=true] img{width:38px;height:38px}
 #unityTickAward[data-major=true] b{font-size:24px;color:#fff1c2}
 @media(max-width:650px){#unityTickAward{padding-right:8px}#unityTickAward img{width:22px;height:22px}#unityTickAward b{font-size:16px}#unityTickAward[data-major=true] img{width:28px;height:28px}}
+
+/* Intro result: the recommended next step is highlighted; the performance question sits above the buttons. */
+#unityResultActions .is-recommended{border-color:#e8805a;background:#e8805a;color:#1b0f0a;font-weight:800}
+#unityAdvicePerf{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 0;padding:8px 12px;border:1px solid #ffdfa055;border-radius:8px;background:#0f1822d9;color:#ffe9b8;font-size:13px}
+#unityAdvicePerf[hidden]{display:none}#unityAdvicePerf p{margin:0}#unityAdvicePerf div{display:flex;gap:8px}
+#unityAdvicePerf button{min-height:40px;padding:6px 14px;border:1px solid #657380;border-radius:6px;background:transparent;color:#e0e6eb;font-size:13px;font-weight:700;cursor:pointer}
+#unityAdvicePerf #unityAdviceLight{border-color:#e8805a;color:#ffdfa0}
