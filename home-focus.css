@@ -1,0 +1,30 @@
+/* Home screen focus: the first screen should fit without scrolling. */
+#homeHero{display:grid;gap:8px}
+#homeHero h1{margin:0}
+#homeHero .eyebrow{margin:0}
+#homeHero .homeGoal{margin:0;font-size:18px;font-weight:800;line-height:1.4}
+#homeHero .homeRules{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:14px;line-height:1.5}
+#homeHero .homeRules li{display:flex;gap:10px;align-items:baseline}
+#homeHero .homeRules b{flex:none;min-width:3em;padding:1px 8px;border-radius:999px;background:#e8dcc0;color:var(--dim);font-size:12px;text-align:center}
+#homeHero .homeKeys{margin:0;font-size:13px;line-height:1.9;color:#4a4030}
+html.touch #homeHero .homeKeysDesktop{display:none}
+#homeHero .homeKeysTouch{margin:0;font-size:13px;line-height:1.6;color:#4a4030}
+#homeHero #bStart{margin-top:6px;padding:18px 14px;font-size:19px}
+#homeHero .note{margin:0}
+/* The beginner entry stays visible but is clearly the secondary choice. */
+#homeHero #introEntry{margin:0!important;padding:10px 12px!important;border:1px solid #9c8b66!important;background:transparent!important;border-radius:10px}
+#homeHero #introEntry b{font-size:13px}
+#homeHero #introEntry button{margin-top:6px;padding:10px;font-size:14px;background:#f7f1e2;color:var(--ink);border-color:#9c8b66}
+#homeHero #introEntry button:disabled{opacity:.6}
+#homeHero #bestLine:empty{display:none}
+#homeMore{margin-top:14px;border-top:1px solid #cdbf9c;padding-top:10px}
+#homeMore>summary{cursor:pointer;font-weight:700;font-size:14px;padding:6px 0;color:var(--dim)}
+#homeMore .homeMoreBody{display:grid;gap:10px;margin-top:8px}
+#homeMore .homeOldLede{font-size:13px;margin:0}
+@media(max-height:560px){
+  #homeHero{gap:5px}
+  #homeHero h1{font-size:26px}
+  #homeHero .homeGoal{font-size:15px}
+  #homeHero .homeRules{font-size:12px;gap:2px}
+  #homeHero #bStart{padding:12px;font-size:16px}
+}
