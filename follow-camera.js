@@ -5,7 +5,7 @@
   const { c, inputState: touch, keys } = game;
   const storageKey = 'gunrun-follow-camera-v1';
   const coarse = () => matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches;
-  const defaultMode = () => 'after';
+  const defaultMode = () => coarse() ? 'after' : 'before';
   const queryMode = new URLSearchParams(location.search).get('camera');
   let savedMode;
   try { savedMode = localStorage.getItem(storageKey); } catch {}
