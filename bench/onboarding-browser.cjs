@@ -18,12 +18,16 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   let ctx=await mk('ja',false),page=await open(ctx,map);
   assert.equal(await visible(page),false,'automation skips the guide by default');
   assert.equal(await page.evaluate(()=>!!document.getElementById('homeGuide')),true,'the home screen always offers 遊び方');
+  assert.equal(await page.locator('#introEntry').isVisible(),true,'automated browsers keep the home intro block');
   await ctx.close();
 
   // First visit: invalid name is refused, valid name saves and starts the intro run.
   ctx=await mk('ja',false);page=await open(ctx,map+'?onboarding=auto');
   assert.equal(await visible(page),true,'first visit shows the guide');
   assert.equal(await page.evaluate(()=>document.getElementById('onbTitle').textContent),'はじめに');
+  assert.equal(await page.locator('#onbMain').isVisible(),false,'a first visit has a single way forward');
+  assert.equal(await page.locator('#onbSettings').isVisible(),false);
+  assert.equal(await page.textContent('#onbIntro'),'はじめる（入門モードで操作を覚える）');
   await page.fill('#onbName','a');await page.click('#onbIntro');
   assert.equal(await visible(page),true,'a bad name keeps the guide open');
   assert.match(await page.textContent('#onbError'),/2〜14文字/);
@@ -40,40 +44,38 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   // Returning on the same device: no guide; 遊び方 reopens it with the saved name and does not change the record.
   page=await open(ctx,map+'?onboarding=auto');
   assert.equal(await visible(page),false,'seen once, never forced again');
+  assert.equal(await page.locator('#introEntry').isVisible(),false,'after the first visit the home screen has no intro button');
   const seen=await page.evaluate(()=>localStorage.getItem('gunrun-onboarding-v1'));
   await page.click('#homeGuide');
   assert.equal(await visible(page),true);assert.equal(await page.evaluate(()=>document.getElementById('onbTitle').textContent),'遊び方');
   assert.equal(await page.inputValue('#onbName'),'RUNNER_1');
-  assert.equal(await page.textContent('#onbMain'),'閉じる');
+  assert.equal(await page.textContent('#onbMain'),'閉じる');assert.equal(await page.locator('#onbSettings').isVisible(),true);
+  assert.equal(await page.textContent('#onbIntro'),'入門モードで練習する');
   await page.fill('#onbName','');await page.click('#onbMain');
   assert.equal(await visible(page),false);
   assert.equal(await page.evaluate(()=>localStorage.getItem('gunrun-onboarding-v1')),seen,'reopening does not rewrite the first-visit record');
   assert.equal(await page.evaluate(()=>localStorage.getItem('gunrun-name')),'RUNNER_1','an empty field keeps the saved name');
+  // The intro run stays reachable from 遊び方.
+  await page.click('#homeGuide');await page.click('#onbIntro');await page.waitForFunction(()=>__game.mode==='play');
+  assert.equal(await page.evaluate(()=>skyChallenge.isIntroRun),true);
   await ctx.close();
 
   // Someone with finished runs is not a first-time player.
   ctx=await mk('ja',false,()=>localStorage.setItem('gunrun-run-history-v1',JSON.stringify([{clientRunId:'x',score:1}])));
-  page=await open(ctx,map+'?onboarding=auto');assert.equal(await visible(page),false,'existing players are not interrupted');await ctx.close();
-
-  // Skipping to the real run goes to the normal home screen without starting anything.
-  ctx=await mk('ja',false);page=await open(ctx,map+'?onboarding=auto');
-  await page.click('#onbMain');assert.equal(await visible(page),false);
-  assert.equal(await page.evaluate(()=>__game.mode),'menu');
-  assert.equal(JSON.parse(await page.evaluate(()=>localStorage.getItem('gunrun-onboarding-v1'))).how,'main');
-  assert.equal(await page.evaluate(()=>localStorage.getItem('gunrun-name')),null,'name is optional');
-  await ctx.close();
+  page=await open(ctx,map+'?onboarding=auto');assert.equal(await visible(page),false,'existing players are not interrupted');
+  assert.equal(await page.locator('#introEntry').isVisible(),false,'existing players do not get the intro block either');await ctx.close();
 
   // Phone landscape, English: fits the screen, buttons reachable, error translated.
   ctx=await mk('en',true);page=await open(ctx,map+'?onboarding=auto');
   const box=await page.evaluate(()=>{const c=document.querySelector('.onb-card').getBoundingClientRect();return{top:c.top,bottom:c.bottom,h:innerHeight}});
   assert.ok(box.top>=0&&box.bottom<=box.h,'guide fits a 390px-high phone without scrolling');
-  for(const id of ['onbIntro','onbMain','onbSettings']){const b=await page.locator('#'+id).boundingBox();assert.ok(b&&b.y>=0&&b.y+b.height<=box.h,id+' inside the screen')}
+  for(const id of ['onbIntro']){const b=await page.locator('#'+id).boundingBox();assert.ok(b&&b.y>=0&&b.y+b.height<=box.h,id+' inside the screen')}
   assert.equal(await page.textContent('#onbTitle'),'Welcome');
   await page.fill('#onbName','x');await page.tap('#onbIntro');
   assert.match(await page.textContent('#onbError'),/Use 2-14 letters/);
   assert.notEqual(await page.evaluate(()=>getComputedStyle(document.querySelector('.onb-touch')).display),'none','touch text shown on a touch device');
   assert.equal(await page.evaluate(()=>getComputedStyle(document.querySelector('.onb-pc')).display),'none','keyboard text hidden on a touch device');
   assert.deepEqual(page.errors,[]);await ctx.close();
-  console.log('PASS',map,'first-visit rule, nickname check, intro hand-off, reopen, skip, phone/English');
+  console.log('PASS',map,'first-visit rule, single path to the intro run, nickname check, reopen from 遊び方, phone/English');
  }
 }finally{await browser?.close();server?.kill()}})().catch(e=>{console.error(e);process.exitCode=1});
