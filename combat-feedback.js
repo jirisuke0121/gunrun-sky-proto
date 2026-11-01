@@ -91,7 +91,10 @@
       } else { presented = arrived = totalDamage; medals = Math.floor(arrived / 10); fullAt = -Infinity; stack.hidden = true; }
       lastPaint = -Infinity;
     }
-    const layout = () => root.classList.toggle('cf-compact', root.clientHeight <= 500);
+    const layout = () => {
+      root.classList.toggle('cf-compact', root.clientHeight <= 500);
+      root.classList.toggle('cf-narrow', root.clientWidth <= 660);
+    };
     function setActive(active) {
       active = !!active && !document.hidden;
       if (visible === active) return;
@@ -124,9 +127,9 @@
       f.damage = p.damage; f.points = p.points; f.at = now(); f.active = true; counts.flights++;
       f.origin = { x: p.x / p.damage, y: p.y / p.damage };
       stack.hidden = false;
-      const rect = stack.getBoundingClientRect();
       f.destination = { x: root.clientWidth / 2, y: parseFloat(getComputedStyle(root).getPropertyValue('--cf-stack-top')) + 25 };
-      if (rect.width && !stack.hidden) f.destination = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      // Local offsets also work when the logical game viewport is rotated.
+      if (stack.offsetWidth) f.destination = { x: stack.offsetLeft + stack.offsetWidth / 2, y: stack.offsetTop + stack.offsetHeight / 2 };
       f.control = { x: (f.origin.x + f.destination.x) / 2 + 55, y: Math.min(f.origin.y, f.destination.y) - 35 };
       f.node.querySelector('b').textContent = '+' + format(f.damage); f.node.querySelector('em').textContent = f.points ? '+' + f.points + ' pt' : '';
       f.node.hidden = false; hit.hidden = true;
@@ -148,7 +151,7 @@
       if (age >= toastDuration || age < 0) { toast.hidden = true; return; }
       const scale = reduced ? 1 : age < .12 ? .9 + age / .12 * .135 : 1.035 - Math.min(1, (age - .12) / .12) * .035;
       toast.style.opacity = Math.min(age / .07, (toastDuration - age) / .22, 1);
-      toast.style.transform = `translate(-50%,${reduced ? 0 : Math.max(0, age / toastDuration - .75) * -15}px) scale(${scale})`;
+      toast.style.transform = `translateY(${reduced ? 0 : Math.max(0, age / toastDuration - .75) * -15}px) scale(${scale})`;
     }
     function step(dt) {
       if (!visible || !isPlaying()) return;
@@ -190,7 +193,7 @@
         else if (fill < 1) chip.dataset.full = 'false';
       });
       award.hidden = at - awardAt >= 1.2;
-      if (!award.hidden) { const age = at - awardAt; award.style.opacity = Math.min(age / .07, (1.2 - age) / .22, 1); award.style.transform = `translateX(-50%) scale(${reduced ? 1 : 1 + .06 * Math.sin(Math.min(1, age / .24) * Math.PI)})`; }
+      if (!award.hidden) { const age = at - awardAt; award.style.opacity = Math.min(age / .07, (1.2 - age) / .22, 1); award.style.transform = `scale(${reduced ? 1 : 1 + .06 * Math.sin(Math.min(1, age / .24) * Math.PI)})`; }
       if (!toast.hidden) paintEvent(at);
     }
     document.addEventListener('visibilitychange', () => { if (document.hidden) { setActive(false); } });

@@ -78,21 +78,26 @@ window.addEventListener('sky-walljump-layout-change', rebuildGuides);
 
 const style = document.createElement('style');
 style.textContent = `
-#wallrunGuide{position:absolute;left:50%;top:34%;transform:translateX(-50%);max-width:calc(100% - 48px);width:max-content;padding:8px 14px;border:1px solid #75ffe1;border-radius:8px;background:#082b29ed;color:#e1fff5;text-align:center;font:600 14px/1.5 var(--font);text-shadow:none;pointer-events:none}
-#wallrunGuide[hidden]{display:none}#wallrunGuide strong{display:block;color:#8fffe2;font-size:15px}#wallrunGuide[data-ready=true]{border-color:#ffdc79;background:#382a0bef}#wallrunGuide[data-ready=true] strong{color:#ffdc79}
+#wallrunGuide{position:absolute;left:50%;top:90px;transform:translateX(-50%);box-sizing:border-box;max-width:calc(100% - 300px);width:max-content;padding:3px 9px;border-left:2px solid #75ffe1;border-radius:4px;background:#082b29b3;color:#e1fff5;text-align:center;font:600 11px/1.5 var(--font);text-shadow:none;pointer-events:none;white-space:nowrap}
+#wallrunGuide[hidden]{display:none}#wallrunGuide strong{color:#8fffe2;font-size:11px;margin-right:8px}#wallrunGuide[data-ready=true]{border-color:#ffdc79;background:#382a0bd9}#wallrunGuide[data-ready=true] strong{color:#ffdc79}
 #hud:has(#wallrunGuide:not([hidden])) .hint{opacity:0}
-@media(max-height:500px){#wallrunGuide{top:30%;font-size:11px;padding:5px 10px;max-width:calc(100% - 300px)}#wallrunGuide strong{font-size:13px}}
+@media(max-width:700px){#wallrunGuide{font-size:10px}#wallrunGuide strong{font-size:10px;margin-right:5px}}
 `;
 document.head.appendChild(style);
 const hint = document.createElement('div'); hint.id = 'wallrunGuide'; hint.hidden = true;
 const title = document.createElement('strong'), instruction = document.createElement('span');
 hint.append(title, instruction); document.getElementById('hud').appendChild(hint);
 const look = new T.Vector3();
+const seen = new Set();
+let shownRoute = null, shownAt = 0, lastTime = 0;
 const getWall = (x, y, zz) => game.solids.find(wall => !wall.off && wall.type === 'mono' && wall.wr !== false
   && x > wall.minX && x < wall.maxX && y > wall.minY && y < wall.maxY && zz > wall.minZ && zz < wall.maxZ && wall.maxY - c.pos.y > 1.6);
 
 function update() {
   root.visible = sky.modeRef() === 'play' && !z.over;
+  // Explain each route briefly once per run; the actionable jump cue stays live.
+  if (z.t < lastTime || sky.modeRef() === 'menu') { seen.clear(); shownRoute = null; }
+  lastTime = z.t;
   for (const guide of guides)
     guide.band.visible = guide.launch.visible = !!window.__skyCanWallRunOnFace?.(guide.wall, guide.normal);
   hint.hidden = true;
@@ -120,9 +125,13 @@ function update() {
     if (d < distance) { nearest = guide; distance = d; }
   }
   if (!nearest) return;
+  if (!ready) {
+    if (!seen.has(nearest.name)) { seen.add(nearest.name); shownRoute = nearest.name; shownAt = z.t; }
+    if (shownRoute !== nearest.name || z.t - shownAt > 2.4) return;
+  }
   const touch = document.documentElement.classList.contains('touch');
-  title.textContent = ready ? '今ジャンプ！ ショートカット' : `${nearest.name} · 壁走りショートカット`;
-  instruction.textContent = ready ? (touch ? '「ジャンプ」をタップ' : 'Space で壁ジャンプ') : '青緑の矢印に沿って壁走り → 金枠の JUMP で跳ぶ';
+  title.textContent = ready ? '今ジャンプ！' : '壁走り';
+  instruction.textContent = ready ? (touch ? '「ジャンプ」をタップ' : 'Space で壁ジャンプ') : '矢印に沿う → 金枠でジャンプ';
   hint.dataset.ready = String(!!ready); hint.hidden = false;
 }
 window.skyWallRunGuides = { root, routes: guides, update };
