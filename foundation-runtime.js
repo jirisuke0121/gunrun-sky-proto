@@ -98,6 +98,14 @@ window.skyFoundation = {
     if (mode === 'pause') { round?.metrics.sample(NaN, false); round?.monitor.sample(NaN, false, false); }
   },
   finishRound,
+  // The intro run's result screen asks the same question as the home dialog; one answer settles both.
+  qualityAdvice() { return { heavy: !!suggestion && window.skyRenderQuality?.revision === suggestion.revision }; },
+  answerQualityAdvice(accept) {
+    const value = suggestion; if (!value) return; suggestion = null;
+    if (window.skyRenderQuality?.revision !== value.revision) return;
+    if (accept) window.skyRenderQuality.select('performance');
+    markQualityChecked();
+  },
   resetQualityCheck() { qualityChecked = false; suggestion = null; try { localStorage.removeItem(CHECK_KEY); } catch {} },
   performance() { return finished ? { ...finished } : null; },
 };
