@@ -47,6 +47,8 @@ fs.mkdirSync('browser-evidence',{recursive:true});
      const fx=window.__gunFx.shot;window.__gunFx.shot=(m,...args)=>{window.__aimTracer=m.toArray();return fx(m,...args);};
      window.__aimCase=({weapon=0,pitch=0,yaw=0,state='normal',auto=false})=>{
       window.__gunFx.step(10); // Isolate the current shot in review images.
+      // Each pose is an independent first shot, including its recoil state.
+      window.skyGunRecoil?.reset();
       g.S.weapon=weapon;g.S.aimAuto=auto;sky.Et.ammo=40;sky.Et.reloadT=0;sky.Et.fireCD=0;sky.Et.flashT=0;
       c.pos.set(0,200,0);c.vel.set(0,state==='air'?2:0,state==='run'?-6:0);c.camY=201.62;c.eye=1.62;c.yaw=yaw;c.pitch=pitch;c.roll=0;c.shake=0;c.landDip=0;
       c.state=state==='slide'?'slide':'normal';c.slideT=.4;c.onGround=state!=='air';

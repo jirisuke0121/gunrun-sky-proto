@@ -5,6 +5,17 @@
   --hud-shadow:0 1px 2px #000,1px 0 1px #000;
 }
 #hud{color:var(--hud-ink);text-shadow:var(--hud-shadow);transition:opacity .2s}
+/* Recoil widens the aim cue without shaking the traversal camera. */
+#hud .cross::after{
+  content:"";position:absolute;left:50%;top:50%;box-sizing:border-box;
+  width:calc(12px + var(--gun-bloom,0px)*2);height:calc(12px + var(--gun-bloom,0px)*2);
+  transform:translate(-50%,-50%);border:1px solid #fff9;border-radius:50%;
+  opacity:var(--gun-heat,0);pointer-events:none;
+}
+#lockMk{
+  width:calc(34px + var(--gun-bloom,0px)*2);height:calc(34px + var(--gun-bloom,0px)*2);
+  margin:calc(-17px - var(--gun-bloom,0px)) 0 0 calc(-17px - var(--gun-bloom,0px));
+}
 .hud-tl,.unity-challenge-score .hud-tl{
   top:12px;box-sizing:border-box;padding:5px 9px;max-width:none;
   font-size:12px;line-height:1.6;font-variant-numeric:tabular-nums;

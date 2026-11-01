@@ -1,4 +1,5 @@
 import { installRunRecords } from './run-records.js?v=20261101-fixed-v1';
+import { createGunRecoil } from './gun-recoil.js?v=20261101-recoil-v1';
 import { createSwing } from './parkour-swing.js?v=20261031-grip-v1';
 import { installRanking } from './ranking.js?v=20261101-shared-score-v1';
 import { createFlashbang } from './flashbang.js?v=20261031-no-point-lights-v1';
@@ -31,6 +32,7 @@ if (knifeRule) {
     'HGで開始。SG・SMG・MGはステージ内の補給箱で取得する',
   );
   knifeRule.insertAdjacentHTML('afterend', '<li>銃は射線が通る近い敵を自動で狙って撃ち、弾切れ時は自動装填。「自動射撃を停止／再開」または <kbd>X</kbd> で弾を温存。HGで開始。SG・SMG・MGは10秒ごとに屋根・上層へ補給される（最大5個）</li>' +
+    '<li>連射すると弾がブレる。HG・SMG・MGの自動射撃は近距離で連射、中距離で短い連射、遠距離で単発に切り替わる。少し休むと精度が戻る。</li>' +
     '<li>技（スライド・壁走り・縁つかみ・はしご・ジップライン・フック）を3回決めると閃光弾+1（最大2個）</li>' +
     '<li>少し高い壁に走って跳ぶと、壁を蹴って駆け上がる。日よけ布に落ちると大きく跳ねる</li>' +
     '<li><kbd>H</kbd> 自己ベストのときの走りを青い人影（ゴースト）で表示・非表示</li>');
@@ -53,6 +55,7 @@ try {
   }
 } catch {}
 const { Box, Cylinder, Torus, Sphere, Mesh, Group, Standard, Basic, Vector3 } = Geom;
+window.skyGunRecoil = createGunRecoil(game);
 window.skyDash = createDash(game, window.__game);
 window.skySwing = createSwing(game, window.__game, window.skySwingCourse || window.skyOldTownSwingCourse);
 const easyPort = createEasyWeaponPort(game);
