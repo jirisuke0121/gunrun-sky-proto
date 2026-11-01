@@ -40,7 +40,9 @@ async function verify(){
   const collisions=['bSettings','ammoBox','tJump','tAutoFire','skillDock','unityScoreHud'].filter(id=>{const e=d.getElementById(id);if(!e||e.hidden||!e.getClientRects().length)return false;return overlap(r,e.getBoundingClientRect())>1;});
   assert(collisions.length===0,`HUD overlap: ${map}/${layout}: ${collisions} ${JSON.stringify({map:r.toJSON(),items:collisions.map(id=>({id,rect:d.getElementById(id).getBoundingClientRect().toJSON()}))})}`);
   assert(r.left>=-1&&r.top>=-1&&r.right<=w.innerWidth+1&&r.bottom<=w.innerHeight+1,'map inside rotated viewport');
-  hud.click();assert(g.mode==='pause'&&d.getElementById('skyMapDialog').open,'open pauses game');
+  assert(w.getComputedStyle(hud).pointerEvents==='none','radar leaves pointer/touch input to the game');
+  const hit=d.elementFromPoint((r.left+r.right)/2,(r.top+r.bottom)/2);assert(!hud.contains(hit),'camera drag passes through the actual radar area');
+  w.dispatchEvent(new w.KeyboardEvent('keydown',{code:'KeyM',key:'m',bubbles:true}));assert(g.mode==='pause'&&d.getElementById('skyMapDialog').open,'M opens and pauses game');
   const frozen=g.GAME.t;g.frameOnce(.2);assert(g.GAME.t===frozen,'map freezes game clock');
   const select=d.getElementById('skyMapLevel');select.value=String(initial.levels.at(-1));select.dispatchEvent(new w.Event('change'));assert(snapshot(w).selectedLevel===initial.levels.at(-1),'manual height layer');
   d.getElementById('skyMapClose').click();assert(g.mode==='pause','closing map stays paused');
@@ -68,7 +70,7 @@ async function verify(){
   assert(Number(d.getElementById('unityKills').textContent)===earned.kills,'nonzero kill count reaches existing HUD');
   g.setMode('pause');d.getElementById('bRestart').click();assert(snapshot(w).visible,'restart');
   assert(w.__externalPosts===0,'no external result/telemetry writes');assert(w.__errors.length===0,w.__errors.join(';'));
-  results.push({map,layout,passed:true,boxes:initial.boxes,levels:initial.levels,cacheBytes:initial.cachedBytes,bakeMs:initial.bakeMs,overlap:collisions,localSpan:40,unityCircularHeadingUp:true,scoreHudPreserved:true,nonzeroScoreHud:true,threatHudRemoved:true,playerCentredAtMapEdge:true,nearbyEnemies:true,heightMarkers:true,offSkipsWork:true,externalPosts:w.__externalPosts,errors:w.__errors});
+  results.push({map,layout,passed:true,boxes:initial.boxes,levels:initial.levels,cacheBytes:initial.cachedBytes,bakeMs:initial.bakeMs,overlap:collisions,localSpan:40,unityCircularHeadingUp:true,scoreHudPreserved:true,nonzeroScoreHud:true,threatHudRemoved:true,radarInputPassThrough:true,playerCentredAtMapEdge:true,nearbyEnemies:true,heightMarkers:true,offSkipsWork:true,externalPosts:w.__externalPosts,errors:w.__errors});
   output.textContent=JSON.stringify({partial:true,results},null,2);
  }
  return {kind:'functional',passed:results.length===8,results};

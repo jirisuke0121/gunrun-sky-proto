@@ -1,4 +1,4 @@
-import { installMinimap } from './minimap.js?v=20261101-unity-radar-v3';
+import { installMinimap } from './minimap.js?v=20261101-unity-radar-v4';
 import { installRunRecords } from './run-records.js?v=20261101-fixed-v1';
 import { createGunRecoil } from './gun-recoil.js?v=20261101-recoil-v1';
 import { createSwing } from './parkour-swing.js?v=20261031-grip-v1';

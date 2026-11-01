@@ -12,7 +12,7 @@ The optional paused full map stays north-up and shows the whole stage and all en
 similar elevation; up/down triangles mean more than 2m above/below the player.
 Corpses disappear. Spawning, stunned and climbing enemies remain visible.
 
-Click/tap the map or press M to pause and open the full map. Choose a 4m height
+Use the pause menu or press M to open the full map. The radar itself passes pointer/touch input through to camera controls. Choose a 4m height
 band, or follow the player's current height. Closing the map, including Escape,
 keeps the game paused. Resume is explicit. Pause settings include a persistent
 minimap on/off switch and a full-map button. Japanese and English are supported.
@@ -72,3 +72,5 @@ causal FPS gain. It is not physical iPhone, sustained thermal or human-play QA.
 and screenshot. The `Minimap terrain and nearby enemies` workflow runs this check.
 
 The v11 scoring integration uses survival-score.js and removes the obsolete threat HUD. The timer, kills, total and full result breakdown remain visible.
+
+The release checks caught a portrait touch regression: the second finger started on the radar and its pointer handlers swallowed camera motion. The radar is now a non-interactive HUD image; full-map controls remain in the menu and on M. The existing six touch layouts and the eight minimap layouts verify this integration.

@@ -13,9 +13,9 @@ export function installMinimap(game, publicGame) {
   const layerName = n => `${n}–${n+LEVEL_HEIGHT}m`;
   const canvas = (local=false) => { const c=doc.createElement('canvas');c.width=local?LOCAL_MAP_SIZE:model.pixelWidth;c.height=local?LOCAL_MAP_SIZE:model.pixelHeight;return c; };
   const staticCanvas = canvas(true), markersCanvas = canvas(true);
-  const small = doc.createElement('button');
-  small.type = 'button'; small.id = 'skyMinimap'; small.hidden = true;
-  small.setAttribute('aria-label',tr('周辺20mのレーダー。上が前方。タップで全体地図（一時停止）','Nearby radar: 20m radius, forward up. Open full map (pauses game)'));
+  const small = doc.createElement('div');
+  small.setAttribute('role','img'); small.id = 'skyMinimap'; small.hidden = true;
+  small.setAttribute('aria-label',tr('周辺20mのレーダー。上が前方。全体地図はメニューまたはMキーから','Nearby radar: 20m radius, forward up. Full map: menu or M key'));
   const title = doc.createElement('span'); title.className='mm-heading';
   const caption = doc.createElement('span'); caption.className='mm-caption';
   const mapArea = doc.createElement('span');mapArea.className='mm-canvas';
@@ -152,8 +152,8 @@ export function installMinimap(game, publicGame) {
     if(game.modeRef()==='play')game.An('pause');
     select.value='auto';dialog.showModal();frame(performance.now(),true);dialog.querySelector('button').focus();
   }
-  small.addEventListener('click',openMap);controls.querySelector('button').addEventListener('click',openMap);
-  for(const target of [small,controls,dialog])for(const event of ['pointerdown','pointerup','pointermove','click','contextmenu'])target.addEventListener(event,e=>e.stopPropagation());
+  controls.querySelector('button').addEventListener('click',openMap);
+  for(const target of [controls,dialog])for(const event of ['pointerdown','pointerup','pointermove','click','contextmenu'])target.addEventListener(event,e=>e.stopPropagation());
   dialog.querySelector('#skyMapClose').addEventListener('click',()=>dialog.close());
   dialog.addEventListener('cancel',e=>{e.preventDefault();dialog.close();});
   dialog.addEventListener('close',()=>{if(game.modeRef()==='pause')doc.getElementById('bResume').focus();});
