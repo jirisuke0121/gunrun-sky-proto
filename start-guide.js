@@ -10,7 +10,7 @@
   card.hidden = true;
   card.setAttribute('role', 'status');
   card.innerHTML = '<p class="sgGoal">2分間、ゾンビから逃げ切れ</p>' +
-    '<p class="sgKeys sgDesktop"><kbd>W A S D</kbd> 移動　<kbd>Space</kbd> ジャンプ　<kbd>マウス</kbd> 視点</p>' +
+    '<p class="sgKeys sgDesktop"><span class="keysAfter"><kbd>W</kbd><kbd>S</kbd> 前後　<kbd>A</kbd><kbd>D</kbd> 曲がる　</span><span class="keysBefore"><kbd>W A S D</kbd> 移動　</span><kbd>Space</kbd> ジャンプ　<kbd>マウス</kbd> 見回す</p>' +
     '<p class="sgKeys sgTouch">左ドラッグ 移動　右ドラッグ 視点　「ジャンプ」で跳ぶ</p>' +
     '<p class="sgTip">隙間や段差を跳んで、ゾンビを引き離そう</p>';
   (document.getElementById('hud') || document.body).append(card);

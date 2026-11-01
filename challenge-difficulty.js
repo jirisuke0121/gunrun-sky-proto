@@ -26,7 +26,7 @@
   let selected = 'normal';
   try {
     const saved = localStorage.getItem(storage);
-    if (levels.some(p => p.id === saved)) selected = saved;
+    if (levels.some(p => p.id === saved) && (saved !== 'legacy' || window.skyDevMode)) selected = saved;
     else if (['expert', 'master', 'ultra'].includes(saved)) selected = 'hard';
   } catch {}
   let lastPreset = selected === 'legacy' ? 'normal' : selected;
@@ -112,7 +112,7 @@
       ? `${p.note}。ライフ${p.unlimited ? '無限（ランキング対象外）' : p.lives}。群れの上限 ${p.counts.join(' → ')}体、体力 ${p.health}（HGで${p.health}発）、通常追跡 ${range(p).start.toFixed(1)} → ${range(p).end.toFixed(1)}m/s。死体を含め表示は最大${maxAlive}体。引き離しても追跡は続きます。`
       : 'メニューのゾンビ調整値を使います。6体の表示制限は対象外で、数を増やすほど負荷も増えます。これまでの記録はこちら。';
     document.getElementById('challengeSettingsNote').textContent = preset
-      ? `${p.name}：移動・戦闘の条件は固定です。得点倍率はイージー×1.0・ノーマル×1.1・ハード×1.2。全難易度のスコアを同じランキングで競います。カメラ・音量・画質は変更できます。個別に調整する場合はホームの詳細設定で「自由調整」を有効にします。`
+      ? `${p.name}：移動・戦闘の条件は固定です。得点倍率はイージー×1.0・ノーマル×1.1・ハード×1.2。全難易度のスコアを同じランキングで競います。カメラ・感度・音量・画質は変更できます。${window.skyDevMode ? '個別に調整する場合はホームの詳細設定で「自由調整」を有効にします。' : ''}`
       : '自由調整：ゾンビ数・体力・速さ・追跡者を個別に調整できます。';
     for (const name of [...owned, ...fixedKeys]) {
       const input = document.getElementById('s_' + name) || document.getElementById('t_' + name);

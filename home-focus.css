@@ -28,3 +28,10 @@ html.touch #homeHero .homeKeysDesktop{display:none}
   #homeHero .homeRules{font-size:12px;gap:2px}
   #homeHero #bStart{padding:12px;font-size:16px}
 }
+#homeHero #homeSettings{width:100%;padding:10px;font-size:14px}
+/* Tuning tools are for the developer only (?dev=1). */
+html:not(.dev) .challenge-select details,html:not(.dev) .map-select{display:none}
+/* Keys line follows the camera mode (auto-follow is the default). */
+.keysBefore{display:none}
+body[data-sky-camera-mode="before"] .keysBefore{display:inline}
+body[data-sky-camera-mode="before"] .keysAfter{display:none}

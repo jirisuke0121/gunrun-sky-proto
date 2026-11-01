@@ -10,3 +10,4 @@ html.touch #ovPause .pauseKeysTouch{display:block}
 #pauseAdvanced{border-top:1px solid #cdbf9c;padding-top:8px}
 #pauseAdvanced>summary{cursor:pointer;font-weight:700;font-size:13px;padding:6px 0;color:var(--dim)}
 #pauseAdvanced #setGrid{margin-top:8px}
+#pauseBasic #bReset{grid-column:1 / -1;justify-self:start}
