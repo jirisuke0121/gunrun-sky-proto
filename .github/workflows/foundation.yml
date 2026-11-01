@@ -1,0 +1,43 @@
+name: Minimal runtime foundation
+on:
+  pull_request:
+    paths: ['foundation-*.js', 'auto-resolution-monitor.js', 'render-quality.js', 'owner.*', 'server/telemetry*', 'server/worker.js', 'index.html', 'canyon.html', 'bench/foundation*', '.github/workflows/foundation.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Policy, API and existing record contracts
+        run: |
+          node bench/foundation.test.cjs
+          node bench/record-integrity.test.cjs
+          node bench/shared-score.test.cjs
+          node bench/ranked-ghost.test.cjs
+          node bench/start-readiness.test.cjs
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Both maps and authenticated owner screen
+        run: node bench/foundation-browser.cjs
+      - name: Cold loading and normal intro retry transitions
+        run: node bench/start-readiness-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: minimal-foundation-evidence
+          path: |
+            browser-evidence/foundation/
+            browser-evidence/start-readiness/
+          retention-days: 7

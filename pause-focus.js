@@ -43,7 +43,7 @@
     $('s_volume')?.closest('.sl'),
     $('s_fov')?.closest('.sl'),
     $('s_renderScale')?.closest('.sl'),
-    $('settingsRenderQuality'),
+    $('settingsRenderQuality')?.closest('.sky-quality-control') || $('settingsRenderQuality'),
     $('t_invertY')?.closest('label.tg'),
     $('t_aimAuto')?.closest('label.tg'),
     $('t_autoFire')?.closest('label.tg'),
