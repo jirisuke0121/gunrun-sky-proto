@@ -22,7 +22,7 @@
  "練習・スポット・ランキング・ルール": "Practice · Spots · Ranking · Rules",
  "左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ": "Drag left to move · Drag right to look · Tap to jump",
  "2分間の逃走をクリア": "Survived the full two minutes",
- "自己ベスト更新": "New personal best",
+ "自己ベスト更新": "New best",
  "生存点 ＋ 撃破点": "Survival + kills",
  "スコア内訳": "Score breakdown",
  "生存": "Survival",
@@ -385,6 +385,7 @@
  "橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連、左は柱の縁へ。⑤南の踊り場は鉄棒1本、⑥北バルコニーは鉄棒2本で西の角の縁へ渡り、西の通りや既存の屋根フックへ。⑦は東塔の足元から西のフックで既存の梁へ、⑧は北の下段から鉄棒で東側通路へ": "From an orange bar, take an escape branch. ② south air branch, ③ warehouse upper corridor. ④ straight from the first bar is a triple, left goes to the pillar edge. ⑤ south dance floor has one bar, ⑥ north balcony crosses two bars to the west corner edge, then to the west street or the existing roof hook. ⑦ from the east tower base, the west hook to the existing beam; ⑧ from the north lower tier, a bar to the east corridor"
 };
   const patterns = [
+  [/^難易度 (.+)$/, (m,d) => `Difficulty: ${tr(d)}`],
   [/^あと([\d.]+)秒で逃げ切り$/, '$1 s from escaping'],
   [/^生存 ([\d.]+)秒 ／ 撃破 (\d+)体$/, 'Survived $1 s / $2 kills'],
   [/^難易度ボーナス ×([\d.]+)（\+(\d+)%）$/, 'Difficulty bonus ×$1 (+$2%)'],
