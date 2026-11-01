@@ -18,7 +18,7 @@ for (const file of ['canyon.html', 'index.html']) {
   const near = new Float32Array(5), long = new Float32Array(5);
   let searches = 0;
   const context = vm.createContext({
-    lt: { E: edges }, Vi: 5, ce: 0, c: player, Vn: near, Ld: long,
+    lt: { E: edges }, Vi: 5, ce: 0, c: player, Vn: near, Ld: long, indoorAccess: { revision: 0 },
     dn: (x) => Math.floor(x), oo: () => 1, Pd: () => 2,
     so: (starts, cost, limit, field) => {
       searches++;
@@ -57,5 +57,12 @@ for (const file of ['canyon.html', 'index.html']) {
   vm.runInContext('pathFieldKey=null', context);
   go();
   assert.equal(searches, 14, `${file}: restart forces a fresh field`);
+  if (!canyon) {
+    context.indoorAccess.revision++; go();
+    assert.equal(searches, 16, 'human entry refreshes both fields even when the player target and doors stay the same');
+    go(); assert.equal(searches, 16, 'unchanged indoor access reuses the fields');
+    context.indoorAccess.revision++; go();
+    assert.equal(searches, 18, 'resetting indoor access invalidates both fields');
+  }
   console.log(`${file}: nav refresh cases passed`);
 }
