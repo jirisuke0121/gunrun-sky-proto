@@ -43,6 +43,7 @@ fs.mkdirSync(out,{recursive:true});
    await page.setViewportSize(touch?{width:812,height:375}:{width:1200,height:700});assert.equal((await snapshot()).pixelRatio,high.pixelRatio);
    await click('#bRestart');assert.equal((await snapshot()).pixelRatio,.7);
    await click('#bSettings');await click('#bMenu');await page.waitForFunction(()=>__game.mode==='menu');
+   if(await page.locator('#homeMore').count())await page.locator('#homeMore > summary').click();
    await page.locator('#homeRenderQuality').selectOption('high');await click('#bStart');
    // Controlled timestamps validate decision/transition wiring, not device FPS.
    await page.evaluate(()=>{for(let i=0;i<=800;i++)skyFoundation.frame(i*25,true)});
@@ -53,7 +54,9 @@ fs.mkdirSync(out,{recursive:true});
    await page.screenshot({path:path.join(out,map+'-suggestion.png')});
    await click('#qualityKeep');assert.equal((await snapshot()).selectedMode,'high');
    assert.equal(await page.evaluate(()=>localStorage.getItem('gunrun-quality-check-v1')),'done');
-   await click('#bSettings');await click('#bReset');await click('#bResume');
+   await click('#bSettings');
+   if(await page.locator('#pauseAdvanced').isVisible())await page.locator('#pauseAdvanced > summary').click();
+   await click('#bReset');await click('#bResume');
    await click('#bIntro');assert.equal(await page.evaluate(()=>skyChallenge.isIntroRun),true);
    await page.evaluate(()=>{for(let i=0;i<=800;i++)skyFoundation.frame(i*25,true)});
    await click('#bSettings');await click('#bMenu');await page.waitForSelector('#qualitySuggestion[open]');

@@ -1,0 +1,13 @@
+/* Pause screen: buttons and the few player settings come first; tuning sliders are folded. */
+#ovPause .pauseKeys{margin:0;font-size:12px;line-height:1.8}
+#ovPause .pauseKeys b{margin-right:.3em;color:var(--dim)}
+#ovPause .pauseKeysTouch{display:none}
+html.touch #ovPause .pauseKeysDesktop{display:none}
+html.touch #ovPause .pauseKeysTouch{display:block}
+#pauseBasic{max-height:none;overflow:visible}
+#pauseBasic>h4{grid-column:1 / -1;margin:0;font-size:12px;letter-spacing:.1em;color:var(--dim)}
+#pauseBasic .follow-camera-settings .note{display:none}
+#pauseAdvanced{border-top:1px solid #cdbf9c;padding-top:8px}
+#pauseAdvanced>summary{cursor:pointer;font-weight:700;font-size:13px;padding:6px 0;color:var(--dim)}
+#pauseAdvanced #setGrid{margin-top:8px}
+#pauseBasic #bReset{grid-column:1 / -1;justify-self:start}

@@ -14,6 +14,7 @@ const fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=req
   await page.evaluate(()=>{let initialSeed=20261030;Math.random=()=>((initialSeed=(Math.imul(initialSeed,1664525)+1013904223)>>>0)/4294967296);});
   // This audits accessible terrain with pursuit pressure, not challenge completion.
   // Pin the beginner preset rather than inheriting the newly harder Normal.
+  if(await page.locator('#homeMore').count())await page.locator('#homeMore > summary').click();
   await page.locator('#challengeDifficulty').selectOption('easy');
   await page.locator('#bStart').click();
   const result=await page.evaluate(({map,touch})=>{

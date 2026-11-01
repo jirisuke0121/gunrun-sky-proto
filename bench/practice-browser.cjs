@@ -10,6 +10,7 @@ const base=process.env.RUNNING_QA_URL||'http://127.0.0.1:8778/';
   const p=await ctx.newPage();p.on('pageerror',e=>errors.push(e.message));
   await p.route('https://**/*',r=>{if(r.request().method()==='POST')posts.push(r.request().url());return r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'});});
   await p.goto(base+'index.html');await p.waitForFunction(()=>window.skyHumanView&&window.skySwing);
+  if(await p.locator('#homeMore').count())await p.locator('#homeMore > summary').click();
   await p.getByRole('link',{name:'鉄棒から試す',exact:true}).click();
   await p.waitForFunction(()=>window.skyPractice&&__game.mode==='play',null,{timeout:90000});
   console.log('practice loaded',touch?'touch':'desktop');
