@@ -78,6 +78,6 @@ for(const file of ['index.html','canyon.html']) {
  hurt.call(target,1,1,0,0,0);hurt.call(target,99,1,0,0,0);hurt.call(target,99,1,0,0,0);
  assert.deepEqual(effects,[1,3,'kill'],file+': only actual health removed earns damage');
  target.dead=false;target.stalker=true;hurt.call(target,99,1,0,0,0);assert.equal(effects.at(-1),'immune');
- assert.equal(html.match(/z.t\+=n;window.skyFlashbang\?\.tick\(n\);window.skyChallengeScore.step\(n\)/g)?.length,file==='canyon.html'?2:1);
+ assert.equal(html.match(/z.t\+=n;(?:indoorAccess.observe\(c.pos\);)?window.skyFlashbang\?\.tick\(n\);window.skyChallengeScore.step\(n\)/g)?.length,file==='canyon.html'?2:1);
 }
 console.log('PASS actual bundled damage/kill hooks, overkill cap, dead/immune targets, shared simulation clock on both maps');
