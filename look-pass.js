@@ -1,14 +1,23 @@
-// Look pass: cool blue sky and haze so distant pillars separate from the sand-coloured foreground.
-// Colour only: no new meshes, lights or textures, so draw calls do not change.
-//   (default)       sky + haze
-//   ?look=classic   the previous all-beige look, for comparison
-//   ?look=district  EXPERIMENTAL: also tints the world per district with vertex colours.
-//                   On some loads the tinted world renders black (reproduced in a software renderer),
-//                   so it is off by default until that is understood.
+// Look pass: cool blue sky and haze so distant pillars separate from the sand-coloured foreground,
+// and a gentle colour shift per district (west brick, east slate-teal, north moss, south dusty rose)
+// so the player can tell where they are. Colour only: no new meshes, lights or textures, so draw
+// calls do not change.
+//   (default)        sky + haze + district colours
+//   ?look=sky        sky + haze only
+//   ?look=classic    the previous all-beige look, for comparison
+//
+// Why the world gets NEW geometry objects instead of a new attribute on the existing ones:
+// three.js creates a GPU buffer for an attribute only when it runs its once-per-frame update for
+// that geometry. That update can be skipped for a frame (this game refreshes the shadow map only
+// every other frame, and the main pass skips geometries the previous shadow pass already updated).
+// If a geometry that has already been drawn gets a "color" attribute in such a frame, its vertex-array
+// state is built WITHOUT the colour buffer and then cached as up to date, so the shader reads the
+// default colour (0,0,0) and the surface is drawn black for good. A geometry that has never been drawn
+// always gets its buffers before its first draw, so we hand the renderer fresh geometry objects.
 (() => {
   const mode = new URLSearchParams(location.search).get('look');
   if (mode === 'classic') { window.skyLook = 'classic'; return; }
-  window.skyLook = mode === 'district' ? 'district' : 'sky';
+  window.skyLook = mode === 'sky' ? 'sky' : 'district';
 
   const HAZE = 0xbcd2e4, SKY_TOP = 0x6f9fd6, SKY_LOW = 0xa9bccb;
   const NAMES = new Set(['Merged static world', 'Merged static material groups']);
@@ -63,26 +72,30 @@
     }
     const cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2;
     const hx = Math.max(10, (maxX - minX) / 2), hz = Math.max(10, (maxZ - minZ) / 2);
-    const clones = new Map(), hsl = { h: 0, s: 0, l: 0 };
+    const clones = new Map(), replaced = [], hsl = { h: 0, s: 0, l: 0 };
     let tinted = 0;
     for (const mesh of meshes) {
       const material = mesh.material;
       if (!material || Array.isArray(material) || !material.color || material.transparent || material.vertexColors) continue;
       material.color.getHSL(hsl);
       if (hsl.s > 0.5) continue; // bright accent colours (route cues) keep their colour
-      const position = mesh.geometry.attributes.position, Attribute = position.constructor;
+      const original = mesh.geometry, position = original.attributes.position, Attribute = position.constructor;
       const colors = new Float32Array(position.count * 3);
       for (let i = 0; i < position.count; i++) {
         const u = clamp((position.getX(i) - cx) / hx, -1, 1), v = clamp((position.getZ(i) - cz) / hz, -1, 1);
         const [r, g, b] = districtTint(u, v);
         colors[i * 3] = r; colors[i * 3 + 1] = g; colors[i * 3 + 2] = b;
       }
-      mesh.geometry.setAttribute('color', new Attribute(colors, 3));
+      const geometry = original.clone(); // a new object the renderer has never seen (see the note at the top)
+      geometry.setAttribute('color', new Attribute(colors, 3));
       let clone = clones.get(material.uuid);
       if (!clone) { clone = material.clone(); clone.vertexColors = true; clone.needsUpdate = true; clones.set(material.uuid, clone); }
+      mesh.geometry = geometry;
       mesh.material = clone;
+      replaced.push(original);
       tinted++;
     }
+    for (const original of replaced) original.dispose(); // free the old GPU copies
     return tinted;
   }
 
