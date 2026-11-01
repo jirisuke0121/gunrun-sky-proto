@@ -21,7 +21,7 @@
   }
   function current() {
     if (frozen) return frozen;
-    const time = Math.min(window.__game.RUN_LEN, game.z.t), kills = window.__game.stats.kills, difficulty = level();
+    const time = Math.min(window.__game.RUN_LEN, game.z.t), kills = window.__game.stats.kills ?? 0, difficulty = level();
     if (cachedScore && time === cachedTime && kills === cachedKills && difficulty === cachedLevel) return cachedScore;
     cachedTime = time; cachedKills = kills; cachedLevel = difficulty;
     return cachedScore = evaluate(time, kills, difficulty);
