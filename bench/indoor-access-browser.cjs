@@ -16,7 +16,8 @@ const out = 'outputs/indoor-entry'; fs.mkdirSync(out, { recursive: true });
     for (const touch of [false, true]) for (const map of ['index.html', 'canyon.html']) {
       const context = await browser.newContext({ locale: 'ja-JP', viewport: touch ? { width: 844, height: 390 } : { width: 1280, height: 720 }, hasTouch: touch, isMobile: touch });
       await context.addInitScript(() => window.__hold = true);
-      await context.route('https://**/*', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true,"top":[],"total":0}' }));
+      await context.route('**/*', r => new URL(r.request().url()).origin === new URL(base).origin ? r.continue() :
+        r.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true,"top":[],"total":0}' }));
       const page = await context.newPage(), errors = [];
       page.on('pageerror', e => errors.push(e.message));
       await page.goto(base + map, { waitUntil: 'domcontentloaded' });

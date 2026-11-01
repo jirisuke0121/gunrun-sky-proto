@@ -32,7 +32,7 @@ const fs = require('node:fs');
   assert.ok(source.includes('pointer-events:none'),'flash does not block controls');
   for (const file of ['index.html','canyon.html']) {
     const html = fs.readFileSync(file,'utf8');
-    assert.ok(html.includes('z.t+=n;window.skyFlashbang?.tick(n);'));
+    assert.match(html, /z\.t\+=n;(?:indoorAccess\.observe\(c\.pos\);)?window\.skyFlashbang\?\.tick\(n\);/);
     const start = html.lastIndexOf('function ol(');
     assert.ok(start>=0&&html.slice(start,start+250).includes('window.skyFlashbang?.reset();'));
     assert.ok(html.includes('window.skyFlashbang?.modeChanged(n)'));
