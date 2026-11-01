@@ -3,6 +3,10 @@
 (() => {
   const tr = text => window.skyI18n.tr(text);
   const exact = {
+ "ジャンプ弾": "Jump shot",
+ "ジャンプ弾を使う": "Use jump shot",
+ "ジャンプ弾取得！ Zキー・専用ボタンで使う": "Jump shot ready! Press Z or its button to use it",
+ "金色のJUMPはジャンプ弾を1発補給。通常武器を持ったまま、Zキー・ジャンプ弾ボタンで足元に発射して跳ぶ": "Gold JUMP pickups store one jump shot. Keep your usual weapon; press Z or the Jump shot button to fire at your feet and launch",
  "生存": "Survival",
  "生き残った時間と、有効ダメージ・撃破で得点。難易度ボーナスは反映済み。": "Earn points for survival time, effective damage and kills. The difficulty bonus is included.",
  "生存時間と戦闘の得点に難易度倍率を反映済み。各得点の端数は切り捨て。表示秒数は概数。": "Difficulty is included in survival and combat points. Each component rounds down; displayed time is approximate.",

@@ -38,7 +38,7 @@ const {chromium}=require('playwright'),{spawn}=require('child_process'),fs=requi
   const tapped=skyBlastBarrels.tapAt(rect.left+(v.x+1)*rect.width/2,rect.top+(1-v.y)*rect.height/2);mark('blast-fired:'+tapped);
   moveTo(-23,8.5,500);mark('blast-landing');
   moveTo(-27,5.8,400);g.keys.KeyW=false;for(let i=0;i<20;i++)tick();mark('jumpgun-pickup');
-  c.yaw=0;key('KeyE');g.keys.KeyW=true;
+  c.yaw=0;key('KeyZ');g.keys.KeyW=true;
   for(let i=0;i<300;i++){tick();if(c.onGround&&c.pos.y>7.9)break;}mark('jumpgun');g.keys.KeyW=false;for(let i=0;i<20;i++)tick();
   moveTo(-30,-16.4,400);moveTo(-30,-23.5,900);moveTo(-26,-23.5,400);moveTo(-26,-16,600);g.keys.KeyW=false;for(let i=0;i<120&&!c.onGround;i++)tick();mark('loop');
   return{stages,trace,falls:skyPractice.retries,time:g.GAME.t-runStart};
