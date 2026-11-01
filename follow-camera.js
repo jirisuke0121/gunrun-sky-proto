@@ -58,7 +58,9 @@
     if (!sideways) raw.strIn = analog && forward >= 0 ? x * clamp((.55 - magnitude) / .27, 0, 1) : 0;
     if (raw.reversePending) raw.fwdIn = raw.strIn = 0;
     raw.motionScale = analog ? clamp((Math.hypot(raw.fwdIn, raw.strIn) - .12) / .88, 0, 1) : 1;
-    raw.motionScale *= 1 - .75 * Math.pow(Math.abs(raw.steer), .8);
+    // Turning used to cut the pace by up to 75% because the player could slip off an edge. Edge assist now
+    // keeps normal walking on the surface, so a turn only trims the pace by up to 40% and keeps the run flowing.
+    raw.motionScale *= 1 - .4 * Math.pow(Math.abs(raw.steer), .8);
     raw.precise = analog || Math.abs(raw.steer) > .01;
     return raw;
   }
