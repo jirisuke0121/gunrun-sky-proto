@@ -105,6 +105,15 @@ function policyFixture(practice = false) {
   const previous=await get('/ranking?map=old-town&rules=corridor-shared-score-v9&mode=score&difficulty=all');
   assert.equal(previous.top[0].score,462);assert.equal(previous.top[0].stars,0);
 
+  const oldThreat=make('previous-threat','hard',99999);oldThreat.challenge.version='corridor-threat-score-v10';
+  oldThreat.score={scoring:'threat-survival-v1',elapsed:120,difficulty:1.2,pressureSeconds:10,damageUnits:4,kills:0,survival:1440,damage:9,kill:0,total:1449};
+  assert.equal((await post(oldThreat)).receipt.ranked,true,'cached v10 clients retain their own board during rollout');
+  const previousThreat=await get('/ranking?map=old-town&rules=corridor-threat-score-v10&mode=score&difficulty=all');
+  assert.equal(previousThreat.top[0].score,1449);assert.equal(previousThreat.top[0].stars,0);
+  assert.equal((await get('/ranking?'+scope)).top[0].score,18400,'v10 and v11 never mix');
+  oldThreat.clientRunId=crypto.randomUUID();oldThreat.score.pressureSeconds=999;
+  assert.equal((await post(oldThreat)).receipt.ranked,false,'old threat arithmetic is still validated');
+
   // Both movement-only fallback and a real recorder receipt keep the ranking scope/contract.
   assert.deepEqual(resultOnly(winner).challenge,winner.challenge);
   const storage=new Map();let requestedAll=false;
