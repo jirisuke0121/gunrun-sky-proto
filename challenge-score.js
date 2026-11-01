@@ -3,8 +3,7 @@
   const ids = ['easy', 'normal', 'hard'];
   const assets = './assets/challenge-score/';
   let game, frozen, previousMinute = -1, animation = 0, readyAt = 0, lastResult;
-  let tracker, hudKey = '', threatKey = '', pauseKey = '', hitAt = -Infinity, hitDamage = 0;
-  let hitUntil = 0, feedbackUntil = 0;
+  let tracker, fx, hudKey = '', threatKey = '', pauseKey = '';
   const $ = id => document.getElementById(id);
   const enabled = () => !!window.skyChallenge?.profile();
   const level = () => Math.max(0, ids.indexOf(window.skyChallenge.id));
@@ -16,41 +15,21 @@
     return evaluate(Math.min(window.__game.RUN_LEN, game.z.t), window.__game.stats.kills || 0,
       level(), tracker?.snapshot());
   }
-  function cue(escape) {
-    const ctx = game.Ut?.ctx, master = game.Ut?.master;
-    if (!ctx || ctx.state !== 'running' || !master) return;
-    const notes = escape ? [660, 990, 1320] : [880, 1320];
-    notes.forEach((hz, i) => {
-      const at = ctx.currentTime + i * .065, oscillator = ctx.createOscillator(), gain = ctx.createGain();
-      oscillator.type = 'sine'; oscillator.frequency.value = hz;
-      gain.gain.setValueAtTime(.0001, at); gain.gain.exponentialRampToValueAtTime(.065, at + .008);
-      gain.gain.exponentialRampToValueAtTime(.0001, at + .17);
-      oscillator.connect(gain); gain.connect(master); oscillator.start(at); oscillator.stop(at + .19);
-      oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
-    });
-  }
   function feedback(escape) {
     if (!playing()) return;
-    const e = $('threatFeedback'); if (!e) return;
-    e.dataset.kind = escape ? 'escape' : 'kill';
-    e.textContent = escape ? 'ESCAPED · 追手を引き離した' :
-      `KILL +${Math.round(100 * (1 + level() * .1))}`;
-    e.hidden = false; feedbackUntil = game.z.t + (escape ? 1.4 : .75);
-    cue(escape);
+    if (escape) fx.escaped();
+    else fx.kill(Math.round(100 * (1 + level() * .1)));
   }
   function step(dt) {
+    fx?.setActive(playing());
     if (!playing() || document.hidden) return;
-    tracker?.step(dt);
-    if ($('threatHit')) $('threatHit').hidden = game.z.t >= hitUntil;
-    if ($('threatFeedback')) $('threatFeedback').hidden = game.z.t >= feedbackUntil;
+    tracker?.step(dt); fx?.step(dt);
   }
-  function damaged(amount) {
+  function damaged(amount, position) {
     if (!playing() || !Number.isFinite(amount) || amount <= 0) return;
-    tracker?.damaged(amount); hitDamage += amount;
-    if (game.z.t - hitAt < .07) return;
-    hitAt = game.z.t; hitUntil = game.z.t + .22;
-    const e = $('threatHit'); if (!e) return;
-    e.textContent = `HIT ${Math.round(hitDamage * 10) / 10}`; e.hidden = false; hitDamage = 0;
+    const before = current().damage;
+    tracker?.damaged(amount);
+    fx?.damage(amount, current().damage - before, position);
   }
   const set = (id, value) => { const e = $(id); if (e && e.textContent !== String(value)) e.textContent = value; };
   const image = (name, cls = '') => `<img class="${cls}" src="${assets + name}.webp" alt="" draggable="false">`;
@@ -64,19 +43,18 @@
   function reset() {
     cancelAnimationFrame(animation); frozen = null; lastResult = null; previousMinute = -1;
     tracker = window.skyThreatScore.createTracker(game, window.__game, () => feedback(true));
-    hudKey = threatKey = pauseKey = ''; hitDamage = 0; hitAt = -Infinity; hitUntil = feedbackUntil = 0;
-    for (const id of ['threatHit', 'threatFeedback']) if ($(id)) $(id).hidden = true;
+    hudKey = threatKey = pauseKey = ''; fx?.reset();
     if ($('unityScoreDetails')) $('unityScoreDetails').hidden = true;
     sync();
   }
   function sync() {
     document.body.classList.toggle('unity-challenge-score', enabled());
-    if (!game || !enabled()) return;
+    if (!game || !enabled()) { fx?.setActive(false); return; }
     const b = current(), mode = game.modeRef();
     const active = mode === 'play' && !game.z.over;
+    fx?.setActive(playing());
     $('unityScoreHud').hidden = !active;
     $('threatScoreHud').hidden = !active;
-    if (!active) for (const id of ['threatHit', 'threatFeedback']) $(id).hidden = true;
     const remaining = Math.max(0, window.__game.RUN_LEN - b.elapsed).toFixed(0);
     const threat = tracker?.snapshot() || {};
     const timeFactor = Math.round((threat.rate || 0) * b.difficulty), killFactor = Math.round(100 * b.difficulty);
@@ -183,11 +161,7 @@
     const threatHud = document.createElement('div'); threatHud.id = 'threatScoreHud';
     threatHud.innerHTML = '<b id="threatStatus"></b><strong id="threatRate"></strong><small id="threatHint"></small>';
     $('hud').append(threatHud);
-    for (const id of ['threatHit', 'threatFeedback']) {
-      const node = document.createElement('div'); node.id = id; node.hidden = true;
-      node.setAttribute('aria-hidden', 'true'); $('hud').append(node);
-    }
-    // Difficulty belongs with the other status lines, not floating under the header (it collided with hints).
+    fx = window.createSkyCombatFeedback(game, playing);
     $('hud').querySelector('.hud-tl')?.prepend($('unityDifficulty'));
     const pause = document.createElement('aside'); pause.id = 'unityScorePause';
     pause.innerHTML = `<h3>得点の内訳</h3><p id="unityPauseIdentity"></p><p id="unityPauseSurvival"></p><p id="unityPauseKill"></p><b id="unityPauseTotal"></b><small>近くの追手から移動して逃げるほど加点。同じ場所の周回・安全な待機は加点が減ります。技とESCAPED自体の加点はありません。難易度ボーナスは反映済み。</small>`;
@@ -246,8 +220,8 @@
     fit(); sync();
   }
   window.skyChallengeScore = { enabled, level, evaluate, current, reset, sync, attach, showResult, step, damaged,
-    threat: () => tracker?.snapshot(),
-    freeze() { return frozen ||= Object.freeze({ ...current() }); },
+    threat: () => tracker?.snapshot(), feedbackRequired: true, feedbackState: () => fx?.snapshot(),
+    freeze() { fx?.setActive(false); return frozen ||= Object.freeze({ ...current() }); },
     killed() { if (playing()) { feedback(false); sync(); pulse('unityKills', 1.2); } },
   };
 })();

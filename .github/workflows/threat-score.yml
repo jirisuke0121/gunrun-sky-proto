@@ -1,7 +1,7 @@
 name: Threat survival scoring
 on:
   pull_request:
-    paths: ['threat-score.js', 'challenge-score.*', 'i18n*.js', 'ranked-rules.js', 'server/worker.js', 'index.html', 'canyon.html', 'bench/threat-score*', 'bench/shared-score*', '.github/workflows/threat-score.yml']
+    paths: ['threat-score.js', 'challenge-score.*', 'combat-feedback.*', 'assets/combat-feedback/**', 'start-readiness.js', 'i18n*.js', 'ranked-rules.js', 'server/worker.js', 'index.html', 'canyon.html', 'bench/threat-score*', 'bench/shared-score*', '.github/workflows/threat-score.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,7 +21,7 @@ jobs:
           node bench/player-skills.test.cjs
   score-browser:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
@@ -39,6 +39,7 @@ jobs:
         run: |
           node bench/threat-score-browser.cjs
           node bench/threat-score-wait-browser.cjs
+          node bench/start-readiness-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -46,4 +47,5 @@ jobs:
           path: |
             browser-evidence/threat-score/
             browser-evidence/threat-wait/
+            browser-evidence/start-readiness/
           retention-days: 14

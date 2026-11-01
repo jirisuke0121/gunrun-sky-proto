@@ -3,6 +3,11 @@
 (() => {
   const tr = text => window.skyI18n.tr(text);
   const exact = {
+ "追手を撒いた": "You lost the chasers",
+ "ゾンビ撃破": "Zombie eliminated",
+ "ダメージ達成": "Damage milestone",
+ "演出を読み込み中…": "Loading feedback…",
+ "演出を読み込めませんでした。再読み込みしてください。": "Feedback could not load. Please reload.",
  "合計スコア": "Total score",
  "内訳の合計": "Breakdown total",
  "逃走点": "Evasion",
@@ -23,8 +28,7 @@
  "ESCAPED · 追手を引き離した": "ESCAPED \u00b7 You pulled away",
  "近くの追手から移動して逃げるほど加点。同じ場所の周回・安全な待機は加点が減ります。技とESCAPED自体の加点はありません。難易度ボーナスは反映済み。": "Earn points while moving away from nearby chasers. Small loops and safe waiting reduce scoring. Moves and ESCAPED do not award points. The difficulty bonus is included.",
  "追跡をしのいだ得点と戦闘得点で、全難易度のプレイヤーと競おう。": "Compete across all difficulties with evasion and combat points.",
- "近くのゾンビの人数・距離・地形経路に応じた脅威度で、移動して追跡をしのいでいる時間に加点します。最大脅威度3で毎秒360点、有効ダメージ1につき2点、撃破1体100点。イージー×1.0・ノーマル×1.1・ハード×1.2。別階・壁の向こう・分身に誘導中・出現中の敵、安全な待機や鉄棒・縁への滞在は逃走加点の対象外。同じ狭い範囲で加点対象の追跡移動を続けると、8秒から加点が減り、20秒で止まります。安全な待機など、加点されない時間はこの枠を使いません。技とESCAPED表示自体には加点しません。新しい得点ルールで全難易度のプレイヤーと競います。": "Evasion points grow with time spent moving under threat, based on nearby chasers, distance and terrain routes. At most 3 threat units award up to 360 points per second; effective damage earns 2 points per unit and kills earn 100. Easy \u00d71.0, Normal \u00d71.1, Hard \u00d71.2. Other floors, walls, decoys, spawning enemies, safe waiting and hanging on bars or ledges do not earn evasion points. Scoring-eligible movement under threat in a small area loses scoring after 8 seconds and stops at 20. Unscored time, such as safe waiting, does not use that budget. Moves and ESCAPED do not award points. All difficulties compete under the new scoring rules.",
- "連射すると弾がブレる。HG・SMG・MGの自動射撃は近距離で連射、中距離で短い連射、遠距離で単発に切り替わる。少し休むと精度が戻る。": "Sustained fire increases bullet spread. The HG, SMG and MG fire continuously up close, in short bursts at medium range, and single shots at long range. Pause briefly to recover accuracy.",
+ "近くのゾンビの人数・距離・地形経路に応じた脅威度で、移動して追跡をしのいでいる時間に加点します。最大脅威度3で毎秒360点、有効ダメージ1につき2点、撃破1体100点。イージー×1.0・ノーマル×1.1・ハード×1.2。別階・壁の向こう・分身に誘導中・出現中の敵、安全な待機や鉄棒・縁への滞在は逃走加点の対象外。同じ狭い範囲で加点対象の追跡移動を続けると、8秒から加点が減り、20秒で止まります。安全な待機など、加点されない時間はこの枠を使いません。技とESCAPED表示自体には加点しません。新しい得点ルールで全難易度のプレイヤーと競います。": "Evasion points grow with time spent moving under threat, based on nearby chasers, distance and terrain routes. At most 3 threat units award up to 360 points per second; effective damage earns 2 points per unit and kills earn 100. Easy \u00d71.0, Normal \u00d71.1, Hard \u00d71.2. Other floors, walls, decoys, spawning enemies, safe waiting and hanging on bars or ledges do not earn evasion points. Scoring-eligible movement under threat in a small area loses scoring after 8 seconds and stops at 20. Unscored time, such as safe waiting, does not use that budget. Moves and ESCAPED do not award points. All difficulties compete under the new scoring rules.", "連射すると弾がブレる。HG・SMG・MGの自動射撃は近距離で連射、中距離で短い連射、遠距離で単発に切り替わる。少し休むと精度が戻る。": "Sustained fire increases bullet spread. The HG, SMG and MG fire continuously up close, in short bursts at medium range, and single shots at long range. Pause briefly to recover accuracy.",
  "難易度を選ぶ": "Choose difficulty",
  "スコアボーナス": "Score bonus",
  "制限時間": "Time limit",

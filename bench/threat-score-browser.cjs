@@ -83,7 +83,7 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
         const escaped=document.getElementById('threatFeedback').textContent;
         if(!escaped.startsWith('ESCAPED')||score.current().total!==beforeEscape)throw Error('Escape cue/score');
         const escapeNotes=notes.map(o=>o.frequency.value);
-        if(escapeNotes.join(',')!=='660,990,1320')throw Error('Escape cue notes: '+escapeNotes);
+        if(escapeNotes.length||score.feedbackState().sounds.at(-1)?.key!=='escape')throw Error('Escape must use the ported Unity sample');
         notes.length=0;
         // Native hurt/die hooks, including capped overkill, and the actual cue graph.
         // Retain the whole event's PCM on the audio thread. A single delayed
@@ -100,8 +100,8 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
         const hit=document.getElementById('threatHit').textContent;
         const damageBefore=score.current().damageUnits;enemy.hurt(99,1,0,.6,0);score.sync();
         if(score.current().damageUnits-damageBefore!==3)throw Error('Overkill inflated score');
-        const killNotes=notes.map(o=>o.frequency.value).filter(hz=>hz===880||hz===1320);
-        if(killNotes.length!==2)throw Error('Kill cue notes: '+notes.map(o=>o.frequency.value));
+        const killNotes=notes.map(o=>o.frequency.value);
+        if(killNotes.some(hz=>hz===880||hz===1320)||!score.feedbackState().sounds.some(e=>e.key==='kill'))throw Error('Kill sample mismatch: '+JSON.stringify({killNotes,feedback:score.feedbackState(),mode:g.mode,volume:sky.U.volume,ctx:ctx.state,killHook:String(sky.Tt.kill).slice(0,150)}));
         const kill=document.getElementById('threatFeedback').textContent;
         await new Promise(r=>setTimeout(r,300));const audible=await readPeak();
         master.gain.value=0;await new Promise(r=>setTimeout(r,50));await readPeak();
@@ -110,21 +110,38 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
         master.disconnect(meter);meter.disconnect();master.gain.value=sky.U.volume;ctx.createOscillator=nativeOsc;
         const frozen=score.current().total;tick(14,{move:false,follow:false});
         if(document.getElementById('threatFeedback').textContent.startsWith('ESCAPED')||score.current().total!==frozen)throw Error('All killed counted as escape');
+        // Real capped HP loss drives the ported damage flights and medal, never
+        // another score award when the animation arrives.
+        for(let i=0;i<2;i++){
+          const target=new g.Zombie(c.pos.x-3,start.y+.0001,c.pos.z);target.spawnT=0;target.rise=null;target.hp=4;g.zombies.push(target);
+          target.hurt(99,1,0,.6,0);
+        }
+        const beforeFlights=score.current().total;tick(20,{move:false,follow:false});
+        const feedbackState=score.feedbackState();
+        if(score.current().total!==beforeFlights||feedbackState.arrivedDamage!==12||feedbackState.milestones!==1||feedbackState.activeFlights!==0)throw Error('Feedback duplicated points or lost real damage: '+JSON.stringify(feedbackState));
         const beforePause=score.current().total;g.setMode('pause');score.step(1);score.sync();
         if(score.current().total!==beforePause)throw Error('Pause earned');
-        if(!document.getElementById('threatScoreHud').hidden)throw Error('Threat HUD visible in pause');
+        if(!document.getElementById('threatScoreHud').hidden||!document.getElementById('combatFeedback').hidden||score.feedbackState().activeVoices)throw Error('Feedback must clear and mute in pause');
         await Promise.resolve();const pause=document.getElementById('unityPauseTotal').textContent;
         g.setMode('play');g.cam(0);g.frameOnce(0);score.sync();score.killed();await Promise.resolve();
         const status=document.getElementById('threatStatus').textContent;
         return{start:[start.x,start.y,start.z],moving,earned,stationary,wallNode:wallNode.id,escaped,hit,kill,killNotes,escapeNotes,
-          audible,muted,pause,status,total:score.current().total,score:score.current(),lang:document.documentElement.lang};
+          audible,muted,pause,status,feedbackState,total:score.current().total,score:score.current(),lang:document.documentElement.lang};
       });
-      assert.equal(evidence.lang,lang);assert.match(evidence.hit,/HIT/);assert.match(evidence.kill,/KILL/);
+      assert.equal(evidence.lang,lang);assert.match(evidence.hit,/DMG/);assert.match(evidence.kill,/KILL/);
       assert.match(evidence.status,lang==='ja'?/脅威/:/Threat/);
       assert.match(evidence.pause,lang==='ja'?/合計/:/Total/);
       assert.deepEqual(errors,[]);assert.equal(posts,0);
       assert.equal(await page.locator('#threatFeedback').isVisible(),true,'kill cue visible during the first run');
       if(await page.locator('#startGuide').count())assert.equal(await page.locator('#startGuide').isVisible(),false,'first-run guide yields to feedback');
+      const feedbackLayout=await page.evaluate(()=>{
+        const box=id=>{const r=document.getElementById(id).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
+        return {stack:box('damageStack'),total:box('unityTotal'),menu:box('bSettings'),badge:box('threatFeedback')};
+      });
+      for(const id of ['stack','badge']){
+        const b=feedbackLayout[id];assert.ok(b.x>=0&&b.y>=0&&b.x+b.width<=page.viewportSize().width&&b.y+b.height<=page.viewportSize().height,id+' inside viewport');
+        for(const other of ['total','menu']){const a=feedbackLayout[other];assert.ok(b.x+b.width<=a.x||a.x+a.width<=b.x||b.y+b.height<=a.y||a.y+a.height<=b.y,id+' leaves '+other+' readable');}
+      }
       await page.screenshot({path:`${out}/${map}-${lang}.png`});
       await page.evaluate(()=>{__game.endGame('caught');__game.advance(1.5);skyChallengeScore.sync();});
       await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');

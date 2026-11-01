@@ -96,12 +96,9 @@
 /* Threat feedback stays above the action, with no shake or opaque screen flash. */
 #threatScoreHud{position:absolute;top:48px;left:50%;transform:translateX(-50%);display:grid;grid-template-columns:1fr auto;gap:2px 14px;padding:5px 12px;border-left:2px solid #85dfdb;background:#071822aa;color:#c0e6ec;font-size:12px;pointer-events:none;min-width:190px;font-variant-numeric:tabular-nums}
 #threatScoreHud strong{color:#9de4df}#threatScoreHud small{grid-column:1/-1;color:#b2c4cf;font-size:10px}
-#threatHit{position:absolute;left:calc(50% + 22px);top:calc(50% - 20px);font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000;pointer-events:none}
-#threatFeedback{position:absolute;top:28%;left:50%;transform:translateX(-50%);font-size:clamp(14px,2vw,22px);font-weight:800;letter-spacing:.08em;color:#ffdd9c;text-shadow:0 2px 8px #000;pointer-events:none;white-space:nowrap}
-#threatFeedback[data-kind=escape]{color:#a7f7ee}
 .uc-breakdown .uc-damage-icon{font-size:28px;line-height:1;text-align:center;color:#dce3e8}
 #hud:has(#threatFeedback:not([hidden])) #startGuide{visibility:hidden}
 #threatScoreHud[hidden],#threatHit[hidden],#threatFeedback[hidden]{display:none}
 body:not(.unity-challenge-score) #threatScoreHud{display:none}
 .unity-challenge-score #hud[hidden] #threatScoreHud{display:none}
-@media(max-height:500px){#threatScoreHud{font-size:10px;padding:4px 8px}#threatScoreHud small{font-size:9px}#threatFeedback{top:34%;font-size:14px}}
+@media(max-height:500px){#threatScoreHud{font-size:10px;padding:4px 8px}#threatScoreHud small{font-size:9px}}
