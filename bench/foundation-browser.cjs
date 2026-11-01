@@ -39,7 +39,7 @@ fs.mkdirSync(out,{recursive:true});
    if(await page.locator('#homeSettings').count()){
     await click('#homeSettings');
     assert.doesNotMatch(await page.locator('#unityScorePause').innerText(),/NaN|undefined/);
-    await click('#bReset');await click('#bResume');
+    await click('#bResume');
    }
    await click('#bStart');assert.equal(await page.evaluate(()=>__game.mode),'play');
    const high=await snapshot();assert.equal(high.shadows,true);assert.equal(high.pixelRatio,touch?1.5:2);
