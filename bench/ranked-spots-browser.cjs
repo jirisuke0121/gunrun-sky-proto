@@ -32,6 +32,7 @@ const base = 'http://127.0.0.1:8793/';
       const page = await context.newPage(), errors = []; page.on('pageerror', error => errors.push(error.message));
       page.setDefaultTimeout(60000); await page.goto(base + map);
       await page.waitForFunction(() => window.__game && window.skyReplay && window.skyAudioRecovery && window.skyDecoy && window.skyRunRecording, null, { timeout: 120000 });
+      if (await page.locator('#homeMore').count()) await page.locator('#homeMore > summary').click();
       const selectors = map === 'index.html'
         ? await page.locator('.parkour-spot-list button').evaluateAll(nodes => nodes.map(node => `[data-route="${node.dataset.route}"]`))
         : ['#bStart'];
