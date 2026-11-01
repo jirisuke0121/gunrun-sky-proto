@@ -211,6 +211,10 @@
  "（タッチはジャンプ）を押すとショートカット": "(Jump on touch) at the gold JUMP frame for a shortcut",
  "右クリック": "Right-click",
  "ナイフ（銃オフのときはクリックも）：前のゾンビを押し返してよろけさせる（つかみも止まる）。背後からなら一撃。HGで開始。SG・SMG・MGはステージ内の補給箱で取得する": "Knife (also Click when the gun is off): pushes back and staggers the zombie in front (also stops a grab). One hit from behind. You start with the HG; SG, SMG and MG are picked up from supply crates in the stage",
+
+ "ゾンビは近道になる柱も登ってくる。登っている間に撃って落とせる。": "Zombies also climb pillars that offer a shortcut. Shoot them off while they climb.",
+ "浮かぶ梁と石柱の回廊で、2分間ゾンビから逃げ切る。ゾンビも短い隙間を跳び、柱を登ってくる。大きな隙間や壁走りで引き離せ。ナイフで押し返せる。細い梁の上なら、落とせる。": "Escape zombies for two minutes among floating beams and stone pillars. Zombies also jump short gaps and climb pillars. Use wider gaps and wall runs to pull away. Push them back with your knife or knock them off narrow beams.",
+ "3層の橋と谷底を使い、2分間ゾンビから逃げ切る。ゾンビも短い隙間を跳び、柱を登ってくる。大きな隙間や壁走りで引き離せ。ナイフで押し返せる。細い梁の上なら、落とせる。": "Escape zombies for two minutes across three bridge levels and the canyon floor. Zombies also jump short gaps and climb pillars. Use wider gaps and wall runs to pull away. Push them back with your knife or knock them off narrow beams.",
  "高台で追いつけずにいるゾンビは、柱をゆっくり登ってくる。登っている間に撃って落とせる。": "Zombies that can't reach a high spot slowly climb the pillars. You can shoot them off while they climb.",
  "銃は射線が通る近い敵を自動で狙って撃ち、弾切れ時は自動装填。「自動射撃を停止／再開」または": "The gun automatically aims at and shoots close enemies in line of sight, and reloads when empty. Use \"Stop/Resume auto-fire\" or",
  "で弾を温存。HGで開始。SG・SMG・MGは10秒ごとに屋根・上層へ補給される（最大5個）": "to save ammo. You start with the HG. SG, SMG and MG are supplied to rooftops and upper levels every 10 s (max 5).",
