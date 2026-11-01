@@ -3,7 +3,7 @@
   const ids = ['easy', 'normal', 'hard'];
   const assets = './assets/challenge-score/';
   let game, frozen, previousMinute = -1, animation = 0, readyAt = 0, lastResult;
-  let tracker, hudKey = '', pauseKey = '', hitAt = -Infinity, hitDamage = 0;
+  let tracker, hudKey = '', threatKey = '', pauseKey = '', hitAt = -Infinity, hitDamage = 0;
   let hitUntil = 0, feedbackUntil = 0;
   const $ = id => document.getElementById(id);
   const enabled = () => !!window.skyChallenge?.profile();
@@ -64,7 +64,7 @@
   function reset() {
     cancelAnimationFrame(animation); frozen = null; lastResult = null; previousMinute = -1;
     tracker = window.skyThreatScore.createTracker(game, window.__game, () => feedback(true));
-    hudKey = pauseKey = ''; hitDamage = 0; hitAt = -Infinity; hitUntil = feedbackUntil = 0;
+    hudKey = threatKey = pauseKey = ''; hitDamage = 0; hitAt = -Infinity; hitUntil = feedbackUntil = 0;
     for (const id of ['threatHit', 'threatFeedback']) if ($(id)) $(id).hidden = true;
     if ($('unityScoreDetails')) $('unityScoreDetails').hidden = true;
     sync();
@@ -77,9 +77,13 @@
     const remaining = Math.max(0, window.__game.RUN_LEN - b.elapsed).toFixed(0);
     const threat = tracker?.snapshot() || {};
     const timeFactor = Math.round((threat.rate || 0) * b.difficulty), killFactor = Math.round(100 * b.difficulty);
+    const nextThreatKey = `${threat.count}|${threat.pressure}|${timeFactor}|${threat.repetition < .05}`;
+    if (nextThreatKey !== threatKey) {
+      threatKey = nextThreatKey;
     set('threatStatus', `${threat.count || 0}体 · 脅威 ${Number(threat.pressure || 0).toFixed(1)}/3`);
     set('threatRate', `+${timeFactor}点/秒`);
     set('threatHint', !threat.count ? '追手を引き離している' : threat.repetition < .05 ? '同じ場所での加点上限' : timeFactor < 1 ? '移動して追跡をしのごう' : '追跡をしのいで加点中');
+    }
     const key = `${window.skyChallenge.id}|${remaining}|${timeFactor}|${killFactor}|${b.kills}|${b.total}`;
     if (key !== hudKey) {
       hudKey = key;
