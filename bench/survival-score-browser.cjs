@@ -17,7 +17,7 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
   await page.goto(base+map);await page.waitForFunction(()=>window.__game&&window.skyStartReadiness?.ready);
   await page.locator(`#homeDifficulty [data-difficulty="${difficulty}"]`).click();
   if(touch)await page.locator('#bStart').tap();else await page.locator('#bStart').click();
-  const evidence=await page.evaluate(()=>{
+  const evidence=await page.evaluate(async()=>{
    const g=__game,s=__skyInternals,c=g.P,score=skyChallengeScore;
    for(const e of g.zombies)s.ue.remove(e.m.root);g.zombies.length=0;
    g.GAME.spawnT=g.GAME.surgeT=1e9;g.SCR.off=g.PACE.off=g.MARK.off=true;s.U.autoFire=false;s.U.aimAuto=false;
@@ -45,6 +45,8 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
    if(score.current().total!==resumed.total)throw Error('Background earned');
    delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));g.setMode('play');
    g.cam(0);g.frameOnce(0);score.sync();
+   // Dynamic UI text is translated by the MutationObserver after this JS turn.
+   await Promise.resolve();
    return{waiting,combat,paused,resumed,pauseText,lang:document.documentElement.lang,hudTotal:document.getElementById('unityTotal').textContent,rate:document.getElementById('unityTimeFactor').textContent};
   });
   assert.equal(evidence.lang,lang);assert.equal(Number(evidence.hudTotal.replace(/\D/g,'')),evidence.resumed.live,'HUD counts paid-out 30-second milestones plus combat');assert.equal(evidence.rate,lang==='ja'?`+${evidence.resumed.tickPoints}/30秒`:`+${evidence.resumed.tickPoints} / 30 s`);
