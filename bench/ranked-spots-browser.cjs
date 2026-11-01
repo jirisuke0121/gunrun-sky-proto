@@ -7,6 +7,7 @@ const base = 'http://127.0.0.1:8793/';
   try {
     server = spawn('python3', ['-m', 'http.server', '8793', '--bind', '127.0.0.1'], { stdio: 'ignore' });
     for (let i = 0; i < 50; i++) { if (await fetch(base).then(r => r.ok, () => false)) break; await new Promise(r => setTimeout(r, 100)); }
+    for (const file of ['index.html','canyon.html','challenge-score.js']) assert.equal(await fetch(base+file).then(r=>r.text()),fs.readFileSync(file,'utf8'),'local server source: '+file);
     browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
       args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=user-gesture-required'] });
     for (const touch of [false, true]) for (const map of ['index.html', 'canyon.html']) {
@@ -17,7 +18,7 @@ const base = 'http://127.0.0.1:8793/';
         async all() { return { results: db.prepare(sql).all(...args) }; },
         async run() { return db.prepare(sql).run(...args); },
       }; } };
-      const context = await browser.newContext({ viewport: { width: touch ? 844 : 1280, height: touch ? 390 : 720 }, hasTouch: touch, isMobile: touch });
+      const context = await browser.newContext({ locale: 'ja-JP', viewport: { width: touch ? 844 : 1280, height: touch ? 390 : 720 }, hasTouch: touch, isMobile: touch });
       await context.addInitScript(() => { window.__hold = true; });
       const uploads = [], uploadStatuses = [];
       // Exercise the production Worker against a disposable DB. No QA scores or

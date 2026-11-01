@@ -64,6 +64,8 @@
   const button = document.createElement('button');
   button.id = 'langToggle';
   button.type = 'button';
+  // Both maps use this switch, including maps without the home layout styles.
+  button.style.cssText = 'position:fixed;left:max(12px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));z-index:50;min-height:44px;padding:8px 14px';
   button.textContent = lang === 'en' ? '日本語' : 'English';
   button.setAttribute('aria-label', lang === 'en' ? 'Switch to Japanese' : 'Switch to English');
   button.addEventListener('click', () => {

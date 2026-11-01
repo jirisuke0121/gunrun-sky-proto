@@ -73,7 +73,10 @@
     document.body.classList.toggle('unity-challenge-score', enabled());
     if (!game || !enabled()) return;
     const b = current(), mode = game.modeRef();
-    $('unityScoreHud').hidden = mode !== 'play' || game.z.over;
+    const active = mode === 'play' && !game.z.over;
+    $('unityScoreHud').hidden = !active;
+    $('threatScoreHud').hidden = !active;
+    if (!active) for (const id of ['threatHit', 'threatFeedback']) $(id).hidden = true;
     const remaining = Math.max(0, window.__game.RUN_LEN - b.elapsed).toFixed(0);
     const threat = tracker?.snapshot() || {};
     const timeFactor = Math.round((threat.rate || 0) * b.difficulty), killFactor = Math.round(100 * b.difficulty);

@@ -53,7 +53,10 @@
       const moved = previous ? Math.hypot(p.x - previous.x, p.y - previous.y, p.z - previous.z) : 0;
       previous = { x: p.x, y: p.y, z: p.z };
       const speed = moved / span;
-      motion += (clamp((speed - .5) / 2, 0, 1) - motion) * (1 - Math.exp(-span * 6));
+      // Stopping or respawning must stop scoring immediately. Smoothing only
+      // applies while actually moving, never as residual credit while idle.
+      if (speed <= .5 || speed >= 30) motion = 0;
+      else motion += (clamp((speed - .5) / 2, 0, 1) - motion) * (1 - Math.exp(-span * 6));
       const x = Math.floor(p.x / 8), y = Math.floor(p.y / 4), z = Math.floor(p.z / 8);
       const key = `${x},${y},${z}`, spent = visits.get(key) || 0;
       repetition = clamp((config.campLimit - spent) / (config.campLimit - config.campGrace), 0, 1);

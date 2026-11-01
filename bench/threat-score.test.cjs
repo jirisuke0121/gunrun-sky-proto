@@ -21,6 +21,9 @@ function fixture() {
 const one=fixture(),moving=one.tick(6);
 assert.ok(moving.pressureSeconds>3);assert.equal(moving.count,1);assert.ok(moving.rate>80);
 const idle=fixture();assert.equal(idle.tick(30,false).pressureSeconds,0,'standing still earns no pursuit points');
+const stopped=fixture();stopped.tick(3);const stoppedAt=stopped.tracker.snapshot().pressureSeconds;
+assert.equal(stopped.tick(1.5,false).pressureSeconds,stoppedAt,'stopping after movement leaves no residual scoring');
+assert.equal(stopped.tracker.snapshot().rate,0,'the HUD rate stops with actual motion');
 for(const state of ['swing','ledge']) {const f=fixture();f.c.state=state;assert.equal(f.tick(10).pressureSeconds,0,state);}
 const inv=fixture();inv.c.invuln=100;assert.equal(inv.tick(10).pressureSeconds,0);
 for(const flag of ['dead','remove','rise','fall']) {const f=fixture();f.enemy[flag]=true;assert.equal(f.tick(3).count,0,flag);}

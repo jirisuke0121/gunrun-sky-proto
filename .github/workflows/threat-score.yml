@@ -1,7 +1,7 @@
 name: Threat survival scoring
 on:
   pull_request:
-    paths: ['threat-score.js', 'challenge-score.*', 'ranked-rules.js', 'server/worker.js', 'index.html', 'canyon.html', 'bench/threat-score*', 'bench/shared-score*', '.github/workflows/threat-score.yml']
+    paths: ['threat-score.js', 'challenge-score.*', 'i18n*.js', 'ranked-rules.js', 'server/worker.js', 'index.html', 'canyon.html', 'bench/threat-score*', 'bench/shared-score*', '.github/workflows/threat-score.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,3 +19,27 @@ jobs:
           node bench/shared-score.test.cjs
           node bench/record-integrity.test.cjs
           node bench/player-skills.test.cjs
+  score-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Native terrain, score feedback, audio, languages and results
+        run: node bench/threat-score-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: threat-score-evidence
+          path: browser-evidence/threat-score/
+          retention-days: 14
