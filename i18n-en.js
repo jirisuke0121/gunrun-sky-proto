@@ -3,6 +3,37 @@
 (() => {
   const tr = text => window.skyI18n.tr(text);
   const exact = {
+ "難易度を選ぶ": "Choose difficulty",
+ "スコアボーナス": "Score bonus",
+ "制限時間": "Time limit",
+ "はじめての方へ": "First time?",
+ "ライフ無限で、操作を練習。": "Practice with unlimited lives.",
+ "設定": "Settings",
+ "旧市街のゲーム風景": "Old Town gameplay",
+ "岩壁渓谷のゲーム風景": "Rock Canyon gameplay",
+ "逃走の準備": "Prepare to escape",
+ "難易度": "Difficulty",
+ "2分間、": "TWO MINUTES.",
+ "逃げ切れ。": "KEEP MOVING.",
+ "跳ぶ。壁を走る。追跡を引き離す。": "Jump. Wall-run. Lose the chase.",
+ "移動": "Move",
+ "視点": "Look",
+ "ジャンプ": "Jump",
+ "練習・スポット・ランキング・ルール": "Practice · Spots · Ranking · Rules",
+ "左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ": "Drag left to move · Drag right to look · Tap to jump",
+ "2分間の逃走をクリア": "Survived the full two minutes",
+ "自己ベスト更新": "New personal best",
+ "生存点 ＋ 撃破点": "Survival + kills",
+ "スコア内訳": "Score breakdown",
+ "生存": "Survival",
+ "生存時間": "Survival time",
+ "ボーナスは生存点・撃破点に反映済み": "Bonuses are included in both scores",
+ "スコアの計算を見る": "How your score is calculated",
+ "ホームへ": "Home",
+ "生存点：": "Survival:",
+ "撃破点：": "Kills:",
+ "生存時間ボーナス ＝ 1 ＋ 生存秒数 ÷ 60。長く生存すると、これまでの撃破点も増えます。式の秒数・倍率は概数、各得点は小数点以下切り捨て。": "Survival bonus = 1 + seconds survived / 60. Staying alive also increases the score from earlier kills. Displayed time and multipliers are rounded; each score is rounded down.",
+
  "横向きにして遊んでください": "Please rotate your device to landscape",
  "ノーマル": "Normal",
  "点": "pts",
@@ -354,6 +385,16 @@
  "橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連、左は柱の縁へ。⑤南の踊り場は鉄棒1本、⑥北バルコニーは鉄棒2本で西の角の縁へ渡り、西の通りや既存の屋根フックへ。⑦は東塔の足元から西のフックで既存の梁へ、⑧は北の下段から鉄棒で東側通路へ": "From an orange bar, take an escape branch. ② south air branch, ③ warehouse upper corridor. ④ straight from the first bar is a triple, left goes to the pillar edge. ⑤ south dance floor has one bar, ⑥ north balcony crosses two bars to the west corner edge, then to the west street or the existing roof hook. ⑦ from the east tower base, the west hook to the existing beam; ⑧ from the north lower tier, a bar to the east corridor"
 };
   const patterns = [
+  [/^あと([\d.]+)秒で逃げ切り$/, '$1 s from escaping'],
+  [/^生存 ([\d.]+)秒 ／ 撃破 (\d+)体$/, 'Survived $1 s / $2 kills'],
+  [/^難易度ボーナス ×([\d.]+)（\+(\d+)%）$/, 'Difficulty bonus ×$1 (+$2%)'],
+  [/^生存時間ボーナス ×([\d.]+)$/, 'Survival bonus ×$1'],
+  [/^スコアボーナス ×([\d.]+).*$/, 'Score bonus ×$1'],
+  [/^(イージー|ノーマル|ハード)（スコア ×([\d.]+)）$/, (m,d,x) => `${tr(d)} (score ×${x})`],
+  [/^([\d.]+)秒 × 1点 × ([\d.]+) × ([\d.]+)$/, '$1 s × 1 pt × $2 × $3'],
+  [/^(\d+)体 × 2点 × ([\d.]+) × ([\d.]+)$/, '$1 kills × 2 pts × $2 × $3'],
+  [/^生存 (\d+) ＋ 撃破 (\d+) ＝ (\d+)点$/, 'Survival $1 + Kills $2 = $3 pts'],
+
   // [regex, replacement]. A function replacement gets (match, ...groups) and may call tr() for nested Japanese.
   [/^技 (\d+)\/3$/, 'Skills $1/3'],
   [/^([\d.]+) ?倍$/, '$1×'],
