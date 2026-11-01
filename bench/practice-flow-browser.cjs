@@ -7,7 +7,7 @@ const {chromium}=require('playwright'),{spawn}=require('child_process'),fs=requi
  await p.goto('http://127.0.0.1:8779/canyon.html?practice=1');await p.waitForFunction(()=>window.skyPractice&&__game.mode==='play',null,{timeout:90000});
  const r=await p.evaluate(()=>{
   const g=__game,c=g.P,dt=1/120,trace=[],stages=[];const runStart=g.GAME.t;
-  const key=(code)=>{dispatchEvent(new KeyboardEvent('keydown',{code}));dispatchEvent(new KeyboardEvent('keyup',{code}));};
+  const key=(code)=>{document.dispatchEvent(new KeyboardEvent('keydown',{code,bubbles:true}));document.dispatchEvent(new KeyboardEvent('keyup',{code,bubbles:true}));};
   const tick=()=>{g.advance(dt);trace.push({t:g.GAME.t,p:c.pos.toArray(),state:c.state,stats:{vaults:g.stats.vaults,mantles:g.stats.mantles,wallruns:g.stats.wallruns},section:skyPractice.section.id});};
   function moveTo(x,z,max=1200,action){g.keys.KeyW=true;for(let i=0;i<max;i++){const dx=x-c.pos.x,dz=z-c.pos.z;if(Math.hypot(dx,dz)<.35){g.keys.KeyW=false;return true;}c.yaw=Math.atan2(-dx,-dz);action?.();tick();}g.keys.KeyW=false;return false;}
   function mark(name){stages.push({name,t:g.GAME.t,pos:c.pos.toArray(),state:c.state,stats:{...g.stats},fall:skyPractice.retries});}
