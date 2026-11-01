@@ -11,7 +11,7 @@
   const make = (tag, props = {}, html = '') => Object.assign(document.createElement(tag), props, html ? { innerHTML: html } : {});
 
   const keys = make('p', { className: 'note pauseKeys pauseKeysDesktop' },
-    '<b>目的</b> 2分間ゾンビから逃げ切る　<b>操作</b> <kbd>W A S D</kbd> 移動　<kbd>Space</kbd> ジャンプ　<kbd>C</kbd> スライド　<kbd>クリック</kbd> ナイフ　<kbd>Q</kbd> フック　<kbd>E</kbd> 分身　<kbd>G</kbd> 閃光弾');
+    '<b>目的</b> 2分間ゾンビから逃げ切る　<b>操作</b> <span class="keysAfter"><kbd>W</kbd><kbd>S</kbd> 前後　<kbd>A</kbd><kbd>D</kbd> 曲がる　</span><span class="keysBefore"><kbd>W A S D</kbd> 移動　</span><kbd>Space</kbd> ジャンプ　<kbd>C</kbd> スライド　<kbd>クリック</kbd> ナイフ　<kbd>Q</kbd> フック　<kbd>E</kbd> 分身　<kbd>G</kbd> 閃光弾');
   const keysTouch = make('p', { className: 'note pauseKeys pauseKeysTouch' },
     '<b>目的</b> 2分間ゾンビから逃げ切る　左ドラッグで移動、右ドラッグで視点、「ジャンプ」で跳ぶ');
 
@@ -24,8 +24,11 @@
   const copyArea = $('copyArea');
   const note = $('challengeSettingsNote');
   advanced.append(grid);
+  // Players get "reset to defaults"; the raw-value copy tool is developer-only.
+  const resetButton = $('bReset');
   if (toolsRow) advanced.append(toolsRow);
   if (copyArea) advanced.append(copyArea);
+  advanced.hidden = !window.skyDevMode;
 
   // Keep the order: buttons row, keys, note, basic settings, advanced.
   const firstRow = plate.querySelector(':scope > .row');
@@ -46,7 +49,10 @@
     $('t_autoFire')?.closest('label.tg'),
     $('t_sendLog')?.closest('label.tg'),
   ].filter(Boolean);
-  const adopt = () => { for (const el of wanted()) if (el.parentElement !== basic) basic.append(el); };
+  const adopt = () => {
+    for (const el of wanted()) if (el.parentElement !== basic) basic.append(el);
+    if (resetButton && resetButton.parentElement !== basic) basic.append(resetButton);
+  };
   adopt();
   // Some of these are created later by other scripts (camera mode, render quality).
   new MutationObserver(adopt).observe(panel, { childList: true, subtree: true });

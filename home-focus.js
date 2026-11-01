@@ -21,16 +21,20 @@
       '<li><b>得点</b>生き残った時間と撃破数。パルクールで引き離そう</li>',
     ].join('')),
     make('p', { className: 'homeKeys homeKeysDesktop' },
-      '<kbd>W A S D</kbd> 移動　<kbd>マウス</kbd> 視点　<kbd>Space</kbd> ジャンプ　<kbd>Esc</kbd> 一時停止'),
+      '<span class="keysAfter"><kbd>W</kbd><kbd>S</kbd> 前後　<kbd>A</kbd><kbd>D</kbd> 曲がる　</span>' +
+      '<span class="keysBefore"><kbd>W A S D</kbd> 移動　</span>' +
+      '<kbd>マウス</kbd> 見回す　<kbd>Space</kbd> ジャンプ　<kbd>Esc</kbd> 一時停止'),
   );
   const touchNote = $('touchNote');
   if (touchNote) touchNote.classList.add('homeKeysTouch');
   const retryButtons = [...plate.querySelectorAll(':scope > [data-retry-start]')];
   // Fixed order of the first view. Other scripts may prepend/insert around these later, so we re-apply it.
+  const settingsButton = make('button', { id: 'homeSettings', type: 'button' }, '⚙ 設定（操作・感度・音量・画質）');
+  settingsButton.addEventListener('click', () => $('bSettings')?.click());
   const heroOrder = () => [
     eyebrow, title, hero.querySelector('.homeGoal'), hero.querySelector('.homeRules'),
     hero.querySelector('.homeKeysDesktop'), touchNote, $('bStart'), $('startReadyStatus'),
-    ...retryButtons, $('introEntry'), $('bestLine'),
+    ...retryButtons, $('introEntry'), settingsButton, $('bestLine'),
   ].filter(Boolean);
   plate.prepend(hero);
 
