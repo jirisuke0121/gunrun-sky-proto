@@ -86,7 +86,7 @@ test('both maps connect the same runtime hooks without removing canyon practice 
 test('home-only quality guidance respects consent, decline, manual changes and intro opt-out', async () => {
   const { createFrameMetrics } = await import('../foundation-metrics.js');
   const { createAutoResolutionMonitor } = await import('../auto-resolution-monitor.js');
-  function runtime({intro=false,practice=false,optOut=false}={}) {
+  function runtime({intro=false,practice=false,optOut=false,developer=false}={}) {
     const values=new Map(optOut?[['gunrun-sky-proto-v1','{"sendLog":false}']]:[]),posts=[],dialogs=[];
     const q={mode:'high',revision:0,beginRound(){},finishRound(){},select(mode){this.mode=mode;this.revision++},
       snapshot(){return{mode:this.mode,pixelRatio:1.5,nativePixelRatio:2,buffer:[1200,600]}}};
@@ -99,7 +99,7 @@ test('home-only quality guidance respects consent, decline, manual changes and i
       document:{hidden:false,hasFocus:()=>true,referrer:'',addEventListener(){},exitPointerLock(){},getElementById(){return{focus(){}}},
         createElement(){return makeDialog()},body:{append(dialog){dialogs.push(dialog)}}},
       matchMedia:()=>({matches:false}),fetch:async(url,options)=>{posts.push(JSON.parse(options.body));return Response.json({ok:true})},
-      skyPracticeMode:practice,skyChallenge:{isIntroRun:intro,id:intro?'intro':'normal'},skyRenderQuality:q,addEventListener(){}};
+      skyDevMode:developer,skyPracticeMode:practice,skyChallenge:{isIntroRun:intro,id:intro?'intro':'normal'},skyRenderQuality:q,addEventListener(){}};
     context.window=context;
     vm.runInNewContext(fs.readFileSync('foundation-runtime.js','utf8').replace(/^import .*\n/gm,''),context);
     const api=context.skyFoundation;api.attach({U:{sendLog:!optOut},z:{challenge:{id:intro?'intro':'normal'}}},
@@ -118,5 +118,6 @@ test('home-only quality guidance respects consent, decline, manual changes and i
   const intro=runtime({intro:true});intro.feed(40);intro.api.finishRound('time');intro.api.modeChanged('menu');assert.equal(intro.dialogs.length,1);assert.equal(intro.posts.length,0,'intro has local diagnosis only');
   const off=runtime({optOut:true});off.feed(60);off.api.finishRound('time');assert.equal(off.posts.length,0);
   const practice=runtime({practice:true});practice.feed(40);practice.api.finishRound('time');practice.api.modeChanged('menu');assert.equal(practice.dialogs.length,0);assert.equal(practice.posts.length,0);
+  const developer=runtime({developer:true});developer.feed(40);developer.api.finishRound('time');developer.api.modeChanged('menu');assert.equal(developer.dialogs.length,0);assert.equal(developer.posts.length,0,'developer tuning never contaminates public metrics');
   assert.equal(accept.posts.filter(p=>p.event==='finish').length,1);
 });

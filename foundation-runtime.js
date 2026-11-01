@@ -19,7 +19,7 @@ const source = /(^|[ .])(?:y8\.com|y8games\.com)(?:$| )/.test(host) ? 'y8' : loc
 const ua = navigator.userAgent;
 const device = /iPhone|iPod/.test(ua) ? 'iphone' : /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? 'ipad' : /Android/.test(ua) ? 'android' : 'desktop';
 function allowed() {
-  if (dev || window.skyPracticeMode || window.skyChallenge?.debug || window.skyChallenge?.isIntroRun || game?.z.mission) return false;
+  if (dev || window.skyDevMode || window.skyPracticeMode || window.skyChallenge?.debug || window.skyChallenge?.isIntroRun || game?.z.mission) return false;
   if (game) return game.U.sendLog === true;
   try { return JSON.parse(localStorage.getItem('gunrun-sky-proto-v1') || '{}').sendLog !== false; } catch { return true; }
 }
@@ -82,7 +82,7 @@ window.skyFoundation = {
     round = { id, monitor: createAutoResolutionMonitor(), metrics: createFrameMetrics(),
       quality: window.skyRenderQuality?.mode, revision: window.skyRenderQuality?.revision,
       difficulty: game?.z.challenge?.id || window.skyChallenge?.id || 'unknown',
-      excluded: !!(window.skyPracticeMode || window.skyChallenge?.debug || game?.z.mission) };
+      excluded: !!(window.skyDevMode || window.skyPracticeMode || window.skyChallenge?.debug || game?.z.mission) };
     starts++;
     send('start', { run: id });
     if (starts > 1) send('retry', { run: id });
