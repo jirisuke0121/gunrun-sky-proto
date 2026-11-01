@@ -78,7 +78,7 @@ fs.mkdirSync(out,{recursive:true});
   const session=crypto.randomUUID(),run=crypto.randomUUID();
   const seed=async(event,extra={})=>{const r=await fetch(base+'/telemetry',{method:'POST',body:JSON.stringify({v:1,id:crypto.randomUUID(),session,event,build:'browser-fixture',map:'old-town',source:'github',device:'desktop',difficulty:'normal',run,...extra})});assert.equal(r.status,200)};
   await seed('boot');await seed('home');await seed('start');await seed('finish',{reason:'time',performance:{frameCount:600,durationMs:10000,averageFps:60,below30Count:0,maxFrameMs:17,quality:'high',ratio:1,width:1280,height:720,nativeRatio:1,viewportWidth:1280,viewportHeight:720}});await seed('error',{error:'resource'});
-  const context=await browser.newContext({locale:'ja-JP'}),page=await context.newPage();page.setDefaultTimeout(15000);await page.goto(base+'/owner.html');
+  const context=await browser.newContext({locale:'ja-JP'}),page=await context.newPage();page.setDefaultTimeout(15000);await page.goto(base+'/owner-token.html');
   await page.locator('#endpoint').fill(base);await page.locator('#token').fill('wrong');await page.locator('#refresh').click();await page.waitForFunction(()=>document.getElementById('status').textContent.includes('トークンを確認'));
   await page.locator('#token').fill('local-fixture-only');await page.locator('#refresh').click();await page.waitForFunction(()=>document.getElementById('performanceRows').textContent.includes('60.0'));
   assert.match(await page.locator('#errorRows').innerText(),/ファイル読み込み/);await page.screenshot({path:path.join(out,'owner-desktop.png'),fullPage:true});

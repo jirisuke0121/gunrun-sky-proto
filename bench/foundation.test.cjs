@@ -53,6 +53,16 @@ test('telemetry API validates, deduplicates, filters, preserves missing FPS and 
   const post = data => request('/telemetry',{method:'POST',body:JSON.stringify(data)});
   assert.equal((await request('/admin/overview')).status,401);
   assert.equal((await request('/admin/overview',{headers:{Authorization:'Bearer wrong'}})).status,401);
+  assert.equal((await request('/admin/overview',{headers:{'oai-authenticated-user-id':'forged','oai-authenticated-user-email':'forged@example.invalid'}})).status,401,'public Worker never trusts Sites identity headers');
+  env.OWNER_OVERVIEW_TOKEN = 'local-overview-fixture-only-0123456789';
+  const overviewHeaders = {Authorization: 'Bearer ' + env.OWNER_OVERVIEW_TOKEN};
+  assert.equal((await request('/admin/overview',{headers:overviewHeaders})).status,200);
+  assert.equal((await request('/runs',{headers:overviewHeaders})).status,401,'overview credential cannot read raw runs');
+  assert.equal((await request('/runs/fixture',{headers:overviewHeaders})).status,401,'overview credential cannot read individual runs');
+  assert.equal((await request('/admin/overview',{headers:{Authorization:overviewHeaders.Authorization.replace(/.$/,'x')}})).status,401);
+  env.OWNER_OVERVIEW_TOKEN = 'short';
+  assert.equal((await request('/admin/overview',{headers:{Authorization:'Bearer short'}})).status,401);
+  delete env.OWNER_OVERVIEW_TOKEN;
   assert.equal((await (await admin('')).json()).summary.sessions,0);
   const boot=event('boot');assert.equal((await post(boot)).status,200);await post(boot);
   for(const name of ['home','start','retry'])assert.equal((await post(event(name,{run}))).status,200);

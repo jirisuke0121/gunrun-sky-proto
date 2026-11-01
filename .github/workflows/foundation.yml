@@ -1,7 +1,7 @@
 name: Minimal runtime foundation
 on:
   pull_request:
-    paths: ['foundation-*.js', 'auto-resolution-monitor.js', 'render-quality.js', 'owner.*', 'server/telemetry*', 'server/worker.js', 'index.html', 'canyon.html', 'bench/foundation*', '.github/workflows/foundation.yml']
+    paths: ['foundation-*.js', 'auto-resolution-monitor.js', 'render-quality.js', 'owner.*', 'owner-token.html', 'server/telemetry*', 'server/worker.js', 'index.html', 'canyon.html', 'bench/foundation*', '.github/workflows/foundation.yml']
   workflow_dispatch:
 permissions:
   contents: read
