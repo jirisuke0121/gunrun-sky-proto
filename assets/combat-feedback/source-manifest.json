@@ -1,0 +1,84 @@
+{
+  "Hit.wav": {
+    "source": "Resources/GunRunAudio/Hit.wav",
+    "sha256": "008001b6ac426fd096ac89eff230a21d3d7861dff76889ddbf18c69d03422613"
+  },
+  "Kill.wav": {
+    "source": "Resources/GunRunAudio/Kill.wav",
+    "sha256": "37ae3292b68187549e1c34a35c33f449bfd9895015c920c695013449862f7783"
+  },
+  "DamageArrival.wav": {
+    "source": "Resources/GunRunAudio/DamageArrival.wav",
+    "sha256": "1ec556e2ad02f10136aa24aea77b4b38ff4c4c48f49a8968f4db9f0a3726c189"
+  },
+  "Medal.wav": {
+    "source": "Resources/GunRunAudio/Medal.wav",
+    "sha256": "bcce5e86321e28c526a0341d0095e39dfe207cd78febc30e1ddb23fd93fa99b0"
+  },
+  "Milestone.wav": {
+    "source": "Resources/GunRunAudio/Milestone.wav",
+    "sha256": "ce1487ae339c04ab73dc658f5066e75e6d6d24a3140bfce886ea8eb6fdf0dece"
+  },
+  "Bonus.wav": {
+    "source": "Resources/GunRunAudio/Bonus.wav",
+    "sha256": "41ae205f9f03e14f13bb0602853f00cabc11826b9a5f1e2b208a673de9463b76"
+  },
+  "damage-bullet.png": {
+    "source": "Resources/InfectionProgression/damage-bullet.png",
+    "sha256": "00e73ce34fedb9e8baacd728b69ea8d71939ce96ff57ec88428a25bab8f23a6a"
+  },
+  "feedback-medium.woff": {
+    "source": "Fonts/NotoSansJP-Medium.otf",
+    "sourceSHA256": "60e284e97da331e6aca7f4a82bc64f0dcedd7215baf6d80f3e42e368d544f89d",
+    "subsetText": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ダメージ与撃破追手を撒いた引き離した達成逃走点近くの脅威なしゾンビ体合計",
+    "sha256": "f92893098dea43169dc8aa838ab58457880780066eabd5c98eb0474526d4a9f5"
+  },
+  "titanium.png": {
+    "source": "Resources/InfectionMedals/A-reference.png",
+    "sourceSHA256": "501dbe7648a9ac5256a875f03bb7cbd19af5398a8556745fbc9772ede60e1265",
+    "unityRect": [
+      400,
+      115,
+      204,
+      202
+    ],
+    "sha256": "8d76fecbe0e5ebabf4ba3d1fd6c79433bd73890be0181c20aeee5de2c1752a5e"
+  },
+  "gold.png": {
+    "source": "Resources/InfectionMedals/A-reference.png",
+    "sourceSHA256": "501dbe7648a9ac5256a875f03bb7cbd19af5398a8556745fbc9772ede60e1265",
+    "unityRect": [
+      1205,
+      151,
+      192,
+      186
+    ],
+    "sha256": "227b3ec75c53211e462ee32f35938690e227f62a2c8f9f0ea3be126af56603e9"
+  },
+  "skull.png": {
+    "source": "Resources/InfectionMedals/A-reference.png",
+    "sourceSHA256": "501dbe7648a9ac5256a875f03bb7cbd19af5398a8556745fbc9772ede60e1265",
+    "unityRect": [
+      1475,
+      154,
+      134,
+      134
+    ],
+    "sha256": "725abb70da5e02c307afe986f51be3dc049ea04690626820eef96b3b5a10ce6b"
+  },
+  "socket.png": {
+    "source": "Resources/InfectionMedals/A-reference.png",
+    "sourceSHA256": "501dbe7648a9ac5256a875f03bb7cbd19af5398a8556745fbc9772ede60e1265",
+    "unityRect": [
+      753,
+      439,
+      52,
+      52
+    ],
+    "sha256": "3517c0531a842c8cdf5ec588b2d045600ea60b8f18c5e95f02834ec8f1f9d495"
+  },
+  "escaped.svg": {
+    "source": "original vector artwork for Sky Corridor escape feedback",
+    "sha256": "6383984c55bd97fc2035c2eeb43d637eeb7e0a89937d38124a6bb560b4956d4e"
+  }
+}

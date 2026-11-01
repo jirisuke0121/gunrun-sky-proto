@@ -21,4 +21,8 @@ f.win.skyHumanView.choice='existing';f.change();assert.equal(f.api.state.phase,'
 f.win.skyHumanView.choice='unity';f.win.__skyUpgrade.loaded.hg=false;f.win.__skyUpgrade.loaded.error='hg: HTTP 404';f.change();assert.match(f.api.state.message,/銃/);assert.equal(f.start.disabled,true);
 f.win.__skyUpgrade.loaded.hg=true;f.change();assert.equal(f.api.ready,true);assert.equal(f.retry.hidden,true);
 const missing=fixture();missing.load();assert.equal(missing.api.state.phase,'error','failed deferred module cannot look ready or wait forever');assert.equal(missing.retry.hidden,false);
+const feedback=fixture();feedback.readyModules();feedback.doc.body.dataset.skyHumanLoaded='true';feedback.doc.body.dataset.skyZombieReady='true';feedback.win.__skyUpgrade.loaded.hg=true;
+feedback.win.skyChallengeScore={feedbackRequired:true};feedback.win.skyCombatFeedbackAssets={phase:'loading'};feedback.change();assert.equal(feedback.start.disabled,true);assert.match(feedback.api.state.message,/演出/);
+feedback.win.skyCombatFeedbackAssets.phase='error';feedback.change();assert.equal(feedback.api.state.phase,'error');assert.equal(feedback.retry.hidden,false);
+feedback.win.skyCombatFeedbackAssets.phase='ready';feedback.change();assert.equal(feedback.api.ready,true);assert.equal(feedback.start.disabled,false);assert.equal(feedback.intro.disabled,false);
 console.log('PASS independent load order, disabled buttons and defensive click, duplicate tap, practice label, model/module failures and reload recovery');

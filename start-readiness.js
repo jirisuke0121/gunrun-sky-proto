@@ -16,6 +16,11 @@
       if (!models?.hg) return { phase: 'loading', message: '銃を読み込み中…' };
       if (doc.body.dataset.skyGameExtensionsReady !== 'true' || !win.skySettings || !win.skyFollowCamera) return { phase: 'loading', message: 'ゲームを準備中…' };
       if (doc.body.dataset.skyZombieReady !== 'true') return { phase: 'loading', message: 'ゾンビを読み込み中…' };
+      if (win.skyChallengeScore?.feedbackRequired) {
+        const feedback = win.skyCombatFeedbackAssets;
+        if (feedback?.phase === 'error' || pageLoaded && !feedback) return { phase: 'error', message: '演出を読み込めませんでした。再読み込みしてください。' };
+        if (feedback?.phase !== 'ready') return { phase: 'loading', message: '演出を読み込み中…' };
+      }
       return { phase: 'ready', message: '' };
     }
     function sync() {
@@ -45,7 +50,7 @@
     for (const button of retry) button.addEventListener('click', () => win.location.reload());
     new win.MutationObserver(sync).observe(doc.body, { attributes: true, attributeFilter: [
       'data-sky-human-loaded', 'data-sky-human-trial', 'data-sky-models',
-      'data-sky-game-extensions-ready', 'data-sky-zombie-ready',
+      'data-sky-game-extensions-ready', 'data-sky-zombie-ready', 'data-sky-feedback-assets',
     ] });
     win.addEventListener('load', () => { pageLoaded = true; sync(); });
     const api = { sync, get ready() { return inspect().phase === 'ready'; }, get state() { return inspect(); } };
