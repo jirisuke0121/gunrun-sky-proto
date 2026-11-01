@@ -1,7 +1,7 @@
 // Shared time/combat arithmetic. Pursuit detection only triggers presentation.
 (function (root) {
   const config = Object.freeze({ radius: 18, routeLimit: 26, heightLimit: 3,
-    perSecond: 120, interval: 5, perDamage: 2, perKill: 100,
+    perSecond: 120, interval: 30, perDamage: 2, perKill: 100,
     sample: .15, escapeCharge: 3, escapeQuiet: 2 });
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   function evaluate(seconds, kills, difficulty, earned = {}) {

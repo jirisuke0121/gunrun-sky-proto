@@ -45,7 +45,8 @@
   const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   function award(b) {
     const el = $('unityTickAward'); if (!el) return;
-    const major = b.ticks % 6 === 0;
+    // Milestones on a 30 s boundary get the large gold treatment (every payout at the 30 s interval).
+    const major = (b.ticks * b.interval) % 30 === 0;
     el.dataset.major = String(major);
     el.querySelector('b').textContent = '+' + b.tickPoints.toLocaleString('ja-JP');
     el.querySelector('small').textContent = `${b.ticks * b.interval}秒生存`;
