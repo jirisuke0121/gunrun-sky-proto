@@ -443,7 +443,7 @@ function aimWeaponAt(target) {
   aimDirection.copy(target).sub(centre).normalize();
   right.set(-aimDirection.z, 0, aimDirection.x).normalize();
   // Keep both wrists within reach, including the support grip of long weapons.
-  aimHand.copy(centre).addScaledVector(right, .075).addScaledVector(aimDirection, .24);
+  aimHand.copy(centre).addScaledVector(right, .075).addScaledVector(aimDirection, .24 - Math.min(.035, sky.Et.recoil * .25));
   aimHand.y -= .075;
   // Re-anchor the gun's trigger grip after solving its direction.
   const handGoal=aimHand.clone();

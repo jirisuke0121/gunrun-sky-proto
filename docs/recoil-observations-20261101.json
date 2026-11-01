@@ -1,0 +1,847 @@
+{
+  "base": "47571bb4f5362f5b784828aa7196bba82251bafa",
+  "kind": "local runtime observation, not human difficulty or device evidence",
+  "conditions": {
+    "seconds": 6,
+    "step": 0.016666666666666666,
+    "target": "one real zombie instance, motion and hurt disabled, fixed at 5/12/23m in clear space at y=200",
+    "ammunition": "unlimited during observations to isolate cadence from reload",
+    "comparison": "disable only the recoil module on the same edited build",
+    "manual": "automatic trigger off, aim assistance on; separate aim-off poses at pitch -0.8/0/0.8"
+  },
+  "maps": [
+    {
+      "map": "index.html",
+      "automatic": [
+        {
+          "weapon": "HG",
+          "distance": 5,
+          "enabled": false,
+          "shots": 30,
+          "hits": 30,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "HG",
+          "distance": 5,
+          "enabled": true,
+          "shots": 30,
+          "hits": 30,
+          "hitRate": 100,
+          "mode": "continuous",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999998,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "HG",
+          "distance": 12,
+          "enabled": false,
+          "shots": 30,
+          "hits": 30,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "HG",
+          "distance": 12,
+          "enabled": true,
+          "shots": 22,
+          "hits": 22,
+          "hitRate": 100,
+          "mode": "burst",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "HG",
+          "distance": 23,
+          "enabled": false,
+          "shots": 30,
+          "hits": 30,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "HG",
+          "distance": 23,
+          "enabled": true,
+          "shots": 12,
+          "hits": 12,
+          "hitRate": 100,
+          "mode": "tap",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "SMG",
+          "distance": 5,
+          "enabled": false,
+          "shots": 60,
+          "hits": 60,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999998,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "SMG",
+          "distance": 5,
+          "enabled": true,
+          "shots": 60,
+          "hits": 60,
+          "hitRate": 100,
+          "mode": "continuous",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999998,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "SMG",
+          "distance": 12,
+          "enabled": false,
+          "shots": 60,
+          "hits": 60,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "SMG",
+          "distance": 12,
+          "enabled": true,
+          "shots": 30,
+          "hits": 28,
+          "hitRate": 93.3,
+          "mode": "burst",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "SMG",
+          "distance": 23,
+          "enabled": false,
+          "shots": 60,
+          "hits": 51,
+          "hitRate": 85,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999998,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "SMG",
+          "distance": 23,
+          "enabled": true,
+          "shots": 13,
+          "hits": 9,
+          "hitRate": 69.2,
+          "mode": "tap",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "MG",
+          "distance": 5,
+          "enabled": false,
+          "shots": 45,
+          "hits": 45,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999998,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "MG",
+          "distance": 5,
+          "enabled": true,
+          "shots": 45,
+          "hits": 45,
+          "hitRate": 100,
+          "mode": "continuous",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999998,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "MG",
+          "distance": 12,
+          "enabled": false,
+          "shots": 45,
+          "hits": 45,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "MG",
+          "distance": 12,
+          "enabled": true,
+          "shots": 24,
+          "hits": 21,
+          "hitRate": 87.5,
+          "mode": "burst",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "MG",
+          "distance": 23,
+          "enabled": false,
+          "shots": 45,
+          "hits": 45,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "MG",
+          "distance": 23,
+          "enabled": true,
+          "shots": 12,
+          "hits": 12,
+          "hitRate": 100,
+          "mode": "tap",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        }
+      ],
+      "manual": [
+        {
+          "weapon": "HG",
+          "enabled": false,
+          "distance": 23,
+          "shots": 30,
+          "hits": 30,
+          "hitRate": 100
+        },
+        {
+          "weapon": "HG",
+          "enabled": true,
+          "distance": 23,
+          "shots": 30,
+          "hits": 6,
+          "hitRate": 20
+        },
+        {
+          "weapon": "SMG",
+          "enabled": false,
+          "distance": 23,
+          "shots": 60,
+          "hits": 50,
+          "hitRate": 83.3
+        },
+        {
+          "weapon": "SMG",
+          "enabled": true,
+          "distance": 23,
+          "shots": 60,
+          "hits": 4,
+          "hitRate": 6.7
+        },
+        {
+          "weapon": "MG",
+          "enabled": false,
+          "distance": 23,
+          "shots": 45,
+          "hits": 45,
+          "hitRate": 100
+        },
+        {
+          "weapon": "MG",
+          "enabled": true,
+          "distance": 23,
+          "shots": 45,
+          "hits": 5,
+          "hitRate": 11.1
+        }
+      ],
+      "recovered": {
+        "hot": 1,
+        "heat": 0,
+        "circleHot": 68.1953125,
+        "circleRecovered": 34
+      },
+      "paused": {
+        "heat": 0.34,
+        "timeDelta": 0
+      },
+      "retry": {
+        "weapon": 0,
+        "heat": 0,
+        "cone": 0,
+        "shots": 0,
+        "burstCount": 0,
+        "autoMode": "none"
+      },
+      "retarget": {
+        "heat": 0.6900000000000001,
+        "newMiddleTargetAllowed": false,
+        "closeTargetAllowed": true
+      },
+      "swap": {
+        "before": 0.68,
+        "after": 0.68
+      },
+      "manualAim": [
+        {
+          "pitch": -0.8,
+          "ray": {
+            "time": 0,
+            "origin": [
+              0.04536790584456303,
+              201.00382219374453,
+              -0.5723432603662819
+            ],
+            "direction": [
+              0.01034447079908612,
+              -0.7151594224431951,
+              -0.698884820563877
+            ],
+            "heat": 0.34,
+            "muzzleError": 0,
+            "barrelDot": 1
+          },
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "pitch": 0,
+          "ray": {
+            "time": 0,
+            "origin": [
+              0.03864937604533676,
+              201.46400444337192,
+              -0.34841622195466426
+            ],
+            "direction": [
+              0.005187126744670814,
+              3.732016270406839e-07,
+              -0.9999865467675031
+            ],
+            "heat": 0.34,
+            "muzzleError": 0,
+            "barrelDot": 1
+          },
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "pitch": 0.8,
+          "ray": {
+            "time": 0,
+            "origin": [
+              0.03503881899389635,
+              201.65940834704566,
+              0.1604850898712951
+            ],
+            "direction": [
+              0.008168845586886811,
+              0.7174245967631245,
+              -0.6965882700139628
+            ],
+            "heat": 0.34,
+            "muzzleError": 0,
+            "barrelDot": 1
+          },
+          "grip": 0,
+          "aim": 0
+        }
+      ],
+      "transitions": {
+        "map": "index.html",
+        "stop": {
+          "heat": 0.68,
+          "trigger": 0,
+          "held": false,
+          "shotsWhileStopped": 0,
+          "shotsAfterResume": 2
+        },
+        "retarget": {
+          "heat": 0.6900000000000001,
+          "newMiddleTargetAllowed": false,
+          "closeTargetAllowed": true
+        },
+        "swap": {
+          "before": 0.68,
+          "after": 0.68
+        },
+        "paused": {
+          "before": 0.68,
+          "after": 0.68,
+          "timeDelta": 0
+        },
+        "retry": {
+          "weapon": 0,
+          "heat": 0,
+          "cone": 0,
+          "shots": 0,
+          "burstCount": 0,
+          "autoMode": "none"
+        }
+      },
+      "discardedObservation": "The initial resume fixture kept a target removed by retry and recorded zero resumed shots. The separate transitions record restores an active target and supersedes that observation."
+    },
+    {
+      "map": "canyon.html",
+      "automatic": [
+        {
+          "weapon": "HG",
+          "distance": 5,
+          "enabled": false,
+          "shots": 30,
+          "hits": 30,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "HG",
+          "distance": 5,
+          "enabled": true,
+          "shots": 30,
+          "hits": 30,
+          "hitRate": 100,
+          "mode": "continuous",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999998,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "HG",
+          "distance": 12,
+          "enabled": false,
+          "shots": 30,
+          "hits": 30,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "HG",
+          "distance": 12,
+          "enabled": true,
+          "shots": 22,
+          "hits": 22,
+          "hitRate": 100,
+          "mode": "burst",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "HG",
+          "distance": 23,
+          "enabled": false,
+          "shots": 30,
+          "hits": 30,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "HG",
+          "distance": 23,
+          "enabled": true,
+          "shots": 12,
+          "hits": 12,
+          "hitRate": 100,
+          "mode": "tap",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "SMG",
+          "distance": 5,
+          "enabled": false,
+          "shots": 60,
+          "hits": 60,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999998,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "SMG",
+          "distance": 5,
+          "enabled": true,
+          "shots": 60,
+          "hits": 58,
+          "hitRate": 96.7,
+          "mode": "continuous",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999997,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "SMG",
+          "distance": 12,
+          "enabled": false,
+          "shots": 60,
+          "hits": 60,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "SMG",
+          "distance": 12,
+          "enabled": true,
+          "shots": 30,
+          "hits": 24,
+          "hitRate": 80,
+          "mode": "burst",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "SMG",
+          "distance": 23,
+          "enabled": false,
+          "shots": 60,
+          "hits": 53,
+          "hitRate": 88.3,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "SMG",
+          "distance": 23,
+          "enabled": true,
+          "shots": 13,
+          "hits": 9,
+          "hitRate": 69.2,
+          "mode": "tap",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 1,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "MG",
+          "distance": 5,
+          "enabled": false,
+          "shots": 45,
+          "hits": 45,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "MG",
+          "distance": 5,
+          "enabled": true,
+          "shots": 45,
+          "hits": 43,
+          "hitRate": 95.6,
+          "mode": "continuous",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999997,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "MG",
+          "distance": 12,
+          "enabled": false,
+          "shots": 45,
+          "hits": 45,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "MG",
+          "distance": 12,
+          "enabled": true,
+          "shots": 24,
+          "hits": 23,
+          "hitRate": 95.8,
+          "mode": "burst",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "MG",
+          "distance": 23,
+          "enabled": false,
+          "shots": 45,
+          "hits": 45,
+          "hitRate": 100,
+          "mode": "none",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 0.9999999999999999,
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "weapon": "MG",
+          "distance": 23,
+          "enabled": true,
+          "shots": 12,
+          "hits": 12,
+          "hitRate": 100,
+          "mode": "tap",
+          "maxMuzzleError": 0,
+          "minBarrelDot": 1,
+          "grip": 0,
+          "aim": 0
+        }
+      ],
+      "manual": [
+        {
+          "weapon": "HG",
+          "enabled": false,
+          "distance": 23,
+          "shots": 30,
+          "hits": 30,
+          "hitRate": 100
+        },
+        {
+          "weapon": "HG",
+          "enabled": true,
+          "distance": 23,
+          "shots": 30,
+          "hits": 11,
+          "hitRate": 36.7
+        },
+        {
+          "weapon": "SMG",
+          "enabled": false,
+          "distance": 23,
+          "shots": 60,
+          "hits": 50,
+          "hitRate": 83.3
+        },
+        {
+          "weapon": "SMG",
+          "enabled": true,
+          "distance": 23,
+          "shots": 60,
+          "hits": 15,
+          "hitRate": 25
+        },
+        {
+          "weapon": "MG",
+          "enabled": false,
+          "distance": 23,
+          "shots": 45,
+          "hits": 45,
+          "hitRate": 100
+        },
+        {
+          "weapon": "MG",
+          "enabled": true,
+          "distance": 23,
+          "shots": 45,
+          "hits": 8,
+          "hitRate": 17.8
+        }
+      ],
+      "recovered": {
+        "hot": 1,
+        "heat": 0,
+        "circleHot": 68.1953125,
+        "circleRecovered": 34
+      },
+      "paused": {
+        "heat": 0.34,
+        "timeDelta": 0
+      },
+      "retry": {
+        "weapon": 0,
+        "heat": 0,
+        "cone": 0,
+        "shots": 0,
+        "burstCount": 0,
+        "autoMode": "none"
+      },
+      "retarget": {
+        "heat": 0.6900000000000001,
+        "newMiddleTargetAllowed": false,
+        "closeTargetAllowed": true
+      },
+      "swap": {
+        "before": 0.68,
+        "after": 0.68
+      },
+      "manualAim": [
+        {
+          "pitch": -0.8,
+          "ray": {
+            "time": 0,
+            "origin": [
+              0.04719331632149151,
+              201.00235073538292,
+              -0.5677042735980975
+            ],
+            "direction": [
+              0.008598299589589095,
+              -0.7135882090701052,
+              -0.7005126245259878
+            ],
+            "heat": 0.34,
+            "muzzleError": 0,
+            "barrelDot": 1
+          },
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "pitch": 0,
+          "ray": {
+            "time": 0,
+            "origin": [
+              0.03790130087756712,
+              201.46512636135793,
+              -0.34739452645824426
+            ],
+            "direction": [
+              0.003543433365422756,
+              0.002434809561635401,
+              -0.999990757848483
+            ],
+            "heat": 0.34,
+            "muzzleError": 0,
+            "barrelDot": 1
+          },
+          "grip": 0,
+          "aim": 0
+        },
+        {
+          "pitch": 0.8,
+          "ray": {
+            "time": 0,
+            "origin": [
+              0.03536581112991722,
+              201.6594111048428,
+              0.15942540057697596
+            ],
+            "direction": [
+              0.00419894513252804,
+              0.7170154088690627,
+              -0.6970446702357783
+            ],
+            "heat": 0.34,
+            "muzzleError": 0,
+            "barrelDot": 1
+          },
+          "grip": 0,
+          "aim": 0
+        }
+      ],
+      "transitions": {
+        "stop": {
+          "trigger": 0,
+          "held": false,
+          "heat": 0.68,
+          "shotsWhileStopped": 0,
+          "shotsAfterResume": 4
+        },
+        "retarget": {
+          "heat": 0.6900000000000001,
+          "newMiddleTargetAllowed": false,
+          "closeTargetAllowed": true
+        },
+        "swap": {
+          "before": 0.68,
+          "after": 0.68
+        }
+      }
+    }
+  ],
+  "syntax": "all changed JS plus both inline main modules parse; git diff --check clean",
+  "ui": [
+    "normal start and pause in both maps",
+    "index X stop, result retry and X resume"
+  ],
+  "unverified": [
+    "physical iPhone feel",
+    "full two-minute difficulty balance",
+    "all nonstandard weapons",
+    "publication"
+  ],
+  "sha256": {
+    "gun-recoil.js": "db0006b3158ac8fd5614ce7ebc34b95f84b28e68779fd2a3b22ecbe8329a2133",
+    "index.html": "574445a720678aee7547e9354e6598b4ee31b2f7d8d770dc19e6fdc4a8ce1d1f",
+    "canyon.html": "1ef22662770e6978c326615fcc0b035dd872764051bf1b193b2108381e6b261a",
+    "enhancements.js": "19ea71627e350ff847a77af7bfd1a5cc5a2c504f969143cc2af4c2daa7774c6d",
+    "human-view.js": "f62edad09031e2559da9ef91a6698e4fc98a25bb448e3b1f35bf5a2b9bff7c21",
+    "hud-unify.css": "a585c57ea159308249be210e5afec273f01a4f4853d36dcc11004b33d3e046bb",
+    "i18n-en.js": "dd9ea2633094500b9ee2df6917cd277eaf7bbfb8a61f22ff141420dac7b7898b"
+  }
+}
