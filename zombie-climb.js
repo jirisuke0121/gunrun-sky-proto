@@ -27,6 +27,8 @@ export function createZombieClimb(game, runtime, flashbang) {
   let targetTime = -Infinity, targetTop = null, targetKey = '';
   const targetFor = enemy => window.skyZombieSearch ? window.skyZombieSearch.recoveryTarget(enemy) : realPlayer;
   const fieldFor = enemy => window.skyZombieSearch ? window.skyZombieSearch.recoveryField(enemy) : runtime.FIELD;
+  const approachNodes = new Map();
+  let approachGoal = null;
 
   function lineInterval(bounds, strict = true) {
     let enter = 0, leave = 1;
@@ -121,7 +123,7 @@ export function createZombieClimb(game, runtime, flashbang) {
     }
     return best;
   }
-  function makeRoute(enemy, column, cap, normal, along) {
+  function makeRoute(enemy, column, cap, normal, along, terrainOnly = false) {
     const player = targetFor(enemy), field = fieldFor(enemy);
     if (!player) return null;
     // An enemy already pressed against the face can climb from there. Making
@@ -165,7 +167,7 @@ export function createZombieClimb(game, runtime, flashbang) {
       length += distance(from, segment.to); from = segment.to;
     }
     // Do not allow two bodies to occupy the same narrow climb lane.
-    if (zombies.some(other => other !== enemy && other.act?.kind === 'pillar' &&
+    if (!terrainOnly && zombies.some(other => other !== enemy && other.act?.kind === 'pillar' &&
         (other.act.column === column && other.act.normal === normal ||
          other.act.cap === cap && distance(other.act.segments.at(-1).to, finish) < enemy.r + other.r + 0.15))) return null;
     return { kind: 'pillar', column, cap, normal, node, directTop, segments, index: 0,
@@ -203,6 +205,35 @@ export function createZombieClimb(game, runtime, flashbang) {
     }
     return null;
   }
+  function navigationTargets() {
+    // A mono roof has no NAV node. Falling back to the player's old node
+    // sends pursuers away before the stall detector can ever find its wall.
+    // Use ordinary, supported nodes at climbable faces as temporary goals;
+    // the wall itself remains outside the shared navigation graph.
+    if (run.mission || !realPlayer.onGround) return null;
+    const node = runtime.nodeAt(realPlayer.pos.x, realPlayer.pos.y + 0.1, realPlayer.pos.z);
+    if (node >= 0 && Math.abs(runtime.NAV.nodes[node].y - realPlayer.pos.y) < 0.35) return null;
+    const cap = runtime.near(realPlayer.pos.x, realPlayer.pos.z, realPlayer.pos.x, realPlayer.pos.z)
+      .find(b => columns.has(b) && onTop(realPlayer, b));
+    if (!cap) return null;
+    if (approachGoal?.cap === cap && game.ceRef() < approachGoal.until &&
+        distance(approachGoal.pos, realPlayer.pos) < 0.5) return approachGoal.ids.length ? approachGoal.ids : null;
+    let candidates = approachNodes.get(cap);
+    if (!candidates) {
+      candidates = runtime.NAV.nodes.filter(n => n.y < cap.maxY - 0.35 &&
+        n.y + 1.8 >= cap.minY && distanceToTop(n, cap) <= 1.5);
+      approachNodes.set(cap, candidates);
+    }
+    const ids = [];
+    for (const n of candidates) {
+      const body = { pos: point(n.x, n.y + 0.003, n.z), r: 0.3, h: 1.8, onGround: true };
+      // This only establishes terrain clearance. Occupied climb lanes are
+      // queued later, rather than invalidating the entire approach field.
+      if (faces.some(normal => makeRoute(body, cap, cap, normal, normal.x ? n.z : n.x, true))) ids.push(n.id);
+    }
+    approachGoal = { cap, pos: point(realPlayer.pos.x, realPlayer.pos.y, realPlayer.pos.z), ids, set: new Set(ids), until: game.ceRef() + config.retry };
+    return ids.length ? ids : null;
+  }
   function pursuing(enemy) {
     return runtime.mode === 'play' && !run.over && !run.mission && !enemy.dead && !enemy.remove &&
       !enemy.rise && !enemy.fall && !enemy.guard && !!targetFor(enemy) && enemy.spawnT <= 0 &&
@@ -233,7 +264,14 @@ export function createZombieClimb(game, runtime, flashbang) {
       const next = point(origin.x + (finish.x - origin.x) * across,
         origin.y + (finish.y - origin.y) * t * t + .4 * Math.sin(Math.PI * Math.min(1, t * 1.6)),
         origin.z + (finish.z - origin.z) * across);
-      if (!clearLine(enemy, previous, next)) return false;
+      if (!clearLine(enemy, previous, next)) {
+        // NAV links use thinner probes than a zombie's body. Do not retry
+        // an obstructed descent forever: let the ordinary field route around
+        // it, using the same temporary jam mechanism as blocked walking.
+        runtime.jamNavigationEdge?.(enemy.edge, now + 20);
+        enemy.edge = -1; enemy.navT = 0;
+        return false;
+      }
       previous = next;
     }
     enemy.startAct(finish.x, finish.y, finish.z, .35 + Math.max(0, enemy.pos.y - to.y) * .06);
@@ -467,6 +505,17 @@ export function createZombieClimb(game, runtime, flashbang) {
     if (track?.active && this.act !== track.active) { track.active = null; track.wait = 0; stats.interrupted++; }
     if (this.act?.kind === 'pillar' && climb(this, dt)) return;
     const player = targetFor(this), target = wallTarget(this);
+    if (target && eligible(this)) {
+      navigationTargets();
+      const departure = runtime.nodeAt(this.pos.x, this.pos.y + 0.1, this.pos.z);
+      if (approachGoal?.cap === target && approachGoal.set.has(departure) &&
+          Math.abs(runtime.NAV.nodes[departure].y - this.pos.y) < 0.35 && clearLine(this, this.pos, this.pos, true)) {
+        // At the supported departure, wait for the existing four-second
+        // recovery rather than walking diagonally off the adjacent catwalk.
+        this.vel.set(0, 0, 0); this.edge = -1; this.navT = 0;
+        this.anim(dt); watch(this, dt); return;
+      }
+    }
     if (target && eligible(this) && distanceToTop(this.pos, target) <= this.r + 0.3) {
       // At the wall's foot, use the usual direct chase/collision behavior
       // rather than follow a stale field back away from the wall.
@@ -499,6 +548,6 @@ export function createZombieClimb(game, runtime, flashbang) {
     if (approaching) this.act = action;
     if (!this.dead && this.stun <= 0 && !flashbang.blinded(this)) pose(this);
   };
-  return { config, stats, get columns() { return columns.size; },
+  return { config, stats, navigationTargets, get columns() { return columns.size; },
     state(enemy) { const t = tracks.get(enemy); return { wait: t?.wait || 0, climbing: enemy.act?.kind === 'pillar', stage: enemy.act?.segments?.[enemy.act.index]?.kind || null, searching: scan?.enemy === enemy }; } };
 }

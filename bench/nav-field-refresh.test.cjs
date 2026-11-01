@@ -18,7 +18,7 @@ for (const file of ['canyon.html', 'index.html']) {
   const near = new Float32Array(5), long = new Float32Array(5);
   let searches = 0;
   const context = vm.createContext({
-    lt: { E: edges }, Vi: 5, ce: 0, c: player, Vn: near, Ld: long, indoorAccess: { revision: 0 },
+    window: {}, lt: { E: edges }, Vi: 5, ce: 0, c: player, Vn: near, Ld: long, indoorAccess: { revision: 0 },
     dn: (x) => Math.floor(x), oo: () => 1, Pd: () => 2,
     so: (starts, cost, limit, field) => {
       searches++;
@@ -64,5 +64,15 @@ for (const file of ['canyon.html', 'index.html']) {
     context.indoorAccess.revision++; go();
     assert.equal(searches, 18, 'resetting indoor access invalidates both fields');
   }
+  const previous = searches;
+  context.window.skyZombieClimb = { navigationTargets: () => [3, 4] };
+  go();
+  assert.equal(searches, previous + 2, `${file}: wall approaches replace the stale player node`);
+  assert.equal(near[0], 13);
+  go();
+  assert.equal(searches, previous + 2, `${file}: unchanged wall approaches reuse the fields`);
+  context.window.skyZombieClimb.navigationTargets = () => null;
+  go();
+  assert.equal(searches, previous + 4, `${file}: leaving the wall restores normal navigation`);
   console.log(`${file}: nav refresh cases passed`);
 }

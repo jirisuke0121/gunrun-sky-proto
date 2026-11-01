@@ -34,6 +34,9 @@ jobs:
           node bench/path-distance-rounding.test.cjs
           node bench/zombie-search.test.cjs
           node bench/zombie-drop-entry.test.cjs
+          node bench/zombie-nav-floor.test.cjs
+          node bench/zombie-wall-approach.test.cjs
+          node bench/nav-field-refresh.test.cjs
       - name: Install browser
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
@@ -44,6 +47,8 @@ jobs:
           fi
       - name: Persistent zombie pursuit in both maps
         run: node bench/zombie-search-browser.cjs
+      - name: Pursuit onto the reported five-meter wall
+        run: node bench/zombie-wall-approach-browser.cjs
       - name: Editor auto-save in desktop and touch browsers
         run: |
           node bench/editor-autosave-browser.cjs
