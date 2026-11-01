@@ -10,7 +10,7 @@
  "逃走": "Evasion",
  "ダメージ": "Damage",
  "近くの追手をしのいで加点。ダメージ・撃破でも得点": "Earn points by evading nearby chasers. Damage and kills also score.",
- "追手を引き離している": "You have pulled away from nearby chasers",
+ "追跡得点は停止中": "Evasion scoring is paused",
  "同じ場所での加点上限": "Local scoring limit reached",
  "移動して追跡をしのごう": "Keep moving to evade the chase",
  "追跡をしのいで加点中": "Earning evasion points",

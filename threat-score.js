@@ -23,24 +23,25 @@
     let charge = 0, quiet = 0, cooldown = 0, cohort = new Set();
     const visits = new Map();
     const alive = e => !e.dead && !e.remove;
+    function nearbyWeight(e) {
+      if (!alive(e)) return 0;
+      const p = game.c.pos, dx = p.x - e.pos.x, dy = p.y - e.pos.y, dz = p.z - e.pos.z;
+      const distance = Math.hypot(dx, dy, dz);
+      if (distance > config.radius || Math.abs(dy) > config.heightLimit) return 0;
+      const route = e.node >= 0 ? runtime.FIELD[e.node] : Infinity;
+      // Reuse the native field and sight for both scoring and actual separation.
+      if (!Number.isFinite(route) || route > config.routeLimit || route > distance * 2 + 4) return 0;
+      if (distance > .1 && game.raycast(e.pos.x, e.pos.y + 1.1, e.pos.z,
+          dx / distance, dy / distance, dz / distance, Math.max(0, distance - .15))) return 0;
+      return .4 + .6 * (1 - distance / config.radius);
+    }
     function threats() {
       let sum = 0; count = 0;
       for (const e of game.Jt) {
         if (!alive(e) || e.rise || e.fall || e.spawnT > 0 || e.stun > .15 ||
             game.searchNav?.decoyTarget?.(e) || root.skyFlashbang?.blinded?.(e)) continue;
-        const p = game.c.pos, dx = p.x - e.pos.x, dy = p.y - e.pos.y, dz = p.z - e.pos.z;
-        const distance = Math.hypot(dx, dy, dz);
-        if (distance > config.radius || Math.abs(dy) > config.heightLimit) continue;
-        const route = e.node >= 0 ? runtime.FIELD[e.node] : Infinity;
-        // Reuse existing terrain distances: never run another path search here.
-        // Sight alone does not make an unreachable platform a valid threat.
-        if (!Number.isFinite(route) || route > config.routeLimit || route > distance * 2 + 4) continue;
-        // A wall/ceiling-separated pursuer starts earning when it reaches a real
-        // approach. This also prevents stale fields from counting another floor.
-        const length = Math.hypot(dx, dy, dz);
-        if (length > .1 && game.raycast(e.pos.x, e.pos.y + 1.1, e.pos.z,
-            dx / length, dy / length, dz / length, Math.max(0, length - .15))) continue;
-        count++; sum += .4 + .6 * (1 - distance / config.radius); cohort.add(e);
+        const weight = nearbyWeight(e); if (!weight) continue;
+        count++; sum += weight; cohort.add(e);
       }
       return Math.min(config.maxPressure, sum);
     }
@@ -79,7 +80,9 @@
         if (vulnerable) { chasedSeconds += span; charge += span; }
         quiet = 0;
       } else {
-        quiet += span;
+        // A temporarily stunned/distracted pursuer still beside the player is
+        // not an escape. It must actually leave the nearby reachable area.
+        quiet = [...cohort].some(e => nearbyWeight(e) > 0) ? 0 : quiet + span;
         if (quiet >= config.escapeQuiet) {
           // Killing every close pursuer is a kill, not a second escape award.
           if (charge >= config.escapeCharge && cooldown <= 0 && [...cohort].some(alive)) {

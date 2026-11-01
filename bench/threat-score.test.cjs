@@ -49,6 +49,14 @@ const escape=fixture();escape.tick(4);const before=escape.tracker.snapshot().pre
 escape.wall(true);escape.tick(3);assert.equal(escape.escapes(),1);assert.equal(escape.tracker.snapshot().pressureSeconds,before,'ESCAPED itself awards nothing');
 escape.tick(5);assert.equal(escape.escapes(),1,'one cue per pursuit episode');
 const swingEscape=fixture();swingEscape.tick(4);swingEscape.c.state='swing';swingEscape.tick(3);assert.equal(swingEscape.escapes(),0,'hanging beside a pursuer is not an escape');
+const stunnedEscape=fixture();stunnedEscape.tick(4);stunnedEscape.enemy.stun=4;stunnedEscape.tick(3);
+assert.equal(stunnedEscape.escapes(),0,'a nearby stunned pursuer has not been escaped');
+const distractedEscape=fixture();distractedEscape.tick(4);distractedEscape.decoy(true);distractedEscape.tick(3);
+assert.equal(distractedEscape.escapes(),0,'a nearby decoy target has not been escaped');
+distractedEscape.wall(true);distractedEscape.tick(3);assert.equal(distractedEscape.escapes(),1,'actual separation can escape a distracted pursuer');
+const flashEscape=fixture();flashEscape.tick(4);global.skyFlashbang={blinded:()=>true};
+try {flashEscape.tick(3);assert.equal(flashEscape.escapes(),0,'a nearby flash-blinded pursuer has not been escaped');}
+finally {delete global.skyFlashbang;}
 const kill=fixture();kill.tick(4);kill.enemy.dead=true;kill.tick(3);assert.equal(kill.escapes(),0,'kills do not also trigger escape');
 const damage=fixture();damage.tracker.damaged(1.4);damage.tracker.damaged(-20);damage.tracker.damaged(NaN);
 assert.equal(damage.tracker.snapshot().damageUnits,1.4);

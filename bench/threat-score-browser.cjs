@@ -58,6 +58,9 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
         c.yaw=Math.PI/2;
         if(!skyFlashbang.throw())throw Error('Flashbang unavailable');skyFlashbang.tick(.3);tick(1);
         if(!skyFlashbang.blinded(enemy)||score.threat().count)throw Error('Flashbang target counted');
+        tick(14);
+        if(!document.getElementById('threatFeedback').hidden&&document.getElementById('threatFeedback').textContent.startsWith('ESCAPED'))throw Error('Nearby flash-blinded enemy falsely escaped');
+        if(/引き離して|pulled away/.test(document.getElementById('threatHint').textContent))throw Error('A disabled nearby enemy is not a separation');
         skyFlashbang.clear();enemy.stun=0;
         if(!skyDecoy.activate())throw Error('Decoy unavailable');tick(1);
         if(score.threat().count)throw Error('Decoy target counted');skyDecoy.clear();
@@ -83,7 +86,16 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
         if(escapeNotes.join(',')!=='660,990,1320')throw Error('Escape cue notes: '+escapeNotes);
         notes.length=0;
         // Native hurt/die hooks, including capped overkill, and the actual cue graph.
-        const analyser=ctx.createAnalyser();master.connect(analyser);
+        // Retain the whole event's PCM on the audio thread. A single delayed
+        // main-thread analyser read can miss a short cue under rendering load.
+        const workletUrl=URL.createObjectURL(new Blob([`class CuePeak extends AudioWorkletProcessor {
+          constructor(){super();this.peak=0;this.port.onmessage=e=>{const p=this.peak;this.peak=0;this.port.postMessage(p)}}
+          process(inputs){for(const channel of inputs[0]||[])for(const v of channel)this.peak=Math.max(this.peak,Math.abs(v));return true}
+        }registerProcessor('cue-peak',CuePeak);`],{type:'text/javascript'}));
+        await ctx.audioWorklet.addModule(workletUrl);URL.revokeObjectURL(workletUrl);
+        const meter=new AudioWorkletNode(ctx,'cue-peak');master.connect(meter);meter.connect(ctx.destination);
+        const readPeak=()=>new Promise(resolve=>{meter.port.onmessage=e=>resolve(e.data);meter.port.postMessage('read')});
+        await readPeak();
         enemy.pos.set(x-3,start.y,start.z);enemy.hp=4;enemy.hurt(1,1,0,.6,0);
         const hit=document.getElementById('threatHit').textContent;
         const damageBefore=score.current().damageUnits;enemy.hurt(99,1,0,.6,0);score.sync();
@@ -91,10 +103,11 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
         const killNotes=notes.map(o=>o.frequency.value).filter(hz=>hz===880||hz===1320);
         if(killNotes.length!==2)throw Error('Kill cue notes: '+notes.map(o=>o.frequency.value));
         const kill=document.getElementById('threatFeedback').textContent;
-        const peak=async()=>{await new Promise(r=>setTimeout(r,70));const pcm=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(pcm);return Math.max(...pcm.map(Math.abs));};
-        const audible=await peak();master.gain.value=0;score.killed();const muted=await peak();
-        if(audible<.001||muted>.00001)throw Error('Cue volume/mute graph');
-        master.disconnect(analyser);master.gain.value=sky.U.volume;ctx.createOscillator=nativeOsc;
+        await new Promise(r=>setTimeout(r,300));const audible=await readPeak();
+        master.gain.value=0;await new Promise(r=>setTimeout(r,50));await readPeak();
+        score.killed();await new Promise(r=>setTimeout(r,300));const muted=await readPeak();
+        if(audible<.001||muted>.00001)throw Error(`Cue volume/mute graph: audible=${audible}, muted=${muted}, context=${ctx.state}`);
+        master.disconnect(meter);meter.disconnect();master.gain.value=sky.U.volume;ctx.createOscillator=nativeOsc;
         const frozen=score.current().total;tick(14,{move:false,follow:false});
         if(document.getElementById('threatFeedback').textContent.startsWith('ESCAPED')||score.current().total!==frozen)throw Error('All killed counted as escape');
         const beforePause=score.current().total;g.setMode('pause');score.step(1);score.sync();

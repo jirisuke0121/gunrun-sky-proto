@@ -85,7 +85,7 @@
       threatKey = nextThreatKey;
     set('threatStatus', `${threat.count || 0}体 · 脅威 ${Number(threat.pressure || 0).toFixed(1)}/3`);
     set('threatRate', `+${timeFactor}点/秒`);
-    set('threatHint', !threat.count ? '追手を引き離している' : threat.repetition < .05 ? '同じ場所での加点上限' : timeFactor < 1 ? '移動して追跡をしのごう' : '追跡をしのいで加点中');
+    set('threatHint', !threat.count ? '追跡得点は停止中' : threat.repetition < .05 ? '同じ場所での加点上限' : timeFactor < 1 ? '移動して追跡をしのごう' : '追跡をしのいで加点中');
     }
     const key = `${window.skyChallenge.id}|${remaining}|${timeFactor}|${killFactor}|${b.kills}|${b.total}`;
     if (key !== hudKey) {
