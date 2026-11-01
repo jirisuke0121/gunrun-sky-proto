@@ -32,7 +32,7 @@ export default {
     try {
       if (url.pathname === '/telemetry' && req.method === 'POST') return await receiveTelemetry(req, env, cors, origin, allowed);
       if (url.pathname === '/admin/overview' && req.method === 'GET') {
-        if (!isAdmin(req, env)) return json({ error: 'unauthorized' }, 401, { ...cors, 'cache-control': 'private, no-store' });
+        if (!canReadOverview(req, env)) return json({ error: 'unauthorized' }, 401, { ...cors, 'cache-control': 'private, no-store' });
         return await telemetryOverview(env, cors, url);
       }
       if (url.pathname === "/runs" && req.method === "POST") return await receive(req, env, cors, origin, allowed);
@@ -42,7 +42,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-01-time-score-v2", recordProtocol: 2, replayDetail: 1, rankedRules: rankedRules.version }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-01-time-score-v2", recordProtocol: 2, replayDetail: 1, ownerLogin: 1, rankedRules: rankedRules.version }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
@@ -140,6 +140,19 @@ async function receive(req, env, cors, origin, allowed) {
 function isAdmin(req, env) {
   const h = req.headers.get("Authorization") || "";
   return !!env.ADMIN_TOKEN && h === "Bearer " + env.ADMIN_TOKEN;
+}
+
+// The private Sites dashboard gets only aggregate telemetry, never raw runs.
+// Sites authenticates its owner; identity headers on this public Worker are not trusted.
+function canReadOverview(req, env) {
+  if (isAdmin(req, env)) return true;
+  const token = env.OWNER_OVERVIEW_TOKEN;
+  if (typeof token !== 'string' || token.length < 32) return false;
+  const actual = req.headers.get('Authorization') || '', expected = 'Bearer ' + token;
+  if (actual.length !== expected.length) return false;
+  let difference = 0;
+  for (let i = 0; i < expected.length; i++) difference |= actual.charCodeAt(i) ^ expected.charCodeAt(i);
+  return difference === 0;
 }
 
 async function list(req, env, cors, url) {

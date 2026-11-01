@@ -1,32 +1,6 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="referrer" content="no-referrer"><title>空中回廊 管理画面</title>
-<link rel="stylesheet" href="./owner.css"><script type="module" src="./owner.js?v=20261101-foundation-v1"></script></head>
-<body><main>
-<h1>空中回廊 管理画面</h1>
-<p>開始・終了・再挑戦と動作状況を確認できます。記録送信がオンで受信できた計測が対象です。</p>
-<form id="ownerForm">
-<fieldset><legend>接続</legend>
-<label>記録サーバー<input id="endpoint" type="url" required value="https://gunrun-runs.jirisuke0121.workers.dev" autocomplete="off"></label>
-<label>管理者トークン<input id="token" type="password" required autocomplete="off" spellcheck="false"></label>
-<small>トークンはこの画面の入力欄だけで使用し、保存しません。</small>
-</fieldset>
-<fieldset><legend>表示条件</legend><div class="filters">
-<label>期間<select id="days"><option value="1">直近1日</option><option value="7" selected>直近7日</option><option value="30">直近30日</option></select></label>
-<label>ビルド<select id="build"><option value="">すべて</option></select></label>
-<label>マップ<select id="map"><option value="">すべて</option><option value="old-town">旧市街</option><option value="rock-canyon">渓谷</option></select></label>
-<label>端末<select id="device"><option value="">すべて</option><option value="desktop">PC</option><option value="iphone">iPhone</option><option value="ipad">iPad</option><option value="android">Android</option></select></label>
-<label>配信元<select id="source"><option value="">すべて</option><option value="github">GitHub Pages</option><option value="y8">Y8</option><option value="unknown">不明</option></select></label>
-<label>難易度<select id="difficulty"><option value="">すべて</option><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option><option value="legacy">自由調整</option><option value="unknown">不明</option></select></label>
-<label>描画品質<select id="quality"><option value="">すべて</option><option value="performance">軽量</option><option value="balanced">標準</option><option value="high">高画質</option></select></label>
-</div></fieldset><button id="refresh" type="submit">表示を更新</button><button id="disconnect" type="button">接続情報を消去</button>
-</form>
-<p id="status" role="status" aria-live="polite">管理者トークンを入力してください。</p>
-<section aria-labelledby="flowHeading"><h2 id="flowHeading">プレイの流れ</h2><dl id="flow" class="cards"></dl>
-<p>セッションは1回のページ表示です。人数や全プレイヤーの離脱率を示すものではありません。終了は時間切れ・捕捉・落下、途中終了はホーム復帰・ページ終了などの通知です。開始後に終了通知が届かない場合、その原因は確定できません。</p></section>
-<section aria-labelledby="performanceHeading"><h2 id="performanceHeading">動作状況</h2>
-<p>実際に描画したフレームの間隔から計算します。ポーズ・背景化は除外します。平均FPSは各プレイの平均値、30FPS未満は受信フレーム全体に占める割合です。端末やプレイ内容が異なるため、差を更新の効果と断定できません。</p>
-<div class="table-wrap"><table><thead><tr><th>ビルド</th><th>マップ・難易度</th><th>配信元・端末</th><th>描画条件</th><th>計測件数</th><th>平均FPS</th><th>30FPS未満</th><th>途中終了</th></tr></thead><tbody id="performanceRows"></tbody></table></div></section>
-<section aria-labelledby="errorHeading"><h2 id="errorHeading">エラー</h2><p>1セッションにつき最大5件。エラーの詳細・URL・入力内容は収集しません。</p>
-<div class="table-wrap"><table><thead><tr><th>ビルド</th><th>マップ</th><th>端末</th><th>種類</th><th>件数</th></tr></thead><tbody id="errorRows"></tbody></table></div></section>
-</main></body></html>
+<meta name="referrer" content="no-referrer"><meta http-equiv="refresh" content="0;url=https://sky-corridor-owner.jirisuke.chatgpt.site/">
+<title>空中回廊 管理画面</title><link rel="stylesheet" href="./owner.css"></head>
+<body><main><h1>空中回廊 管理画面</h1><p>ChatGPTのログインで開く管理画面へ移動します。</p>
+<p><a style="color:#80d9bb" href="https://sky-corridor-owner.jirisuke.chatgpt.site/" target="_top">管理画面を開く</a></p></main></body></html>
