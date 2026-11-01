@@ -77,7 +77,7 @@ const base = 'http://127.0.0.1:8793/';
         assert.equal(await page.locator('#resultRanking select').inputValue(), 'all');
         assert.equal(await page.locator('#resultRanking .rank-stars').count(), 0);
         assert.equal(uploadStatuses.at(-1), 200); assert.equal(uploads.at(-1).reason, 'time');
-        assert.equal(uploads.at(-1).challenge.version, 'corridor-shared-score-v9');
+        assert.equal(uploads.at(-1).challenge.version, require('../ranked-rules.js').version);
         if(selector===selectors[0])assert.ok(uploads.at(-1).ghost.samples.length>1800,'full 120-second recorder path, not only a final-time shortcut');
         assert.deepEqual(uploads.at(-1).ghost.samples[0].slice(1, 4), start.position.map(n => Math.round(n * 1000) / 1000));
         evidence.push({ map, touch, selector, ...start, peak, uploadBytes: Buffer.byteLength(JSON.stringify(uploads.at(-1))), ranking: 'shared score, Normal run' });

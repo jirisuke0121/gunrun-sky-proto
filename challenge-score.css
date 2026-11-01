@@ -57,3 +57,15 @@
 .rankbox ol{padding:0;margin:0;list-style:none;max-height:370px;overflow:auto}.rankbox li{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:3px 8px;padding:10px 0;border-bottom:1px solid #88a6b726}.rankbox li.me{background:#9de4df0a}
 .rank-clear{color:#a0e1de;grid-column:2;grid-row:2}.rank-score{grid-column:3;grid-row:1;white-space:nowrap}.rank-stars{grid-column:3;grid-row:2;justify-self:end;color:#ffda7d;letter-spacing:2px}.rank-time{grid-column:2/-1;font-size:10px;color:#91aebf}.rankbox .ghost-button{grid-column:2/-1;justify-self:start;font-size:11px;padding:5px 10px;margin-top:4px}.rank-mine{padding-top:10px;line-height:2}.rank-empty{color:#bbcfda;font-size:12px}
 .intro-result #unityMore,.intro-result .uc-points,.intro-result .uc-star-goals,.intro-result #unityResultStars{display:none!important}
+
+/* Threat feedback stays above the action, with no shake or opaque screen flash. */
+#threatScoreHud{position:absolute;top:86px;left:50%;transform:translateX(-50%);display:grid;grid-template-columns:1fr auto;gap:2px 14px;padding:7px 12px;border-left:2px solid #85dfdb;background:#071822aa;color:#c0e6ec;font-size:12px;pointer-events:none;min-width:190px;font-variant-numeric:tabular-nums}
+#threatScoreHud strong{color:#9de4df}#threatScoreHud small{grid-column:1/-1;color:#b2c4cf;font-size:10px}
+#threatHit{position:absolute;left:calc(50% + 22px);top:calc(50% - 20px);font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000;pointer-events:none}
+#threatFeedback{position:absolute;top:28%;left:50%;transform:translateX(-50%);font-size:clamp(14px,2vw,22px);font-weight:800;letter-spacing:.08em;color:#ffdd9c;text-shadow:0 2px 8px #000;pointer-events:none;white-space:nowrap}
+#threatFeedback[data-kind=escape]{color:#a7f7ee}
+#threatHit[hidden],#threatFeedback[hidden]{display:none}
+body:not(.unity-challenge-score) #threatScoreHud{display:none}
+.unity-challenge-score #hud[hidden] #threatScoreHud{display:none}
+.uc-breakdown{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-height:500px){#threatScoreHud{top:77px;font-size:10px;padding:4px 8px}#threatScoreHud small{font-size:9px}#threatFeedback{top:34%;font-size:14px}.uc-breakdown b{font-size:16px}}

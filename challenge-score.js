@@ -1,30 +1,56 @@
-// Port of saved Unity ChallengeScoreMath / ChallengeScorePresentation /
-// ChallengeResultMotion. Gameplay owns points; presentation never awards them.
+// Threat survival owns points; HUD, hit, kill and escape cues only present them.
 (() => {
-  const f = Math.fround, ids = ['easy', 'normal', 'hard'];
+  const ids = ['easy', 'normal', 'hard'];
   const assets = './assets/challenge-score/';
   let game, frozen, previousMinute = -1, animation = 0, readyAt = 0, lastResult;
-  let cachedScore, cachedTime, cachedKills, cachedLevel, hudKey = '', pauseKey = '';
+  let tracker, hudKey = '', pauseKey = '', hitAt = -Infinity, hitDamage = 0;
+  let hitUntil = 0, feedbackUntil = 0;
   const $ = id => document.getElementById(id);
   const enabled = () => !!window.skyChallenge?.profile();
   const level = () => Math.max(0, ids.indexOf(window.skyChallenge.id));
-  function evaluate(seconds, kills, difficulty) {
-    // Unity's API receives remaining seconds on a 180-second clock. Keep that
-    // float conversion, operation order and separate integer truncations.
-    const remaining = f(180 - f(seconds)), elapsed = f(180 - remaining);
-    const factor = f(1 + f(f(.1) * difficulty)), growth = f(f(elapsed / 60) + 1);
-    const survival = Math.trunc(f(f(elapsed * factor) * growth));
-    const kill = Math.trunc(f(f(f(kills * 2) * factor) * growth));
-    return { elapsed, kills, difficulty: factor, growth, timeCoefficient: f(factor * growth),
-      killCoefficient: f(f(2 * factor) * growth), survival, kill, total: survival + kill,
-      bonus: 0, fellExtra: 0, shake: 0, scoring: 'unity-challenge-v1' };
-  }
+  const evaluate = (...args) => window.skyThreatScore.evaluate(...args);
+  const playing = () => game && enabled() && !game.z.over && !game.z.mission &&
+    !window.skyPracticeMode && !game.demoActive?.() && game.modeRef() === 'play';
   function current() {
     if (frozen) return frozen;
-    const time = Math.min(window.__game.RUN_LEN, game.z.t), kills = window.__game.stats.kills ?? 0, difficulty = level();
-    if (cachedScore && time === cachedTime && kills === cachedKills && difficulty === cachedLevel) return cachedScore;
-    cachedTime = time; cachedKills = kills; cachedLevel = difficulty;
-    return cachedScore = evaluate(time, kills, difficulty);
+    return evaluate(Math.min(window.__game.RUN_LEN, game.z.t), window.__game.stats.kills || 0,
+      level(), tracker?.snapshot());
+  }
+  function cue(escape) {
+    const ctx = game.Ut?.ctx, master = game.Ut?.master;
+    if (!ctx || ctx.state !== 'running' || !master) return;
+    const notes = escape ? [660, 990, 1320] : [880, 1320];
+    notes.forEach((hz, i) => {
+      const at = ctx.currentTime + i * .065, oscillator = ctx.createOscillator(), gain = ctx.createGain();
+      oscillator.type = 'sine'; oscillator.frequency.value = hz;
+      gain.gain.setValueAtTime(.0001, at); gain.gain.exponentialRampToValueAtTime(.065, at + .008);
+      gain.gain.exponentialRampToValueAtTime(.0001, at + .17);
+      oscillator.connect(gain); gain.connect(master); oscillator.start(at); oscillator.stop(at + .19);
+      oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+    });
+  }
+  function feedback(escape) {
+    if (!playing()) return;
+    const e = $('threatFeedback'); if (!e) return;
+    e.dataset.kind = escape ? 'escape' : 'kill';
+    e.textContent = escape ? 'ESCAPED · 追手を引き離した' :
+      `KILL +${Math.round(100 * (1 + level() * .1))}`;
+    e.hidden = false; feedbackUntil = game.z.t + (escape ? 1.4 : .75);
+    cue(escape);
+  }
+  function step(dt) {
+    if (!playing() || document.hidden) return;
+    tracker?.step(dt);
+    if ($('threatHit')) $('threatHit').hidden = game.z.t >= hitUntil;
+    if ($('threatFeedback')) $('threatFeedback').hidden = game.z.t >= feedbackUntil;
+  }
+  function damaged(amount) {
+    if (!playing() || !Number.isFinite(amount) || amount <= 0) return;
+    tracker?.damaged(amount); hitDamage += amount;
+    if (game.z.t - hitAt < .07) return;
+    hitAt = game.z.t; hitUntil = game.z.t + .22;
+    const e = $('threatHit'); if (!e) return;
+    e.textContent = `HIT ${Math.round(hitDamage * 10) / 10}`; e.hidden = false; hitDamage = 0;
   }
   const set = (id, value) => { const e = $(id); if (e && e.textContent !== String(value)) e.textContent = value; };
   const image = (name, cls = '') => `<img class="${cls}" src="${assets + name}.webp" alt="" draggable="false">`;
@@ -37,7 +63,9 @@
   }
   function reset() {
     cancelAnimationFrame(animation); frozen = null; lastResult = null; previousMinute = -1;
-    cachedScore = null; hudKey = pauseKey = '';
+    tracker = window.skyThreatScore.createTracker(game, window.__game, () => feedback(true));
+    hudKey = pauseKey = ''; hitDamage = 0; hitAt = -Infinity; hitUntil = feedbackUntil = 0;
+    for (const id of ['threatHit', 'threatFeedback']) if ($(id)) $(id).hidden = true;
     if ($('unityScoreDetails')) $('unityScoreDetails').hidden = true;
     sync();
   }
@@ -47,25 +75,29 @@
     const b = current(), mode = game.modeRef();
     $('unityScoreHud').hidden = mode !== 'play' || game.z.over;
     const remaining = Math.max(0, window.__game.RUN_LEN - b.elapsed).toFixed(0);
-    const timeFactor = b.timeCoefficient.toFixed(1), killFactor = b.killCoefficient.toFixed(1);
+    const threat = tracker?.snapshot() || {};
+    const timeFactor = Math.round((threat.rate || 0) * b.difficulty), killFactor = Math.round(100 * b.difficulty);
+    set('threatStatus', `${threat.count || 0}体 · 脅威 ${Number(threat.pressure || 0).toFixed(1)}/3`);
+    set('threatRate', `+${timeFactor}点/秒`);
+    set('threatHint', !threat.count ? '追手を引き離している' : threat.repetition < .05 ? '同じ場所での加点上限' : timeFactor < 1 ? '移動して追跡をしのごう' : '追跡をしのいで加点中');
     const key = `${window.skyChallenge.id}|${remaining}|${timeFactor}|${killFactor}|${b.kills}|${b.total}`;
     if (key !== hudKey) {
       hudKey = key;
       set('unityDifficulty', window.skyChallenge.name); set('unityTime', remaining);
       set('unityKills', b.kills); set('unityTotal', b.total.toLocaleString('ja-JP'));
-      set('unityTimeFactor', '×' + timeFactor); set('unityKillFactor', '×' + killFactor);
+      set('unityTimeFactor', '+' + timeFactor + '/秒'); set('unityKillFactor', killFactor + '点/体');
     }
     const minute = Math.floor(b.elapsed / 60);
     if (mode === 'play' && !game.z.over && (minute > previousMinute && minute > 0 || b.elapsed >= 1 && previousMinute < 0)) {
       for (const id of ['unityTime', 'unityTimeFactor', 'unityKillFactor']) pulse(id, 1.3);
       previousMinute = minute;
     }
-    const detailKey = `${b.elapsed}|${b.kills}|${b.difficulty}`;
+    const detailKey = `${b.elapsed}|${b.kills}|${b.difficulty}|${b.damageUnits}`;
     if (mode === 'pause' && detailKey !== pauseKey) {
       pauseKey = detailKey;
       set('unityPauseIdentity', `${window.skyChallenge.name}　${bonus(b)}`);
-      set('unityPauseSurvival', `生存 ${b.elapsed.toFixed(1)}秒 ×${b.timeCoefficient.toFixed(2)} → ${b.survival}点`);
-      set('unityPauseKill', `撃破 ${b.kills}体 ×${b.killCoefficient.toFixed(2)} → ${b.kill}点`);
+      set('unityPauseSurvival', `逃走 ${b.chasedSeconds.toFixed(1)}秒（脅威度を加味） → ${b.survival}点`);
+      set('unityPauseKill', `撃破 ${b.kills}体 → ${b.kill}点 ／ ダメージ ${b.damageUnits.toFixed(1)} → ${b.damage}点`);
       set('unityPauseTotal', `合計 ${b.total}点`);
     }
   }
@@ -84,16 +116,18 @@
     $('unityResultCard').dataset.failed = String(failed);
     $('unityResultCard').dataset.complete = 'false';
     set('unityResultTitle', failed ? (reason === 'fell' ? '落ちてしまった' : 'つかまった') : '逃げ切った！');
-    set('unityResultGoal', failed ? '生存と撃破のスコアで、全難易度のプレイヤーと競おう。' : '2分間のスコアで、全難易度のプレイヤーと競おう。');
+    set('unityResultGoal', failed ? '追跡をしのいだ得点と戦闘得点で、全難易度のプレイヤーと競おう。' : '2分間のスコアで、全難易度のプレイヤーと競おう。');
     set('unityEscapeRecord', `${b.elapsed.toFixed(1)} / ${window.__game.RUN_LEN}秒 ・ ${failed ? '未クリア' : window.skyChallenge.name + ' クリア'}`);
     set('unityRunMoves', `フック ${window.__game.stats.hooks || 0}　壁走り ${window.__game.stats.wallruns || 0}　乗り越え ${window.__game.stats.vaults || 0}　落下 ${window.__game.stats.falls || 0}`);
     set('unityResultDifficulty', `難易度　${window.skyChallenge.name}`);
     set('unityResultBonus', bonus(b));
     set('unityResultSurvival', b.survival.toLocaleString('ja-JP') + ' pt');
     set('unityResultKill', b.kill.toLocaleString('ja-JP') + ' pt');
-    set('unitySurvivalFormula', `${b.elapsed.toFixed(1)}秒 ×${b.timeCoefficient.toFixed(2)}`);
-    set('unityKillFormula', `${b.kills}体 ×${b.killCoefficient.toFixed(2)}`);
-    set('unityResultEquation', `${b.survival} + ${b.kill} = ${b.total}点`);
+    set('unitySurvivalFormula', `追跡 ${b.chasedSeconds.toFixed(1)}秒 · 脅威度・移動・周回を反映`);
+    set('unityResultDamage', b.damage.toLocaleString('ja-JP') + ' pt');
+    set('unityDamageFormula', `有効ダメージ ${b.damageUnits.toFixed(1)} ×${(2 * b.difficulty).toFixed(1)}`);
+    set('unityKillFormula', `${b.kills}体 ×${Math.round(100 * b.difficulty)}`);
+    set('unityResultEquation', `${b.survival} + ${b.damage} + ${b.kill} = ${b.total}点`);
     set('unityResultBest', best ? 'スコアベスト更新' : '今回のスコア');
     set('unityRunDetails', `生存 ${b.elapsed.toFixed(1)}秒 / 撃破 ${b.kills}体（落下撃破 ${window.__game.stats.drops}体）`);
     if (intro) {
@@ -132,15 +166,22 @@
     for (const name of ['star2', 'star3']) $('s_' + name)?.closest('.sl')?.setAttribute('hidden', '');
     for (const name of ['milestoneBonus', 'shakePts', 'star2', 'star3']) $('s_' + name)?.closest('.sl')?.classList.add('legacy-score-setting');
     const hud = document.createElement('div'); hud.id = 'unityScoreHud';
-    hud.innerHTML = `<div id="unityDifficulty"></div><div class="unity-counter">${image('clock')}<b id="unityTime">120</b><small>秒</small><span>時間倍率 <strong id="unityTimeFactor">×1.0</strong></span></div><div class="unity-counter">${image('skull')}<b id="unityKills">0</b><small>撃破</small><span>撃破倍率 <strong id="unityKillFactor">×2.0</strong></span></div><div class="unity-counter unity-score"><b id="unityTotal">0</b><small>点</small><span>SCORE</span></div>`;
+    hud.innerHTML = `<div id="unityDifficulty"></div><div class="unity-counter">${image('clock')}<b id="unityTime">120</b><small>秒</small><span>逃走 <strong id="unityTimeFactor">+0/秒</strong></span></div><div class="unity-counter">${image('skull')}<b id="unityKills">0</b><small>撃破</small><span>撃破 <strong id="unityKillFactor">100点/体</strong></span></div><div class="unity-counter unity-score"><b id="unityTotal">0</b><small>点</small><span>SCORE</span></div>`;
     $('hud').append(hud);
+    const threatHud = document.createElement('div'); threatHud.id = 'threatScoreHud';
+    threatHud.innerHTML = '<b id="threatStatus"></b><strong id="threatRate"></strong><small id="threatHint"></small>';
+    $('hud').append(threatHud);
+    for (const id of ['threatHit', 'threatFeedback']) {
+      const node = document.createElement('div'); node.id = id; node.hidden = true;
+      node.setAttribute('aria-hidden', 'true'); $('hud').append(node);
+    }
     // Difficulty belongs with the other status lines, not floating under the header (it collided with hints).
     $('hud').querySelector('.hud-tl')?.prepend($('unityDifficulty'));
     const pause = document.createElement('aside'); pause.id = 'unityScorePause';
-    pause.innerHTML = `<h3>得点の内訳</h3><p id="unityPauseIdentity"></p><p id="unityPauseSurvival"></p><p id="unityPauseKill"></p><b id="unityPauseTotal"></b><small>長く生存するほど得点アップ。難易度ボーナスは各得点に反映済み。</small>`;
+    pause.innerHTML = `<h3>得点の内訳</h3><p id="unityPauseIdentity"></p><p id="unityPauseSurvival"></p><p id="unityPauseKill"></p><b id="unityPauseTotal"></b><small>近くの追手から移動して逃げるほど加点。同じ場所の周回・安全な待機は加点が減ります。技とESCAPED自体の加点はありません。難易度ボーナスは反映済み。</small>`;
     $('challengeSettingsNote').after(pause);
     const result = document.createElement('div'); result.id = 'unityScoreResult';
-    result.innerHTML = `<article id="unityResultCard"><header><span class="uc-caption">空中回廊 / 逃走の記録</span><span id="unityResultDifficulty"></span><h2 id="unityResultTitle"></h2></header><div id="unityResultContent"><section class="uc-points"><span id="unityResultBest"></span><div class="uc-total"><b id="unityResultTotal">0</b><small> pt</small></div><div class="uc-breakdown"><div><span>生存</span><b id="unityResultSurvival"></b><small id="unitySurvivalFormula"></small></div><div><span>撃破</span><b id="unityResultKill"></b><small id="unityKillFormula"></small></div></div><small id="unityResultBonus"></small><small id="unityResultEquation"></small></section><section class="uc-achievement"><p id="unityEscapeRecord"></p><p id="unityResultGoal"></p></section><p id="unityRunMoves"></p></div><footer id="unityResultActions"><button id="unityRetry" type="button">もう一度逃げる</button><button id="unityMore" type="button">ランキング・記録</button><button id="unityMenu" type="button">メニュー</button></footer></article><section id="unityScoreDetails" hidden><h2>ランキング・プレイの記録</h2><p id="unityRunDetails"></p><div id="unityScoreRanking"></div><p id="unityRecordStatus"></p><button id="unityDetailsBack" type="button">リザルトに戻る</button></section>`;
+    result.innerHTML = `<article id="unityResultCard"><header><span class="uc-caption">空中回廊 / 逃走の記録</span><span id="unityResultDifficulty"></span><h2 id="unityResultTitle"></h2></header><div id="unityResultContent"><section class="uc-points"><span id="unityResultBest"></span><div class="uc-total"><b id="unityResultTotal">0</b><small> pt</small></div><div class="uc-breakdown"><div><span>逃走</span><b id="unityResultSurvival"></b><small id="unitySurvivalFormula"></small></div><div><span>ダメージ</span><b id="unityResultDamage"></b><small id="unityDamageFormula"></small></div><div><span>撃破</span><b id="unityResultKill"></b><small id="unityKillFormula"></small></div></div><small id="unityResultBonus"></small><small id="unityResultEquation"></small></section><section class="uc-achievement"><p id="unityEscapeRecord"></p><p id="unityResultGoal"></p></section><p id="unityRunMoves"></p></div><footer id="unityResultActions"><button id="unityRetry" type="button">もう一度逃げる</button><button id="unityMore" type="button">ランキング・記録</button><button id="unityMenu" type="button">メニュー</button></footer></article><section id="unityScoreDetails" hidden><h2>ランキング・プレイの記録</h2><p id="unityRunDetails"></p><div id="unityScoreRanking"></div><p id="unityRecordStatus"></p><button id="unityDetailsBack" type="button">リザルトに戻る</button></section>`;
     $('ovOver').append(result);
     const next = document.createElement('button'); next.id = 'introNext'; next.type = 'button';
     next.textContent = 'イージーから挑戦する'; next.hidden = true;
@@ -167,8 +208,9 @@
     }, true);
     fit(); sync();
   }
-  window.skyChallengeScore = { enabled, level, evaluate, current, reset, sync, attach, showResult,
+  window.skyChallengeScore = { enabled, level, evaluate, current, reset, sync, attach, showResult, step, damaged,
+    threat: () => tracker?.snapshot(),
     freeze() { return frozen ||= Object.freeze({ ...current() }); },
-    killed() { if (enabled() && !game.z.over) { sync(); pulse('unityKills', 1.2); } },
+    killed() { if (playing()) { feedback(false); sync(); pulse('unityKills', 1.2); } },
   };
 })();

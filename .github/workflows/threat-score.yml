@@ -1,0 +1,21 @@
+name: Threat survival scoring
+on:
+  pull_request:
+    paths: ['threat-score.js', 'challenge-score.*', 'ranked-rules.js', 'server/worker.js', 'index.html', 'canyon.html', 'bench/threat-score*', 'bench/shared-score*', '.github/workflows/threat-score.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  score-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: |
+          node bench/threat-score.test.cjs
+          node bench/shared-score.test.cjs
+          node bench/record-integrity.test.cjs
+          node bench/player-skills.test.cjs

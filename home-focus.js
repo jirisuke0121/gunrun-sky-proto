@@ -18,7 +18,7 @@
     make('ul', { className: 'homeRules' }, [
       '<li><b>勝ち</b>2分間つかまらずに生き残る</li>',
       '<li><b>負け</b>ゾンビにつかまる／奈落に落ちると終了</li>',
-      '<li><b>得点</b>生き残った時間と撃破数。パルクールで引き離そう</li>',
+      '<li><b>得点</b>近くの追手をしのいで加点。ダメージ・撃破でも得点</li>',
     ].join('')),
     make('p', { className: 'homeKeys homeKeysDesktop' },
       '<span class="keysAfter"><kbd>W</kbd><kbd>S</kbd> 前後　<kbd>A</kbd><kbd>D</kbd> 曲がる　</span>' +
