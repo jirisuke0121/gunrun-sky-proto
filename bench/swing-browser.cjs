@@ -17,7 +17,7 @@ const output = 'browser-evidence/swing'; fs.mkdirSync(output, {recursive:true});
       await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'}));
       const p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
       await p.goto(base+'canyon.html');await p.waitForFunction(()=>window.skySwing&&window.skyHumanView);
-      if(await p.locator('#humanSel [data-human="unity"]').count()) await p.locator('#humanSel [data-human="unity"]').click();
+      if(await p.locator('#humanSel [data-human="unity"]').count()){await require('./home-controls.cjs').revealHomeControl(p,'#humanSel [data-human="unity"]');await p.locator('#humanSel [data-human="unity"]').click();}
       await p.waitForFunction(()=>window.skyHumanView.choice==='unity'&&document.body.dataset.skyHumanLoaded==='true',null,{timeout:90000});
       console.log('loaded',touch?'touch':'desktop');
       await p.locator('#bStart').click();
