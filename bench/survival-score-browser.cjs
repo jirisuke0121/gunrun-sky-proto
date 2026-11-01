@@ -1,7 +1,7 @@
 // Native game clock/damage and real menus. Controlled scenes are not human play tests.
 const assert=require('node:assert/strict'),fs=require('node:fs'),{spawn}=require('node:child_process');
 const {chromium}=require('playwright');
-const port=18798,base=`http://127.0.0.1:${port}/`,out='browser-evidence/survival-score';
+const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${port}/`,out='browser-evidence/survival-score';
 (async()=>{let browser,server;const results=[];try{
  fs.mkdirSync(out,{recursive:true});
  server=spawn('python3',['-m','http.server',String(port),'--bind','127.0.0.1'],{stdio:'ignore'});

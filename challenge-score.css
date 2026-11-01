@@ -94,10 +94,6 @@
 .intro-result #unityResultActions{grid-template-columns:1.3fr 1fr 1fr}.intro-result #unityResultGoal{max-width:300px}
 
 /* Combat and escape feedback stay above the action, with no shake or opaque screen flash. */
-#threatHit{position:absolute;left:calc(50% + 22px);top:calc(50% - 20px);font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000;pointer-events:none}
-#threatFeedback{position:absolute;top:28%;left:50%;transform:translateX(-50%);font-size:clamp(14px,2vw,22px);font-weight:800;letter-spacing:.08em;color:#ffdd9c;text-shadow:0 2px 8px #000;pointer-events:none;white-space:nowrap}
-#threatFeedback[data-kind=escape]{color:#a7f7ee}
 .uc-breakdown .uc-damage-icon{font-size:28px;line-height:1;text-align:center;color:#dce3e8}
 #hud:has(#threatFeedback:not([hidden])) #startGuide{visibility:hidden}
 #threatHit[hidden],#threatFeedback[hidden]{display:none}
-@media(max-height:500px){#threatFeedback{top:34%;font-size:14px}}
