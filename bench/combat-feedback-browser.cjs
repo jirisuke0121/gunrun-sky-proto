@@ -101,7 +101,7 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
           audible,muted,pause,status,feedbackState,total:score.current().total,score:score.current(),lang:document.documentElement.lang};
       });
       assert.equal(evidence.lang,lang);assert.match(evidence.hit,/DMG/);assert.match(evidence.kill,/KILL/);
-      assert.match(evidence.status,/132/);
+      assert.match(evidence.status,/660/);
       assert.match(evidence.pause,lang==='ja'?/合計/:/Total/);
       assert.deepEqual(errors,[]);assert.equal(posts,0);
       assert.equal(await page.locator('#threatFeedback').isVisible(),true,'kill cue visible during the first run');

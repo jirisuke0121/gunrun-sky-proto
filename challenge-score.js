@@ -4,6 +4,8 @@
   const assets = './assets/challenge-score/';
   let game, frozen, previousMinute = -1, animation = 0, readyAt = 0, lastResult;
   let tracker, fx, hudKey = '', pauseKey = '';
+  // Every `interval` seconds the survival points are paid out as a visible milestone.
+  let previousTick = 0, shown = 0, roll = null, barKey = -1, tickAnimation;
   const $ = id => document.getElementById(id);
   const enabled = () => !!window.skyChallenge?.profile();
   const level = () => Math.max(0, ids.indexOf(window.skyChallenge.id));
@@ -40,8 +42,32 @@
     for (const a of e.getAnimations()) a.cancel();
     e.animate([{ transform: 'scale(1)' }, { transform: `scale(${scale})`, offset: .625 }, { transform: 'scale(1)' }], { duration: 800, easing: 'ease-out' });
   }
+  const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function award(b) {
+    const el = $('unityTickAward'); if (!el) return;
+    const major = b.ticks % 6 === 0;
+    el.dataset.major = String(major);
+    el.querySelector('b').textContent = '+' + b.tickPoints.toLocaleString('ja-JP');
+    el.querySelector('small').textContent = `${b.ticks * b.interval}秒生存`;
+    el.hidden = false; tickAnimation?.cancel();
+    const reduced = reducedMotion(), duration = major ? 1800 : 1200;
+    const frames = reduced
+      ? [{ opacity: 1 }, { opacity: 1, offset: .8 }, { opacity: 0 }]
+      : [{ opacity: 0, transform: 'translateY(-8px) scale(.82)', easing: 'ease-out' },
+         { opacity: 1, transform: `translateY(0) scale(${major ? 1.16 : 1.08})`, offset: .12, easing: 'ease-out' },
+         { opacity: 1, transform: 'translateY(0) scale(1)', offset: .22 },
+         { opacity: 1, transform: 'translateY(0) scale(1)', offset: .78 },
+         { opacity: 0, transform: 'translateY(6px) scale(1)' }];
+    const animation = tickAnimation = el.animate(frames, { duration, easing: 'linear' });
+    animation.onfinish = () => { if (tickAnimation === animation) el.hidden = true; };
+    if (!reduced) roll = { from: shown, at: performance.now() };
+    pulse('unityTotal', major ? 1.2 : 1.12); pulse('unityTime', major ? 1.3 : 1.15);
+    fx?.tick(major);
+  }
   function reset() {
     cancelAnimationFrame(animation); frozen = null; lastResult = null; previousMinute = -1;
+    previousTick = 0; shown = 0; roll = null; barKey = -1; tickAnimation?.cancel(); tickAnimation = null;
+    if ($('unityTickAward')) $('unityTickAward').hidden = true;
     tracker = window.skySurvivalScore.createTracker(game, window.__game, () => feedback(true));
     hudKey = pauseKey = ''; fx?.reset();
     if ($('unityScoreDetails')) $('unityScoreDetails').hidden = true;
@@ -55,14 +81,30 @@
     $('unityScoreHud').hidden = !active;
     fx?.setActive(playing());
     const remaining = Math.max(0, window.__game.RUN_LEN - b.elapsed).toFixed(0);
-    const timeFactor = Math.round(window.skySurvivalScore.config.perSecond * b.difficulty);
-    const killFactor = Math.round(window.skySurvivalScore.config.perKill * b.difficulty);
-    const key = `${window.skyChallenge.id}|${remaining}|${timeFactor}|${killFactor}|${b.kills}|${b.total}`;
+        const killFactor = Math.round(window.skySurvivalScore.config.perKill * b.difficulty);
+    // The HUD total counts paid-out milestones; the unpaid part of the current interval
+    // is settled when the run ends (the result shows the full survival points).
+    let value = b.live;
+    if (roll && !frozen) {
+      const u = Math.min(1, (performance.now() - roll.at) / 380);
+      value = Math.round(roll.from + (b.live - roll.from) * (1 - (1 - u) ** 3));
+      if (u >= 1) roll = null;
+    }
+    shown = value;
+    const key = `${window.skyChallenge.id}|${remaining}|${b.tickPoints}|${killFactor}|${b.kills}|${value}`;
     if (key !== hudKey) {
       hudKey = key;
       set('unityDifficulty', window.skyChallenge.name); set('unityTime', remaining);
-      set('unityKills', b.kills); set('unityTotal', b.total.toLocaleString('ja-JP'));
-      set('unityTimeFactor', '+' + timeFactor + '/秒'); set('unityKillFactor', killFactor + '点/体');
+      set('unityKills', b.kills); set('unityTotal', value.toLocaleString('ja-JP'));
+      set('unityTimeFactor', `+${b.tickPoints}/${b.interval}秒`); set('unityKillFactor', killFactor + '点/体');
+    }
+    if (mode === 'play' && !game.z.over) {
+      const gap = b.ticks - previousTick;
+      // Only a milestone crossed just now is celebrated; anything else is a silent resync.
+      if (gap === 1 && b.elapsed - b.ticks * b.interval < 1) award(b);
+      previousTick = b.ticks;
+      const step = Math.round((b.elapsed - b.ticks * b.interval) / b.interval * 100);
+      if (step !== barKey) { barKey = step; $('unityTickBar').firstChild.style.transform = `scaleX(${step / 100})`; }
     }
     const minute = Math.floor(b.elapsed / 60);
     if (mode === 'play' && !game.z.over && (minute > previousMinute && minute > 0 || b.elapsed >= 1 && previousMinute < 0)) {
@@ -105,7 +147,7 @@
     set('unitySurvivalMetric', b.elapsed.toFixed(1) + '秒');
     set('unityResultSurvival', b.survival.toLocaleString('ja-JP') + ' pt');
     set('unityResultKill', b.kill.toLocaleString('ja-JP') + ' pt');
-    set('unitySurvivalFormula', `${b.elapsed.toFixed(2)}秒 × 120点 × ${b.difficulty.toFixed(1)}`);
+    set('unitySurvivalFormula', `${b.interval}秒ごと ${b.ticks}回 × ${b.tickPoints}点 ＋ 端数 ${b.remainder}点`);
     set('unityResultDamage', b.damage.toLocaleString('ja-JP') + ' pt');
     set('unityDamageFormula', `有効ダメージ ${b.damageUnits.toFixed(1)} × 2点 × ${b.difficulty.toFixed(1)}`);
     set('unityKillFormula', `${b.kills}体 × 100点 × ${b.difficulty.toFixed(1)}`);
@@ -148,7 +190,7 @@
     for (const name of ['star2', 'star3']) $('s_' + name)?.closest('.sl')?.setAttribute('hidden', '');
     for (const name of ['milestoneBonus', 'shakePts', 'star2', 'star3']) $('s_' + name)?.closest('.sl')?.classList.add('legacy-score-setting');
     const hud = document.createElement('div'); hud.id = 'unityScoreHud';
-    hud.innerHTML = `<div id="unityDifficulty"></div><div class="unity-counter">${image('clock')}<b id="unityTime">120</b><small>秒</small><span>生存 <strong id="unityTimeFactor">+0/秒</strong></span></div><div class="unity-counter">${image('skull')}<b id="unityKills">0</b><small>撃破</small><span>撃破 <strong id="unityKillFactor">100点/体</strong></span></div><div class="unity-counter unity-score"><b id="unityTotal">0</b><small>点</small><span>SCORE</span></div>`;
+    hud.innerHTML = `<div id="unityDifficulty"></div><div class="unity-counter">${image('clock')}<b id="unityTime">120</b><small>秒</small><span>生存 <strong id="unityTimeFactor">+0/5秒</strong></span><i id="unityTickBar" aria-hidden="true"><u></u></i></div><div class="unity-counter">${image('skull')}<b id="unityKills">0</b><small>撃破</small><span>撃破 <strong id="unityKillFactor">100点/体</strong></span></div><div class="unity-counter unity-score"><b id="unityTotal">0</b><small>点</small><span>SCORE</span></div><div id="unityTickAward" hidden aria-hidden="true">${image('clock-medal')}<span><b></b><small></small></span></div>`;
     $('hud').append(hud);
     fx = window.createSkyCombatFeedback(game, playing);
     // Difficulty belongs with the other status lines, not floating under the header (it collided with hints).

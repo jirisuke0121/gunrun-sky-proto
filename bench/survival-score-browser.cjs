@@ -47,7 +47,7 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
    g.cam(0);g.frameOnce(0);score.sync();
    return{waiting,combat,paused,resumed,pauseText,lang:document.documentElement.lang,hudTotal:document.getElementById('unityTotal').textContent,rate:document.getElementById('unityTimeFactor').textContent};
   });
-  assert.equal(evidence.lang,lang);assert.equal(Number(evidence.hudTotal.replace(/\D/g,'')),evidence.resumed.total);
+  assert.equal(evidence.lang,lang);assert.equal(Number(evidence.hudTotal.replace(/\D/g,'')),evidence.resumed.live,'HUD counts paid-out 5-second milestones plus combat');assert.equal(evidence.rate,lang==='ja'?`+${evidence.resumed.tickPoints}/5秒`:`+${evidence.resumed.tickPoints} / 5 s`);
   await page.screenshot({path:`${out}/${map}-${difficulty}-play.png`});
   await page.evaluate(()=>{__game.endGame('caught');__game.advance(1.5)});
   await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');

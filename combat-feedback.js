@@ -4,7 +4,8 @@
   const base = './assets/combat-feedback/';
   const sounds = { hit: ['Hit', .22, .12], kill: ['Kill', .42, .08],
     arrival: ['DamageArrival', .13, .18], medal: ['Medal', .075, .16],
-    milestone: ['Milestone', .42, .3], escape: ['Bonus', .32, .4] };
+    milestone: ['Milestone', .42, .3], escape: ['Bonus', .32, .4],
+    tick: ['Medal', .16, .5] };
   const assets = window.skyCombatFeedbackAssets = { phase: 'loading', error: '', buffers: {} };
   const announce = () => { document.body.dataset.skyFeedbackAssets = assets.phase; window.skyStartReadiness?.sync(); };
   assets.ready = (async () => {
@@ -46,7 +47,7 @@
     let killCount = 0, killPoints = 0, lastKill = -Infinity, lastDamage = -Infinity;
     let totalDamage = 0, arrived = 0, presented = 0, medals = 0, fullAt = -Infinity, awardAt = -Infinity, lastPaint = -Infinity;
     let generation = 0, hitHook, killHook;
-    const voices = new Set(), lastSound = {}, history = [], counts = { flights: 0, arrivals: 0, kills: 0, escapes: 0 };
+    const voices = new Set(), lastSound = {}, history = [], counts = { flights: 0, arrivals: 0, kills: 0, escapes: 0, ticks: 0 };
     const flights = Array.from({ length: 12 }, () => {
       const node = document.createElement('div'); node.className = 'cf-flight'; node.hidden = true;
       node.innerHTML = `${art('damage-bullet.png')}<span><b></b><small>DMG</small><em></em></span>`; root.append(node);
@@ -198,7 +199,9 @@
     }
     document.addEventListener('visibilitychange', () => { if (document.hidden) { setActive(false); } });
     window.addEventListener('resize', () => { clear(false); requestAnimationFrame(layout); });
-    return { reset, setActive, step, damage, kill: points => event(false, points), escaped: () => event(true),
+    // Survival milestone (every few seconds); the points themselves come from the score module.
+    function tick(major) { if (!visible || !isPlaying()) return; counts.ticks++; sound(major ? 'milestone' : 'tick'); }
+    return { reset, setActive, step, damage, tick, kill: points => event(false, points), escaped: () => event(true),
       snapshot: () => ({ ...counts, activeFlights: flights.filter(f => f.active).length, arrivedDamage: arrived, presentedDamage: presented,
         totalDamage, milestones: medals, pendingDamage: pending?.damage || 0, sounds: history.map(e => ({ ...e })), activeVoices: voices.size,
         generation, visible, reducedMotion: reduced, phase: assets.phase }) };

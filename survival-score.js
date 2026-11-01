@@ -1,7 +1,7 @@
 // Shared time/combat arithmetic. Pursuit detection only triggers presentation.
 (function (root) {
   const config = Object.freeze({ radius: 18, routeLimit: 26, heightLimit: 3,
-    perSecond: 120, perDamage: 2, perKill: 100,
+    perSecond: 120, interval: 5, perDamage: 2, perKill: 100,
     sample: .15, escapeCharge: 3, escapeQuiet: 2 });
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   function evaluate(seconds, kills, difficulty, earned = {}) {
@@ -11,8 +11,17 @@
     const survival = Math.floor(elapsed * config.perSecond * factor + 1e-7);
     const damage = Math.floor(damageUnits * config.perDamage * factor + 1e-7);
     const kill = Math.floor(Math.max(0, kills | 0) * config.perKill * factor + 1e-7);
+    // Survival points are paid out every `interval` seconds (interval x perSecond x factor
+    // each) as a presentation milestone. The authoritative `survival` stays the continuous
+    // value above so totals, records and the server check are unchanged; the part of the
+    // current interval not yet paid out is `remainder` and is settled when the run ends.
+    const ticks = Math.floor(elapsed / config.interval + 1e-9);
+    const tickPoints = Math.floor(config.interval * config.perSecond * factor + 1e-7);
+    const ticked = Math.min(survival, ticks * tickPoints);
     return { elapsed, kills: Math.max(0, kills | 0), difficulty: factor, damageUnits,
       survival, damage, kill, total: survival + damage + kill,
+      interval: config.interval, ticks, tickPoints, ticked, remainder: survival - ticked,
+      live: ticked + damage + kill,
       scoring: 'time-survival-v1', bonus: 0, fellExtra: 0, shake: 0 };
   }
   function createTracker(game, runtime, onEscape = () => {}) {

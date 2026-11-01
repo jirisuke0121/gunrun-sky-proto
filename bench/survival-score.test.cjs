@@ -25,6 +25,24 @@ assert.equal(evaluate(10,0,0,{pressureSeconds:999,chasedSeconds:0}).survival,120
 assert.equal(evaluate(500,0,0).survival,14400,'round time is capped at 120 seconds');
 assert.equal(evaluate(-2,0,0).total,0);
 assert.equal(evaluate(1.234,0,1).survival,162,'each component rounds down');
+// Survival is paid out every 5 seconds (5 x 120 x multiplier) without changing the total.
+assert.equal(config.interval,5);
+assert.deepEqual([0,1,2].map(i=>evaluate(5,0,i).tickPoints),[600,660,720]);
+for(const d of [0,1,2]) {
+  assert.equal(evaluate(120,0,d).ticks,24);
+  assert.equal(evaluate(120,0,d).remainder,0,'a full run is entirely paid out in milestones');
+  assert.equal(evaluate(120,0,d).live,evaluate(120,0,d).total);
+  for(const t of [0,1.234,4.99,5,5.01,12.3,59.99,60,119.99,120]) {
+    const b=evaluate(t,2,d,{damageUnits:3});
+    assert.equal(b.ticked+b.remainder,b.survival,'milestones plus remainder equal the continuous survival points');
+    assert.equal(b.live+b.remainder,b.total,'the live HUD total never exceeds the final total');
+    assert.ok(b.remainder>=0&&b.remainder<b.tickPoints,'remainder is less than one milestone');
+    assert.equal(b.ticks,Math.floor(t/5));
+  }
+}
+assert.equal(evaluate(4.99,0,0).live,0,'nothing is paid out before the first 5 seconds');
+assert.equal(evaluate(5,0,1).live,660);
+assert.equal(evaluate(5,0,1).scoring,'time-survival-v1','server rule and scoring id are unchanged');
 for(const condition of ['idle','far','wall','floor','no-route','swing','ledge','invulnerable','loop','decoy']) {
  const f=fixture();
  if(condition==='far')f.runtime.FIELD[0]=60;
