@@ -8,7 +8,7 @@ fs.mkdirSync(out,{recursive:true});
  const sql=new DatabaseSync(':memory:');sql.exec(fs.readFileSync(path.join(root,'server/schema.sql'),'utf8'));sql.exec(fs.readFileSync(path.join(root,'server/telemetry-schema.sql'),'utf8'));
  const DB={prepare(query){let values=[];return{bind(...args){values=args;return this},async first(){return sql.prepare(query).get(...values)||null},async all(){return{results:sql.prepare(query).all(...values)}},async run(){return sql.prepare(query).run(...values)}}}};
  const env={DB,ADMIN_TOKEN:'local-fixture-only',ALLOWED_ORIGINS:base};
- const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.glb':'model/gltf-binary','.gz':'application/gzip','.png':'image/png','.webp':'image/webp','.ogg':'audio/ogg','.mp3':'audio/mpeg'};
+ const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.glb':'model/gltf-binary','.gz':'application/gzip','.svg':'image/svg+xml','.woff':'font/woff','.wav':'audio/wav','.png':'image/png','.webp':'image/webp','.ogg':'audio/ogg','.mp3':'audio/mpeg'};
  const server=http.createServer(async(req,res)=>{try{
   const url=new URL(req.url,base);
   if(url.pathname==='/telemetry'||url.pathname==='/admin/overview'){
@@ -29,7 +29,10 @@ fs.mkdirSync(out,{recursive:true});
    await context.addInitScript(()=>window.__hold=true);
    let externalPosts=0;await context.route('https://**/*',route=>{if(route.request().method()==='POST')externalPosts++;return route.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true,"recordProtocol":2}'});});
    const page=await context.newPage(),errors=[];page.setDefaultTimeout(90000);page.on('pageerror',e=>errors.push(e.message));
-   await page.goto(base+'/'+map);await page.waitForFunction(()=>window.skyStartReadiness?.ready&&window.skyFoundation);
+   await page.goto(base+'/'+map);await page.waitForFunction(()=>window.skyStartReadiness?.ready&&window.skyFoundation).catch(async error=>{
+    console.error('Readiness failure:',await page.evaluate(()=>({state:skyStartReadiness?.state,feedback:{phase:skyCombatFeedbackAssets?.phase,error:skyCombatFeedbackAssets?.error}})));
+    await page.screenshot({path:path.join(out,map+'-readiness-error.png')});throw error;
+   });
    const click=async selector=>{
     if(selector==='#bSettings'&&await page.evaluate(()=>__game.mode==='menu')&&await page.locator('#homeSettings').isVisible())selector='#homeSettings';
    if(selector==='#bSettings'&&!touch&&await page.evaluate(()=>__game.mode==='play')){await page.keyboard.press('p');await page.waitForFunction(()=>__game.mode==='pause');return;}
