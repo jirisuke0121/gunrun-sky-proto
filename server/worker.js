@@ -1,5 +1,6 @@
 import { recordMap, replayFromRecord, validateGhost } from '../replay-data.js';
 import rankedRules from '../ranked-rules.js';
+import { receiveTelemetry, telemetryOverview } from './telemetry.js';
 // GunRun 試作 — プレイ記録の受け口（Cloudflare Workers + D1）
 //   POST /runs            ゲームが1プレイ分のJSONを送る（誰でも）
 //   GET  /runs            記録の一覧（要 ADMIN_TOKEN）  ?since=ISO&build=...&limit=200&full=1
@@ -26,6 +27,11 @@ export default {
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
 
     try {
+      if (url.pathname === '/telemetry' && req.method === 'POST') return await receiveTelemetry(req, env, cors, origin, allowed);
+      if (url.pathname === '/admin/overview' && req.method === 'GET') {
+        if (!isAdmin(req, env)) return json({ error: 'unauthorized' }, 401, { ...cors, 'cache-control': 'private, no-store' });
+        return await telemetryOverview(env, cors, url);
+      }
       if (url.pathname === "/runs" && req.method === "POST") return await receive(req, env, cors, origin, allowed);
       if (url.pathname === "/runs" && req.method === "GET") return await list(req, env, cors, url);
       if (url.pathname === "/ranking" && req.method === "GET") return await ranking(env, cors, url);
