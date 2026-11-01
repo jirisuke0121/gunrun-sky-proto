@@ -1,5 +1,6 @@
 /* Unity's header, pause breakdown and C result artwork, fitted to the app viewport. */
 #unityScoreHud,#unityScorePause,#unityScoreResult{display:none}
+.uc-hud-goal[hidden]{display:none}
 .unity-score-rule{display:none}.unity-challenge-score .unity-score-rule{display:block}.unity-challenge-score .legacy-score-rule{display:none}
 .unity-challenge-score .legacy-score-setting{display:none}
 .unity-challenge-score #unityScoreHud:not([hidden]){display:grid}
@@ -32,7 +33,7 @@
 #unityEscapeRecord{font-size:16px;margin:10px 0;color:#c0e4e6}.uc-star-goals{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;font-size:11px;color:#8ea5b2}
 .uc-star-goals>span{padding:5px 7px;border:1px solid #6b83994d;border-radius:5px}.uc-star-goals>.achieved{color:#ffda7d;border-color:#d8b96466;background:#e0b84c0a}
 #unityResultGoal{font-size:13px;line-height:1.7;color:#d2e6ed;margin:16px 0 0}
-.uc-points{padding:12px 18px;border-left:1px solid #88a6b740}#unityResultBest{font-size:12px;color:#a7c5d3}.uc-total{color:#fff;line-height:1.1;margin:5px 0 15px}.uc-total b{font-size:clamp(36px,5vw,56px);font-weight:700}.uc-total small{font-size:17px;color:#a7c5d3}
+.uc-points{padding:12px 18px;border-right:1px solid #88a6b740}#unityResultBest{font-size:12px;color:#a7c5d3}.uc-total{color:#fff;line-height:1.1;margin:5px 0 15px}.uc-total b{font-size:clamp(36px,5vw,56px);font-weight:700}.uc-total small{font-size:17px;color:#a7c5d3}
 .uc-breakdown{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}.uc-breakdown>div{display:grid;gap:3px;font-size:12px;color:#afc6d2}.uc-breakdown b{font-size:19px;color:#eaf4f9}.uc-breakdown small{font-size:11px}
 #unityResultBonus,#unityResultEquation{display:block;font-size:11px;color:#9cb3c1;line-height:1.7}#unityRunMoves{grid-column:1/-1;font-size:12px;color:#8eacbc;margin:8px 0;line-height:1.5}
 #unityResultActions{display:flex;gap:10px;flex-wrap:wrap;padding-top:16px;margin-top:8px;border-top:1px solid #88a6b733}
@@ -42,7 +43,7 @@
 .unity-challenge-score #hint{top:118px}
 .uc-hud-goal{grid-column:1/-1;text-align:center;font-size:11px;color:#d5e7e8;white-space:nowrap}.uc-hud-goal b{margin-right:8px;color:#ffda7d;letter-spacing:2px}
 @media(max-height:500px){.unity-challenge-score #ovOver{padding:10px}#unityResultCard{padding:14px 22px}#unityResultTitle{font-size:26px;margin:0 0 6px}#unityResultContent{gap:5px 20px}#unityResultStars{font-size:44px}#unityEscapeRecord{margin:5px 0;font-size:13px}#unityResultGoal{margin-top:8px;font-size:12px}.uc-points{padding:4px 14px}.uc-total{margin-bottom:8px}.uc-total b{font-size:36px}.uc-breakdown{margin-bottom:5px}#unityResultActions{padding-top:8px;margin-top:2px}#unityRunMoves{margin:2px 0}.uc-achievement{padding:0}}
-@media(max-width:560px){#unityResultCard{padding:18px}#unityResultContent{grid-template-columns:1fr}.uc-points{border-left:0;border-top:1px solid #88a6b740;padding:14px 0 0}.uc-total b{font-size:40px}#unityResultActions button{flex:1;white-space:nowrap;font-size:13px}.uc-caption{font-size:10px}#unityResultDifficulty{font-size:12px}}
+@media(max-width:560px){#unityResultCard{padding:18px}#unityResultContent{grid-template-columns:1fr}.uc-points{border-right:0;border-top:1px solid #88a6b740;padding:14px 0 0}.uc-total b{font-size:40px}#unityResultActions button{flex:1;white-space:nowrap;font-size:13px}.uc-caption{font-size:10px}#unityResultDifficulty{font-size:12px}}
 @media(max-width:1000px){#unityScoreHud{left:145px;right:85px;transform:none;width:auto;max-width:650px}.unity-counter{grid-template-columns:22px auto auto;gap:0 4px}.unity-counter>img{width:22px;height:22px}.unity-counter>b{font-size:28px}.unity-counter>span{font-size:11px}.unity-challenge-score .hud-tl{font-size:11px;max-width:135px}.unity-challenge-score .hud-tr{display:none}#unityDifficulty{top:68px}}
 @media(max-width:650px){.unity-counter>img{display:none}.unity-counter{grid-template-columns:auto auto;grid-template-rows:34px 22px}.unity-counter>span{grid-column:1/-1}.unity-counter>b{font-size:25px}.unity-score>b{grid-column:1/-1}#unityScoreHud{gap:4px}.unity-counter strong{margin-left:0}}
 @media(prefers-reduced-motion:reduce){#unityResultCard{transform:none!important}.earned{animation:none!important}}

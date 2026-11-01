@@ -132,6 +132,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     game.An(saved.mode); saved.focus?.focus();
   }
   async function open(id, button, { mode = 'score', difficulty = window.skyChallenge.id } = {}) {
+    difficulty = window.skyChallenge.rankingDifficulty(difficulty);
     if (!['menu', 'over'].includes(game.modeRef()) || active) return;
     const token = ++fetchToken;
     const visibility = game.Jt.flatMap(zombie => [zombie.m?.root, zombie.pool].filter(Boolean)).map(object => [object, object.visible]);

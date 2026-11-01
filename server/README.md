@@ -1,5 +1,12 @@
 # プレイ記録サーバー（Cloudflare Workers + D1）
 
+## 2026-11-01：全難易度共通スコア（公開前）
+
+- 新ルール `corridor-shared-score-v9`。`GET /ranking?map=old-town&rules=corridor-shared-score-v9&mode=score&difficulty=all` はEasy/Normal/Hard全体の最高スコアを端末ごとに1件返す。難易度やクリア状態で順位を優先せず、得点順で比較する。各行には実際に挑戦した難易度を残す。星は0。`/ghosts/<id>` も同じクエリで、その順位の記録だけを返す。
+- クライアントは実際の固定条件を `challenge.fixedSettings` に記録する。Workerは共有の `ranked-rules.js` と、記録中の設定差分を検査する。異なる条件や必要な条件情報がない場合も結果を保存し、`receipt.ranked:false` で通常順位から除外する。クライアントが付けた `rankingEligible` は信頼しない。
+- 容量対策で診断やゴーストを省く場合も `challenge` の条件情報は保持する。記録プロトコル2・重複防止・既存ルールの読み取り・自由調整は維持。スキーマ変更なし。
+- 公開時はWorkerを先に更新し、`GET /` の `rankedRules:corridor-shared-score-v9` を確認してからPagesを反映する。本変更は未公開。
+
 ## 2026-10-31：記録と送信の整合性
 
 | 段階 | 正とするデータ・条件 |

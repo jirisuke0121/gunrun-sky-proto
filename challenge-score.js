@@ -55,9 +55,6 @@
       set('unityKills', b.kills); set('unityTotal', b.total.toLocaleString('ja-JP'));
       set('unityTimeFactor', '×' + timeFactor); set('unityKillFactor', '×' + killFactor);
     }
-    set('unityHudStars', game.z.over ? '★'.repeat(game.z.stars || 0) + '☆'.repeat(3 - (game.z.stars || 0)) : '☆☆☆');
-    const target = b.total < game.U.star2 ? `★2 あと${game.U.star2 - b.total}点` : b.total < game.U.star3 ? `★3 あと${game.U.star3 - b.total}点` : '★3 得点到達';
-    set('unityHudGoal', target);
     const minute = Math.floor(b.elapsed / 60);
     if (mode === 'play' && !game.z.over && (minute > previousMinute && minute > 0 || b.elapsed >= 1 && previousMinute < 0)) {
       for (const id of ['unityTime', 'unityTimeFactor', 'unityKillFactor']) pulse(id, 1.3);
@@ -86,16 +83,8 @@
     $('unityResultCard').dataset.score = JSON.stringify(b);
     $('unityResultCard').dataset.failed = String(failed);
     $('unityResultCard').dataset.complete = 'false';
-    const stars = intro || failed ? 0 : 1 + Number(b.total >= game.U.star2) + Number(b.total >= game.U.star3);
-    $('unityResultStars').setAttribute('aria-label', `星${stars}個、3個中`);
-    $('unityResultStars').innerHTML = [1, 2, 3].map(i => `<span class="${i <= stars ? 'earned' : ''}" style="--star-index:${i}" aria-hidden="true">★</span>`).join('');
-    $('unityResultStars').dataset.stars = stars;
-    for (const [i, label] of ['2分逃げ切り', `${game.U.star2}点 ＋ 逃げ切り`, `${game.U.star3}点 ＋ 逃げ切り`].entries()) {
-      set('unityStarGoal' + (i + 1), `★${i + 1}　${label}`);
-      $('unityStarGoal' + (i + 1)).classList.toggle('achieved', i < stars);
-    }
     set('unityResultTitle', failed ? (reason === 'fell' ? '落ちてしまった' : 'つかまった') : '逃げ切った！');
-    set('unityResultGoal', failed ? `あと${Math.max(0, window.__game.RUN_LEN - b.elapsed).toFixed(1)}秒。まずは2分逃げ切って★1へ。` : stars < 3 ? `次は逃げ切ったうえで${stars === 1 ? game.U.star2 : game.U.star3}点を目指そう。` : '2分逃げ切り、3つの星を獲得！');
+    set('unityResultGoal', failed ? '生存と撃破のスコアで、全難易度のプレイヤーと競おう。' : '2分間のスコアで、全難易度のプレイヤーと競おう。');
     set('unityEscapeRecord', `${b.elapsed.toFixed(1)} / ${window.__game.RUN_LEN}秒 ・ ${failed ? '未クリア' : window.skyChallenge.name + ' クリア'}`);
     set('unityRunMoves', `フック ${window.__game.stats.hooks || 0}　壁走り ${window.__game.stats.wallruns || 0}　乗り越え ${window.__game.stats.vaults || 0}　落下 ${window.__game.stats.falls || 0}`);
     set('unityResultDifficulty', `難易度　${window.skyChallenge.name}`);
@@ -119,10 +108,8 @@
     buttons.forEach(e => e.disabled = true);
     const started = performance.now(), reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     readyAt = started + (reduced ? 0 : 700);
-    let soundedStars = 0;
     function tick(now) {
       const t = reduced ? .9 : (now - started) / 1000;
-      if (!reduced && soundedStars < stars && t >= .2 + soundedStars * .18) game.Tt.star(soundedStars++);
       const count = Math.min(1, Math.max(0, (t - .2) / .6));
       set('unityResultTotal', Math.round(b.total * (1 - (1 - count) ** 3)).toLocaleString('ja-JP'));
       const settle = (1 - Math.min(1, t / .3)) ** 2;
@@ -142,9 +129,10 @@
   }
   function attach(internals) {
     game = internals;
-    for (const name of ['milestoneBonus', 'shakePts']) $('s_' + name)?.closest('.sl')?.classList.add('legacy-score-setting');
+    for (const name of ['star2', 'star3']) $('s_' + name)?.closest('.sl')?.setAttribute('hidden', '');
+    for (const name of ['milestoneBonus', 'shakePts', 'star2', 'star3']) $('s_' + name)?.closest('.sl')?.classList.add('legacy-score-setting');
     const hud = document.createElement('div'); hud.id = 'unityScoreHud';
-    hud.innerHTML = `<div id="unityDifficulty"></div><div class="unity-counter">${image('clock')}<b id="unityTime">120</b><small>秒</small><span>時間倍率 <strong id="unityTimeFactor">×1.0</strong></span></div><div class="unity-counter">${image('skull')}<b id="unityKills">0</b><small>撃破</small><span>撃破倍率 <strong id="unityKillFactor">×2.0</strong></span></div><div class="unity-counter unity-score">${image('star')}<b id="unityTotal">0</b><small>点</small><span>SCORE</span></div><div class="uc-hud-goal"><b id="unityHudStars" aria-hidden="true">☆☆☆</b><span id="unityHudGoal"></span></div>`;
+    hud.innerHTML = `<div id="unityDifficulty"></div><div class="unity-counter">${image('clock')}<b id="unityTime">120</b><small>秒</small><span>時間倍率 <strong id="unityTimeFactor">×1.0</strong></span></div><div class="unity-counter">${image('skull')}<b id="unityKills">0</b><small>撃破</small><span>撃破倍率 <strong id="unityKillFactor">×2.0</strong></span></div><div class="unity-counter unity-score"><b id="unityTotal">0</b><small>点</small><span>SCORE</span></div>`;
     $('hud').append(hud);
     // Difficulty belongs with the other status lines, not floating under the header (it collided with hints).
     $('hud').querySelector('.hud-tl')?.prepend($('unityDifficulty'));
@@ -152,7 +140,7 @@
     pause.innerHTML = `<h3>得点の内訳</h3><p id="unityPauseIdentity"></p><p id="unityPauseSurvival"></p><p id="unityPauseKill"></p><b id="unityPauseTotal"></b><small>長く生存するほど得点アップ。難易度ボーナスは各得点に反映済み。</small>`;
     $('challengeSettingsNote').after(pause);
     const result = document.createElement('div'); result.id = 'unityScoreResult';
-    result.innerHTML = `<article id="unityResultCard"><header><span class="uc-caption">空中回廊 / 逃走の記録</span><span id="unityResultDifficulty"></span><h2 id="unityResultTitle"></h2></header><div id="unityResultContent"><section class="uc-achievement"><div id="unityResultStars" role="img"></div><p id="unityEscapeRecord"></p><div class="uc-star-goals"><span id="unityStarGoal1"></span><span id="unityStarGoal2"></span><span id="unityStarGoal3"></span></div><p id="unityResultGoal"></p></section><section class="uc-points"><span id="unityResultBest"></span><div class="uc-total"><b id="unityResultTotal">0</b><small> pt</small></div><div class="uc-breakdown"><div><span>生存</span><b id="unityResultSurvival"></b><small id="unitySurvivalFormula"></small></div><div><span>撃破</span><b id="unityResultKill"></b><small id="unityKillFormula"></small></div></div><small id="unityResultBonus"></small><small id="unityResultEquation"></small></section><p id="unityRunMoves"></p></div><footer id="unityResultActions"><button id="unityRetry" type="button">もう一度逃げる</button><button id="unityMore" type="button">ランキング・記録</button><button id="unityMenu" type="button">メニュー</button></footer></article><section id="unityScoreDetails" hidden><h2>ランキング・プレイの記録</h2><p id="unityRunDetails"></p><div id="unityScoreRanking"></div><p id="unityRecordStatus"></p><button id="unityDetailsBack" type="button">リザルトに戻る</button></section>`;
+    result.innerHTML = `<article id="unityResultCard"><header><span class="uc-caption">空中回廊 / 逃走の記録</span><span id="unityResultDifficulty"></span><h2 id="unityResultTitle"></h2></header><div id="unityResultContent"><section class="uc-points"><span id="unityResultBest"></span><div class="uc-total"><b id="unityResultTotal">0</b><small> pt</small></div><div class="uc-breakdown"><div><span>生存</span><b id="unityResultSurvival"></b><small id="unitySurvivalFormula"></small></div><div><span>撃破</span><b id="unityResultKill"></b><small id="unityKillFormula"></small></div></div><small id="unityResultBonus"></small><small id="unityResultEquation"></small></section><section class="uc-achievement"><p id="unityEscapeRecord"></p><p id="unityResultGoal"></p></section><p id="unityRunMoves"></p></div><footer id="unityResultActions"><button id="unityRetry" type="button">もう一度逃げる</button><button id="unityMore" type="button">ランキング・記録</button><button id="unityMenu" type="button">メニュー</button></footer></article><section id="unityScoreDetails" hidden><h2>ランキング・プレイの記録</h2><p id="unityRunDetails"></p><div id="unityScoreRanking"></div><p id="unityRecordStatus"></p><button id="unityDetailsBack" type="button">リザルトに戻る</button></section>`;
     $('ovOver').append(result);
     const next = document.createElement('button'); next.id = 'introNext'; next.type = 'button';
     next.textContent = 'イージーから挑戦する'; next.hidden = true;
