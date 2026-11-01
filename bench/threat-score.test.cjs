@@ -24,6 +24,13 @@ const idle=fixture();assert.equal(idle.tick(30,false).pressureSeconds,0,'standin
 const stopped=fixture();stopped.tick(3);const stoppedAt=stopped.tracker.snapshot().pressureSeconds;
 assert.equal(stopped.tick(1.5,false).pressureSeconds,stoppedAt,'stopping after movement leaves no residual scoring');
 assert.equal(stopped.tracker.snapshot().rate,0,'the HUD rate stops with actual motion');
+const quiet=fixture();quiet.game.Jt=[];quiet.tick(21,false);quiet.game.Jt=[quiet.enemy];
+assert.ok(quiet.tick(1.8).pressureSeconds>0,'quiet waiting does not exhaust the first chase');
+assert.equal(quiet.tracker.snapshot().repetition,1,'an unscored wait spends no local budget');
+const exploring=fixture();exploring.game.Jt=[];exploring.tick(21,true,true);exploring.game.Jt=[exploring.enemy];
+assert.equal(exploring.tick(1.8,true,true).repetition,1,'safe exploration does not spend the later chase budget');
+const hanging=fixture();hanging.c.state='swing';hanging.tick(21,false);hanging.c.state='normal';
+assert.equal(hanging.tick(1.8).repetition,1,'hanging without earning does not spend the later chase budget');
 for(const state of ['swing','ledge']) {const f=fixture();f.c.state=state;assert.equal(f.tick(10).pressureSeconds,0,state);}
 const inv=fixture();inv.c.invuln=100;assert.equal(inv.tick(10).pressureSeconds,0);
 for(const flag of ['dead','remove','rise','fall']) {const f=fixture();f.enemy[flag]=true;assert.equal(f.tick(3).count,0,flag);}

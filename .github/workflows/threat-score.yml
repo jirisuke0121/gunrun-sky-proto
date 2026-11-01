@@ -36,10 +36,14 @@ jobs:
             npx playwright install --with-deps chromium
           fi
       - name: Native terrain, score feedback, audio, languages and results
-        run: node bench/threat-score-browser.cjs
+        run: |
+          node bench/threat-score-browser.cjs
+          node bench/threat-score-wait-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: threat-score-evidence
-          path: browser-evidence/threat-score/
+          path: |
+            browser-evidence/threat-score/
+            browser-evidence/threat-wait/
           retention-days: 14

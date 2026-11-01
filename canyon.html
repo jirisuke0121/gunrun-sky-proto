@@ -82,7 +82,7 @@ html.touch .hookmark{width:48px;height:48px;margin:-24px;border-width:3px;backgr
       <div class="missions"><h3>ミッション（技の練習）</h3><p class="note">まずお手本を見てから挑戦する。本番で使う技を1つずつ</p><div id="missionList"></div></div>
       <p id="bestLine" class="note"></p>
       <p id="recNote" class="note" hidden></p>
-      <details class="rules"><summary>操作と得点のルール</summary><p class="unity-score-rule">近くのゾンビの人数・距離・地形経路に応じた脅威度で、移動して追跡をしのいでいる時間に加点します。最大脅威度3で毎秒360点、有効ダメージ1につき2点、撃破1体100点。イージー×1.0・ノーマル×1.1・ハード×1.2。別階・壁の向こう・分身に誘導中・出現中の敵、安全な待機や鉄棒・縁への滞在は逃走加点の対象外。同じ狭い範囲は8秒から加点が減り、20秒で止まります。技とESCAPED表示自体には加点しません。新しい得点ルールで全難易度のプレイヤーと競います。</p>
+      <details class="rules"><summary>操作と得点のルール</summary><p class="unity-score-rule">近くのゾンビの人数・距離・地形経路に応じた脅威度で、移動して追跡をしのいでいる時間に加点します。最大脅威度3で毎秒360点、有効ダメージ1につき2点、撃破1体100点。イージー×1.0・ノーマル×1.1・ハード×1.2。別階・壁の向こう・分身に誘導中・出現中の敵、安全な待機や鉄棒・縁への滞在は逃走加点の対象外。同じ狭い範囲で加点対象の追跡移動を続けると、8秒から加点が減り、20秒で止まります。安全な待機など、加点されない時間はこの枠を使いません。技とESCAPED表示自体には加点しません。新しい得点ルールで全難易度のプレイヤーと競います。</p>
       <ul class="keys">
         <li><kbd>W A S D</kbd> 走る　マウスで視点　<kbd>Space</kbd> ジャンプ<span class="desktop-slide-help">　<kbd>C</kbd> スライド</span></li>
         <li><kbd>クリック</kbd>/<kbd>F</kbd>/<kbd>右クリック</kbd> ナイフ：前のゾンビを押し返してよろけさせる（つかみも止まる）。背後からなら一撃。最初はナイフだけ（調整画面でハンドガンも持てる）</li>

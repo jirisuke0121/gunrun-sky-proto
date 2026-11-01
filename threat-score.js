@@ -60,14 +60,18 @@
       const x = Math.floor(p.x / 8), y = Math.floor(p.y / 4), z = Math.floor(p.z / 8);
       const key = `${x},${y},${z}`, spent = visits.get(key) || 0;
       repetition = clamp((config.campLimit - spent) / (config.campLimit - config.campGrace), 0, 1);
-      // Charge neighbouring cells too: crossing a grid boundary, escaping and
-      // reacquiring, or killing a pursuer never resets the small-loop budget.
-      for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let h = -1; h <= 1; h++) {
-        const k = `${x+a},${y+h},${z+b}`; visits.set(k, (visits.get(k) || 0) + span);
-      }
       pressure = threats(); cooldown = Math.max(0, cooldown - span);
       const vulnerable = !['swing', 'ledge'].includes(game.c.state) &&
         !(game.c.invuln > game.ceRef()) && speed < 30;
+      // Charge neighbouring cells too: crossing a grid boundary, escaping and
+      // reacquiring, or killing a pursuer never resets the small-loop budget.
+      // Only spend it while movement can actually earn evasion points. Quiet
+      // waiting, hanging and invulnerability must not penalize a later chase.
+      if (pressure > 0 && vulnerable && motion > 0) {
+        for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let h = -1; h <= 1; h++) {
+          const k = `${x+a},${y+h},${z+b}`; visits.set(k, (visits.get(k) || 0) + span);
+        }
+      }
       const weight = vulnerable ? motion * repetition : 0;
       rate = pressure * config.perSecond * weight;
       pressureSeconds += pressure * weight * span;
