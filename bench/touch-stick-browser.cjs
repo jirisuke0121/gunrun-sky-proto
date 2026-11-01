@@ -14,7 +14,7 @@ fs.mkdirSync(out, { recursive: true });
   try {
     for (const map of ['index.html', 'canyon.html']) for (const rotation of [0, 1, -1]) {
       const id = `${map.split('.')[0]}-${rotation}`, errors = [];
-      const ctx = await browser.newContext({ viewport: rotation ? {width:390,height:844} : {width:844,height:390}, isMobile:true, hasTouch:true });
+      const ctx = await browser.newContext({locale:'ja-JP', viewport: rotation ? {width:390,height:844} : {width:844,height:390}, isMobile:true, hasTouch:true });
       await ctx.addInitScript(dir => { window.__hold = true; localStorage.setItem('gunrun-rotdir', String(dir)); }, rotation || 1);
       await ctx.route('https://**/*', r => new URL(r.request().url()).origin === new URL(base).origin ? r.continue() : r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'}));
       const p = await ctx.newPage(); p.on('pageerror', e => errors.push(e.message));

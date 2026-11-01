@@ -28,6 +28,7 @@ const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{p
   const click=async selector=>{
    // A locked desktop pointer targets the canvas. Use the real PC pause key;
    // touch users open the same panel with its on-screen button.
+   if(selector==='#bSettings'&&await page.evaluate(()=>__game.mode==='menu')&&await page.locator('#homeSettings').isVisible())selector='#homeSettings';
    if(selector==='#bSettings'&&!touch&&await page.evaluate(()=>__game.mode==='play')){
     await page.keyboard.press('p');await page.waitForFunction(()=>__game.mode==='pause'&&!document.pointerLockElement);return;
    }

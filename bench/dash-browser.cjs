@@ -9,7 +9,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
   browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:process.platform==='darwin'?['--no-sandbox']:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   for(const touch of [false,true])for(const map of ['index.html','canyon.html']){
    const id=`dash-${touch?'touch':'desktop'}-${map.split('.')[0]}`;
-   const context=await browser.newContext({viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch,deviceScaleFactor:1});
+   const context=await browser.newContext({locale:'ja-JP',viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch,deviceScaleFactor:1});
    await context.addInitScript(()=>{window.__hold=true;});
    await context.route('**/*',route=>{const url=route.request().url();if(new URL(url).hostname==='gunrun-runs.jirisuke0121.workers.dev')return route.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"me":null,"ok":true}'});if(new URL(url).pathname==='/favicon.ico')return route.fulfill({status:204,body:''});return url.startsWith(base)||/^(blob|data):/.test(url)?route.continue():route.abort();});
    const page=await context.newPage(),errors=[];page.setDefaultTimeout(60000);

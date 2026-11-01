@@ -1,69 +1,75 @@
-// Home screen: first view = title, one-line goal, win/lose, controls, Start.
-// Everything else (spots, practice, settings, ranking, long rules) moves into one folded section.
-// This only re-parents existing elements, so ids, listeners and other scripts keep working.
+// Keep the existing game controls and listeners; only arrange the lobby.
 (() => {
+  if (window.skyPracticeMode || new URLSearchParams(location.search).has('practice')) return;
   const plate = document.querySelector('#ovStart .plate');
   if (!plate || document.getElementById('homeHero')) return;
   const $ = id => document.getElementById(id);
   const make = (tag, props = {}, html = '') => Object.assign(document.createElement(tag), props, html ? { innerHTML: html } : {});
-
+  const canyon = location.pathname.endsWith('canyon.html');
   const hero = make('div', { id: 'homeHero' });
-  const eyebrow = plate.querySelector(':scope > .eyebrow');
-  const title = plate.querySelector(':scope > h1');
-  const oldLede = plate.querySelector(':scope > .lede');
-  if (eyebrow) hero.append(eyebrow);
-  if (title) hero.append(title);
-  hero.append(
-    make('p', { className: 'homeGoal' }, '2分間、ゾンビから逃げ切れ。'),
-    make('ul', { className: 'homeRules' }, [
-      '<li><b>勝ち</b>2分間つかまらずに生き残る</li>',
-      '<li><b>負け</b>ゾンビにつかまる／奈落に落ちると終了</li>',
-      '<li><b>得点</b>近くの追手をしのいで加点。ダメージ・撃破でも得点</li>',
-    ].join('')),
-    make('p', { className: 'homeKeys homeKeysDesktop' },
-      '<span class="keysAfter"><kbd>W</kbd><kbd>S</kbd> 前後　<kbd>A</kbd><kbd>D</kbd> 曲がる　</span>' +
-      '<span class="keysBefore"><kbd>W A S D</kbd> 移動　</span>' +
-      '<kbd>マウス</kbd> 見回す　<kbd>Space</kbd> ジャンプ　<kbd>Esc</kbd> 一時停止'),
-  );
-  const touchNote = $('touchNote');
-  if (touchNote) touchNote.classList.add('homeKeysTouch');
-  const retryButtons = [...plate.querySelectorAll(':scope > [data-retry-start]')];
-  // Fixed order of the first view. Other scripts may prepend/insert around these later, so we re-apply it.
-  const settingsButton = make('button', { id: 'homeSettings', type: 'button' }, '⚙ 設定（操作・感度・音量・画質）');
-  settingsButton.addEventListener('click', () => $('bSettings')?.click());
-  const heroOrder = () => [
-    eyebrow, title, hero.querySelector('.homeGoal'), hero.querySelector('.homeRules'),
-    hero.querySelector('.homeKeysDesktop'), touchNote, $('bStart'), $('startReadyStatus'),
-    ...retryButtons, $('introEntry'), settingsButton, $('bestLine'),
-  ].filter(Boolean);
-  plate.prepend(hero);
-
+  document.body.classList.add('sky-lobby');
+  const heading = make('header', { className: 'home-heading' }, '<div><p class="home-kicker">GUNRUN · PARKOUR SURVIVAL</p><h1>空中回廊<span>追跡</span></h1></div>');
+  const settings = make('button', { id: 'homeSettings', type: 'button' }, '設定');
+  settings.addEventListener('click', () => $('bSettings')?.click());
+  const actions = make('div', { className: 'home-heading-actions' });
+  if ($('langToggle')) actions.append($('langToggle'));
+  actions.append(settings); heading.append(actions);
+  const scene = make('section', { className: 'home-scene', ariaLabel: canyon ? '岩壁渓谷のゲーム風景' : '旧市街のゲーム風景' }, `<div class="home-scene-copy"><span class="home-map">${canyon ? '岩壁渓谷' : '旧市街'} <small>${canyon ? 'ROCK CANYON' : 'OLD TOWN'}</small></span><h2>2分間、<br>逃げ切れ。</h2><p>跳ぶ。壁を走る。追跡を引き離す。</p></div>`);
+  scene.style.backgroundImage = `linear-gradient(0deg,#0c1219f5 0%,#0c12191a 85%),url('./assets/lobby/${canyon ? 'canyon' : 'old-town'}.svg')`;
+  const main = make('section', { className: 'home-play', ariaLabel: '逃走の準備' });
+  const difficulty = make('div', { id: 'homeDifficulty' }, '<div class="home-difficulty-heading"><h2>難易度を選ぶ</h2><span>スコアボーナス</span></div>');
+  const selector = $('challengeDifficulty'); selector.hidden = true;
+  const choices = make('div', { className: 'home-difficulty-choices', role: 'group', ariaLabel: '難易度' });
+  const levels = window.skyChallenge.levels.filter(p => p.id !== 'legacy');
+  for (const [index, p] of levels.entries()) {
+    const button = make('button', { type: 'button' }, `<span>${p.name}</span><strong>×${(1 + .1 * index).toFixed(1)}</strong>`);
+    button.dataset.difficulty = p.id;
+    button.addEventListener('click', () => {
+      if (selector.disabled || window.__game.mode !== 'menu') return;
+      selector.value = p.id; selector.dispatchEvent(new Event('change', { bubbles: true }));
+    }); choices.append(button);
+  }
+  const bonus = $('challengeScoreBonus'); bonus.classList.add('home-sr-only');
+  difficulty.append(choices, selector, bonus);
+  const facts = make('div', { className: 'home-run-facts' }, '<span>制限時間 <b>2:00</b></span><span>ライフ <b id="homeLives">5</b></span>');
+  main.append(difficulty, facts, $('bStart'), $('startReadyStatus'));
+  for (const button of [...plate.querySelectorAll(':scope > [data-retry-start]')]) main.append(button);
+  const intro = $('introEntry');
+  const introButton = $('bIntro'), introStatus = $('introReadyStatus'), introRetries = [...intro.querySelectorAll('[data-retry-start]')];
+  intro.replaceChildren(make('div', {}, '<b>はじめての方へ</b><small>ライフ無限で、操作を練習。</small>'), introButton, introStatus, ...introRetries);
+  main.append(intro);
+  const best = $('bestLine'); main.append(best);
+  const controls = make('p', { className: 'home-controls' }, '<span class="home-controls-desktop"><kbd>W A S D</kbd> 移動　<kbd>マウス</kbd> 視点　<kbd>Space</kbd> ジャンプ</span><span class="home-controls-touch">左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ</span>');
+  hero.append(heading, scene, main, controls); plate.prepend(hero);
   const more = make('details', { id: 'homeMore' });
-  more.append(make('summary', {}, '練習・スポット選択・設定・ランキング・くわしいルール'));
-  const body = make('div', { className: 'homeMoreBody' });
-  more.append(body);
-  const rotFlip = $('rotFlip');
-  plate.insertBefore(more, rotFlip || null);
-
-  // Move whatever is left (now and anything other scripts inject later) into the folded section.
-  const heroObserver = new MutationObserver(() => arrangeHero());
-  const arrangeHero = () => {
-    heroObserver.disconnect();
-    const keep = heroOrder();
-    for (const child of [...hero.children]) if (!keep.includes(child)) body.append(child);
-    keep.forEach((el, i) => { if (hero.children[i] !== el) hero.insertBefore(el, hero.children[i] || null); });
-    heroObserver.observe(hero, { childList: true });
-  };
+  more.append(make('summary', {}, '練習・スポット・ランキング・ルール'));
+  const body = make('div', { className: 'homeMoreBody' }); more.append(body);
+  const mainControls = new Set(main.children);
+  const rotFlip = $('rotFlip'); plate.insertBefore(more, rotFlip || null);
   const sweep = () => {
-    for (const child of [...plate.children]) {
-      if (child === hero || child === more || child === rotFlip) continue;
-      if (child.id === 'oldTownSwingPreview' || child.className === 'lede') { body.prepend(child); continue; }
-      body.append(child);
-    }
+    for (const child of [...plate.children]) if (![hero, more, rotFlip].includes(child)) body.append(child);
   };
-  if (oldLede) oldLede.classList.add('homeOldLede');
-  arrangeHero();
-  sweep();
-  new MutationObserver(sweep).observe(plate, { childList: true });
+  sweep(); new MutationObserver(sweep).observe(plate, { childList: true });
+  // Spot/ranking modules insert beside bestLine after the lobby has loaded.
+  const adoptExtras = () => {
+    for (const child of [...main.children]) if (!mainControls.has(child)) body.append(child);
+  };
+  adoptExtras(); new MutationObserver(adoptExtras).observe(main, { childList: true });
+  function updateDifficulty() {
+    for (const button of choices.children) {
+      button.setAttribute('aria-pressed', String(button.dataset.difficulty === selector.value && !selector.disabled));
+      button.disabled = selector.disabled;
+    }
+    const p = levels.find(p => p.id === selector.value);
+    $('homeLives').textContent = selector.disabled ? '自由調整' : String(p?.lives ?? 5);
+  }
+  document.addEventListener('sky-difficulty-change', updateDifficulty);
+  updateDifficulty();
+  const fit = () => {
+    hero.dataset.compact = String($('app').clientHeight < 500);
+    hero.dataset.tiny = String($('app').clientHeight < 350);
+    hero.dataset.narrow = String($('app').clientWidth < 620);
+  };
+  new ResizeObserver(fit).observe($('app')); fit();
   document.body.dataset.skyHomeFocus = 'true';
 })();

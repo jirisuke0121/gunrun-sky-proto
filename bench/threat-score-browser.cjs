@@ -119,7 +119,20 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
       const result=await page.locator('#unityResultCard').getAttribute('data-score');
       assert.equal(JSON.parse(result).total,evidence.total,'result freezes the earned total');
       if(lang==='en')assert.doesNotMatch(await page.locator('#unityResultCard').innerText(),/[\u3040-\u30ff\u4e00-\u9fff]/,'result fully translated');
+      assert.equal(await page.locator('.uc-breakdown>div').count(),3,'evasion, damage and kill rows survive the lobby/result merge');
+      await page.locator('#unityScoreMath>summary').click();
+      if(lang==='en')assert.doesNotMatch(await page.locator('#unityResultCard').innerText(),/[\u3040-\u30ff\u4e00-\u9fff]/,'score math fully translated');
+      await page.locator('#unityScoreMath>summary').click();
       await page.screenshot({path:`${out}/${map}-${lang}-result.png`});
+      if(touch){
+        await page.setViewportSize({width:844,height:320});
+        await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.tiny==='true');
+        for(const id of ['unityRetry','unityMenu','unityMore']){
+          const box=await page.locator('#'+id).boundingBox();
+          assert.ok(box&&box.y>=0&&box.y+box.height<=320,id+' remains in the tiny viewport');
+        }
+        await page.screenshot({path:`${out}/${map}-${lang}-tiny.png`});
+      }
       results.push({map,lang,touch,...evidence,posts,errors});
       console.log('PASS',map,lang,'native threat/stop/hang/invulnerability/stun/decoy/floor/wall, HIT/KILL/ESCAPED, audio/mute and pause');
       await context.close();
