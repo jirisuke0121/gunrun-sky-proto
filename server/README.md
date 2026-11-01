@@ -1,5 +1,9 @@
 # プレイ記録サーバー（Cloudflare Workers + D1）
 
+## 2026-11-02：管理画面のChatGPTログイン
+
+通常の管理画面は [本人専用のログイン式ページ](https://sky-corridor-owner.jirisuke.chatgpt.site/) 。`OWNER_OVERVIEW_TOKEN` をWorkerとSitesの秘密設定に登録し、Sitesのサーバーから集計だけを読む。既存の `ADMIN_TOKEN` は保持し、個別記録への権限を専用キーへ与えない。D1の変更は不要。[運用手順](../docs/OWNER_LOGIN.md)。
+
 ## 2026-11-01：生存時間と戦闘の得点（v11）
 
 脅威ポイントを廃止し、生存時間×毎秒120点、実ダメージ×2点、撃破×100点の各得点に難易度倍率（1.0/1.1/1.2）を適用。ポーズ中は停止。全難易度の共通順位は維持し、新ルール `corridor-time-score-v11` で旧記録と分離します。Worker更新が先に必要です。[仕様と確認範囲](../docs/TIME_SCORE_2026-11-01.md)。以下の得点式は過去の仕様です。
