@@ -1,4 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=require('playwright');
+const {revealHomeControl}=require('./home-controls.cjs');
 const base='http://127.0.0.1:8796/',out='browser-evidence/start-readiness';fs.mkdirSync(out,{recursive:true});
 const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{promise,release}};
 (async()=>{let browser,server;const results=[];try{
@@ -29,6 +30,7 @@ const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{p
    if(selector==='#bSettings'&&!touch&&await page.evaluate(()=>__game.mode==='play')){
     await page.keyboard.press('p');await page.waitForFunction(()=>__game.mode==='pause'&&!document.pointerLockElement);return;
    }
+   await revealHomeControl(page,selector);
    if(touch)await page.locator(selector).tap();else await page.locator(selector).click();
   };
   const state=()=>page.evaluate(()=>{__game.frameOnce(0);const held=__skyInternals.ue.getObjectByName('Unity human held weapon');let model=false;held?.traverse(n=>{if(n.name==='Meshy HG mobile LOD')model=true});return{mode:__game.mode,id:skyChallenge.id,life:__game.P.life,hud:document.getElementById('hLife').textContent,view:skyHumanView.view,renderedView:document.body.dataset.skyHumanView,model,held:held?.visible,audio:__skyInternals.Ut.ctx?.state,t:__game.GAME.t,history:skyRunRecording.history.length}});

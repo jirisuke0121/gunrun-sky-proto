@@ -9,7 +9,8 @@ try{
  const page=await browser.newPage({viewport:{width:1280,height:720}}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(()=>window.__hold=true);
  await page.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'}));
- await page.goto(base+'canyon.html');await page.waitForFunction(()=>window.skySwing&&window.__game&&!document.getElementById('bStart').disabled);
+ // The original strafe exit below exercises the supported manual mode.
+ await page.goto(base+'canyon.html?camera=before');await page.waitForFunction(()=>window.skySwing&&window.__game&&!document.getElementById('bStart').disabled);
  await page.locator('#bStart').click();
  result=await page.evaluate(()=>{
   const g=__game,s=__skyInternals,c=g.P,dt=1/60,N=g.NAV;
@@ -90,6 +91,16 @@ try{
   for(let i=0;i<8;i++)tick();
   g.keys.KeyS=true;for(let i=0;i<90&&c.pos.x>.7;i++)tick();g.keys.KeyS=false;g.keys.KeyA=true;
   for(let i=0;i<60;i++)tick();const exitTo=c.pos.toArray(),exitGround=c.onGround;
+  // The new default auto-follow mode turns with A/D. Pivot through the real
+  // input path, then walk down the spine; never assign the travel heading.
+  skyFollowCamera.setMode('after',false);route();g.keys.KeyW=false;
+  for(let i=0;i<8;i++)tick();
+  g.keys.KeyS=true;for(let i=0;i<90&&c.pos.x>.7;i++)tick();g.keys.KeyS=false;
+  for(let i=0;i<12;i++)tick();const autoFrom=c.pos.toArray();
+  g.keys.KeyA=true;for(let i=0;i<240&&c.yaw<-.025;i++)tick();g.keys.KeyA=false;
+  g.keys.KeyW=true;for(let i=0;i<60;i++)tick();g.keys.KeyW=false;
+  const autoExit={from:autoFrom,to:c.pos.toArray(),ground:c.onGround,yaw:c.yaw};
+  skyFollowCamera.setMode('before',false);
   // Deliberately skip release: drop to the existing floor, no fall/respawn.
   setup();c.pos.set(-12.9,6.05,-6);c.onGround=false;c.vel.set(5,0,0);g.playerStep(dt);
   const grabbed=!!skySwing.active,life=c.life;c.crouchPressed=true;g.keys.KeyW=false;
@@ -100,7 +111,7 @@ try{
     const delta=v.sign.map((x,k)=>x-v.from[k]),length=Math.hypot(...delta),hit=s.raycast(...v.from,...delta.map(x=>x/length),length-.15);
     return{...v,visible:!hit,angle:Math.acos((delta[0]*v.facing[0]+delta[2]*v.facing[1])/Math.hypot(delta[0],delta[2]))};
   });
-  return{cases,mistimed,chase,informedChase,walkEstimate:dist[goal],exit:{from:exitFrom,to:exitTo,ground:exitGround},fallback,visibility,settings:{difficulty:skyChallenge.id,sprint:g.S.sprintSpeed},note:'Synthetic controller: persistent pursuit after parkour plus a separate navigation arrival probe; not a human fun study.'};
+  return{cases,mistimed,chase,informedChase,walkEstimate:dist[goal],exit:{from:exitFrom,to:exitTo,ground:exitGround},autoExit,fallback,visibility,settings:{difficulty:skyChallenge.id,sprint:g.S.sprintSpeed},note:'Synthetic controller: persistent pursuit, manual strafe and auto-follow turn exits; not a human fun study.'};
  });
  fs.mkdirSync('browser-evidence/swing',{recursive:true});fs.writeFileSync('browser-evidence/swing/flow-results.json',JSON.stringify(result,null,2));
  assert.ok(result.cases.every(x=>x.landed),JSON.stringify(result.cases.map(({trail,...r})=>r)));
@@ -112,6 +123,7 @@ try{
  assert.ok(result.fallback.ground&&result.fallback.lifeBefore===result.fallback.lifeAfter);
  assert.ok(result.visibility.every(v=>v.visible&&v.angle<Math.PI/3.6));
  assert.ok(result.exit.to[1]>7.9&&Math.abs(result.exit.to[2]-result.exit.from[2])>4,'leave the landing through the existing spine');
+ assert.ok(result.autoExit.ground&&result.autoExit.to[1]>7.9&&Math.abs(result.autoExit.to[2]-result.autoExit.from[2])>4,'leave the landing through the spine with auto-follow turning');
  assert.deepEqual(errors,[]);
  console.log(JSON.stringify({cases:result.cases.map(({trail,...r})=>r),mistimed:result.mistimed.map(({trail,...r})=>r),walkEstimate:result.walkEstimate,chase:{time:result.chase.time,caughtAt:result.chase.caughtAt},exit:result.exit,fallback:result.fallback,visibility:result.visibility}));
 }finally{await browser?.close();server?.kill();}})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -2,8 +2,8 @@
 export function createZombieClimb(game, runtime, flashbang) {
   const { ri, c: realPlayer, z: run, Jt: zombies, jn: solids, Geom: { Vector3 } } = game;
   const config = Object.freeze({ wait: 4, speed: 0.8, retry: 1.5, scanGap: 0.12, scanMs: 2, candidatesPerFrame: 12 });
-  const stats = { scans: 0, started: 0, finished: 0, interrupted: 0, candidates: 0, maxScanMs: 0 };
-  const tracks = new WeakMap(), rigs = new WeakMap();
+  const stats = { scans: 0, started: 0, finished: 0, interrupted: 0, candidates: 0, maxScanMs: 0, navDrops: 0 };
+  const tracks = new WeakMap(), rigs = new WeakMap(), dropProbes = new WeakMap();
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const smooth = v => { v = clamp(v, 0, 1); return v * v * (3 - 2 * v); };
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
@@ -209,6 +209,39 @@ export function createZombieClimb(game, runtime, flashbang) {
       enemy.stun <= 0 && !flashbang.blinded(enemy) && run.t - enemy.lastHitT > 1;
   }
   function eligible(enemy) { return pursuing(enemy) && !enemy.act && enemy.onGround && targetFor(enemy)?.onGround; }
+  function startNavigationDrop(enemy) {
+    // Ordinary drop links previously waited for a wall collision. At an open
+    // edge there is no wall: nearest-node updates can turn the enemy back to
+    // the approach node forever. Commit at the authored link's departure,
+    // using the existing drop animation and a swept, supported trajectory.
+    if (!eligible(enemy) || enemy.h < 1 || typeof enemy.startAct !== 'function') return false;
+    const edge = runtime.NAV.E[enemy.edge];
+    if (!edge || edge.kind !== 2 || edge.jamT > game.ceRef()) return false;
+    const from = runtime.NAV.nodes[edge.from], to = runtime.NAV.nodes[edge.to];
+    if (!from || !to || Math.hypot(enemy.pos.x - from.x, enemy.pos.z - from.z) > .9 ||
+        Math.abs(enemy.pos.y - from.y) > .35 || to.y >= enemy.pos.y - .1) return false;
+    const finish = point(to.x, to.y + .002, to.z);
+    if (!runtime.near(to.x, to.z, to.x, to.z).some(b => !b.off &&
+        Math.abs(b.maxY - to.y) < .1 && to.x >= b.minX && to.x <= b.maxX && to.z >= b.minZ && to.z <= b.maxZ)) return false;
+    const now = game.ceRef(), probe = dropProbes.get(enemy);
+    if (probe?.edge === edge && now < probe.next && distance(enemy.pos, probe.origin) < .2) return false;
+    dropProbes.set(enemy, { edge, next: now + config.scanGap, origin: point(enemy.pos.x, enemy.pos.y, enemy.pos.z) });
+    let previous = point(enemy.pos.x, enemy.pos.y, enemy.pos.z);
+    const origin = previous;
+    for (let i = 1; i <= 24; i++) {
+      const t = i / 24, across = smooth(Math.min(1, t * 1.6));
+      const next = point(origin.x + (finish.x - origin.x) * across,
+        origin.y + (finish.y - origin.y) * t * t + .4 * Math.sin(Math.PI * Math.min(1, t * 1.6)),
+        origin.z + (finish.z - origin.z) * across);
+      if (!clearLine(enemy, previous, next)) return false;
+      previous = next;
+    }
+    enemy.startAct(finish.x, finish.y, finish.z, .35 + Math.max(0, enemy.pos.y - to.y) * .06);
+    enemy.act.kind = 'drop'; enemy.onGround = false;
+    if (scan?.enemy === enemy) scan = null;
+    stats.navDrops++;
+    return true;
+  }
   function startRoute(enemy, route) {
     // The body can have moved while the incremental search was running.
     if (!eligible(enemy) || !clearLine(enemy, enemy.pos, route.segments[0].to, true)) return;
@@ -428,6 +461,7 @@ export function createZombieClimb(game, runtime, flashbang) {
       if (scan?.enemy === this) scan = null;
       return originalUpdate.call(this, dt);
     }
+    if (startNavigationDrop(this)) return originalUpdate.call(this, dt);
     pumpScan();
     const track = tracks.get(this);
     if (track?.active && this.act !== track.active) { track.active = null; track.wait = 0; stats.interrupted++; }

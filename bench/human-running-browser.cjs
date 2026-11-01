@@ -42,7 +42,7 @@ fs.mkdirSync(output, { recursive: true });
       try {
         await page.goto(new URL(map, base).href, { waitUntil: 'load' });
         await page.waitForFunction(() => window.__game && window.skyHumanView, null, { timeout: 60000 });
-        if(await page.locator('#humanSel [data-human="unity"]').count()) await page.locator('#humanSel [data-human="unity"]').click();
+        if(await page.locator('#humanSel [data-human="unity"]').count()){await require('./home-controls.cjs').revealHomeControl(page,'#humanSel [data-human="unity"]');await page.locator('#humanSel [data-human="unity"]').click();}
         await page.waitForFunction(() => window.skyHumanView.choice === 'unity' && document.body.dataset.skyHumanLoaded === 'true', null, { timeout: 60000 });
         assert.equal(await page.evaluate(() => document.body.dataset.skyHumanRunStyle), 'parkour');
         await page.locator('#bStart').click();
