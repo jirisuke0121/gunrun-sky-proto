@@ -57,7 +57,9 @@ const out = 'outputs/indoor-entry'; fs.mkdirSync(out, { recursive: true });
           // Roaming/spawn checks exercise the full loop with protected interiors.
           for (let i = 0; i < 40; i++) g.spawnZombie(12);
           let intrusions = 0;
-          for (let i = 0; i < 20 * 60; i++) { g.advance(1 / 60); intrusions += g.zombies.filter(e => !e.dead && !access.allows(e.pos)).length; }
+          // Keep the human outside: invulnerability still permits contact pushes,
+          // which would legitimately unlock rooms if a crowd moved the human in.
+          for (let i = 0; i < 20 * 60; i++) { place(-42, 0, 8); g.advance(1 / 60); intrusions += g.zombies.filter(e => !e.dead && !access.allows(e.pos)).length; }
           const roam = { intrusions, alive: g.zombies.filter(e => !e.dead).length, entered: access.snapshot().filter(r => r.entered).length };
           clear();
           for (const d of doors) {
