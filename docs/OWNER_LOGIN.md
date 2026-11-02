@@ -7,7 +7,7 @@
 - ゲームと記録の送信先は従来どおり。D1スキーマ・記録・ランキング・ゴーストは変更しない。
 - 管理画面は本人だけがアクセスできる独立したSites。Sites側が提供する認証済みのIDとメールをサーバーで確認し、同一オリジンの `/api/overview` へ接続する。
 - **Sitesの本人専用アクセス設定が管理者を限定する境界。公開・共有へ変更しない。** 将来共有するなら、先に管理者のID照合をサーバーへ追加する。
-- Sitesと既存Workerの実行環境に同じ `OWNER_OVERVIEW_TOKEN` を秘密設定として置く。ブラウザには渡さない。専用キーで読めるのは `GET /admin/overview` の集計だけ。`GET /runs` と個別の記録は引き続き既存の `ADMIN_TOKEN` が必要。
+- Sitesと既存Workerの実行環境に同じ `OWNER_OVERVIEW_TOKEN` を秘密設定として置く。ブラウザには渡さない。専用キーで読めるのは `GET /admin/overview` の集計、`/admin/players`・`/admin/player` のプレイヤー別メタデータ、`/admin/replay` の検証済み再生データ。`GET /runs` と個別の記録は引き続き既存の `ADMIN_TOKEN` が必要。
 - 公開Workerは `oai-authenticated-user-*` ヘッダーを信用しない。Sitesの認証済みヘッダーはSites内部だけで使用する。
 - 画面の集計レスポンスは `private, no-store`。未ログインはAPIで401。接続先とHTTPメソッドを固定し、絞り込み条件のみ許可する。上流の接続失敗は情報を隠したエラーを返す。
 

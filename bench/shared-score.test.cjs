@@ -53,6 +53,7 @@ function policyFixture(practice = false) {
   const {createRunRecords,resultOnly}=await import('../run-records.js');
   const db=new DatabaseSync(':memory:');db.exec(fs.readFileSync('server/schema.sql','utf8'));
   const DB={prepare(query){let args=[];return{bind(...a){args=a;return this;},async run(){return db.prepare(query).run(...args);},async first(){return db.prepare(query).get(...args)||null;},async all(){return{results:db.prepare(query).all(...args)}}};}};
+  DB.batch=async statements=>{db.exec('BEGIN');try{const results=[];for(const statement of statements)results.push(await statement.run());db.exec('COMMIT');return results}catch(error){db.exec('ROLLBACK');throw error}};
   const fetcher=(url,options)=>worker.fetch(new Request(url,options),{DB},{});
   const get=async path=>(await fetcher('https://fixture'+path)).json();
   const map='old-town',scope=`map=${map}&rules=${rules.version}&mode=score&difficulty=all`;

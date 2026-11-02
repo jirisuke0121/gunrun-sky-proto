@@ -47,7 +47,7 @@ export function createReplayAudio(game) {
       source.start(); played++;
     }
   }
-  return { prepare, seek, update, stop, close() { generation++; stop(); if (output) output.gain.value = 0; },
+  return { prepare, seek, update, stop, close() { generation++; stop(); buffers.clear(); if (output) {output.gain.value=0;output.disconnect();output=null;} },
     toggle() { muted = !muted; stop(); gain(); return muted; }, get muted() { return muted; },
     get stats() { return { played, voices: nodes.size, buffers: buffers.size }; } };
 }

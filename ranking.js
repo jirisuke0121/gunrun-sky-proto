@@ -2,6 +2,7 @@ import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 
 // One score competition across Easy/Normal/Hard. Free adjustment stays separate.
 export function installRanking(game) {
+  if(window.skyOwnerReplay)return;
   const $ = id => document.getElementById(id), policy = window.skyChallenge;
   const map = window.SKY_CANYON_MAP ? 'rock-canyon' : 'old-town';
   const esc = value => String(value).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));

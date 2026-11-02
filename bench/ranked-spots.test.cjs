@@ -12,6 +12,7 @@ const read = name => fs.readFileSync(new URL('../' + name, 'file://' + __filenam
     async all() { return { results: db.prepare(sql).all(...args) }; },
     async run() { return db.prepare(sql).run(...args); },
   }; } };
+  DB.batch=async statements=>{db.exec('BEGIN');try{const results=[];for(const statement of statements)results.push(await statement.run());db.exec('COMMIT');return results}catch(error){db.exec('ROLLBACK');throw error}};
   let uploads = 0;
   for (const file of ['index.html', 'canyon.html']) {
     const html = read(file), events = [], z = { t: 0, over: false }, record = { on: true, sealed: false, count: 0 };

@@ -26,3 +26,12 @@ CREATE INDEX IF NOT EXISTS runs_rank_scope ON runs (
               THEN 'rock-canyon' ELSE 'old-town' END),
   json_extract(json, '$.challenge.version'), json_extract(json, '$.challenge.id')
 ) WHERE reason IN ('time','caught','fell') AND score IS NOT NULL;
+
+-- Additive owner-only analytics. No raw replay or diagnostics in owner_runs.
+CREATE TABLE IF NOT EXISTS owner_runs (
+ id TEXT PRIMARY KEY, player TEXT NOT NULL, name TEXT, received_at INTEGER NOT NULL,
+ played_at TEXT, build TEXT, map TEXT, source TEXT, device TEXT, difficulty TEXT,
+ reason TEXT, t REAL, score REAL, replay INTEGER NOT NULL, performance TEXT, country TEXT, environment TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS owner_runs_received ON owner_runs(received_at);
+CREATE INDEX IF NOT EXISTS owner_runs_player ON owner_runs(player,received_at DESC,id);

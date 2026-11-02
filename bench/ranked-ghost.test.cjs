@@ -54,6 +54,7 @@ const { readFileSync } = require('node:fs');
       async all() { return { results: sqlite.prepare(sql).all(...args) }; },
       async run() { return sqlite.prepare(sql).run(...args); } };
   } };
+  DB.batch=async statements=>{sqlite.exec('BEGIN');try{const results=[];for(const statement of statements)results.push(await statement.run());sqlite.exec('COMMIT');return results}catch(error){sqlite.exec('ROLLBACK');throw error}};
   const add = (id, player, score, data, reason = 'caught', build = 'release') => {
     sqlite.prepare('INSERT INTO runs(id,received_at,player,reason,score,t,build,json) VALUES(?,?,?,?,?,?,?,?)')
       .run(id, '2026-10-26T00:00:00Z', player, reason, score, data.t, build, JSON.stringify(data));

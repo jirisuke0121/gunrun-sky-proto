@@ -1,3 +1,4 @@
+import playerName from '../player-name.js';
 import { telemetryRange } from './telemetry-range.js';
 const EVENTS = new Set(['boot', 'home', 'start', 'finish', 'retry', 'error']);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -30,6 +31,7 @@ export function validateTelemetry(a) {
     || !['old-town', 'rock-canyon'].includes(a.map) || !['desktop', 'iphone', 'ipad', 'android'].includes(a.device)
     || !['github', 'y8', 'unknown'].includes(a.source)
     || !['easy', 'normal', 'hard', 'expert', 'master', 'ultra', 'legacy', 'unknown'].includes(a.difficulty)) return null;
+  if (a.player != null && (typeof a.player !== 'string' || !/^[\w.-]{1,40}$/.test(a.player))) return null;
   if (a.run != null && !UUID.test(a.run)) return null;
   if (['start', 'finish', 'retry'].includes(a.event) && !UUID.test(a.run)) return null;
   if (a.event === 'finish' && !['time', 'caught', 'fell', 'quit'].includes(a.reason)) return null;
@@ -51,7 +53,7 @@ export function validateTelemetry(a) {
   }
   return { id: a.id, session: a.session, event: a.event, build: a.build, map: a.map, source: a.source,
     device: a.device, difficulty: a.difficulty, run: a.run ?? null,
-    reason: a.event === 'finish' ? a.reason : null, error: a.event === 'error' ? a.error : null, performance, environment };
+    reason: a.event === 'finish' ? a.reason : null, error: a.event === 'error' ? a.error : null, performance, environment, player:a.player || null, name:playerName.normalize(a.name) || null };
 }
 
 export async function receiveTelemetry(req, env, cors, origin, allowed) {
@@ -80,6 +82,10 @@ export async function receiveTelemetry(req, env, cors, origin, allowed) {
        OR json_patch(telemetry_environments.environment,excluded.environment) != telemetry_environments.environment`)
     .bind(data.session, receivedAt, country, JSON.stringify(data.environment)));
   }
+  if (data.player) statements.push(env.DB.prepare(`INSERT INTO telemetry_players(session,player,name,received_at) VALUES(?,?,?,?)
+    ON CONFLICT(session) DO UPDATE SET name=excluded.name
+    WHERE telemetry_players.player=excluded.player AND excluded.name IS NOT NULL AND telemetry_players.name IS NOT excluded.name`)
+    .bind(data.session,data.player,data.name,receivedAt));
   statements.push(env.DB.prepare(`INSERT OR IGNORE INTO telemetry_events
     (id,received_at,session,event,build,map,source,device,difficulty,run,reason,error,performance)
     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(data.id, receivedAt, data.session, data.event, data.build,
