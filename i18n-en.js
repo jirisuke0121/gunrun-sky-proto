@@ -476,6 +476,7 @@
  "追跡者を落とした": "Knocked the stalker off",
  "追跡者を落とした — すぐ戻ってくる": "Knocked the stalker off — it'll be back soon",
  "追跡者がもう1体": "One more stalker",
+ "ボスが現れた": "A boss appears",
  "追跡者が": "A stalker",
  "背後から一撃": "Backstab",
  "挟まれた — 前と後ろから": "Sandwiched — from front and back",

@@ -57,24 +57,29 @@
     if (name === "zombieSpeed") return range(p).end;
     return name in p.values ? p.values[name] : fallback;
   }
+  // The hard boss is the one body outside the shared 6-body budget: it must arrive on time even when the
+  // ordinary crowd is full, and no living enemy is removed to make space for it.
+  const ordinary = list => list.filter(e => !e.boss);
   function room(fallback) {
     if (!profile() || !game) return fallback;
-    const alive = game.Jt.filter(e => !e.dead).length;
-    const protectedCorpses = game.Jt.filter(e => e.dead && !e.remove && e.deadT < corpseMinimum).length;
+    const bodies = ordinary(game.Jt);
+    const alive = bodies.filter(e => !e.dead).length;
+    const protectedCorpses = bodies.filter(e => e.dead && !e.remove && e.deadT < corpseMinimum).length;
     return Math.max(0, Math.min(limit(game.z.t, maxAlive) - alive, maxAlive - alive - protectedCorpses));
   }
-  function reserve() {
+  function reserve(options) {
     if (!profile() || !game) return true;
+    if (options?.boss) return true;
     if (room(0) <= 0) return false;
     // Preserve the initial death feedback. Reclaim the oldest eligible corpse
     // only when a live spawn needs its slot; never cull a living enemy.
     const corpses = game.Jt.filter(e => e.dead && (e.remove || e.deadT >= corpseMinimum)).sort((a,b) => b.deadT - a.deadT);
-    while (game.Jt.length >= maxAlive && corpses.length) {
+    while (ordinary(game.Jt).length >= maxAlive && corpses.length) {
       const e = corpses.shift(), index = game.Jt.indexOf(e);
       game.ue.remove(e.m.root); if (e.pool) game.ue.remove(e.pool);
       e.remove = true; if (index >= 0) game.Jt.splice(index, 1);
     }
-    return game.Jt.length < maxAlive;
+    return ordinary(game.Jt).length < maxAlive;
   }
   function events(fallback) {
     if (active === 'legacy') return fallback;
@@ -82,6 +87,7 @@
     if (active !== 'hard') return [];
     return [
       { t: 40, do: 'surge', n: 2 },
+      { t: 50, do: 'boss' },
       { t: 65, do: 'squeeze', front: 1, back: 1 },
       { t: 85, do: 'surge', n: 2 },
       { t: 100, do: 'squeeze', front: 2, back: 2 },
@@ -141,6 +147,7 @@
     active = launchingIntro || active === 'intro' && game.modeRef() !== 'menu' ? 'intro' : selected;
     launchingIntro = false;
     lastObservation = introTip = -1;
+    window.skyBossZombie?.begin();
     game.z.challenge = { id: active, version, rankingScope: rankingDifficulty(active) };
     applySettings();
     if (active !== 'legacy') game.z.challenge.fixedSettings = snapshotSettings(game.U);
