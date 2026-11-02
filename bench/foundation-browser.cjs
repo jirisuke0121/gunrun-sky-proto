@@ -78,6 +78,13 @@ fs.mkdirSync(out,{recursive:true});
    results.push({map,touch,initial:high,final:await snapshot(),minimumHalfResolution:true,manualPending:true,decline:true,introAccept:true,externalPosts,errors});
    console.log('PASS',map,'high default, pending manual change/resize, restart, home-only decline, intro local diagnosis and accept');await context.close();
   }
+  const english=await browser.newContext({locale:'en-US'}),englishPage=await english.newPage();
+  await english.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"ok":true,"top":[],"total":0}'}));
+  await englishPage.goto(base+'/index.html');await englishPage.waitForFunction(()=>window.skyStartReadiness?.ready&&document.documentElement.lang==='en');
+  if(await englishPage.locator('#homeMore').count())await englishPage.locator('#homeMore > summary').click();
+  await englishPage.waitForFunction(()=>document.getElementById('homeRenderQuality').textContent.includes('Minimum (0.5×)'));
+  assert.deepEqual(await englishPage.locator('#homeRenderQuality option').allTextContents(),['Original detail','Standard (1.0×)','Light (0.75×)','Minimum (0.5×)']);
+  assert.doesNotMatch(await englishPage.locator('#homeRenderQualityDescription').innerText(),/[\u3040-\u30ff\u4e00-\u9fff]/);await english.close();
   const session=crypto.randomUUID(),run=crypto.randomUUID();
   const seed=async(event,extra={})=>{const r=await fetch(base+'/telemetry',{method:'POST',body:JSON.stringify({v:1,id:crypto.randomUUID(),session,event,build:'browser-fixture',map:'old-town',source:'github',device:'desktop',difficulty:'normal',run,...extra})});assert.equal(r.status,200)};
   await seed('boot');await seed('home');await seed('start');await seed('finish',{reason:'time',performance:{frameCount:600,durationMs:10000,averageFps:60,below30Count:0,maxFrameMs:17,quality:'high',ratio:1,width:1280,height:720,nativeRatio:1,viewportWidth:1280,viewportHeight:720}});await seed('error',{error:'resource'});
