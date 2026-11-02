@@ -42,7 +42,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-02-environment-v1", recordProtocol: 2, replayDetail: 1, ownerLogin: 1, environmentTelemetry: 1, customDateRange: 1, rankedRules: rankedRules.version }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-02-environment-v1", recordProtocol: 2, replayDetail: 1, ownerLogin: 1, environmentTelemetry: 1, customDateRange: 1, dbEfficiency: 1, rankedRules: rankedRules.version }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
@@ -235,10 +235,25 @@ async function ranking(env, cors, url) {
   if (!["old-town", "rock-canyon"].includes(map)) return json({ error: "bad_map" }, 400, cors);
   const me = (url.searchParams.get("me") || "").slice(0, 40);
   const query = rankQuery(mode, map, difficulty, rules);
-  const top = await env.DB.prepare(query.sql + " SELECT id AS runId, pos, substr(player,1,4) AS tag, (SELECT json_extract(runs.json, '$.name') FROM runs WHERE runs.id = r.id) AS name, cleared, score, difficulty, stars, t, (player = ?) AS me, CASE WHEN replay THEN id ELSE NULL END AS replayId, played_at AS playedAt, received_at AS receivedAt FROM r ORDER BY pos, score DESC, id LIMIT 20").bind(...query.args, me).all();
-  const total = await env.DB.prepare(query.sql + " SELECT COUNT(*) AS n FROM r").bind(...query.args).first();
-  const mine = me ? await env.DB.prepare(query.sql + " SELECT id AS runId, pos, cleared, score, difficulty, stars, t, played_at AS playedAt, received_at AS receivedAt FROM r WHERE player = ?").bind(...query.args, me).first() : null;
-  return json({ map, mode, difficulty: mode === 'clear' ? 'all' : difficulty, rules, total: total ? total.n : 0, me: mine ? publicTime(mine) : null, top: top.results.map(row => publicTime({ ...row, name: playerName.normalize(row.name) || null })) }, 200, { ...cors, "cache-control": "no-store" });
+  // Materialize the ranked metadata once for top/total/self. Keep full replay
+  // JSON out of the result and load names only for the <=20 displayed rows.
+  const result = await env.DB.prepare(query.sql.replace('r AS (', 'r AS MATERIALIZED (') + `
+    , top AS (SELECT id AS runId,pos,substr(player,1,4) AS tag,
+      (SELECT json_extract(runs.json,'$.name') FROM runs WHERE runs.id=r.id) AS name,
+      cleared,score,difficulty,stars,t,(player=?) AS me,CASE WHEN replay THEN id ELSE NULL END AS replayId,
+      played_at AS playedAt,received_at AS receivedAt FROM r ORDER BY pos,score DESC,id LIMIT 20)
+    SELECT (SELECT COUNT(*) FROM r) AS total,
+      (SELECT json_group_array(json_object('runId',runId,'pos',pos,'tag',tag,'name',name,'cleared',cleared,
+        'score',score,'difficulty',difficulty,'stars',stars,'t',t,'me',me,'replayId',replayId,
+        'playedAt',playedAt,'receivedAt',receivedAt)) FROM top) AS top,
+      (SELECT json_object('runId',id,'pos',pos,'cleared',cleared,'score',score,'difficulty',difficulty,
+        'stars',stars,'t',t,'playedAt',played_at,'receivedAt',received_at) FROM r WHERE player=?) AS mine`)
+    .bind(...query.args,me,me).first();
+  const mine = me && result.mine ? JSON.parse(result.mine) : null;
+  return json({ map, mode, difficulty: mode === 'clear' ? 'all' : difficulty, rules, total: result.total,
+    me: mine ? publicTime(mine) : null,
+    top: JSON.parse(result.top).map(row => publicTime({ ...row, name: playerName.normalize(row.name) || null })) },
+    200, { ...cors, "cache-control": "no-store" });
 }
 
 async function publicGhost(env, cors, url, id) {

@@ -28,7 +28,8 @@ test('Japanese date ranges include the whole end date, validate leap days and re
 test('country comes from the game request; optional specs, arbitrary dates, missing values and aggregates stay separate from raw identities',async()=>{
  const {default:worker}=await import('../server/worker.js');
  const sql=new DatabaseSync(':memory:');sql.exec(fs.readFileSync('server/telemetry-schema.sql','utf8'));
- const DB={prepare(query){let values=[];return{bind(...args){values=args;return this},async first(){return sql.prepare(query).get(...values)||null},async all(){return{results:sql.prepare(query).all(...values)}},async run(){return sql.prepare(query).run(...values)}}}};
+ const DB={prepare(query){let values=[];return{query,bind(...args){values=args;return this},async first(){return sql.prepare(query).get(...values)||null},async all(){return{results:sql.prepare(query).all(...values)}},async run(){return sql.prepare(query).run(...values)}}}};
+ DB.batch=async statements=>{sql.exec('BEGIN');try{const results=[];for(const statement of statements)results.push(await (/^\s*(SELECT|WITH)\b/i.test(statement.query)?statement.all():statement.run()));sql.exec('COMMIT');return results}catch(error){sql.exec('ROLLBACK');throw error}};
  const env={DB,ADMIN_TOKEN:'fixture-admin',ALLOWED_ORIGINS:'https://fixture.invalid'};
  const api=(path,options={})=>worker.fetch(new Request('https://fixture.invalid'+path,options),env);
  const overview=q=>api('/admin/overview?'+q,{headers:{Authorization:'Bearer fixture-admin'}});

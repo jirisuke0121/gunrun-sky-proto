@@ -69,15 +69,25 @@ export async function receiveTelemetry(req, env, cors, origin, allowed) {
   // Geo belongs to the game's incoming request, never to the admin proxy.
   const rawCountry = req.cf?.country;
   const country = typeof rawCountry === 'string' && /^[A-Z]{2}$/.test(rawCountry) && rawCountry !== 'XX' ? rawCountry : null;
-  await env.DB.prepare(`INSERT INTO telemetry_environments(session,received_at,country,environment) VALUES(?,?,?,?)
+  const receivedAt = Date.now(), statements = [];
+  // Old clients without metadata need no empty profile row. Identical profiles
+  // do not rewrite the row/index; later model hints and missing country still merge.
+  if (country || Object.keys(data.environment).length) {
+    statements.push(env.DB.prepare(`INSERT INTO telemetry_environments(session,received_at,country,environment) VALUES(?,?,?,?)
     ON CONFLICT(session) DO UPDATE SET country=COALESCE(telemetry_environments.country,excluded.country),
-    environment=json_patch(telemetry_environments.environment,excluded.environment)`)
-    .bind(data.session, Date.now(), country, JSON.stringify(data.environment)).run();
-  await env.DB.prepare(`INSERT OR IGNORE INTO telemetry_events
+    environment=json_patch(telemetry_environments.environment,excluded.environment)
+    WHERE (telemetry_environments.country IS NULL AND excluded.country IS NOT NULL)
+       OR json_patch(telemetry_environments.environment,excluded.environment) != telemetry_environments.environment`)
+    .bind(data.session, receivedAt, country, JSON.stringify(data.environment)));
+  }
+  statements.push(env.DB.prepare(`INSERT OR IGNORE INTO telemetry_events
     (id,received_at,session,event,build,map,source,device,difficulty,run,reason,error,performance)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(data.id, Date.now(), data.session, data.event, data.build,
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(data.id, receivedAt, data.session, data.event, data.build,
     data.map, data.source, data.device, data.difficulty, data.run, data.reason, data.error,
-    data.performance ? JSON.stringify(data.performance) : null).run();
+    data.performance ? JSON.stringify(data.performance) : null));
+  // D1 batch is one transaction: never persist only half an accepted event.
+  if (statements.length > 1) await env.DB.batch(statements);
+  else await statements[0].run();
   return response({ ok: true }, 200, cors);
 }
 
@@ -101,7 +111,9 @@ export async function telemetryOverview(env, cors, url) {
   const quality = url.searchParams.get('quality');
   if (quality) { if (!QUALITIES.has(quality)) return response({ error: 'bad_filter' }, 400, cors); filters.push("json_extract(performance,'$.quality') = ?"); args.push(quality); }
   const where = `${timeWhere}${filters.length ? ' AND ' + filters.join(' AND ') : ''}`;
-  const [summary, performance, errors, options, countries, environments, environmentOptions] = await Promise.all([
+  // Seven different panels keep their indexed SQL; D1 executes them as one
+  // read-only batch/snapshot, without seven separate network round trips.
+  const [summaryRows, performance, errors, options, countries, environments, environmentOptions] = await env.DB.batch([
     env.DB.prepare(`SELECT COUNT(DISTINCT e.session) AS sessions,
       COUNT(DISTINCT CASE WHEN event = 'boot' THEN e.session END) AS boots,
       COUNT(DISTINCT CASE WHEN event = 'home' THEN e.session END) AS homes,
@@ -110,7 +122,7 @@ export async function telemetryOverview(env, cors, url) {
       COUNT(DISTINCT CASE WHEN event = 'finish' AND reason = 'quit' THEN run END) AS quits,
       COUNT(DISTINCT CASE WHEN event = 'retry' THEN run END) AS retries,
       SUM(CASE WHEN event = 'error' THEN 1 ELSE 0 END) AS errors
-      ${from} WHERE ${where}`).bind(...args).first(),
+      ${from} WHERE ${where}`).bind(...args),
     env.DB.prepare(`SELECT build,map,source,device,difficulty,
       json_extract(performance,'$.quality') AS quality,
       json_extract(performance,'$.ratio') AS ratio,
@@ -120,16 +132,16 @@ export async function telemetryOverview(env, cors, url) {
       SUM(json_extract(performance,'$.below30Count')) * 1.0 / SUM(json_extract(performance,'$.frameCount')) AS below30Ratio,
       SUM(CASE WHEN reason = 'quit' THEN 1 ELSE 0 END) AS interrupted
       ${from} WHERE ${where} AND event = 'finish' AND performance IS NOT NULL
-      GROUP BY build,map,source,device,difficulty,quality,ratio,width,height,shadows ORDER BY samples DESC LIMIT 201`).bind(...args).all(),
+      GROUP BY build,map,source,device,difficulty,quality,ratio,width,height,shadows ORDER BY samples DESC LIMIT 201`).bind(...args),
     env.DB.prepare(`SELECT build,map,device,error,COUNT(*) AS count ${from}
-      WHERE ${where} AND event = 'error' GROUP BY build,map,device,error ORDER BY count DESC LIMIT 101`).bind(...args).all(),
-    env.DB.prepare(`SELECT DISTINCT e.build ${from} WHERE ${timeWhere} ORDER BY build LIMIT 101`).bind(...timeArgs).all(),
+      WHERE ${where} AND event = 'error' GROUP BY build,map,device,error ORDER BY count DESC LIMIT 101`).bind(...args),
+    env.DB.prepare(`SELECT DISTINCT e.build FROM telemetry_events e WHERE ${timeWhere} ORDER BY build LIMIT 101`).bind(...timeArgs),
     env.DB.prepare(`SELECT v.country,COUNT(DISTINCT e.session) AS sessions,
       COUNT(DISTINCT CASE WHEN event='start' THEN run END) AS starts,
       COUNT(DISTINCT CASE WHEN event='finish' AND reason!='quit' THEN run END) AS finishes,
       SUM(CASE WHEN event='finish' AND performance IS NOT NULL THEN 1 ELSE 0 END) AS samples,
       AVG(CASE WHEN event='finish' THEN json_extract(performance,'$.averageFps') END) AS averageFps
-      ${from} WHERE ${where} GROUP BY v.country ORDER BY sessions DESC LIMIT 101`).bind(...args).all(),
+      ${from} WHERE ${where} GROUP BY v.country ORDER BY sessions DESC LIMIT 101`).bind(...args),
     env.DB.prepare(`SELECT v.country,e.device,
       json_extract(v.environment,'$.os') AS os,json_extract(v.environment,'$.osVersion') AS osVersion,
       json_extract(v.environment,'$.browser') AS browser,json_extract(v.environment,'$.browserVersion') AS browserVersion,
@@ -141,12 +153,13 @@ export async function telemetryOverview(env, cors, url) {
       AVG(CASE WHEN event='finish' THEN json_extract(performance,'$.averageFps') END) AS averageFps
       ${from} WHERE ${where}
       GROUP BY country,device,os,osVersion,browser,browserVersion,model,cores,memoryGb,screenWidth,screenHeight,nativeRatio
-      ORDER BY sessions DESC LIMIT 201`).bind(...args).all(),
+      ORDER BY sessions DESC LIMIT 201`).bind(...args),
     env.DB.prepare(`SELECT DISTINCT v.country,
       json_extract(v.environment,'$.os') AS os,json_extract(v.environment,'$.browser') AS browser,
       json_extract(v.environment,'$.cores') AS cores,json_extract(v.environment,'$.memoryGb') AS memoryGb,
-      json_extract(v.environment,'$.model') AS model ${from} WHERE ${timeWhere} ORDER BY country LIMIT 301`).bind(...timeArgs).all(),
+      json_extract(v.environment,'$.model') AS model ${from} WHERE ${timeWhere} ORDER BY country LIMIT 301`).bind(...timeArgs),
   ]);
+  const summary = summaryRows.results[0];
   return response({ days:range.days ?? null, range, generatedAt: new Date().toISOString(), summary, performance: performance.results.slice(0, 200),
     errors: errors.results.slice(0, 100), builds: options.results.slice(0, 100).map(r => r.build),
     countries:countries.results.slice(0,100), environments:environments.results.slice(0,200),

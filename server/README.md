@@ -1,5 +1,10 @@
 # プレイ記録サーバー（Cloudflare Workers + D1）
 
+## 2026-11-02：DB負荷監査
+
+`ranking-index.sql` をD1へ適用してからWorkerを更新する。索引の追加のみで既存記録の値は変更しない。順位・総数・自己順位は1回の計算を共有し、管理集計は7種類のSQLを1バッチで実行する。端末環境の更新は変更がある場合だけ。受信の重複防止・保存確認は保持。[監査結果と測定条件](../docs/DB_EFFICIENCY_AUDIT_2026-11-02.md)。
+
+
 ## 2026-11-02：国・端末環境と任意の日付範囲
 
 追加の `telemetry-environment-schema.sql` をD1へ適用してからWorkerを更新する。国は受信時のCloudflare情報、端末環境はブラウザが申告した取得可能な項目を保存する。既存の記録や順位は変更しない。任意期間は `GET /admin/overview?from=YYYY-MM-DD&to=YYYY-MM-DD`（日本時間、終了日を含む）。[仕様・検証・運用](../docs/ENVIRONMENT_ANALYTICS.md)。
