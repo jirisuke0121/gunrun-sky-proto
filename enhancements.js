@@ -417,8 +417,8 @@ for (const block of jn) {
 }
 
 // MG uses the existing shooting, aiming, reload, score and hit systems.
-WP.push({ n: 'MG', mag: 60, res: 60, cd: 0.105, rl: 3.0, dmg: 0.65,
-  head: 3, knock: 3.1, stun: 0.38, range: 70, cone: 0, auto: 1 });
+WP.push({ n: 'MG', mag: 40, res: 40, cd: 0.105, rl: 3.0, dmg: 0.65,
+  head: 3, knock: 3.72, stun: 0.38, range: 70, cone: 0, auto: 1 });
 // Easy Weapons Pistol prefab: semi-auto raycast, 12 rounds/sec, 16-round magazine, 1.6-second reload.
 // Keep damage and hit feedback on Air Corridor's existing combat path.
 WP.push({ n: 'EW Pistol', mag: 16, res: 36, cd: 1 / 12, rl: 1.6, dmg: 1,
