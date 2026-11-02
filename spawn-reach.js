@@ -10,6 +10,7 @@
   const PIT_Y = -2;
   // Only ordinary spawns are gated; ambush/guard/squeeze/stalker anchors are placed by their own lead rules.
   const GATED = new Set(['', 'drop', 'surge']);
+  // 'origin' is the take-off/emerge point of a spawn (often in the air), checked separately from the landing point.
   function reachable(cost, straight) {
     return Number.isFinite(cost) && cost <= LIMIT.cost && cost <= LIMIT.ratio * Math.max(0, straight) + LIMIT.slack;
   }
@@ -20,7 +21,8 @@
     if (!(game.FIELD[game.P.node] < Infinity)) return true;
     if (point.y < PIT_Y && game.P.pos.y > PIT_Y) return false;
     const node = game.nodeAt(point.x, point.y + 0.1, point.z);
-    if (!(node >= 0)) return true;
+    // A zombie placed off the walking graph has no route and would stand there for the whole run.
+    if (!(node >= 0)) return false;
     return reachable(game.FIELD[node], Math.hypot(point.x - game.P.pos.x, point.z - game.P.pos.z));
   }
   const api = { LIMIT, PIT_Y, reachable, allows };

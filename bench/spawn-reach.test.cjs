@@ -19,6 +19,7 @@ assert.equal(allows({x:30,y:-3.5,z:0},'',game(46)),false,'pit spawn while the pl
 const inPit=game(46);inPit.P.pos.y=-3.5;
 assert.equal(allows({x:30,y:-3.5,z:0},'',inPit),true,'a player standing in the pit still gets pit spawns');
 assert.equal(allows(at,'',game(95,{own:Infinity})),true,'field not built yet: never block spawns');
-assert.equal(allows(at,'',{...game(95),nodeAt:()=>-1}),true,'off-NAV points are left to the existing checks');
+assert.equal(allows(at,'',{...game(95),nodeAt:()=>-1}),false,'a point off the walking graph is refused: the zombie could never move');
+assert.equal(allows({x:30,y:15,z:0},'origin',{...game(95),nodeAt:()=>-1}),true,'take-off points in the air are not judged');
 assert.equal(allows(at,'',{P:game(1).P}),true,'no field: allowed');
 console.log('PASS spawn gate: cost cap, detour ratio, gated kinds, opening wave, safe fallbacks');

@@ -1,5 +1,7 @@
 const {chromium}=require('playwright'),{spawn}=require('node:child_process');
 // Natural respawn -> stationary invulnerable player, both maps, fixed seeds (manual bench, ~5 min).
+// Guard spawns are excluded (they hold position until the player comes near), and so are the opening high-ground zombies, which are
+// checked separately (they come from the central high ground on purpose).
 // Guard spawns are excluded: they hold position until the player comes near. Without the spawn gate (SPAWN_GATE_OFF=1) the
 // same seeds give mean 15.4 s, p90 40.7 s, 11 of 48 over 20 s.
 // Usage: node bench/spawn-arrival-browser.cjs [dir] [port] [tag] [seeds]; ARRIVAL_ASSERT=1 checks the thresholds.
@@ -36,10 +38,12 @@ const dir=process.argv[2]||path.resolve(__dirname,'..'),port=process.argv[3]||'1
   for(const r of rows)out.push({map:map.replace('.html',''),seed:seedBase,...r});
   await ctx.close();
  }
- const ok=out.filter(r=>r.cost0!==null&&r.age>=25&&r.style!=='guard'),time=r=>r.reached===null?60:r.reached,ts=ok.map(time).sort((a,b)=>a-b);
+ const ok=out.filter(r=>r.cost0!==null&&r.age>=25&&r.style!=='guard'&&r.style!=='opening'),time=r=>r.reached===null?60:r.reached,ts=ok.map(time).sort((a,b)=>a-b);
  const mean=ts.reduce((a,b)=>a+b,0)/ts.length,p90=ts[Math.floor(ts.length*.9)],slow=ts.filter(x=>x>20).length;
  console.log(`${tag}: judged ${ts.length} | arrival mean ${mean.toFixed(1)}s p90 ${p90.toFixed(1)}s max ${ts.at(-1).toFixed(1)}s | over 20 s: ${slow}`);
  require('fs').writeFileSync(path.join(require('os').tmpdir(),`spawn-arrival-${tag}.json`),JSON.stringify(out));
- if(process.env.ARRIVAL_ASSERT){const assert=require('node:assert/strict');assert.ok(ts.length>=40,'enough respawns judged');assert.ok(mean<=12,'mean arrival <= 12 s (15.4 s without the spawn gate)');assert.ok(p90<=22,'p90 <= 22 s (40.7 s without the gate)');assert.ok(slow<=4,'at most 4 respawns over 20 s (11 without the gate)');}
+ const opening=out.filter(r=>r.style==='opening').map(time).sort((a,b)=>a-b);
+ if(opening.length)console.log(`${tag}: opening high-ground zombies ${opening.length} | arrival median ${opening[Math.floor(opening.length/2)].toFixed(1)}s max ${opening.at(-1).toFixed(1)}s`);
+ if(process.env.ARRIVAL_ASSERT){const assert=require('node:assert/strict');assert.ok(ts.length>=28,'enough respawns judged');assert.ok(mean<=12,'mean arrival <= 12 s (15.4 s without the spawn gate)');assert.ok(p90<=22,'p90 <= 22 s (40.7 s without the gate)');assert.ok(!opening.length||opening.at(-1)<=30,'opening high-ground zombies arrive within 30 s (35.6 s median, up to 68 s, before)');assert.ok(slow<=4,'at most 4 respawns over 20 s (11 without the gate)');}
  await browser.close();server.kill();
 })().catch(e=>{console.error(e);process.exit(1)});
