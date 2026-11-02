@@ -412,7 +412,7 @@ window.skyPounce = function (z, u, d, p, x, H) {
     if (!H.oe(sx, y + 0.05, sz, 0.3, 1.8) || H.oe(sx, y - 0.4, sz, 0.3, 0.3)) { z.pzNext = H.ce + 1; return false; }
   }
   z.pzNext = H.ce + 7 + Math.random() * 4;
-  z.act = { kind: 'leap', sx: px, sy: y, sz: pz, tx: px + dx * L, ty: y + 0.002, tz: pz + dz * L,
+  z.act = { kind: 'leap', pounce: true, sx: px, sy: y, sz: pz, tx: px + dx * L, ty: y + 0.002, tz: pz + dz * L,
             t: 0, dur: 0.28, arc: 0.7, wait: 0.35 };
   z.vel.set(0, 0, 0); z.atkT = 0; z.edge = -1;
   z.yaw = Math.atan2(-dx, -dz);

@@ -8,9 +8,19 @@ export function traversalPoint(a, t) {
     z: mix(a.sz, a.tz, blend(across)) };
 }
 
+// Leap load (2026-11-02): a zombie's gap jump costs it more than a human's. It takes off
+// slowly and, now and then, falls short into the gap (no damage; it must find its way
+// back). Hard has neither. `slow` multiplies the flight time; `fail` is the chance per leap.
+export const LEAP_LOAD = Object.freeze({
+  intro: Object.freeze({ slow: 1.4, fail: .25 }),
+  easy: Object.freeze({ slow: 1.35, fail: .2 }),
+  normal: Object.freeze({ slow: 1.25, fail: .12 }),
+});
+export const leapLoad = () => LEAP_LOAD[window.skyChallenge?.id] || null;
+
 export function createZombieRouting(game, runtime, climb, flashbang) {
-  const config = Object.freeze({ jump: 3.2, rise: .8, drop: 64, dropAcross: 3.2, lookAhead: 8, flankDetour: 2.5 });
-  const stats = { checked: 0, shortcuts: 0, boundedFlanks: 0, jumps: 0, drops: 0, blocked: 0, interrupted: 0, maxValidationMs: 0 };
+  const config = Object.freeze({ jump: 4.3, rise: 1.2, drop: 64, dropAcross: 3.2, lookAhead: 8, flankDetour: 2.5 });
+  const stats = { checked: 0, shortcuts: 0, boundedFlanks: 0, jumps: 0, drops: 0, blocked: 0, interrupted: 0, maxValidationMs: 0, slowedLeaps: 0, fellShort: 0 };
   const { nodes, E: edges, out } = runtime.NAV;
   const plans = new WeakMap(), direct = new WeakMap();
   let validated = new WeakMap(), doorKey = '', nextDoors = -Infinity, doorAt = -Infinity;
@@ -68,7 +78,10 @@ export function createZombieRouting(game, runtime, climb, flashbang) {
     const a = action(nodes[edge.from], nodes[edge.to], edge.kind);
     // Match movement time in the metre-scaled walking field, including the
     // take-off cue and the existing recovery after a higher drop.
-    return (a.wait + a.dur + (edge.kind === 7 ? .55 : 0)) * 6 + (edge.jamT > game.ceRef() ? 80 : 0);
+    const load = edge.kind === 6 ? leapLoad() : null;
+    // A failed leap costs about ten seconds of climbing back (60 in walking-field units).
+    return (a.wait + a.dur * (load?.slow || 1) + (edge.kind === 7 ? .55 : 0)) * 6 + (load ? load.fail * 60 : 0) +
+      (edge.jamT > game.ceRef() ? 80 : 0);
   }
   function bestEdge(source, field, cost) {
     let best = field[source] + .05, result = -1;
@@ -126,7 +139,37 @@ export function createZombieRouting(game, runtime, climb, flashbang) {
     enemy.act = a; enemy.vel.set(0, 0, 0); enemy.onGround = false; enemy.atkT = 0;
     stats[edge.kind === 6 ? 'jumps' : 'drops']++; return true;
   }
+  // Highest surface under a point, if it is a real drop (at least 1.5 m below the lower end).
+  function floorBelow(p, limit) {
+    let best = null;
+    for (const b of runtime.near(p.x, p.z, p.x, p.z)) {
+      if (b.off || p.x < b.minX || p.x > b.maxX || p.z < b.minZ || p.z > b.maxZ) continue;
+      if (b.maxY <= limit && (best === null || b.maxY > best)) best = b.maxY;
+    }
+    return best;
+  }
+  function failLeap(enemy, a) {
+    const dx = a.tx - a.sx, dz = a.tz - a.sz, length = Math.hypot(dx, dz) || 1;
+    enemy.act = null; enemy.onGround = false; enemy.navT = 0; enemy.edge = -1;
+    enemy.vel.set(dx / length * 1.2, -1.5, dz / length * 1.2);
+    stats.fellShort++;
+  }
+  // Applies to every gap jump, including the western district's authored ones. Pounce
+  // lunges are attacks, not crossings, and stalkers are special; both are left alone.
+  function loadLeap(enemy, a) {
+    if (a.loaded) { if (a.failAt && a.t >= a.failAt) failLeap(enemy, a); return; }
+    a.loaded = true;
+    const load = leapLoad();
+    if (!load || !active() || a.pounce || enemy.stalker) return;
+    a.dur *= load.slow; a.wait = Math.max(a.wait || 0, .3); stats.slowedLeaps++;
+    if (Math.random() >= load.fail) return;
+    const at = .5 + Math.random() * .12, point = traversalPoint(a, at);
+    // Only a real gap can swallow the jump: there must be ground well below both ends.
+    const floor = floorBelow(point, Math.min(a.sy, a.ty) - 1.5);
+    if (floor !== null && point.y - floor <= 16) a.failAt = at;
+  }
   function beforeStep(enemy, dt) {
+    if (enemy.act?.kind === 'leap') loadLeap(enemy, enemy.act);
     const a = enemy.act;
     if (!a?.pursuitTraversal) return;
     const next = traversalPoint(a, Math.min(1, a.t + dt / a.dur));
