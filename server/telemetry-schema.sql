@@ -16,3 +16,11 @@ CREATE TABLE IF NOT EXISTS telemetry_events (
 );
 CREATE INDEX IF NOT EXISTS telemetry_received ON telemetry_events(received_at);
 CREATE INDEX IF NOT EXISTS telemetry_session ON telemetry_events(session, received_at);
+
+CREATE TABLE IF NOT EXISTS telemetry_environments (
+  session TEXT PRIMARY KEY,
+  received_at INTEGER NOT NULL,
+  country TEXT,
+  environment TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS telemetry_environment_country ON telemetry_environments(country);

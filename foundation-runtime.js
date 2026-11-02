@@ -1,8 +1,9 @@
 import { createAutoResolutionMonitor } from './auto-resolution-monitor.js?v=20261101-foundation-v1';
 import { createFrameMetrics } from './foundation-metrics.js?v=20261101-foundation-v1';
+import { collectEnvironment } from './environment-profile.js?v=20261102-environment-v1';
 
 // Independent of result/ghost delivery. No requests or failures block gameplay.
-const BUILD = '2026-11-01-foundation-v1';
+const BUILD = '2026-11-02-environment-v1';
 const endpoint = 'https://gunrun-runs.jirisuke0121.workers.dev/telemetry';
 const session = crypto.randomUUID();
 let game, publicGame, round = null, finished = null, starts = 0, errors = 0;
@@ -18,6 +19,7 @@ try { if (document.referrer) host += ' ' + new URL(document.referrer).hostname; 
 const source = /(^|[ .])(?:y8\.com|y8games\.com)(?:$| )/.test(host) ? 'y8' : location.hostname === 'jirisuke0121.github.io' ? 'github' : 'unknown';
 const ua = navigator.userAgent;
 const device = /iPhone|iPod/.test(ua) ? 'iphone' : /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? 'ipad' : /Android/.test(ua) ? 'android' : 'desktop';
+const environment = collectEnvironment(navigator, window.screen, window.devicePixelRatio);
 function allowed() {
   if (dev || window.skyDevMode || window.skyPracticeMode || window.skyChallenge?.debug || window.skyChallenge?.isIntroRun || game?.z.mission) return false;
   if (game) return game.U.sendLog === true;
@@ -26,7 +28,7 @@ function allowed() {
 function send(event, extra = {}) {
   if (!allowed()) return;
   const body = JSON.stringify({ v: 1, id: crypto.randomUUID(), session, event, build: BUILD, map, source,
-    device,
+    device, environment,
     difficulty: game?.z.challenge?.id || window.skyChallenge?.id || 'unknown', ...extra });
   try { fetch(endpoint, { method: 'POST', headers: { 'content-type': 'text/plain;charset=UTF-8' }, body, keepalive: true }).catch(() => {}); } catch {}
 }
@@ -35,7 +37,7 @@ function qualitySnapshot() {
   return snapshot ? { quality: snapshot.mode, ratio: snapshot.pixelRatio, nativeRatio: snapshot.nativePixelRatio,
     width: snapshot.buffer?.[0] ?? null, height: snapshot.buffer?.[1] ?? null,
     viewportWidth: publicGame?.debug.renderer.domElement.clientWidth || innerWidth,
-    viewportHeight: publicGame?.debug.renderer.domElement.clientHeight || innerHeight } : null;
+    viewportHeight: publicGame?.debug.renderer.domElement.clientHeight || innerHeight, shadows: snapshot.shadows } : null;
 }
 function finishRound(reason) {
   if (!round) return;

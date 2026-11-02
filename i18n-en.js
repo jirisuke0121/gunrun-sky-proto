@@ -193,6 +193,15 @@
  "軽量（推奨）": "Light (recommended)",
  "標準": "Standard",
  "高画質": "High",
+ "高精細（従来）": "Original detail",
+ "標準（1.0倍）": "Standard (1.0×)",
+ "軽量（0.75倍）": "Light (0.75×)",
+ "最軽量（0.5倍）": "Minimum (0.5×)",
+ "描画品質（設定）": "Graphics quality (settings)",
+ "従来の高精細表示と影を使います。端末と従来の描画設定に応じた倍率です。": "Keeps the original detail and shadows, using the device and existing render settings.",
+ "表示上の1ピクセルを3D描画の1ピクセルとして描き、影を表示します。": "Renders 3D at one pixel per display pixel, with shadows.",
+ "3D描画を0.75倍にし、影を省きます。文字と操作はそのままです。": "Renders 3D at 0.75× without shadows. Text and controls stay the same.",
+ "3D描画を0.5倍にし、影を省きます。文字と操作はそのままです。": "Renders 3D at 0.5× without shadows. Text and controls stay the same.",
  "影を省き、3D描画の細かさを抑えて軽くします。文字と操作はそのままです。": "Skips shadows and lowers 3D detail so it runs lighter. Text and controls stay the same.",
  "チャレンジ難易度": "Challenge difficulty",
  "イージー": "Easy",
@@ -310,6 +319,7 @@
  "オートエイム（近い敵に照準・三人称では後ろにも振り向く／オフ＝中央照準、頭なら一撃）": "Auto-aim (aims at close enemies; in third person also turns behind you / off = center aim, one-hit on headshots)",
  "自動射撃（近い敵を狙う／プレイ中のボタン・Xで停止と再開）": "Auto-fire (targets close enemies / stop and resume with the in-game button or X)",
  "プレイ記録を匿名で送信する（操作・結果・画面サイズ。開発の改善に使います）": "Send play records anonymously (inputs, results, screen size — used to improve the game)",
+ "プレイ記録と動作情報を匿名で送信する（操作・結果・国・端末環境。開発の改善に使います）": "Send play and performance records anonymously (inputs, results, country, device environment — used to improve the game)",
  "初期値に戻す": "Reset to defaults",
  "得点の内訳": "Score breakdown",
  "長く生存するほど得点アップ。難易度ボーナスは各得点に反映済み。": "The longer you survive, the higher your score. The difficulty bonus is already included in each score.",
@@ -473,6 +483,7 @@
  "橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連、左は柱の縁へ。⑤南の踊り場は鉄棒1本、⑥北バルコニーは鉄棒2本で西の角の縁へ渡り、西の通りや既存の屋根フックへ。⑦は東塔の足元から西のフックで既存の梁へ、⑧は北の下段から鉄棒で東側通路へ": "From an orange bar, take an escape branch. ② south air branch, ③ warehouse upper corridor. ④ straight from the first bar is a triple, left goes to the pillar edge. ⑤ south dance floor has one bar, ⑥ north balcony crosses two bars to the west corner edge, then to the west street or the existing roof hook. ⑦ from the east tower base, the west hook to the existing beam; ⑧ from the north lower tier, a bar to the east corridor"
 };
   const patterns = [
+  [/^(.+?) 現在は([\d.]+)倍。(?: (変更は次のプレイから適用します。))?$/, (m,description,ratio,pending) => `${exact[description] || description} Current: ${ratio}×.${pending ? ' Changes apply from the next play.' : ''}`],
   [/^生存 ([\d.]+)秒 → (\d+)点$/, 'Survived $1 s → $2 pts'],
   [/^([\d.]+)秒 × 120点 × ([\d.]+)$/, '$1 s × 120 pts × $2'],
   [/^追跡 ([\d.]+)秒$/, 'Chased $1 s'],

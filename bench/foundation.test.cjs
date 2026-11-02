@@ -15,11 +15,14 @@ test('high-quality default, saved manual choices, fixed active resolution and ne
   const q = quality(); assert.equal(q.mode, 'high'); assert.equal(q.pixelRatio(.75,2), 1.5);
   q.beginRound(); const actual = q.pixelRatio(); q.select('performance');
   assert.equal(q.pixelRatio(.5,1), actual, 'manual choice and resize cannot change active round');
-  q.finishRound(); q.beginRound(); assert.equal(q.pixelRatio(1,2),.7);
-  for (const saved of ['performance','balanced','high']) assert.equal(quality(saved).mode,saved);
+  q.finishRound(); q.beginRound(); assert.equal(q.pixelRatio(1,2),.75);
+  for (const saved of ['performance','balanced','high','minimum']) assert.equal(quality(saved).mode,saved);
+  for (const [mode, ratio] of [['balanced',1],['performance',.75],['minimum',.5]]) {
+    const fixed=quality(mode); assert.equal(fixed.pixelRatio(.5,1),ratio); assert.equal(fixed.pixelRatio(1.5,2),ratio);
+  }
   assert.equal(quality('invalid').mode,'high');
   const unavailable = quality(null,true); unavailable.select('performance'); unavailable.beginRound();
-  assert.equal(unavailable.pixelRatio(),.7,'storage failure must retain session selection');
+  assert.equal(unavailable.pixelRatio(),.75,'storage failure must retain session selection');
 });
 
 test('frame counters exclude pauses and distinguish actual slow frames from skipped callbacks', async () => {
@@ -96,6 +99,7 @@ test('both maps connect the same runtime hooks without removing canyon practice 
 test('home-only quality guidance respects consent, decline, manual changes and intro opt-out', async () => {
   const { createFrameMetrics } = await import('../foundation-metrics.js');
   const { createAutoResolutionMonitor } = await import('../auto-resolution-monitor.js');
+  const { collectEnvironment } = await import('../environment-profile.js');
   function runtime({intro=false,practice=false,optOut=false,developer=false}={}) {
     const values=new Map(optOut?[['gunrun-sky-proto-v1','{"sendLog":false}']]:[]),posts=[],dialogs=[];
     const q={mode:'high',revision:0,beginRound(){},finishRound(){},select(mode){this.mode=mode;this.revision++},
@@ -103,7 +107,7 @@ test('home-only quality guidance respects consent, decline, manual changes and i
     const makeDialog=()=>{const actions={};return{style:{},setAttribute(){},querySelectorAll(){return[]},
       querySelector(id){return{addEventListener(type,fn){actions[id]=fn}}},addEventListener(type,fn){actions[type]=fn},
       showModal(){this.open=true},close(){this.open=false},remove(){},actions};};
-    const context={createFrameMetrics,createAutoResolutionMonitor,crypto,
+    const context={createFrameMetrics,createAutoResolutionMonitor,collectEnvironment,crypto,
       location:{hostname:'jirisuke0121.github.io',pathname:'/index.html',search:''},navigator:{userAgent:'Desktop fixture',maxTouchPoints:0},URL,URLSearchParams,innerWidth:800,innerHeight:400,
       localStorage:{getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)},
       document:{hidden:false,hasFocus:()=>true,referrer:'',addEventListener(){},exitPointerLock(){},getElementById(){return{focus(){}}},

@@ -15,7 +15,7 @@
 
 ## 管理画面のソースと更新
 
-Sitesプロジェクト: `appgprj_6ae7cc9838188191bd16869e745b6351`。ソースはこのSiteに紐づく管理リポジトリに保存する。公開版のソースSHAは `6706d950d9023c901fd832689f886cb4f3446251`。
+Sitesプロジェクト: `appgprj_6ae7cc9838188191bd16869e745b6351`。ソースはこのSiteに紐づく管理リポジトリに保存する。最新の公開版はSitesの配信履歴と、その版に紐づくソースコミットを参照する。
 
 Sitesスキルの既存Site更新手順でソースを開き、`worker/index.js` を編集する。テストは `node --test test/owner.test.mjs`、ビルドと成果物検証は `bash scripts/build.sh` と `node scripts/validate-artifact.mjs`。本人専用アクセスを保つ公開操作を使う。
 
