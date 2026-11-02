@@ -3,8 +3,10 @@
   const game = window.__skyInternals;
   if (!game) return;
   const { c, inputState: touch, keys } = game;
-  const storageKey = 'gunrun-follow-camera-v1';
   const coarse = () => matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches;
+  // The shared key once defaulted PCs to follow/steer controls. Keep touch
+  // preferences, but start mouse users on WASD + mouse even if that value remains.
+  const storageKey = coarse() ? 'gunrun-follow-camera-v1' : 'gunrun-pc-camera-v1';
   const defaultMode = () => coarse() ? 'after' : 'before';
   const queryMode = new URLSearchParams(location.search).get('camera');
   let savedMode;
