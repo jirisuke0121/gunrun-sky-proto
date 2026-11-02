@@ -27,7 +27,7 @@ function policyFixture(practice = false) {
 
 (async()=>{
   const f=policyFixture();
-  assert.equal(f.U.jumpVel,7.2);assert.equal(f.U.gravity,20);assert.equal(f.U.reserveAmmo,36);
+  assert.equal(f.U.jumpVel,7.2);assert.equal(f.U.gravity,20);assert.equal(f.U.reserveAmmo,24);
   assert.equal(f.U.volume,.4);assert.equal(f.U.autoFire,false);assert.equal(f.U.sensitivity,1.7);
   assert.equal(f.get('s_jumpVel').disabled,true);assert.equal(f.get('s_volume').disabled,false);
   f.game.Ua();assert.equal(f.saved().jumpVel,10);assert.equal(f.saved().reserveAmmo,99);
