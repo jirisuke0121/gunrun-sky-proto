@@ -91,6 +91,17 @@ export function createReplayScene(game, avatar) {
     tracer.visible = !!shot && time - shot[0] < .07;
     if (tracer.visible) { for (let i = 0; i < 6; i++) positions[i] = shot[i + 2] / 100; tracerGeometry.attributes.position.needsUpdate = true; }
   }
-  function hide() { root.visible = false; if (human) human.root.visible = false; fallback.forEach(child => { child.visible = true; }); }
+  function hide() {
+    root.visible=false;
+    human?.dispose?.();human=null;
+    held?.root.removeFromParent();held=null;weaponIndex=-1;
+    for(let i=0;i<enemies.length;i++){
+      const actor=enemies[i];if(!actor)continue;
+      actor.mixer.stopAllAction();actor.mixer.uncacheRoot(actor.inner);
+      actor.materials.forEach(material=>material.dispose());actor.root.removeFromParent();
+    }
+    enemies.length=0;
+    fallback.forEach(child=>{child.visible=true});
+  }
   return { update, hide, get stats() { return { human: !!human, actors: root.visible ? enemies.filter(e => e?.root.visible).length : 0, allocatedActors: enemies.filter(Boolean).length }; } };
 }

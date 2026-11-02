@@ -3,6 +3,9 @@ import rankedRules from '../ranked-rules.js';
 import survivalScore from '../survival-score.js';
 import playerName from '../player-name.js';
 const sharedRules = rules => ['corridor-shared-score-v9', 'corridor-threat-score-v10', rankedRules.version].includes(rules);
+import {ownerRunStatement} from './player-facts.js';
+import {ownerPlayers,ownerReplay} from './players.js';
+import {validateEnvironment} from './telemetry.js';
 import { receiveTelemetry, telemetryOverview } from './telemetry.js';
 // GunRun 試作 — プレイ記録の受け口（Cloudflare Workers + D1）
 //   POST /runs            ゲームが1プレイ分のJSONを送る（誰でも）
@@ -31,6 +34,10 @@ export default {
 
     try {
       if (url.pathname === '/telemetry' && req.method === 'POST') return await receiveTelemetry(req, env, cors, origin, allowed);
+      if (['/admin/players','/admin/player','/admin/replay'].includes(url.pathname) && req.method==='GET') {
+        if (!canReadOverview(req,env)) return json({error:'unauthorized'},401,{...cors,'cache-control':'private, no-store'});
+        return url.pathname==='/admin/replay' ? await ownerReplay(env,cors,url) : await ownerPlayers(env,cors,url,url.pathname==='/admin/player');
+      }
       if (url.pathname === '/admin/overview' && req.method === 'GET') {
         if (!canReadOverview(req, env)) return json({ error: 'unauthorized' }, 401, { ...cors, 'cache-control': 'private, no-store' });
         return await telemetryOverview(env, cors, url);
@@ -42,7 +49,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-02-environment-v1", recordProtocol: 2, replayDetail: 1, ownerLogin: 1, environmentTelemetry: 1, customDateRange: 1, dbEfficiency: 1, rankedRules: rankedRules.version }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-02-environment-v1", recordProtocol: 2, replayDetail: 1, ownerLogin: 1, environmentTelemetry: 1, customDateRange: 1, dbEfficiency: 1, playerConsole:1, rankedRules: rankedRules.version }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
@@ -91,6 +98,9 @@ async function receive(req, env, cors, origin, allowed) {
     a.stars = 0;
   }
   a.mapKey = recordMap(a);
+  a.environment=validateEnvironment(a.environment)||{};
+  const geo=req.cf?.country;
+  a.country=typeof geo==='string' && /^[A-Z]{2}$/.test(geo) && geo!=='XX'?geo:null;
   if (a.ghost != null) {
     const ghost = validateGhost(a.ghost, recordMap(a), a.t);
     if (!ghost) a.replayError = 'bad_ghost';
@@ -120,7 +130,7 @@ async function receive(req, env, cors, origin, allowed) {
   const sc = a.score && typeof a.score === "object" ? a.score.total : null;
   const st = a.stats && typeof a.stats === "object" ? a.stats : {};
   const scr = Array.isArray(a.screen) ? a.screen : [];
-  await env.DB.prepare(
+  const insertRun = env.DB.prepare(
     "INSERT INTO runs (id, received_at, played_at, build, player, reason, t, stars, score, kills, gun_kills, input, screen_w, screen_h, json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING"
   ).bind(
     id, now.toISOString(), typeof a.at === "string" ? a.at.slice(0, 40) : null,
@@ -130,7 +140,8 @@ async function receive(req, env, cors, origin, allowed) {
     typeof a.input === "string" ? a.input.slice(0, 10) : null,
     Number.isFinite(scr[0]) ? Math.round(scr[0]) : null, Number.isFinite(scr[1]) ? Math.round(scr[1]) : null,
     JSON.stringify(a)
-  ).run();
+  );
+  await env.DB.batch([insertRun,ownerRunStatement(env.DB,id)]);
   // A successful response is issued only after reading back the stored result.
   const stored = await env.DB.prepare('SELECT id,player,t,score,reason,json FROM runs WHERE id = ?').bind(id).first();
   if (!stored || !matching(stored)) return json({error:'receipt_mismatch'},409,cors);

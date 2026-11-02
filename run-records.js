@@ -11,7 +11,7 @@ export function movementOnly(value) {
 }
 const timeout = ms => typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function' ? {signal:AbortSignal.timeout(ms)} : {};
 export function resultOnly(a) {
-  const keys = ['v','clientRunId','player','at','build','channel','mapVersion','mapKey','map','kind','mission','challenge','reason','t','score','stars','lives','input','screen','name','_deliveryUncertain'];
+  const keys = ['v','clientRunId','player','at','build','channel','mapVersion','mapKey','map','kind','mission','challenge','reason','t','score','stars','lives','input','screen','name','source','device','environment','performance','_deliveryUncertain'];
   const result = Object.fromEntries(keys.filter(key => key in a).map(key => [key, a[key]]));
   result.ghost = null; result.recordDetail = 'result-only'; return result;
 }
@@ -119,6 +119,7 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => crypto
     if (value?.challenge?.id === 'intro') return null;
     let a;
     try { a = copy(value); } catch { a = copy(resultOnly(value)); }
+    const profile=globalThis.window?.skyFoundation?.profile?.();if(profile)Object.assign(a,profile);
     a.clientRunId ||= uuid(); a.player = player; a.mapKey = recordMap(a);
     // Optional nickname chosen on the first-visit guide; the Worker validates it again.
     try { const nick = storage.getItem('gunrun-name'); if (nick) a.name = nick; else delete a.name; } catch {}
@@ -177,7 +178,7 @@ export function installRunRecords(game, win = window, doc = document) {
   }
   const storage = {getItem:key=>{try{return win.localStorage.getItem(key);}catch{return null;}},setItem:(key,value)=>win.localStorage.setItem(key,value)};
   store = createRunRecords({ storage,fetcher:(...args)=>win.fetch(...args),uuid:()=>win.crypto.randomUUID(),
-    allowed:()=>!win.skyPracticeMode&&!win.skyChallenge.debug&&!win.skyChallenge.isIntro&&!!game.U.sendLog,
+    allowed:()=>!win.skyOwnerReplay&&!win.skyPracticeMode&&!win.skyChallenge.debug&&!win.skyChallenge.isIntro&&!!game.U.sendLog,
     announce:row=>render(row),emit:detail=>doc.dispatchEvent(new CustomEvent('sky-run-uploaded',{detail})) });
   for (const [id,target] of [['recordDeliveryHome',doc.getElementById('recNote')],['recordDeliveryResult',doc.getElementById('unityRecordStatus') || doc.getElementById('oLog')]]) {
     if (!target) continue;

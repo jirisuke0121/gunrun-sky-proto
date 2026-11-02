@@ -3,7 +3,7 @@ import { createFrameMetrics } from './foundation-metrics.js?v=20261101-foundatio
 import { collectEnvironment } from './environment-profile.js?v=20261102-environment-v1';
 
 // Independent of result/ghost delivery. No requests or failures block gameplay.
-const BUILD = '2026-11-02-environment-v1';
+const BUILD = '2026-11-02-players-v1';
 const endpoint = 'https://gunrun-runs.jirisuke0121.workers.dev/telemetry';
 const session = crypto.randomUUID();
 let game, publicGame, round = null, finished = null, starts = 0, errors = 0;
@@ -21,14 +21,22 @@ const ua = navigator.userAgent;
 const device = /iPhone|iPod/.test(ua) ? 'iphone' : /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? 'ipad' : /Android/.test(ua) ? 'android' : 'desktop';
 const environment = collectEnvironment(navigator, window.screen, window.devicePixelRatio);
 function allowed() {
-  if (dev || window.skyDevMode || window.skyPracticeMode || window.skyChallenge?.debug || window.skyChallenge?.isIntroRun || game?.z.mission) return false;
+  if (window.skyOwnerReplay || dev || window.skyDevMode || window.skyPracticeMode || window.skyChallenge?.debug || window.skyChallenge?.isIntroRun || game?.z.mission) return false;
   if (game) return game.U.sendLog === true;
   try { return JSON.parse(localStorage.getItem('gunrun-sky-proto-v1') || '{}').sendLog !== false; } catch { return true; }
 }
+let playerId;
+function player() {
+  if(window.skyRunRecording?.player)playerId=window.skyRunRecording.player;
+  if(playerId)return playerId;
+  try {playerId=localStorage.getItem('gunrun-pid');if(!playerId){playerId=crypto.randomUUID();localStorage.setItem('gunrun-pid',playerId)}}catch{}
+  return playerId || null;
+}
+function name(){try{return localStorage.getItem('gunrun-name')||null}catch{return null}}
 function send(event, extra = {}) {
   if (!allowed()) return;
   const body = JSON.stringify({ v: 1, id: crypto.randomUUID(), session, event, build: BUILD, map, source,
-    device, environment,
+    device, environment, player:player(), name:name(),
     difficulty: game?.z.challenge?.id || window.skyChallenge?.id || 'unknown', ...extra });
   try { fetch(endpoint, { method: 'POST', headers: { 'content-type': 'text/plain;charset=UTF-8' }, body, keepalive: true }).catch(() => {}); } catch {}
 }
@@ -76,6 +84,7 @@ function showQualitySuggestion() {
   document.body.append(dialog); document.exitPointerLock?.(); dialog.showModal();
 }
 window.skyFoundation = {
+  profile(){return {device,source,environment:{...environment}}},
   attach(s, g) { game = s; publicGame = g; send('home'); },
   beginRound(id) {
     finishRound('quit');

@@ -1,5 +1,9 @@
 # プレイ記録サーバー（Cloudflare Workers + D1）
 
+## 2026-11-02：プレイヤー管理
+
+`player-schema.sql` と `player-backfill.sql` をD1へ適用後、Workerを更新（`playerConsole:1`）。更新後にbackfillをもう一度適用する。どちらも再実行可能。元の記録値は変更せず、軽量メタデータと既存匿名IDの対応を追加する。[仕様・認証・検証・公開順序](../docs/PLAYER_OWNER_CONSOLE.md)。
+
 ## 2026-11-02：DB負荷監査
 
 `ranking-index.sql` をD1へ適用してからWorkerを更新する。索引の追加のみで既存記録の値は変更しない。順位・総数・自己順位は1回の計算を共有し、管理集計は7種類のSQLを1バッチで実行する。端末環境の更新は変更がある場合だけ。受信の重複防止・保存確認は保持。[監査結果と測定条件](../docs/DB_EFFICIENCY_AUDIT_2026-11-02.md)。

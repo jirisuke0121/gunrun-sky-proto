@@ -1,8 +1,8 @@
-import { createDetailRecorder } from './replay-detail.js?v=20261031-ghost-scene-v1';
-import { createReplayScene } from './replay-scene.js?v=20261031-ghost-scene-v1';
-import { createReplayAudio } from './replay-audio.js?v=20261031-ghost-scene-v1';
+import { createDetailRecorder } from './replay-detail.js?v=20261102-players-v1';
+import { createReplayScene } from './replay-scene.js?v=20261102-players-v1';
+import { createReplayAudio } from './replay-audio.js?v=20261102-players-v1';
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
-import { MAP_VERSIONS, REPLAY_LIMIT, REPLAY_STEP, REPLAY_STATES, sampleReplay, validateGhost } from './replay-data.js?v=20261031-ghost-scene-v1';
+import { MAP_VERSIONS, REPLAY_LIMIT, REPLAY_STEP, REPLAY_STATES, sampleReplay, validateGhost } from './replay-data.js?v=20261102-players-v1';
 
 export function createGhostReplay(game) {
   if(window.skyPracticeMode)return {start(){},finish(){},update(){},snapshot(){return null;},get active(){return null;}};
@@ -11,6 +11,7 @@ export function createGhostReplay(game) {
   const mapVersion = MAP_VERSIONS[map];
   const baseKey = `gunrun-ranked-ghost-v1-${map}`;
   let key;
+  let replayRequest=null,bestPresentation='';
   let samples = [], recording = false, best = null, showBest = true, active = null, fetchToken = 0;
   function loadBest() {
     key = window.skyChallenge.key(baseKey); best = null;
@@ -68,7 +69,11 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
   document.getElementById('challengeSettingsNote').before(chip);
   function toggleBest() { showBest = !showBest; syncBest(); }
   function syncBest() {
-    chip.hidden = !best || z.mission || window.skyChallenge.isIntro || !!active;
+    const hidden=!!(!best || z.mission || window.skyChallenge.isIntro || active);
+    if(chip.hidden!==hidden)chip.hidden=hidden;
+    const presentation=`${best?.total??0}|${showBest}`;
+    if(presentation===bestPresentation)return;
+    bestPresentation=presentation;
     bestLabel.textContent = `ゴースト ベスト ${best?.total ?? 0}点`;
     bestToggle.textContent = showBest ? 'ゴーストを隠す' : 'ゴーストを表示';
     bestToggle.setAttribute('aria-pressed', String(showBest));
@@ -80,6 +85,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
 <div class="replay-panel replay-bottom"><p id="replayNote" role="status"></p><input id="replaySeek" aria-label="再生位置" type="range" min="0" max="1" step="0.01" value="0">
 <div class="replay-controls"><button id="replayToggle" type="button">一時停止</button><button id="replayRestart" type="button">最初から</button><select id="replaySpeed" aria-label="再生速度"><option value="0.5">0.5倍速</option><option value="1" selected>1倍速</option><option value="2">2倍速</option></select><select id="replayView" aria-label="再生視点"><option value="follow">追従視点</option><option value="first">本人視点</option></select><button id="replayAudio" type="button" aria-pressed="true">銃声オン</button><output id="replayClock"></output></div></div>`;
   document.body.append(overlay);
+  if(window.skyOwnerReplay)overlay.querySelector('#replayClose').textContent='リプレイを閉じる';
   const el = id => overlay.querySelector('#' + id);
   const controls = ['replaySeek', 'replayToggle', 'replayRestart', 'replaySpeed', 'replayView', 'replayAudio'].map(el);
   const detailRecorder = createDetailRecorder(game);
@@ -121,7 +127,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     legs[0].rotation.x = stride; legs[1].rotation.x = -stride;
   }
   function close() {
-    ++fetchToken;
+    ++fetchToken; replayRequest?.abort(); replayRequest=null;
     if (!active) return;
     const saved = active.saved; active = null; audio.close(); scene.hide();
     document.body.classList.remove('sky-replaying'); window.dispatchEvent(new Event('resize')); overlay.hidden = true; avatar.visible = false;
@@ -130,8 +136,9 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     camera.fov = saved.fov; camera.updateProjectionMatrix();
     for (const [object, visible] of saved.visibility) object.visible = visible;
     game.An(saved.mode); saved.focus?.focus();
+    if(window.skyOwnerReplay && window.parent!==window)window.parent.postMessage({type:'sky-owner-replay-closed'},'https://sky-corridor-owner.jirisuke.chatgpt.site');
   }
-  async function open(id, button, { mode = 'score', difficulty = window.skyChallenge.id } = {}) {
+  async function open(id, button, { mode = 'score', difficulty = window.skyChallenge.id, record = null } = {}) {
     difficulty = window.skyChallenge.rankingDifficulty(difficulty);
     if (!['menu', 'over'].includes(game.modeRef()) || active) return;
     const token = ++fetchToken;
@@ -144,10 +151,15 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     chip.hidden = true; overlay.hidden = false; document.body.classList.add('sky-replaying'); window.dispatchEvent(new Event('resize'));
     el('replayNote').textContent = 'ゴーストを読み込み中…'; el('replayTitle').textContent = 'ゴースト';
     el('replayDate').textContent = ''; el('replayClock').textContent = ''; controls.forEach(control => { control.disabled = true; }); el('replayClose').focus();
+    const controller=new AbortController();replayRequest=controller;
+    const timer=setTimeout(()=>controller.abort(),15000);
     try {
-      const response = await fetch(`https://gunrun-runs.jirisuke0121.workers.dev/ghosts/${encodeURIComponent(id)}?map=${map}&mode=${encodeURIComponent(mode)}&difficulty=${encodeURIComponent(difficulty)}&rules=${window.skyChallenge.version}`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+      let data=record;
+      if(!data){
+      const response = await fetch(`https://gunrun-runs.jirisuke0121.workers.dev/ghosts/${encodeURIComponent(id)}?map=${map}&mode=${encodeURIComponent(mode)}&difficulty=${encodeURIComponent(difficulty)}&rules=${window.skyChallenge.version}`, { cache: 'no-store', signal: controller.signal });
       if (!response.ok) throw new Error('unavailable');
-      const data = await response.json();
+      data = await response.json();
+      }
       if (token !== fetchToken || !active) return;
       if (data.ghost?.map !== map || (data.ghost.source !== 'legacy-trail' && !validateGhost(data.ghost, map, 300))) throw new Error('incompatible');
       if (!Array.isArray(data.ghost.samples) || data.ghost.samples.length < 2) throw new Error('empty');
@@ -166,7 +178,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
       syncAudio();
     } catch {
       if (token === fetchToken && active) el('replayNote').textContent = 'この記録のゴーストを読み込めませんでした。ランキングに戻って選び直してください。';
-    }
+    } finally {clearTimeout(timer);if(replayRequest===controller)replayRequest=null;}
   }
   function syncAudio() {
     const hasShots = !!active?.ghost?.detail?.shots.length;
@@ -184,6 +196,14 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     if (active && event.code === 'Escape') { event.preventDefault(); close(); }
     if (!active && event.code === 'KeyH' && !event.repeat && game.modeRef() === 'play') toggleBest();
   });
+  if(window.skyOwnerReplay && window.parent!==window){
+    const ownerOrigin='https://sky-corridor-owner.jirisuke.chatgpt.site';
+    addEventListener('message',event=>{
+      if(event.source!==window.parent || event.origin!==ownerOrigin || event.data?.type!=='sky-owner-replay')return;
+      open('',null,{record:event.data.record});
+    });
+    queueMicrotask(()=>window.parent.postMessage({type:'sky-owner-replay-ready'},ownerOrigin));
+  }
   const target = new Geom.Vector3();
   function update(dt) {
     if (active) {

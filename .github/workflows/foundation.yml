@@ -1,7 +1,7 @@
 name: Minimal runtime foundation
 on:
   pull_request:
-    paths: ['foundation-*.js', 'environment-profile.js', 'auto-resolution-monitor.js', 'render-quality.js', 'owner.*', 'owner-token.html', 'server/telemetry*', 'server/worker.js', 'index.html', 'canyon.html', 'bench/foundation*', 'bench/db-efficiency.test.cjs', 'server/*schema.sql', 'server/ranking-index.sql', '.github/workflows/foundation.yml']
+    paths: ['foundation-*.js', 'environment-profile.js', 'auto-resolution-monitor.js', 'render-quality.js', 'owner.*', 'owner-token.html', 'server/telemetry*', 'server/player*', 'ghost-replay.js', 'replay-scene.js', 'replay-audio.js', 'server/worker.js', 'index.html', 'canyon.html', 'bench/foundation*', 'bench/db-efficiency.test.cjs', 'bench/player-console.test.cjs', 'server/*schema.sql', 'server/ranking-index.sql', '.github/workflows/foundation.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,6 +19,7 @@ jobs:
           node bench/foundation.test.cjs
           node bench/foundation-environment.test.cjs
           node bench/db-efficiency.test.cjs
+          node bench/player-console.test.cjs
           node bench/record-integrity.test.cjs
           node bench/shared-score.test.cjs
           node bench/ranked-ghost.test.cjs

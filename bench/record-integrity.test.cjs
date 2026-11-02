@@ -4,6 +4,7 @@ const {DatabaseSync}=require('node:sqlite');
  const {createRunRecords}=await import('../run-records.js'),{default:worker}=await import('../server/worker.js');
  const sql=new DatabaseSync(':memory:');sql.exec(fs.readFileSync('server/schema.sql','utf8'));
  const DB={prepare(query){let args=[];return{bind(...a){args=a;return this},async run(){return sql.prepare(query).run(...args)},async first(){return sql.prepare(query).get(...args)||null},async all(){return{results:sql.prepare(query).all(...args)}}}}};
+  DB.batch=async statements=>{sql.exec('BEGIN');try{const results=[];for(const statement of statements)results.push(await statement.run());sql.exec('COMMIT');return results}catch(error){sql.exec('ROLLBACK');throw error}};
  const request=(url,options)=>worker.fetch(new Request(url,options),{DB},{}),count=()=>sql.prepare('SELECT count(*) AS n FROM runs').get().n;
  const storage=()=>{const values=new Map();return{values,getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)}};
  const run=(extra={})=>({clientRunId:crypto.randomUUID(),v:3,at:new Date().toISOString(),kind:'map',channel:'production',build:'record-contract-test',mapKey:'old-town',reason:'time',t:120,score:{total:396},challenge:{id:'normal',version:'corridor-crowd6-v6'},...extra});

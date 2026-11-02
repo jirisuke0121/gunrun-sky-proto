@@ -18,6 +18,7 @@ const base = 'http://127.0.0.1:8793/';
         async all() { return { results: db.prepare(sql).all(...args) }; },
         async run() { return db.prepare(sql).run(...args); },
       }; } };
+  DB.batch=async statements=>{db.exec('BEGIN');try{const results=[];for(const statement of statements)results.push(await statement.run());db.exec('COMMIT');return results}catch(error){db.exec('ROLLBACK');throw error}};
       const context = await browser.newContext({ locale: 'ja-JP', viewport: { width: touch ? 844 : 1280, height: touch ? 390 : 720 }, hasTouch: touch, isMobile: touch });
       await context.addInitScript(() => { window.__hold = true; });
       const uploads = [], uploadStatuses = [];
