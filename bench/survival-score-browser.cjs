@@ -85,8 +85,8 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
    });
    await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
    const reported=JSON.parse(await page.locator('#unityResultCard').getAttribute('data-score'));
-   assert.deepEqual([reported.survival,reported.damage,reported.kill,reported.total],[480,153,120,753]);
-   assert.equal(await page.locator('#unityResultTotal').innerText(),'753');
+   assert.deepEqual([reported.survival,reported.damage,reported.kill,reported.total],[480,153,36,669]);
+   assert.equal(await page.locator('#unityResultTotal').innerText(),'669');
    await page.screenshot({path:`${out}/${map}-reported-result.png`});
   }
   assert.deepEqual(errors,[]);assert.equal(posts,0);

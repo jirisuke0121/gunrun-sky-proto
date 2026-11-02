@@ -2,7 +2,7 @@ import { recordMap, replayFromRecord, validateGhost } from '../replay-data.js';
 import rankedRules from '../ranked-rules.js';
 import survivalScore from '../survival-score.js';
 import playerName from '../player-name.js';
-const sharedRules = rules => ['corridor-shared-score-v9', 'corridor-threat-score-v10', 'corridor-time-score-v11', rankedRules.version].includes(rules);
+const sharedRules = rules => ['corridor-shared-score-v9', 'corridor-threat-score-v10', 'corridor-time-score-v11', 'corridor-balanced-score-v12', rankedRules.version].includes(rules);
 import {ownerRunStatement} from './player-facts.js';
 import {ownerPlayers,ownerReplay} from './players.js';
 import {validateEnvironment} from './telemetry.js';
@@ -49,7 +49,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-02-environment-v1", recordProtocol: 2, replayDetail: 1, ownerLogin: 1, environmentTelemetry: 1, customDateRange: 1, dbEfficiency: 1, playerConsole:1, rankedRules: rankedRules.version }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-02-kill30-v1", recordProtocol: 2, replayDetail: 1, ownerLogin: 1, environmentTelemetry: 1, customDateRange: 1, dbEfficiency: 1, playerConsole:1, rankedRules: rankedRules.version }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
@@ -62,7 +62,8 @@ function validRankedScore(record) {
   const b = record.score;
   const legacyThreat = record.challenge.version === 'corridor-threat-score-v10';
   const legacyTime = record.challenge.version === 'corridor-time-score-v11';
-  if (b?.scoring !== (legacyThreat ? 'threat-survival-v1' : legacyTime ? 'time-survival-v1' : 'time-survival-v2') ||
+  const legacyBalanced = record.challenge.version === 'corridor-balanced-score-v12';
+  if (b?.scoring !== (legacyThreat ? 'threat-survival-v1' : legacyTime ? 'time-survival-v1' : legacyBalanced ? 'time-survival-v2' : 'time-survival-v3') ||
       (legacyThreat && (!Number.isFinite(b.pressureSeconds) || b.pressureSeconds < 0 || b.pressureSeconds > b.elapsed * 3 + 1e-7)) ||
       !Number.isFinite(b.elapsed) || Math.abs(b.elapsed - record.t) > .10001 ||
       b.elapsed < 0 || b.elapsed > 120 ||
@@ -71,14 +72,20 @@ function validRankedScore(record) {
   const difficulty = ['easy', 'normal', 'hard'].indexOf(record.challenge.id);
   const factor = 1 + difficulty * .1;
   // Old cached clients retain their own board during the release transition.
-  // These legacy points never participate in the v12 board.
+  // These legacy points never participate in the v13 board.
   const expected = legacyThreat || legacyTime ? {
     difficulty: factor,
     survival: Math.floor((legacyThreat ? b.pressureSeconds : b.elapsed) * 120 * factor + 1e-7),
     damage: Math.floor(b.damageUnits * 2 * factor + 1e-7),
     kill: Math.floor(b.kills * 100 * factor + 1e-7),
+  } : legacyBalanced ? {
+    // v12: 100 points per 30 s of survival and 100 per kill (before the kill value was lowered to 30).
+    difficulty: factor,
+    survival: Math.floor(b.elapsed * (100 / 30) * factor + 1e-7),
+    damage: Math.floor(b.damageUnits * 2 * factor + 1e-7),
+    kill: Math.floor(b.kills * 100 * factor + 1e-7),
   } : survivalScore.evaluate(b.elapsed, b.kills, difficulty, b);
-  if (legacyThreat || legacyTime) expected.total = expected.survival + expected.damage + expected.kill;
+  if (legacyThreat || legacyTime || legacyBalanced) expected.total = expected.survival + expected.damage + expected.kill;
   return ['difficulty', 'survival', 'damage', 'kill', 'total'].every(key => b[key] === expected[key]);
 }
 
@@ -195,14 +202,14 @@ function rankCte(clear, three = false, shared = false) { return `
 WITH s AS (
   SELECT id, player, score, t, played_at, received_at, (reason = 'time') AS cleared,
          COALESCE(json_extract(json, '$.challenge.id'), 'legacy') AS difficulty,
-         CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-shared-score-v9', 'corridor-threat-score-v10', 'corridor-time-score-v11', '${rankedRules.version}') THEN 0 WHEN reason != 'time' THEN 0 WHEN stars > 0 THEN MIN(3, CAST(stars AS INTEGER)) ELSE
+         CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-shared-score-v9', 'corridor-threat-score-v10', 'corridor-time-score-v11', 'corridor-balanced-score-v12', '${rankedRules.version}') THEN 0 WHEN reason != 'time' THEN 0 WHEN stars > 0 THEN MIN(3, CAST(stars AS INTEGER)) ELSE
            1 + (score >= COALESCE(json_extract(json, '$.settings.star2'), 430)) + (score >= COALESCE(json_extract(json, '$.settings.star3'), 470)) END AS stars,
          (COALESCE(json_array_length(json, '$.ghost.samples'),0) >= 2 OR COALESCE(json_array_length(json, '$.trail'),0) >= 2) AS replay,
-         ${clear ? `CASE json_extract(json, '$.challenge.id') WHEN 'easy' THEN 0 WHEN 'normal' THEN 1 WHEN 'hard' THEN 2 WHEN 'expert' THEN 3 WHEN 'master' THEN 4 WHEN 'ultra' THEN 5 END` : `(CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6', 'corridor-three-v7', 'corridor-parkour-v8', 'corridor-shared-score-v9', 'corridor-threat-score-v10', 'corridor-time-score-v11', '${rankedRules.version}') AND json_extract(json, '$.challenge.id') != 'legacy' THEN 0 WHEN reason = 'time' THEN 1000000 ELSE 0 END) + score`} AS k
+         ${clear ? `CASE json_extract(json, '$.challenge.id') WHEN 'easy' THEN 0 WHEN 'normal' THEN 1 WHEN 'hard' THEN 2 WHEN 'expert' THEN 3 WHEN 'master' THEN 4 WHEN 'ultra' THEN 5 END` : `(CASE WHEN json_extract(json, '$.challenge.version') IN ('corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6', 'corridor-three-v7', 'corridor-parkour-v8', 'corridor-shared-score-v9', 'corridor-threat-score-v10', 'corridor-time-score-v11', 'corridor-balanced-score-v12', '${rankedRules.version}') AND json_extract(json, '$.challenge.id') != 'legacy' THEN 0 WHEN reason = 'time' THEN 1000000 ELSE 0 END) + score`} AS k
   FROM runs
   WHERE reason IN ('time','caught','fell') AND score IS NOT NULL AND (build IS NULL OR build NOT LIKE '%-dev')
     AND COALESCE(json_extract(json, '$.channel'), 'production') != 'dev'
-    AND (COALESCE(json_extract(json, '$.challenge.version'), '') NOT IN ('corridor-shared-score-v9', 'corridor-threat-score-v10', 'corridor-time-score-v11', '${rankedRules.version}')
+    AND (COALESCE(json_extract(json, '$.challenge.version'), '') NOT IN ('corridor-shared-score-v9', 'corridor-threat-score-v10', 'corridor-time-score-v11', 'corridor-balanced-score-v12', '${rankedRules.version}')
          OR json_extract(json, '$.challenge.id') = 'legacy' OR json_extract(json, '$.rankingEligible') = 1)
     AND COALESCE(json_extract(json, '$.mapKey'), CASE WHEN json_extract(json, '$.map.id') = 'rock_canyon_v1' OR json_extract(json, '$.mapVersion') = 'rock-canyon-v1'
               THEN 'rock-canyon' ELSE 'old-town' END) = ?
@@ -217,7 +224,7 @@ const RANK_CTE = rankCte(false), CLEAR_RANK_CTE = rankCte(true), THREE_CLEAR_RAN
 
 function rankQuery(mode, map, difficulty, rules) {
   if (mode === 'score' && sharedRules(rules) && difficulty === 'all') return {sql: SHARED_SCORE_RANK_CTE, args: [map, rules]};
-  return mode === 'clear' ? { sql: ['corridor-three-v7', 'corridor-parkour-v8', 'corridor-shared-score-v9', 'corridor-threat-score-v10', 'corridor-time-score-v11', rankedRules.version].includes(rules) ? THREE_CLEAR_RANK_CTE : CLEAR_RANK_CTE, args: [map, rules] }
+  return mode === 'clear' ? { sql: ['corridor-three-v7', 'corridor-parkour-v8', 'corridor-shared-score-v9', 'corridor-threat-score-v10', 'corridor-time-score-v11', 'corridor-balanced-score-v12', rankedRules.version].includes(rules) ? THREE_CLEAR_RANK_CTE : CLEAR_RANK_CTE, args: [map, rules] }
     : { sql: RANK_CTE, args: [map, difficulty, difficulty, rules] };
 }
 
@@ -233,7 +240,7 @@ function publicTime(row) {
 }
 
 const DIFFICULTIES = ['easy', 'normal', 'hard', 'expert', 'master', 'ultra', 'legacy'];
-const RULES = ['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6', 'corridor-three-v7', 'corridor-parkour-v8', 'corridor-shared-score-v9', 'corridor-threat-score-v10', 'corridor-time-score-v11', rankedRules.version];
+const RULES = ['unity-v1', 'corridor-v2', 'corridor-score-v3', 'corridor-cap12-v4', 'corridor-health-v5', 'corridor-crowd6-v6', 'corridor-three-v7', 'corridor-parkour-v8', 'corridor-shared-score-v9', 'corridor-threat-score-v10', 'corridor-time-score-v11', 'corridor-balanced-score-v12', rankedRules.version];
 const validDifficulty = (rules, difficulty) => (sharedRules(rules) ? ['all', 'easy', 'normal', 'hard', 'legacy'] : ['corridor-three-v7', 'corridor-parkour-v8'].includes(rules) ? ['easy', 'normal', 'hard', 'legacy'] : DIFFICULTIES).includes(difficulty);
 
 async function ranking(env, cors, url) {

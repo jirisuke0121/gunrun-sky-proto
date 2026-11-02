@@ -20,7 +20,7 @@ function fixture() {
 }
 // Survival is solely a function of elapsed simulation time and difficulty.
 assert.deepEqual([0,1,2].map(i=>evaluate(120,0,i).total),[400,440,480]);
-assert.deepEqual([0,1,2].map(i=>evaluate(120,1,i,{damageUnits:4}).total),[508,558,609]);
+assert.deepEqual([0,1,2].map(i=>evaluate(120,1,i,{damageUnits:4}).total),[438,481,525]);
 assert.equal(evaluate(10,0,0,{pressureSeconds:999,chasedSeconds:0}).survival,33,'old threat metrics cannot alter time points');
 assert.equal(evaluate(500,0,0).survival,400,'round time is capped at 120 seconds');
 assert.equal(evaluate(-2,0,0).total,0);
@@ -42,19 +42,28 @@ for(const d of [0,1,2]) {
 }
 assert.equal(evaluate(29.99,0,0).live,0,'nothing is paid out before the first 30 seconds');
 assert.equal(evaluate(30,0,1).live,110);
-assert.equal(evaluate(5,0,1).scoring,'time-survival-v2','new arithmetic has its own scoring id');
-// The reported run is survival-led, while combat now materially affects the total.
+assert.equal(evaluate(5,0,1).scoring,'time-survival-v3','new arithmetic has its own scoring id');
+// One kill is worth about 9 seconds of survival (30 points x multiplier), not a whole 30 s milestone.
+assert.deepEqual([0,1,2].map(i=>evaluate(0,1,i).kill),[30,33,36]);
+// The reported v12 run (hard, 64.1 damage, 1 kill) stays survival-led.
 const reported=evaluate(120,1,2,{damageUnits:64.1});
-assert.deepEqual([reported.survival,reported.damage,reported.kill,reported.total],[480,153,120,753]);
-assert.ok(reported.survival/reported.total>.6&&reported.survival/reported.total<.7);
+assert.deepEqual([reported.survival,reported.damage,reported.kill,reported.total],[480,153,36,669]);
+assert.ok(reported.survival/reported.total>.7&&reported.survival/reported.total<.75);
+// A heavy fight (hard, 10 kills, 106.2 effective damage) must not drown out the escape itself:
+// survival stays the largest single component and a large share of the total.
+const heavy=evaluate(120,10,2,{damageUnits:106.2});
+assert.deepEqual([heavy.survival,heavy.damage,heavy.kill,heavy.total],[480,254,360,1094]);
+assert.ok(heavy.survival>heavy.kill&&heavy.survival>heavy.damage);
+assert.ok(heavy.survival/heavy.total>.4&&heavy.kill/heavy.total<.35);
 // Ordinary 1–3 full-health kills leave survival as the largest share at completion.
 for(const [difficulty,hp] of [[0,4],[1,8],[2,12]]) {
   for(const kills of [1,2,3]) {
     const b=evaluate(120,kills,difficulty,{damageUnits:hp*kills});
     assert.ok(b.survival>b.damage+b.kill);
   }
-  // Active combat can still beat passive completion; survival is preferred, not absolute.
-  assert.ok(evaluate(90,1,difficulty,{damageUnits:hp}).total>evaluate(120,0,difficulty).total);
+  // Active combat can still beat passive completion (3 full-health kills in 90 s); survival is preferred, not absolute.
+  assert.ok(evaluate(90,3,difficulty,{damageUnits:hp*3}).total>evaluate(120,0,difficulty).total);
+  assert.ok(evaluate(90,1,difficulty,{damageUnits:hp}).total<evaluate(120,0,difficulty).total,'a single early kill does not beat finishing the run');
   for(let ms=0;ms<=120000;ms+=137) {
     const b=evaluate(ms/1000,1,difficulty,{damageUnits:4.1});
     assert.equal(b.live+b.remainder,b.total);

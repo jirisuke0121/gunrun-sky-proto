@@ -1,7 +1,7 @@
 // Shared time/combat arithmetic. Pursuit detection only triggers presentation.
 (function (root) {
   const config = Object.freeze({ radius: 18, routeLimit: 26, heightLimit: 3,
-    perSecond: 100 / 30, interval: 30, perDamage: 2, perKill: 100,
+    perSecond: 100 / 30, interval: 30, perDamage: 2, perKill: 30,
     sample: .15, escapeCharge: 3, escapeQuiet: 2 });
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   function evaluate(seconds, kills, difficulty, earned = {}) {
@@ -22,7 +22,7 @@
       survival, damage, kill, total: survival + damage + kill,
       interval: config.interval, ticks, tickPoints, ticked, remainder: survival - ticked,
       live: ticked + damage + kill,
-      scoring: 'time-survival-v2', bonus: 0, fellExtra: 0, shake: 0 };
+      scoring: 'time-survival-v3', bonus: 0, fellExtra: 0, shake: 0 };
   }
   function createTracker(game, runtime, onEscape = () => {}) {
     let damageUnits = 0, count = 0, last = 0, accumulator = 0;

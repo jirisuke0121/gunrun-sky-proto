@@ -29,13 +29,13 @@ const port=Number(process.env.SKY_TEST_PORT||18799),base=`http://127.0.0.1:${por
     bar:document.getElementById('unityTickBar').firstChild.style.transform,award:__award(),ticks:__tickCount()}));
   await page.evaluate(()=>__step(29.9));
   let h=await hud();assert.equal(h.award.hidden,true,'no badge before 30 s');assert.equal(h.total,'0');assert.equal(h.ticks,0);
-  assert.equal(h.rate,lang==='ja'?'+3960/30秒':'+3960 / 30 s');
+  assert.equal(h.rate,lang==='ja'?'+110/30秒':'+110 / 30 s');
   assert.match(h.bar,/scaleX\((1|0\.99)\)/,'bar nearly full');
   await page.evaluate(()=>__step(.2));            // crosses 30 s
   h=await hud();assert.equal(h.award.hidden,false,'badge at 30 s');assert.equal(h.award.major,'true','every payout at the 30 s interval is the large one');
-  assert.match(h.award.text,lang==='ja'?/\+3,960\s*30秒生存/:/\+3,960\s*30 s survived/);assert.equal(h.ticks,1);
+  assert.match(h.award.text,lang==='ja'?/\+110\s*30秒生存/:/\+110\s*30 s survived/);assert.equal(h.ticks,1);
   await page.waitForTimeout(700);
-  h=await hud();assert.equal(h.total,'3960','HUD counted the payout');
+  h=await hud();assert.equal(h.total,'110','HUD counted the payout');
   await shot({path:`${out}/${map}-${lang}${touch?'-touch':''}${reduce?'-reduced':''}-tick30.png`});
   await page.waitForTimeout(1300);assert.equal((await hud()).award.hidden,true,'badge leaves after its animation');
   // Jump the native clock close to 60 s (a silent resync), then cross the 60 s payout.
@@ -50,10 +50,10 @@ const port=Number(process.env.SKY_TEST_PORT||18799),base=`http://127.0.0.1:${por
   await page.evaluate(()=>{__step(2.3);__game.endGame('caught');__game.advance(1.5)});
   await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
   const r=JSON.parse(await page.locator('#unityResultCard').getAttribute('data-score'));
-  assert.equal(r.survival,Math.floor(r.elapsed*120*1.1+1e-7));assert.equal(r.total,r.survival+r.damage+r.kill);
+  assert.equal(r.survival,Math.floor(r.elapsed*(100/30)*1.1+1e-7));assert.equal(r.total,r.survival+r.damage+r.kill);
   assert.ok(r.remainder>0&&r.ticked+r.remainder===r.survival);
   const line=await page.locator('#unitySurvivalFormula').innerText();
-  assert.match(line,lang==='ja'?/^30秒ごと \d+回 × 3960点 ＋ 端数 \d+点$/:/^Every 30 s: \d+ × 3960 pts \+ partial \d+ pts$/);
+  assert.match(line,lang==='ja'?/^30秒ごと \d+回 × 110点 ＋ 端数 \d+点$/:/^Every 30 s: \d+ × 110 pts \+ partial \d+ pts$/);
   assert.equal(await page.locator('#unityTickAward').isVisible(),false,'badge gone on the result');
   await shot({path:`${out}/${map}-${lang}${touch?'-touch':''}${reduce?'-reduced':''}-result.png`});
   // Retry clears the milestone state.

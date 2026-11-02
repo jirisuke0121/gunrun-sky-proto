@@ -47,7 +47,7 @@ function policyFixture(practice = false) {
   vm.runInNewContext(fs.readFileSync('challenge-score.js','utf8'),scoreEnv);
   const evaluate=scoreEnv.window.skyChallengeScore.evaluate;
   assert.deepEqual([0,1,2].map(i=>evaluate(120,0,i).total),[400,440,480]);
-  assert.deepEqual([0,1,2].map(i=>evaluate(120,1,i,{damageUnits:10}).total),[520,572,624]);
+  assert.deepEqual([0,1,2].map(i=>evaluate(120,1,i,{damageUnits:10}).total),[450,495,540]);
 
   const {default:worker}=await import('../server/worker.js');
   const {createRunRecords,resultOnly}=await import('../run-records.js');
@@ -135,6 +135,23 @@ function policyFixture(practice = false) {
   assert.equal((await post(forgedOld)).receipt.ranked,false,'v11 still validates totals');
   const newAsOld=make('new-as-old','hard',753);newAsOld.challenge.version='corridor-time-score-v11';
   assert.equal((await post(newAsOld)).receipt.ranked,false,'v12 payload cannot enter v11');
+
+  // Cached v12 clients (kill 100 points) keep their own arithmetic and board; v13 (kill 30 points) never mixes with them.
+  const v12=make('previous-balanced','hard',700);v12.challenge.version='corridor-balanced-score-v12';v12.stats={kills:10};
+  v12.score={scoring:'time-survival-v2',elapsed:120,difficulty:1.2,damageUnits:106.2,kills:10,survival:480,damage:254,kill:1200,total:1934};
+  const v12Receipt=await post(v12);assert.equal(v12Receipt.receipt.ranked,true,'cached v12 clients keep their own board during rollout');
+  const v12Board=await get('/ranking?map=old-town&rules=corridor-balanced-score-v12&mode=score&difficulty=all');
+  assert.equal(v12Board.top[0].score,1934);assert.equal(v12Board.top[0].stars,0);
+  assert.equal((await get('/ranking?'+scope)).top[0].score,800,'v12 scores (kill 100) cannot enter the v13 board');
+  const v12AsNew=structuredClone(v12);v12AsNew.clientRunId=crypto.randomUUID();v12AsNew.challenge.version=rules.version;
+  assert.equal((await post(v12AsNew)).receipt.ranked,false,'v12 payload cannot enter v13');
+  const forgedV12=structuredClone(v12);forgedV12.clientRunId=crypto.randomUUID();forgedV12.score.total++;
+  assert.equal((await post(forgedV12)).receipt.ranked,false,'v12 still validates totals');
+  const v13AsOld=structuredClone(v12);v13AsOld.clientRunId=crypto.randomUUID();v13AsOld.score=evaluate(120,10,2,{damageUnits:106.2});
+  assert.equal(v13AsOld.score.total,1094);assert.equal((await post(v13AsOld)).receipt.ranked,false,'v13 payload cannot enter v12');
+  const v13Heavy=make('heavy-fight','hard',700);v13Heavy.stats={kills:10};v13Heavy.score=evaluate(120,10,2,{damageUnits:106.2});
+  assert.equal((await post(v13Heavy)).receipt.ranked,true,'v13 arithmetic is validated with the new kill value');
+  assert.equal((await get('/ranking?'+scope)).top.some(r=>r.score===1094),true);
 
   // Both movement-only fallback and a real recorder receipt keep the ranking scope/contract.
   assert.deepEqual(resultOnly(winner).challenge,winner.challenge);

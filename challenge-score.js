@@ -20,7 +20,7 @@
   function feedback(escape) {
     if (!playing()) return;
     if (escape) fx.escaped();
-    else fx.kill(Math.round(100 * (1 + level() * .1)));
+    else fx.kill(Math.round(window.skySurvivalScore.config.perKill * (1 + level() * .1)));
   }
   function step(dt) {
     fx?.setActive(playing());
@@ -151,7 +151,7 @@
     set('unitySurvivalFormula', `${b.interval}秒ごと ${b.ticks}回 × ${b.tickPoints}点 ＋ 端数 ${b.remainder}点`);
     set('unityResultDamage', b.damage.toLocaleString('ja-JP') + ' pt');
     set('unityDamageFormula', `有効ダメージ ${b.damageUnits.toFixed(1)} × 2点 × ${b.difficulty.toFixed(1)}`);
-    set('unityKillFormula', `${b.kills}体 × 100点 × ${b.difficulty.toFixed(1)}`);
+    set('unityKillFormula', `${b.kills}体 × ${window.skySurvivalScore.config.perKill}点 × ${b.difficulty.toFixed(1)}`);
     set('unityResultEquation', [b.survival, b.damage, b.kill].map(n => n.toLocaleString('ja-JP')).join(' + ') + ' = ' + b.total.toLocaleString('ja-JP') + ' pt');
     set('unityResultTotal', b.total.toLocaleString('ja-JP'));
     set('unityResultBest', best ? '自己ベスト更新' : '');
