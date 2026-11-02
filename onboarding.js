@@ -45,7 +45,7 @@
       <li><b>走る・跳ぶ</b><span class="onb-pc"><kbd>W A S D</kbd> 移動　<kbd>Space</kbd> ジャンプ　<kbd>C</kbd> スライド</span><span class="onb-touch">左ドラッグで移動、「ジャンプ」ボタンで跳ぶ。低い通路は自動でスライド</span></li>
       <li><b>視点を回す</b><span class="onb-pc"><kbd>マウス</kbd> で視点を動かす</span><span class="onb-touch">画面の右側をドラッグ</span></li>
       <li><b>技で引き離す</b><span class="onb-pc">壁走り・縁つかみ・はしご・ジップラインに加えて、<kbd>Q</kbd> でフック</span><span class="onb-touch">壁走り・縁つかみ・はしご・ジップラインに加えて、画面の輪をタップでフック</span></li>
-      <li><b>銃は自動</b><span class="onb-pc">近い敵を自動で狙って撃ちます。<kbd>G</kbd> の閃光弾で周りのゾンビを数秒止められます</span><span class="onb-touch">近い敵を自動で狙って撃ちます。「閃光弾」ボタンで周りのゾンビを数秒止められます</span></li>
+      <li><b>銃は自動</b><span class="onb-pc">近い敵を自動で狙って撃ちます。<kbd>1</kbd> の閃光弾で周りのゾンビを止め、<kbd>2</kbd> の分身でおびき寄せます</span><span class="onb-touch">近い敵を自動で狙って撃ちます。「閃光弾」ボタンで周りのゾンビを数秒止められます</span></li>
     </ol>
     <section class="onb-name"><label for="onbName">ニックネーム（ランキングに表示されます）</label>
       <input id="onbName" type="text" maxlength="14" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="例：RUNNER">
@@ -140,7 +140,7 @@
     { until: 10, pc: 'W A S D で移動 · Space でジャンプ', touch: '左ドラッグで移動 · ボタンでジャンプ' },
     { until: 20, pc: 'マウスで視点を回そう', touch: '右ドラッグで視点を回そう' },
     { until: 40, pc: '壁・縁・はしごへ跳ぼう · Q でフック', touch: '壁・縁・はしごへ跳ぼう · 画面の輪をタップでフック' },
-    { until: 55, pc: '銃は自動 · G の閃光弾でゾンビを止める', touch: '銃は自動 · 「閃光弾」ボタンでゾンビを止める' },
+    { until: 55, pc: '銃は自動 · 1 の閃光弾で止める · 2 の分身でおびき寄せる', touch: '銃は自動 · 「閃光弾」ボタンでゾンビを止める' },
   ];
   let tipIndex = -2;
   function tickCoach() {
