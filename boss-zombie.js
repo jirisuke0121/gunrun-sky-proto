@@ -27,10 +27,10 @@
   // 0..1 for the HUD bar; never negative, never above full.
   const fraction = (hp, max) => max > 0 ? Math.min(1, Math.max(0, hp / max)) : 0;
 
-  const state = { want: false, boss: null, maxHp: 0, lastT: 0, spawns: 0, timer: 0, bar: null };
+  const state = { want: false, boss: null, maxHp: 0, lastT: 0, spawns: 0, timer: 0, bar: null, previewAsked: false };
 
   function reset() {
-    state.want = false; state.boss = null; state.maxHp = 0; state.lastT = 0; state.spawns = 0;
+    state.want = false; state.boss = null; state.maxHp = 0; state.lastT = 0; state.spawns = 0; state.previewAsked = false;
     hideBar();
   }
   const begin = reset;
@@ -122,6 +122,10 @@
     if (t < state.lastT - .5) reset();
     if (t === state.lastT) return; // paused: the game clock is not moving
     state.lastT = t;
+    // Look at the boss right away: ?challengeDebug=1&boss=now (debug runs keep their own records and send nothing).
+    if (!state.previewAsked && t > 1 && challenge?.debug && typeof location !== 'undefined' && new URLSearchParams(location.search).get('boss') === 'now') {
+      state.previewAsked = true; request();
+    }
     if (pending()) spawn(game, sky, challenge);
     const boss = state.boss;
     if (!boss) return;
