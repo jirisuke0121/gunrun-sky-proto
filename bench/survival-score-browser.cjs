@@ -25,7 +25,7 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
    const advance=seconds=>{for(let i=0;i<Math.round(seconds*60);i++)g.advance(1/60);score.sync()};
    advance(21);
    const waiting={...score.current()};
-   if(waiting.survival!==Math.floor(waiting.elapsed*(100/30)*waiting.difficulty+1e-7)||waiting.survival<70)throw Error('Safe stationary survival did not earn');
+   if(waiting.survival!==Math.floor(waiting.elapsed*15*waiting.difficulty+1e-7)||waiting.survival<70)throw Error('Safe stationary survival did not earn');
    if(document.getElementById('threatScoreHud'))throw Error('Threat HUD still exists');
    if(score.pursuit().pressureSeconds!==undefined)throw Error('Threat score still accumulated');
    // The real enemy hurt/die hook must award only actual HP removed, once.
@@ -72,7 +72,7 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
   await page.evaluate(()=>{__game.GAME.t=119.95;__game.advance(.2);__game.advance(1.5)});
   await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
   const complete=JSON.parse(await page.locator('#unityResultCard').getAttribute('data-score'));
-  assert.equal(complete.elapsed,120);assert.equal(complete.survival,Math.floor(400*complete.difficulty+1e-7));assert.equal(complete.damageUnits,0);assert.equal(complete.kills,0);
+  assert.equal(complete.elapsed,120);assert.equal(complete.survival,Math.floor(1800*complete.difficulty+1e-7));assert.equal(complete.damageUnits,0);assert.equal(complete.kills,0);
   assert.equal(await page.locator('#unityResultCard').getAttribute('data-failed'),'false');
   if(difficulty==='hard'){
    // Reproduce the user's actual damage/kill totals through the live damage hook.
@@ -85,8 +85,8 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
    });
    await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
    const reported=JSON.parse(await page.locator('#unityResultCard').getAttribute('data-score'));
-   assert.deepEqual([reported.survival,reported.damage,reported.kill,reported.total],[480,153,36,669]);
-   assert.equal(await page.locator('#unityResultTotal').innerText(),'669');
+   assert.deepEqual([reported.survival,reported.damage,reported.kill,reported.total],[2160,153,36,2349]);
+   assert.equal(await page.locator('#unityResultTotal').innerText(),'2349');
    await page.screenshot({path:`${out}/${map}-reported-result.png`});
   }
   assert.deepEqual(errors,[]);assert.equal(posts,0);

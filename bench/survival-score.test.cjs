@@ -19,15 +19,15 @@ function fixture() {
   return {game,c,enemy,runtime,tracker,tick,escapes:()=>escapes,wall:v=>blocked=v,decoy:v=>distracted=v};
 }
 // Survival is solely a function of elapsed simulation time and difficulty.
-assert.deepEqual([0,1,2].map(i=>evaluate(120,0,i).total),[400,440,480]);
-assert.deepEqual([0,1,2].map(i=>evaluate(120,1,i,{damageUnits:4}).total),[438,481,525]);
-assert.equal(evaluate(10,0,0,{pressureSeconds:999,chasedSeconds:0}).survival,33,'old threat metrics cannot alter time points');
-assert.equal(evaluate(500,0,0).survival,400,'round time is capped at 120 seconds');
+assert.deepEqual([0,1,2].map(i=>evaluate(120,0,i).total),[1800,1980,2160]);
+assert.deepEqual([0,1,2].map(i=>evaluate(120,1,i,{damageUnits:4}).total),[1838,2021,2205]);
+assert.equal(evaluate(10,0,0,{pressureSeconds:999,chasedSeconds:0}).survival,150,'old threat metrics cannot alter time points');
+assert.equal(evaluate(500,0,0).survival,1800,'round time is capped at 120 seconds');
 assert.equal(evaluate(-2,0,0).total,0);
-assert.equal(evaluate(1.234,0,1).survival,4,'each component rounds down');
-// Survival is paid out every 30 seconds (100 x multiplier) without changing the total.
+assert.equal(evaluate(1.234,0,1).survival,20,'each component rounds down');
+// Survival is paid out every 30 seconds (450 x multiplier) without changing the total.
 assert.equal(config.interval,30);
-assert.deepEqual([0,1,2].map(i=>evaluate(30,0,i).tickPoints),[100,110,120]);
+assert.deepEqual([0,1,2].map(i=>evaluate(30,0,i).tickPoints),[450,495,540]);
 for(const d of [0,1,2]) {
   assert.equal(evaluate(120,0,d).ticks,4);
   assert.equal(evaluate(120,0,d).remainder,0,'a full run is entirely paid out in milestones');
@@ -41,29 +41,29 @@ for(const d of [0,1,2]) {
   }
 }
 assert.equal(evaluate(29.99,0,0).live,0,'nothing is paid out before the first 30 seconds');
-assert.equal(evaluate(30,0,1).live,110);
-assert.equal(evaluate(5,0,1).scoring,'time-survival-v3','new arithmetic has its own scoring id');
+assert.equal(evaluate(30,0,1).live,495);
+assert.equal(evaluate(5,0,1).scoring,'time-survival-v4','new arithmetic has its own scoring id');
 // One kill is worth about 9 seconds of survival (30 points x multiplier), not a whole 30 s milestone.
 assert.deepEqual([0,1,2].map(i=>evaluate(0,1,i).kill),[30,33,36]);
 // The reported v12 run (hard, 64.1 damage, 1 kill) stays survival-led.
 const reported=evaluate(120,1,2,{damageUnits:64.1});
-assert.deepEqual([reported.survival,reported.damage,reported.kill,reported.total],[480,153,36,669]);
-assert.ok(reported.survival/reported.total>.7&&reported.survival/reported.total<.75);
+assert.deepEqual([reported.survival,reported.damage,reported.kill,reported.total],[2160,153,36,2349]);
+assert.ok(reported.survival/reported.total>.9);
 // A heavy fight (hard, 10 kills, 106.2 effective damage) must not drown out the escape itself:
 // survival stays the largest single component and a large share of the total.
 const heavy=evaluate(120,10,2,{damageUnits:106.2});
-assert.deepEqual([heavy.survival,heavy.damage,heavy.kill,heavy.total],[480,254,360,1094]);
+assert.deepEqual([heavy.survival,heavy.damage,heavy.kill,heavy.total],[2160,254,360,2774]);
 assert.ok(heavy.survival>heavy.kill&&heavy.survival>heavy.damage);
-assert.ok(heavy.survival/heavy.total>.4&&heavy.kill/heavy.total<.35);
+// Target: kills + damage stay within about 30% of the survival points even for the heaviest fight.
+assert.ok((heavy.kill+heavy.damage)/heavy.survival<.3&&(heavy.kill+heavy.damage)/heavy.survival>.25);
 // Ordinary 1–3 full-health kills leave survival as the largest share at completion.
 for(const [difficulty,hp] of [[0,4],[1,8],[2,12]]) {
   for(const kills of [1,2,3]) {
     const b=evaluate(120,kills,difficulty,{damageUnits:hp*kills});
     assert.ok(b.survival>b.damage+b.kill);
   }
-  // Active combat can still beat passive completion (3 full-health kills in 90 s); survival is preferred, not absolute.
-  assert.ok(evaluate(90,3,difficulty,{damageUnits:hp*3}).total>evaluate(120,0,difficulty).total);
-  assert.ok(evaluate(90,1,difficulty,{damageUnits:hp}).total<evaluate(120,0,difficulty).total,'a single early kill does not beat finishing the run');
+  // Finishing the run beats any ordinary early fight; combat only separates players who both finish.
+  assert.ok(evaluate(90,3,difficulty,{damageUnits:hp*3}).total<evaluate(120,0,difficulty).total,'three early kills do not beat finishing the run');
   for(let ms=0;ms<=120000;ms+=137) {
     const b=evaluate(ms/1000,1,difficulty,{damageUnits:4.1});
     assert.equal(b.live+b.remainder,b.total);
@@ -80,7 +80,7 @@ for(const condition of ['idle','far','wall','floor','no-route','swing','ledge','
  if(condition==='invulnerable')f.c.invuln=100;
  if(condition==='decoy')f.decoy(true);
  f.tick(30,condition!=='idle',condition==='loop');
- assert.equal(evaluate(f.game.z.t,0,0,f.tracker.snapshot()).survival,100,condition+' does not suppress survival points');
+ assert.equal(evaluate(f.game.z.t,0,0,f.tracker.snapshot()).survival,450,condition+' does not suppress survival points');
  assert.ok(!('pressureSeconds' in f.tracker.snapshot()),'no threat score is accumulated');
 }
 const escape=fixture();escape.tick(4);escape.wall(true);escape.tick(3);
