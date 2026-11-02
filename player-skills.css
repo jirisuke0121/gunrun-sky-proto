@@ -39,3 +39,7 @@ html.touch #decoyBanner{top:calc(64% - 30px);bottom:auto;font-size:12px}
 html.touch #catchBox{bottom:calc(var(--touch-bottom) + 92px)}
 html.touch #weaponSupplyStatus{top:calc(var(--touch-top) + 60px)}
 @media(prefers-reduced-motion:reduce){#skillDock button{transition:none}}
+
+/* PC key hints sit in the skill name (1 flashbang, 2 decoy); touch has the buttons instead. */
+#skillDock #tFlash .skill-name kbd,#skillDock #tDecoy .skill-name kbd{padding:0 .3em;font-size:9px}
+html.touch #skillDock #tFlash .skill-name kbd,html.touch #skillDock #tDecoy .skill-name kbd{display:none}

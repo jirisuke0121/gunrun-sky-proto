@@ -8,7 +8,7 @@ export function installSkillDock() {
   const flash = document.getElementById('tFlash');
   flash.classList.add('player-skill');
   const decoy = document.createElement('button'); decoy.type = 'button'; decoy.id = 'tDecoy'; decoy.className = 'player-skill';
-  decoy.innerHTML = `${DECOY_ICON}<span class="skill-value">E</span><span class="skill-name">分身</span>`;
+  decoy.innerHTML = `${DECOY_ICON}<span class="skill-value">✓</span><span class="skill-name">分身 <kbd>2</kbd></span>`;
   dock.append(flash, decoy); document.getElementById('hud').append(dock);
   // Keep skill presses out of the stick, camera and firing input handlers.
   for (const type of ['pointerdown', 'pointerup', 'pointermove', 'click', 'contextmenu']) dock.addEventListener(type, e => e.stopPropagation());

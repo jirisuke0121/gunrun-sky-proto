@@ -1,5 +1,5 @@
 import { createDecoyAudio } from './decoy-audio.js?v=20261030-decoy-lock-v2';
-import { bindSkillPress } from './player-skills.js?v=20261030-decoy-v1';
+import { bindSkillPress } from './player-skills.js?v=20261102-skill-keys-v1';
 
 export const DECOY = Object.freeze({ duration: 6, cooldown: 18, radius: 16, releaseRadius: 22, speed: 2.4, travel: 4.8 });
 
@@ -86,13 +86,13 @@ export function createDecoy(game, runtime) {
   }
   function reset() { clear(); cooldown = 0; scanTime = fieldTime = 0; runtime.stats.decoys = runtime.stats.decoyLures = 0; hud(); }
   function hud() {
-    const value = active ? `${Math.ceil(DECOY.duration - active.age)}s` : cooldown > 0 ? `${Math.ceil(cooldown)}` : 'E';
+    const value = active ? `${Math.ceil(DECOY.duration - active.age)}s` : cooldown > 0 ? `${Math.ceil(cooldown)}` : '✓';
     const state = `${value}:${!!active}:${cooldown > 0}:${available()}`;
     if (state !== hudStamp) {
       button.querySelector('.skill-value').textContent = value;
       button.classList.toggle('active', !!active); button.classList.toggle('cool', cooldown > 0 && !active);
       button.setAttribute('aria-disabled', String(!available()));
-      button.setAttribute('aria-label', active ? `分身発動中 残り${value}` : cooldown > 0 ? `分身 再使用まで${value}秒` : '分身 E 6秒間ゾンビを撹乱');
+      button.setAttribute('aria-label', active ? `分身発動中 残り${value}` : cooldown > 0 ? `分身 再使用まで${value}秒` : '分身 2キー 6秒間ゾンビを撹乱');
       hudStamp = state;
     }
     button.style.setProperty('--skill-progress', String(active ? Math.max(0, 1 - active.age / DECOY.duration) : 1 - cooldown / DECOY.cooldown));
@@ -181,7 +181,7 @@ export function createDecoy(game, runtime) {
     banner.classList.toggle('on', t < 1.4 || t > DECOY.duration - 1.5);
   }
   const cancelPress = bindSkillPress(button, available, activate);
-  document.addEventListener('keydown', e => { if (e.code === 'KeyE' && !e.repeat && playing() && !/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName)) { e.preventDefault(); activate(); } });
+  document.addEventListener('keydown', e => { if (['Digit2', 'Numpad2'].includes(e.code) && !e.repeat && playing() && !/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName)) { e.preventDefault(); activate(); } });
   document.addEventListener('visibilitychange', () => audio.sync(!!active && playing() && !document.hidden, active?.age || 0));
   hud();
   return { audio, activate, tick, frame, reset, clear, stats, config: DECOY,

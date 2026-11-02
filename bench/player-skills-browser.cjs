@@ -80,7 +80,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         }
         assert.equal(intersects(boxes.tFlash, boxes.tDecoy), false);
         // Use an actual click/tap. Releasing within the button fires once.
-        if (layout.touch) await page.tap('#tDecoy'); else await page.keyboard.press('e');
+        if (layout.touch) await page.tap('#tDecoy'); else await page.keyboard.press('2');
         await page.evaluate(() => { window.__skillsFrames(21); });
         if (map === 'index.html' && layout.name === 'desktop') console.log('SKILL_IMAGE_split:' + (await page.screenshot({type:'jpeg',quality:60})).toString('base64'));
         const cast = await page.evaluate(() => {
@@ -129,7 +129,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         });
         for (const key of ['expired','blocked','ready','second']) assert.equal(ended[key], true, key + ': ' + JSON.stringify(ended)); assert.equal(ended.used, 2);
         const flash = await page.evaluate(() => { window.skyDecoy.clear(); window.__skillsPlace(6); window.__game.frameOnce(0); return window.skyFlashbang.charges; });
-        if (layout.touch) await page.tap('#tFlash'); else await page.keyboard.press('g');
+        if (layout.touch) await page.tap('#tFlash'); else await page.keyboard.press('1');
         assert.equal(await page.evaluate(() => window.skyFlashbang.charges), flash - 1, 'flash still works from bottom dock');
         await page.evaluate(() => { window.__game.startGame(); window.__game.frameOnce(0); });
         assert.equal(await page.evaluate(() => window.skyDecoy.cooldown), 0, 'restart resets cooldown');
