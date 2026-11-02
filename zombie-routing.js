@@ -9,7 +9,7 @@ export function traversalPoint(a, t) {
 }
 
 export function createZombieRouting(game, runtime, climb, flashbang) {
-  const config = Object.freeze({ jump: 3.2, rise: .8, drop: 8, dropAcross: 2.5, lookAhead: 8, flankDetour: 2.5 });
+  const config = Object.freeze({ jump: 3.2, rise: .8, drop: 64, dropAcross: 3.2, lookAhead: 8, flankDetour: 2.5 });
   const stats = { checked: 0, shortcuts: 0, boundedFlanks: 0, jumps: 0, drops: 0, blocked: 0, interrupted: 0, maxValidationMs: 0 };
   const { nodes, E: edges, out } = runtime.NAV;
   const plans = new WeakMap(), direct = new WeakMap();

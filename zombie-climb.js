@@ -2,7 +2,7 @@
 export function createZombieClimb(game, runtime, flashbang) {
   const { ri, c: realPlayer, z: run, Jt: zombies, jn: solids, Geom: { Vector3 } } = game;
   const config = Object.freeze({ wait: 4, speed: 0.8, retry: 1.5, scanGap: 0.12, scanMs: 2, candidatesPerFrame: 12,
-    planRadius: 6, planCandidates: 192, planGain: .75, planInterval: 1.5 });
+    planRadius: 40, planCandidates: 192, planGain: .75, planInterval: 1.5 });
   const stats = { scans: 0, started: 0, finished: 0, interrupted: 0, candidates: 0, maxScanMs: 0, navDrops: 0, faster: 0 };
   const tracks = new WeakMap(), rigs = new WeakMap(), dropProbes = new WeakMap();
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));

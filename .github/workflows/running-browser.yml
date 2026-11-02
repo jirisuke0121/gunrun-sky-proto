@@ -36,6 +36,7 @@ jobs:
           node bench/zombie-drop-entry.test.cjs
           node bench/zombie-nav-floor.test.cjs
           node bench/zombie-routing.test.cjs
+          node bench/zombie-fall.test.cjs
           node bench/zombie-wall-approach.test.cjs
           node bench/nav-field-refresh.test.cjs
       - name: Install browser
