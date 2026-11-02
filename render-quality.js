@@ -2,15 +2,17 @@
 (() => {
   const storage = 'gunrun-render-quality-v1';
   const presets = {
-    performance: { name: '軽量', cap: .7, shadows: false, shadowSize: 512, description: '影を省き、3D描画の細かさを抑えて軽くします。文字と操作はそのままです。' },
-    balanced: { name: '標準', cap: 1, shadows: true, shadowSize: 1024, description: '3D描画の細かさを抑え、影を表示します。' },
-    high: { name: '高画質', cap: Infinity, shadows: true, shadowSize: null, description: '従来の細かさと影を使います。動作が重いときは軽量を選んでください。' },
+    high: { name: '高精細（従来）', cap: Infinity, shadows: true, shadowSize: null, description: '従来の高精細表示と影を使います。端末と従来の描画設定に応じた倍率です。' },
+    balanced: { name: '標準（1.0倍）', cap: 1, shadows: true, shadowSize: 1024, description: '表示上の1ピクセルを3D描画の1ピクセルとして描き、影を表示します。' },
+    performance: { name: '軽量（0.75倍）', cap: .75, shadows: false, shadowSize: 512, description: '3D描画を0.75倍にし、影を省きます。文字と操作はそのままです。' },
+    minimum: { name: '最軽量（0.5倍）', cap: .5, shadows: false, shadowSize: 512, description: '3D描画を0.5倍にし、影を省きます。文字と操作はそのままです。' },
   };
   let selected = 'high', revision = 0, active = null, internals, game;
   const originalShadowSizes = new WeakMap();
   try { const saved = localStorage.getItem(storage); if (Object.hasOwn(presets, saved)) selected = saved; } catch {}
   const nativeRatio = () => Math.min(2, devicePixelRatio || 1);
-  const nextRatio = (scale = 1, native = nativeRatio()) => Math.max(.25, Math.min(native * (Number.isFinite(scale) ? scale : 1), presets[selected].cap));
+  const nextRatio = (scale = 1, native = nativeRatio()) => selected === 'high'
+    ? Math.max(.25, native * (Number.isFinite(scale) ? scale : 1)) : presets[selected].cap;
   const pixelRatio = (scale = 1, native = nativeRatio()) => active?.ratio ?? nextRatio(scale, native);
   function sync() {
     document.body.dataset.skyRenderQuality = selected;

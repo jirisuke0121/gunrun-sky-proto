@@ -1,5 +1,9 @@
 # プレイ記録サーバー（Cloudflare Workers + D1）
 
+## 2026-11-02：国・端末環境と任意の日付範囲
+
+追加の `telemetry-environment-schema.sql` をD1へ適用してからWorkerを更新する。国は受信時のCloudflare情報、端末環境はブラウザが申告した取得可能な項目を保存する。既存の記録や順位は変更しない。任意期間は `GET /admin/overview?from=YYYY-MM-DD&to=YYYY-MM-DD`（日本時間、終了日を含む）。[仕様・検証・運用](../docs/ENVIRONMENT_ANALYTICS.md)。
+
 ## 2026-11-02：管理画面のChatGPTログイン
 
 通常の管理画面は [本人専用のログイン式ページ](https://sky-corridor-owner.jirisuke.chatgpt.site/) 。`OWNER_OVERVIEW_TOKEN` をWorkerとSitesの秘密設定に登録し、Sitesのサーバーから集計だけを読む。既存の `ADMIN_TOKEN` は保持し、個別記録への権限を専用キーへ与えない。D1の変更は不要。[運用手順](../docs/OWNER_LOGIN.md)。

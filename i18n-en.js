@@ -309,6 +309,7 @@
  "オートエイム（近い敵に照準・三人称では後ろにも振り向く／オフ＝中央照準、頭なら一撃）": "Auto-aim (aims at close enemies; in third person also turns behind you / off = center aim, one-hit on headshots)",
  "自動射撃（近い敵を狙う／プレイ中のボタン・Xで停止と再開）": "Auto-fire (targets close enemies / stop and resume with the in-game button or X)",
  "プレイ記録を匿名で送信する（操作・結果・画面サイズ。開発の改善に使います）": "Send play records anonymously (inputs, results, screen size — used to improve the game)",
+ "プレイ記録と動作情報を匿名で送信する（操作・結果・国・端末環境。開発の改善に使います）": "Send play and performance records anonymously (inputs, results, country, device environment — used to improve the game)",
  "初期値に戻す": "Reset to defaults",
  "得点の内訳": "Score breakdown",
  "長く生存するほど得点アップ。難易度ボーナスは各得点に反映済み。": "The longer you survive, the higher your score. The difficulty bonus is already included in each score.",

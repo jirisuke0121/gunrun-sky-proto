@@ -42,7 +42,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-01-time-score-v2", recordProtocol: 2, replayDetail: 1, ownerLogin: 1, rankedRules: rankedRules.version }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-02-environment-v1", recordProtocol: 2, replayDetail: 1, ownerLogin: 1, environmentTelemetry: 1, customDateRange: 1, rankedRules: rankedRules.version }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
