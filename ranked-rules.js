@@ -1,7 +1,7 @@
 // One contract for the classic browser entrypoint, recorder and Worker.
 // View, input, audio and graphics preferences are deliberately outside it.
 (function (root) {
-  const version = 'corridor-time-score-v11';
+  const version = 'corridor-balanced-score-v12';
   const settings = Object.freeze({
     walkSpeed: 4.6, groundAccel: 140, groundBrake: 120, sprintSpeed: 6,
     jumpVel: 7.2, gravity: 20, airAccel: 14, slideBoost: 9.5, slideFriction: 5,

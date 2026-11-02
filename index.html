@@ -82,7 +82,7 @@ html.touch .hookmark{width:48px;height:48px;margin:-24px;border-width:3px;backgr
       <div class="missions"><h3>ミッション（技の練習）</h3><p class="note">まずお手本を見てから挑戦する。本番で使う技を1つずつ</p><div id="missionList"></div></div>
       <p id="bestLine" class="note"></p>
       <p id="recNote" class="note" hidden></p>
-      <details class="rules"><summary>操作と得点のルール</summary><p class="unity-score-rule">生き残った時間に30秒ごとに3600点（1秒あたり120点分。途中で終わった場合も端数は加算）、有効ダメージ1につき2点、撃破1体につき100点。各得点にイージー×1.0・ノーマル×1.1・ハード×1.2の難易度倍率がかかります。敵との距離や人数、移動・静止に関係なく生存点が加算されます。制限時間は2分。同じ難易度で完走した場合は、ダメージ・撃破による得点で差がつきます。全難易度でスコアを競います。</p>
+      <details class="rules"><summary>操作と得点のルール</summary><p class="unity-score-rule">生き残った時間に30秒ごとに100点（秒数に応じて計算。途中で終わった場合も端数は加算）、有効ダメージ1につき2点、撃破1体につき100点。各得点にイージー×1.0・ノーマル×1.1・ハード×1.2の難易度倍率がかかります。敵との距離や人数、移動・静止に関係なく生存点が加算されます。制限時間は2分。同じ難易度で完走した場合は、ダメージ・撃破による得点で差がつきます。全難易度でスコアを競います。</p>
       <ul class="keys">
         <li><kbd>W A S D</kbd> 走る　マウスで視点　<kbd>Space</kbd> ジャンプ<span class="desktop-slide-help">　<kbd>C</kbd> スライド</span></li>
          <li>壁走り：青緑の矢印がある壁だけ使える。矢印に沿って跳び、空中でも移動入力を続ける。金枠の JUMP で <kbd>Space</kbd>（タッチはジャンプ）を押すとショートカット</li>
@@ -3871,7 +3871,7 @@ three/build/three.module.js:
 <script src="./indoor-feedback.js?v=20261101-entry-v1"></script>
 <script src="./start-readiness.js?v=20261101-infection-fx-v2"></script>
 <script src="./dev-mode.js?v=20261101-dev-v1"></script>
-<script src="./ranked-rules.js?v=20261102-ammo-push-v1"></script>
+<script src="./ranked-rules.js?v=20261102-ammo-push-v2"></script>
 <script src="./challenge-difficulty.js?v=20261102-spawn-reach-v1"></script>
 <script src="./render-quality.js?v=20261102-environment-v1"></script>
 <script type="module" src="./foundation-runtime.js?v=20261102-players-v1"></script>
@@ -3881,7 +3881,7 @@ three/build/three.module.js:
 <link rel="stylesheet" href="./player-skills.css?v=20261102-skill-keys-v1">
 <link rel="stylesheet" href="./home-focus.css?v=20261101-screen-v2">
 <link rel="stylesheet" href="./pause-focus.css?v=20261101-pause-v1">
-<script src="./survival-score.js?v=20261102-tick-score-v2"></script>
+<script src="./survival-score.js?v=20261102-score-balance-v12"></script>
 <script src="./next-step.js?v=20261102-next-step-v1"></script>
 <script src="./spawn-reach.js?v=20261102-spawn-reach-v3"></script>
 <link rel="stylesheet" href="./combat-feedback.css?v=20261101-clear-view-v1">
@@ -7848,6 +7848,6 @@ window.skyFoundation?.attach(window.__skyInternals,window.__game);
 <script type="module" src="./onboarding.js?v=20261102-owner-replay-v1"></script>
 <script type="module" src="./pause-focus.js?v=20261102-skill-keys-v1"></script>
 <script type="module" src="./look-pass.js?v=20261101-look-v1"></script>
-<script src="./i18n-en.js?v=20261102-environment-v1"></script>
+<script src="./i18n-en.js?v=20261102-score-balance-v12"></script>
 <script src="./i18n.js?v=20261101-threat-title-v1"></script>
 </body></html>

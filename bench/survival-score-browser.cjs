@@ -25,7 +25,7 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
    const advance=seconds=>{for(let i=0;i<Math.round(seconds*60);i++)g.advance(1/60);score.sync()};
    advance(21);
    const waiting={...score.current()};
-   if(waiting.survival!==Math.floor(waiting.elapsed*120*waiting.difficulty+1e-7)||waiting.survival<2500)throw Error('Safe stationary survival did not earn');
+   if(waiting.survival!==Math.floor(waiting.elapsed*(100/30)*waiting.difficulty+1e-7)||waiting.survival<70)throw Error('Safe stationary survival did not earn');
    if(document.getElementById('threatScoreHud'))throw Error('Threat HUD still exists');
    if(score.pursuit().pressureSeconds!==undefined)throw Error('Threat score still accumulated');
    // The real enemy hurt/die hook must award only actual HP removed, once.
@@ -44,16 +44,18 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
    if(g.mode!=='pause')throw Error('Background did not pause');advance(2);
    if(score.current().total!==resumed.total)throw Error('Background earned');
    delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));g.setMode('play');
+   advance(9);const milestone={...score.current()};
+   if(milestone.ticks!==1||milestone.tickPoints!==Math.round(100*milestone.difficulty)||milestone.live!==milestone.tickPoints+milestone.damage+milestone.kill)throw Error('30-second payout mismatch');
    g.cam(0);g.frameOnce(0);score.sync();
    // Dynamic UI text is translated by the MutationObserver after this JS turn.
    await Promise.resolve();
-   return{waiting,combat,paused,resumed,pauseText,lang:document.documentElement.lang,hudTotal:document.getElementById('unityTotal').textContent,rate:document.getElementById('unityTimeFactor').textContent};
+   return{waiting,combat,paused,resumed,milestone,pauseText,lang:document.documentElement.lang,hudTotal:document.getElementById('unityTotal').textContent,rate:document.getElementById('unityTimeFactor').textContent};
   });
-  assert.equal(evidence.lang,lang);assert.equal(Number(evidence.hudTotal.replace(/\D/g,'')),evidence.resumed.live,'HUD counts paid-out 30-second milestones plus combat');assert.equal(evidence.rate,lang==='ja'?`+${evidence.resumed.tickPoints}/30秒`:`+${evidence.resumed.tickPoints} / 30 s`);
+  assert.equal(evidence.lang,lang);assert.equal(Number(evidence.hudTotal.replace(/\D/g,'')),evidence.milestone.live,'HUD counts paid-out 30-second milestones plus combat');assert.equal(evidence.rate,lang==='ja'?`+${evidence.resumed.tickPoints}/30秒`:`+${evidence.resumed.tickPoints} / 30 s`);
   await page.screenshot({path:`${out}/${map}-${difficulty}-play.png`});
   await page.evaluate(()=>{__game.endGame('caught');__game.advance(1.5)});
   await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
-  const result=await page.locator('#unityResultCard').getAttribute('data-score');assert.equal(JSON.parse(result).total,evidence.resumed.total);
+  const result=await page.locator('#unityResultCard').getAttribute('data-score');assert.equal(JSON.parse(result).total,evidence.milestone.total);
   assert.equal(await page.locator('.uc-breakdown>div').count(),3);
   const resultText=await page.locator('#unityResultCard').innerText();assert.doesNotMatch(resultText,/脅威|threat weight|chaser distance/i);
   if(lang==='en')assert.doesNotMatch(resultText,/[\u3040-\u30ff\u4e00-\u9fff]/,'result and equations translated');
@@ -70,8 +72,23 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
   await page.evaluate(()=>{__game.GAME.t=119.95;__game.advance(.2);__game.advance(1.5)});
   await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
   const complete=JSON.parse(await page.locator('#unityResultCard').getAttribute('data-score'));
-  assert.equal(complete.elapsed,120);assert.equal(complete.survival,Math.floor(14400*complete.difficulty+1e-7));assert.equal(complete.damageUnits,0);assert.equal(complete.kills,0);
+  assert.equal(complete.elapsed,120);assert.equal(complete.survival,Math.floor(400*complete.difficulty+1e-7));assert.equal(complete.damageUnits,0);assert.equal(complete.kills,0);
   assert.equal(await page.locator('#unityResultCard').getAttribute('data-failed'),'false');
+  if(difficulty==='hard'){
+   // Reproduce the user's actual damage/kill totals through the live damage hook.
+   await page.locator('#unityRetry').tap();await page.waitForFunction(()=>__game.mode==='play');
+   await page.evaluate(()=>{
+    const g=__game,s=__skyInternals,c=g.P;
+    for(const e of g.zombies)s.ue.remove(e.m.root);g.zombies.length=0;
+    const e=new g.Zombie(c.pos.x+3,c.pos.y,c.pos.z);e.spawnT=0;e.rise=null;e.hp=64.1;g.zombies.push(e);
+    e.hurt(100,1,0,.6,0);g.GAME.t=119.95;g.advance(.2);g.advance(1.5);
+   });
+   await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
+   const reported=JSON.parse(await page.locator('#unityResultCard').getAttribute('data-score'));
+   assert.deepEqual([reported.survival,reported.damage,reported.kill,reported.total],[480,153,120,753]);
+   assert.equal(await page.locator('#unityResultTotal').innerText(),'753');
+   await page.screenshot({path:`${out}/${map}-reported-result.png`});
+  }
   assert.deepEqual(errors,[]);assert.equal(posts,0);
   results.push({map,difficulty,lang,touch,...evidence,result:JSON.parse(result),complete,posts,errors});
   fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2));
