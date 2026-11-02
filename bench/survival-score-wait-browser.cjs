@@ -42,11 +42,11 @@ const port=18801,base=`http://127.0.0.1:${port}/`,out='browser-evidence/survival
    return{resetTracker,before,from,to:c.pos.toArray(),life:c.life,score:skyChallengeScore.current(),trace};
   },resetTracker);
   rows.push({map,...result,posts,errors});fs.writeFileSync(out+'/results.json',JSON.stringify(rows,null,2));
-  assert.deepEqual(errors,[]);assert.equal(posts,0);assert.ok(result.before.survival>=2700,'quiet waiting earns survival points');
+  assert.deepEqual(errors,[]);assert.equal(posts,0);assert.ok(result.before.survival>=77,'quiet waiting earns survival points');
   assert.ok(result.trace.some(r=>r.count>0),'a real nearby pursuer must be counted');
   assert.ok(result.to[0]-result.from[0]>5,'real movement must leave the starting point');
   assert.ok(result.score.survival>0,'the first chase after quiet waiting must earn');
-  assert.equal(result.score.survival,Math.floor(result.score.elapsed*120*result.score.difficulty+1e-7),'chase state does not affect survival points');
+  assert.equal(result.score.survival,Math.floor(result.score.elapsed*(100/30)*result.score.difficulty+1e-7),'chase state does not affect survival points');
   await page.screenshot({path:`${out}/${map}-${resetTracker?'control':'wait'}.png`});
   console.log('PASS',map,resetTracker?'fresh damage/feedback tracker control':'21s quiet wait then first native chase',result.score.survival,'survival points');
   await context.close();

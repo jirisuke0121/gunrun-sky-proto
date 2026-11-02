@@ -46,8 +46,8 @@ function policyFixture(practice = false) {
   const scoreEnv={window:{skySurvivalScore:require('../survival-score.js')},document:{},Math};
   vm.runInNewContext(fs.readFileSync('challenge-score.js','utf8'),scoreEnv);
   const evaluate=scoreEnv.window.skyChallengeScore.evaluate;
-  assert.deepEqual([0,1,2].map(i=>evaluate(120,0,i).total),[14400,15840,17280]);
-  assert.deepEqual([0,1,2].map(i=>evaluate(120,1,i,{damageUnits:10}).total),[14520,15972,17424]);
+  assert.deepEqual([0,1,2].map(i=>evaluate(120,0,i).total),[400,440,480]);
+  assert.deepEqual([0,1,2].map(i=>evaluate(120,1,i,{damageUnits:10}).total),[520,572,624]);
 
   const {default:worker}=await import('../server/worker.js');
   const {createRunRecords,resultOnly}=await import('../run-records.js');
@@ -60,13 +60,13 @@ function policyFixture(practice = false) {
   const make=(player,id,score,extra={})=>({clientRunId:crypto.randomUUID(),player,at:new Date().toISOString(),t:120,reason:'time',kind:'map',channel:'production',build:'shared-score-fixture',mapKey:map,
     challenge:{id,version:rules.version,rankingScope:'all',fixedSettings:{...rules.settings}},score:evaluate(extra.t ?? 120,0,['easy','normal','hard'].indexOf(id),{damageUnits:Math.max(0,score-evaluate(extra.t??120,0,['easy','normal','hard'].indexOf(id)).survival)/(2*(1+['easy','normal','hard'].indexOf(id)*.1))}),stars:3,...extra});
   const post=async a=>{const r=await fetcher('https://fixture/runs',{method:'POST',body:JSON.stringify(a)});assert.equal(r.status,200);return r.json();};
-  const first=make('one','hard',17280);await post(first);
+  const first=make('one','hard',480);await post(first);
   const ghost={v:1,map:'old-town',mapVersion:'old-town-beams-20261025',samples:[[0,0,0,0,0,0,0,8,0],[120,1,0,0,0,0,0,8,0]]};
-  const winner=make('one','easy',18400,{ghost});const receipt=await post(winner);
-  await post(make('two','normal',18040,{name:'runner_2'}));
-  await post(make('three','hard',17880,{reason:'caught',t:110,name:'x<script>'}));
+  const winner=make('one','easy',800,{ghost});const receipt=await post(winner);
+  await post(make('two','normal',760,{name:'runner_2'}));
+  await post(make('three','hard',720,{reason:'caught',t:110,name:'x<script>'}));
   const ranking=await get('/ranking?'+scope+'&me=one');
-  assert.equal(ranking.total,3);assert.deepEqual(ranking.top.map(r=>r.score),[18400,18040,17880]);
+  assert.equal(ranking.total,3);assert.deepEqual(ranking.top.map(r=>r.score),[800,760,720]);
   assert.equal(ranking.top[0].difficulty,'easy');assert.equal(ranking.top[0].runId,receipt.id);
   assert.ok(ranking.top.every(r=>r.stars===0));
   assert.equal(ranking.top[2].cleared,0,'uncleared runs compete on score');
@@ -86,10 +86,10 @@ function policyFixture(practice = false) {
   assert.equal((await post(missing)).receipt.ranked,false);
   assert.equal((await get('/ranking?'+scope)).total,3,'all altered results are preserved outside the ranking');
   const otherMap=make('other-map','hard',99999,{mapKey:'rock-canyon'});await post(otherMap);
-  assert.equal((await get('/ranking?'+scope)).top[0].score,18400);
+  assert.equal((await get('/ranking?'+scope)).top[0].score,800);
   assert.equal((await get('/ranking?'+scope.replace('old-town','rock-canyon'))).top[0].score,99999);
   const old=make('old','normal',99999,{challenge:{id:'normal',version:'corridor-parkour-v8'}});await post(old);
-  assert.equal((await get('/ranking?'+scope)).top[0].score,18400);
+  assert.equal((await get('/ranking?'+scope)).top[0].score,800);
   assert.equal((await get('/ranking?map=old-town&rules=corridor-parkour-v8&difficulty=normal')).top[0].score,99999);
 
   const forged=make('forged','normal',99999);forged.score.total++;
@@ -97,7 +97,7 @@ function policyFixture(practice = false) {
   const alteredDifficulty=make('bad-multiplier','normal',99999);alteredDifficulty.score.difficulty=99;
   assert.equal((await post(alteredDifficulty)).receipt.ranked,false,'difficulty multiplier is server-derived');
   const v10=make('old-threat','normal',99999,{challenge:{id:'normal',version:'corridor-threat-score-v10'}});await post(v10);
-  assert.equal((await get('/ranking?'+scope)).top[0].score,18400,'old threat scores stay outside the time board');
+  assert.equal((await get('/ranking?'+scope)).top[0].score,800,'old threat scores stay outside the time board');
   const overkill=make('bad-kill-count','normal',99999);overkill.score.kills=99;
   assert.equal((await post(overkill)).receipt.ranked,false,'kill count must match run stats');
   const rounded=make('rounded','hard',18000,{t:119.9,mapKey:'rock-canyon'});
@@ -113,9 +113,28 @@ function policyFixture(practice = false) {
   assert.equal((await post(oldThreat)).receipt.ranked,true,'cached v10 clients retain their own board during rollout');
   const previousThreat=await get('/ranking?map=old-town&rules=corridor-threat-score-v10&mode=score&difficulty=all');
   assert.equal(previousThreat.top[0].score,1449);assert.equal(previousThreat.top[0].stars,0);
-  assert.equal((await get('/ranking?'+scope)).top[0].score,18400,'v10 and v11 never mix');
+  assert.equal((await get('/ranking?'+scope)).top[0].score,800,'v10 and v12 never mix');
   oldThreat.clientRunId=crypto.randomUUID();oldThreat.score.pressureSeconds=999;
   assert.equal((await post(oldThreat)).receipt.ranked,false,'old threat arithmetic is still validated');
+
+  // Cached v11 clients keep their original arithmetic and isolated score/replay board.
+  const oldTime=make('previous-time','hard',753,{ghost});
+  oldTime.challenge.version='corridor-time-score-v11';
+  oldTime.stats={kills:1};
+  oldTime.score={scoring:'time-survival-v1',elapsed:120,difficulty:1.2,damageUnits:64.1,kills:1,survival:17280,damage:153,kill:120,total:17553};
+  const oldReceipt=await post(oldTime);
+  assert.equal(oldReceipt.receipt.ranked,true);
+  const oldScope='map=old-town&rules=corridor-time-score-v11&mode=score&difficulty=all';
+  const oldBoard=await get('/ranking?'+oldScope);
+  assert.equal(oldBoard.top[0].score,17553);assert.equal(oldBoard.top[0].stars,0);
+  assert.equal((await get('/ghosts/'+oldReceipt.id+'?'+oldScope)).score,17553);
+  assert.equal((await get('/ranking?'+scope)).top[0].score,800,'v11 scores cannot dominate v12');
+  const crossVersion=structuredClone(oldTime);crossVersion.clientRunId=crypto.randomUUID();crossVersion.challenge.version=rules.version;
+  assert.equal((await post(crossVersion)).receipt.ranked,false,'v11 payload cannot enter v12');
+  const forgedOld=structuredClone(oldTime);forgedOld.clientRunId=crypto.randomUUID();forgedOld.score.total++;
+  assert.equal((await post(forgedOld)).receipt.ranked,false,'v11 still validates totals');
+  const newAsOld=make('new-as-old','hard',753);newAsOld.challenge.version='corridor-time-score-v11';
+  assert.equal((await post(newAsOld)).receipt.ranked,false,'v12 payload cannot enter v11');
 
   // Both movement-only fallback and a real recorder receipt keep the ranking scope/contract.
   assert.deepEqual(resultOnly(winner).challenge,winner.challenge);

@@ -19,15 +19,15 @@ function fixture() {
   return {game,c,enemy,runtime,tracker,tick,escapes:()=>escapes,wall:v=>blocked=v,decoy:v=>distracted=v};
 }
 // Survival is solely a function of elapsed simulation time and difficulty.
-assert.deepEqual([0,1,2].map(i=>evaluate(120,0,i).total),[14400,15840,17280]);
-assert.deepEqual([0,1,2].map(i=>evaluate(120,1,i,{damageUnits:4}).total),[14508,15958,17409]);
-assert.equal(evaluate(10,0,0,{pressureSeconds:999,chasedSeconds:0}).survival,1200,'old threat metrics cannot alter time points');
-assert.equal(evaluate(500,0,0).survival,14400,'round time is capped at 120 seconds');
+assert.deepEqual([0,1,2].map(i=>evaluate(120,0,i).total),[400,440,480]);
+assert.deepEqual([0,1,2].map(i=>evaluate(120,1,i,{damageUnits:4}).total),[508,558,609]);
+assert.equal(evaluate(10,0,0,{pressureSeconds:999,chasedSeconds:0}).survival,33,'old threat metrics cannot alter time points');
+assert.equal(evaluate(500,0,0).survival,400,'round time is capped at 120 seconds');
 assert.equal(evaluate(-2,0,0).total,0);
-assert.equal(evaluate(1.234,0,1).survival,162,'each component rounds down');
-// Survival is paid out every 30 seconds (30 x 120 x multiplier) without changing the total.
+assert.equal(evaluate(1.234,0,1).survival,4,'each component rounds down');
+// Survival is paid out every 30 seconds (100 x multiplier) without changing the total.
 assert.equal(config.interval,30);
-assert.deepEqual([0,1,2].map(i=>evaluate(30,0,i).tickPoints),[3600,3960,4320]);
+assert.deepEqual([0,1,2].map(i=>evaluate(30,0,i).tickPoints),[100,110,120]);
 for(const d of [0,1,2]) {
   assert.equal(evaluate(120,0,d).ticks,4);
   assert.equal(evaluate(120,0,d).remainder,0,'a full run is entirely paid out in milestones');
@@ -41,8 +41,26 @@ for(const d of [0,1,2]) {
   }
 }
 assert.equal(evaluate(29.99,0,0).live,0,'nothing is paid out before the first 30 seconds');
-assert.equal(evaluate(30,0,1).live,3960);
-assert.equal(evaluate(5,0,1).scoring,'time-survival-v1','server rule and scoring id are unchanged');
+assert.equal(evaluate(30,0,1).live,110);
+assert.equal(evaluate(5,0,1).scoring,'time-survival-v2','new arithmetic has its own scoring id');
+// The reported run is survival-led, while combat now materially affects the total.
+const reported=evaluate(120,1,2,{damageUnits:64.1});
+assert.deepEqual([reported.survival,reported.damage,reported.kill,reported.total],[480,153,120,753]);
+assert.ok(reported.survival/reported.total>.6&&reported.survival/reported.total<.7);
+// Ordinary 1–3 full-health kills leave survival as the largest share at completion.
+for(const [difficulty,hp] of [[0,4],[1,8],[2,12]]) {
+  for(const kills of [1,2,3]) {
+    const b=evaluate(120,kills,difficulty,{damageUnits:hp*kills});
+    assert.ok(b.survival>b.damage+b.kill);
+  }
+  // Active combat can still beat passive completion; survival is preferred, not absolute.
+  assert.ok(evaluate(90,1,difficulty,{damageUnits:hp}).total>evaluate(120,0,difficulty).total);
+  for(let ms=0;ms<=120000;ms+=137) {
+    const b=evaluate(ms/1000,1,difficulty,{damageUnits:4.1});
+    assert.equal(b.live+b.remainder,b.total);
+    assert.ok(b.remainder>=0&&b.remainder<b.tickPoints);
+  }
+}
 for(const condition of ['idle','far','wall','floor','no-route','swing','ledge','invulnerable','loop','decoy']) {
  const f=fixture();
  if(condition==='far')f.runtime.FIELD[0]=60;
@@ -53,7 +71,7 @@ for(const condition of ['idle','far','wall','floor','no-route','swing','ledge','
  if(condition==='invulnerable')f.c.invuln=100;
  if(condition==='decoy')f.decoy(true);
  f.tick(30,condition!=='idle',condition==='loop');
- assert.equal(evaluate(f.game.z.t,0,0,f.tracker.snapshot()).survival,3600,condition+' does not suppress survival points');
+ assert.equal(evaluate(f.game.z.t,0,0,f.tracker.snapshot()).survival,100,condition+' does not suppress survival points');
  assert.ok(!('pressureSeconds' in f.tracker.snapshot()),'no threat score is accumulated');
 }
 const escape=fixture();escape.tick(4);escape.wall(true);escape.tick(3);
