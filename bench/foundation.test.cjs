@@ -45,9 +45,10 @@ test('telemetry API validates, deduplicates, filters, preserves missing FPS and 
   const { default: worker } = await import('../server/worker.js');
   const sqlite = new DatabaseSync(':memory:');
   sqlite.exec(fs.readFileSync('server/schema.sql','utf8')); sqlite.exec(fs.readFileSync('server/telemetry-schema.sql','utf8'));
-  const DB = { prepare(query) { let values=[]; return { bind(...a){values=a;return this},
+  const DB = { prepare(query) { let values=[]; return { query, bind(...a){values=a;return this},
     async first(){return sqlite.prepare(query).get(...values)||null}, async all(){return{results:sqlite.prepare(query).all(...values)}},
     async run(){return sqlite.prepare(query).run(...values)} }; } };
+ DB.batch=async statements=>{sqlite.exec('BEGIN');try{const results=[];for(const statement of statements)results.push(await (/^\s*(SELECT|WITH)\b/i.test(statement.query)?statement.all():statement.run()));sqlite.exec('COMMIT');return results}catch(error){sqlite.exec('ROLLBACK');throw error}};
   const env = { DB, ADMIN_TOKEN: 'local-fixture-only', ALLOWED_ORIGINS: 'https://fixture.invalid' };
   const request = (path,options={}) => worker.fetch(new Request('https://fixture.invalid'+path,options),env,{});
   const admin = path => request('/admin/overview'+path,{headers:{Authorization:'Bearer local-fixture-only'}});

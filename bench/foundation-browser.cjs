@@ -6,7 +6,8 @@ fs.mkdirSync(out,{recursive:true});
 (async()=>{
  const {default:worker}=await import('../server/worker.js');
  const sql=new DatabaseSync(':memory:');sql.exec(fs.readFileSync(path.join(root,'server/schema.sql'),'utf8'));sql.exec(fs.readFileSync(path.join(root,'server/telemetry-schema.sql'),'utf8'));
- const DB={prepare(query){let values=[];return{bind(...args){values=args;return this},async first(){return sql.prepare(query).get(...values)||null},async all(){return{results:sql.prepare(query).all(...values)}},async run(){return sql.prepare(query).run(...values)}}}};
+ const DB={prepare(query){let values=[];return{query,bind(...args){values=args;return this},async first(){return sql.prepare(query).get(...values)||null},async all(){return{results:sql.prepare(query).all(...values)}},async run(){return sql.prepare(query).run(...values)}}}};
+ DB.batch=async statements=>{sql.exec('BEGIN');try{const results=[];for(const statement of statements)results.push(await (/^\s*(SELECT|WITH)\b/i.test(statement.query)?statement.all():statement.run()));sql.exec('COMMIT');return results}catch(error){sql.exec('ROLLBACK');throw error}};
  const env={DB,ADMIN_TOKEN:'local-fixture-only',ALLOWED_ORIGINS:base};
  const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.glb':'model/gltf-binary','.gz':'application/gzip','.svg':'image/svg+xml','.woff':'font/woff','.wav':'audio/wav','.png':'image/png','.webp':'image/webp','.ogg':'audio/ogg','.mp3':'audio/mpeg'};
  const server=http.createServer(async(req,res)=>{try{
