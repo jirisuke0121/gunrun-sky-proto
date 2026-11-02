@@ -66,7 +66,9 @@ for(const touch of [false,true]){
    let near=null,firstDamage=null,dropFrames=0,blockedDropFrames=0;
    for(let i=0;i<30*120&&!g.GAME.over;i++){
     g.advance(dt);const enemy=g.zombies[0];
-    if(enemy?.act?.kind==='drop'){dropFrames++;if(!g.freeAt(enemy.pos.x,enemy.pos.y+.015,enemy.pos.z,enemy.r,enemy.h))blockedDropFrames++;}
+    // A pursuer can now choose a checked higher descent instead of the old
+    // fixed drop link. Both must descend in real space without penetration.
+    if(enemy?.act&&['drop','jumpdown'].includes(enemy.act.kind)&&enemy.act.ty<enemy.act.sy){dropFrames++;if(!g.freeAt(enemy.pos.x,enemy.pos.y+.015,enemy.pos.z,enemy.r,enemy.h))blockedDropFrames++;}
     if(near===null&&enemy&&Math.abs(enemy.pos.y-c.pos.y)<1.2&&Math.hypot(enemy.pos.x-c.pos.x,enemy.pos.z-c.pos.z)<1.5)near=g.GAME.t-start;
     if(firstDamage===null&&c.life<life)firstDamage=g.GAME.t-start;
    }

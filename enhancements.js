@@ -6,7 +6,8 @@ import { installRanking } from './ranking.js?v=20261101-shared-score-v1';
 import { createFlashbang } from './flashbang.js?v=20261031-no-point-lights-v1';
 import { installSkillDock } from './player-skills.js?v=20261030-decoy-v1';
 import { createDecoy } from './skill-decoy.js?v=20261030-decoy-lock-v2';
-import { createZombieClimb } from './zombie-climb.js?v=20261102-wall-approach-v1';
+import { createZombieClimb } from './zombie-climb.js?v=20261102-direct-pursuit-v1';
+import { createZombieRouting } from './zombie-routing.js?v=20261102-direct-pursuit-v1';
 import { createZombiePursuit } from './zombie-pursuit.js?v=20261031-parkour-v8';
 import { createGhostReplay } from './ghost-replay.js?v=20261101-shared-score-v1';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261101-jump-stash-v1';
@@ -457,7 +458,8 @@ const flashbang = window.skyFlashbang = createFlashbang(game);
 window.skyDecoy = createDecoy(game, window.__game);
 window.skyZombieSearch = createZombiePursuit(game, window.__game);
 window.skyZombieClimb = createZombieClimb(game, window.__game, flashbang);
-knifeRule?.insertAdjacentHTML('afterend', '<li>高台で追いつけずにいるゾンビは、柱をゆっくり登ってくる。登っている間に撃って落とせる。</li>');
+window.skyZombieRouting = createZombieRouting(game, window.__game, window.skyZombieClimb, flashbang);
+knifeRule?.insertAdjacentHTML('afterend', '<li>ゾンビは近道になる柱も登ってくる。登っている間に撃って落とせる。</li>');
 
 // Knife readability: a white slash streak across the view during the swing,
 // and a small prompt when a zombie is in knife range.

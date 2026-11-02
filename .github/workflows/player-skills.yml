@@ -23,7 +23,11 @@ jobs:
       - name: Install browser test dependencies
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
-          npx playwright install --with-deps chromium
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
       - name: Exercise clone attraction, expiry, pause, touch and rotation
         run: node bench/player-skills-browser.cjs
       - uses: actions/upload-artifact@v4

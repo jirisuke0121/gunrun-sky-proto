@@ -35,6 +35,7 @@ jobs:
           node bench/zombie-search.test.cjs
           node bench/zombie-drop-entry.test.cjs
           node bench/zombie-nav-floor.test.cjs
+          node bench/zombie-routing.test.cjs
           node bench/zombie-wall-approach.test.cjs
           node bench/nav-field-refresh.test.cjs
       - name: Install browser
@@ -49,6 +50,8 @@ jobs:
         run: node bench/zombie-search-browser.cjs
       - name: Pursuit onto the reported five-meter wall
         run: node bench/zombie-wall-approach-browser.cjs
+      - name: Shortcuts and moving-player pursuit in both maps
+        run: node bench/zombie-routing-browser.cjs
       - name: Editor auto-save in desktop and touch browsers
         run: |
           node bench/editor-autosave-browser.cjs
