@@ -56,3 +56,9 @@ test('telemetry reuses the existing browser player ID and opt-out / owner replay
   assert.equal(disk.get('gunrun-pid'),id);
  }
 });
+
+
+test('first-visit onboarding does not create UI inside an owner replay frame',()=>{
+ const vm=require('node:vm'),source=fs.readFileSync('onboarding.js','utf8');
+ for(const flag of [false,true])vm.runInNewContext(source,{window:{skyOwnerReplay:flag},location:{search:'?ownerReplay=1&onboarding=auto'},URLSearchParams,document:{getElementById(){throw Error('owner replay must not create onboarding')}}});
+});

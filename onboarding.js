@@ -5,7 +5,7 @@
 // screen reopens the controls and the nickname. Nothing here awards score or changes the rules.
 (() => {
   const params = new URLSearchParams(location.search);
-  if (window.skyPracticeMode || params.has('practice')) return;
+  if (window.skyOwnerReplay || params.has('ownerReplay') || window.skyPracticeMode || params.has('practice')) return;
   const $ = id => document.getElementById(id);
   const hero = $('homeHero');
   if (!hero || $('onboarding')) return;
