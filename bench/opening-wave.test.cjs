@@ -11,8 +11,10 @@ assert.equal(wave.pick(nodes.filter(n=>n.y<7||n.id===4),player,[],()=>0),null,'n
 assert.equal(wave.pick(nodes,player,[],()=>0,n=>n.id!==1).id!==1,true,'game checks (reachable, outdoors) filter candidates');
 assert.deepEqual([5,4,3,2,1,0].map(wave.highCount),[2,2,1,1,0,0],'2 of 4+ opening zombies come from the high ground, never all of them');
 // spawn(): refuses outside challenge runs and when the slot or the point is not allowed.
+assert.equal(wave.AREA.maxCost,60);
 const game={NAV:{nodes,out:{1:[1,2,3],2:[1,2,3],3:[1,2,3],4:[1,2,3],5:[1,2,3],6:[1,2,3],7:[1,2,3]}},P:{pos:player},FIELD:{1:50,2:50,3:50,4:50,5:50,6:50,7:50},zombies:[],Zombie:class{constructor(x,y,z){Object.assign(this,{x,y,z})}}};
 const challenge=(over={})=>({profile:()=>({}),spawnAllowed:()=>true,reserve:()=>true,...over});
+wave.begin();assert.equal(wave.spawn(0,5,{...game,FIELD:{...game.FIELD,1:95,2:95,3:95}},challenge()),false,'only far-side spots left: use the normal spawn instead');
 wave.begin();assert.equal(wave.spawn(0,5,game,challenge()),true);
 assert.equal(game.zombies[0].dropper,true);assert.equal(game.zombies[0].born,'opening');assert.equal(game.zombies[0].flank,false);
 assert.equal(wave.spawn(1,5,game,challenge()),true);assert.equal(wave.spawn(2,5,game,challenge()),false,'only two come from the high ground');
