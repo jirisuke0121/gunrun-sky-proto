@@ -70,6 +70,20 @@ for(const [difficulty,hp] of [[0,4],[1,8],[2,12]]) {
     assert.ok(b.remainder>=0&&b.remainder<b.tickPoints);
   }
 }
+// Parkour clear: full run, zero gun shots and zero kills multiplies the whole subtotal by 1.3.
+assert.equal(config.parkour,1.3);
+const pk=evaluate(120,0,2,{damageUnits:0,gunShots:0});
+assert.deepEqual([pk.survival,pk.parkour,pk.parkourBonus,pk.total,pk.live],[2160,true,648,2808,2808]);
+assert.deepEqual([0,1,2].map(i=>evaluate(120,0,i,{gunShots:0}).total),[2340,2574,2808]);
+assert.equal(evaluate(120,0,2,{damageUnits:12,gunShots:0}).total,2844,'kick/knife damage is allowed and also multiplied');
+for(const [label,args] of [['gun fired',[120,0,2,{gunShots:1}]],['a kill',[120,1,2,{gunShots:0}]],['unknown shots',[120,0,2,{}]],
+  ['not finished',[119.9,0,2,{gunShots:0}]],['NaN shots',[120,0,2,{gunShots:NaN}]]]) {
+  const b=evaluate(...args);assert.equal(b.parkour,false,label+' gives no parkour bonus');assert.equal(b.parkourBonus,0);assert.equal(b.total,b.survival+b.damage+b.kill);
+}
+assert.equal(evaluate(120,0,2,{gunShots:0}).live,evaluate(120,0,2,{gunShots:0}).total,'live total matches at the end');
+// Balance: a clean parkour clear sits between a 5-kill and the heaviest 10-kill gun run on hard.
+assert.ok(pk.total>evaluate(120,5,2,{damageUnits:53,gunShots:9}).total&&pk.total>evaluate(120,3,2,{damageUnits:36,gunShots:6}).total);
+assert.ok(pk.total<evaluate(120,10,2,{damageUnits:106.2,gunShots:20}).total*1.05);
 for(const condition of ['idle','far','wall','floor','no-route','swing','ledge','invulnerable','loop','decoy']) {
  const f=fixture();
  if(condition==='far')f.runtime.FIELD[0]=60;

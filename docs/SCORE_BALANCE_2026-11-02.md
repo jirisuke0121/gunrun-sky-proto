@@ -74,3 +74,12 @@ v13でも、ハード・10撃破の結果は戦闘点（撃破360＋ダメージ
 - 90秒で3体撃破しても完走（ハード2,160）には届かず、完走が常に優先される。v12の「早期の大量撃破にも競争余地」は意図的にやめた。
 - ルールID `corridor-balanced-score-v14`、得点識別子 `time-survival-v4`。Workerはv12（毎秒100/30点・撃破100）とv13（毎秒100/30点・撃破30）を旧クライアント用に従来算術で検算し、順位は混ぜない。
 - 検証：`survival-score.test.cjs`、`shared-score.test.cjs`（v12/v13/v14の相互拒否・受付）、`survival-tick-browser.cjs`。人間の通しプレイは未実施。
+
+### パルクールクリア ×1.3（v14に含める）
+
+- 条件：120秒完走・発砲0・撃破0。ジャンプガンは移動手段なので発砲に数えない（`shots − jumpGunLaunches`）。キック・ナイフでダメージを与えるのは可（撃破すると対象外）。
+- 計算：`小計(生存＋ダメージ＋撃破) × 1.3` を切り捨て、増分を `parkourBonus` として結果に別行表示。ハード完走＝2,160→2,808点。
+- 位置づけ：ハードで 3〜5 体撃破の銃プレイ（約2,300〜2,500）より上、10体撃破の最大級（2,774）とほぼ同等。上位は銃・パルクールどちらでも狙える。
+- HUD：条件を満たしている間、難易度表示に「パルクール ×1.3」を出し、発砲か撃破で消える。
+- Worker：`record.stats` の `shots / jumpGunLaunches / kills` から再計算し、`gunShots・parkour・parkourBonus・total` が一致しなければ順位対象外。値0のstatsは保存時に省略されるため、欠落は0として扱う。コンパクト送信（resultOnly）にも `kills / shots / jumpGunLaunches` だけは残す。
+- 検証：`survival-score.test.cjs`、`shared-score.test.cjs`（承認・ジャンプガン・発砲偽装・加算偽装）、`parkour-browser.cjs`（両マップ×日英×完走/発砲/ジャンプガン）。人間の通しプレイは未実施。

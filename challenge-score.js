@@ -14,8 +14,11 @@
     !window.skyPracticeMode && !game.demoActive?.() && game.modeRef() === 'play';
   function current() {
     if (frozen) return frozen;
-    return evaluate(Math.min(window.__game.RUN_LEN, game.z.t), window.__game.stats.kills || 0,
-      level(), tracker?.snapshot());
+    const st = window.__game.stats;
+    // Jump-gun launches fire the gun internally; they are movement, not shooting.
+    const gunShots = Math.max(0, (st.shots || 0) - (st.jumpGunLaunches || 0));
+    return evaluate(Math.min(window.__game.RUN_LEN, game.z.t), st.kills || 0,
+      level(), { ...tracker?.snapshot(), gunShots });
   }
   function feedback(escape) {
     if (!playing()) return;
@@ -92,10 +95,11 @@
       if (u >= 1) roll = null;
     }
     shown = value;
-    const key = `${window.skyChallenge.id}|${remaining}|${b.tickPoints}|${killFactor}|${b.kills}|${value}`;
+    const parkourLive = b.kills === 0 && b.gunShots === 0;
+    const key = `${window.skyChallenge.id}|${remaining}|${b.tickPoints}|${killFactor}|${b.kills}|${value}|${parkourLive}`;
     if (key !== hudKey) {
       hudKey = key;
-      set('unityDifficulty', window.skyChallenge.name); set('unityTime', remaining);
+      set('unityDifficulty', window.skyChallenge.name + (parkourLive ? `　パルクール ×${window.skySurvivalScore.config.parkour}` : '')); set('unityTime', remaining);
       set('unityKills', b.kills); set('unityTotal', value.toLocaleString('ja-JP'));
       set('unityTimeFactor', `+${b.tickPoints}/${b.interval}秒`); set('unityKillFactor', killFactor + '点/体');
     }
@@ -152,7 +156,10 @@
     set('unityResultDamage', b.damage.toLocaleString('ja-JP') + ' pt');
     set('unityDamageFormula', `有効ダメージ ${b.damageUnits.toFixed(1)} × 2点 × ${b.difficulty.toFixed(1)}`);
     set('unityKillFormula', `${b.kills}体 × ${window.skySurvivalScore.config.perKill}点 × ${b.difficulty.toFixed(1)}`);
-    set('unityResultEquation', [b.survival, b.damage, b.kill].map(n => n.toLocaleString('ja-JP')).join(' + ') + ' = ' + b.total.toLocaleString('ja-JP') + ' pt');
+    $('unityParkourRow').hidden = !b.parkour;
+    set('unityResultParkour', '+' + (b.parkourBonus || 0).toLocaleString('ja-JP') + ' pt');
+    set('unityParkourFormula', `銃撃・撃破なしで完走　小計 × ${window.skySurvivalScore.config.parkour}`);
+    set('unityResultEquation', [b.survival, b.damage, b.kill, ...(b.parkour ? [b.parkourBonus] : [])].map(n => n.toLocaleString('ja-JP')).join(' + ') + ' = ' + b.total.toLocaleString('ja-JP') + ' pt');
     set('unityResultTotal', b.total.toLocaleString('ja-JP'));
     set('unityResultBest', best ? '自己ベスト更新' : '');
     $('unityResultBest').dataset.best = String(!!best);
@@ -226,6 +233,7 @@
               <div>${image('clock')}<div class="uc-entry"><div><span>生存点</span><small id="unitySurvivalMetric"></small></div><p id="unitySurvivalFormula"></p></div><b id="unityResultSurvival"></b></div>
               <div><span class="uc-damage-icon" aria-hidden="true">＋</span><div class="uc-entry"><span>ダメージ点</span><p id="unityDamageFormula"></p></div><b id="unityResultDamage"></b></div>
               <div>${image('skull')}<div class="uc-entry"><span>撃破点</span><p id="unityKillFormula"></p></div><b id="unityResultKill"></b></div>
+              <div id="unityParkourRow" hidden><span class="uc-damage-icon" aria-hidden="true">×</span><div class="uc-entry"><span>パルクールクリア</span><p id="unityParkourFormula"></p></div><b id="unityResultParkour"></b></div>
             </div>
             <p id="unityResultEquation" class="uc-equation" aria-label="内訳の合計"></p>
           </section>

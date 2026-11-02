@@ -47,7 +47,7 @@
 .uc-entry{font-size:13px;line-height:1.25}.uc-entry>div{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.uc-entry span{font-size:14px;font-weight:700;color:#edf0ed}
 .uc-entry small{font-size:11px;color:#b4c6d2}.uc-entry p{font-size:12px;line-height:1.5;color:#b4c6d2;margin:3px 0 0;overflow-wrap:anywhere}
 .uc-breakdown b{font-size:24px;color:#f4f0e8;white-space:nowrap}
-.uc-equation{font-size:13px;color:#fff0da;text-align:right;margin:9px 0 0;line-height:1.5}
+#unityParkourRow[hidden]{display:none}.uc-equation{font-size:13px;color:#fff0da;text-align:right;margin:9px 0 0;line-height:1.5}
 .uc-score-help{margin:10px 0 0;padding-bottom:0;font-size:11px;color:#b0c2cf;line-height:1.5}
 #unityResultActions{flex:none;display:grid;grid-template-columns:1.4fr 1fr auto;gap:10px;padding-top:12px;border-top:1px solid #3a4855;margin-top:4px}
 #unityResultActions button,#unityScoreDetails button{min-height:46px;cursor:pointer;font:inherit;border:1px solid #657380;border-radius:5px;padding:10px 16px;margin:0;background:transparent;color:#e6edf1;font-size:14px;text-shadow:none}

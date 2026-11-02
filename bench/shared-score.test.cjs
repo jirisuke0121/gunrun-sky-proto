@@ -57,8 +57,12 @@ function policyFixture(practice = false) {
   const fetcher=(url,options)=>worker.fetch(new Request(url,options),{DB},{});
   const get=async path=>(await fetcher('https://fixture'+path)).json();
   const map='old-town',scope=`map=${map}&rules=${rules.version}&mode=score&difficulty=all`;
-  const make=(player,id,score,extra={})=>({clientRunId:crypto.randomUUID(),player,at:new Date().toISOString(),t:120,reason:'time',kind:'map',channel:'production',build:'shared-score-fixture',mapKey:map,
+  const make0=(player,id,score,extra={})=>({clientRunId:crypto.randomUUID(),player,at:new Date().toISOString(),t:120,reason:'time',kind:'map',channel:'production',build:'shared-score-fixture',mapKey:map,
     challenge:{id,version:rules.version,rankingScope:'all',fixedSettings:{...rules.settings}},score:evaluate(extra.t ?? 120,0,['easy','normal','hard'].indexOf(id),{damageUnits:Math.max(0,score-evaluate(extra.t??120,0,['easy','normal','hard'].indexOf(id)).survival)/(2*(1+['easy','normal','hard'].indexOf(id)*.1))}),stars:3,...extra});
+  // Ordinary fixtures fired the gun once, so the parkour bonus does not apply unless a test asks for it.
+  const make=(player,id,score,extra={})=>{const o=make0(player,id,score,extra);
+    o.stats={shots:1,...(extra.stats||{})};
+    o.score=evaluate(extra.t??120,0,['easy','normal','hard'].indexOf(id),{damageUnits:o.score.damageUnits,gunShots:1});return o;};
   const post=async a=>{const r=await fetcher('https://fixture/runs',{method:'POST',body:JSON.stringify(a)});assert.equal(r.status,200);return r.json();};
   const first=make('one','hard',2200);await post(first);
   const ghost={v:1,map:'old-town',mapVersion:'old-town-beams-20261025',samples:[[0,0,0,0,0,0,0,8,0],[120,1,0,0,0,0,0,8,0]]};
@@ -101,7 +105,7 @@ function policyFixture(practice = false) {
   const overkill=make('bad-kill-count','normal',99999);overkill.score.kills=99;
   assert.equal((await post(overkill)).receipt.ranked,false,'kill count must match run stats');
   const rounded=make('rounded','hard',18000,{t:119.9,mapKey:'rock-canyon'});
-  rounded.score=evaluate(119.94,0,2,{damageUnits:20});
+  rounded.score=evaluate(119.94,0,2,{damageUnits:20,gunShots:1});
   assert.equal((await post(rounded)).receipt.ranked,true,'record clock rounded to 0.1s does not discard a valid result');
   const v9=make('previous-shared','normal',462);v9.challenge.version='corridor-shared-score-v9';v9.score={total:462};
   assert.equal((await post(v9)).receipt.ranked,true,'old clients keep their previous shared ranking');
@@ -147,7 +151,7 @@ function policyFixture(practice = false) {
   assert.equal((await post(v12AsNew)).receipt.ranked,false,'v12 payload cannot enter v14');
   const forgedV12=structuredClone(v12);forgedV12.clientRunId=crypto.randomUUID();forgedV12.score.total++;
   assert.equal((await post(forgedV12)).receipt.ranked,false,'v12 still validates totals');
-  const v13AsOld=structuredClone(v12);v13AsOld.clientRunId=crypto.randomUUID();v13AsOld.score=evaluate(120,10,2,{damageUnits:106.2});
+  const v13AsOld=structuredClone(v12);v13AsOld.clientRunId=crypto.randomUUID();v13AsOld.score=evaluate(120,10,2,{damageUnits:106.2,gunShots:10});
   assert.equal(v13AsOld.score.total,2774);assert.equal((await post(v13AsOld)).receipt.ranked,false,'v14 payload cannot enter v12');
   const v13=make('previous-kill30','hard',700);v13.challenge.version='corridor-balanced-score-v13';v13.stats={kills:10};
   v13.score={scoring:'time-survival-v3',elapsed:120,difficulty:1.2,damageUnits:106.2,kills:10,survival:480,damage:254,kill:360,total:1094};
@@ -155,10 +159,22 @@ function policyFixture(practice = false) {
   assert.equal((await get('/ranking?map=old-town&rules=corridor-balanced-score-v13&mode=score&difficulty=all')).top[0].score,1094);
   const v13AsNew=structuredClone(v13);v13AsNew.clientRunId=crypto.randomUUID();v13AsNew.challenge.version=rules.version;
   assert.equal((await post(v13AsNew)).receipt.ranked,false,'v13 payload cannot enter v14');
-  const v13Heavy=make('heavy-fight','hard',700);v13Heavy.stats={kills:10};v13Heavy.score=evaluate(120,10,2,{damageUnits:106.2});
+  const v13Heavy=make('heavy-fight','hard',700);v13Heavy.stats={kills:10,shots:20};v13Heavy.score=evaluate(120,10,2,{damageUnits:106.2,gunShots:20});
   assert.equal((await post(v13Heavy)).receipt.ranked,true,'v14 arithmetic is validated');
   assert.equal((await get('/ranking?'+scope)).top.some(r=>r.score===2774),true);
 
+  // Parkour clear (no shots, no kills) is validated against the stored stats; the jump gun does not count as shooting.
+  const parkour=make('parkour','hard',1);parkour.stats={};parkour.score=evaluate(120,0,2,{damageUnits:0,gunShots:0});
+  assert.equal(parkour.score.total,2808);assert.equal((await post(parkour)).receipt.ranked,true,'a clean parkour clear is ranked');
+  const jump=structuredClone(parkour);jump.clientRunId=crypto.randomUUID();jump.stats={shots:2,jumpGunLaunches:2};
+  assert.equal((await post(jump)).receipt.ranked,true,'jump-gun launches are not gun shots');
+  const sneaky=structuredClone(parkour);sneaky.clientRunId=crypto.randomUUID();sneaky.stats={shots:3};
+  assert.equal((await post(sneaky)).receipt.ranked,false,'claiming parkour after firing the gun is rejected');
+  const inflated=structuredClone(parkour);inflated.clientRunId=crypto.randomUUID();inflated.score.parkourBonus+=1;inflated.score.total+=1;
+  assert.equal((await post(inflated)).receipt.ranked,false,'bonus arithmetic is validated');
+  const noBonus=structuredClone(parkour);noBonus.clientRunId=crypto.randomUUID();noBonus.score=evaluate(120,0,2,{damageUnits:0,gunShots:1});
+  assert.equal((await post(noBonus)).receipt.ranked,false,'hiding the stats of a no-shot run does not fit the claimed score either');
+  const compact=resultOnly(parkour);assert.deepEqual(compact.stats,{});
   // Both movement-only fallback and a real recorder receipt keep the ranking scope/contract.
   assert.deepEqual(resultOnly(winner).challenge,winner.challenge);
   const storage=new Map();let requestedAll=false;

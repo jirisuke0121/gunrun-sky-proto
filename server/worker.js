@@ -85,9 +85,13 @@ function validRankedScore(record) {
     survival: Math.floor(b.elapsed * (100 / 30) * factor + 1e-7),
     damage: Math.floor(b.damageUnits * 2 * factor + 1e-7),
     kill: Math.floor(b.kills * (balanced?.kill ?? 100) * factor + 1e-7),
-  } : survivalScore.evaluate(b.elapsed, b.kills, difficulty, b);
+  } : survivalScore.evaluate(b.elapsed, b.kills, difficulty, { ...b,
+    // Zero-valued stats are omitted from the stored record, so a missing key means 0. Jump-gun launches are movement.
+    gunShots: Math.max(0, (record.stats?.shots || 0) - (record.stats?.jumpGunLaunches || 0)) });
   if (legacyThreat || legacyTime || legacyBalanced) expected.total = expected.survival + expected.damage + expected.kill;
-  return ['difficulty', 'survival', 'damage', 'kill', 'total'].every(key => b[key] === expected[key]);
+  const keys = ['difficulty', 'survival', 'damage', 'kill', 'total'];
+  if (!legacyThreat && !legacyTime && !legacyBalanced) keys.push('gunShots', 'parkour', 'parkourBonus');
+  return keys.every(key => b[key] === expected[key]);
 }
 
 async function receive(req, env, cors, origin, allowed) {

@@ -1,7 +1,7 @@
 // Shared time/combat arithmetic. Pursuit detection only triggers presentation.
 (function (root) {
   const config = Object.freeze({ radius: 18, routeLimit: 26, heightLimit: 3,
-    perSecond: 15, interval: 30, perDamage: 2, perKill: 30,
+    perSecond: 15, interval: 30, perDamage: 2, perKill: 30, parkour: 1.3,
     sample: .15, escapeCharge: 3, escapeQuiet: 2 });
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   function evaluate(seconds, kills, difficulty, earned = {}) {
@@ -18,10 +18,17 @@
     const ticks = Math.floor(elapsed / config.interval + 1e-9);
     const tickPoints = Math.floor(config.interval * config.perSecond * factor + 1e-7);
     const ticked = Math.min(survival, ticks * tickPoints);
+    // Parkour clear: finished the full run without firing the gun (the jump gun is a movement tool and
+    // not counted by the caller) and without a single kill. `gunShots` must be an explicit number;
+    // when it is unknown (undefined) no bonus is given. The bonus multiplies the whole subtotal.
+    const gunShots = Number.isFinite(earned.gunShots) ? Math.max(0, Math.floor(earned.gunShots)) : null;
+    const parkour = elapsed >= 120 && (kills | 0) <= 0 && gunShots === 0;
+    const subtotal = survival + damage + kill;
+    const parkourBonus = parkour ? Math.floor(subtotal * (config.parkour - 1) + 1e-7) : 0;
     return { elapsed, kills: Math.max(0, kills | 0), difficulty: factor, damageUnits,
-      survival, damage, kill, total: survival + damage + kill,
+      survival, damage, kill, gunShots, parkour, parkourBonus, total: subtotal + parkourBonus,
       interval: config.interval, ticks, tickPoints, ticked, remainder: survival - ticked,
-      live: ticked + damage + kill,
+      live: ticked + damage + kill + parkourBonus,
       scoring: 'time-survival-v4', bonus: 0, fellExtra: 0, shake: 0 };
   }
   function createTracker(game, runtime, onEscape = () => {}) {

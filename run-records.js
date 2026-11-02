@@ -13,6 +13,8 @@ const timeout = ms => typeof AbortSignal !== 'undefined' && typeof AbortSignal.t
 export function resultOnly(a) {
   const keys = ['v','clientRunId','player','at','build','channel','mapVersion','mapKey','map','kind','mission','challenge','reason','t','score','stars','lives','input','screen','name','source','device','environment','performance','_deliveryUncertain'];
   const result = Object.fromEntries(keys.filter(key => key in a).map(key => [key, a[key]]));
+  // The Worker cross-checks kills and gun shots against these, so the compact form keeps just them.
+  if (a.stats && typeof a.stats === 'object') result.stats = Object.fromEntries(['kills','shots','jumpGunLaunches'].filter(key => Number.isFinite(a.stats[key])).map(key => [key, a.stats[key]]));
   result.ghost = null; result.recordDetail = 'result-only'; return result;
 }
 
