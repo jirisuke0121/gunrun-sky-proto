@@ -174,8 +174,9 @@
       const maximum = profile()?.lives ?? fallback;
       return '●'.repeat(Math.max(0, Math.min(maximum, life))) + '○'.repeat(Math.max(0, maximum - life));
     },
-    spawnAllowed(point) {
+    spawnAllowed(point, kind) {
       if (window.skyIndoorAccess?.allows(point) === false) return false;
+      if (profile() && window.skySpawnReach?.allows(point, kind) === false) return false;
       const spacing = profile()?.spacing || 0;
       const far = p => Math.hypot(p.x - point.x, p.z - point.z, (p.y - point.y) * 1.5) >= spacing;
       return !game || !spacing || game.Jt.every(e => e.dead || e.remove ||

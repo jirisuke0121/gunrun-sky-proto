@@ -1,0 +1,24 @@
+const assert=require('node:assert/strict');
+const {reachable,allows,LIMIT}=require('../spawn-reach.js');
+// Walking cost from the spawn point to the player decides whether a respawn is accepted.
+assert.deepEqual(LIMIT,{cost:60,ratio:1.6,slack:8});
+assert.equal(reachable(40,35),true,'usual respawn: cost 25-48');
+assert.equal(reachable(58,40),true,'just under the cap');
+assert.equal(reachable(61,60),false,'over the absolute cap');
+assert.equal(reachable(95,41),false,'roof spawn: cost far above the straight distance');
+assert.equal(reachable(50,20),false,'detour of more than 1.6x + 8 m');
+assert.equal(reachable(Infinity,30),false,'unreachable');
+assert.equal(reachable(NaN,30),false);
+const game=(cost,{own=0,node=5,mode='menu'}={})=>({mode,P:{node:1,pos:{x:0,y:0,z:0}},FIELD:{1:own,[node]:cost},nodeAt:()=>node});
+const at={x:30,y:3,z:0};
+assert.equal(allows(at,'',game(40)),true);
+assert.equal(allows(at,'',game(95)),false,'applies while the start screen closes (opening wave), not only in play');
+assert.equal(allows(at,'drop',game(95)),false);assert.equal(allows(at,'surge',game(95)),false);
+for(const kind of ['ambush','guard','squeeze','stalker'])assert.equal(allows(at,kind,game(95)),true,kind+' anchors follow their own lead rules');
+assert.equal(allows({x:30,y:-3.5,z:0},'',game(46)),false,'pit spawn while the player is above ground');
+const inPit=game(46);inPit.P.pos.y=-3.5;
+assert.equal(allows({x:30,y:-3.5,z:0},'',inPit),true,'a player standing in the pit still gets pit spawns');
+assert.equal(allows(at,'',game(95,{own:Infinity})),true,'field not built yet: never block spawns');
+assert.equal(allows(at,'',{...game(95),nodeAt:()=>-1}),true,'off-NAV points are left to the existing checks');
+assert.equal(allows(at,'',{P:game(1).P}),true,'no field: allowed');
+console.log('PASS spawn gate: cost cap, detour ratio, gated kinds, opening wave, safe fallbacks');
