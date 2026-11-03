@@ -73,11 +73,11 @@ fs.mkdirSync('browser-evidence', { recursive: true });
           poses[name] = pose;
         };
         await frameAt(0, 'a-hit');
-        await frameAt(8, 'b-bitten');     // about 0.2 s: grabbed
-        await frameAt(10, 'c-shoved');    // about 0.43 s: shoving
+        await frameAt(8, 'b-bitten');     // about 0.2 s: held
+        await frameAt(46, 'c-shoved');    // about 1.0 s: just after the shove (the hold lasts 0.9 s)
         // Sample during the next 1.4 s.
         const samples = [];
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 40; i++) {
           samples.push(await page.evaluate(() => {
             const g = window.__game; if (window.__sampled) { for (let k = 0; k < 3; k++) g.advance(1 / 60); } window.__sampled = true;
             const c = g.P;

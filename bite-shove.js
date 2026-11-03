@@ -18,7 +18,7 @@
 
     // Zombie stun decays velocity by exp(-3.5 t), so a push of v m/s travels about v / 3.5 m.
     const SHOVE = Object.freeze({
-      delay: .35,      // bite pose before the shove
+      delay: .9,       // s the player is held (pushing back, being chewed) before the shove
       radius: 2.5,     // zombies this close (flat distance) are thrown
       push: 9,         // m/s outward, about 2.6 m of travel
       stun: 1,         // s
@@ -31,7 +31,7 @@
       kick: .12,       // m: camera kick back on the shove
     });
     // Pose timeline (s since the bite landed). The morph frames are parkourBite_000/001/002.
-    const ANIM = Object.freeze({ total: .72, in: .07, out: .22, weight: .92 });
+    const ANIM = Object.freeze({ total: SHOVE.delay + .37, in: .07, out: .22, weight: .92 });
     const BLINK_HZ = 7, BLINK_VISIBLE = .65, MAX_SHOWN = 10;
     const dir = new Vector3(), look = new Vector3();
     const smooth01 = x => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
@@ -85,8 +85,9 @@
     // ---------- recorded sounds (CC0, OpenGameArt; see assets/sfx/bite/CREDITS.md) ----------
     // A few KB of mono MP3. Until they have loaded (or if they fail), the synthesized versions below play instead.
     const BANK = { bite: ['bite-1', 'bite-2'], snarl: ['snarl-1', 'snarl-2', 'snarl-3'], thump: ['thump'],
-      whoosh: ['whoosh-1', 'whoosh-2'], grunt: ['grunt-1', 'grunt-2'], groan: ['groan-1', 'groan-2'] };
-    const BANK_VERSION = '20261103-bite-v2';
+      whoosh: ['whoosh-1', 'whoosh-2'], grunt: ['grunt-1', 'grunt-2'], groan: ['groan-1', 'groan-2'],
+      chew: ['chew-1', 'chew-2', 'chew-3', 'chew-4'] };
+    const BANK_VERSION = '20261103-bite-v4';
     const bank = {};
     let bankLoading = null;
     function loadBank() {
@@ -118,6 +119,12 @@
     }
     const lowThump = (gain = 1, delay = 0) => voice((ctx, t, out) => tone(ctx, t, out, { from: 120, to: 42, dur: .22, peak: .55 * gain }), 0, delay);
 
+    // Chewing times (s after the bite lands): evenly spread over the hold, the last one just before the shove.
+    const CHEWS = [.16, .34, .52, .70];
+    const wetChomp = (pan, at) => voice((ctx, t, out) => {
+      noiseBurst(ctx, t, out, { from: 1300, q: 1.2, peak: .3, decay: .1 });
+      noiseBurst(ctx, t + .05, out, { from: 800, q: 1, peak: .2, decay: .09 });
+    }, pan, at);
     // Teeth and flesh, a body thump, the zombie's snarl and the player's grunt.
     function biteSound(zombie) {
       const pan = zombie ? panOf(zombie.pos.x, zombie.pos.z) : 0;
@@ -128,6 +135,10 @@
         play('snarl', { gain: .5, pan, delay: .03 });
         play('grunt', { gain: .4, delay: .07, rate: .95 });
         lowThump(.8);
+        // Held and chewed: wet chomps for as long as the hold lasts, a second snarl and the player's strain.
+        CHEWS.forEach((at, i) => { if (!play('chew', { gain: .5 - .04 * i, pan, delay: at })) wetChomp(pan, at); });
+        play('snarl', { gain: .35, pan, delay: .5, rate: .9 });
+        play('grunt', { gain: .3, delay: .55, rate: 1.05 });
         return;
       }
       voice((ctx, t, out) => {
@@ -141,6 +152,7 @@
         noiseBurst(ctx, t + .02, out, { from: 1200, to: 700, q: 2, peak: .12, attack: .06, decay: .4 });
       }, pan);
       voice((ctx, t, out) => tone(ctx, t + .03, out, { wave: 'sawtooth', from: 210, to: 125, dur: .2, peak: .3, attack: .02, filter: 750, q: 3 }), 0);
+      CHEWS.forEach(at => wetChomp(pan, at));
     }
     // Whoosh of the arms, the chest-high impact, the player's effort and the thrown zombies' grunts.
     function shoveSound(thrownZombies) {
@@ -205,6 +217,8 @@
       if (!zombie || zombie.stalker) return false;
       const grounded = !!c.onGround && (c.state === 'normal' || c.state === 'slide');
       bite = { t: 0, zombie, shoved: false, pose: grounded };
+      // The hit's 1.3 s of invulnerability must outlast the hold, so the shove (not another bite) ends it.
+      c.invuln = Math.max(c.invuln, game.ceRef() + SHOVE.delay + .55);
       anim = { t: 0, zombie, grounded, dx: zombie.pos.x - c.pos.x, dz: zombie.pos.z - c.pos.z };
       // Replay the bite clip on the zombie that landed it; the invulnerability window stops a second hit.
       zombie.atkT = Math.max(zombie.atkT || 0, SHOVE.delay);
@@ -312,14 +326,14 @@
     // Called by the human view each frame after the body pose and camera are set.
     function body(holder, shown) {
       if (!anim) return;
-      const grab = Math.min(1, anim.t / SHOVE.delay) * (anim.t < SHOVE.delay ? 1 : 0);          // grabbed 0 -> 1
+      const grab = anim.t < SHOVE.delay ? smooth01(anim.t / .12) : 0;                          // held: 0 -> 1 fast
       const f = anim.t < SHOVE.delay ? 0 : Math.max(0, 1 - (anim.t - SHOVE.delay) / .2);       // shove 1 -> 0
       biteDirection(anim.zombie, dir);
       if (shown && holder && anim.grounded) {
         // Face the biter so the pose reads: the model's +Z points to (dx, dz).
         const w = poseWeight() / ANIM.weight;
         holder.rotation.y += wrap(Math.atan2(dir.x, dir.z) - holder.rotation.y) * w;
-        holder.position.addScaledVector(dir, f * SHOVE.lunge - grab * SHOVE.drag);
+        holder.position.addScaledVector(dir, f * SHOVE.lunge - grab * SHOVE.drag * (.6 + .4 * Math.sin(anim.t * 26)));
       }
       if (reducedMotion) return;
       // Camera: shake while grabbed, one kick back on the shove.
@@ -336,7 +350,7 @@
       SHOVE, ANIM, onHit, step, body, reset, poseTargets,
       sounds: { bite: biteSound, shove: shoveSound }, loadBank,   // exposed for the offline audio check
       get bankInfo() { return Object.fromEntries(Object.entries(bank).map(([k, list]) => [k, list.map(b => +b.duration.toFixed(2))])); },
-      get bankReady() { return ['bite', 'snarl', 'thump', 'whoosh', 'grunt', 'groan'].every(k => bank[k]?.length); },
+      get bankReady() { return ['bite', 'snarl', 'thump', 'whoosh', 'grunt', 'groan', 'chew'].every(k => bank[k]?.length); },
       get active() { return true; },
       get biting() { return !!anim; },
       get holster() { return !!anim && anim.grounded; },

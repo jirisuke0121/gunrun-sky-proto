@@ -6,7 +6,7 @@
 #   punch/qubodupPunch/*.ogg          Punch (qubodup, CC0)
 #   swish/swishes/swish-N.wav         Swishes Sound Pack (artisticdude, CC0)
 #   vocal/slightscream-NN.flac        15 vocal male strain/hurt/pain/jump sounds (qubodup, CC0)
-#   creature/*.ogg                    80 CC0 creature SFX (rubberduck, CC0)   [not used for now]
+#   creature/eat_0N.ogg               80 CC0 creature SFX (rubberduck, CC0)
 #   squish/squish_NN.mp3, squishsplat_impact.mp3   Squish Sounds Effects (EZduzziteh, CC0)
 # Every take is mono 44.1 kHz, gets a 3 ms fade-in and a short fade-out (no clicks), is band-limited, normalised to a
 # fixed peak and encoded as 64 kbps MP3 (decodeAudioData handles MP3 on every browser the game targets).
@@ -67,6 +67,11 @@ TAKES = {
     # the player: pained strain when grabbed, effort when pushing
     'grunt-1': lambda: finish(band(load('vocal/slightscream-14.flac'), hp=100, lp=6000), .55, .8, .1),
     'grunt-2': lambda: finish(band(load('vocal/slightscream-11.flac'), hp=100, lp=6000), .33, .8, .06),
+    # chewing while the player is held
+    'chew-1': lambda: finish(band(load('creature/eat_01.ogg'), hp=90, lp=4500), .4, .75, .08),
+    'chew-2': lambda: finish(band(load('creature/eat_02.ogg'), hp=90, lp=4500), .39, .75, .08),
+    'chew-3': lambda: finish(band(load('creature/eat_04.ogg'), hp=90, lp=4200), .4, .75, .08),
+    'chew-4': lambda: finish(band(load('creature/eat_03.ogg'), hp=90, lp=4000), .27, .75, .06),
     # zombies thrown back
     'groan-1': lambda: finish(band(load('zombies/zombies/zombie-1.wav'), hp=90, lp=6000), .85, .75, .15),
     'groan-2': lambda: finish(band(load('zombies/zombies/zombie-15.wav'), hp=90, lp=6000), .87, .75, .15),
