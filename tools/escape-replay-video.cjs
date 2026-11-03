@@ -9,8 +9,8 @@ const root = path.resolve(__dirname, '..'), dir = path.resolve(root, arg('dir', 
   for (let i = 0; i < 60; i++) { if (await fetch('http://127.0.0.1:8795/').then(r => r.ok, () => false)) break; await new Promise(r => setTimeout(r, 100)); }
   const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   try {
-    for (const file of fs.readdirSync(dir).filter(f => /^escape-\d+\.json$/.test(f) && (!only || f.startsWith(only)))) {
-      const record = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8')), id = file.replace('.json', '');
+    for (const file of fs.readdirSync(dir).filter(f => f.endsWith('.json') && !['map.json', 'report.json'].includes(f) && (!only || f.startsWith(only)))) {
+      const record = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8')), id = file.replace('.json', ''), t00 = Date.now();
       const context = await browser.newContext({ locale: 'ja-JP', viewport: { width, height: Math.round(width * 9 / 16) } });
       await context.route('https://**/*', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"top":[],"total":0,"ok":true}' }));
       const page = await context.newPage(); page.setDefaultTimeout(180000);

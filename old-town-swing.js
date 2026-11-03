@@ -238,6 +238,23 @@
     for(let i=0;i<10;i++){const z=14+i*.4,top=-(i+1)*.35;
       box('south-bridge-return-'+i,[37.5,-3.85,z],[39.4,top,z+.4],'slab',0xe39a4a);}
     for(const [id,steps] of stairGroups)window.skyStairWalk?.tag(steps,id);
+    // 新しい逃走スポット（⑤と同じ寸法）: 足場の縁 → 3.7m先の鉄棒 → 12.2〜19.2m先の張り出し足場。
+    // 張り出し足場には階段を付けない（下から簡単に登れる箇所は最小限）。下へは飛び降りで戻る。
+    const extraBars=[],extraRoutes=[];
+    const gantry=(id,name,P,d,groundY)=>{
+      const [px,py,pz]=P,[dx,dz]=d,sx=-dz,sz=dx;
+      const at=(a,b)=>[px+dx*a+sx*b,pz+dz*a+sz*b];
+      const [x0,z0]=at(12.2,-2.4),[x1,z1]=at(19.2,2.4);
+      box(id+'-ledge',[Math.min(x0,x1),py-.1,Math.min(z0,z1)],[Math.max(x0,x1),py+.2,Math.max(z0,z1)]);
+      const [bx,bz]=at(3.7,0),by=py+2.8;
+      for(const side of [-1,1]){const [x,z]=at(3.7,side*1.45);strut([x,by,z],[x,by+1.4,z]);strut([x,by+1.4,z],[x,groundY,z]);}
+      const [lx,lz]=at(3.7,-1.45),[rx,rz]=at(3.7,1.45);strut([lx,by+1.4,lz],[rx,by+1.4,rz]);
+      extraBars.push({id:'oldtown-'+id+'-bar',at:[bx,by,bz],direction:[dx,dz],width:2.6,route:id});
+      const [ax,az]=at(-1,0),[ex,ez]=at(15.7,0),[rvx,rvz]=at(13,0),[fx,fz]=at(-2,0);
+      extraRoutes.push({id,name,approach:[ax,py,az],yaw:Math.atan2(-dx,-dz),exit:[ex,py+.2,ez],escape:[[ex,py+.2,ez]],returnVia:[rvx,py+.2,rvz],fallback:[fx,py,fz]});
+    };
+    gantry('gantry-a','⑨ 西の足場→鉄棒→東の張り出し',[-42,4.4,15],[1,0],0);
+    gantry('gantry-b','⑩ 北西の足場→鉄棒→北の張り出し',[-27,4.2,-11],[0,-1],-3.5);
     const bars=[
       {id:'oldtown-high-bar-1',at:[-43.6,17.6,-3.9],direction:[0,1],width:2.6,route:'high'},
       {id:'oldtown-warehouse-bar-1',at:[-62.5,7.8,3.6],direction:[1,0],width:2.6,route:'warehouse'},
@@ -279,7 +296,8 @@
        escape:[[15.5,0,-3.7],[12,0,-3.7],[12,0,-9]],
        returnVia:[12,0,-3.7],fallback:[15.5,-3.5,-10.2]},
     ];
-    window.skyOldTownSwingCourse={id:'oldtown-swing-escape-v1',oldTown:true,name:'旧市街の鉄棒と逃走分岐',bars,routes,supports,
+    bars.push(...extraBars); // 新しいスポットの鉄棒。順位・スポット選択の対象（routes）には入れない
+    window.skyOldTownSwingCourse={id:'oldtown-swing-escape-v1',oldTown:true,name:'旧市街の鉄棒と逃走分岐',bars,routes,spotRoutes:extraRoutes,supports,
       approach:routes[0].approach,approachYaw:routes[0].yaw,pad:routes[0].approach,exit:routes[0].exit,
       signs:[],arrows:[{at:[20.7,5.525,1.5],direction:[1,0]},{at:[31.5,7.025,-.65],direction:[1,0]},{at:[35.7,7.025,-1.8],direction:[1/Math.sqrt(5),-2/Math.sqrt(5)]},
         {at:[-3.5,4.025,17],direction:[-1,0]},{at:[-.3,4.025,-15.5],direction:[-1,0]},
