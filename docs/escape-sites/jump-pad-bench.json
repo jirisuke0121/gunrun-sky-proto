@@ -1,0 +1,21 @@
+{
+ "assistOnPad": true,
+ "assistFarAway": false,
+ "jumps": 1,
+ "landedAt": 1.17,
+ "end": [
+  -55.09,
+  6.4,
+  2.96
+ ],
+ "land": [
+  -55,
+  6.4,
+  3
+ ],
+ "zombieReachedAt": 8.11,
+ "zombieExtraSeconds": 6.93,
+ "minDist": 1.76,
+ "life": 5,
+ "over": false
+}

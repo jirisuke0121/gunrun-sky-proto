@@ -1,0 +1,682 @@
+{
+ "difficulty": "normal",
+ "candidates": 47,
+ "allCandidates": [
+  {
+   "pad": [
+    -49,
+    0,
+    10
+   ],
+   "land": [
+    -54,
+    4.4,
+    15
+   ],
+   "zombieExtraSeconds": 8.8,
+   "humanWalkSeconds": 8.5
+  },
+  {
+   "pad": [
+    -50,
+    0,
+    7
+   ],
+   "land": [
+    -54,
+    4.4,
+    15
+   ],
+   "zombieExtraSeconds": 8.4,
+   "humanWalkSeconds": 7.9
+  },
+  {
+   "pad": [
+    -51,
+    0,
+    7
+   ],
+   "land": [
+    -54,
+    4.4,
+    15
+   ],
+   "zombieExtraSeconds": 8.3,
+   "humanWalkSeconds": 8
+  },
+  {
+   "pad": [
+    -52,
+    0,
+    7
+   ],
+   "land": [
+    -54,
+    4.4,
+    15
+   ],
+   "zombieExtraSeconds": 8.2,
+   "humanWalkSeconds": 8.1
+  },
+  {
+   "pad": [
+    -53,
+    0,
+    7
+   ],
+   "land": [
+    -54,
+    4.4,
+    15
+   ],
+   "zombieExtraSeconds": 8.1,
+   "humanWalkSeconds": 8.2
+  },
+  {
+   "pad": [
+    -54,
+    0,
+    7
+   ],
+   "land": [
+    -54,
+    4.4,
+    15
+   ],
+   "zombieExtraSeconds": 8,
+   "humanWalkSeconds": 8.4
+  },
+  {
+   "pad": [
+    -55,
+    0,
+    7
+   ],
+   "land": [
+    -54,
+    4.4,
+    15
+   ],
+   "zombieExtraSeconds": 7.8,
+   "humanWalkSeconds": 8.4
+  },
+  {
+   "pad": [
+    -57,
+    0,
+    7
+   ],
+   "land": [
+    -54,
+    4.4,
+    15
+   ],
+   "zombieExtraSeconds": 7.7,
+   "humanWalkSeconds": 8.2
+  },
+  {
+   "pad": [
+    -56,
+    0,
+    7
+   ],
+   "land": [
+    -54,
+    4.4,
+    15
+   ],
+   "zombieExtraSeconds": 7.7,
+   "humanWalkSeconds": 8.3
+  },
+  {
+   "pad": [
+    -58,
+    0,
+    7
+   ],
+   "land": [
+    -54,
+    4.4,
+    15
+   ],
+   "zombieExtraSeconds": 7.6,
+   "humanWalkSeconds": 8.1
+  },
+  {
+   "pad": [
+    -45,
+    0,
+    10
+   ],
+   "land": [
+    -52,
+    6.04,
+    5
+   ],
+   "zombieExtraSeconds": 6.6,
+   "humanWalkSeconds": 7.4
+  },
+  {
+   "pad": [
+    -53,
+    0,
+    0
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.5,
+   "humanWalkSeconds": 7.8
+  },
+  {
+   "pad": [
+    -54,
+    0,
+    0
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.4,
+   "humanWalkSeconds": 7.7
+  },
+  {
+   "pad": [
+    -53,
+    0,
+    1
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.4,
+   "humanWalkSeconds": 7.9
+  },
+  {
+   "pad": [
+    -57,
+    0,
+    -5
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.3,
+   "humanWalkSeconds": 7.2
+  },
+  {
+   "pad": [
+    -56,
+    0,
+    -5
+   ],
+   "land": [
+    -56,
+    6.4,
+    3
+   ],
+   "zombieExtraSeconds": 6.3,
+   "humanWalkSeconds": 7.3
+  },
+  {
+   "pad": [
+    -56,
+    0,
+    -4
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.3,
+   "humanWalkSeconds": 7.2
+  },
+  {
+   "pad": [
+    -62,
+    0,
+    -3
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.2,
+   "humanWalkSeconds": 6.5
+  },
+  {
+   "pad": [
+    -61,
+    0,
+    -4
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.2,
+   "humanWalkSeconds": 6.8
+  },
+  {
+   "pad": [
+    -60,
+    0,
+    -5
+   ],
+   "land": [
+    -56,
+    6.4,
+    3
+   ],
+   "zombieExtraSeconds": 6.2,
+   "humanWalkSeconds": 7
+  },
+  {
+   "pad": [
+    -60,
+    0,
+    -4
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.2,
+   "humanWalkSeconds": 6.8
+  },
+  {
+   "pad": [
+    -59,
+    0,
+    -5
+   ],
+   "land": [
+    -56,
+    6.4,
+    3
+   ],
+   "zombieExtraSeconds": 6.2,
+   "humanWalkSeconds": 7.1
+  },
+  {
+   "pad": [
+    -58,
+    0,
+    -5
+   ],
+   "land": [
+    -56,
+    6.4,
+    3
+   ],
+   "zombieExtraSeconds": 6.2,
+   "humanWalkSeconds": 7.1
+  },
+  {
+   "pad": [
+    -58,
+    0,
+    -4
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.2,
+   "humanWalkSeconds": 7
+  },
+  {
+   "pad": [
+    -57,
+    0,
+    -4
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.2,
+   "humanWalkSeconds": 7.1
+  },
+  {
+   "pad": [
+    -55,
+    0,
+    -5
+   ],
+   "land": [
+    -56,
+    6.4,
+    3
+   ],
+   "zombieExtraSeconds": 6.2,
+   "humanWalkSeconds": 7.1
+  },
+  {
+   "pad": [
+    -55,
+    0,
+    -4
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.2,
+   "humanWalkSeconds": 7.1
+  },
+  {
+   "pad": [
+    -55,
+    0,
+    -3
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.2,
+   "humanWalkSeconds": 7
+  },
+  {
+   "pad": [
+    -61,
+    0,
+    -3
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 6.6
+  },
+  {
+   "pad": [
+    -59,
+    0,
+    -4
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 6.9
+  },
+  {
+   "pad": [
+    -59,
+    0,
+    0
+   ],
+   "land": [
+    -56,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 7.7
+  },
+  {
+   "pad": [
+    -57,
+    0,
+    -3
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 7.1
+  },
+  {
+   "pad": [
+    -56,
+    0,
+    -3
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 7.2
+  },
+  {
+   "pad": [
+    -56,
+    0,
+    -2
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 7.1
+  },
+  {
+   "pad": [
+    -56,
+    0,
+    -1
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 7.2
+  },
+  {
+   "pad": [
+    -55,
+    0,
+    -2
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 6.9
+  },
+  {
+   "pad": [
+    -54,
+    0,
+    -5
+   ],
+   "land": [
+    -56,
+    6.4,
+    3
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 7.1
+  },
+  {
+   "pad": [
+    -54,
+    0,
+    -4
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 6.9
+  },
+  {
+   "pad": [
+    -47,
+    0,
+    7
+   ],
+   "land": [
+    -55,
+    6.4,
+    3
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 7.2
+  },
+  {
+   "pad": [
+    -47,
+    0,
+    8
+   ],
+   "land": [
+    -55,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 7.1
+  },
+  {
+   "pad": [
+    -62,
+    0,
+    -2
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6,
+   "humanWalkSeconds": 6.4
+  },
+  {
+   "pad": [
+    -60,
+    0,
+    -3
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6,
+   "humanWalkSeconds": 6.7
+  },
+  {
+   "pad": [
+    -58,
+    0,
+    -3
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6,
+   "humanWalkSeconds": 6.9
+  },
+  {
+   "pad": [
+    -54,
+    0,
+    -3
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6,
+   "humanWalkSeconds": 6.8
+  },
+  {
+   "pad": [
+    -51,
+    0,
+    6
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6,
+   "humanWalkSeconds": 6.8
+  },
+  {
+   "pad": [
+    -53,
+    0,
+    -5
+   ],
+   "land": [
+    -56,
+    6.4,
+    3
+   ],
+   "zombieExtraSeconds": 6.1,
+   "humanWalkSeconds": 7
+  },
+  {
+   "pad": [
+    -53,
+    0,
+    -4
+   ],
+   "land": [
+    -57,
+    6.4,
+    4
+   ],
+   "zombieExtraSeconds": 6,
+   "humanWalkSeconds": 6.8
+  }
+ ],
+ "jumpPads": [
+  {
+   "pad": [
+    -49,
+    0,
+    10
+   ],
+   "land": [
+    -54,
+    4.4,
+    15
+   ],
+   "zombieExtraSeconds": 8.8,
+   "humanWalkSeconds": 8.5,
+   "openDensity": 41,
+   "trappedHere": true
+  }
+ ]
+}

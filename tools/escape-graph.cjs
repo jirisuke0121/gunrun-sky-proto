@@ -22,7 +22,7 @@ const SETTINGS = {
   zipSpeed: 12, barSeconds: 2.5, // ジップの速さ(m/s)と鉄棒ルートの所要時間(秒)は概算
 };
 
-async function exportGame() {
+async function exportGame(after = null) {
   const { chromium } = require('playwright');
   const server = spawn('python3', ['-m', 'http.server', '8793', '--bind', '127.0.0.1'], { cwd: root, stdio: 'ignore' });
   for (let i = 0; i < 60; i++) { if (await fetch('http://127.0.0.1:8793/').then(r => r.ok, () => false)) break; await new Promise(r => setTimeout(r, 100)); }
@@ -34,7 +34,7 @@ async function exportGame() {
     const page = await context.newPage(); page.setDefaultTimeout(120000);
     await page.goto('http://127.0.0.1:8793/index.html?challengeDebug=1');
     await page.waitForFunction(() => window.__game && window.skySwing && window.skyEscapeRoutes && window.skyOldTownSwingCourse);
-    return await page.evaluate(() => {
+    const data = await page.evaluate(() => {
       const g = __game, N = g.NAV, U = __skyInternals.U, course = window.skyOldTownSwingCourse;
       return {
         nodes: N.nodes.map(n => [n.x, n.y, n.z]),
@@ -46,6 +46,8 @@ async function exportGame() {
         U: { sprintSpeed: U.sprintSpeed, jumpVel: U.jumpVel, gravity: U.gravity, ladderSpeed: U.ladderSpeed, mantleReach: U.mantleReach },
       };
     });
+    if (after) data.extra = await after(page);
+    return data;
   } finally { await browser.close(); server.kill(); }
 }
 
@@ -180,7 +182,7 @@ function analyze(data) {
       threatNodes: threats,
     };
   }
-  return { results, extras, skippedNoTarget, zSpeed, hSpeed, KIND_NAME };
+  return { results, extras, skippedNoTarget, zSpeed, hSpeed, KIND_NAME, humanAdj, zombieAdj, dijkstra, nearest };
 }
 
 function render(data, a) {
