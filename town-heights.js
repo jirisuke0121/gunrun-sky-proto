@@ -346,7 +346,7 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
   // These two props used to pinch the east recovery's ground exit to 5cm of
   // steering tolerance. Put them on the neighbouring roof instead.
   for(const b of jn){
-    if(b.type!=='prop'||b.shape!=='barrel')continue;
+    if(b.type!=='prop'||!['barrel','crate','bag'].includes(b.shape))continue;
     const x=(b.minX+b.maxX)/2,z=(b.minZ+b.maxZ)/2;
     if(Math.abs(x-44)<.02&&Math.abs(z-4)<.02 || Math.abs(x-44.7)<.02&&Math.abs(z-4.6)<.02){
       b.minY+=4.4;b.maxY+=4.4;b.minZ+=3;b.maxZ+=3;

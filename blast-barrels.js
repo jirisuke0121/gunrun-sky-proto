@@ -15,18 +15,46 @@
     const capRed = new Standard({ color: 0xa42b1d, emissive: 0x43120c,
                                   emissiveIntensity: 0.18, roughness: 0.56, metalness: 0.28 });
     const stepSteel = new Standard({ color: 0x53616a, roughness: 0.68, metalness: 0.3 });
+    const hazardBlack = new Standard({ color: 0x15110d, roughness: 0.6, metalness: 0.2 });
+    const { Cylinder, Sprite, SpriteMaterial, CanvasTexture } = game.Geom;
+    // A cylinder in this map is always a blast barrel (the decorative barrels are
+    // crates now). Hazard stripes and a floating red badge make it readable from afar.
+    const badgeTexture = (() => {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 128;
+      const g = canvas.getContext('2d');
+      g.fillStyle = '#e63b2e'; g.beginPath(); g.arc(64, 64, 58, 0, Math.PI * 2); g.fill();
+      g.lineWidth = 8; g.strokeStyle = '#fff4d6'; g.stroke();
+      g.fillStyle = '#fff4d6'; g.font = 'bold 74px sans-serif';
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('爆', 64, 70);
+      return new CanvasTexture(canvas);
+    })();
+    const badgeMaterial = new SpriteMaterial({ map: badgeTexture, transparent: true });
+    const stripeGeometry = new Cylinder(0.375, 0.375, 0.045, 14);
     for (const barrel of barrels) {
       barrel.active = true;
       barrel.block.mesh?.children.forEach((part, index) => {
         if (part.isMesh) part.material = index === 0 ? red : yellow;
       });
       if (barrel.cap.mesh) barrel.cap.mesh.material = capRed;
+      if (barrel.block.mesh) {
+        const height = barrel.block.maxY - barrel.block.minY;
+        for (const at of [0.25, 0.75]) for (const side of [-1, 1]) {
+          const stripe = new Mesh(stripeGeometry, hazardBlack);
+          stripe.position.y = height * at + side * 0.085;
+          barrel.block.mesh.add(stripe);
+        }
+      }
+      barrel.badge = new Sprite(badgeMaterial);
+      barrel.badge.scale.set(0.95, 0.95, 1);
+      barrel.badge.position.set(barrel.x, (barrel.y || 0) + 2.05, barrel.z);
+      game.ue.add(barrel.badge);
       if (barrel.step?.mesh) barrel.step.mesh.material = stepSteel;
     }
 
-    const targetMaterial = new Basic({ color: 0xffd05b, transparent: true,
+    const targetMaterial = new Basic({ color: 0xff3b2e, transparent: true,
                                        opacity: 0.7, depthWrite: false });
-    const targetGeometry = new Torus(0.43, 0.055, 6, 28);
+    const targetGeometry = new Torus(0.78, 0.07, 6, 32);
     for (const barrel of barrels) {
       const target = new Mesh(targetGeometry, targetMaterial);
       target.rotation.x = Math.PI / 2;
@@ -42,12 +70,16 @@
     const markHost = document.getElementById('hookMark');
     const mark = document.createElement('div');
     mark.id = 'blastMark';
-    Object.assign(mark.style, { position: 'absolute', width: '42px', height: '42px',
-      margin: '-21px', boxSizing: 'border-box', border: '3px solid #ff8a3d',
-      borderRadius: '50%', background: 'rgba(255,120,40,.2)',
-      boxShadow: '0 0 12px #ff7a2acc', color: '#ffe4a1', font: 'bold 13px sans-serif',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: '0',
-      pointerEvents: 'none', transition: 'opacity .12s', zIndex: '21' });
+    Object.assign(mark.style, { position: 'absolute', width: '48px', height: '48px',
+      margin: '-24px', boxSizing: 'border-box', border: '3px solid #fff4d6',
+      borderRadius: '50%', background: 'rgba(230,59,46,.94)',
+      boxShadow: '0 0 14px #e63b2ecc', color: '#fff4d6', font: 'bold 11px sans-serif',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      opacity: '0', pointerEvents: 'none', transition: 'opacity .12s', zIndex: '21' });
+    mark.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">' +
+      '<path fill="#fff4d6" d="M12 2c.5 3.2-1.3 4.6-3 6.6C7.3 10.5 6 12.3 6 14.8 6 18.2 8.7 21 12 21s6-2.800 6-6.200c0-2.200-1-3.800-2.200-5.200-.4 1.400-1.200 2.200-2.200 2.600C14.500 8.800 13.800 5 12 2z"/></svg>' +
+      '<span style="margin-top:-2px;line-height:1"></span>';
+    const markLabel = mark.querySelector('span');
     (markHost?.parentElement || document.body).appendChild(mark);
     const hint = document.createElement('div');
     Object.assign(hint.style, { position: 'fixed', left: '50%', top: '118px',
@@ -94,13 +126,16 @@
     }
 
     const updateGuide = () => {
-      for (const barrel of barrels) barrel.target.visible = barrel.active;
+      for (const barrel of barrels) {
+        barrel.target.visible = barrel.active;
+        if (barrel.badge) barrel.badge.visible = barrel.active;
+      }
       targetMaterial.opacity = 0.62 + 0.18 * Math.sin(performance.now() / 260);
       const assist = assistTarget();
       if (assist) {
         mark.style.left = assist.sx + 'px';
         mark.style.top = assist.sy + 'px';
-        mark.textContent = isTouch() ? '爆破' : 'B';
+        markLabel.textContent = isTouch() ? '爆破' : 'B';
         mark.style.opacity = '1';
         hint.textContent = isTouch() ? 'ドラム缶をタップで爆破ジャンプ！' :
           'ドラム缶をクリック／Bキーで爆破ジャンプ！';
