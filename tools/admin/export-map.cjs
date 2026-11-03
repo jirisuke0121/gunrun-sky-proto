@@ -1,5 +1,5 @@
-// ゲーム本体を画面なしのブラウザで開き、当たり判定の箱(game.jn)を heatmap-maps.json に書き出す。
-// 実行: リポジトリ直下で `node tools/heatmap/export-map.cjs`（playwright が必要）
+// ゲーム本体を画面なしのブラウザで開き、当たり判定の箱(game.jn)を maps.json に書き出す。
+// 実行: リポジトリ直下で `node tools/admin/export-map.cjs`（playwright が必要）
 const fs = require('node:fs'), path = require('node:path'), http = require('node:http');
 const { chromium } = require('playwright');
 
@@ -29,6 +29,6 @@ const server = http.createServer((req, res) => {
       await page.close();
     }
   } finally { await browser.close(); server.close(); }
-  fs.writeFileSync(path.join(__dirname, 'heatmap-maps.json'), JSON.stringify(out));
+  fs.writeFileSync(path.join(__dirname, 'maps.json'), JSON.stringify(out));
   for (const k in out) console.log(k, out[k].length, 'boxes');
 })().catch(e => { console.error(e); process.exitCode = 1; });

@@ -68,4 +68,5 @@ Claude Code・Codex など、どのAIでもこのファイルを最初に読む�
 - `index.html`（旧市街）、`canyon.html`（渓谷）がゲーム本体。機能ごとに直下の `*.js` に分割。
 - `server/` … Worker・D1（`server/README.md`）。`ranked-rules.js` … 順位の対象条件と版。
 - `hook-editor.html` … フック・壁ジャンプ候補のエディター（公開版には含めない）。
+- `tools/admin/` … 管理画面（地図・詰まり・プレイヤー）。`ADMIN_TOKEN` で既存のWorker APIを読む。`tools/heatmap/` はここへの転送。
 - `docs/` … 日付つきの検討・検証メモ。スコアは `docs/SCORE_BALANCE_2026-11-02.md`、プレイヤー管理は `docs/PLAYER_OWNER_CONSOLE.md`。

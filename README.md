@@ -1,5 +1,17 @@
 # 空中回廊 追跡（GunRun 試作）
 
+## 2026-11-03 管理画面を1枚に集約（`tools/admin/`）
+
+ヒートマップ（`tools/heatmap/`）・詰まりログ（SQL）・プレイヤー一覧が別々だったので、1枚の管理画面にまとめた。`https://jirisuke0121.github.io/gunrun-sky-proto/tools/admin/`（旧ヒートマップのURLは転送）。**ゲーム本体・Worker・DBは変更なし**（既存のAPIを `ADMIN_TOKEN` で読むだけ）。
+
+- **地図**：被弾・落下・死亡に、**詰まり（紫）** を追加。紫の点は、詰まったゾンビの位置ではなくプレイヤーが立っていた位置（「この床に立つと詰まる」を見るため）。点の詳細に原因・ゾンビの位置・ノード・距離場の値が出る。
+- **詰まり**：一覧と、原因（`cause`）ごとの件数ボタン。行をクリックで地図の該当点へ。
+- **プレイヤー**：`/admin/players`・`/admin/player` を読む一覧と詳細（名前・ID検索、期間、完走の有無、配信元）。
+- **リプレイ・概要**：リプレイ再生・概要・動作診断は今はSitesの管理画面（リンクあり。移すときは `/admin/replay`・`/admin/overview` をここへ足す）。Workerの状態（ビルド・記録の版・ランキングの版）も見られる。
+- 認証は今まで通り `ADMIN_TOKEN` の手入力（`api()` の1か所）。名前などサーバーから来た文字はすべてエスケープして表示する。
+- 確認：`node bench/admin-extract.test.cjs`（点の抽出・原因の集計・時刻表示、`nav-watch.js` が出す `cause` が全部説明つきか）、`node bench/admin-browser.cjs`（Workerをモックして全タブ・401・エスケープ・続き読み込み・JSONを開く・携帯幅）。`bench/*.test.cjs` は全て終了コード0。実際のWorkerとトークンでの動作は未確認（Pages公開後に確認が必要）。
+- 次：地図が `/runs?full=1` で生の記録（1プレイ約100KB）を読むのが重い。Workerに位置だけ返す管理用APIを足すと数十KBで済む（Worker→Pagesの順）。
+
 ## 2026-11-03 詰まりログと「ノード無し」警告（ビルド 2026-11-03-nav-watch-v1）
 
 屋上のゾンビが、下に落ちたプレイヤーを追えず屋上に残る件の調査用。**ゲームの挙動・ランキング・Worker・DBは変えていない**（記録の項目が1つ増えるだけ）。
@@ -7,7 +19,7 @@
 - **原因の見立て（実測済み）**：プレイヤーのナビ用ノードは「足元にノードが見つかり、かつ接地中」のときしか更新されない（`index.html` の `wv()`）。ノードの無い床に着地すると、ゾンビの目標が直前の屋上ノードのまま残り、全員そこへ行って止まる。実ゲームで再現：階段状の踏み板（x -22.8〜-15.2、z 1〜1.8、高さ6.7〜7.7）と小スラブ（x 30.5〜31、z -13.4〜-11.8、高さ7.4）。立てる面のうちノードが無いのは15枚だけで、ノードのある床へ屋上から落ちた54通りでは詰まり0件。
 - **1) 詰まりログ**（`nav-watch.js`、全プレイヤー）：プレイヤーが接地中に、2.5m以上高い位置・水平25m以内のゾンビが5秒間（2.5m動かない）立ち止まったら、記録の `diagnostics.stuck` に1件入れる（8秒に1件、1プレイ6件まで。送信は既存の「プレイ記録を匿名で送信する」がオンのときだけ）。入る内容：時刻、プレイヤーの位置、足元のノード（`now`）、保持しているノード（`kept`/`keptAt`）、距離場の目標ノード（`targets`）、詰まったゾンビの位置・ノード・距離場の値・エッジ、`cause`。
   - `cause`：`player-no-node`（足元にノードが無い＝目標が古い）／`target-off-floor`（目標が別の高さ）／`zombie-no-node`／`no-route`（降りる経路が無い）／`route-exists`（経路はあるのに動かない＝通行止めや渋滞）。
-  - 読み方：`cd server && npx wrangler d1 execute gunrun-runs --remote --json --command "SELECT id, played_at, build, json_extract(json,'$.diagnostics.stuck') AS stuck FROM runs WHERE json_extract(json,'$.diagnostics.stuck') NOT IN ('[]','null') ORDER BY received_at DESC LIMIT 20"`
+  - 読み方：管理画面（`tools/admin/`）の「詰まり」タブと地図の紫の点。SQLで直接見るなら `cd server && npx wrangler d1 execute gunrun-runs --remote --json --command "SELECT id, played_at, build, json_extract(json,'$.diagnostics.stuck') AS stuck FROM runs WHERE json_extract(json,'$.diagnostics.stuck') NOT IN ('[]','null') ORDER BY received_at DESC LIMIT 20"`
 - **2) ノード無し警告**（`?dev=1` のときだけ）：足元にノードが無い間、画面上部に「ノード無し：ゾンビの目標が古いまま（自分 y／目標 y）」、詰まり検知中は「詰まり検知：n体・cause」を出す。通常のプレイヤーには要素も描画ループも作らない。
 - 確認：`node bench/nav-watch.test.cjs`（判定・除外条件・レート制限・記録の上限）、`node bench/nav-watch-browser.cjs`（実ゲームで上の2か所に屋上から着地して記録とバッジを確認。ノードのある床では何も出ない）。`bench/*.test.cjs` 52本は全て終了コード0。
 - 次：原因が `player-no-node` と記録で確かめられたら、`go()` の「`nodeAt` が -1 のとき古い `c.node` を使う」を足元の最寄りノードに変える（数行）。
