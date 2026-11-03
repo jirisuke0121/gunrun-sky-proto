@@ -3,7 +3,8 @@
 `node tools/escape-replay.cjs` で、`docs/escape-graph` の経路を実ゲーム（本編のAIのゾンビ4体）の中で再生して記録する。
 
 ## 見方
-- **上から見た動画**: `escape-XXXX-topdown.mp4`。白=プレイヤー、赤=ゾンビ、青の丸=脱出先。`python3 tools/escape-replay-topdown.py` で作り直せる。
+- **本編の画面の動画**: `escape-XXXX.mp4`（540px・6コマ/秒）。`node tools/escape-replay-video.cjs --only=escape-1691 --fps=6 --width=540` で作り直せる（1本約5分、操作パネルは隠している）。
+- **上から見た動画**: `escape-XXXX-topdown.mp4` と、これ1枚で開ける `player.html`。白=プレイヤー、赤=ゾンビ、青の丸=脱出先。`python3 tools/escape-replay-topdown.py` で作り直せる。
 - **本編のリプレイ画面（3D・追従視点・シーク可）**: `escape-replay-viewer.html?r=escape-1691` を、`index.html` と同じ場所から開く（GitHub Pagesか `python3 -m http.server`）。記録は `escape-XXXX.json`（本編のゴースト形式）。
 
 ## 動きの作り方
@@ -21,7 +22,7 @@
 
 - はしごでの食い込みは、はしごの当たり判定の中を通るため（本編でもはしごは当たり判定の中に入る動き）。問題としない。
 - ジャンプ・走る・登るの食い込みは、1m格子の点を結ぶ台本の動きが壁や斜面に触れているため。実用前に直す必要がある。
-- 3D動画は、この環境では1コマ約13秒かかるため作っていない。
+- 本編の画面の動画は、この環境の描画が遅い（1コマ約8秒）ため、解像度と1秒あたりのコマ数を下げている。滑らかに見るなら、本編のリプレイ画面（`escape-replay-viewer.html`）を使う。
 
 ## 未対応
 詰み（脱出先なし）の足場は経路がないため記録していない。ジップ・鉄棒を使う記録は今回の4件に入っていない。

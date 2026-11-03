@@ -19,6 +19,7 @@ const root = path.resolve(__dirname, '..'), dir = path.resolve(root, arg('dir', 
       await page.evaluate(r => window.__skyGhost.open(r.id, null, { record: r }), record);
       await page.waitForFunction(() => { const e = document.getElementById('replaySeek'); return e && !e.disabled; });
       await page.click('#replayToggle'); // 一時停止にして、時刻を自分で進める
+      await page.addStyleTag({ content: '.replay-panel{display:none!important}' }); // 動画では操作パネルを隠して画面を広く使う
       const t0 = record.ghost.samples[0][0], t1 = record.ghost.samples.at(-1)[0], frames = path.join('/tmp', `frames-${id}`);
       fs.rmSync(frames, { recursive: true, force: true }); fs.mkdirSync(frames, { recursive: true });
       let n = 0;
