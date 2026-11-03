@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>被弾・死亡ヒートマップ</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b0f14;color:#dbe3ec;font:13px/1.5 system-ui,"Hiragino Sans","Noto Sans JP",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid #243040;background:#111821}
+header b{font-size:15px;margin-right:8px}
+header input[type=password],header input[type=number]{background:#0b0f14;color:inherit;border:1px solid #33445a;border-radius:6px;padding:5px 8px}
+header input[type=password]{width:150px}header input[type=number]{width:70px}
+button,.file{background:#1d6fd8;color:#fff;border:0;border-radius:6px;padding:6px 12px;cursor:pointer;font:inherit}
+.file{background:#2b3a4d;display:inline-block}.file input{display:none}
+#msg{color:#9fb3c8}
+main{display:flex;gap:12px;padding:12px;align-items:flex-start}
+#stage{flex:none}canvas{display:block;border:1px solid #243040;border-radius:6px;cursor:crosshair}
+aside{width:320px;flex:none;display:flex;flex-direction:column;gap:10px}
+section{background:#111821;border:1px solid #243040;border-radius:8px;padding:10px}
+h3{margin:0 0 6px;font-size:12px;color:#8fa4ba;font-weight:600}
+label{display:inline-flex;align-items:center;gap:4px;margin-right:10px}
+select{width:100%;background:#0b0f14;color:inherit;border:1px solid #33445a;border-radius:6px;padding:5px}
+input[type=range]{width:100%}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+#hot{list-style:none;margin:0;padding:0}
+#hot li{padding:6px 8px;border-radius:6px;cursor:pointer;display:flex;gap:8px}
+#hot li:hover,#hot li.on{background:#1b2735}
+#hot .n{font-weight:700;min-width:46px}
+#hot small{color:#8fa4ba;display:block}
+#detail{min-height:3.4em;color:#c4d2e0}
+.sum b{font-size:18px}
+@media(max-width:820px){main{flex-direction:column}aside{width:100%}}
+</style>
+<header>
+  <b>被弾・死亡ヒートマップ</b>
+  <input id="token" type="password" placeholder="ADMIN_TOKEN" autocomplete="off">
+  <input id="limit" type="number" value="200" min="1" max="1000" title="最新から何プレイ読むか">
+  <button id="load">サーバーから読み込む</button>
+  <label class="file">JSONを開く<input id="file" type="file" accept=".json,application/json"></label>
+  <span id="msg"></span>
+</header>
+<main>
+  <div id="stage"><canvas id="cv"></canvas></div>
+  <aside>
+    <section class="sum"><h3>いまの条件</h3><div id="sum">データなし</div></section>
+    <section>
+      <h3>マップ</h3><select id="map"></select>
+      <h3 style="margin-top:8px">難易度</h3><div id="diffs"></div>
+      <h3 style="margin-top:8px">表示する種類</h3>
+      <label><span class="dot" style="background:#ff9628"></span><input type="checkbox" data-type="hit" checked>被弾</label>
+      <label><span class="dot" style="background:#ff2846"></span><input type="checkbox" data-type="death" checked>死亡</label>
+      <label><span class="dot" style="background:#5aaaff"></span><input type="checkbox" data-type="fall" checked>落下</label>
+      <div style="margin-top:6px"><label><input type="checkbox" id="dots" checked>点も表示</label></div>
+    </section>
+    <section>
+      <h3>高さ（落ちはじめた／噛まれた高さ）</h3><select id="band"></select>
+      <h3 style="margin-top:8px">プレイ開始からの時間</h3>
+      <select id="time"><option value="all">すべて</option><option value="0-30">〜30秒</option><option value="30-60">30〜60秒</option><option value="60-90">60〜90秒</option><option value="90-999">90秒〜</option></select>
+      <h3 style="margin-top:8px">ぼかしの広さ <span id="rv"></span></h3>
+      <input id="radius" type="range" min="2" max="14" step="1" value="5">
+    </section>
+    <section><h3>多い場所 TOP6（8m四方でまとめた件数）</h3><ol id="hot"></ol></section>
+    <section><h3>点をクリックすると詳細</h3><div id="detail">—</div></section>
+  </aside>
+</main>
+<script type="application/json" id="embedded-maps"></script>
+<script type="application/json" id="embedded-data"></script>
+<script>
+const ENDPOINT = 'https://gunrun-runs.jirisuke0121.workers.dev';
+const $ = id => document.getElementById(id);
+const COLORS = { hit: [255, 150, 40], death: [255, 40, 70], fall: [90, 170, 255] };
+const LABEL = { hit: '被弾', death: '死亡', fall: '落下' };
+const MAP_NAME = { 'old-town': '旧市街', 'rock-canyon': 'ロックキャニオン' };
+const DIFF_NAME = { easy: 'イージー', normal: 'ノーマル', hard: 'ハード', legacy: '旧版' };
+const state = { map: 'old-town', diffs: new Set(), allDiffs: [], types: new Set(['hit', 'death', 'fall']), dots: true, band: 'all', time: 'all', radius: 5, focus: null };
+let MAPS = null, DATA = { runs: [], points: [] }, view = null, shown = [];
+
+function mapOf(r) {
+  if (['old-town', 'rock-canyon'].includes(r.mapKey)) return r.mapKey;
+  return r.map?.id === 'rock_canyon_v1' || r.mapVersion === 'rock-canyon-v1' ? 'rock-canyon' : 'old-town';
+}
+// 1プレイ分の記録 → 被弾・落下・死亡の点。mistakes は「ライフを1つ失った出来事」ごとに1件入っている。
+function extract(records) {
+  const runs = [], points = [];
+  for (const r of records) {
+    if (!r || typeof r !== 'object' || r.challenge?.id === 'intro' || /-dev$/.test(r.build || '')) continue;
+    const id = String(r.clientRunId || r.id || ''), map = mapOf(r), diff = r.challenge?.id || 'legacy';
+    runs.push({ id, map, diff, reason: r.reason, t: r.t });
+    for (const e of Array.isArray(r.mistakes) ? r.mistakes : []) {
+      if (!['hit', 'fall'].includes(e.k) || !Array.isArray(e.at) || e.at.length < 3 || !e.at.slice(0, 3).every(Number.isFinite)) continue;
+      const dead = e.life === 0 && ['caught', 'fell'].includes(r.reason);
+      points.push({ run: id, map, diff, type: dead ? 'death' : e.k, cause: e.k, x: e.at[0], y: e.at[1], z: e.at[2], t: e.t, place: e.place || '', state: e.state || '', by: e.by || '', nearest: e.nearest, near9: e.near9, life: e.life });
+    }
+  }
+  return { runs, points };
+}
+const parseRow = row => { try { const r = typeof row.json === 'string' ? JSON.parse(row.json) : (row.json || row); r.id = r.clientRunId || row.id; return r; } catch { return null; } };
+function fromAny(data) {
+  if (data && Array.isArray(data.points) && Array.isArray(data.runs) && data.points.every(p => 'x' in p)) return data;
+  const list = Array.isArray(data) ? data : Array.isArray(data?.runs) ? data.runs : [data];
+  return extract(list.map(parseRow).filter(Boolean));
+}
+
+function boundsOf(key) {
+  const boxes = MAPS[key]; let minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9;
+  for (const b of boxes) { minX = Math.min(minX, b[0]); maxX = Math.max(maxX, b[1]); minZ = Math.min(minZ, b[4]); maxZ = Math.max(maxZ, b[5]); }
+  const w = maxX - minX + 6, d = maxZ - minZ + 6;
+  return { minX: minX - 3, minZ: minZ - 3, span: Math.max(w, d), depth: d, boxes: boxes.slice().sort((a, b) => a[3] - b[3]) };
+}
+function inBand(y) { return state.band === 'all' || Math.floor((y + .15) / 4) === Number(state.band); }
+function inTime(t) { if (state.time === 'all') return true; const [a, b] = state.time.split('-').map(Number); return t >= a && t < b; }
+function filtered() {
+  return DATA.points.filter(p => p.map === state.map && state.diffs.has(p.diff) && state.types.has(p.type) && inTime(p.t) && inBand(p.y));
+}
+
+const cv = $('cv'), ctx = cv.getContext('2d');
+function size() {
+  const css = Math.max(320, Math.min(window.innerWidth - (window.innerWidth > 820 ? 360 : 24), window.innerHeight - 70, 1000)), dpr = window.devicePixelRatio || 1;
+  cv.style.width = css + 'px'; cv.width = Math.round(css * dpr);
+}
+function draw() {
+  if (!MAPS) return;
+  view = boundsOf(state.map);
+  const S = cv.width, k = S / view.span, dpr = S / parseFloat(cv.style.width), H = Math.round(view.depth * k);
+  if (cv.height !== H) { cv.height = H; cv.style.height = (H / dpr) + 'px'; }
+  const X = x => (x - view.minX) * k, Y = z => (z - view.minZ) * k;
+  ctx.fillStyle = '#0d1218'; ctx.fillRect(0, 0, S, H);
+  for (const b of view.boxes) {
+    const t = Math.min(1, Math.max(0, b[3] / 22)), c = 52 + t * 110;
+    ctx.fillStyle = `rgb(${c * .82 | 0},${c * .9 | 0},${c | 0})`;
+    ctx.fillRect(X(b[0]), Y(b[4]), (b[1] - b[0]) * k, (b[5] - b[4]) * k);
+  }
+  shown = filtered();
+  const layer = document.createElement('canvas'); layer.width = S; layer.height = H;
+  const lc = layer.getContext('2d'), R = state.radius * k;
+  for (const type of ['fall', 'hit', 'death']) {
+    if (!shown.some(p => p.type === type)) continue;
+    lc.clearRect(0, 0, S, H); lc.globalCompositeOperation = 'lighter';
+    const [r, g, bl] = COLORS[type];
+    for (const p of shown) {
+      if (p.type !== type) continue;
+      const cx = X(p.x), cy = Y(p.z), gr = lc.createRadialGradient(cx, cy, 0, cx, cy, R);
+      gr.addColorStop(0, `rgba(${r},${g},${bl},.34)`); gr.addColorStop(1, `rgba(${r},${g},${bl},0)`);
+      lc.fillStyle = gr; lc.fillRect(cx - R, cy - R, R * 2, R * 2);
+    }
+    ctx.drawImage(layer, 0, 0);
+  }
+  if (state.dots) for (const p of shown) {
+    const [r, g, bl] = COLORS[p.type];
+    ctx.beginPath(); ctx.arc(X(p.x), Y(p.z), 3.2 * dpr, 0, 7);
+    ctx.fillStyle = `rgb(${r},${g},${bl})`; ctx.fill(); ctx.lineWidth = dpr; ctx.strokeStyle = '#fff'; ctx.stroke();
+  }
+  if (state.focus) { ctx.beginPath(); ctx.arc(X(state.focus.x), Y(state.focus.z), 4.5 * k, 0, 7); ctx.lineWidth = 2 * dpr; ctx.strokeStyle = '#fff'; ctx.setLineDash([6 * dpr, 4 * dpr]); ctx.stroke(); ctx.setLineDash([]); }
+  // 北（-Z）が上 / 20mの目盛り
+  ctx.fillStyle = '#9fb3c8'; ctx.font = `${12 * dpr}px system-ui`; ctx.fillText('北 ↑', 10 * dpr, 20 * dpr);
+  ctx.fillRect(10 * dpr, H - 18 * dpr, 20 * k, 3 * dpr); ctx.fillText('20m', 10 * dpr, H - 24 * dpr);
+  summary(); hotspots();
+}
+function summary() {
+  const runs = DATA.runs.filter(r => r.map === state.map && state.diffs.has(r.diff));
+  const n = type => shown.filter(p => p.type === type).length;
+  $('sum').innerHTML = DATA.points.length || DATA.runs.length
+    ? `対象 <b>${runs.length}</b> プレイ ／ 被弾 <b>${n('hit')}</b> ・ 死亡 <b>${n('death')}</b> ・ 落下 <b>${n('fall')}</b>`
+    : 'データなし（上の「サーバーから読み込む」か「JSONを開く」）';
+}
+function hotspots() {
+  const cells = new Map();
+  for (const p of shown) {
+    const key = Math.floor(p.x / 8) + ',' + Math.floor(p.z / 8);
+    const c = cells.get(key) || { n: 0, runs: new Set(), sx: 0, sz: 0, places: {} };
+    c.n++; c.runs.add(p.run); c.sx += p.x; c.sz += p.z; if (p.place) c.places[p.place] = (c.places[p.place] || 0) + 1;
+    cells.set(key, c);
+  }
+  const top = [...cells.values()].sort((a, b) => b.n - a.n || b.runs.size - a.runs.size).slice(0, 6);
+  $('hot').innerHTML = '';
+  for (const c of top) {
+    const x = c.sx / c.n, z = c.sz / c.n, place = Object.entries(c.places).sort((a, b) => b[1] - a[1])[0]?.[0] || '場所名なし';
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="n">${c.n}件</span><span>${place}<small>${c.runs.size}プレイ ・ x ${x.toFixed(0)} / z ${z.toFixed(0)}</small></span>`;
+    if (state.focus && Math.abs(state.focus.x - x) < .01 && Math.abs(state.focus.z - z) < .01) li.className = 'on';
+    li.onclick = () => { state.focus = { x, z }; draw(); };
+    $('hot').append(li);
+  }
+  if (!top.length) $('hot').innerHTML = '<li style="cursor:default">該当なし</li>';
+}
+cv.addEventListener('click', e => {
+  if (!view) return;
+  const rect = cv.getBoundingClientRect(), S = cv.width, k = S / view.span, f = S / rect.width;
+  const mx = (e.clientX - rect.left) * f, my = (e.clientY - rect.top) * f;
+  let best = null, bd = 16 * f;
+  for (const p of shown) { const d = Math.hypot((p.x - view.minX) * k - mx, (p.z - view.minZ) * k - my); if (d < bd) { bd = d; best = p; } }
+  state.focus = null;
+  $('detail').innerHTML = best
+    ? `<b style="color:rgb(${COLORS[best.type]})">${LABEL[best.type]}</b>${best.type === 'death' ? '（' + (best.cause === 'fall' ? '落下' : '被弾') + 'で最後のライフを失った）' : ''}<br>`
+      + `${DIFF_NAME[best.diff] || best.diff} ・ 開始から ${Number(best.t).toFixed(1)}秒 ・ 残りライフ ${best.life}<br>`
+      + `場所：${best.place || '—'} ・ 高さ ${best.y.toFixed(1)}m ・ 状態 ${best.state || '—'}<br>`
+      + (best.cause === 'hit' ? `最寄りのゾンビ ${best.nearest ?? '—'}m ・ 9m以内 ${best.near9 ?? '—'}体<br>` : '')
+      + `<small style="color:#6f8399">プレイ ${best.run.slice(0, 8)}</small>`
+    : '近くに点がありません';
+  draw();
+});
+
+function setData(d, label) {
+  DATA = d;
+  const maps = [...new Set(d.runs.map(r => r.map).concat(d.points.map(p => p.map)))];
+  const count = m => d.points.filter(p => p.map === m).length;
+  $('map').innerHTML = Object.keys(MAP_NAME).map(m => `<option value="${m}">${MAP_NAME[m]}（${d.runs.filter(r => r.map === m).length}プレイ・${count(m)}件）</option>`).join('');
+  state.map = maps.sort((a, b) => count(b) - count(a))[0] || 'old-town'; $('map').value = state.map;
+  state.allDiffs = ['easy', 'normal', 'hard', 'legacy'].filter(x => d.runs.some(r => r.diff === x) || d.points.some(p => p.diff === x));
+  state.diffs = new Set(state.allDiffs);
+  $('diffs').innerHTML = state.allDiffs.map(x => `<label><input type="checkbox" data-diff="${x}" checked>${DIFF_NAME[x]}</label>`).join('') || '—';
+  buildBands(); state.focus = null; $('detail').textContent = '—';
+  $('msg').textContent = `${label}：${d.runs.length}プレイ / ${d.points.length}件`;
+  draw();
+}
+function buildBands() {
+  const ys = DATA.points.filter(p => p.map === state.map).map(p => Math.floor((p.y + .15) / 4));
+  const lo = ys.length ? Math.min(...ys) : 0, hi = ys.length ? Math.max(...ys) : 0;
+  let html = '<option value="all">すべて</option>';
+  for (let i = hi; i >= lo; i--) html += `<option value="${i}">${4 * i}〜${4 * i + 4}m${i === 0 ? '（地面）' : ''}</option>`;
+  $('band').innerHTML = html; state.band = 'all';
+}
+
+$('map').onchange = e => { state.map = e.target.value; state.focus = null; buildBands(); draw(); };
+$('diffs').onchange = e => { const d = e.target.dataset.diff; e.target.checked ? state.diffs.add(d) : state.diffs.delete(d); draw(); };
+document.querySelectorAll('[data-type]').forEach(el => el.onchange = () => { el.checked ? state.types.add(el.dataset.type) : state.types.delete(el.dataset.type); draw(); });
+$('dots').onchange = e => { state.dots = e.target.checked; draw(); };
+$('band').onchange = e => { state.band = e.target.value; draw(); };
+$('time').onchange = e => { state.time = e.target.value; draw(); };
+$('radius').oninput = e => { state.radius = Number(e.target.value); $('rv').textContent = state.radius + 'm'; draw(); };
+$('rv').textContent = state.radius + 'm';
+window.onresize = () => { size(); draw(); };
+
+$('token').value = sessionStorage.getItem('hm-token') || '';
+$('load').onclick = async () => {
+  const token = $('token').value.trim(); if (!token) { $('msg').textContent = 'ADMIN_TOKEN を入れてください'; return; }
+  sessionStorage.setItem('hm-token', token); $('msg').textContent = '読み込み中…';
+  try {
+    const res = await fetch(`${ENDPOINT}/runs?full=1&limit=${Math.min(1000, Math.max(1, Number($('limit').value) || 200))}`, { headers: { authorization: 'Bearer ' + token } });
+    if (res.status === 401) { $('msg').textContent = '合言葉が違います'; return; }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    setData(extract((await res.json()).runs.map(parseRow).filter(Boolean)), 'サーバー');
+  } catch (e) { $('msg').textContent = '読み込み失敗：' + e.message + '（GitHub Pages上のこのページから開く必要があります）'; }
+};
+$('file').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { setData(fromAny(JSON.parse(await f.text())), f.name); } catch (err) { $('msg').textContent = 'JSONを読めません：' + err.message; }
+};
+
+(async () => {
+  size();
+  const em = $('embedded-maps').textContent.trim();
+  MAPS = em ? JSON.parse(em) : await (await fetch('heatmap-maps.json')).json();
+  const ed = $('embedded-data').textContent.trim();
+  if (ed) setData(fromAny(JSON.parse(ed)), '組み込みデータ'); else { setData({ runs: [], points: [] }, '未読み込み'); $('msg').textContent = ''; }
+})();
+</script>
