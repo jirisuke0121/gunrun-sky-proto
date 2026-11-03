@@ -67,11 +67,12 @@ fs.mkdirSync('browser-evidence', { recursive: true });
             for (let i = 0; i < 4; i++) g.frameOnce(1 / 60);   // renders: lets the morph weights settle
             let weights = null;
             sky.ue.traverse(o => { const d = o.morphTargetDictionary; if (!weights && d && d.parkourBite_000 !== undefined && o.name.startsWith('Body')) weights = ['parkourBite_000', 'parkourBite_001', 'parkourBite_002'].map(k => +o.morphTargetInfluences[d[k]].toFixed(2)); });
-            return { minD: +Math.min(...window.__live.map(e => Math.hypot(e.pos.x - g.P.pos.x, e.pos.z - g.P.pos.z))).toFixed(2), biting: window.skyBite.biting, inv: window.skyBite.invulnerable, holster: window.skyBite.holster, weights,
+            return { px: g.P.pos.x, pz: g.P.pos.z, locked: window.skyBite.locked, minD: +Math.min(...window.__live.map(e => Math.hypot(e.pos.x - g.P.pos.x, e.pos.z - g.P.pos.z))).toFixed(2), biting: window.skyBite.biting, inv: window.skyBite.invulnerable, holster: window.skyBite.holster, weights,
               edge: document.getElementById('invulnEdge')?.style.opacity };
           }, extra);
           poses[name] = pose;
         };
+        await page.evaluate(() => { window.__game.keys.KeyW = true; });   // the player tries to walk away the whole time
         await frameAt(0, 'a-hit');
         await frameAt(8, 'b-bitten');     // about 0.2 s: held
         await frameAt(46, 'c-shoved');    // about 1.0 s: just after the shove (the hold lasts 0.9 s)
@@ -95,6 +96,10 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         const last = samples.at(-1);
         results.push({ map, hit, thrownCount, blinked, peakMinDistance: peak, stunned, lifeAfter: last.life, shoves: last.shoves, shoved: last.shoved, samples: samples.map(s => [s.minD, s.maxStun, s.biting, s.inv, s.speed, s.per.join(' | ')]) });
         assert.ok(poses['b-bitten'].weights[0] + poses['b-bitten'].weights[2] > .4 && poses['b-bitten'].weights[1] < .3, `${map}: holding pose should be on the body while bitten (${poses['b-bitten'].weights})`);
+        const moved = Math.hypot(poses['b-bitten'].px - poses['a-hit'].px, poses['b-bitten'].pz - poses['a-hit'].pz);
+        assert.ok(poses['a-hit'].locked && poses['b-bitten'].locked, `${map}: movement is locked while held`);
+        assert.ok(moved < .25, `${map}: the player must not walk while held even with the key down (moved ${moved.toFixed(2)} m)`);
+        assert.ok(!poses['c-shoved'].locked, `${map}: control returns at the shove`);
         assert.ok(poses['b-bitten'].holster, `${map}: the weapon is holstered while grabbed`);
         assert.ok(poses['c-shoved'].weights[1] > .4, `${map}: shove pose after the shove (${poses['c-shoved'].weights})`);
         assert.ok(poses['b-bitten'].minD <= .75, `${map}: the biter should be clamped onto the player while biting (got ${poses['b-bitten'].minD} m)`);

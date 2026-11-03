@@ -25,7 +25,7 @@
       stun: 1,         // s
       bossPush: 4,     // the boss is heavier: smaller push, shorter stun
       bossStun: .5,
-      hold: .5,        // m: the biter is pulled this close and faces the player while biting (hands reach it)
+      hold: .62,       // m: the biter is pulled this close (just outside the body-collision distance of 0.6 m, which would push the player) and faces the player
       lunge: .2,       // m: the body steps toward the zombie on the shove
       drag: .05,       // m: the body is dragged back while grabbed
       shake: .03,      // m: camera shake amplitude while grabbed
@@ -220,7 +220,8 @@
       bite = { t: 0, zombie, shoved: false, pose: grounded };
       // The hit's 1.3 s of invulnerability must outlast the hold and cover most of the thrown zombies' stun.
       c.invuln = Math.max(c.invuln, game.ceRef() + SHOVE.delay + SHOVE.after);
-      anim = { t: 0, zombie, grounded, dx: zombie.pos.x - c.pos.x, dz: zombie.pos.z - c.pos.z };
+      // Held: no walking, jumping, sliding, hooking, barrel jumps or shooting until the shove (look and skills still work).
+      anim = { t: 0, zombie, grounded, lock: grounded && c.state === 'normal', dx: zombie.pos.x - c.pos.x, dz: zombie.pos.z - c.pos.z };
       // Replay the bite clip on the zombie that landed it; the invulnerability window stops a second hit.
       zombie.atkT = Math.max(zombie.atkT || 0, SHOVE.delay);
       biteSound(zombie);
@@ -346,8 +347,20 @@
 
     function reset() { bite = null; anim = null; ringAge = 9; shoveRing.visible = false; cueRing.visible = false; edge.style.opacity = '0'; }
 
+    // True from the bite until the shove, on the ground only.
+    const locked = () => !!anim && anim.lock && !!bite && !bite.shoved && playing();
+    // Called by the player step with this frame's controls: movement input and buffered actions are dropped.
+    function lockInput(controls) {
+      if (!locked()) return;
+      controls.fwdIn = controls.strIn = controls.tmag = 0;
+      if ('steer' in controls) controls.steer = 0;
+      controls.reversing = controls.reversePending = false;
+      c.jumpBuf = 0; c.slideBuf = 0; c.crouchPressed = false; c.hookPressed = false; c.hookPick = null; c.zipWish = 0;
+    }
+
     window.skyBite = {
-      SHOVE, ANIM, onHit, step, body, reset, poseTargets,
+      SHOVE, ANIM, onHit, step, body, reset, poseTargets, lockInput,
+      get locked() { return locked(); },
       sounds: { bite: biteSound, shove: shoveSound }, loadBank,   // exposed for the offline audio check
       get bankInfo() { return Object.fromEntries(Object.entries(bank).map(([k, list]) => [k, list.map(b => +b.duration.toFixed(2))])); },
       get bankReady() { return ['bite', 'snarl', 'thump', 'whoosh', 'grunt', 'groan', 'chew'].every(k => bank[k]?.length); },

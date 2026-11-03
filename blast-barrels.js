@@ -594,7 +594,7 @@
     // The first world collider under the touched pixel must be an active
     // barrel. This keeps walls and the low step from becoming remote triggers.
     function tapAt(clientX, clientY, touch = false) {
-      if (game.modeRef() !== 'play' || game.z.over) return false;
+      if (game.modeRef() !== 'play' || game.z.over || window.skyBite?.locked) return false;
       const canvas = document.getElementById('c');
       const bounds = canvas.getBoundingClientRect();
       if (clientX < bounds.left || clientX > bounds.right ||
@@ -635,7 +635,7 @@
     }, true);
 
     document.addEventListener('keydown', event => {
-      if (event.code !== 'KeyB' || event.repeat || event.ctrlKey || event.metaKey ||
+      if (event.code !== 'KeyB' || event.repeat || event.ctrlKey || event.metaKey || window.skyBite?.locked ||
           /^(INPUT|TEXTAREA|SELECT)$/.test(event.target?.tagName || '')) return;
       const assist = assistTarget();
       if (assist) startAuto(assist.barrel);
