@@ -17,6 +17,7 @@ const SETTINGS = {
   ring: 7, ringTolerance: 1.5, // ゾンビを置く距離(m)
   window: 6,   // 脱出に使える最大時間(秒)
   margin: 1,   // 脱出先で人間が追手より先に着く余裕(秒)
+  pathMargin: .5, // 経路の途中の足場でも、追手より先に着く余裕(秒)
   minTravel: 6, // 脱出先までの水平距離(m)。この距離以上動かない場所は脱出とみなさない
   zipSpeed: 12, barSeconds: 2.5, // ジップの速さ(m/s)と鉄棒ルートの所要時間(秒)は概算
 };
@@ -115,7 +116,7 @@ function analyze(data) {
   }
   const KIND_NAME = { 0: '走る', 1: '登る', 2: '走る', 3: '這う', 5: 'はしご', 6: 'ジャンプ', 7: '飛び降り', zip: 'ジップ', bar: '鉄棒' };
 
-  function dijkstra(adj, sources, extraEdges = null, limit = Infinity) {
+  function dijkstra(adj, sources, extraEdges = null, limit = Infinity, ok = null) {
     const dist = new Float64Array(n).fill(Infinity), prev = new Int32Array(n).fill(-1), prevKind = new Array(n);
     const heap = new Heap();
     for (const s of sources) { dist[s] = 0; heap.push(0, s); }
@@ -123,14 +124,14 @@ function analyze(data) {
     if (extraEdges) for (const e of extraEdges) { if (!byFrom.has(e.from)) byFrom.set(e.from, []); byFrom.get(e.from).push(e); }
     while (heap.size) {
       const [d, u] = heap.pop(); if (d > dist[u]) continue; if (d > limit) break;
-      for (const [v, w, k] of adj[u]) { const nd = d + w; if (nd < dist[v]) { dist[v] = nd; prev[v] = u; prevKind[v] = k; heap.push(nd, v); } }
-      if (byFrom?.has(u)) for (const e of byFrom.get(u)) { const nd = d + e.cost; if (nd < dist[e.to]) { dist[e.to] = nd; prev[e.to] = u; prevKind[e.to] = e.kind; heap.push(nd, e.to); } }
+      for (const [v, w, k] of adj[u]) { const nd = d + w; if (nd < dist[v] && (!ok || ok(v, nd))) { dist[v] = nd; prev[v] = u; prevKind[v] = k; heap.push(nd, v); } }
+      if (byFrom?.has(u)) for (const e of byFrom.get(u)) { const nd = d + e.cost; if (nd < dist[e.to] && (!ok || ok(e.to, nd))) { dist[e.to] = nd; prev[e.to] = u; prevKind[e.to] = e.kind; heap.push(nd, e.to); } }
     }
     return { dist, prev, prevKind };
   }
   const pathTo = (res, t) => {
     const out = []; for (let v = t; v >= 0; v = res.prev[v]) out.push(v); out.reverse();
-    const kinds = out.slice(1).map(v => res.prevKind[v]); return { nodes: out, kinds };
+    const kinds = out.slice(1).map(v => res.prevKind[v]), costs = out.slice(1).map((v, i) => res.dist[v] - res.dist[out[i]]); return { nodes: out, kinds, costs };
   };
 
   const results = new Array(n);
@@ -150,9 +151,12 @@ function analyze(data) {
     const threats = quad.filter(Boolean).map(q => q.m);
     if (threats.length < 3) { results[s] = { status: 'open', threats: threats.length }; continue; }
     const zom = dijkstra(zombieAdj, threats);
+    // 経路のどの足場でも、人間が追手より先に着くこと(途中でゾンビに近づく経路を除く)。
+    const safe = (v, t) => t + SETTINGS.pathMargin <= Math.min(zom.dist[v], 60);
+    const run = dijkstra(humanAdj, [s], extras, SETTINGS.window + 1, safe);
     let best = -1, bestMargin = -Infinity;
     for (let m = 0; m < n; m++) {
-      const h = hum.dist[m]; if (!Number.isFinite(h) || h > SETTINGS.window) continue;
+      const h = run.dist[m]; if (!Number.isFinite(h) || h > SETTINGS.window) continue;
       if (Math.hypot(nodes[m][0] - sx, nodes[m][2] - sz) < SETTINGS.minTravel) continue;
       const margin = Math.min(zom.dist[m], 60) - h;
       if (margin > bestMargin) { bestMargin = margin; best = m; }
@@ -161,18 +165,18 @@ function analyze(data) {
     // 人間専用の移動(ジップ・鉄棒)なしでも脱出できるか。
     let withoutExtras = false;
     if (!trapped) {
-      const plain = dijkstra(humanAdj, [s], null, SETTINGS.window + 1);
+      const plain = dijkstra(humanAdj, [s], null, SETTINGS.window + 1, safe);
       for (let m = 0; m < n && !withoutExtras; m++) {
         const h = plain.dist[m]; if (!Number.isFinite(h) || h > SETTINGS.window) continue;
         if (Math.hypot(nodes[m][0] - sx, nodes[m][2] - sz) < SETTINGS.minTravel) continue;
         if (Math.min(zom.dist[m], 60) - h >= SETTINGS.margin) withoutExtras = true;
       }
     }
-    const route = best >= 0 ? pathTo(hum, best) : null;
+    const route = best >= 0 ? pathTo(run, best) : null;
     results[s] = {
       status: trapped ? 'trapped' : withoutExtras ? 'ok' : 'needs-extras', threats: threats.length,
-      margin: best >= 0 ? +bestMargin.toFixed(2) : null, target: best, time: best >= 0 ? +hum.dist[best].toFixed(2) : null,
-      route: !trapped && route ? route.nodes : null, moves: !trapped && route ? route.kinds.map(k => KIND_NAME[k] || String(k)) : null,
+      margin: best >= 0 ? +bestMargin.toFixed(2) : null, target: best, time: best >= 0 ? +run.dist[best].toFixed(2) : null,
+      route: !trapped && route ? route.nodes : null, moves: !trapped && route ? route.kinds.map(k => KIND_NAME[k] || String(k)) : null, costs: !trapped && route ? route.costs : null,
       threatNodes: threats,
     };
   }
@@ -214,7 +218,8 @@ if(b<0||bd>20)return;sel=b;const q=R[b],p=N[b];document.getElementById('info').t
   return stat;
 }
 
-(async () => {
+module.exports = { exportGame, analyze, SETTINGS };
+if (require.main === module) (async () => {
   const t0 = Date.now();
   const data = await exportGame();
   const a = analyze(data);

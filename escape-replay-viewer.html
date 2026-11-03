@@ -1,0 +1,27 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>脱出テストのリプレイ</title>
+<style>html,body{margin:0;height:100%;background:#10161c;color:#dfe8ef;font:14px/1.6 sans-serif}iframe{border:0;width:100%;height:100%}#bar{position:fixed;z-index:9;left:8px;bottom:8px;display:flex;gap:6px;flex-wrap:wrap}#bar a{padding:6px 10px;border-radius:8px;background:#183c3ef2;color:#e3fff8;text-decoration:none;border:1px solid #8fead2}#msg{position:fixed;z-index:9;top:8px;left:8px;padding:6px 10px;border-radius:8px;background:#000a}</style>
+<div id="msg">読み込み中…</div><div id="bar"></div><iframe id="game" title="ゲーム"></iframe>
+<script>
+// 使い方: このページを index.html と同じ場所から開き、?r=escape-2415 のように記録の名前を付ける。
+// docs/escape-replays/<名前>.json を、ゲーム本編のリプレイ画面（追従視点・シーク・速度変更）で再生する。
+const params = new URLSearchParams(location.search), id = params.get('r') || 'escape-2415';
+const frame = document.getElementById('game'), msg = document.getElementById('msg');
+fetch('docs/escape-replays/report.json').then(r => r.json()).then(report => {
+  document.getElementById('bar').innerHTML = report.scenarios.map(s => `<a href="?r=${s.id}">${s.id}（${s.moves}）</a>`).join('');
+}).catch(() => {});
+frame.src = 'index.html?challengeDebug=1';
+frame.onload = async () => {
+  try {
+    const record = await (await fetch(`docs/escape-replays/${encodeURIComponent(id)}.json`)).json();
+    for (let i = 0; i < 200; i++) {
+      const w = frame.contentWindow;
+      if (w.__skyGhost && w.__skyInternals && w.__skyInternals.modeRef() === 'menu') { await w.__skyGhost.open(record.id, null, { record }); msg.hidden = true; return; }
+      await new Promise(r => setTimeout(r, 100));
+    }
+    msg.textContent = 'ゲームの準備が終わりませんでした。再読み込みしてください。';
+  } catch (e) { msg.textContent = '記録を読み込めませんでした: ' + id; }
+};
+</script>

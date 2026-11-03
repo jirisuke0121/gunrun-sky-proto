@@ -1,0 +1,276 @@
+{
+ "difficulty": "normal",
+ "reactionSeconds": 0.4,
+ "tailSeconds": 1.2,
+ "scenarios": [
+  {
+   "id": "escape-2415",
+   "status": "ok",
+   "start": [
+    0,
+    0,
+    -15
+   ],
+   "target": [
+    -6,
+    9.1,
+    -12
+   ],
+   "moves": "はしご→走る→走る→走る→走る→ジャンプ→登る",
+   "plannedMargin": 2.21,
+   "plannedTime": 5.04,
+   "valid": true,
+   "hasEnemies": true,
+   "enemyFrames": 29,
+   "startLife": 5,
+   "endLife": 5,
+   "hit": false,
+   "minDist": 2.41,
+   "blockedSamples": 42,
+   "blockedBy": {
+    "はしご": 35,
+    "ジャンプ": 7
+   },
+   "blockedAt": [
+    [
+     "はしご",
+     1.37,
+     0,
+     2.86,
+     -14.29
+    ],
+    [
+     "はしご",
+     1.42,
+     0,
+     3.01,
+     -14.25
+    ],
+    [
+     "はしご",
+     1.47,
+     0,
+     3.15,
+     -14.21
+    ],
+    [
+     "はしご",
+     1.52,
+     0,
+     3.3,
+     -14.17
+    ]
+   ],
+   "samples": 133,
+   "duration": 6.65,
+   "end": [
+    -6,
+    9.1,
+    -12
+   ],
+   "over": false,
+   "pass": false
+  },
+  {
+   "id": "escape-1691",
+   "status": "ok",
+   "start": [
+    -18,
+    0,
+    2
+   ],
+   "target": [
+    -8,
+    9.8,
+    4
+   ],
+   "moves": "はしご→走る→ジャンプ→走る→走る→走る→登る",
+   "plannedMargin": 1.48,
+   "plannedTime": 4.94,
+   "valid": true,
+   "hasEnemies": true,
+   "enemyFrames": 29,
+   "startLife": 5,
+   "endLife": 5,
+   "hit": false,
+   "minDist": 2.33,
+   "blockedSamples": 32,
+   "blockedBy": {
+    "はしご": 32
+   },
+   "blockedAt": [
+    [
+     "はしご",
+     1.27,
+     -18,
+     2.46,
+     2.7
+    ],
+    [
+     "はしご",
+     1.32,
+     -18,
+     2.6,
+     2.74
+    ],
+    [
+     "はしご",
+     1.37,
+     -18,
+     2.74,
+     2.78
+    ],
+    [
+     "はしご",
+     1.42,
+     -18,
+     2.89,
+     2.82
+    ]
+   ],
+   "samples": 131,
+   "duration": 6.55,
+   "end": [
+    -8,
+    9.8,
+    4
+   ],
+   "over": false,
+   "pass": false
+  },
+  {
+   "id": "escape-0924",
+   "status": "ok",
+   "start": [
+    -37,
+    1.3,
+    10
+   ],
+   "target": [
+    -48,
+    6.2,
+    5
+   ],
+   "moves": "登る→走る→走る→走る→ジャンプ→走る→ジャンプ→走る→走る→走る→走る→走る→ジャンプ",
+   "plannedMargin": 3.9,
+   "plannedTime": 5.59,
+   "valid": true,
+   "hasEnemies": true,
+   "enemyFrames": 31,
+   "startLife": 5,
+   "endLife": 5,
+   "hit": false,
+   "minDist": 1.87,
+   "blockedSamples": 12,
+   "blockedBy": {
+    "走る": 12
+   },
+   "blockedAt": [
+    [
+     "走る",
+     3.82,
+     -49.17,
+     4.97,
+     11.83
+    ],
+    [
+     "走る",
+     3.87,
+     -49.38,
+     4.92,
+     11.62
+    ],
+    [
+     "走る",
+     3.92,
+     -49.6,
+     4.88,
+     11.4
+    ],
+    [
+     "走る",
+     3.97,
+     -49.81,
+     4.84,
+     11.19
+    ]
+   ],
+   "samples": 144,
+   "duration": 7.2,
+   "end": [
+    -48,
+    6.2,
+    5
+   ],
+   "over": false,
+   "pass": false
+  },
+  {
+   "id": "escape-0125",
+   "status": "ok",
+   "start": [
+    -64,
+    1.3,
+    6
+   ],
+   "target": [
+    -69,
+    6.5,
+    10
+   ],
+   "moves": "登る→走る→登る→登る→走る→ジャンプ→走る→走る",
+   "plannedMargin": 3.73,
+   "plannedTime": 4,
+   "valid": true,
+   "hasEnemies": true,
+   "enemyFrames": 25,
+   "startLife": 5,
+   "endLife": 5,
+   "hit": false,
+   "minDist": 3.14,
+   "blockedSamples": 7,
+   "blockedBy": {
+    "登る": 7
+   },
+   "blockedAt": [
+    [
+     "登る",
+     1.42,
+     -61,
+     2.71,
+     7
+    ],
+    [
+     "登る",
+     1.47,
+     -61,
+     2.82,
+     7
+    ],
+    [
+     "登る",
+     1.52,
+     -61,
+     3,
+     7
+    ],
+    [
+     "登る",
+     1.57,
+     -61,
+     3.23,
+     7
+    ]
+   ],
+   "samples": 113,
+   "duration": 5.62,
+   "end": [
+    -69,
+    6.5,
+    10
+   ],
+   "over": false,
+   "pass": false
+  }
+ ]
+}
