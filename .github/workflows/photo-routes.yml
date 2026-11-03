@@ -1,7 +1,7 @@
 name: Photo routes and existing wall shortcuts
 on:
   pull_request:
-    paths: ["old-town-swing.js", "town-heights.js", "index.html", "bench/photo-*", "bench/wallrun-permissions-browser.cjs", ".github/workflows/photo-routes.yml"]
+    paths: ["old-town-swing.js", "town-heights.js", "index.html", "bench/photo-*", "bench/gantry-pursuit-*", "bench/wallrun-permissions-browser.cjs", ".github/workflows/photo-routes.yml"]
 permissions:
   contents: read
 jobs:
@@ -30,6 +30,8 @@ jobs:
           fi
       - name: Both photo routes in the full game
         run: node bench/photo-routes-browser.cjs
+      - name: Pursuit onto the north-west floating platform
+        run: node bench/gantry-pursuit-browser.cjs
       - name: All five original wall shortcuts
         env:
           WALLRUN_QA_MAP: old
