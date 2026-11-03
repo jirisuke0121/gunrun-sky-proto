@@ -13,9 +13,9 @@
   6.4,
   3
  ],
- "zombieReachedAt": 8.11,
- "zombieExtraSeconds": 6.93,
- "minDist": 1.76,
+ "zombieReachedAt": 10.01,
+ "zombieExtraSeconds": 8.83,
+ "minDist": 1.8,
  "life": 5,
  "over": false
 }
