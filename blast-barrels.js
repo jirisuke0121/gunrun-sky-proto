@@ -34,6 +34,21 @@
       game.ue.add(target);
       barrel.target = target;
     }
+    // Auto blast jump: like the hook, a barrel inside reach gets an on-screen
+    // mark. One tap (or B) makes the player leap into the barrel, the barrel goes
+    // off, and the blast throws the player toward the barrel's landing roof.
+    const AUTO_RANGE = 11;
+    const isTouch = () => document.documentElement.classList.contains('touch');
+    const markHost = document.getElementById('hookMark');
+    const mark = document.createElement('div');
+    mark.id = 'blastMark';
+    Object.assign(mark.style, { position: 'absolute', width: '42px', height: '42px',
+      margin: '-21px', boxSizing: 'border-box', border: '3px solid #ff8a3d',
+      borderRadius: '50%', background: 'rgba(255,120,40,.2)',
+      boxShadow: '0 0 12px #ff7a2acc', color: '#ffe4a1', font: 'bold 13px sans-serif',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: '0',
+      pointerEvents: 'none', transition: 'opacity .12s', zIndex: '21' });
+    (markHost?.parentElement || document.body).appendChild(mark);
     const hint = document.createElement('div');
     Object.assign(hint.style, { position: 'fixed', left: '50%', top: '118px',
       transform: 'translateX(-50%)', zIndex: '21', pointerEvents: 'none',
@@ -41,22 +56,59 @@
       color: '#ffe4a1', font: 'bold 12px sans-serif', textAlign: 'center',
       whiteSpace: 'nowrap', display: 'none' });
     document.body.appendChild(hint);
+    const projected = new Vector3();
+    let autoBlast = null;
+
+    function assistTarget() {
+      const player = game.c;
+      if (autoBlast || game.modeRef() !== 'play' || game.z.over || player.state === 'hook') return null;
+      game.Se.updateMatrixWorld();
+      const ex = player.pos.x, ey = player.pos.y + (player.eye || 1.6), ez = player.pos.z;
+      let best = null;
+      for (const barrel of barrels) {
+        if (!barrel.active) continue;
+        const ax = barrel.x, ay = barrel.y + 1.2, az = barrel.z;
+        const dx = ax - ex, dy = ay - ey, dz = az - ez;
+        const distance = Math.hypot(dx, dy, dz);
+        if (distance > AUTO_RANGE) continue;
+        projected.set(ax, ay, az).project(game.Se);
+        if (projected.z < -1 || projected.z > 1 ||
+            Math.abs(projected.x) > 1 || Math.abs(projected.y) > 1) continue;
+        // A wall between the player and the barrel hides the mark; the barrel's
+        // own cap (0.7 m) is excluded from the ray.
+        if (distance > 1.2 && game.raycast(ex, ey, ez, dx / distance, dy / distance,
+                                           dz / distance, distance - 0.9)) continue;
+        if (!best || distance < best.distance) {
+          best = { barrel, distance,
+                   sx: (projected.x + 1) / 2 * window.__VW(),
+                   sy: (1 - projected.y) / 2 * window.__VH() };
+        }
+      }
+      if (!best) return null;
+      // The hook mark and this one never compete: the nearer of the two wins.
+      if (markHost?.classList.contains('on') && !markHost.classList.contains('cd')) {
+        const anchor = game.us?.[Number(markHost.dataset.anchor)];
+        if (anchor && Math.hypot(anchor[0] - ex, anchor[1] - ey, anchor[2] - ez) < best.distance) return null;
+      }
+      return best;
+    }
+
     const updateGuide = () => {
       for (const barrel of barrels) barrel.target.visible = barrel.active;
       targetMaterial.opacity = 0.62 + 0.18 * Math.sin(performance.now() / 260);
-      const player = game.c;
-      const nearby = barrels.filter(b => b.active).sort((a, b) =>
-        Math.hypot(player.pos.x - a.x, player.pos.z - a.z) -
-        Math.hypot(player.pos.x - b.x, player.pos.z - b.z))[0];
-      if (game.modeRef() === 'play' && nearby &&
-          Math.hypot(player.pos.x - nearby.x, player.pos.z - nearby.z) < 3.5) {
-        const onTop = player.onGround && Math.abs(player.pos.y - 1.12) < 0.16 &&
-          Math.abs(player.pos.x - nearby.x) < 0.82 &&
-          Math.abs(player.pos.z - nearby.z) < 0.82;
-        hint.textContent = onTop ? 'ドラム缶をタップで爆破ジャンプ！' :
-          'ドラム缶をタップで爆破';
+      const assist = assistTarget();
+      if (assist) {
+        mark.style.left = assist.sx + 'px';
+        mark.style.top = assist.sy + 'px';
+        mark.textContent = isTouch() ? '爆破' : 'B';
+        mark.style.opacity = '1';
+        hint.textContent = isTouch() ? 'ドラム缶をタップで爆破ジャンプ！' :
+          'ドラム缶をクリック／Bキーで爆破ジャンプ！';
         hint.style.display = 'block';
-      } else hint.style.display = 'none';
+      } else {
+        mark.style.opacity = '0';
+        hint.style.display = 'none';
+      }
       requestAnimationFrame(updateGuide);
     };
     requestAnimationFrame(updateGuide);
@@ -281,12 +333,12 @@
       source.start();
     }
 
-    function detonate(barrel) {
+    function detonate(barrel, options = {}) {
       if (!barrel?.active) return false;
       const player = game.c;
-      const topShot = player.onGround && Math.abs(player.pos.y - 1.12) < 0.16 &&
+      const topShot = options.auto || (player.onGround && Math.abs(player.pos.y - 1.12) < 0.16 &&
         Math.abs(player.pos.x - barrel.x) < 0.82 &&
-        Math.abs(player.pos.z - barrel.z) < 0.82;
+        Math.abs(player.pos.z - barrel.z) < 0.82);
       barrel.active = false;
       barrel.block.off = true;
       if (barrel.block.mesh) barrel.block.mesh.visible = false;
@@ -317,7 +369,21 @@
       const dx = player.pos.x - barrel.x;
       const dz = player.pos.z - barrel.z;
       const distance = Math.hypot(dx, player.pos.y + 0.8 - barrel.y - 0.56, dz);
-      if (distance <= 4.6 && blastVisible(barrel, player.pos.x,
+      if (options.auto && barrel.land) {
+        // The blast throws the player along an arc that ends on this barrel's
+        // landing roof. The arc is solved from where the player actually is.
+        if (player.state === 'ledge' || player.state === 'ladder' ||
+            player.state === 'slide') player.state = 'normal';
+        player.ledge = null;
+        player.ladder = null;
+        player.onGround = false;
+        player.coyote = 0;
+        player.airT = 0;
+        const launch = blastArc(player.pos, barrel.land);
+        player.vel.set(launch.x, launch.y, launch.z);
+        stats.blastLaunches = (stats.blastLaunches || 0) + 1;
+        game.rn('爆破ジャンプ！ 空中で進路を調整');
+      } else if (distance <= 4.6 && blastVisible(barrel, player.pos.x,
                                           player.pos.y + 1.0, player.pos.z)) {
         const horizontal = Math.hypot(dx, dz) || 1;
         if (player.state === 'ledge' || player.state === 'ladder' ||
@@ -339,7 +405,55 @@
       return true;
     }
 
+    // Launch velocity that lands on `land` = [x, roofTopY, z], peaking about 1 m
+    // above the roof so the player arrives on the way down, never into a wall.
+    function blastArc(from, land) {
+      const gravity = Math.abs(game.U?.gravity ?? 20);
+      const rise = land[1] - from.y;
+      const up = Math.min(17.5, Math.max(11, Math.sqrt(2 * gravity * Math.max(0.5, rise + 1.1))));
+      const time = (up + Math.sqrt(Math.max(up * up - 2 * gravity * rise, 0))) / gravity;
+      const dx = land[0] - from.x, dz = land[2] - from.z;
+      return { x: dx / time, y: up, z: dz / time };
+    }
+
+    function startAuto(barrel) {
+      const player = game.c;
+      if (autoBlast || !barrel?.active || game.z.over || player.state === 'hook') return false;
+      if (player.state === 'ledge' || player.state === 'ladder' ||
+          player.state === 'slide') player.state = 'normal';
+      player.ledge = null;
+      player.ladder = null;
+      autoBlast = { barrel, t: 0 };
+      stats.blastAssists = (stats.blastAssists || 0) + 1;
+      return true;
+    }
+
+    // Called from the player update every frame. The player is carried up to the
+    // barrel top (about 0.3 s), then the barrel goes off and throws the player.
+    function step(dt) {
+      if (!autoBlast) return;
+      const player = game.c, { barrel } = autoBlast;
+      autoBlast.t += dt;
+      if (!barrel.active || game.modeRef() !== 'play' || game.z.over ||
+          player.state === 'hook') { autoBlast = null; return; }
+      const dx = barrel.x - player.pos.x, dz = barrel.z - player.pos.z;
+      const flat = Math.hypot(dx, dz);
+      if ((flat < 0.9 && player.pos.y > 0.6) || autoBlast.t > 1.1) {
+        autoBlast = null;
+        detonate(barrel, { auto: true });
+        return;
+      }
+      const dy = barrel.y + 1.6 - player.pos.y;
+      const distance = Math.hypot(dx, dy, dz) || 1;
+      const speed = Math.min(15, Math.max(7, distance / 0.25));
+      player.state = 'normal';
+      player.onGround = false;
+      player.coyote = 0;
+      player.vel.set(dx / distance * speed, dy / distance * speed, dz / distance * speed);
+    }
+
     function reset() {
+      autoBlast = null;
       for (const barrel of barrels) {
         barrel.active = true;
         barrel.block.off = false;
@@ -350,6 +464,7 @@
       }
       stats.blasts = 0;
       stats.blastLaunches = 0;
+      stats.blastAssists = 0;
     }
 
     // The first world collider under the touched pixel must be an active
@@ -360,6 +475,14 @@
       const bounds = canvas.getBoundingClientRect();
       if (clientX < bounds.left || clientX > bounds.right ||
           clientY < bounds.top || clientY > bounds.bottom) return false;
+      const assist = assistTarget();
+      if (assist) {
+        const radius = touch ? Math.min(128, Math.max(104,
+          Math.min(window.__VW(), window.__VH()) * 0.26)) : 70;
+        if (Math.hypot(assist.sx - clientX, assist.sy - clientY) <= radius) {
+          return startAuto(assist.barrel);
+        }
+      }
       game.Se.updateMatrixWorld();
       const samples = touch ? [[0, 0], [14, 0], [-14, 0], [0, 14], [0, -14]] : [[0, 0]];
       for (const [offsetX, offsetY] of samples) {
@@ -387,6 +510,14 @@
       event.stopImmediatePropagation();
     }, true);
 
-    window.skyBlastBarrels = { barrels, pickShot, aimedAt, detonate, reset, tapAt };
+    document.addEventListener('keydown', event => {
+      if (event.code !== 'KeyB' || event.repeat || event.ctrlKey || event.metaKey ||
+          /^(INPUT|TEXTAREA|SELECT)$/.test(event.target?.tagName || '')) return;
+      const assist = assistTarget();
+      if (assist) startAuto(assist.barrel);
+    });
+
+    window.skyBlastBarrels = { barrels, pickShot, aimedAt, detonate, reset, tapAt,
+                               step, assistTarget, startAuto, blastArc };
   });
 })();

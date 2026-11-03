@@ -353,17 +353,17 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
     }
   }
 
-  // ---- Blast barrels (2026-10-25n): escape tools. ----
-  // The canyon's one-use blast barrel, moved here (blast-barrels.js does the work). Shoot one
-  // and everything within 5 m is thrown back; if you stand on the barrel (a 0.55 m step and a
-  // wide cap make that easy) the blast throws you about 5 m up, onto the roof beside it, and the
-  // zombies below lose you. Each stands 1.5-3 m from a wall of 4.4-6.5 m, on open ground.
+  // ---- Blast barrels (2026-10-25n, moved 2026-11-03): escape tools. ----
+  // One-use blast barrels (blast-barrels.js does the work). Each stands in an open area, 3.5 m+
+  // from any wall, so being surrounded on the ground is exactly when you reach one. A barrel
+  // inside reach shows a mark like the hook; one tap makes the player leap into it, and the blast
+  // throws the player along an arc to `land` = [x, roof top height, z], the high ground beside
+  // the open area. Shooting a barrel still just detonates it (knock-back for nearby zombies).
   window.SKY_CANYON_BLAST_BARRELS = [
-    { id: 'start', x: -48.0, z: 7.2 },     // beside the start, hut roof 6.2 m (north)
-    { id: 'plaza', x: -43.5, z: 11.5 },    // south building roof 4.4 m (south)
-    { id: 'street', x: -59.5, z: -3.0 },   // west tower base 4.2 m (north)
-    { id: 'alley', x: -64.7, z: 15.5 },    // west building roof 6.5 m (west)
-    { id: 'east', x: -26.5, z: 7.5 },      // east block roof 6.4 m (north)
+    { id: 'plaza-west', x: -30.0, z: -24.0, land: [-26.2, 4.2, -16.4] },  // south plaza -> south building roof 4.2 m
+    { id: 'plaza-east', x: -19.0, z: -24.0, land: [-22.5, 4.2, -16.4] },  // south plaza -> south building roof 4.2 m
+    { id: 'crossing', x: -19.0, z: -2.0, land: [-25.0, 6.4, 0.0] },       // open crossing -> west block roof 6.4 m
+    { id: 'east', x: 36.0, z: 16.0, land: [41.5, 4.4, 13.0] },            // east yard -> east roof 4.4 m
   ].map(b => {
     const block = ne(b.x - 0.36, 0, b.z - 0.36, b.x + 0.36, 1.12, b.z + 0.36, 'prop');
     block.shape = 'barrel';

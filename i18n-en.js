@@ -428,6 +428,7 @@
  "自動射撃を再開": "Resume auto-fire",
  "停止中・弾を温存": "Paused · saving ammo",
  "ドラム缶をタップで爆破ジャンプ！": "Tap the barrel to blast-jump!",
+ "ドラム缶をクリック／Bキーで爆破ジャンプ！": "Click the barrel or press B to blast-jump!",
  "ドラム缶をタップで爆破": "Tap the barrel to detonate",
  "爆破ジャンプ！ 空中で進路を調整": "Blast jump! Steer in the air",
  "爆風で上昇！ 空中で進路を調整": "Lifted by the blast! Steer in the air",

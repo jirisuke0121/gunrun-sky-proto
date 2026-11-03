@@ -105,11 +105,14 @@ window.buildSkyCanyon = function ({ ne, Mh, ld, us, jn, Ja }) {
                        [34, 26, 9.5], [14, 26, 5.4], [54, 26, 5.4]]) {
     us.push(at(point));
   }
-  // Ground-level escape tools beside the west and east middle decks.
+  // Ground-level escape tools in the open ground around the decks.
   // Keep their solid blocks in the initial spatial index used by movement and shots.
   window.SKY_CANYON_BLAST_BARRELS = [
-    { id: 'west', x: -15.2, y: 0, z: -7 },
-    { id: 'east', x: 15.2, y: 0, z: -7 },
+    // Open ground, 5 m+ from any wall; each blast carries to a deck (top 4 m).
+    { id: 'west', x: -26.0, y: 0, z: -14.7, land: [-20.6, 4, -12.0] },
+    { id: 'east', x: 17.0, y: 0, z: -16.7, land: [19.4, 4, -12.0] },
+    { id: 'north-west', x: -17.0, y: 0, z: 17.3, land: [-17.0, 4, 13.6] },
+    { id: 'north-east', x: 22.0, y: 0, z: 15.3, land: [20.6, 4, 12.0] },
   ].map(barrel => {
     const block = ne(barrel.x - 0.36, 0, barrel.z - 0.36,
                      barrel.x + 0.36, 1.12, barrel.z + 0.36, 'prop');
