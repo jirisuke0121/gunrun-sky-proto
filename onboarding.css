@@ -1,7 +1,7 @@
 /* First-visit guide: same palette as the home screen (home-focus.css). */
-#onboarding{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:12px;background:#070b10e6;color:#e8eef2}
+#onboarding{position:fixed;inset:0;z-index:60;display:grid;grid-template-rows:minmax(0,1fr);place-items:center;padding:12px;background:#070b10e6;color:#e8eef2}
 #onboarding[hidden]{display:none}
-.onb-card{box-sizing:border-box;width:min(640px,100%);max-height:calc(100dvh - 24px);overflow:auto;padding:22px 26px;border:1px solid #3a4756;border-top:3px solid #e8805a;background:#0f1822;display:flex;flex-direction:column;gap:14px}
+.onb-card{box-sizing:border-box;width:min(640px,100%);max-height:100%;overflow:auto;padding:22px 26px;border:1px solid #3a4756;border-top:3px solid #e8805a;background:#0f1822;display:flex;flex-direction:column;gap:14px}
 .onb-kicker{margin:0;font-size:11px;letter-spacing:.14em;color:#9fb0bd}
 .onb-card h2{margin:2px 0 4px;font-size:26px;color:#f4f0e8}
 .onb-lead{margin:0;font-size:14px;color:#c4d0d9}
@@ -22,21 +22,30 @@ body.sky-lobby.onb-no-intro #homeHero #introEntry{display:none}
 .onb-link{border:0;background:transparent;color:#9fb0bd;font-size:13px;text-decoration:underline}
 #homeGuide{min-height:44px;padding:8px 20px;border:1px solid #657380;background:transparent;color:#e0e6eb;font-size:14px}
 body.onb-open{overflow:hidden}
-@media(max-height:520px){
- #onboarding{padding:6px}.onb-card{padding:12px 16px;gap:8px;display:grid;grid-template-columns:1.25fr 1fr;grid-template-areas:"head head" "steps name" "steps foot";align-items:start}
- .onb-card>header{grid-area:head}.onb-steps{grid-area:steps}.onb-name{grid-area:name}#onboarding footer{grid-area:foot}
- .onb-card h2{font-size:20px;margin:0}.onb-kicker{display:none}.onb-lead{font-size:12px}
- .onb-steps{gap:4px}.onb-steps li{grid-template-columns:74px 1fr;padding:4px 8px;font-size:11px;line-height:1.35}.onb-steps b{font-size:12px}
- .onb-name small{display:none}.onb-name input{min-height:38px;font-size:16px}
- #onboarding button{min-height:40px;font-size:14px}.onb-link{min-height:30px!important}
-}
+/* Compact frame (logical height <= 520px; see #app[data-fit] in control-style.js) */
+#app:not([data-fit=roomy]) #onboarding{padding:6px}
+#app:not([data-fit=roomy]) .onb-card{padding:12px 16px;gap:8px;display:grid;grid-template-columns:1.25fr 1fr;grid-template-areas:"head head" "steps name" "steps foot";align-items:start}
+#app:not([data-fit=roomy]) .onb-card>header{grid-area:head}
+#app:not([data-fit=roomy]) .onb-steps{grid-area:steps}
+#app:not([data-fit=roomy]) .onb-name{grid-area:name}
+#app:not([data-fit=roomy]) #onboarding footer{grid-area:foot}
+#app:not([data-fit=roomy]) .onb-card h2{font-size:20px;margin:0}
+#app:not([data-fit=roomy]) .onb-kicker{display:none}
+#app:not([data-fit=roomy]) .onb-lead{font-size:12px}
+#app:not([data-fit=roomy]) .onb-steps{gap:4px}
+#app:not([data-fit=roomy]) .onb-steps li{grid-template-columns:74px 1fr;padding:4px 8px;font-size:11px;line-height:1.35}
+#app:not([data-fit=roomy]) .onb-steps b{font-size:12px}
+#app:not([data-fit=roomy]) .onb-name small{display:none}
+#app:not([data-fit=roomy]) .onb-name input{min-height:38px;font-size:16px}
+#app:not([data-fit=roomy]) #onboarding button{min-height:40px;font-size:14px}
+#app:not([data-fit=roomy]) .onb-link{min-height:30px!important}
 
 /* Dialog modes: 遊び方 (again) and the one-time nickname prompt (name). */
 #onboarding[data-mode=name] .onb-steps,#onboarding[data-mode=name] #onbIntro,#onboarding[data-mode=name] #onbSettings,#onboarding[data-mode=name] .onb-lead[data-for=again]{display:none}
 #onboarding[data-mode=again] #onbSave,#onboarding[data-mode=again] .onb-lead[data-for=name]{display:none}
 
 /* First visit: one start card instead of the home screen (NIGHTLINE's first drive). */
-#onbSplash{position:fixed;inset:0;z-index:61;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 35%,#16222f 0%,#0a1017 70%);color:#e8eef2}
+#onbSplash{position:fixed;inset:0;z-index:61;display:grid;grid-template-rows:minmax(0,1fr);place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 35%,#16222f 0%,#0a1017 70%);color:#e8eef2}
 .onb-splash-card{box-sizing:border-box;width:min(520px,100%);display:flex;flex-direction:column;gap:12px;padding:28px 28px 24px;border-top:3px solid #e8805a;background:#0f1822e6;text-align:center}
 .onb-splash-card h1{margin:0;font-size:38px;color:#f4f0e8;line-height:1.1}.onb-splash-card h1 span{margin-left:10px;font-size:22px;color:#e8805a}
 .onb-splash-intro{margin:6px 0 0;font-size:16px;color:#dbe3e9}
@@ -46,7 +55,14 @@ body.onb-open{overflow:hidden}
 .onb-splash-note{margin:0;font-size:12px;color:#9fb0bd}
 .onb-start{display:flex;align-items:center;justify-content:center;gap:14px;min-height:56px;margin-top:6px;border:1px solid #e8805a;border-radius:6px;background:#e8805a;color:#1b0f0a;font-size:18px;font-weight:800;letter-spacing:.04em;cursor:pointer}
 .onb-start:disabled{opacity:.55;cursor:default}
-@media(max-height:520px){.onb-splash-card{gap:7px;padding:14px 20px 14px}.onb-splash-card h1{font-size:26px}.onb-splash-card h1 span{font-size:16px}.onb-splash-intro{font-size:13px;margin:0}.onb-keys,.onb-touch-line{font-size:12px}.onb-start{min-height:46px;font-size:16px;margin-top:2px}.onb-splash-card .onb-kicker{display:none}}
+/* Compact frame (logical height <= 520px; see #app[data-fit] in control-style.js) */
+#app:not([data-fit=roomy]) .onb-splash-card{gap:7px;padding:14px 20px 14px}
+#app:not([data-fit=roomy]) .onb-splash-card h1{font-size:26px}
+#app:not([data-fit=roomy]) .onb-splash-card h1 span{font-size:16px}
+#app:not([data-fit=roomy]) .onb-splash-intro{font-size:13px;margin:0}
+#app:not([data-fit=roomy]) .onb-keys,#app:not([data-fit=roomy]) .onb-touch-line{font-size:12px}
+#app:not([data-fit=roomy]) .onb-start{min-height:46px;font-size:16px;margin-top:2px}
+#app:not([data-fit=roomy]) .onb-splash-card .onb-kicker{display:none}
 
 /* Coach: one short line per scene during the intro run. */
 #introCoach{position:absolute;top:96px;left:50%;transform:translateX(-50%);max-width:min(560px,calc(100% - 330px));padding:6px 14px;border-radius:18px;background:#0f1822d9;border:1px solid #ffdfa055;color:#ffe9b8;font-size:14px;font-weight:700;text-align:center;pointer-events:none;text-shadow:none}

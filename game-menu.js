@@ -8,8 +8,9 @@ const restart=document.getElementById('bRestart');
 const runStatus=document.createElement('p');
 runStatus.id='pauseRunStatus';runStatus.className='note';
 document.getElementById('challengeSettingsNote').before(runStatus);
-// Keep the controls in the physical viewport, outside the rotated game canvas.
-document.body.append(button,panel);
+// The menu button and this panel live inside #app, so a phone held upright shows them in the same
+// rotated landscape frame as the rest of the game (every screen is designed for landscape only).
+(document.getElementById('app')||document.body).append(button,panel);
 const jumpGroup=document.getElementById('s_jumpGunUp').closest('.set-group');
 document.getElementById('setGrid').prepend(jumpGroup);
 const heightHint=document.createElement('p');

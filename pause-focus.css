@@ -1,13 +1,89 @@
-/* Pause screen: buttons and the few player settings come first; tuning sliders are folded. */
-#ovPause .pauseKeys{margin:0;font-size:12px;line-height:1.8}
-#ovPause .pauseKeys b{margin-right:.3em;color:var(--dim)}
+/* Settings / pause screen: one landscape layout. Header buttons on top, tab list on the left, one pane on the right.
+   Sizes follow #app[data-fit] (set by control-style.js), not media queries, because a phone held upright
+   shows the app rotated into a landscape frame. The panel lives inside #app so it rotates with it. */
+#ovPause:not([hidden]){display:flex;align-items:center;justify-content:center;padding:max(8px,var(--control-inset-top,env(safe-area-inset-top))) max(10px,var(--control-inset-right,env(safe-area-inset-right))) max(8px,var(--control-inset-bottom,env(safe-area-inset-bottom))) max(10px,var(--control-inset-left,env(safe-area-inset-left)));overflow:hidden;background:#070b10e6;color:#e8eef2;touch-action:auto}
+#ovPause .plate.wide{box-sizing:border-box;display:flex;flex-direction:column;gap:8px;width:min(920px,100%);max-height:100%;margin:0;padding:12px 16px 12px;border:1px solid #3a4756;border-top:3px solid #e8805a;background:#0f1822;box-shadow:0 20px 60px #0009;color:#e8eef2;text-shadow:none}
+#ovPause .plate>.row:first-child{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;flex:none}
+#ovPause h2{margin:0 auto 0 0;font-size:20px;color:#f4f0e8;white-space:nowrap}
+#ovPause .plate button{min-height:44px;padding:6px 14px;border:1px solid #657380;border-radius:6px;background:transparent;color:#e0e6eb;font:700 14px/1.2 var(--font);cursor:pointer;touch-action:manipulation}
+#ovPause .plate button:hover{background:#1a2733}
+#ovPause .plate button.primary{border-color:#e8805a;background:#e8805a;color:#1b0f0a}
+#ovPause .plate button:focus-visible,#ovPause .plate select:focus-visible,#ovPause .plate input:focus-visible{outline:3px solid #fff1c4;outline-offset:2px}
+#pauseRunStatus{margin:0;font-size:12px;color:#c4d0d9;flex:none}
+#pauseRunStatus[hidden]{display:none}
+#ovPause .note{color:#aebcc7}
+
+/* Shell: tabs | pane */
+.ps-shell{display:grid;grid-template-columns:128px minmax(0,1fr);gap:12px;flex:1 1 auto;min-height:0}
+.ps-tabs{display:flex;flex-direction:column;gap:6px}
+#ovPause .plate .ps-tab{justify-content:flex-start;width:100%;min-height:46px;padding:6px 12px;border:1px solid #3a4756;border-left:4px solid #3a4756;border-radius:6px;background:#111c27;color:#c4d0d9;text-align:left;font-size:14px}
+#ovPause .plate .ps-tab[aria-selected=true]{border-color:#ec9a73;background:#2a2522;color:#fff}
+.ps-panes{min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:auto}
+.ps-pane{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 20px;align-content:start}
+.ps-pane[hidden]{display:none}
+.ps-pane>*{min-width:0;margin:0}
+.ps-pane>.cs-chooser,.ps-pane>.note,.ps-pane>#unityScorePause,.ps-pane>#ghostBest,.ps-pane>.pauseKeys,.ps-pane>#setGrid,.ps-pane>.row,.ps-pane>textarea,.ps-pane>#skyMapControls,.ps-pane>.sky-quality-control{grid-column:1 / -1}
+#pausePane_advanced{display:block}
+
+/* Rows inside panes */
+#ovPause .sl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 8px;margin:0;font-size:13px;color:#e8eef2}
+#ovPause .sl label{color:#e8eef2}
+#ovPause .sl output{color:#ffdfa0;font-weight:700}
+#ovPause .sl input[type=range]{grid-column:1 / -1;width:100%;min-height:30px;accent-color:#e8805a;touch-action:pan-x}
+#ovPause label.tg{display:flex;align-items:flex-start;gap:8px;min-height:36px;font-size:12px;line-height:1.45;color:#d4dde4}
+#ovPause label.tg input{flex:none;width:22px;height:22px;margin:0;accent-color:#e8805a}
+#skyMapControls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0;font-size:13px}
+#skyMapControls label{display:inline-flex;align-items:center;gap:8px;color:#d4dde4}
+#skyMapControls input{width:22px;height:22px;accent-color:#e8805a}
+#skyMapControls kbd{border-color:#657380;color:#e8eef2;background:#0d151d}
+#ovPause .sky-quality-control{padding:8px 12px;margin:0;border:1px solid #3a4756;border-radius:8px;background:#111c27;color:#e8eef2}
+#ovPause .sky-quality-control label{color:#e8eef2}
+#ovPause .sky-quality-control select{min-height:44px;border:1px solid #657380;border-radius:6px;background:#0d151d;color:#e8eef2}
+#ovPause .sky-quality-control .note,#ovPause .sky-quality-control p{margin:4px 0 0;font-size:11px;color:#aebcc7}
+#ovPause .follow-camera-settings,#ovPause #setGrid[hidden],#ovPause .row[hidden],#ovPause textarea[hidden]{display:none!important}
+/* The panel has its own close button (つづける / ホームに戻る); the floating menu button would sit on top of it. */
+#bSettings[aria-expanded=true]{display:none}
+#ovPause .pauseKeys{margin:0;font-size:12px;line-height:1.8;color:#c4d0d9}
+#ovPause .pauseKeys b{margin-right:.3em;color:#9fb0bd}
+#ovPause .pauseKeys kbd{display:inline-block;padding:0 6px;border:1px solid #657380;border-bottom-width:2px;border-radius:4px;background:#0d151d;color:#f4f0e8;font:700 11px/1.5 var(--font)}
 #ovPause .pauseKeysTouch{display:none}
 html.touch #ovPause .pauseKeysDesktop{display:none}
 html.touch #ovPause .pauseKeysTouch{display:block}
-#ovPause #pauseBasic{max-height:none;overflow:visible}
-#pauseBasic>h4{grid-column:1 / -1;margin:0;font-size:12px;letter-spacing:.1em;color:var(--dim)}
-#pauseBasic .follow-camera-settings .note{display:none}
-#pauseAdvanced{border-top:1px solid #cdbf9c;padding-top:8px}
-#pauseAdvanced>summary{cursor:pointer;font-weight:700;font-size:13px;padding:6px 0;color:var(--dim)}
-#pauseAdvanced #setGrid{margin-top:8px}
-#pauseBasic #bReset{grid-column:1 / -1;justify-self:start}
+#ovPause #unityScorePause{padding:10px 14px;margin:0;background:#15212d;border-top:3px solid #e8805a;color:#e8eef2;font-size:12px;line-height:1.55}
+#ovPause #unityScorePause h3{margin:0 0 4px;font-size:15px;color:#f4f0e8}
+#ovPause #unityScorePause small{margin-top:4px;color:#aebcc7}
+#ovPause #ghostBest{margin:0;color:#c4d0d9}
+#ovPause #bReset{justify-self:start}
+#ovPause textarea{width:100%;background:#0d151d;color:#e8eef2;border:1px solid #3a4756}
+#ovPause #setGrid{max-height:none;touch-action:auto}
+#ovPause #setGrid .set-group h4{color:#ffdfa0}
+
+/* Smaller frames */
+#app[data-fit=normal] #ovPause .plate.wide{gap:6px;padding:8px 14px 8px}
+#app[data-fit=normal] #ovPause h2{font-size:18px}
+#app[data-fit=normal] #ovPause .plate button{min-height:42px}
+#app[data-fit=normal] .ps-shell{grid-template-columns:112px minmax(0,1fr);gap:10px}
+#app[data-fit=normal] #ovPause .plate .ps-tab{min-height:44px;font-size:13px}
+#app[data-fit=normal] .ps-pane{gap:6px 16px}
+#app[data-fit=normal] #ovPause label.tg{min-height:30px;font-size:11px;line-height:1.35}
+#app[data-fit=tight] #ovPause:not([hidden]){padding-top:max(4px,var(--control-inset-top,env(safe-area-inset-top)));padding-bottom:max(4px,var(--control-inset-bottom,env(safe-area-inset-bottom)))}
+#app[data-fit=tight] #ovPause .plate.wide{gap:4px;padding:6px 12px 6px}
+#app[data-fit=tight] #ovPause h2{font-size:16px}
+#app[data-fit=tight] #ovPause .plate button{min-height:40px;padding:4px 10px;font-size:13px}
+#app[data-fit=tight] .ps-shell{grid-template-columns:96px minmax(0,1fr);gap:8px}
+#app[data-fit=tight] .ps-tabs{gap:4px}
+#app[data-fit=tight] #ovPause .plate .ps-tab{min-height:40px;padding:4px 8px;font-size:12px}
+#app[data-fit=tight] .ps-pane{gap:4px 12px}
+#app[data-fit=tight] #ovPause .sl{font-size:12px}
+#app[data-fit=tight] #ovPause .sl input[type=range]{min-height:24px}
+#app[data-fit=tight] #ovPause label.tg{min-height:26px;font-size:11px;line-height:1.3}
+#app[data-fit=tight] #pauseRunStatus{font-size:11px}
+#app[data-fit=roomy] #ovPause .plate.wide{padding:16px 22px}
+#app[data-fit=roomy] .ps-shell{grid-template-columns:150px minmax(0,1fr)}
+#app[data-fit=roomy] .ps-pane{gap:12px 24px}
+#app[data-fit=roomy] #ovPause .sl{font-size:14px}
+#app[data-fit=roomy] #ovPause label.tg{font-size:13px}
+
+/* Practice mode puts its own panel above the settings; keep it short so the tabs stay in view. */
+#app:not([data-fit=roomy]) #ovPause #practicePanel #practiceHint{display:none}
+#app:not([data-fit=roomy]) #ovPause #practicePanel{padding:4px 8px}

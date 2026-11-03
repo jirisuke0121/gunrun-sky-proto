@@ -1,0 +1,77 @@
+/* Control type chooser (control-style.js). Landscape only; sizes follow #app[data-fit], not media queries,
+   because a phone held upright shows the app rotated into a landscape frame. */
+
+/* ---- The two cards ---- */
+.cs-chooser{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;text-shadow:none}
+.cs-card{position:relative;display:grid;align-content:start;gap:7px;min-width:0;padding:10px 12px 11px;border:2px solid #3a4756;border-radius:10px;background:#111c27;color:#e8eef2;font:inherit;text-align:left;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.cs-card:hover{background:#16232f}
+.cs-card:focus-visible{outline:3px solid #fff1c4;outline-offset:2px}
+.cs-card[aria-checked=true]{border-color:#ec9a73;background:#2a2522;box-shadow:0 0 0 3px #ec9a7333}
+.cs-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px;min-height:22px}
+.cs-name{font-size:17px;line-height:1.2;color:#fff}
+.cs-tag{font-size:11px;color:#a9b8c4;letter-spacing:.02em}
+.cs-on{display:none;margin-left:auto;padding:1px 9px;border-radius:999px;background:#ec9a73;color:#1b0f0a;font-style:normal;font-size:11px;font-weight:800;white-space:nowrap}
+.cs-card[aria-checked=true] .cs-on{display:inline-block}
+
+/* Mock-up of the touch screen: the game scene with the touch areas lit up. */
+.cs-screen{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;aspect-ratio:2.4/1;padding:7px;border:3px solid #6c7d8c;border-radius:12px;overflow:hidden;background:#101820 var(--cs-scene) center/cover no-repeat}
+.cs-screen::before{content:"";position:absolute;inset:0;background:linear-gradient(#0a121acc,#0a121a99)}
+.cs-zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;padding:3px;border-radius:10px;font-size:11px;line-height:1.25;text-align:center}
+.cs-zone b{font-weight:800;white-space:nowrap}
+.cs-zone svg{width:34px;height:34px;flex:none}
+.cs-move{border:2px solid #4fe0bd;background:#2fbf9f2e;color:#c2ffec}
+.cs-view{border:2px solid #ffb06b;background:#ff9d4a2e;color:#ffe5cb}
+/* Easy type: no thumb is needed on this side, the camera moves by itself. */
+.cs-screen.is-auto .cs-view{border:2px dashed #86c3ff;background:#4aa3ff24;color:#d6ebff}
+.cs-jump{position:absolute;right:9px;bottom:6px;padding:2px 7px;border-radius:999px;border:1.5px solid #ffe3a8;background:#3b3220e6;color:#ffe9be;font-size:9px;font-weight:800;line-height:1.3;white-space:nowrap}
+.cs-view{padding-bottom:12px}
+.cs-chooser.is-compact .cs-jump{display:none}
+.cs-chooser.is-compact .cs-view{padding-bottom:3px}
+.cs-keys{display:flex;gap:2px;flex-wrap:wrap;justify-content:center}
+.cs-keys kbd{display:inline-block;min-width:17px;padding:0 3px;border:1px solid currentColor;border-bottom-width:2px;border-radius:4px;background:#0d151d;font:700 10px/1.5 var(--font);color:inherit}
+.cs-fact{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:baseline;font-size:12px;line-height:1.4;color:#d4dde4}
+.cs-fact>b{padding:0 7px;border-radius:4px;background:#26343f;color:#f4f0e8;font-size:11px;white-space:nowrap}
+.cs-fact-key>span{color:#fff;font-weight:700}
+.cs-card[aria-checked=true] .cs-fact>b{background:#4b3a33}
+
+/* ---- Compact (settings tab) ---- */
+.cs-chooser.is-compact .cs-card{gap:6px;padding:8px 10px 9px}
+.cs-chooser.is-compact .cs-name{font-size:15px}
+.cs-chooser.is-compact .cs-screen{aspect-ratio:3.1/1}
+.cs-chooser.is-compact .cs-zone svg{width:26px;height:26px}
+
+/* ---- Popup ---- */
+#ctrlPick{position:fixed;inset:0;z-index:62;display:grid;grid-template-rows:minmax(0,1fr);place-items:center;padding:10px;background:#070b10ee;color:#e8eef2}
+#ctrlPick[hidden]{display:none}
+.cs-dialog{box-sizing:border-box;width:min(800px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:14px 18px 12px;border:1px solid #3a4756;border-top:3px solid #e8805a;background:#0f1822}
+.cs-dialog h2{margin:0;font-size:22px;color:#f4f0e8;line-height:1.25}
+.cs-lead{margin:3px 0 0;font-size:13px;color:#c4d0d9}
+.cs-dialog footer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
+.cs-dialog button.cs-go,.cs-dialog button.cs-cancel{min-height:46px;border-radius:6px;font:800 16px/1.2 var(--font);cursor:pointer;touch-action:manipulation}
+.cs-go{border:1px solid #e8805a;background:#e8805a;color:#1b0f0a}
+.cs-cancel{padding:0 20px;border:1px solid #657380;background:transparent;color:#e0e6eb;font-weight:700!important;font-size:14px!important}
+.cs-note{margin:0;font-size:11px;color:#9fb0bd;text-align:center}
+#app[data-fit=normal] .cs-dialog{gap:8px;padding:10px 16px 8px}
+#app[data-fit=normal] .cs-dialog h2{font-size:19px}
+#app[data-fit=normal] .cs-lead{margin-top:1px;font-size:12px}
+#app[data-fit=normal] #ctrlPick .cs-screen{aspect-ratio:3/1}
+#app[data-fit=tight] #ctrlPick{padding:4px}
+#app[data-fit=tight] .cs-dialog{gap:5px;padding:6px 12px 6px}
+#app[data-fit=tight] .cs-dialog h2{font-size:16px;display:inline}
+#app[data-fit=tight] .cs-lead{display:inline;margin-left:10px;font-size:11px}
+#app[data-fit=tight] #ctrlPick .cs-card{gap:4px;padding:6px 8px 7px}
+#app[data-fit=tight] #ctrlPick .cs-name{font-size:14px}
+#app[data-fit=tight] #ctrlPick .cs-screen{aspect-ratio:4.2/1;padding:4px}
+#app[data-fit=tight] #ctrlPick .cs-zone{flex-direction:row;gap:6px}
+#app[data-fit=tight] #ctrlPick .cs-zone svg{width:20px;height:20px}
+#app[data-fit=tight] #ctrlPick .cs-fact:not(.cs-fact-key){display:none}
+#app[data-fit=tight] #ctrlPick .cs-fact{font-size:11px}
+#app[data-fit=tight] .cs-dialog button.cs-go,#app[data-fit=tight] .cs-dialog button.cs-cancel{min-height:40px;font-size:14px}
+#app[data-fit=tight] .cs-note{display:none}
+#app[data-fit=normal] #ctrlPick .cs-zone svg{width:28px;height:28px}
+
+/* In the settings tab the cards sit in a narrower column. */
+#app[data-fit=tight] .cs-chooser.is-compact .cs-screen{aspect-ratio:4.4/1}
+#app[data-fit=tight] .cs-chooser.is-compact .cs-zone{flex-direction:row;gap:6px}
+#app[data-fit=tight] .cs-chooser.is-compact .cs-zone svg{width:20px;height:20px}
+#app[data-fit=tight] .cs-chooser.is-compact .cs-card{padding:6px 8px 7px;gap:4px}

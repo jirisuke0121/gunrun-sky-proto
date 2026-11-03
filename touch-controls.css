@@ -79,14 +79,8 @@ html.touch .catchbox{bottom:var(--touch-bottom);font-size:11px;padding:5px 8px}
 html.touch #catchBox #slidePart{display:none!important}
 html.touch #catchBox:not(:has(>#catchPart.cool,>#hookPart.cool)){display:none}
 
-/* The menu stays upright, but occupies the game's top-right corner. When
-   its upright sheet opens, it returns to that sheet's normal top-right. */
-html.touch[data-sky-rotation="1"] #bSettings[aria-expanded="false"]{
-  top:auto;bottom:max(10px,env(safe-area-inset-bottom));
-}
-html.touch[data-sky-rotation="-1"] #bSettings[aria-expanded="false"]{
-  right:auto;left:max(12px,env(safe-area-inset-left));
-}
+/* The menu button sits in the game's top-right corner of the landscape frame (inside #app), also when rotated. */
+#bSettings{top:max(10px,var(--control-inset-top,env(safe-area-inset-top)));right:max(12px,var(--control-inset-right,env(safe-area-inset-right)))}
 
 /* The marker suggests movement; touches anywhere in the left zone still work. */
 html.touch #stick{pointer-events:none;border:2px solid #e0ffefb3;background:#102c2440;box-shadow:0 1px 8px #0004}

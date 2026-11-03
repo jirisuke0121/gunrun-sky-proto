@@ -125,13 +125,19 @@
     view.pitch += clamp((targetPitch - view.pitch) * (1 - Math.exp(-3 * elapsed)), -.65 * elapsed, .65 * elapsed);
     return view;
   }
+  // Plain names for the two control types (the cards in control-style.js use the same words).
+  const NAMES = coarse()
+    ? { before: 'FPS操作（右側をドラッグして視点を回す）', after: 'かんたん操作（スティックだけ・カメラ自動）' }
+    : { before: 'マウス視点（WASD＋マウス・従来）', after: '自動カメラ（W/S 前後・A/D 旋回）' };
   function syncUI() {
     document.body.dataset.skyCameraMode = mode;
     for (const select of selectors) select.value = mode;
     for (const note of document.querySelectorAll('.follow-camera-help')) {
-      note.textContent = mode === 'before' ? '従来どおり、移動と視点を別々に操作します。' : coarse()
-        ? '浅く倒すとゆっくり。横〜斜め下で減速して旋回。後退は一度戻して真下へ。右スワイプで見回せます。'
-        : 'W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。マウスで見回せます。';
+      note.textContent = mode === 'before'
+        ? (coarse() ? '左スティックで移動、右側のドラッグで視点を自分で回します。' : 'WASDで移動、マウスで視点を回します。')
+        : coarse()
+          ? 'スティックだけで走れます。カメラは進む向きに自動で追従します。右側をドラッグすると一時的に見回せます。'
+          : 'W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。マウスで見回せます。';
     }
   }
   function setMode(next, persist = true) {
@@ -151,8 +157,8 @@
   function control(id, home) {
     const group = document.createElement('section');
     group.className = home ? 'follow-camera-home' : 'set-group follow-camera-settings';
-    group.setAttribute('aria-label', home ? 'プレイ前のカメラ操作' : 'カメラ操作');
-    group.innerHTML = `${home ? '' : '<h4>カメラ操作</h4>'}<label for="${id}">${home ? 'カメラ' : '操作方式'}</label><select id="${id}" aria-label="${home ? 'プレイ前のカメラ操作' : 'カメラ操作'}"><option value="after">移動に追従</option><option value="before">手動（従来）</option></select><p class="note follow-camera-help"></p>`;
+    group.setAttribute('aria-label', home ? 'プレイ前の操作タイプ' : '操作タイプ');
+    group.innerHTML = `${home ? '' : '<h4>操作タイプ</h4>'}<label for="${id}">操作タイプ</label><select id="${id}" aria-label="操作タイプ"><option value="before">${NAMES.before}</option><option value="after">${NAMES.after}</option></select><p class="note follow-camera-help"></p>`;
     const select = group.querySelector('select'); selectors.push(select);
     select.addEventListener('change', () => setMode(select.value));
     for (const name of ['pointerdown', 'pointerup', 'touchstart', 'touchend']) group.addEventListener(name, event => event.stopPropagation());
@@ -163,6 +169,7 @@
     holdLook(held) { mouseHeld = held; },
     get active() { return enabled(); },
     get mode() { return mode; },
+    get touchDevice() { return coarse(); },
     get view() { return enabled() ? view : c; },
     get state() { return { mode, yaw: view.yaw, pitch: view.pitch, heading: c.yaw, manual, moving: lastInput, gesture }; },
   };

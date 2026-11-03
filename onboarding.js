@@ -55,7 +55,7 @@
       <button id="onbMain" type="button" class="onb-secondary">閉じる</button>
       <button id="onbSettings" type="button" class="onb-link">操作設定を開く</button></footer>
   </div>`;
-  document.body.append(root);
+  ($('app') || document.body).append(root);
   const input = $('onbName'), error = $('onbError');
   let mode = 'again';
 
@@ -111,7 +111,7 @@
       <p class="onb-splash-note">入門は記録・ランキングに反映されません。</p>
       <button id="onbStart" type="button" class="onb-start"><span id="onbStartLabel">タップしてスタート</span><span aria-hidden="true">❯❯</span></button>
     </div>`;
-    document.body.append(splash); document.body.classList.add('onb-open');
+    ($('app') || document.body).append(splash); document.body.classList.add('onb-open');
     const start = $('onbStart');
     const sync = () => { const ready = !!intro && !intro.disabled; start.disabled = !ready; $('onbStartLabel').textContent = ready ? 'タップしてスタート' : '読み込み中…'; };
     sync(); if (intro) new MutationObserver(sync).observe(intro, { attributes: true, attributeFilter: ['disabled'] });
