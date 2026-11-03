@@ -4,7 +4,7 @@
 // Now, ~0.35 s after the bite lands, zombies within SHOVE.radius are thrown outward and held
 // stunned for ~1 s; the player keeps full control the whole time. The body plays a grab ->
 // shove -> stagger pose (human-actions.js `bitePose`), the biter clamps onto the player, and the
-// whole thing has synthesized sound. Also draws the invulnerability cue (blinking body + ground
+// whole thing has sound (CC0 recordings, with a synthesized fallback). Also draws the invulnerability cue (blinking body + ground
 // ring, or a screen-edge glow when the body is hidden).
 (() => {
   window.addEventListener('load', () => {
@@ -82,9 +82,54 @@
       const g = env(ctx, t, peak * (filter ? 6 : 1), attack, 0, dur - attack, out);
       node.connect(g); o.start(t); o.stop(t + dur + .05);
     }
+    // ---------- recorded sounds (CC0, OpenGameArt; see assets/sfx/bite/CREDITS.md) ----------
+    // A few KB of mono MP3. Until they have loaded (or if they fail), the synthesized versions below play instead.
+    const BANK = { bite: ['bite-1', 'bite-2'], snarl: ['snarl-1', 'snarl-2', 'snarl-3'], thump: ['thump'],
+      whoosh: ['whoosh-1', 'whoosh-2'], grunt: ['grunt-1', 'grunt-2'], groan: ['groan-1', 'groan-2'] };
+    const BANK_VERSION = '20261103-bite-v2';
+    const bank = {};
+    let bankLoading = null;
+    function loadBank() {
+      const ctx = Ut?.ctx;
+      if (!ctx) return Promise.resolve(false);
+      if (bankLoading) return bankLoading;
+      const loadOne = name => fetch(`./assets/sfx/bite/${name}.mp3?v=${BANK_VERSION}`)
+        .then(r => r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status))))
+        .then(ab => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
+        .catch(() => null);
+      bankLoading = Promise.all(Object.entries(BANK).map(async ([kind, names]) => {
+        bank[kind] = (await Promise.all(names.map(loadOne))).filter(Boolean);
+      })).then(() => Object.values(bank).every(list => list.length > 0)).catch(() => false);
+      return bankLoading;
+    }
+    document.getElementById('bStart')?.addEventListener('click', () => { loadBank(); });
+    // Plays one random take of a kind; returns false if that kind is not loaded (the caller then synthesizes).
+    function play(kind, { gain = 1, pan = 0, delay = 0, rate = 1 } = {}) {
+      const list = bank[kind];
+      if (!list?.length || !Ut?.ctx || !Ut.master) return false;
+      voice((ctx, t, out) => {
+        const src = ctx.createBufferSource(), g = ctx.createGain();
+        src.buffer = list[(Math.random() * list.length) | 0];
+        src.playbackRate.value = rate * (1 + (Math.random() - .5) * .1);
+        g.gain.value = gain;
+        src.connect(g).connect(out); src.start(t);
+      }, pan, delay);
+      return true;
+    }
+    const lowThump = (gain = 1, delay = 0) => voice((ctx, t, out) => tone(ctx, t, out, { from: 120, to: 42, dur: .22, peak: .55 * gain }), 0, delay);
+
     // Teeth and flesh, a body thump, the zombie's snarl and the player's grunt.
     function biteSound(zombie) {
       const pan = zombie ? panOf(zombie.pos.x, zombie.pos.z) : 0;
+      if (!Ut?.ctx) return;
+      loadBank();
+      if (bank.bite?.length && bank.snarl?.length) {
+        play('bite', { gain: .6, pan });
+        play('snarl', { gain: .5, pan, delay: .03 });
+        play('grunt', { gain: .4, delay: .07, rate: .95 });
+        lowThump(.8);
+        return;
+      }
       voice((ctx, t, out) => {
         noiseBurst(ctx, t, out, { from: 1700, q: 1.3, peak: .5, decay: .13 });
         noiseBurst(ctx, t + .09, out, { from: 1100, q: 1.1, peak: .32, decay: .1 });
@@ -99,16 +144,24 @@
     }
     // Whoosh of the arms, the chest-high impact, the player's effort and the thrown zombies' grunts.
     function shoveSound(thrownZombies) {
+      if (!Ut?.ctx) return;
+      loadBank();
+      const first = thrownZombies.slice(0, 2);
+      if (bank.whoosh?.length && bank.thump?.length) {
+        play('whoosh', { gain: .6 });
+        play('thump', { gain: .75, delay: .05 });
+        lowThump(.7, .05);
+        play('grunt', { gain: .4, rate: 1.1 });
+        first.forEach((e, i) => { if (!play('groan', { gain: .45, pan: panOf(e.pos.x, e.pos.z), delay: .08 + .09 * i, rate: .95 })) { try { Tt.groan(.4, panOf(e.pos.x, e.pos.z), true); } catch {} } });
+        return;
+      }
       voice((ctx, t, out) => {
         noiseBurst(ctx, t, out, { from: 400, to: 2600, q: .9, peak: .42, attack: .05, decay: .2 });
         noiseBurst(ctx, t + .05, out, { type: 'lowpass', from: 900, q: .7, peak: .5, attack: .004, decay: .09 });
         tone(ctx, t + .05, out, { from: 130, to: 40, dur: .24, peak: .62 });
       }, 0);
       voice((ctx, t, out) => tone(ctx, t, out, { wave: 'sawtooth', from: 175, to: 118, dur: .19, peak: .32, attack: .02, filter: 850, q: 2.5 }), 0);
-      thrownZombies.slice(0, 2).forEach((e, i) => {
-        try { Tt.groan(.4, panOf(e.pos.x, e.pos.z), true); } catch {}
-        void i;
-      });
+      first.forEach(e => { try { Tt.groan(.4, panOf(e.pos.x, e.pos.z), true); } catch {} });
     }
 
     // ---------- shove ring on the ground ----------
@@ -279,7 +332,9 @@
 
     window.skyBite = {
       SHOVE, ANIM, onHit, step, body, reset, poseTargets,
-      sounds: { bite: biteSound, shove: shoveSound },   // exposed for the offline audio check
+      sounds: { bite: biteSound, shove: shoveSound }, loadBank,   // exposed for the offline audio check
+      get bankInfo() { return Object.fromEntries(Object.entries(bank).map(([k, list]) => [k, list.map(b => +b.duration.toFixed(2))])); },
+      get bankReady() { return ['bite', 'snarl', 'thump', 'whoosh', 'grunt', 'groan'].every(k => bank[k]?.length); },
       get active() { return true; },
       get biting() { return !!anim; },
       get holster() { return !!anim && anim.grounded; },
