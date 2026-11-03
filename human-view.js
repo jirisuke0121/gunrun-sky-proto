@@ -611,9 +611,12 @@ function update(dt, preparingShot = false) {
   const distance = delta.length() * safe;
   closeFollowView = !!follow && distance < (closeFollowView ? 1.95 : 1.65);
   const close = follow ? closeFollowView : safe <= .28;
-  updateWorldWeapon(!close,dt);
-  if (holder) holder.visible = !close;
-  if (worldWeapon && close) worldWeapon.visible = false;
+  // Invulnerability blink hides the body and its held weapon together.
+  const blinkOff = !!window.skyBite?.blinkOff;
+  updateWorldWeapon(!close && !blinkOff,dt);
+  if (holder) holder.visible = !close && !blinkOff;
+  window.skyBite?.body(holder, !close && !blinkOff);
+  if (worldWeapon && (close || blinkOff)) worldWeapon.visible = false;
   if (ls) ls.root.visible = close && !follow && !!sky.U.showBody;
   for (const arm of mr) arm.root.visible = close && !follow && !!sky.U.showBody;
   document.body.dataset.skyHumanView = close ? 'first-collision' : 'third';
