@@ -43,6 +43,24 @@ const { fixture } = require('./human-running.test.cjs');
       if (i === 12) assert.equal(p.contactWeight, 0);
     }
   }
+  {
+    // Bite/shove: grabbed (leaning back), shoved (both hands driven forward at chest height), stagger.
+    assert.equal(motion.clips.parkourBite.frames.length, 3);
+    for (const name of motion.clips.parkourBite.frames) gltf.scene.traverse(mesh => {
+      if (!mesh.isMesh) return;
+      const index = mesh.morphTargetDictionary[name]; assert.ok(Number.isInteger(index));
+      assert.ok(mesh.geometry.morphAttributes.position[index].array.every(Number.isFinite));
+      assert.ok(mesh.geometry.morphAttributes.position.length <= 256, 'bite poses stay within the 256-layer limit');
+    });
+    const grab = actionPose('parkourBite', 0), shove = actionPose('parkourBite', .5), stagger = actionPose('parkourBite', 1);
+    assert.ok(grab.vertex([0, 1.7, 0], 0)[2] < -.1, 'grab leans back');
+    assert.ok(shove.vertex([0, 1.7, 0], 0)[2] > .1, 'shove lunges forward');
+    assert.ok(shove.hands.left[2] > .65 && shove.hands.right[2] > .65 && Math.abs(shove.hands.left[1] - 1.55) < .3, 'shove drives both hands forward at chest height');
+    assert.ok(Math.abs(stagger.hands.left[0]) > .45 && Math.abs(stagger.hands.right[0]) > .45, 'stagger opens the arms');
+    for (const pose of [grab, shove, stagger]) assert.ok(Object.values(pose.hands).every(h => h.every(Number.isFinite)));
+    // The shared end poses must stay within the 0.6-unit tolerance that justified aliasing.
+    assert.equal(motion.clips.parkourVault.frames.at(-1), 'parkourJump_012');
+  }
   for(const kind of ['parkourSwing','parkourSwingFlight','parkourGripSlip']) {
     for(const name of motion.clips[kind].frames)gltf.scene.traverse(mesh=>{
       if(!mesh.isMesh)return;

@@ -77,6 +77,7 @@ export function actionPose(kind, phase) {
   if (kind === 'parkourSwing') return swingPose(phase);
   if (kind === 'parkourSwingFlight') return swingFlightPose(phase);
   if (kind === 'parkourGripSlip') return gripSlipPose(phase);
+  if (kind === 'parkourBite') return bitePose(phase);
   const t = clamp(phase), jump = kind === 'parkourJump', vault = kind === 'parkourVault';
   const release = jump ? smooth(.78, 1, t) : smooth(.74, 1, t);
   const tuck = jump ? Math.sin(Math.PI * clamp(t / .86)) : Math.sin(Math.PI * t);
@@ -129,6 +130,55 @@ export function actionPose(kind, phase) {
       return lerp(body, a, armWeight);
     }
   };
+}
+
+// Grabbed by a zombie, then thrown off: phase 0 = braced against the grab (leaning back, one hand
+// up at the face, one low), 0.5 = shove (lunge, both arms driven forward at chest height),
+// 1 = follow-through stagger (arms out, weight back). Same two-bone limb solve as the other actions.
+const BITE_KEYS = [
+  { lean: -.34, drop: .12, hand: [[.20, 1.72, .44], [-.34, 1.36, .40]], fingers: [[0, .35, 1], [0, -.1, 1]],
+    foot: [[.30, .12, .20], [-.30, .12, -.24]], hint: [[.9, -.25, -.2], [-.9, -.2, -.2]] },
+  { lean: .40, drop: .10, hand: [[.20, 1.58, .80], [-.20, 1.52, .78]], fingers: [[0, -.05, 1], [0, -.05, 1]],
+    foot: [[.24, .12, .46], [-.24, .12, -.36]], hint: [[1, -.25, -.1], [-1, -.25, -.1]] },
+  { lean: -.08, drop: .03, hand: [[.58, 1.42, .34], [-.58, 1.42, .34]], fingers: [[.3, -.3, 1], [-.3, -.3, 1]],
+    foot: [[.26, .12, .08], [-.26, .12, -.10]], hint: [[1, -.3, -.2], [-1, -.3, -.2]] },
+];
+export function bitePose(phase) {
+  const t = clamp(phase) * 2, i = Math.min(1, Math.floor(t)), f = smooth(0, 1, t - i);
+  const a = BITE_KEYS[i], b = BITE_KEYS[i + 1];
+  const lean = mix(a.lean, b.lean, f), drop = mix(a.drop, b.drop, f);
+  const torso = p => {
+    const weight = smooth(1.05, 1.7, p[1]);
+    const y = p[1] - 1.26, z = p[2] + .045;
+    return [p[0], mix(p[1], 1.26 + y * Math.cos(lean) - z * Math.sin(lean), weight) - drop,
+      mix(p[2], -.045 + y * Math.sin(lean) + z * Math.cos(lean), weight)];
+  };
+  const arms = {}, legs = {}, hands = {};
+  [-1, 1].forEach(side => {
+    const k = side > 0 ? 0 : 1;
+    const shoulder = [side * .28, 1.94, -.075], elbow = [side * .43, 1.55, -.105], hand = [side * .52495, 1.19165, -.0644];
+    const goal = lerp(a.hand[k], b.hand[k], f), hint = lerp(a.hint[k], b.hint[k], f);
+    const shoulderTarget = torso(shoulder);
+    const ik = solveLimb(shoulderTarget, goal, length(sub(elbow, shoulder)), length(sub(hand, elbow)), hint);
+    hands[side < 0 ? 'right' : 'left'] = ik.end;
+    arms[side] = { upper: boneMap(shoulder, elbow, shoulderTarget, ik.joint), lower: boneMap(elbow, hand, ik.joint, ik.end),
+      palm: boneMap(hand, add(hand, [0, -1, 0]), ik.end, add(ik.end, unit(lerp(a.fingers[k], b.fingers[k], f)))) };
+    const hip = [side * .17, 1.23, -.025], knee = [side * .23, .65, -.09], ankle = [side * .24, .12, -.04];
+    const foot = lerp(a.foot[k], b.foot[k], f), hipTarget = torso(hip);
+    const legIK = solveLimb(hipTarget, foot, length(sub(knee, hip)), length(sub(ankle, knee)), [0, .1, 1]);
+    legs[side] = { upper: boneMap(hip, knee, hipTarget, legIK.joint), lower: boneMap(knee, ankle, legIK.joint, legIK.end) };
+  });
+  return { hands, contactWeight: 0, vertex(p, armWeight) {
+    const side = p[0] < 0 ? -1 : 1, arm = arms[side], leg = legs[side];
+    let arm_ = lerp(arm.upper(p), arm.lower(p), 1 - smooth(1.48, 1.67, p[1]));
+    arm_ = lerp(arm_, arm.palm(p), 1 - smooth(1.21, 1.34, p[1]));
+    let l = lerp(leg.upper(p), leg.lower(p), 1 - smooth(.55, .77, p[1]));
+    if (Math.abs(p[0]) < .1) {
+      const other = legs[-side], q = lerp(other.upper(p), other.lower(p), 1 - smooth(.55, .77, p[1]));
+      l = side < 0 ? lerp(l, q, smooth(-.1, .1, p[0])) : lerp(q, l, smooth(-.1, .1, p[0]));
+    }
+    return lerp(lerp(torso(p), l, 1 - smooth(1.12, 1.42, p[1])), arm_, armWeight);
+  } };
 }
 
 // Sagged shoulders and loose legs, then the right hand slips before the left.

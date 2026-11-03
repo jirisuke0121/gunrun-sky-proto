@@ -1,5 +1,5 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, RUN_STRIDE, DASH_STRIDE, LANDING_SECONDS, releaseAccent } from './human-running.js?v=20261031-grip-v1';
+import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, RUN_STRIDE, DASH_STRIDE, LANDING_SECONDS, releaseAccent } from './human-running.js?v=20261103-bite-v1';
 import { GRIP_SLIP_SECONDS } from './swing-fatigue.js?v=20261031-grip-v1';
 import { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
 import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261030-rotation-cache-v2';
@@ -334,11 +334,17 @@ function updateMotion(dt, speed) {
       }
     }
   }
+  // Bite/shove: cross-fade into the grab -> shove -> stagger poses while a zombie has hold of the player.
+  const bitePose = window.skyBite?.poseTargets?.();
+  if (bitePose) {
+    for (const name of Object.keys(targets)) targets[name] *= 1 - bitePose.weight;
+    for (const [name, value] of Object.entries(bitePose.targets)) targets[name] = (targets[name] || 0) + value * bitePose.weight;
+  }
   const snap = landingRoll.takeSnap();
   // The clip is already interpolated. Filtering a planted foot again delays
   // it behind the player's travel and makes the sole slide across the floor.
   const plantedRun = dashStrength > .001 && runWeight > .99;
-  const smooth = ledgeAction || rolling || snap || plantedRun ? 1 : 1 - Math.exp(-dt * 18);
+  const smooth = ledgeAction || rolling || snap || plantedRun ? 1 : 1 - Math.exp(-dt * (bitePose ? 40 : 18));
   for (const mesh of morphMeshes) {
     const weights = mesh.morphTargetInfluences, names = mesh.morphTargetDictionary;
     // Morph names are fixed for a loaded geometry. Avoid rebuilding hundreds
@@ -612,11 +618,12 @@ function update(dt, preparingShot = false) {
   closeFollowView = !!follow && distance < (closeFollowView ? 1.95 : 1.65);
   const close = follow ? closeFollowView : safe <= .28;
   // Invulnerability blink hides the body and its held weapon together.
-  const blinkOff = !!window.skyBite?.blinkOff;
-  updateWorldWeapon(!close && !blinkOff,dt);
+  // The held weapon is holstered while the arms are busy pushing a zombie off.
+  const blinkOff = !!window.skyBite?.blinkOff, holster = !!window.skyBite?.holster;
+  updateWorldWeapon(!close && !blinkOff && !holster,dt);
   if (holder) holder.visible = !close && !blinkOff;
   window.skyBite?.body(holder, !close && !blinkOff);
-  if (worldWeapon && (close || blinkOff)) worldWeapon.visible = false;
+  if (worldWeapon && (close || blinkOff || holster)) worldWeapon.visible = false;
   if (ls) ls.root.visible = close && !follow && !!sky.U.showBody;
   for (const arm of mr) arm.root.visible = close && !follow && !!sky.U.showBody;
   document.body.dataset.skyHumanView = close ? 'first-collision' : 'third';

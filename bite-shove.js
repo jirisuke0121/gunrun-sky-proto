@@ -2,13 +2,15 @@
 // Before this, a hit only gave 1.3 s of invulnerability and pushed the player 4 m/s, so a
 // player pinned by 3+ zombies at 0.5 m lost every life in about 4.4 s (see README 2026-11-03).
 // Now, ~0.35 s after the bite lands, zombies within SHOVE.radius are thrown outward and held
-// stunned for ~1 s; the player keeps full control the whole time. Also draws the
-// invulnerability cue (blinking body + ground ring, or a screen-edge glow when the body is hidden).
+// stunned for ~1 s; the player keeps full control the whole time. The body plays a grab ->
+// shove -> stagger pose (human-actions.js `bitePose`), the biter clamps onto the player, and the
+// whole thing has synthesized sound. Also draws the invulnerability cue (blinking body + ground
+// ring, or a screen-edge glow when the body is hidden).
 (() => {
   window.addEventListener('load', () => {
     const game = window.__skyInternals;
     if (!game) return;
-    const { c, z, Tt } = game;
+    const { c, z, Tt, Ut } = game;
     const camera = game.Se;
     const { Torus, Mesh, Basic, Vector3 } = game.Geom;
     const stats = window.__game?.stats;
@@ -17,21 +19,97 @@
     // Zombie stun decays velocity by exp(-3.5 t), so a push of v m/s travels about v / 3.5 m.
     const SHOVE = Object.freeze({
       delay: .35,      // bite pose before the shove
-      recover: .2,     // lunge pose after the shove
       radius: 2.5,     // zombies this close (flat distance) are thrown
       push: 9,         // m/s outward, about 2.6 m of travel
       stun: 1,         // s
       bossPush: 4,     // the boss is heavier: smaller push, shorter stun
       bossStun: .5,
-      lean: .3,        // rad: lean away while bitten, lunge toward the zombie on the shove
       hold: .6,        // m: the biter is pulled this close and faces the player while biting
-      crouch: .1,      // m: the body sinks while grabbed
-      lunge: .28,      // m: the body steps toward the zombie on the shove
+      lunge: .2,       // m: the body steps toward the zombie on the shove
+      drag: .05,       // m: the body is dragged back while grabbed
       shake: .03,      // m: camera shake amplitude while grabbed
       kick: .12,       // m: camera kick back on the shove
     });
+    // Pose timeline (s since the bite landed). The morph frames are parkourBite_000/001/002.
+    const ANIM = Object.freeze({ total: .72, in: .07, out: .22, weight: .92 });
     const BLINK_HZ = 7, BLINK_VISIBLE = .65, MAX_SHOWN = 10;
-    const yUp = new Vector3(0, 1, 0), dir = new Vector3(), axis = new Vector3(), look = new Vector3();
+    const dir = new Vector3(), look = new Vector3();
+    const smooth01 = x => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
+    const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
+
+    // ---------- sound (synthesized; no sample files) ----------
+    const panOf = (x, zz) => {
+      const dx = x - c.pos.x, dz = zz - c.pos.z, d = Math.hypot(dx, dz) || 1;
+      return Math.max(-1, Math.min(1, (dx * Math.cos(c.yaw) - dz * Math.sin(c.yaw)) / d));
+    };
+    function voice(build, pan = 0, delay = 0) {
+      const ctx = Ut?.ctx;
+      if (!ctx || !Ut.master) return;
+      try {
+        const t = ctx.currentTime + delay;
+        const out = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+        if (out) { out.pan.value = pan; out.connect(Ut.master); }
+        build(ctx, t, out || Ut.master);
+      } catch {}
+    }
+    const env = (ctx, t, peak, attack, hold, decay, out) => {
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(1e-4, t);
+      g.gain.exponentialRampToValueAtTime(peak, t + attack);
+      g.gain.setValueAtTime(peak, t + attack + hold);
+      g.gain.exponentialRampToValueAtTime(1e-4, t + attack + hold + decay);
+      g.connect(out);
+      return g;
+    };
+    function noiseBurst(ctx, t, out, { type = 'bandpass', from, to, q = 1, peak = .4, attack = .004, hold = 0, decay = .12 }) {
+      if (!Ut.noise) return;
+      const src = ctx.createBufferSource(); src.buffer = Ut.noise; src.loop = true;
+      const f = ctx.createBiquadFilter(); f.type = type; f.Q.value = q; f.frequency.setValueAtTime(from, t);
+      if (to) f.frequency.exponentialRampToValueAtTime(to, t + attack + hold + decay);
+      const g = env(ctx, t, peak, attack, hold, decay, out);
+      src.connect(f).connect(g); src.start(t, Math.random() * .5); src.stop(t + attack + hold + decay + .05);
+    }
+    function tone(ctx, t, out, { wave = 'sine', from, to, dur, peak, attack = .006, filter, q = 2, vibrato }) {
+      const o = ctx.createOscillator(); o.type = wave;
+      o.frequency.setValueAtTime(from, t); o.frequency.exponentialRampToValueAtTime(to, t + dur);
+      let node = o;
+      if (vibrato) {
+        const l = ctx.createOscillator(), d = ctx.createGain(); l.frequency.value = vibrato.hz; d.gain.value = vibrato.depth;
+        l.connect(d).connect(o.frequency); l.start(t); l.stop(t + dur + .05);
+      }
+      if (filter) { const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = filter; f.Q.value = q; node = o.connect(f); }
+      // A bandpass keeps only a few harmonics of the sawtooth (about 0.13 of its amplitude), so make the level back up.
+      const g = env(ctx, t, peak * (filter ? 6 : 1), attack, 0, dur - attack, out);
+      node.connect(g); o.start(t); o.stop(t + dur + .05);
+    }
+    // Teeth and flesh, a body thump, the zombie's snarl and the player's grunt.
+    function biteSound(zombie) {
+      const pan = zombie ? panOf(zombie.pos.x, zombie.pos.z) : 0;
+      voice((ctx, t, out) => {
+        noiseBurst(ctx, t, out, { from: 1700, q: 1.3, peak: .5, decay: .13 });
+        noiseBurst(ctx, t + .09, out, { from: 1100, q: 1.1, peak: .32, decay: .1 });
+        noiseBurst(ctx, t, out, { type: 'highpass', from: 3500, q: .7, peak: .1, attack: .03, decay: .22 });
+        tone(ctx, t, out, { from: 110, to: 45, dur: .17, peak: .5 });
+      }, pan);
+      voice((ctx, t, out) => {
+        tone(ctx, t + .02, out, { wave: 'sawtooth', from: 150, to: 92, dur: .5, peak: .34, attack: .05, filter: 900, q: 2.5, vibrato: { hz: 26, depth: 16 } });
+        noiseBurst(ctx, t + .02, out, { from: 1200, to: 700, q: 2, peak: .12, attack: .06, decay: .4 });
+      }, pan);
+      voice((ctx, t, out) => tone(ctx, t + .03, out, { wave: 'sawtooth', from: 210, to: 125, dur: .2, peak: .3, attack: .02, filter: 750, q: 3 }), 0);
+    }
+    // Whoosh of the arms, the chest-high impact, the player's effort and the thrown zombies' grunts.
+    function shoveSound(thrownZombies) {
+      voice((ctx, t, out) => {
+        noiseBurst(ctx, t, out, { from: 400, to: 2600, q: .9, peak: .42, attack: .05, decay: .2 });
+        noiseBurst(ctx, t + .05, out, { type: 'lowpass', from: 900, q: .7, peak: .5, attack: .004, decay: .09 });
+        tone(ctx, t + .05, out, { from: 130, to: 40, dur: .24, peak: .62 });
+      }, 0);
+      voice((ctx, t, out) => tone(ctx, t, out, { wave: 'sawtooth', from: 175, to: 118, dur: .19, peak: .32, attack: .02, filter: 850, q: 2.5 }), 0);
+      thrownZombies.slice(0, 2).forEach((e, i) => {
+        try { Tt.groan(.4, panOf(e.pos.x, e.pos.z), true); } catch {}
+        void i;
+      });
+    }
 
     // ---------- shove ring on the ground ----------
     const ringMaterial = new Basic({ color: 0xcfe8ff, transparent: true, opacity: 0, depthWrite: false });
@@ -52,7 +130,8 @@
       'box-shadow:inset 0 0 70px 10px rgba(140,205,255,.55);transition:none';
     (document.getElementById('app') || document.body).append(edge);
 
-    let bite = null, lastShove = [];
+    // bite drives the game-side effect (clamp, shove); anim drives the body pose, camera and facing.
+    let bite = null, anim = null, lastShove = [];
     let blinkVisible = true, cueOn = false;
 
     const playing = () => game.modeRef() === 'play' && !z.over;
@@ -62,8 +141,9 @@
     const blinkPhaseVisible = () => reducedMotion || ((game.ceRef() * BLINK_HZ) % 1) < BLINK_VISIBLE;
 
     function biteDirection(zombie, out) {
-      out.set(zombie.pos.x - c.pos.x, 0, zombie.pos.z - c.pos.z);
-      if (out.lengthSq() < 1e-6) out.set(-Math.sin(c.yaw), 0, -Math.cos(c.yaw));
+      if (zombie) out.set(zombie.pos.x - c.pos.x, 0, zombie.pos.z - c.pos.z);
+      else out.set(0, 0, 0);
+      if (out.lengthSq() < 1e-6) out.set(anim?.dx ?? -Math.sin(c.yaw), 0, anim?.dz ?? -Math.cos(c.yaw));
       return out.normalize();
     }
 
@@ -72,15 +152,17 @@
       if (!zombie || zombie.stalker) return false;
       const grounded = !!c.onGround && (c.state === 'normal' || c.state === 'slide');
       bite = { t: 0, zombie, shoved: false, pose: grounded };
+      anim = { t: 0, zombie, grounded, dx: zombie.pos.x - c.pos.x, dz: zombie.pos.z - c.pos.z };
       // Replay the bite clip on the zombie that landed it; the invulnerability window stops a second hit.
       zombie.atkT = Math.max(zombie.atkT || 0, SHOVE.delay);
+      biteSound(zombie);
       return true;
     }
 
     function shove() {
       bite.shoved = true;
       let thrown = 0;
-      const t = z.t;
+      const t = z.t, pushed = [];
       lastShove = [];
       for (const e of game.Jt) {
         const dx = e.pos.x - c.pos.x, dz = e.pos.z - c.pos.z;
@@ -97,10 +179,10 @@
         e.stun = Math.max(e.stun || 0, boss ? SHOVE.bossStun : SHOVE.stun);
         e.atkT = 0; e.lastHitT = t;   // lastHitT retriggers the knock-back clip
         e.vel.x = nx * push; e.vel.z = nz * push; e.vel.y = Math.max(e.vel.y, 1.2);
-        thrown++;
+        thrown++; pushed.push(e);
       }
       ringAge = 0;
-      try { Tt.thud(.9, 0); } catch {}
+      shoveSound(pushed);
       if (stats) { stats.shoves = (stats.shoves || 0) + 1; stats.shoved = (stats.shoved || 0) + thrown; }
     }
 
@@ -121,12 +203,29 @@
     }
 
     function step(dt) {
+      if (anim) { anim.t += dt; if (anim.t >= ANIM.total || !playing()) anim = null; }
       if (!bite) return;
       if (!playing()) { bite = null; return; }
       bite.t += dt;
       if (!bite.shoved) hold(bite.zombie, dt);
       if (!bite.shoved && bite.t >= SHOVE.delay) shove();
-      if (bite.t >= SHOVE.delay + SHOVE.recover) bite = null;
+      if (bite.shoved) bite = null;
+    }
+
+    // Overall pose weight: fades in fast, fades out over the last ANIM.out seconds.
+    const poseWeight = () => anim && anim.grounded
+      ? ANIM.weight * Math.min(smooth01(anim.t / ANIM.in), 1 - smooth01((anim.t - (ANIM.total - ANIM.out)) / ANIM.out)) : 0;
+
+    // Morph-target weights for the human view: grab -> shove -> stagger, cross-faded around the shove.
+    function poseTargets() {
+      const weight = poseWeight();
+      if (weight < .001) return null;
+      const t = anim.t, d = SHOVE.delay;
+      const g = 1 - smooth01((t - (d - .04)) / .08);
+      const s = smooth01((t - (d - .04)) / .08) * (1 - smooth01((t - (d + .1)) / .14));
+      const r = smooth01((t - (d + .1)) / .14);
+      const sum = g + s + r || 1;
+      return { weight, targets: { parkourBite_000: g / sum, parkourBite_001: s / sum, parkourBite_002: r / sum } };
     }
 
     // Visual cues run on the display frame so they also clear when the game pauses or ends.
@@ -157,36 +256,35 @@
 
     // Called by the human view each frame after the body pose and camera are set.
     function body(holder, shown) {
-      if (!bite) return;
-      const k = bite.shoved ? 0 : Math.min(1, bite.t / SHOVE.delay);                         // grabbed 0 -> 1
-      const f = bite.shoved ? Math.max(0, 1 - (bite.t - SHOVE.delay) / SHOVE.recover) : 0;  // shove 1 -> 0
-      biteDirection(bite.zombie, dir);
-      if (shown && holder && bite.pose && bite.zombie) {
-        const angle = bite.shoved ? SHOVE.lean * 1.4 * f : -SHOVE.lean * k;   // lunge forward / dragged back
-        if (angle) {
-          axis.crossVectors(yUp, dir);
-          holder.quaternion.premultiply(new holder.quaternion.constructor().setFromAxisAngle(axis, angle));
-        }
-        holder.position.y -= SHOVE.crouch * (bite.shoved ? f : k);
-        holder.position.addScaledVector(dir, bite.shoved ? SHOVE.lunge * f : -SHOVE.lean * .4 * k);
+      if (!anim) return;
+      const grab = Math.min(1, anim.t / SHOVE.delay) * (anim.t < SHOVE.delay ? 1 : 0);          // grabbed 0 -> 1
+      const f = anim.t < SHOVE.delay ? 0 : Math.max(0, 1 - (anim.t - SHOVE.delay) / .2);       // shove 1 -> 0
+      biteDirection(anim.zombie, dir);
+      if (shown && holder && anim.grounded) {
+        // Face the biter so the pose reads: the model's +Z points to (dx, dz).
+        const w = poseWeight() / ANIM.weight;
+        holder.rotation.y += wrap(Math.atan2(dir.x, dir.z) - holder.rotation.y) * w;
+        holder.position.addScaledVector(dir, f * SHOVE.lunge - grab * SHOVE.drag);
       }
       if (reducedMotion) return;
       // Camera: shake while grabbed, one kick back on the shove.
-      const shake = SHOVE.shake * k * (1 - k * .3);
-      camera.position.x += Math.sin(bite.t * 71) * shake;
-      camera.position.y += Math.cos(bite.t * 83) * shake;
+      const shake = SHOVE.shake * grab * (1 - grab * .3);
+      camera.position.x += Math.sin(anim.t * 71) * shake;
+      camera.position.y += Math.cos(anim.t * 83) * shake;
       if (f > 0) { camera.getWorldDirection(look); camera.position.addScaledVector(look, -SHOVE.kick * f); }
       camera.updateMatrixWorld();
     }
 
-    function reset() { bite = null; ringAge = 9; shoveRing.visible = false; cueRing.visible = false; edge.style.opacity = '0'; }
+    function reset() { bite = null; anim = null; ringAge = 9; shoveRing.visible = false; cueRing.visible = false; edge.style.opacity = '0'; }
 
     window.skyBite = {
-      SHOVE, onHit, step, body, reset,
+      SHOVE, ANIM, onHit, step, body, reset, poseTargets,
+      sounds: { bite: biteSound, shove: shoveSound },   // exposed for the offline audio check
       get active() { return true; },
-      get biting() { return !!bite; },
+      get biting() { return !!anim; },
+      get holster() { return !!anim && anim.grounded; },
       get lastShove() { return lastShove; },
-      get blinkOff() { return !bite && !reducedMotion && invulnerable() && !blinkPhaseVisible(); },
+      get blinkOff() { return !anim && !reducedMotion && invulnerable() && !blinkPhaseVisible(); },
       get invulnerable() { return invulnerable(); },
     };
   });

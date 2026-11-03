@@ -61,13 +61,20 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         // Render a few chosen moments (repeated software-GL renders crash this sandbox's Chromium).
         const poses = {};
         const frameAt = async (extra, name) => {
-          await page.evaluate(n => { const g = window.__game; for (let i = 0; i < n; i++) g.advance(1 / 60); g.frameOnce(0); }, extra);
-          const pose = await page.evaluate(() => ({ minD: +Math.min(...window.__live.map(e => Math.hypot(e.pos.x - window.__game.P.pos.x, e.pos.z - window.__game.P.pos.z))).toFixed(2), biting: window.skyBite.biting, inv: window.skyBite.invulnerable, edge: document.getElementById('invulnEdge')?.style.opacity }));
+          const pose = await page.evaluate(n => {
+            const g = window.__game, sky = window.__skyInternals;
+            for (let i = 0; i < n; i++) g.advance(1 / 60);
+            for (let i = 0; i < 4; i++) g.frameOnce(1 / 60);   // renders: lets the morph weights settle
+            let weights = null;
+            sky.ue.traverse(o => { const d = o.morphTargetDictionary; if (!weights && d && d.parkourBite_000 !== undefined && o.name.startsWith('Body')) weights = ['parkourBite_000', 'parkourBite_001', 'parkourBite_002'].map(k => +o.morphTargetInfluences[d[k]].toFixed(2)); });
+            return { minD: +Math.min(...window.__live.map(e => Math.hypot(e.pos.x - g.P.pos.x, e.pos.z - g.P.pos.z))).toFixed(2), biting: window.skyBite.biting, inv: window.skyBite.invulnerable, holster: window.skyBite.holster, weights,
+              edge: document.getElementById('invulnEdge')?.style.opacity };
+          }, extra);
           poses[name] = pose;
         };
         await frameAt(0, 'a-hit');
-        await frameAt(12, 'b-bitten');
-        await frameAt(12, 'c-shoved');
+        await frameAt(8, 'b-bitten');     // about 0.2 s: grabbed
+        await frameAt(10, 'c-shoved');    // about 0.43 s: shoving
         // Sample during the next 1.4 s.
         const samples = [];
         for (let i = 0; i < 30; i++) {
@@ -87,6 +94,9 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         const stunned = samples.some(s => s.maxStun > .3);
         const last = samples.at(-1);
         results.push({ map, hit, thrownCount, blinked, peakMinDistance: peak, stunned, lifeAfter: last.life, shoves: last.shoves, shoved: last.shoved, samples: samples.map(s => [s.minD, s.maxStun, s.biting, s.inv, s.speed, s.per.join(' | ')]) });
+        assert.ok(poses['b-bitten'].weights[0] > .4, `${map}: grab pose should be on the body while bitten (${poses['b-bitten'].weights})`);
+        assert.ok(poses['b-bitten'].holster, `${map}: the weapon is holstered while grabbed`);
+        assert.ok(poses['c-shoved'].weights[1] + poses['c-shoved'].weights[2] > .4, `${map}: shove/stagger pose after the shove (${poses['c-shoved'].weights})`);
         assert.ok(poses['b-bitten'].minD <= .75, `${map}: the biter should be clamped onto the player while biting (got ${poses['b-bitten'].minD} m)`);
         assert.ok(last.shoves >= 1, `${map}: no shove recorded`);
         assert.ok(last.shoved >= 2, `${map}: shove should throw the crowd (got ${last.shoved})`);

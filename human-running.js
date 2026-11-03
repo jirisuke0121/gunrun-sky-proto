@@ -1,6 +1,6 @@
 // Running style for the existing, baked Unity human. No new model download.
 // Asset-space metres: +Y up, +Z forward, the right hand is on -X.
-import { actionPose, boneMap, solveLimb, landingPose, LANDING_SECONDS } from './human-actions.js?v=20261031-grip-v1';
+import { actionPose, boneMap, solveLimb, landingPose, LANDING_SECONDS } from './human-actions.js?v=20261103-bite-v1';
 export { LANDING_SECONDS, releaseAccent } from './human-actions.js?v=20261030-landing-release-v1';
 import { landingRollPose, rollTuck, rollTurn, LANDING_ROLL } from './landing-roll.js?v=20261029-edge-assist-v3';
 export { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
@@ -233,9 +233,9 @@ export function addParkourRun(model, motion, Attribute) {
     actionClips[kind] = { frames: names, times: seconds, duration: 1, source: 'distance-synchronised wall contact cycle' };
     actionGrips[kind] = rightHands; actionHands[kind] = bothHands;
   }
-  for (const kind of ['parkourJump', 'parkourVault', 'parkourMantle', 'parkourCatch', 'parkourSwing', 'parkourSwingFlight', 'parkourGripSlip']) {
+  for (const kind of ['parkourJump', 'parkourVault', 'parkourMantle', 'parkourCatch', 'parkourSwing', 'parkourSwingFlight', 'parkourGripSlip', 'parkourBite']) {
     const names = [], seconds = [], rightHands = [], bothHands = [];
-    const samples=kind==='parkourGripSlip'?3:kind==='parkourSwingFlight'?4:kind==='parkourSwing'?8:12;
+    const samples=kind==='parkourBite'?2:kind==='parkourGripSlip'?3:kind==='parkourSwingFlight'?4:kind==='parkourSwing'?8:12;
     for (let i = 0; i <= samples; i++) {
       const phase = i / samples, pose = actionPose(kind, phase), name = `${kind}_${String(i).padStart(3, '0')}`;
       names.push(name); seconds.push(phase); frames.push(name);
@@ -283,12 +283,15 @@ export function addParkourRun(model, motion, Attribute) {
     dashPitches.push(pose.pitch);
   }
   // Four cyclic endpoint poses are identical to their first frame. Share
-  // them to make room for slipping without exceeding WebGL2's 256 layers.
+  // them to make room for slipping and biting without exceeding WebGL2's 256 layers.
   // Original exported targets and their indices are never changed.
   const loopAliases=new Map([
     [`parkourRun_${String(RUN_SAMPLES).padStart(3,'0')}`,'parkourRun_000'],
     [`parkourDash_${String(RUN_SAMPLES).padStart(3,'0')}`,'parkourDash_000'],
-    ...['parkourWallLeft','parkourWallRight'].map(kind=>[`${kind}_${String(WALLRUN_SAMPLES).padStart(3,'0')}`,`${kind}_000`])
+    ...['parkourWallLeft','parkourWallRight'].map(kind=>[`${kind}_${String(WALLRUN_SAMPLES).padStart(3,'0')}`,`${kind}_000`]),
+    // The vault/mantle/catch end poses match the jump's end pose to within 0.6 units (palm direction only):
+    // share it. This frees three layers for the bite/shove poses.
+    ...['parkourVault','parkourMantle','parkourCatch'].map(kind=>[`${kind}_012`,'parkourJump_012'])
   ]);
   for(const clip of Object.values(actionClips))clip.frames=clip.frames.map(name=>loopAliases.get(name)||name);
   for (const mesh of meshes) {
