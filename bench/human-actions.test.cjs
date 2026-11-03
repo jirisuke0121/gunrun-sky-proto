@@ -52,13 +52,18 @@ const { fixture } = require('./human-running.test.cjs');
       assert.ok(mesh.geometry.morphAttributes.position[index].array.every(Number.isFinite));
       assert.ok(mesh.geometry.morphAttributes.position.length <= 256, 'bite poses stay within the 256-layer limit');
     });
-    const grab = actionPose('parkourBite', 0), shove = actionPose('parkourBite', .5), stagger = actionPose('parkourBite', 1);
-    assert.ok(grab.vertex([0, 1.7, 0], 0)[2] < -.05, 'grab leans back');
-    assert.ok(grab.hands.left[2] > .45 && grab.hands.right[2] > .45 && grab.hands.left[1] > 1.45, 'grab holds both hands out in front at chest/shoulder height');
-    assert.ok(shove.vertex([0, 1.7, 0], 0)[2] > .1, 'shove lunges forward');
+    const holdA = actionPose('parkourBite', 0), shove = actionPose('parkourBite', .5), holdB = actionPose('parkourBite', 1);
+    const head = pose => pose.vertex([0, 2.2, 0], 0);
+    assert.ok(head(holdA)[2] < -.1 && head(holdB)[2] < -.1, 'holding poses lean back');
+    assert.ok(head(shove)[2] > .1, 'shove lunges forward');
+    assert.ok(head(holdA)[0] * head(holdB)[0] < 0, 'the two holding poses twist and tilt opposite ways (rocking)');
+    for (const pose of [holdA, holdB]) {
+      const hands = Object.values(pose.hands), high = Math.max(...hands.map(h => h[1]));
+      assert.ok(hands.every(h => h[2] > .3), 'both hands out in front');
+      assert.ok(high > 1.75, 'one arm shoves at neck height');
+    }
     assert.ok(shove.hands.left[2] > .65 && shove.hands.right[2] > .65 && Math.abs(shove.hands.left[1] - 1.55) < .3, 'shove drives both hands forward at chest height');
-    assert.ok(Math.abs(stagger.hands.left[0]) > .45 && Math.abs(stagger.hands.right[0]) > .45, 'stagger opens the arms');
-    for (const pose of [grab, shove, stagger]) assert.ok(Object.values(pose.hands).every(h => h.every(Number.isFinite)));
+    for (const pose of [holdA, shove, holdB]) assert.ok(Object.values(pose.hands).every(h => h.every(Number.isFinite)));
     // The shared end poses must stay within the 0.6-unit tolerance that justified aliasing.
     assert.equal(motion.clips.parkourVault.frames.at(-1), 'parkourJump_012');
   }

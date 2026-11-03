@@ -1,6 +1,6 @@
 // Running style for the existing, baked Unity human. No new model download.
 // Asset-space metres: +Y up, +Z forward, the right hand is on -X.
-import { actionPose, boneMap, solveLimb, landingPose, LANDING_SECONDS } from './human-actions.js?v=20261103-bite-v3';
+import { actionPose, boneMap, solveLimb, landingPose, LANDING_SECONDS } from './human-actions.js?v=20261103-bite-v5';
 export { LANDING_SECONDS, releaseAccent } from './human-actions.js?v=20261030-landing-release-v1';
 import { landingRollPose, rollTuck, rollTurn, LANDING_ROLL } from './landing-roll.js?v=20261029-edge-assist-v3';
 export { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';

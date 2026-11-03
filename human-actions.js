@@ -132,27 +132,34 @@ export function actionPose(kind, phase) {
   };
 }
 
-// Grabbed by a zombie, then thrown off: phase 0 = holding it off (arms out against its chest, leaning back,
-// feet braced), 0.5 = shove (lunge, both arms driven forward at chest height),
-// 1 = follow-through stagger (arms out, weight back). Same two-bone limb solve as the other actions.
+// Grabbed by a zombie, then thrown off. Phase 0 and 1 are the two alternating "holding it off" poses (one arm
+// shoving its head or shoulder away at neck height, the other braced low against its chest; the body twisted
+// away, head turned from the bite, knees bent and feet braced); phase 0.5 is the shove (lunge, both arms driven
+// forward at chest height). The game rocks between 0 and 1 while held, then cross-fades to 0.5.
 const BITE_KEYS = [
-  // Bitten but holding the zombie off: arms out in front at shoulder height, hands on its chest, leaning back with feet braced.
-  { lean: -.22, drop: .10, hand: [[.18, 1.80, .56], [-.24, 1.62, .54]], fingers: [[0, .15, 1], [0, .15, 1]],
-    foot: [[.26, .12, .34], [-.26, .12, -.34]], hint: [[1, -.3, -.2], [-1, -.3, -.2]] },
-  { lean: .40, drop: .10, hand: [[.20, 1.58, .80], [-.20, 1.52, .78]], fingers: [[0, -.05, 1], [0, -.05, 1]],
+  { lean: -.26, drop: .14, twist: .26, tilt: .26, hand: [[.14, 1.90, .60], [-.30, 1.55, .42]], fingers: [[0, .25, 1], [0, .05, 1]],
+    foot: [[.30, .12, .38], [-.30, .12, -.40]], hint: [[1, -.3, -.2], [-1, -.3, -.2]] },
+  { lean: .40, drop: .10, twist: 0, tilt: 0, hand: [[.20, 1.58, .80], [-.20, 1.52, .78]], fingers: [[0, -.05, 1], [0, -.05, 1]],
     foot: [[.24, .12, .46], [-.24, .12, -.36]], hint: [[1, -.25, -.1], [-1, -.25, -.1]] },
-  { lean: -.08, drop: .03, hand: [[.58, 1.42, .34], [-.58, 1.42, .34]], fingers: [[.3, -.3, 1], [-.3, -.3, 1]],
-    foot: [[.26, .12, .08], [-.26, .12, -.10]], hint: [[1, -.3, -.2], [-1, -.3, -.2]] },
+  { lean: -.22, drop: .12, twist: -.26, tilt: -.26, hand: [[.30, 1.55, .42], [-.14, 1.90, .60]], fingers: [[0, .05, 1], [0, .25, 1]],
+    foot: [[.30, .12, .40], [-.30, .12, -.38]], hint: [[1, -.3, -.2], [-1, -.3, -.2]] },
 ];
 export function bitePose(phase) {
   const t = clamp(phase) * 2, i = Math.min(1, Math.floor(t)), f = smooth(0, 1, t - i);
   const a = BITE_KEYS[i], b = BITE_KEYS[i + 1];
-  const lean = mix(a.lean, b.lean, f), drop = mix(a.drop, b.drop, f);
+  const lean = mix(a.lean, b.lean, f), drop = mix(a.drop, b.drop, f), twist = mix(a.twist, b.twist, f), tilt = mix(a.tilt, b.tilt, f);
   const torso = p => {
+    // 1. the head rolls away from the bite about the neck (pivot y = 2.0, above the shoulders only)
+    const roll = tilt * smooth(2.02, 2.12, p[1]), cr = Math.cos(roll), sr = Math.sin(roll), ny = p[1] - 2;
+    const hx = p[0] * cr - ny * sr, hy = 2 + p[0] * sr + ny * cr;
+    // 2. the upper body leans about the hips
     const weight = smooth(1.05, 1.7, p[1]);
-    const y = p[1] - 1.26, z = p[2] + .045;
-    return [p[0], mix(p[1], 1.26 + y * Math.cos(lean) - z * Math.sin(lean), weight) - drop,
-      mix(p[2], -.045 + y * Math.sin(lean) + z * Math.cos(lean), weight)];
+    const y = hy - 1.26, z = p[2] + .045;
+    const ly = mix(hy, 1.26 + y * Math.cos(lean) - z * Math.sin(lean), weight) - drop;
+    const lz = mix(p[2], -.045 + y * Math.sin(lean) + z * Math.cos(lean), weight);
+    // 3. the shoulders twist about the spine; the legs stay planted
+    const tw = twist * weight, cs = Math.cos(tw), sn = Math.sin(tw), zr = lz + .045;
+    return [hx * cs + zr * sn, ly, -.045 - hx * sn + zr * cs];
   };
   const arms = {}, legs = {}, hands = {};
   [-1, 1].forEach(side => {

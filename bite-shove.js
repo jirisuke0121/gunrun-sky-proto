@@ -19,19 +19,20 @@
     // Zombie stun decays velocity by exp(-3.5 t), so a push of v m/s travels about v / 3.5 m.
     const SHOVE = Object.freeze({
       delay: .9,       // s the player is held (pushing back, being chewed) before the shove
+      after: .8,       // s of invulnerability left after the shove (thrown zombies stay stunned for 1 s)
       radius: 2.5,     // zombies this close (flat distance) are thrown
       push: 9,         // m/s outward, about 2.6 m of travel
       stun: 1,         // s
       bossPush: 4,     // the boss is heavier: smaller push, shorter stun
       bossStun: .5,
-      hold: .55,       // m: the biter is pulled this close and faces the player while biting (hands reach its chest)
+      hold: .5,        // m: the biter is pulled this close and faces the player while biting (hands reach it)
       lunge: .2,       // m: the body steps toward the zombie on the shove
       drag: .05,       // m: the body is dragged back while grabbed
       shake: .03,      // m: camera shake amplitude while grabbed
       kick: .12,       // m: camera kick back on the shove
     });
     // Pose timeline (s since the bite landed). The morph frames are parkourBite_000/001/002.
-    const ANIM = Object.freeze({ total: SHOVE.delay + .37, in: .07, out: .22, weight: .92 });
+    const ANIM = Object.freeze({ total: SHOVE.delay + .37, in: .07, out: .27, weight: .92 });
     const BLINK_HZ = 7, BLINK_VISIBLE = .65, MAX_SHOWN = 10;
     const dir = new Vector3(), look = new Vector3();
     const smooth01 = x => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
@@ -217,8 +218,8 @@
       if (!zombie || zombie.stalker) return false;
       const grounded = !!c.onGround && (c.state === 'normal' || c.state === 'slide');
       bite = { t: 0, zombie, shoved: false, pose: grounded };
-      // The hit's 1.3 s of invulnerability must outlast the hold, so the shove (not another bite) ends it.
-      c.invuln = Math.max(c.invuln, game.ceRef() + SHOVE.delay + .55);
+      // The hit's 1.3 s of invulnerability must outlast the hold and cover most of the thrown zombies' stun.
+      c.invuln = Math.max(c.invuln, game.ceRef() + SHOVE.delay + SHOVE.after);
       anim = { t: 0, zombie, grounded, dx: zombie.pos.x - c.pos.x, dz: zombie.pos.z - c.pos.z };
       // Replay the bite clip on the zombie that landed it; the invulnerability window stops a second hit.
       zombie.atkT = Math.max(zombie.atkT || 0, SHOVE.delay);
@@ -249,6 +250,7 @@
         thrown++; pushed.push(e);
       }
       ringAge = 0;
+      if (bite.zombie) bite.zombie.biteHold = false;
       shoveSound(pushed);
       if (stats) { stats.shoves = (stats.shoves || 0) + 1; stats.shoved = (stats.shoved || 0) + thrown; }
     }
@@ -266,13 +268,14 @@
       }
       e.vel.x = e.vel.z = 0;
       e.yaw = Math.atan2(nx, nz);          // faces the player (the game's yaw = atan2(-toward.x, -toward.z))
-      e.atkT = Math.max(e.atkT || 0, .1);  // keep the bite clip playing until the shove
+      e.atkT = Math.max(e.atkT || 0, .1);  // keep the attack clip playing until the shove
+      e.biteHold = true;                   // ...and make it the biting clip, not the scratching one
     }
 
     function step(dt) {
       if (anim) { anim.t += dt; if (anim.t >= ANIM.total || !playing()) anim = null; }
       if (!bite) return;
-      if (!playing()) { bite = null; return; }
+      if (!playing()) { if (bite.zombie) bite.zombie.biteHold = false; bite = null; return; }
       bite.t += dt;
       if (!bite.shoved) hold(bite.zombie, dt);
       if (!bite.shoved && bite.t >= SHOVE.delay) shove();
@@ -283,18 +286,15 @@
     const poseWeight = () => anim && anim.grounded
       ? ANIM.weight * Math.min(smooth01(anim.t / ANIM.in), 1 - smooth01((anim.t - (ANIM.total - ANIM.out)) / ANIM.out)) : 0;
 
-    // Morph-target weights for the human view: grab -> shove -> stagger, cross-faded around the shove.
+    // Morph-target weights for the human view: while held the body rocks between the two "holding it off" poses
+    // (parkourBite_000 / _002); at the shove it cross-fades to the shove pose (_001) and then relaxes.
     function poseTargets() {
       const weight = poseWeight();
       if (weight < .001) return null;
       const t = anim.t, d = SHOVE.delay;
-      // While held, the arms keep pushing against the zombie: the pose pulses toward the shove pose.
-      const struggle = reducedMotion || t >= d ? 0 : .22 * (.5 + .5 * Math.sin(t * 26)) * smooth01(t / .1);
-      const g = (1 - smooth01((t - (d - .04)) / .08)) * (1 - struggle);
-      const s = smooth01((t - (d - .04)) / .08) * (1 - smooth01((t - (d + .1)) / .14)) + (1 - smooth01((t - (d - .04)) / .08)) * struggle;
-      const r = smooth01((t - (d + .1)) / .14);
-      const sum = g + s + r || 1;
-      return { weight, targets: { parkourBite_000: g / sum, parkourBite_001: s / sum, parkourBite_002: r / sum } };
+      const held = 1 - smooth01((t - (d - .04)) / .08);
+      const rock = reducedMotion ? 0 : .5 + .5 * Math.sin(t * 15);   // about 2.4 push-and-twist cycles per second
+      return { weight, targets: { parkourBite_000: held * (1 - rock), parkourBite_001: 1 - held, parkourBite_002: held * rock } };
     }
 
     // Visual cues run on the display frame so they also clear when the game pauses or ends.
@@ -333,7 +333,7 @@
         // Face the biter so the pose reads: the model's +Z points to (dx, dz).
         const w = poseWeight() / ANIM.weight;
         holder.rotation.y += wrap(Math.atan2(dir.x, dir.z) - holder.rotation.y) * w;
-        holder.position.addScaledVector(dir, f * SHOVE.lunge - grab * SHOVE.drag * (.6 + .4 * Math.sin(anim.t * 26)));
+        holder.position.addScaledVector(dir, f * SHOVE.lunge - grab * SHOVE.drag * (.6 + .4 * Math.sin(anim.t * 15)));
       }
       if (reducedMotion) return;
       // Camera: shake while grabbed, one kick back on the shove.
