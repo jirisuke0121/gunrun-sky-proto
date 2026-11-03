@@ -132,12 +132,13 @@ export function actionPose(kind, phase) {
   };
 }
 
-// Grabbed by a zombie, then thrown off: phase 0 = braced against the grab (leaning back, one hand
-// up at the face, one low), 0.5 = shove (lunge, both arms driven forward at chest height),
+// Grabbed by a zombie, then thrown off: phase 0 = holding it off (arms out against its chest, leaning back,
+// feet braced), 0.5 = shove (lunge, both arms driven forward at chest height),
 // 1 = follow-through stagger (arms out, weight back). Same two-bone limb solve as the other actions.
 const BITE_KEYS = [
-  { lean: -.34, drop: .12, hand: [[.20, 1.72, .44], [-.34, 1.36, .40]], fingers: [[0, .35, 1], [0, -.1, 1]],
-    foot: [[.30, .12, .20], [-.30, .12, -.24]], hint: [[.9, -.25, -.2], [-.9, -.2, -.2]] },
+  // Bitten but holding the zombie off: arms out in front at shoulder height, hands on its chest, leaning back with feet braced.
+  { lean: -.22, drop: .10, hand: [[.18, 1.80, .56], [-.24, 1.62, .54]], fingers: [[0, .15, 1], [0, .15, 1]],
+    foot: [[.26, .12, .34], [-.26, .12, -.34]], hint: [[1, -.3, -.2], [-1, -.3, -.2]] },
   { lean: .40, drop: .10, hand: [[.20, 1.58, .80], [-.20, 1.52, .78]], fingers: [[0, -.05, 1], [0, -.05, 1]],
     foot: [[.24, .12, .46], [-.24, .12, -.36]], hint: [[1, -.25, -.1], [-1, -.25, -.1]] },
   { lean: -.08, drop: .03, hand: [[.58, 1.42, .34], [-.58, 1.42, .34]], fingers: [[.3, -.3, 1], [-.3, -.3, 1]],

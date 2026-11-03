@@ -1,5 +1,5 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, RUN_STRIDE, DASH_STRIDE, LANDING_SECONDS, releaseAccent } from './human-running.js?v=20261103-bite-v1';
+import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, RUN_STRIDE, DASH_STRIDE, LANDING_SECONDS, releaseAccent } from './human-running.js?v=20261103-bite-v3';
 import { GRIP_SLIP_SECONDS } from './swing-fatigue.js?v=20261031-grip-v1';
 import { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
 import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261030-rotation-cache-v2';

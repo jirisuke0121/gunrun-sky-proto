@@ -24,7 +24,7 @@
       stun: 1,         // s
       bossPush: 4,     // the boss is heavier: smaller push, shorter stun
       bossStun: .5,
-      hold: .6,        // m: the biter is pulled this close and faces the player while biting
+      hold: .55,       // m: the biter is pulled this close and faces the player while biting (hands reach its chest)
       lunge: .2,       // m: the body steps toward the zombie on the shove
       drag: .05,       // m: the body is dragged back while grabbed
       shake: .03,      // m: camera shake amplitude while grabbed
@@ -274,8 +274,10 @@
       const weight = poseWeight();
       if (weight < .001) return null;
       const t = anim.t, d = SHOVE.delay;
-      const g = 1 - smooth01((t - (d - .04)) / .08);
-      const s = smooth01((t - (d - .04)) / .08) * (1 - smooth01((t - (d + .1)) / .14));
+      // While held, the arms keep pushing against the zombie: the pose pulses toward the shove pose.
+      const struggle = reducedMotion || t >= d ? 0 : .22 * (.5 + .5 * Math.sin(t * 26)) * smooth01(t / .1);
+      const g = (1 - smooth01((t - (d - .04)) / .08)) * (1 - struggle);
+      const s = smooth01((t - (d - .04)) / .08) * (1 - smooth01((t - (d + .1)) / .14)) + (1 - smooth01((t - (d - .04)) / .08)) * struggle;
       const r = smooth01((t - (d + .1)) / .14);
       const sum = g + s + r || 1;
       return { weight, targets: { parkourBite_000: g / sum, parkourBite_001: s / sum, parkourBite_002: r / sum } };
