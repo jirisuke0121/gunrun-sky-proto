@@ -245,6 +245,23 @@ export function createSwing(sky, game, course) {
     const to = c.pos.toArray();
     const from = previous || to;
     previous = c.pos.toArray();
+    // Dropping onto a bar from above (or coming down past it after a jump) catches it too:
+    // no run-up speed and no fall-speed limit. The bar is caught when it reaches the
+    // hands, i.e. the feet are 0.9-1.9 m below it, so the pull into the hang is short.
+    if (!cooldown && !c.onGround && c.state === 'normal' && c.vel.y < -1.2) {
+      for (const b of bars) {
+        if (b.id===exhaustedBar || b.id===releasedBar && recatch>0) continue;
+        const side = [-b.direction[1], b.direction[0]];
+        const across = (c.pos.x-b.at[0])*side[0]+(c.pos.z-b.at[2])*side[1];
+        const along = (c.pos.x-b.at[0])*b.direction[0]+(c.pos.z-b.at[2])*b.direction[1];
+        const below = b.at[1]-c.pos.y;
+        if (below < .9 || below > 1.9 || Math.abs(along) > .9 || Math.abs(across) > b.width/2+.45) continue;
+        const margin = course.oldTown ? .3 : .35;
+        const offset = clamp(across, -b.width/2+margin, b.width/2-margin);
+        const pivot = [b.at[0]+side[0]*offset,b.at[1],b.at[2]+side[1]*offset];
+        if (attach(b,pivot)) { game.stats.barDropCatches=(game.stats.barDropCatches||0)+1; return true; }
+      }
+    }
     if (cooldown || c.onGround || c.state !== 'normal' || c.vel.y < (course.oldTown ? -12 : -8) || Math.hypot(c.vel.x,c.vel.z) < 1) return false;
     for (const b of bars) {
       if (b.id===exhaustedBar || b.id===releasedBar && recatch>0) continue;
