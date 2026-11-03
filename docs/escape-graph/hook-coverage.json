@@ -1,0 +1,61 @@
+{
+ "difficulty": "normal",
+ "assumptions": {
+  "REACT": 0.4,
+  "HOOK_SPEED": 18,
+  "MANTLE": 0.5,
+  "TOP": 10,
+  "CAP": 30
+ },
+ "scenarios": {
+  "proposal": {
+   "name": "提案どおり（水平12m以内・+3〜+8m・自由）",
+   "targets": 2285,
+   "trappedTargets": 2045,
+   "rescuedAmongTrapped": {
+    "4": {
+     "trapped": {
+      "one": 373,
+      "two": 417,
+      "oneNS": 191,
+      "twoNS": 234
+     }
+    },
+    "8": {
+     "trapped": {
+      "one": 227,
+      "two": 247,
+      "oneNS": 24,
+      "twoNS": 24
+     }
+    }
+   },
+   "rays": 16785
+  },
+  "engine": {
+   "name": "本編のフック射程（3D 22m以内・+2m以上）",
+   "targets": 2285,
+   "trappedTargets": 2045,
+   "rescuedAmongTrapped": {
+    "4": {
+     "trapped": {
+      "one": 700,
+      "two": 776,
+      "oneNS": 159,
+      "twoNS": 161
+     }
+    },
+    "8": {
+     "trapped": {
+      "one": 576,
+      "two": 695,
+      "oneNS": 34,
+      "twoNS": 38
+     }
+    }
+   },
+   "rays": 22973
+  }
+ },
+ "seconds": 69.7
+}
