@@ -19,7 +19,7 @@
     // Zombie stun decays velocity by exp(-3.5 t), so a push of v m/s travels about v / 3.5 m.
     const SHOVE = Object.freeze({
       delay: .9,       // s the player is held (pushing back, being chewed) before the shove
-      after: .8,       // s of invulnerability left after the shove (thrown zombies stay stunned for 1 s)
+      after: 1.4,      // s of invulnerability left after the shove (thrown zombies stay stunned for 1 s and must walk back)
       radius: 2.5,     // zombies this close (flat distance) are thrown
       push: 9,         // m/s outward, about 2.6 m of travel
       stun: 1,         // s
@@ -177,6 +177,81 @@
       first.forEach(e => { try { Tt.groan(.4, panOf(e.pos.x, e.pos.z), true); } catch {} });
     }
 
+    // ---------- blood: spurts from the bite, a puddle under the player, splatter on the screen ----------
+    const { Sphere, Cylinder } = game.Geom;
+    const BLOOD = 0x7a0b0e;
+    const dropGeometry = new Sphere(.05, 6, 4), dropMaterial = new Basic({ color: BLOOD });
+    const drops = Array.from({ length: 110 }, () => {
+      const m = new Mesh(dropGeometry, dropMaterial); m.visible = false; game.ue.add(m);
+      return { m, life: 0, vx: 0, vy: 0, vz: 0, floor: 0, landed: false };
+    });
+    let dropCursor = 0;
+    const decals = Array.from({ length: 8 }, () => {
+      const material = new Basic({ color: BLOOD, transparent: true, opacity: .85, depthWrite: false });
+      const m = new Mesh(new Cylinder(1, 1, .012, 14), material); m.visible = false; game.ue.add(m);
+      return { m, material, age: 99, life: 0, radius: 0 };
+    });
+    let decalCursor = 0;
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const away = new Vector3();
+
+    // Blood leaves the neck / shoulder where the zombie's mouth is, mostly away from the zombie and up.
+    function spurt(count, power = 1) {
+      biteDirection(anim?.zombie, away);
+      for (let i = 0; i < count; i++) {
+        const d = drops[dropCursor = (dropCursor + 1) % drops.length];
+        d.m.position.set(c.pos.x + away.x * .2 + rnd(-.08, .08), c.pos.y + rnd(1.25, 1.5), c.pos.z + away.z * .2 + rnd(-.08, .08));
+        d.vx = -away.x * rnd(.6, 2.6) * power + rnd(-1.2, 1.2); d.vz = -away.z * rnd(.6, 2.6) * power + rnd(-1.2, 1.2);
+        d.vy = rnd(1.6, 4.4) * power; d.life = rnd(.7, 1.3); d.floor = c.pos.y + .02; d.landed = false;
+        d.m.scale.setScalar(rnd(.8, 2)); d.m.visible = true;
+      }
+    }
+    function puddle() {
+      const d = decals[decalCursor = (decalCursor + 1) % decals.length];
+      d.m.position.set(c.pos.x + rnd(-.45, .45), c.pos.y + .015, c.pos.z + rnd(-.45, .45));
+      d.radius = rnd(.3, .7); d.age = 0; d.life = 7; d.m.scale.set(.05, 1, .05); d.m.visible = true; d.material.opacity = .85;
+    }
+    // On screen (also in first person): blotches that fade over about three seconds.
+    const splatLayer = document.createElement('div');
+    splatLayer.id = 'bloodSplat';
+    splatLayer.style.cssText = 'position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden';
+    (document.getElementById('app') || document.body).append(splatLayer);
+    function splat(count) {
+      for (let i = 0; i < count; i++) {
+        const blob = document.createElement('div'), size = rnd(16, 34), edge = Math.random() < .7;
+        const x = edge ? (Math.random() < .5 ? rnd(-6, 22) : rnd(78, 100)) : rnd(15, 85), y = rnd(-4, 100);
+        blob.style.cssText = `position:absolute;left:${x}%;top:${y}%;width:${size}vw;height:${size}vw;margin:${-size / 2}vw 0 0 ${-size / 2}vw;` +
+          'border-radius:50%;opacity:.8;transition:opacity 2.8s ease-in;pointer-events:none;' +
+          'background:radial-gradient(circle,rgba(125,8,12,.8) 0%,rgba(125,8,12,.55) 38%,rgba(125,8,12,0) 70%)';
+        splatLayer.append(blob);
+        requestAnimationFrame(() => requestAnimationFrame(() => { blob.style.opacity = '0'; }));
+        setTimeout(() => blob.remove(), 3100);
+      }
+      while (splatLayer.childElementCount > 24) splatLayer.firstChild.remove();
+    }
+    function updateBlood(dt) {
+      for (const d of drops) {
+        if (d.life <= 0) continue;
+        d.life -= dt;
+        if (d.life <= 0) { d.m.visible = false; continue; }
+        if (!d.landed) {
+          d.vy -= 14 * dt; d.m.position.x += d.vx * dt; d.m.position.y += d.vy * dt; d.m.position.z += d.vz * dt;
+          if (d.m.position.y <= d.floor) { d.m.position.y = d.floor; d.landed = true; d.m.scale.set(d.m.scale.x * 1.8, .18, d.m.scale.z * 1.8); d.life = Math.min(d.life, 1.2); }
+        }
+      }
+      for (const d of decals) {
+        if (d.age >= d.life) { d.m.visible = false; continue; }
+        d.age += dt;
+        d.m.scale.set(d.radius * Math.min(1, d.age / .6), 1, d.radius * Math.min(1, d.age / .6));
+        d.material.opacity = .85 * Math.min(1, (d.life - d.age) / 2);
+      }
+    }
+    function clearBlood() {
+      for (const d of drops) { d.life = 0; d.m.visible = false; }
+      for (const d of decals) { d.age = d.life = 99; d.m.visible = false; }
+      splatLayer.replaceChildren();
+    }
+
     // ---------- shove ring on the ground ----------
     const ringMaterial = new Basic({ color: 0xcfe8ff, transparent: true, opacity: 0, depthWrite: false });
     const shoveRing = new Mesh(new Torus(1, .05, 6, 40), ringMaterial);
@@ -221,10 +296,11 @@
       // The hit's 1.3 s of invulnerability must outlast the hold and cover most of the thrown zombies' stun.
       c.invuln = Math.max(c.invuln, game.ceRef() + SHOVE.delay + SHOVE.after);
       // Held: no walking, jumping, sliding, hooking, barrel jumps or shooting until the shove (look and skills still work).
-      anim = { t: 0, zombie, grounded, lock: grounded && c.state === 'normal', dx: zombie.pos.x - c.pos.x, dz: zombie.pos.z - c.pos.z };
+      anim = { t: 0, chew: 0, zombie, grounded, lock: grounded && c.state === 'normal', dx: zombie.pos.x - c.pos.x, dz: zombie.pos.z - c.pos.z };
       // Replay the bite clip on the zombie that landed it; the invulnerability window stops a second hit.
       zombie.atkT = Math.max(zombie.atkT || 0, SHOVE.delay);
       biteSound(zombie);
+      spurt(30, 1.3); splat(3); puddle();
       return true;
     }
 
@@ -274,7 +350,12 @@
     }
 
     function step(dt) {
-      if (anim) { anim.t += dt; if (anim.t >= ANIM.total || !playing()) anim = null; }
+      if (anim) {
+        anim.t += dt;
+        // every chew draws more blood
+        while (anim.chew < CHEWS.length && anim.t >= CHEWS[anim.chew] && !bite?.shoved) { spurt(12, 1); splat(1); if (anim.chew % 2) puddle(); anim.chew++; }
+        if (anim.t >= ANIM.total || !playing()) anim = null;
+      }
       if (!bite) return;
       if (!playing()) { if (bite.zombie) bite.zombie.biteHold = false; bite = null; return; }
       bite.t += dt;
@@ -310,6 +391,8 @@
         shoveRing.scale.setScalar(.5 + (SHOVE.radius + .8) * Math.sqrt(k));
         ringMaterial.opacity = .85 * (1 - k);
       } else shoveRing.visible = false;
+      const mode = game.modeRef();
+      if (mode === 'menu' || mode === 'replay') clearBlood(); else if (mode !== 'pause') updateBlood(dt);
       cueOn = invulnerable();
       const now = game.ceRef();
       blinkVisible = blinkPhaseVisible();
@@ -345,7 +428,7 @@
       camera.updateMatrixWorld();
     }
 
-    function reset() { bite = null; anim = null; ringAge = 9; shoveRing.visible = false; cueRing.visible = false; edge.style.opacity = '0'; }
+    function reset() { clearBlood(); bite = null; anim = null; ringAge = 9; shoveRing.visible = false; cueRing.visible = false; edge.style.opacity = '0'; }
 
     // True from the bite until the shove, on the ground only.
     const locked = () => !!anim && anim.lock && !!bite && !bite.shoved && playing();
@@ -368,6 +451,8 @@
       get biting() { return !!anim; },
       get holster() { return !!anim && anim.grounded; },
       get lastShove() { return lastShove; },
+      get bloodActive() { return drops.filter(d => d.life > 0).length; },
+      get splatCount() { return splatLayer.childElementCount; },
       get blinkOff() { return !anim && !reducedMotion && invulnerable() && !blinkPhaseVisible(); },
       get invulnerable() { return invulnerable(); },
     };
