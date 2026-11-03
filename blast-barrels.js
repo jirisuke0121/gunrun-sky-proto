@@ -21,7 +21,7 @@
         if (part.isMesh) part.material = index === 0 ? red : yellow;
       });
       if (barrel.cap.mesh) barrel.cap.mesh.material = capRed;
-      if (barrel.step.mesh) barrel.step.mesh.material = stepSteel;
+      if (barrel.step?.mesh) barrel.step.mesh.material = stepSteel;
     }
 
     const targetMaterial = new Basic({ color: 0xffd05b, transparent: true,
@@ -30,14 +30,14 @@
     for (const barrel of barrels) {
       const target = new Mesh(targetGeometry, targetMaterial);
       target.rotation.x = Math.PI / 2;
-      target.position.set(barrel.x, 1.145, barrel.z);
+      target.position.set(barrel.x, (barrel.y || 0) + 1.145, barrel.z);
       game.ue.add(target);
       barrel.target = target;
     }
     // Auto blast jump: like the hook, a barrel inside reach gets an on-screen
     // mark. One tap (or B) makes the player leap into the barrel, the barrel goes
     // off, and the blast throws the player toward the barrel's landing roof.
-    const AUTO_RANGE = 11;
+    const AUTO_RANGE = 9;
     const isTouch = () => document.documentElement.classList.contains('touch');
     const markHost = document.getElementById('hookMark');
     const mark = document.createElement('div');
@@ -336,7 +336,7 @@
     function detonate(barrel, options = {}) {
       if (!barrel?.active) return false;
       const player = game.c;
-      const topShot = options.auto || (player.onGround && Math.abs(player.pos.y - 1.12) < 0.16 &&
+      const topShot = options.auto || (player.onGround && Math.abs(player.pos.y - barrel.y - 1.12) < 0.16 &&
         Math.abs(player.pos.x - barrel.x) < 0.82 &&
         Math.abs(player.pos.z - barrel.z) < 0.82);
       barrel.active = false;
@@ -416,6 +416,18 @@
       return { x: dx / time, y: up, z: dz / time };
     }
 
+    // ---- Blast-jump sequence (about 1.3 s, controls locked, third-person) ----
+    // run to the barrel -> hop onto it -> look down and aim at it -> shoot ->
+    // blast -> big jump to the landing roof. Everything uses the normal player
+    // physics and the existing run / jump / shoot animations; only the input,
+    // the heading and the view pitch are driven here.
+    const SEQ = { run: 11, hopFrom: 2.1, aim: 0.14, afterShot: 0.1, timeout: 3 };
+    const angleDiff = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+    let fovKick = 0, postPitch = null;
+    const cameraView = () => window.skyFollowCamera?.view ?? game.c;
+    function setPitch(value) { game.c.pitch = value; cameraView().pitch = value; }
+    function getPitch() { return cameraView().pitch; }
+
     function startAuto(barrel) {
       const player = game.c;
       if (autoBlast || !barrel?.active || game.z.over || player.state === 'hook') return false;
@@ -423,37 +435,114 @@
           player.state === 'slide') player.state = 'normal';
       player.ledge = null;
       player.ladder = null;
-      autoBlast = { barrel, t: 0 };
+      const topY = barrel.y + 1.12;
+      const flat = Math.hypot(barrel.x - player.pos.x, barrel.z - player.pos.z);
+      const level = player.onGround && Math.abs(player.pos.y - barrel.y) < 0.6;
+      const onTop = player.onGround && Math.abs(player.pos.y - topY) < 0.25 && flat < 0.9;
+      autoBlast = { barrel, topY, t: 0, phaseT: 0, fired: false, pitch0: getPitch(),
+                    gunWas: game.U.gunOn, phase: onTop ? 'aim' : level ? 'run' : 'fly' };
+      game.U.gunOn = true; // The gun must be drawn for the shot.
+      postPitch = null;
       stats.blastAssists = (stats.blastAssists || 0) + 1;
       return true;
     }
 
-    // Called from the player update every frame. The player is carried up to the
-    // barrel top (about 0.3 s), then the barrel goes off and throws the player.
-    function step(dt) {
+    function endAuto(restoreGun = true) {
       if (!autoBlast) return;
-      const player = game.c, { barrel } = autoBlast;
-      autoBlast.t += dt;
+      if (restoreGun) game.U.gunOn = autoBlast.gunWas;
+      postPitch = autoBlast.fired ? { t: 0, pitch: autoBlast.pitch0 } : null;
+      autoBlast = null;
+    }
+
+    function enter(phase) { autoBlast.phase = phase; autoBlast.phaseT = 0; }
+
+    // Called from the player update every frame.
+    function step(dt) {
+      const player = game.c;
+      if (fovKick > 0.01) fovKick *= Math.exp(-dt * 4.5); else fovKick = 0;
+      if (postPitch) {
+        postPitch.t += dt;
+        setPitch(getPitch() + (postPitch.pitch - getPitch()) * (1 - Math.exp(-dt * 9)));
+        if (postPitch.t > 0.5) postPitch = null;
+      }
+      if (!autoBlast) return;
+      const a = autoBlast, { barrel, topY } = a;
+      a.t += dt; a.phaseT += dt;
       if (!barrel.active || game.modeRef() !== 'play' || game.z.over ||
-          player.state === 'hook') { autoBlast = null; return; }
+          player.state === 'hook' || a.t > SEQ.timeout) { endAuto(); return; }
+      player.jumpBuf = 0; player.hookPressed = false; // Controls are locked.
       const dx = barrel.x - player.pos.x, dz = barrel.z - player.pos.z;
       const flat = Math.hypot(dx, dz);
-      if ((flat < 0.9 && player.pos.y > 0.6) || autoBlast.t > 1.1) {
-        autoBlast = null;
-        detonate(barrel, { auto: true });
-        return;
+      // Heading: face the barrel (the follow camera tracks this heading).
+      if (flat > 0.35 && a.phase !== 'aim') {
+        const want = Math.atan2(-dx, -dz);
+        player.yaw += angleDiff(want, player.yaw) * (1 - Math.exp(-dt * 20));
       }
-      const dy = barrel.y + 1.6 - player.pos.y;
-      const distance = Math.hypot(dx, dy, dz) || 1;
-      const speed = Math.min(15, Math.max(7, distance / 0.25));
-      player.state = 'normal';
-      player.onGround = false;
-      player.coyote = 0;
-      player.vel.set(dx / distance * speed, dy / distance * speed, dz / distance * speed);
+      const gravity = Math.abs(game.U?.gravity ?? 20);
+      if (a.phase === 'run') {
+        player.state = 'normal';
+        if (flat <= SEQ.hopFrom) {
+          // Hop: peak 0.35 m over the barrel top, land on it.
+          const rise = topY - player.pos.y, up = Math.sqrt(2 * gravity * (rise + 0.35));
+          player.vel.y = up; player.onGround = false; player.coyote = 0; player.airT = 0;
+          game.Tt?.jump?.();
+          enter('hop');
+        } else {
+          player.vel.x = dx / flat * SEQ.run;
+          player.vel.z = dz / flat * SEQ.run;
+          // Blocked by a prop or wall: leap straight to the barrel instead of grinding on it.
+          a.stuckT = (a.lastFlat !== undefined && a.lastFlat - flat < SEQ.run * dt * 0.25) ? (a.stuckT || 0) + dt : 0;
+          a.lastFlat = flat;
+          if (a.stuckT > 0.2) enter('fly');
+        }
+      } else if (a.phase === 'hop') {
+        const vy = player.vel.y, rise = topY - player.pos.y;
+        const disc = vy * vy - 2 * gravity * rise;
+        const remain = disc > 0 ? (vy + Math.sqrt(disc)) / gravity : 0;
+        if (remain > 0.03) {
+          const speed = Math.min(9, flat / remain);
+          player.vel.x = dx / (flat || 1) * speed; player.vel.z = dz / (flat || 1) * speed;
+        } else { player.vel.x = player.vel.z = 0; }
+        if ((player.onGround && Math.abs(player.pos.y - topY) < 0.3 && flat < 1.0) ||
+            a.phaseT > 0.9) enter('aim');
+      } else if (a.phase === 'fly') {
+        // Airborne or on another level: carried straight to the barrel top.
+        player.state = 'normal'; player.onGround = false; player.coyote = 0;
+        const dy = topY + 0.25 - player.pos.y;
+        const distance = Math.hypot(dx, dy, dz) || 1;
+        const speed = Math.min(15, Math.max(7, distance / 0.25));
+        player.vel.set(dx / distance * speed, dy / distance * speed, dz / distance * speed);
+        if (flat < 0.9 && player.pos.y > topY - 0.3) enter('aim');
+        else if (a.phaseT > 1.1) endAuto(); // Could not get there: give control back.
+      }
+      if (a.phase === 'aim') {
+        // Stand on the barrel, look straight down at it and aim the gun there.
+        player.state = 'normal';
+        player.vel.x = player.vel.z = 0;
+        player.vel.y = player.pos.y > topY + 0.05 ? -3 : 0;
+        player.pos.x += dx * Math.min(1, dt * 18); player.pos.z += dz * Math.min(1, dt * 18);
+        const cam = game.Se.position, look = Math.atan2(topY - cam.y,
+          Math.hypot(barrel.x - cam.x, barrel.z - cam.z));
+        const wanted = Math.max(-1.3, Math.min(-0.35, look));
+        setPitch(getPitch() + (wanted - getPitch()) * (1 - Math.exp(-dt * 16)));
+        if (!a.fired && a.phaseT >= SEQ.aim) {
+          a.fired = true; a.firedAt = a.phaseT;
+          window.skyHumanView?.noteShot?.();
+          game.Tt?.hg?.();
+        }
+        if (a.fired && a.phaseT >= a.firedAt + SEQ.afterShot) {
+          fovKick = 14;
+          endAuto();           // restores the gun setting and eases the view back
+          detonate(barrel, { auto: true });
+        }
+      }
     }
 
     function reset() {
+      if (autoBlast) game.U.gunOn = autoBlast.gunWas;
       autoBlast = null;
+      fovKick = 0;
+      postPitch = null;
       for (const barrel of barrels) {
         barrel.active = true;
         barrel.block.off = false;
@@ -518,6 +607,7 @@
     });
 
     window.skyBlastBarrels = { barrels, pickShot, aimedAt, detonate, reset, tapAt,
-                               step, assistTarget, startAuto, blastArc };
+                               step, assistTarget, startAuto, blastArc, fov: value => value + fovKick,
+                               get sequence() { return autoBlast; } };
   });
 })();

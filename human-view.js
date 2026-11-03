@@ -680,6 +680,8 @@ function createDecoyAvatar(color = 0xff68e2) {
   };
 }
 window.skyHumanView = { update, select, getMuzzleWorld, prepareShot, createDecoyAvatar,
+  // A scripted shot (blast jump): same shoot pose and muzzle flash as a real round.
+  noteShot() { shotTime = 0; },
   createReplayAvatar: () => createDecoyAvatar(null),
   get aimWork() { return aimRig?.work || null; },
   get morphBindingWork() { return { revision: 'dictionary-cache-v1', builds: morphBindingBuilds,

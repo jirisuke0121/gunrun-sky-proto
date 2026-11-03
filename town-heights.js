@@ -354,24 +354,24 @@ window.buildSkyTowers = function ({ ne, Mh, ld, us, mo, jn }) {
   }
 
   // ---- Blast barrels (2026-10-25n, moved 2026-11-03): escape tools. ----
-  // One-use blast barrels (blast-barrels.js does the work). Each stands in an open area, 3.5 m+
-  // from any wall, so being surrounded on the ground is exactly when you reach one. A barrel
-  // inside reach shows a mark like the hook; one tap makes the player leap into it, and the blast
-  // throws the player along an arc to `land` = [x, roof top height, z], the high ground beside
-  // the open area. Shooting a barrel still just detonates it (knock-back for nearby zombies).
+  // One-use blast barrels (blast-barrels.js does the work). The old town is mostly narrow
+  // beams and bridges, so each barrel stands on one of the few wide, flat floors (3.5 m+ clear
+  // in every direction): the crossing, the east edge of the big central plaza (floor 8 m) and
+  // the west deck (floor 4.2 m). That is where you get surrounded. A barrel inside reach shows a
+  // mark like the hook; one tap makes the player run to it, hop on, aim down, shoot, and the
+  // blast throws the player along an arc to `land` = [x, roof top height, z], high ground
+  // 3.8-4.2 m above the floor. Shooting a barrel still just detonates it (knock-back only).
   window.SKY_CANYON_BLAST_BARRELS = [
-    { id: 'plaza-west', x: -30.0, z: -24.0, land: [-26.2, 4.2, -16.4] },  // south plaza -> south building roof 4.2 m
-    { id: 'plaza-east', x: -19.0, z: -24.0, land: [-22.5, 4.2, -16.4] },  // south plaza -> south building roof 4.2 m
-    { id: 'crossing', x: -19.0, z: -2.0, land: [-25.0, 6.4, 0.0] },       // open crossing -> west block roof 6.4 m
-    { id: 'east', x: 36.0, z: 16.0, land: [41.5, 4.4, 13.0] },            // east yard -> east roof 4.4 m
+    { id: 'crossing', x: -18.5, y: 0, z: -2.5, land: [-23.0, 4.2, -7.5] },    // open crossing -> south-west roof 4.2 m
+    { id: 'plaza-east', x: 11.5, y: 8, z: -6.5, land: [18.0, 12.0, -5.0] },   // central plaza (8 m) -> east high deck 12 m
+    { id: 'west-deck', x: -18.5, y: 4.2, z: 15.5, land: [-13.0, 8.0, 13.0] }, // west deck (4.2 m) -> roof 8 m
   ].map(b => {
-    const block = ne(b.x - 0.36, 0, b.z - 0.36, b.x + 0.36, 1.12, b.z + 0.36, 'prop');
+    const block = ne(b.x - 0.36, b.y, b.z - 0.36, b.x + 0.36, b.y + 1.12, b.z + 0.36, 'prop');
     block.shape = 'barrel';
     block.blastBarrel = b.id;
-    const cap = ne(b.x - 0.7, 1.02, b.z - 0.7, b.x + 0.7, 1.12, b.z + 0.7, 'prop');
+    const cap = ne(b.x - 0.7, b.y + 1.02, b.z - 0.7, b.x + 0.7, b.y + 1.12, b.z + 0.7, 'prop');
     cap.blastBarrel = b.id;
-    const step = ne(b.x - 0.65, 0, b.z - 1.48, b.x + 0.65, 0.55, b.z - 0.72, 'prop');
-    return { ...b, y: 0, block, cap, step };
+    return { ...b, block, cap };
   });
 
   // Equal footing (2026-10-25). The player must not be able to climb from below
