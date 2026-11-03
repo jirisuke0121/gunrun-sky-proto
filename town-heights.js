@@ -1,7 +1,7 @@
 // High layer for the old town (2026-10-25). The town had roofs at 2-8 m and only a
 // few points above 10 m, so rooftop running never felt high. This adds three
 // towers on the west side (where the run starts), each with its own way up.
-// No new ziplines (the three original ones are the only ones):
+// No new ziplines are added here:
 //   West tower  (14.2 m): a walkable staircase beside it (no ladders anywhere).
 //   Plank       (14.2 m): 0.6 m wide beam from the west tower to the bell tower,
 //                       over the alley, so the ground is visible below.
