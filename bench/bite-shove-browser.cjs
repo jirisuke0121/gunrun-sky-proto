@@ -46,6 +46,22 @@ fs.mkdirSync('browser-evidence', { recursive: true });
             });
           };
           window.__live = live; window.__pin();
+          // Crowd watch: while the player is held, the other zombies must neither sit inside the body, nor pop around, nor run on the spot.
+          window.__crowdLog = { frames: 0, minD: 9, maxStep: 0, maxVel: 0, frozen: 0 };
+          let lockFrames = 0; const prev = new Map();
+          window.__crowdWatch = () => {
+            const P = window.__game.P, B = window.skyBite;
+            if (!B.locked) { lockFrames = 0; prev.clear(); return; }
+            lockFrames++;
+            for (const e of live) {
+              const last = prev.get(e); prev.set(e, [e.pos.x, e.pos.z]);
+              if (e.biteHold || e.dead || e.remove || e.act || e.fall || e.rise || lockFrames < 14) continue;   // the first 0.23 s may still be settling (lunges, drops)
+              const L = window.__crowdLog;
+              L.frames++; L.minD = Math.min(L.minD, Math.hypot(e.pos.x - P.pos.x, e.pos.z - P.pos.z));
+              if (last) L.maxStep = Math.max(L.maxStep, Math.hypot(e.pos.x - last[0], e.pos.z - last[1]));
+              L.maxVel = Math.max(L.maxVel, Math.hypot(e.vel.x, e.vel.z)); if (e.biteCrowd) L.frozen++;
+            }
+          };
           return { ok: true, life: c.life, state: c.state, onGround: c.onGround };
         });
         assert.ok(setup.ok, JSON.stringify(setup));
@@ -63,7 +79,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         const frameAt = async (extra, name) => {
           const pose = await page.evaluate(n => {
             const g = window.__game, sky = window.__skyInternals;
-            for (let i = 0; i < n; i++) g.advance(1 / 60);
+            for (let i = 0; i < n; i++) { g.advance(1 / 60); window.__crowdWatch(); }
             for (let i = 0; i < 4; i++) g.frameOnce(1 / 60);   // renders: lets the morph weights settle
             let weights = null;
             sky.ue.traverse(o => { const d = o.morphTargetDictionary; if (!weights && d && d.parkourBite_000 !== undefined && o.name.startsWith('Body')) weights = ['parkourBite_000', 'parkourBite_001', 'parkourBite_002'].map(k => +o.morphTargetInfluences[d[k]].toFixed(2)); });
@@ -75,6 +91,18 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         await page.evaluate(() => { window.__game.keys.KeyW = true; });   // the player tries to walk away the whole time
         await frameAt(0, 'a-hit');
         await frameAt(8, 'b-bitten');     // about 0.2 s: held
+        // The lean must not stack up when the display draws more often than the sim steps (120 Hz screens).
+        const lean = await page.evaluate(() => {
+          const biter = window.__live.find(e => e.biteHold); if (!biter) return { error: 'no biter' };
+          const q = () => biter.m.root.quaternion.toArray().map(v => +v.toFixed(4));
+          window.skyBite.body(null, false); const first = q();
+          for (let i = 0; i < 5; i++) window.skyBite.body(null, false);
+          const root = biter.m.root, plain = new root.quaternion.constructor().setFromEuler(new root.rotation.constructor(0, biter.yaw, 0));
+          return { first, again: q(), tilt: 2 * Math.acos(Math.min(1, Math.abs(root.quaternion.dot(plain)))) };   // lean angle in radians
+        });
+        assert.ok(!lean.error, `${map}: ${lean.error}`);
+        assert.deepEqual(lean.again, lean.first, `${map}: the biter's lean grows with every extra draw`);
+        assert.ok(lean.tilt > .15 && lean.tilt < .5, `${map}: the biter should lean over the player a little (tilt ${lean.tilt})`);
         await frameAt(46, 'c-shoved');    // about 1.0 s: just after the shove (the hold lasts 0.9 s)
         // Sample during the next 1.4 s.
         const samples = [];
@@ -105,6 +133,12 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         assert.ok(poses['b-bitten'].holster, `${map}: the weapon is holstered while grabbed`);
         assert.ok(poses['c-shoved'].weights[1] > .4, `${map}: shove pose after the shove (${poses['c-shoved'].weights})`);
         assert.ok(poses['b-bitten'].minD <= .75, `${map}: the biter should be clamped onto the player while biting (got ${poses['b-bitten'].minD} m)`);
+        const crowd = await page.evaluate(() => window.__crowdLog);
+        assert.ok(crowd.frames > 5, `${map}: crowd watch saw too few frames (${JSON.stringify(crowd)})`);
+        assert.ok(crowd.minD >= .5, `${map}: a waiting zombie sank into the player's body (${crowd.minD.toFixed(2)} m)`);
+        assert.ok(crowd.maxStep < .2, `${map}: a waiting zombie popped ${crowd.maxStep.toFixed(2)} m in one frame`);
+        assert.ok(crowd.maxVel < 1, `${map}: a waiting zombie keeps running against the player (v ${crowd.maxVel.toFixed(1)})`);
+        assert.ok(crowd.frozen > 0, `${map}: the crowd was never held back`);
         assert.ok(last.shoves >= 1, `${map}: no shove recorded`);
         assert.ok(last.shoved >= 2, `${map}: shove should throw the crowd (got ${last.shoved})`);
         // Every zombie still alive must have been thrown (>1.8 m) or stunned; a zombie mid-drop is only stunned.
@@ -123,7 +157,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         assert.ok(samples.slice(0, invEnd < 0 ? samples.length : invEnd).every(s => s.life === 7), `${map}: no second life may be lost while invulnerable`);
         assert.deepEqual(errors, [], `${map}: page errors`);
         results.at(-1).poses = poses;
-        await page.screenshot({ path: `browser-evidence/bite-shove-${map.split('.')[0]}.png`, timeout: 20000 }).catch(() => {});
+        if (process.env.BITE_SHOT) await page.screenshot({ path: `browser-evidence/bite-shove-${map.split('.')[0]}.png`, timeout: 20000 }).catch(() => {});
       } catch (e) { console.log(JSON.stringify(results.at(-1))); throw e; } finally { await context.close(); }
     }
     fs.writeFileSync('browser-evidence/bite-shove.json', JSON.stringify(results, null, 1));

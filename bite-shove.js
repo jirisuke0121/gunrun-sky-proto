@@ -36,6 +36,7 @@
     // Pose timeline (s since the bite landed). The morph frames are parkourBite_000/001/002.
     const ANIM = Object.freeze({ total: SHOVE.delay + .37, in: .07, out: .27, weight: .92 });
     const BLINK_HZ = 7, BLINK_VISIBLE = .65, MAX_SHOWN = 10;
+    let bendQ = null;
     const dir = new Vector3(), look = new Vector3(), axis = new Vector3(), yUp = new Vector3(0, 1, 0);
     const smooth01 = x => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
     const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
@@ -343,7 +344,8 @@
         thrown++; pushed.push(e);
       }
       ringAge = 0;
-      if (bite.zombie) bite.zombie.biteHold = false;
+      releaseCrowd();
+      if (bite.zombie) { bite.zombie.biteHold = false; upright(bite.zombie); }
       shoveSound(pushed);
       if (stats) { stats.shoves = (stats.shoves || 0) + 1; stats.shoved = (stats.shoved || 0) + thrown; }
     }
@@ -365,6 +367,43 @@
       e.biteHold = true;                        // ...and make it the biting clip, not the scratching one
     }
 
+    // The other zombies around the player wait (stunned, scratching) while the biter holds on: no running into the body,
+    // no running-on-the-spot, no pushing the biter. They are released (and thrown) by the shove.
+    const crowdSet = new Set();
+    function upright(e) { if (e?.m?.root && (e.m.root.rotation.x || e.m.root.rotation.z)) e.m.root.rotation.set(0, e.yaw, 0); }
+    function releaseCrowd() { for (const e of crowdSet) e.biteCrowd = false; crowdSet.clear(); }
+    function crowd(biter, dt) {
+      const MIN = .75, MIN_BITER = .55;
+      for (const e of game.Jt) {
+        // A zombie dropping or leaping in lands beside the player, not inside the body (then it would be popped out later).
+        const a = e !== biter && !e.dead && !e.stalker && !e.boss ? e.act : null;
+        if (a && a.tx !== undefined && (a.kind === 'drop' || a.kind === 'jumpdown' || a.kind === 'leap') && Math.abs(a.ty - c.pos.y) < 1.8) {
+          const ax = a.tx - c.pos.x, az = a.tz - c.pos.z, ad = Math.hypot(ax, az);
+          if (ad < MIN) {
+            const ox = e.pos.x - c.pos.x, oz = e.pos.z - c.pos.z, od = Math.hypot(ox, oz);
+            const nx = ad > 1e-3 ? ax / ad : od > 1e-3 ? ox / od : Math.sin(c.yaw), nz = ad > 1e-3 ? az / ad : od > 1e-3 ? oz / od : Math.cos(c.yaw);
+            const wx = c.pos.x + nx * MIN - a.tx, wz = c.pos.z + nz * MIN - a.tz, wd = Math.hypot(wx, wz), k = Math.min(1, 3 * dt / (wd || 1));
+            a.tx += wx * k; a.tz += wz * k;   // slide the landing spot out gradually (no pop)
+          }
+        }
+        if (e === biter || e.dead || e.remove || e.fall || e.rise || e.act || e.onBeam || e.stalker || e.boss) { if (e.biteCrowd) { e.biteCrowd = false; crowdSet.delete(e); } continue; }
+        let dx = e.pos.x - c.pos.x, dz = e.pos.z - c.pos.z, d = Math.hypot(dx, dz);
+        if (d > SHOVE.radius || Math.abs(e.pos.y - c.pos.y) > 1.8) { if (e.biteCrowd) { e.biteCrowd = false; crowdSet.delete(e); } continue; }
+        e.biteCrowd = true; crowdSet.add(e);
+        e.vel.x = e.vel.z = 0; e.atkT = 0; e.stun = Math.max(e.stun || 0, .1);   // stun keeps the AI from walking
+        // keep out of the player's body and out of the biter
+        let px = 0, pz = 0;
+        if (d < MIN) { const nx = d > 1e-3 ? dx / d : Math.sin(c.yaw), nz = d > 1e-3 ? dz / d : Math.cos(c.yaw), k = Math.min(MIN - d, 14 * dt); px += nx * k; pz += nz * k; }
+        if (biter) {
+          const bx = e.pos.x - biter.pos.x, bz = e.pos.z - biter.pos.z, bd = Math.hypot(bx, bz);
+          if (bd < MIN_BITER) { const nx = bd > 1e-3 ? bx / bd : 1, nz = bd > 1e-3 ? bz / bd : 0, k = Math.min(MIN_BITER - bd, 6 * dt); px += nx * k; pz += nz * k; }
+        }
+        if (px || pz) { const x = e.pos.x + px, zz = e.pos.z + pz; if (d < .5 || game.oe(x, e.pos.y + .03, zz, e.r || .3, (e.h || 1.8) - .1)) { e.pos.x = x; e.pos.z = zz; } }   // inside the body: always get out
+        dx = e.pos.x - c.pos.x; dz = e.pos.z - c.pos.z;
+        if (dx || dz) e.yaw = Math.atan2(dx, dz);   // faces the player (the game's yaw = atan2(-toward.x, -toward.z))
+      }
+    }
+
     function step(dt) {
       if (anim) {
         anim.t += dt;
@@ -373,9 +412,9 @@
         if (anim.t >= ANIM.total || !playing()) anim = null;
       }
       if (!bite) return;
-      if (!playing()) { if (bite.zombie) bite.zombie.biteHold = false; bite = null; return; }
+      if (!playing()) { if (bite.zombie) { bite.zombie.biteHold = false; upright(bite.zombie); } releaseCrowd(); bite = null; return; }
       bite.t += dt;
-      if (!bite.shoved) hold(bite.zombie, dt);
+      if (!bite.shoved) { hold(bite.zombie, dt); crowd(bite.zombie, dt); }
       if (!bite.shoved && bite.t >= SHOVE.delay) shove();
       if (bite.shoved) bite = null;
     }
@@ -438,9 +477,13 @@
       // The biter bends over the player toward the neck instead of standing upright with its arms out.
       const biter = anim.zombie;
       if (biter && biter.biteHold && biter.m?.root && anim.grounded) {
-        const bend = SHOVE.bend * smooth01(anim.t / .15);
+        // Rebuilt from the zombie's yaw every call: this runs once per display frame but the zombie's own pose only
+        // once per sim step, so stacking the lean on the current rotation made it lie down and stand up again.
+        const bend = SHOVE.bend * smooth01(anim.t / .15), root = biter.m.root;
         axis.crossVectors(yUp, look.set(-anim.n.x, 0, -anim.n.z));
-        biter.m.root.quaternion.premultiply(new biter.m.root.quaternion.constructor().setFromAxisAngle(axis, bend));
+        root.rotation.set(0, biter.yaw, 0);
+        bendQ ||= new root.quaternion.constructor();
+        root.quaternion.premultiply(bendQ.setFromAxisAngle(axis, bend));
       }
       if (reducedMotion) return;
       // Camera: shake while grabbed, one kick back on the shove.
@@ -451,7 +494,7 @@
       camera.updateMatrixWorld();
     }
 
-    function reset() { clearBlood(); bite = null; anim = null; ringAge = 9; shoveRing.visible = false; cueRing.visible = false; edge.style.opacity = '0'; }
+    function reset() { if (bite?.zombie) { bite.zombie.biteHold = false; upright(bite.zombie); } releaseCrowd(); clearBlood(); bite = null; anim = null; ringAge = 9; shoveRing.visible = false; cueRing.visible = false; edge.style.opacity = '0'; }
 
     // True from the bite until the shove, on the ground only.
     const locked = () => !!anim && anim.lock && !!bite && !bite.shoved && playing();
