@@ -9,6 +9,7 @@
     const game = window.__skyInternals;
     if (!game) return;
     const { c, z, Tt } = game;
+    const camera = game.Se;
     const { Torus, Mesh, Basic, Vector3 } = game.Geom;
     const stats = window.__game?.stats;
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false;
@@ -23,9 +24,14 @@
       bossPush: 4,     // the boss is heavier: smaller push, shorter stun
       bossStun: .5,
       lean: .3,        // rad: lean away while bitten, lunge toward the zombie on the shove
+      hold: .6,        // m: the biter is pulled this close and faces the player while biting
+      crouch: .1,      // m: the body sinks while grabbed
+      lunge: .28,      // m: the body steps toward the zombie on the shove
+      shake: .03,      // m: camera shake amplitude while grabbed
+      kick: .12,       // m: camera kick back on the shove
     });
     const BLINK_HZ = 7, BLINK_VISIBLE = .65, MAX_SHOWN = 10;
-    const yUp = new Vector3(0, 1, 0), dir = new Vector3(), axis = new Vector3();
+    const yUp = new Vector3(0, 1, 0), dir = new Vector3(), axis = new Vector3(), look = new Vector3();
 
     // ---------- shove ring on the ground ----------
     const ringMaterial = new Basic({ color: 0xcfe8ff, transparent: true, opacity: 0, depthWrite: false });
@@ -46,7 +52,7 @@
       'box-shadow:inset 0 0 70px 10px rgba(140,205,255,.55);transition:none';
     (document.getElementById('app') || document.body).append(edge);
 
-    let bite = null;
+    let bite = null, lastShove = [];
     let blinkVisible = true, cueOn = false;
 
     const playing = () => game.modeRef() === 'play' && !z.over;
@@ -75,10 +81,15 @@
       bite.shoved = true;
       let thrown = 0;
       const t = z.t;
+      lastShove = [];
       for (const e of game.Jt) {
-        if (e.dead || e.remove || e.fall || e.rise || e.act || e.onBeam) continue;
         const dx = e.pos.x - c.pos.x, dz = e.pos.z - c.pos.z;
-        if (Math.abs(e.pos.y - c.pos.y) > 1.8 || dx * dx + dz * dz > SHOVE.radius * SHOVE.radius) continue;
+        const skip = e.dead ? 'dead' : e.remove ? 'remove' : e.fall ? 'fall' : e.rise ? 'rise' : e.act ? 'act:' + e.act.kind : e.onBeam ? 'beam' : null;
+        if (Math.hypot(dx, dz) < SHOVE.radius + 1) lastShove.push({ d: +Math.hypot(dx, dz).toFixed(2), dy: +(e.pos.y - c.pos.y).toFixed(2), skip, biter: e === bite.zombie });
+        const near = Math.abs(e.pos.y - c.pos.y) <= 1.8 && dx * dx + dz * dz <= SHOVE.radius * SHOVE.radius;
+        // A zombie mid-drop, jump or climb is not interrupted, but it lands stunned instead of biting again.
+        if (skip && skip.startsWith('act') && near && !e.boss) { e.stun = Math.max(e.stun || 0, SHOVE.stun); e.atkT = 0; continue; }
+        if (skip || !near) continue;
         const d = Math.hypot(dx, dz);
         const nx = d > 1e-3 ? dx / d : -Math.sin(c.yaw), nz = d > 1e-3 ? dz / d : -Math.cos(c.yaw);
         const boss = !!e.boss;
@@ -93,10 +104,27 @@
       if (stats) { stats.shoves = (stats.shoves || 0) + 1; stats.shoved = (stats.shoved || 0) + thrown; }
     }
 
+    // The biter clamps onto the player (pulled to SHOVE.hold, facing them) until the shove.
+    function hold(e, dt) {
+      if (!e || !bite.pose || e.dead || e.remove || e.fall || e.rise || e.act || e.onBeam) return;
+      const dx = e.pos.x - c.pos.x, dz = e.pos.z - c.pos.z, d = Math.hypot(dx, dz);
+      if (d > 1.6 || Math.abs(e.pos.y - c.pos.y) > 1) return;
+      const nx = d > 1e-3 ? dx / d : -Math.sin(c.yaw), nz = d > 1e-3 ? dz / d : -Math.cos(c.yaw);
+      if (d > SHOVE.hold) {
+        const move = Math.min(d - SHOVE.hold, 4 * dt);
+        const x = e.pos.x - nx * move, zz = e.pos.z - nz * move;
+        if (game.oe(x, e.pos.y + .03, zz, e.r || .3, (e.h || 1.8) - .1)) { e.pos.x = x; e.pos.z = zz; }
+      }
+      e.vel.x = e.vel.z = 0;
+      e.yaw = Math.atan2(nx, nz);          // faces the player (the game's yaw = atan2(-toward.x, -toward.z))
+      e.atkT = Math.max(e.atkT || 0, .1);  // keep the bite clip playing until the shove
+    }
+
     function step(dt) {
       if (!bite) return;
       if (!playing()) { bite = null; return; }
       bite.t += dt;
+      if (!bite.shoved) hold(bite.zombie, dt);
       if (!bite.shoved && bite.t >= SHOVE.delay) shove();
       if (bite.t >= SHOVE.delay + SHOVE.recover) bite = null;
     }
@@ -127,18 +155,28 @@
     }
     requestAnimationFrame(frame);
 
-    // Called by the human view each frame after the body pose is set.
+    // Called by the human view each frame after the body pose and camera are set.
     function body(holder, shown) {
-      if (!holder || !shown) return;
-      if (!bite || !bite.pose || !bite.zombie) return;
+      if (!bite) return;
+      const k = bite.shoved ? 0 : Math.min(1, bite.t / SHOVE.delay);                         // grabbed 0 -> 1
+      const f = bite.shoved ? Math.max(0, 1 - (bite.t - SHOVE.delay) / SHOVE.recover) : 0;  // shove 1 -> 0
       biteDirection(bite.zombie, dir);
-      let angle;
-      if (!bite.shoved) angle = -SHOVE.lean * Math.min(1, bite.t / SHOVE.delay);          // dragged back
-      else angle = SHOVE.lean * 1.2 * Math.max(0, 1 - (bite.t - SHOVE.delay) / SHOVE.recover); // lunge
-      if (!angle) return;
-      axis.crossVectors(yUp, dir);
-      const q = new holder.quaternion.constructor().setFromAxisAngle(axis, angle);
-      holder.quaternion.premultiply(q);
+      if (shown && holder && bite.pose && bite.zombie) {
+        const angle = bite.shoved ? SHOVE.lean * 1.4 * f : -SHOVE.lean * k;   // lunge forward / dragged back
+        if (angle) {
+          axis.crossVectors(yUp, dir);
+          holder.quaternion.premultiply(new holder.quaternion.constructor().setFromAxisAngle(axis, angle));
+        }
+        holder.position.y -= SHOVE.crouch * (bite.shoved ? f : k);
+        holder.position.addScaledVector(dir, bite.shoved ? SHOVE.lunge * f : -SHOVE.lean * .4 * k);
+      }
+      if (reducedMotion) return;
+      // Camera: shake while grabbed, one kick back on the shove.
+      const shake = SHOVE.shake * k * (1 - k * .3);
+      camera.position.x += Math.sin(bite.t * 71) * shake;
+      camera.position.y += Math.cos(bite.t * 83) * shake;
+      if (f > 0) { camera.getWorldDirection(look); camera.position.addScaledVector(look, -SHOVE.kick * f); }
+      camera.updateMatrixWorld();
     }
 
     function reset() { bite = null; ringAge = 9; shoveRing.visible = false; cueRing.visible = false; edge.style.opacity = '0'; }
@@ -147,6 +185,7 @@
       SHOVE, onHit, step, body, reset,
       get active() { return true; },
       get biting() { return !!bite; },
+      get lastShove() { return lastShove; },
       get blinkOff() { return !bite && !reducedMotion && invulnerable() && !blinkPhaseVisible(); },
       get invulnerable() { return invulnerable(); },
     };
