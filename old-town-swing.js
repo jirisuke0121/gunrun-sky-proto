@@ -255,6 +255,13 @@
     };
     gantry('gantry-a','⑨ 西の足場→鉄棒→東の張り出し',[-42,4.4,15],[1,0],0);
     gantry('gantry-b','⑩ 北西の足場→鉄棒→北の張り出し',[-27,4.2,-11],[0,-1],-3.5);
+    // A narrow intermediate pillar gives pursuers a real route onto gantry B
+    // without filling the two gaps or removing the player's swing approach.
+    box('gantry-b-pursuit-step',[-27.8,-3.5,-21.3],[-26.2,4.3,-19.7], 'slab');
+    // A supported climb at the lower path end, while retaining the upper gaps.
+    box('gantry-b-north-support',[-27.8,-3.5,-30.2],[-26.2,4.4,-29.4], 'slab');
+    box('gantry-b-north-approach',[-27.8,-3.9,-32.5],[-26.2,-3.5,-30.2], 'slab');
+
     const bars=[
       {id:'oldtown-high-bar-1',at:[-43.6,17.6,-3.9],direction:[0,1],width:2.6,route:'high'},
       {id:'oldtown-warehouse-bar-1',at:[-62.5,7.8,3.6],direction:[1,0],width:2.6,route:'warehouse'},
