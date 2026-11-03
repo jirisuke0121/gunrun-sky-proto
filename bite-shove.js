@@ -26,6 +26,8 @@
       bossPush: 4,     // the boss is heavier: smaller push, shorter stun
       bossStun: .5,
       hold: .62,       // m: the biter is pulled this close (just outside the body-collision distance of 0.6 m, which would push the player) and faces the player
+      side: .96,       // rad: keep the biter at least this far (55 degrees) off the line behind the player, so it never hides the player from the camera
+      bend: .3,        // rad: how far the biter leans over the player (its head ends up near the neck)
       lunge: .2,       // m: the body steps toward the zombie on the shove
       drag: .05,       // m: the body is dragged back while grabbed
       shake: .03,      // m: camera shake amplitude while grabbed
@@ -34,7 +36,7 @@
     // Pose timeline (s since the bite landed). The morph frames are parkourBite_000/001/002.
     const ANIM = Object.freeze({ total: SHOVE.delay + .37, in: .07, out: .27, weight: .92 });
     const BLINK_HZ = 7, BLINK_VISIBLE = .65, MAX_SHOWN = 10;
-    const dir = new Vector3(), look = new Vector3();
+    const dir = new Vector3(), look = new Vector3(), axis = new Vector3(), yUp = new Vector3(0, 1, 0);
     const smooth01 = x => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
     const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
 
@@ -180,8 +182,8 @@
     // ---------- blood: spurts from the bite, a puddle under the player, splatter on the screen ----------
     const { Sphere, Cylinder } = game.Geom;
     const BLOOD = 0x7a0b0e;
-    const dropGeometry = new Sphere(.05, 6, 4), dropMaterial = new Basic({ color: BLOOD });
-    const drops = Array.from({ length: 110 }, () => {
+    const dropGeometry = new Sphere(.032, 6, 4), dropMaterial = new Basic({ color: BLOOD });
+    const drops = Array.from({ length: 140 }, () => {
       const m = new Mesh(dropGeometry, dropMaterial); m.visible = false; game.ue.add(m);
       return { m, life: 0, vx: 0, vy: 0, vz: 0, floor: 0, landed: false };
     });
@@ -203,7 +205,7 @@
         d.m.position.set(c.pos.x + away.x * .2 + rnd(-.08, .08), c.pos.y + rnd(1.25, 1.5), c.pos.z + away.z * .2 + rnd(-.08, .08));
         d.vx = -away.x * rnd(.6, 2.6) * power + rnd(-1.2, 1.2); d.vz = -away.z * rnd(.6, 2.6) * power + rnd(-1.2, 1.2);
         d.vy = rnd(1.6, 4.4) * power; d.life = rnd(.7, 1.3); d.floor = c.pos.y + .02; d.landed = false;
-        d.m.scale.setScalar(rnd(.8, 2)); d.m.visible = true;
+        d.m.scale.setScalar(rnd(.7, 1.6)); d.m.visible = true;
       }
     }
     function puddle() {
@@ -282,10 +284,24 @@
     const blinkPhaseVisible = () => reducedMotion || ((game.ceRef() * BLINK_HZ) % 1) < BLINK_VISIBLE;
 
     function biteDirection(zombie, out) {
+      if (anim?.n) return out.set(anim.n.x, 0, anim.n.z);
       if (zombie) out.set(zombie.pos.x - c.pos.x, 0, zombie.pos.z - c.pos.z);
       else out.set(0, 0, 0);
       if (out.lengthSq() < 1e-6) out.set(anim?.dx ?? -Math.sin(c.yaw), 0, anim?.dz ?? -Math.cos(c.yaw));
       return out.normalize();
+    }
+
+    // Where the biter stands relative to the player. Zombies chase from behind, i.e. between the camera and the
+    // player, and would hide the whole fight; so a biter within SHOVE.side of straight behind is moved to that angle.
+    function sideDirection(zombie) {
+      let nx = zombie.pos.x - c.pos.x, nz = zombie.pos.z - c.pos.z;
+      const len = Math.hypot(nx, nz);
+      if (len < 1e-3) { nx = Math.sin(c.yaw); nz = Math.cos(c.yaw); } else { nx /= len; nz /= len; }
+      const bx = Math.sin(c.yaw), bz = Math.cos(c.yaw);                 // straight behind the player (the camera looks along -b)
+      const angle = Math.atan2(bx * nz - bz * nx, bx * nx + bz * nz);   // signed angle from "behind" to the zombie
+      if (Math.abs(angle) >= SHOVE.side) return { x: nx, z: nz };
+      const a = (angle >= 0 ? 1 : -1) * SHOVE.side, ca = Math.cos(a), sa = Math.sin(a);
+      return { x: bx * ca - bz * sa, z: bx * sa + bz * ca };
     }
 
     // Called from the game's player-hit handler right after the life is lost.
@@ -296,11 +312,11 @@
       // The hit's 1.3 s of invulnerability must outlast the hold and cover most of the thrown zombies' stun.
       c.invuln = Math.max(c.invuln, game.ceRef() + SHOVE.delay + SHOVE.after);
       // Held: no walking, jumping, sliding, hooking, barrel jumps or shooting until the shove (look and skills still work).
-      anim = { t: 0, chew: 0, zombie, grounded, lock: grounded && c.state === 'normal', dx: zombie.pos.x - c.pos.x, dz: zombie.pos.z - c.pos.z };
+      anim = { n: sideDirection(zombie), t: 0, chew: 0, zombie, grounded, lock: grounded && c.state === 'normal', dx: zombie.pos.x - c.pos.x, dz: zombie.pos.z - c.pos.z };
       // Replay the bite clip on the zombie that landed it; the invulnerability window stops a second hit.
       zombie.atkT = Math.max(zombie.atkT || 0, SHOVE.delay);
       biteSound(zombie);
-      spurt(30, 1.3); splat(3); puddle();
+      spurt(40, 1.3); splat(3); puddle();
       return true;
     }
 
@@ -332,28 +348,28 @@
       if (stats) { stats.shoves = (stats.shoves || 0) + 1; stats.shoved = (stats.shoved || 0) + thrown; }
     }
 
-    // The biter clamps onto the player (pulled to SHOVE.hold, facing them) until the shove.
+    // The biter clamps onto the player (at SHOVE.hold, on the side chosen at the bite, facing the player) until the shove.
     function hold(e, dt) {
-      if (!e || !bite.pose || e.dead || e.remove || e.fall || e.rise || e.act || e.onBeam) return;
-      const dx = e.pos.x - c.pos.x, dz = e.pos.z - c.pos.z, d = Math.hypot(dx, dz);
-      if (d > 1.6 || Math.abs(e.pos.y - c.pos.y) > 1) return;
-      const nx = d > 1e-3 ? dx / d : -Math.sin(c.yaw), nz = d > 1e-3 ? dz / d : -Math.cos(c.yaw);
-      if (d > SHOVE.hold) {
-        const move = Math.min(d - SHOVE.hold, 4 * dt);
-        const x = e.pos.x - nx * move, zz = e.pos.z - nz * move;
+      if (!e || !bite.pose || !anim?.n || e.dead || e.remove || e.fall || e.rise || e.act || e.onBeam) return;
+      const dx = e.pos.x - c.pos.x, dz = e.pos.z - c.pos.z;
+      if (Math.hypot(dx, dz) > 1.8 || Math.abs(e.pos.y - c.pos.y) > 1) return;
+      const mx = c.pos.x + anim.n.x * SHOVE.hold - e.pos.x, mz = c.pos.z + anim.n.z * SHOVE.hold - e.pos.z, md = Math.hypot(mx, mz);
+      if (md > .01) {
+        const move = Math.min(md, 6 * dt);
+        const x = e.pos.x + mx / md * move, zz = e.pos.z + mz / md * move;
         if (game.oe(x, e.pos.y + .03, zz, e.r || .3, (e.h || 1.8) - .1)) { e.pos.x = x; e.pos.z = zz; }
       }
       e.vel.x = e.vel.z = 0;
-      e.yaw = Math.atan2(nx, nz);          // faces the player (the game's yaw = atan2(-toward.x, -toward.z))
-      e.atkT = Math.max(e.atkT || 0, .1);  // keep the attack clip playing until the shove
-      e.biteHold = true;                   // ...and make it the biting clip, not the scratching one
+      e.yaw = Math.atan2(anim.n.x, anim.n.z);   // faces the player (the game's yaw = atan2(-toward.x, -toward.z))
+      e.atkT = Math.max(e.atkT || 0, .1);       // keep the attack clip playing until the shove
+      e.biteHold = true;                        // ...and make it the biting clip, not the scratching one
     }
 
     function step(dt) {
       if (anim) {
         anim.t += dt;
         // every chew draws more blood
-        while (anim.chew < CHEWS.length && anim.t >= CHEWS[anim.chew] && !bite?.shoved) { spurt(12, 1); splat(1); if (anim.chew % 2) puddle(); anim.chew++; }
+        while (anim.chew < CHEWS.length && anim.t >= CHEWS[anim.chew] && !bite?.shoved) { spurt(16, 1); splat(1); if (anim.chew % 2) puddle(); anim.chew++; }
         if (anim.t >= ANIM.total || !playing()) anim = null;
       }
       if (!bite) return;
@@ -418,6 +434,13 @@
         const w = poseWeight() / ANIM.weight;
         holder.rotation.y += wrap(Math.atan2(dir.x, dir.z) - holder.rotation.y) * w;
         holder.position.addScaledVector(dir, f * SHOVE.lunge - grab * SHOVE.drag * (.6 + .4 * Math.sin(anim.t * 15)));
+      }
+      // The biter bends over the player toward the neck instead of standing upright with its arms out.
+      const biter = anim.zombie;
+      if (biter && biter.biteHold && biter.m?.root && anim.grounded) {
+        const bend = SHOVE.bend * smooth01(anim.t / .15);
+        axis.crossVectors(yUp, look.set(-anim.n.x, 0, -anim.n.z));
+        biter.m.root.quaternion.premultiply(new biter.m.root.quaternion.constructor().setFromAxisAngle(axis, bend));
       }
       if (reducedMotion) return;
       // Camera: shake while grabbed, one kick back on the shove.
