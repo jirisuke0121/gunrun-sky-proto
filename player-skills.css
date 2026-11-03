@@ -3,7 +3,7 @@
   --skill-size:60px;position:absolute;left:50%;bottom:max(52px,env(safe-area-inset-bottom));
   transform:translateX(-50%);display:flex;gap:16px;align-items:center;pointer-events:none;z-index:25;
 }
-#skillDock #tFlash,#skillDock #tDecoy,#skillDock #tJumpGun{
+#skillDock #tFlash,#skillDock #tDecoy,#skillDock #tJumpGun,#skillDock #tRescue{
   --skill-color:#ffdb75;--skill-progress:1;position:relative;inset:auto;
   flex:none;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;
   width:var(--skill-size);height:var(--skill-size);padding:10px;border-radius:50%;
@@ -13,6 +13,10 @@
   text-shadow:0 1px 3px #000;white-space:normal;transition:filter .15s,box-shadow .15s;
 }
 #skillDock #tDecoy{--skill-color:#67f5ec}
+#skillDock #tRescue{--skill-color:#8be9a8}
+#skillDock #tRescue .skill-name kbd{padding:0 .25em;font-size:9px}
+html.touch #skillDock #tRescue .skill-name kbd{display:none}
+#skillDock #tRescue.empty{filter:saturate(.35);opacity:.65}
 #skillDock #tJumpGun{--skill-color:#ffc568}
 #skillDock #tJumpGun[hidden]{display:none}
 #skillDock #tJumpGun .skill-name kbd{padding:0 .25em;font-size:9px}

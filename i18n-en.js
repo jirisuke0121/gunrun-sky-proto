@@ -443,6 +443,8 @@
  "跳ぶ": "Jump",
  "緑の印をタップで、あの足場へフック！": "Tap the green mark to hook onto that ledge!",
  "緑の印をクリック／Vキーで、あの足場へフック！": "Click the green mark or press V to hook onto that ledge!",
+ "救済": "Rescue",
+ "近くに登れる高台がありません": "No high ground to climb nearby",
  "ドラム缶をタップで爆破ジャンプ！": "Tap the barrel to blast-jump!",
  "ドラム缶をクリック／Bキーで爆破ジャンプ！": "Click the barrel or press B to blast-jump!",
  "ドラム缶をタップで爆破": "Tap the barrel to detonate",

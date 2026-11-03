@@ -1,16 +1,13 @@
-// 自由フック（救済）。追い込まれたとき、見えている高い足場へフックして上に乗る。1ランに2回まで。
-// 目印が出るのは次の条件を全部満たすとき: 残り回数がある／近く(8m)にゾンビが2体以上、または2.5m以内に1体／
-// 水平14m以内・+2〜+12mの立てる足場が画面に見えていて、壁にさえぎられていない。
-// 動きは本編のフック（引く→乗り上げる→離す）をそのまま使い、足場の上に一時的なフックポイントを置くだけ。
+// 救済スキル（画面下のスキル欄「救済 ×2」）。ボタンを押すと、ゾンビのいない方向の高台へ自動でフックして登る。1ランに2回まで。
+// 狙う足場: 水平14m以内・+2〜+12mの立てる足場のうち、ゾンビから4.5m以上離れていて、そこへ向かう線がどのゾンビからも3m以上離れていて、引く動きが壁や天井で止まらないもの。ゾンビから離れる向きを優先する。
+// 動きは本編のフック（引く→乗り上げる→離す）をそのまま使う。足場の手前に一時的なフックポイントを置いて引かせる。
 (() => {
-  const CFG = Object.freeze({ charges: 2, maxXZ: 14, minRise: 2, maxRise: 12, crowdRadius: 8, crowdCount: 2, closeRadius: 2.5, tapRadius: 70 });
+  const CFG = Object.freeze({ charges: 2, maxXZ: 14, minRise: 2, maxRise: 12, minZombieGap: 4.5, pathGap: 3, lockSeconds: 1, lift: .8 });
   addEventListener('load', () => {
-    const game = window.__skyInternals, G = window.__game;
-    if (!game || !G || !G.NAV || window.skyPracticeMode) return;
-    const { Vector3 } = game.Geom, c = game.c, stats = G.stats, nodes = G.NAV.nodes;
-    const isTouch = () => document.documentElement.classList.contains('touch');
-    const ANCHOR_LIFT = .8; // 足場の0.8m上にフックポイントを置く（本編の遮蔽判定が縁にさえぎられない高さ）
-    let charges = CFG.charges, wasPlay = false, lastT = 0, pending = null, best = null;
+    const game = window.__skyInternals, G = window.__game, dock = document.getElementById('skillDock');
+    if (!game || !G || !G.NAV || !dock || window.skyPracticeMode) return;
+    const c = game.c, stats = G.stats, nodes = G.NAV.nodes;
+    let charges = CFG.charges, wasPlay = false, lastT = 0, lockUntil = 0, noteUntil = 0;
 
     // 足場の中ほど（縁から落ちにくい点）だけを狙う: 同じ高さの隣が6つ以上ある足場。
     const interior = new Uint8Array(nodes.length), cell = new Map(), key = (i, j) => i + ',' + j;
@@ -24,112 +21,104 @@
       interior[id] = count >= 6 ? 1 : 0;
     });
 
-    const mark = document.createElement('div'); mark.id = 'freeHookMark';
-    Object.assign(mark.style, { position: 'absolute', width: '54px', height: '54px', margin: '-27px', boxSizing: 'border-box', border: '3px solid #d9fff5',
-      borderRadius: '50%', background: 'rgba(30,150,130,.94)', boxShadow: '0 0 14px #1e9682cc', color: '#eafffa', font: 'bold 11px sans-serif', lineHeight: '1.15',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: '0', pointerEvents: 'none', transition: 'opacity .12s', zIndex: '21' });
-    (document.getElementById('hookMark')?.parentElement || document.body).appendChild(mark);
-    const hint = document.createElement('div');
-    Object.assign(hint.style, { position: 'fixed', left: '50%', top: '146px', transform: 'translateX(-50%)', zIndex: '21', pointerEvents: 'none', padding: '4px 10px',
-      borderRadius: '8px', background: 'rgba(10,30,28,.65)', color: '#c9fff1', font: 'bold 12px sans-serif', textAlign: 'center', whiteSpace: 'nowrap', display: 'none' });
-    document.body.appendChild(hint);
-    const projected = new Vector3(), forward = new Vector3();
+    // スキル欄のボタン。
+    const ICON = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4v18"/><path d="M7 18a9 9 0 0 0 18 0"/><path d="M4 15l3 3 3-3M22 15l3 3 3-3"/></svg>';
+    const button = document.createElement('button'); button.type = 'button'; button.id = 'tRescue'; button.className = 'player-skill';
+    button.innerHTML = `${ICON}<span class="skill-value">${charges}</span><span class="skill-name">救済 <kbd>V</kbd></span>`;
+    dock.append(button);
+    const note = document.createElement('div');
+    Object.assign(note.style, { position: 'fixed', left: '50%', bottom: '150px', transform: 'translateX(-50%)', zIndex: '26', pointerEvents: 'none', padding: '4px 10px', borderRadius: '8px',
+      background: 'rgba(10,30,28,.75)', color: '#c9fff1', font: 'bold 12px sans-serif', whiteSpace: 'nowrap', display: 'none' });
+    document.body.appendChild(note);
+    const say = text => { note.textContent = text; note.style.display = 'block'; noteUntil = performance.now() + 1600; };
 
     const livingZombies = () => game.Jt.filter(z => !z.dead && !z.remove && !z.rise);
-    function pressed() {
-      let crowd = 0, close = false;
-      for (const z of livingZombies()) {
-        const d = Math.hypot(z.pos.x - c.pos.x, z.pos.z - c.pos.z), dy = Math.abs(z.pos.y - c.pos.y);
-        if (dy > 3) continue;
-        if (d <= CFG.crowdRadius) crowd++;
-        if (d <= CFG.closeRadius) close = true;
-      }
-      return crowd >= CFG.crowdCount || close;
-    }
-    const ready = () => charges > 0 && !pending && game.modeRef() === 'play' && !game.z.over && c.state === 'normal';
+    const playing = () => game.modeRef() === 'play' && !game.z.over;
+    const busy = () => ['hook', 'zip', 'swing'].includes(c.state);
+    const available = () => playing() && charges > 0 && !busy() && !window.skyBite?.locked && performance.now() >= lockUntil;
 
-    function candidates() {
-      const out = [];
-      for (let id = 0; id < nodes.length; id++) {
-        const n = nodes[id], rise = n.y - c.pos.y, xz = Math.hypot(n.x - c.pos.x, n.z - c.pos.z);
-        if (interior[id] && rise >= CFG.minRise && rise <= CFG.maxRise && xz <= CFG.maxXZ && xz >= 2) out.push({ id, x: n.x, y: n.y, z: n.z });
+    const segDist = (x, z, x0, z0, x1, z1) => { const dx = x1 - x0, dz = z1 - z0, l2 = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((x - x0) * dx + (z - z0) * dz) / l2)); return Math.hypot(x - (x0 + dx * t), z - (z0 + dz * t)); };
+    // 引き終わりの勢い（約3m）で行き過ぎないよう、足場の手前（同じ足場の上）にフックポイントを置く。
+    function makeAnchor(t) {
+      const dx = t.x - c.pos.x, dz = t.z - c.pos.z, len = Math.hypot(dx, dz) || 1; let back = 0;
+      for (const k of [2.5, 2, 1.5, 1, .5]) {
+        const bx = t.x - dx / len * k, bz = t.z - dz / len * k;
+        if (nodes.some(n => Math.abs(n.y - t.y) < .15 && Math.hypot(n.x - bx, n.z - bz) < .6)) { back = k; break; }
       }
-      return out;
+      return [t.x - dx / len * back, t.y + CFG.lift, t.z - dz / len * back];
     }
-    // いちばん画面の中心に近い、見えている足場を選ぶ。
-    function bestTarget() {
-      game.Se.updateMatrixWorld(); game.Se.getWorldDirection(forward);
-      const ex = c.pos.x, ey = c.pos.y + (c.eye || 1.6), ez = c.pos.z, found = [];
-      for (let id = 0; id < nodes.length; id++) {
-        const n = nodes[id], rise = n.y - c.pos.y;
-        if (!interior[id] || rise < CFG.minRise || rise > CFG.maxRise) continue;
-        const dx = n.x - ex, dz = n.z - ez, xz = Math.hypot(dx, dz);
-        if (xz > CFG.maxXZ || xz < 2) continue;
-        const dy = n.y + .6 - ey, d = Math.hypot(dx, dy, dz), dot = (dx * forward.x + dy * forward.y + dz * forward.z) / d;
-        if (dot < .55) continue; // 画面の中心から約57度以内
-        found.push({ id, n, d, dot });
+    // 本編の引く動き（壁に当たったら壁沿いに上へ、天井に当たったら外れる）を、体の当たり判定で先に試す。
+    function dryPull(anchor) {
+      const R = c.r || .3, free = (x, y, z) => game.oe(x, y + .015, z, R, 1.75); let x = c.pos.x, y = c.pos.y, z = c.pos.z;
+      const tx = anchor[0], ty = anchor[1] + .6, tz = anchor[2];
+      for (let t = 0; t < 3; t += 1 / 30) {
+        const ex = tx - x, ey = ty - y, ez = tz - z, r = Math.hypot(ex, ey, ez) || 1; if (r < 1.6) return true;
+        const step = Math.min(18, 8 + t * 30) / 30, mx = ex / r * step, my = ey / r * step, mz = ez / r * step; let hit = false, ceil = false;
+        if (free(x + mx, y, z)) x += mx; else hit = true;
+        if (free(x, y, z + mz)) z += mz; else hit = true;
+        if (free(x, y + my, z)) y += my; else if (my > 0) ceil = true;
+        if (hit && ey > .3 && !ceil) { if (free(x, y + step * 1.2, z)) y += step * 1.2; else return false; } else if (hit || ceil) return false;
       }
-      found.sort((a, b) => b.dot - a.dot);
-      for (const f of found.slice(0, 12)) {
-        const { n } = f;
-        projected.set(n.x, n.y + .6, n.z).project(game.Se);
-        if (projected.z < -1 || projected.z > 1 || Math.abs(projected.x) > .92 || Math.abs(projected.y) > .92) continue;
-        const dx = n.x - ex, dy = n.y + ANCHOR_LIFT - ey, dz = n.z - ez, d = Math.hypot(dx, dy, dz);
-        if (game.raycast(ex, ey, ez, dx / d, dy / d, dz / d, d - .6)) continue; // 壁にさえぎられる
-        return { id: f.id, x: n.x, y: n.y, z: n.z, d: f.d, sx: (projected.x + 1) / 2 * window.__VW(), sy: (1 - projected.y) / 2 * window.__VH() };
+      return false;
+    }
+
+    // ゾンビのいない方向の高台を選ぶ（引く動きが壁や天井で止まらないことを先に確かめる）。
+    function chooseTarget() {
+      const zs = livingZombies(), px = c.pos.x, pz = c.pos.z;
+      let ax = 0, az = 0;
+      for (const z of zs) { const dx = px - z.pos.x, dz = pz - z.pos.z, d = Math.max(1, Math.hypot(dx, dz)); ax += dx / d / d; az += dz / d / d; }
+      const al = Math.hypot(ax, az); if (al > 1e-6) { ax /= al; az /= al; }
+      const scored = [];
+      for (let id = 0; id < nodes.length; id++) {
+        const n = nodes[id], rise = n.y - c.pos.y; if (!interior[id] || rise < CFG.minRise || rise > CFG.maxRise) continue;
+        const dx = n.x - px, dz = n.z - pz, xz = Math.hypot(dx, dz); if (xz > CFG.maxXZ || xz < 2) continue;
+        let gap = 99; for (const z of zs) gap = Math.min(gap, Math.hypot(n.x - z.pos.x, n.z - z.pos.z));
+        if (gap < CFG.minZombieGap) continue;
+        // 飛んでいく線がゾンビの近くを通る足場は選ばない。
+        if (zs.some(z => segDist(z.pos.x, z.pos.z, px, pz, n.x, n.z) < CFG.pathGap)) continue;
+        const away = al > 1e-6 ? (dx * ax + dz * az) / xz : 0;
+        scored.push({ id, n, xz, gap, score: 2 * away + Math.min(gap, 15) / 10 - xz / 20 + rise * .05 });
+      }
+      scored.sort((a, b) => b.score - a.score);
+      for (const s of scored.slice(0, 24)) {
+        const target = { id: s.id, x: s.n.x, y: s.n.y, z: s.n.z, gap: s.gap, xz: s.xz }, anchor = makeAnchor(target);
+        if (dryPull(anchor)) return { ...target, anchor };
       }
       return null;
     }
 
-    // 足場の上に一時的なフックポイントを置き、本編のフックの入力経路(hookTap)で撃つ。
-    function fire(target) {
-      if (!target || !ready()) return false;
-      // 引き終わりの勢い（約3m）で行き過ぎないよう、足場の手前（同じ足場の上）にフックポイントを置く。
-      const dx = target.x - c.pos.x, dz = target.z - c.pos.z, len = Math.hypot(dx, dz) || 1;
-      let back = 0;
-      for (const k of [2.5, 2, 1.5, 1, .5]) {
-        const bx = target.x - dx / len * k, bz = target.z - dz / len * k;
-        if (nodes.some(n => Math.abs(n.y - target.y) < .15 && Math.hypot(n.x - bx, n.z - bz) < .6)) { back = k; break; }
-      }
-      const anchor = [target.x - dx / len * back, target.y + ANCHOR_LIFT, target.z - dz / len * back];
-      G.HOOKS.push(anchor); c.hookCD = 0;
-      if (!G.hookTap(0, 0, anchor)) { G.HOOKS.splice(G.HOOKS.indexOf(anchor), 1); return false; }
-      pending = { anchor, age: 0, started: false, target }; return true;
+    function activate() {
+      if (!available()) return false;
+      const target = chooseTarget();
+      if (!target) { say('近くに登れる高台がありません'); return false; }
+      if (['ledge', 'ladder', 'slide'].includes(c.state)) { c.state = 'normal'; c.ledge = null; c.ladder = null; }
+      const dx = target.x - c.pos.x, dz = target.z - c.pos.z;
+      c.yaw = Math.atan2(-dx, -dz);
+      c.state = 'hook'; c.hook = target.anchor; c.hookT = 0; c.wallKey = null;
+      c.h = 1.75; c.onGround = false; c.jumpBuf = 0; c.hookPressed = false; c.crouchPressed = false;
+      charges--; lockUntil = performance.now() + CFG.lockSeconds * 1000; stats.rescues = (stats.rescues || 0) + 1; last = target; render();
+      return true;
     }
-    function step(dt = 1 / 60) {
-      if (game.modeRef() !== 'play') wasPlay = false;
-      else if (!wasPlay || game.z.t < lastT - .5) { wasPlay = true; charges = CFG.charges; pending = null; }
-      lastT = game.z.t;
-      if (pending) {
-        pending.age += dt;
-        if (!pending.started && c.state === 'hook' && c.hook === pending.anchor) { pending.started = true; charges--; stats.freeHooks = (stats.freeHooks || 0) + 1; }
-        const over = pending.started ? c.state !== 'hook' : pending.age > .5;
-        if (over) { const i = G.HOOKS.indexOf(pending.anchor); if (i >= 0) G.HOOKS.splice(i, 1); pending = null; }
-      }
-      best = ready() && pressed() ? bestTarget() : null;
-    }
-    const guide = () => {
-      step(1 / 60);
-      if (best) {
-        mark.style.left = best.sx + 'px'; mark.style.top = best.sy + 'px'; mark.innerHTML = `<span>${isTouch() ? 'フック' : 'V'}</span><span>残り${charges}</span>`; mark.style.opacity = '1';
-        hint.textContent = isTouch() ? '緑の印をタップで、あの足場へフック！' : '緑の印をクリック／Vキーで、あの足場へフック！'; hint.style.display = 'block';
-      } else { mark.style.opacity = '0'; hint.style.display = 'none'; }
-      requestAnimationFrame(guide);
-    };
-    requestAnimationFrame(guide);
+    let last = null;
 
-    function tapAt(clientX, clientY, touch = false) {
-      if (!best) return false;
-      const radius = touch ? Math.min(128, Math.max(104, Math.min(window.__VW(), window.__VH()) * .26)) : CFG.tapRadius;
-      return Math.hypot(best.sx - clientX, best.sy - clientY) <= radius && fire(best);
+    function render() {
+      button.querySelector('.skill-value').textContent = charges;
+      button.classList.toggle('empty', charges <= 0);
+      button.disabled = false; button.setAttribute('aria-disabled', String(!available()));
     }
-    const canvas = document.getElementById('c');
-    canvas.addEventListener('mousedown', e => { if (e.button !== 0 || !tapAt(e.clientX, e.clientY)) return; e.preventDefault(); e.stopImmediatePropagation(); }, true);
-    canvas.addEventListener('pointerdown', e => { if (e.pointerType !== 'touch' || !tapAt(e.clientX, e.clientY, true)) return; e.preventDefault(); e.stopImmediatePropagation(); }, true);
+    function step() {
+      if (game.modeRef() !== 'play') wasPlay = false;
+      else if (!wasPlay || game.z.t < lastT - .5) { wasPlay = true; charges = CFG.charges; lockUntil = 0; render(); }
+      lastT = game.z.t;
+      if (note.style.display === 'block' && performance.now() > noteUntil) note.style.display = 'none';
+    }
+    const loop = () => { step(); requestAnimationFrame(loop); }; requestAnimationFrame(loop);
+
     document.addEventListener('keydown', e => {
-      if (e.code !== 'KeyV' || e.repeat || e.ctrlKey || e.metaKey || window.skyBite?.locked || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '')) return;
-      if (best) fire(best);
+      if (e.code !== 'KeyV' || e.repeat || e.ctrlKey || e.metaKey || !playing() || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '')) return;
+      e.preventDefault(); activate();
     });
-    window.skyFreeHook = { CFG, step, bestTarget, candidates, fire, ready, pressed, interior, get charges() { return charges; }, get best() { return best; }, get pending() { return pending; }, reset() { charges = CFG.charges; pending = null; } };
+    import('./player-skills.js?v=20261102-skill-keys-v1').then(({ bindSkillPress }) => bindSkillPress(button, available, activate));
+    window.skyRescue = { CFG, step, activate, chooseTarget, dryPull, makeAnchor, available, interior, get charges() { return charges; }, get last() { return last; }, reset() { charges = CFG.charges; lockUntil = 0; render(); } };
   });
 })();

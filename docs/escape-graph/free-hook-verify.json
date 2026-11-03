@@ -1,21 +1,19 @@
 {
  "summary": {
-  "sampled": 60,
+  "sampled": 75,
   "count": {
-   "ok": 22,
-   "candidates-all-blocked": 20,
-   "fire-failed": 1,
-   "not-in-view": 3,
-   "no-candidate-in-range": 12,
-   "missed": 1,
-   "not-pressed": 1
+   "all-blocked": 13,
+   "ok": 41,
+   "no-candidate-in-range": 11,
+   "missed": 4,
+   "all-near-zombies": 6
   },
   "okExtraSeconds": {
-   "n": 22,
-   "min": 1.24,
-   "median": 3.4,
-   "max": 8.36,
-   "notCaughtWithin14s": 0
+   "n": 33,
+   "min": 1.37,
+   "median": 4.39,
+   "max": 11.92,
+   "notCaughtWithin14s": 8
   }
  },
  "results": [
@@ -26,486 +24,890 @@
     11.7,
     -7
    ],
-   "pressed": true,
-   "target": [
-    -57,
-    14.2,
-    -9
-   ],
-   "dist": 12.3,
-   "hooked": true,
-   "end": [
-    -55.11,
-    14.2,
-    -9.31
-   ],
-   "dxz": 1.91,
-   "dy": 0,
-   "landedAt": 1.25,
-   "caughtAt": 9.61,
-   "extraSeconds": 8.36,
-   "chargesLeft": 1,
-   "result": "ok"
+   "stages": {
+    "inRange": 2,
+    "afterGap": 2,
+    "visible": 2
+   },
+   "result": "all-blocked"
   },
   {
-   "node": 169,
+   "node": 149,
    "at": [
-    -62,
-    0,
-    -6
-   ],
-   "pressed": true,
-   "target": [
-    -58,
-    3.4,
+    -63,
+    0.6,
     1
    ],
-   "dist": 8.4,
-   "hooked": true,
-   "end": [
-    -57.51,
-    3.4,
-    1.85
-   ],
-   "dxz": 0.98,
-   "dy": 0,
-   "landedAt": 1.01,
-   "caughtAt": 4.41,
-   "extraSeconds": 3.4,
-   "chargesLeft": 1,
-   "result": "ok"
-  },
-  {
-   "node": 226,
-   "at": [
-    -60,
-    0,
-    -3
-   ],
-   "pressed": true,
    "target": [
-    -66,
-    3,
-    -5
-   ],
-   "dist": 6.6,
-   "hooked": true,
-   "end": [
-    -67.26,
-    3,
-    -5.42
-   ],
-   "dxz": 1.32,
-   "dy": 0,
-   "landedAt": 0.93,
-   "caughtAt": 3.74,
-   "extraSeconds": 2.81,
-   "chargesLeft": 1,
-   "result": "ok"
-  },
-  {
-   "node": 285,
-   "at": [
     -58,
-    0,
-    4
+    4.6,
+    11
    ],
-   "pressed": true,
-   "candidates": 37,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
+   "dist": 11.2,
+   "gapToZombies": 10.2,
+   "hooked": true,
+   "end": [
+    -57.82,
+    4.6,
+    12.37
+   ],
+   "dxz": 1.38,
+   "dy": 0,
+   "landedAt": 1.22,
+   "minDistWhileFlying": 6.2,
+   "hit": false,
+   "caughtAt": 5.61,
+   "extraSeconds": 4.39,
+   "chargesLeft": 1,
+   "result": "ok"
   },
   {
-   "node": 334,
+   "node": 203,
    "at": [
-    -57,
+    -61,
     0,
-    8
-   ],
-   "pressed": true,
-   "candidates": 39,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
-  },
-  {
-   "node": 385,
-   "at": [
-    -55,
-    0,
-    5
-   ],
-   "pressed": true,
-   "candidates": 32,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
-  },
-  {
-   "node": 442,
-   "at": [
-    -53,
-    3.4,
-    1
-   ],
-   "pressed": true,
-   "target": [
-    -47,
-    6.2,
     2
    ],
-   "dist": 6.3,
+   "target": [
+    -57,
+    4.6,
+    11
+   ],
+   "dist": 9.8,
+   "gapToZombies": 9.5,
    "hooked": true,
    "end": [
-    -46.43,
-    6.2,
-    2.09
+    -56.66,
+    4.6,
+    11.24
    ],
-   "dxz": 0.57,
+   "dxz": 0.42,
    "dy": 0,
-   "landedAt": 0.87,
-   "caughtAt": 5,
-   "extraSeconds": 4.13,
+   "landedAt": 1.06,
+   "minDistWhileFlying": 6.16,
+   "hit": false,
+   "caughtAt": 5.38,
+   "extraSeconds": 4.33,
    "chargesLeft": 1,
    "result": "ok"
   },
   {
-   "node": 505,
+   "node": 246,
    "at": [
-    -51,
+    -59,
     0,
-    -1
+    3
    ],
-   "pressed": true,
+   "stages": {
+    "inRange": 37,
+    "afterGap": 18,
+    "visible": 0
+   },
+   "result": "all-blocked"
+  },
+  {
+   "node": 292,
+   "at": [
+    -58,
+    0,
+    7
+   ],
    "target": [
-    -52,
+    -68,
+    6.5,
+    16
+   ],
+   "dist": 13.5,
+   "gapToZombies": 9.5,
+   "hooked": true,
+   "end": [
+    -69.3,
+    6.5,
+    17.2
+   ],
+   "dxz": 1.77,
+   "dy": 0,
+   "landedAt": 1.42,
+   "minDistWhileFlying": 6.26,
+   "hit": false,
+   "caughtAt": 8.18,
+   "extraSeconds": 6.76,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 333,
+   "at": [
+    -57,
+    0,
+    7
+   ],
+   "target": [
+    -59,
     4.6,
     9
    ],
-   "dist": 10.7,
-   "result": "fire-failed"
+   "dist": 2.8,
+   "gapToZombies": 5.4,
+   "hooked": true,
+   "end": [
+    -57.92,
+    4.6,
+    8.13
+   ],
+   "dxz": 1.38,
+   "dy": 0,
+   "landedAt": 0.72,
+   "minDistWhileFlying": 6.15,
+   "hit": false,
+   "caughtAt": 3.55,
+   "extraSeconds": 2.83,
+   "chargesLeft": 1,
+   "result": "ok"
   },
   {
-   "node": 587,
+   "node": 372,
+   "at": [
+    -55,
+    0,
+    -5
+   ],
+   "target": [
+    -45,
+    11.9,
+    -10
+   ],
+   "dist": 11.2,
+   "gapToZombies": 8.1,
+   "hooked": true,
+   "end": [
+    -43.39,
+    11.9,
+    -11.52
+   ],
+   "dxz": 2.21,
+   "dy": 0,
+   "landedAt": 1.42,
+   "minDistWhileFlying": 4.84,
+   "hit": false,
+   "caughtAt": 11.46,
+   "extraSeconds": 10.03,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 411,
+   "at": [
+    -54,
+    0,
+    3
+   ],
+   "stages": {
+    "inRange": 31,
+    "afterGap": 12,
+    "visible": 0
+   },
+   "result": "all-blocked"
+  },
+  {
+   "node": 456,
+   "at": [
+    -53,
+    5.32,
+    6
+   ],
+   "target": [
+    -49,
+    12,
+    14
+   ],
+   "dist": 8.9,
+   "gapToZombies": 9.5,
+   "hooked": true,
+   "end": [
+    -48.85,
+    12,
+    14.31
+   ],
+   "dxz": 0.34,
+   "dy": 0,
+   "landedAt": 1.1,
+   "minDistWhileFlying": 6.62,
+   "hit": false,
+   "caughtAt": 12.54,
+   "extraSeconds": 11.44,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 512,
+   "at": [
+    -51,
+    0,
+    7
+   ],
+   "stages": {
+    "inRange": 31,
+    "afterGap": 12,
+    "visible": 0
+   },
+   "result": "all-blocked"
+  },
+  {
+   "node": 585,
    "at": [
     -48,
     0,
-    8
+    6
    ],
-   "pressed": true,
-   "candidates": 33,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
+   "target": [
+    -49,
+    12,
+    14
+   ],
+   "dist": 8.1,
+   "gapToZombies": 5,
+   "hooked": true,
+   "end": [
+    -48.89,
+    12,
+    14.21
+   ],
+   "dxz": 0.24,
+   "dy": 0,
+   "landedAt": 2.91,
+   "minDistWhileFlying": 3.56,
+   "hit": false,
+   "caughtAt": null,
+   "extraSeconds": null,
+   "chargesLeft": 1,
+   "result": "ok"
   },
   {
-   "node": 670,
+   "node": 657,
    "at": [
     -45,
-    4.4,
-    12
-   ],
-   "pressed": true,
-   "candidates": 12,
-   "candidatesVisible": 1,
-   "result": "not-in-view"
-  },
-  {
-   "node": 743,
-   "at": [
-    -43,
     0,
-    13
+    0
    ],
-   "pressed": true,
-   "candidates": 11,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
-  },
-  {
-   "node": 818,
-   "at": [
-    -40,
-    15,
+   "target": [
+    -33,
+    5.5,
     3
    ],
-   "pressed": true,
-   "candidates": 0,
-   "candidatesVisible": 0,
+   "dist": 12.4,
+   "gapToZombies": 9.2,
+   "hooked": true,
+   "end": [
+    -31.35,
+    5.5,
+    3.34
+   ],
+   "dxz": 1.68,
+   "dy": 0,
+   "landedAt": 1.32,
+   "minDistWhileFlying": 6.14,
+   "hit": false,
+   "caughtAt": 6.06,
+   "extraSeconds": 4.74,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 715,
+   "at": [
+    -43,
+    0.2888888888888889,
+    -5
+   ],
+   "target": [
+    -39,
+    11.9,
+    -10
+   ],
+   "dist": 6.4,
+   "gapToZombies": 5.8,
+   "hooked": true,
+   "end": [
+    -38.13,
+    11.9,
+    -10.72
+   ],
+   "dxz": 1.13,
+   "dy": 0,
+   "landedAt": 1.22,
+   "minDistWhileFlying": 6.41,
+   "hit": false,
+   "caughtAt": 11.72,
+   "extraSeconds": 10.49,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 769,
+   "at": [
+    -42,
+    0,
+    7
+   ],
+   "target": [
+    -31,
+    11.9,
+    0
+   ],
+   "dist": 13,
+   "gapToZombies": 8.1,
+   "hooked": true,
+   "end": [
+    -31.33,
+    11.9,
+    0.03
+   ],
+   "dxz": 0.33,
+   "dy": 0,
+   "landedAt": 1.46,
+   "minDistWhileFlying": 4.13,
+   "hit": false,
+   "caughtAt": null,
+   "extraSeconds": null,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 822,
+   "at": [
+    -40,
+    0,
+    6
+   ],
+   "target": [
+    -31,
+    11.9,
+    0
+   ],
+   "dist": 10.8,
+   "gapToZombies": 6.3,
+   "hooked": true,
+   "end": [
+    -31.52,
+    11.9,
+    0.03
+   ],
+   "dxz": 0.52,
+   "dy": 0,
+   "landedAt": 1.33,
+   "minDistWhileFlying": 4.62,
+   "hit": false,
+   "caughtAt": 13.26,
+   "extraSeconds": 11.92,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 871,
+   "at": [
+    -38,
+    13.9,
+    -7
+   ],
+   "stages": {
+    "inRange": 0,
+    "afterGap": 0,
+    "visible": 0
+   },
    "result": "no-candidate-in-range"
   },
   {
-   "node": 881,
+   "node": 920,
    "at": [
-    -38,
-    4.240625,
-    3
-   ],
-   "pressed": true,
-   "candidates": 14,
-   "candidatesVisible": 1,
-   "result": "not-in-view"
-  },
-  {
-   "node": 943,
-   "at": [
-    -36,
+    -37,
     0,
-    -9
+    5
    ],
-   "pressed": true,
    "target": [
-    -26,
-    4.2,
-    -16
+    -31,
+    5.5,
+    1
    ],
-   "dist": 12.6,
+   "dist": 7.2,
+   "gapToZombies": 8,
    "hooked": true,
    "end": [
-    -43,
+    -34.32,
     0,
-    13
+    4.72
    ],
-   "dxz": 33.62,
-   "dy": -4.2,
-   "landedAt": 1.96,
-   "caughtAt": 7.8,
-   "extraSeconds": 5.84,
+   "dxz": 4.99,
+   "dy": -5.5,
+   "landedAt": 0.71,
+   "minDistWhileFlying": 4.56,
+   "hit": false,
+   "caughtAt": 1.87,
+   "extraSeconds": 1.17,
    "chargesLeft": 1,
    "result": "missed"
   },
   {
-   "node": 1016,
+   "node": 969,
    "at": [
-    -35,
-    15,
-    0
+    -36,
+    4.4,
+    8
    ],
-   "pressed": true,
-   "candidates": 0,
-   "candidatesVisible": 0,
-   "result": "no-candidate-in-range"
+   "stages": {
+    "inRange": 11,
+    "afterGap": 0,
+    "visible": 0
+   },
+   "result": "all-near-zombies"
   },
   {
-   "node": 1095,
+   "node": 1054,
    "at": [
     -34,
     0,
-    14
+    -21
    ],
-   "pressed": true,
-   "candidates": 32,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
+   "target": [
+    -26,
+    4.2,
+    -15
+   ],
+   "dist": 10,
+   "gapToZombies": 8.1,
+   "hooked": true,
+   "end": [
+    -28,
+    -3.5,
+    -14.54
+   ],
+   "dxz": 2.05,
+   "dy": -7.7,
+   "landedAt": 8.15,
+   "minDistWhileFlying": 5.11,
+   "hit": false,
+   "caughtAt": 11.05,
+   "extraSeconds": 2.9,
+   "chargesLeft": 1,
+   "result": "missed"
   },
   {
-   "node": 1175,
+   "node": 1112,
+   "at": [
+    -33,
+    0,
+    -22
+   ],
+   "target": [
+    -39,
+    11.9,
+    -10
+   ],
+   "dist": 13.4,
+   "gapToZombies": 7.8,
+   "hooked": true,
+   "end": [
+    -39.38,
+    11.9,
+    -8.32
+   ],
+   "dxz": 1.72,
+   "dy": 0,
+   "landedAt": 1.64,
+   "minDistWhileFlying": 4.73,
+   "hit": false,
+   "caughtAt": null,
+   "extraSeconds": null,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 1164,
    "at": [
     -32,
-    5.5,
-    1
-   ],
-   "pressed": true,
-   "candidates": 16,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
-  },
-  {
-   "node": 1234,
-   "at": [
-    -30,
     0,
-    -6
+    -9
    ],
-   "pressed": true,
-   "candidates": 63,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
+   "stages": {
+    "inRange": 61,
+    "afterGap": 48,
+    "visible": 0
+   },
+   "result": "all-blocked"
   },
   {
-   "node": 1288,
+   "node": 1209,
+   "at": [
+    -31,
+    4.4,
+    8
+   ],
+   "target": [
+    -18,
+    7,
+    5
+   ],
+   "dist": 13.3,
+   "gapToZombies": 10.6,
+   "hooked": true,
+   "end": [
+    -16.25,
+    7,
+    4.46
+   ],
+   "dxz": 1.83,
+   "dy": 0,
+   "landedAt": 1.3,
+   "minDistWhileFlying": 5.11,
+   "hit": false,
+   "caughtAt": 10.31,
+   "extraSeconds": 9.01,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 1264,
    "at": [
     -29,
-    4.6000000000000005,
-    17
-   ],
-   "pressed": true,
-   "candidates": 0,
-   "candidatesVisible": 0,
-   "result": "no-candidate-in-range"
-  },
-  {
-   "node": 1370,
-   "at": [
-    -27,
-    5.5,
-    -3
-   ],
-   "pressed": true,
-   "candidates": 10,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
-  },
-  {
-   "node": 1476,
-   "at": [
-    -25,
     0,
-    6
+    -25
    ],
-   "pressed": true,
    "target": [
-    -36,
-    4,
-    14
-   ],
-   "dist": 13.9,
-   "hooked": true,
-   "end": [
-    -37.31,
-    4,
-    14.95
-   ],
-   "dxz": 1.62,
-   "dy": 0,
-   "landedAt": 1.33,
-   "caughtAt": 5.78,
-   "extraSeconds": 4.44,
-   "chargesLeft": 1,
-   "result": "ok"
-  },
-  {
-   "node": 1552,
-   "at": [
     -23,
-    0,
-    -6
-   ],
-   "pressed": true,
-   "candidates": 87,
-   "candidatesVisible": 3,
-   "result": "not-in-view"
-  },
-  {
-   "node": 1601,
-   "at": [
-    -22,
-    0,
-    0
-   ],
-   "pressed": true,
-   "target": [
-    -24,
     4.2,
-    -8
+    -16
    ],
-   "dist": 8.8,
+   "dist": 10.8,
+   "gapToZombies": 9.1,
    "hooked": true,
    "end": [
-    -24.18,
+    -22.32,
     4.2,
-    -8.7
+    -14.98
    ],
-   "dxz": 0.72,
+   "dxz": 1.22,
    "dy": 0,
-   "landedAt": 1.02,
-   "caughtAt": 4.41,
-   "extraSeconds": 3.38,
+   "landedAt": 1.17,
+   "minDistWhileFlying": 5.16,
+   "hit": false,
+   "caughtAt": 10.71,
+   "extraSeconds": 9.54,
    "chargesLeft": 1,
    "result": "ok"
   },
   {
-   "node": 1661,
+   "node": 1313,
    "at": [
-    -20,
+    -28,
     0,
     -5
    ],
-   "pressed": true,
-   "candidates": 123,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
-  },
-  {
-   "node": 1728,
-   "at": [
-    -18,
-    0,
-    -6
-   ],
-   "pressed": true,
    "target": [
-    -23,
-    4.2,
-    -14
+    -31,
+    11.9,
+    0
    ],
-   "dist": 10,
+   "dist": 5.8,
+   "gapToZombies": 6.4,
    "hooked": true,
    "end": [
-    -21.68,
-    4.2,
-    -14.73
+    -29.28,
+    6.4,
+    -0.09
    ],
-   "dxz": 1.51,
+   "dxz": 1.72,
+   "dy": -5.5,
+   "landedAt": 1.71,
+   "minDistWhileFlying": 6.41,
+   "hit": false,
+   "caughtAt": 8.28,
+   "extraSeconds": 6.57,
+   "chargesLeft": 1,
+   "result": "missed"
+  },
+  {
+   "node": 1372,
+   "at": [
+    -27,
+    0,
+    -2
+   ],
+   "target": [
+    -38,
+    11.9,
+    -10
+   ],
+   "dist": 13.6,
+   "gapToZombies": 8.9,
+   "hooked": true,
+   "end": [
+    -39.84,
+    11.9,
+    -12.3
+   ],
+   "dxz": 2.95,
    "dy": 0,
-   "landedAt": 1.08,
-   "caughtAt": 2.32,
-   "extraSeconds": 1.24,
+   "landedAt": 1.61,
+   "minDistWhileFlying": 5.35,
+   "hit": false,
+   "caughtAt": null,
+   "extraSeconds": null,
    "chargesLeft": 1,
    "result": "ok"
   },
   {
-   "node": 1796,
+   "node": 1466,
    "at": [
-    -16,
+    -25,
     0,
-    2
+    -6
    ],
-   "pressed": true,
+   "target": [
+    -26,
+    4.2,
+    -8
+   ],
+   "dist": 2.2,
+   "gapToZombies": 6.7,
+   "hooked": true,
+   "end": [
+    -25.49,
+    4.2,
+    -7.16
+   ],
+   "dxz": 0.98,
+   "dy": 0,
+   "landedAt": 0.68,
+   "minDistWhileFlying": 6.09,
+   "hit": false,
+   "caughtAt": 4.31,
+   "extraSeconds": 3.63,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 1522,
+   "at": [
+    -24,
+    4.6000000000000005,
+    13
+   ],
+   "target": [
+    -18,
+    7,
+    5
+   ],
+   "dist": 10,
+   "gapToZombies": 9.1,
+   "hooked": true,
+   "end": [
+    -17.69,
+    7,
+    4.58
+   ],
+   "dxz": 0.52,
+   "dy": 0,
+   "landedAt": 1.05,
+   "minDistWhileFlying": 5.52,
+   "hit": false,
+   "caughtAt": 10.46,
+   "extraSeconds": 9.41,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 1567,
+   "at": [
+    -23,
+    0,
+    11
+   ],
+   "target": [
+    -31,
+    11.9,
+    0
+   ],
+   "dist": 13.6,
+   "gapToZombies": 8.9,
+   "hooked": true,
+   "end": [
+    -31.29,
+    11.9,
+    -0.51
+   ],
+   "dxz": 0.59,
+   "dy": 0,
+   "landedAt": 1.52,
+   "minDistWhileFlying": 5.1,
+   "hit": false,
+   "caughtAt": null,
+   "extraSeconds": null,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 1616,
+   "at": [
+    -21,
+    -3.5,
+    -18
+   ],
+   "target": [
+    -26,
+    4.4,
+    -29
+   ],
+   "dist": 12.1,
+   "gapToZombies": 11.2,
+   "hooked": true,
+   "end": [
+    -25.91,
+    4.4,
+    -28.73
+   ],
+   "dxz": 0.29,
+   "dy": 0,
+   "landedAt": 1.27,
+   "minDistWhileFlying": 5.86,
+   "hit": false,
+   "caughtAt": null,
+   "extraSeconds": null,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 1662,
+   "at": [
+    -20,
+    0,
+    -4
+   ],
    "target": [
     -24,
     4.2,
     -8
    ],
-   "dist": 13.2,
+   "dist": 5.7,
+   "gapToZombies": 5,
    "hooked": true,
    "end": [
-    -24.95,
+    -23.49,
     4.2,
-    -9.18
+    -7.49
    ],
-   "dxz": 1.51,
+   "dxz": 0.72,
    "dy": 0,
-   "landedAt": 1.29,
-   "caughtAt": 6.12,
-   "extraSeconds": 4.83,
+   "landedAt": 0.84,
+   "minDistWhileFlying": 5.18,
+   "hit": false,
+   "caughtAt": 3.78,
+   "extraSeconds": 2.94,
    "chargesLeft": 1,
    "result": "ok"
   },
   {
-   "node": 1851,
+   "node": 1721,
    "at": [
-    -14,
-    0,
-    9
+    -18,
+    -2.8,
+    -13
    ],
-   "pressed": true,
    "target": [
-    -25,
-    4.6000000000000005,
-    14
+    -12,
+    8,
+    -2
    ],
-   "dist": 12.6,
+   "dist": 12.5,
+   "gapToZombies": 15,
    "hooked": true,
    "end": [
-    -25.13,
-    4.6,
-    14.06
+    -11.71,
+    8,
+    -2.06
    ],
-   "dxz": 0.15,
+   "dxz": 0.29,
    "dy": 0,
-   "landedAt": 1.19,
-   "caughtAt": 2.95,
-   "extraSeconds": 1.76,
+   "landedAt": 1.39,
+   "minDistWhileFlying": 7.18,
+   "hit": false,
+   "caughtAt": null,
+   "extraSeconds": null,
    "chargesLeft": 1,
    "result": "ok"
+  },
+  {
+   "node": 1773,
+   "at": [
+    -17,
+    0,
+    16
+   ],
+   "target": [
+    -6,
+    8,
+    8
+   ],
+   "dist": 13.6,
+   "gapToZombies": 8.1,
+   "hooked": true,
+   "end": [
+    -11.71,
+    8,
+    -2.06
+   ],
+   "dxz": 11.57,
+   "dy": 0,
+   "landedAt": 1.86,
+   "minDistWhileFlying": 3.81,
+   "hit": false,
+   "caughtAt": null,
+   "extraSeconds": null,
+   "chargesLeft": 1,
+   "result": "missed"
+  },
+  {
+   "node": 1822,
+   "at": [
+    -15,
+    0,
+    0
+   ],
+   "target": [
+    -13,
+    8,
+    0
+   ],
+   "dist": 2,
+   "gapToZombies": 7.3,
+   "hooked": true,
+   "end": [
+    -12.32,
+    8,
+    0
+   ],
+   "dxz": 0.68,
+   "dy": 0,
+   "landedAt": 0.88,
+   "minDistWhileFlying": 6.7,
+   "hit": false,
+   "caughtAt": 10.11,
+   "extraSeconds": 9.23,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 1871,
+   "at": [
+    -13,
+    8,
+    -5
+   ],
+   "stages": {
+    "inRange": 0,
+    "afterGap": 0,
+    "visible": 0
+   },
+   "result": "no-candidate-in-range"
   },
   {
    "node": 1915,
@@ -514,498 +916,666 @@
     0,
     -9
    ],
-   "pressed": true,
-   "candidates": 156,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
+   "stages": {
+    "inRange": 156,
+    "afterGap": 101,
+    "visible": 0
+   },
+   "result": "all-blocked"
   },
   {
-   "node": 1963,
+   "node": 1952,
    "at": [
     -12,
-    8,
-    6
+    0,
+    3
    ],
-   "pressed": true,
-   "candidates": 0,
-   "candidatesVisible": 0,
-   "result": "no-candidate-in-range"
+   "stages": {
+    "inRange": 224,
+    "afterGap": 154,
+    "visible": 0
+   },
+   "result": "all-blocked"
   },
   {
-   "node": 2020,
+   "node": 2006,
    "at": [
     -11,
     8,
-    8
+    -6
    ],
-   "pressed": true,
-   "candidates": 0,
-   "candidatesVisible": 0,
+   "stages": {
+    "inRange": 0,
+    "afterGap": 0,
+    "visible": 0
+   },
    "result": "no-candidate-in-range"
   },
   {
-   "node": 2083,
+   "node": 2049,
+   "at": [
+    -10,
+    8,
+    -1
+   ],
+   "stages": {
+    "inRange": 0,
+    "afterGap": 0,
+    "visible": 0
+   },
+   "result": "no-candidate-in-range"
+  },
+  {
+   "node": 2089,
    "at": [
     -9,
     8,
-    -1
+    5
    ],
-   "pressed": true,
-   "candidates": 0,
-   "candidatesVisible": 0,
+   "stages": {
+    "inRange": 0,
+    "afterGap": 0,
+    "visible": 0
+   },
    "result": "no-candidate-in-range"
   },
   {
-   "node": 2133,
+   "node": 2132,
    "at": [
     -8,
     8,
-    9
+    8
    ],
-   "pressed": true,
-   "candidates": 0,
-   "candidatesVisible": 0,
+   "stages": {
+    "inRange": 0,
+    "afterGap": 0,
+    "visible": 0
+   },
    "result": "no-candidate-in-range"
   },
   {
-   "node": 2175,
+   "node": 2167,
    "at": [
     -7,
     8,
-    9
+    1
    ],
-   "pressed": true,
-   "candidates": 0,
-   "candidatesVisible": 0,
+   "stages": {
+    "inRange": 0,
+    "afterGap": 0,
+    "visible": 0
+   },
    "result": "no-candidate-in-range"
   },
   {
-   "node": 2228,
+   "node": 2202,
+   "at": [
+    -6,
+    8,
+    5
+   ],
+   "stages": {
+    "inRange": 0,
+    "afterGap": 0,
+    "visible": 0
+   },
+   "result": "no-candidate-in-range"
+  },
+  {
+   "node": 2240,
    "at": [
     -5,
     8,
-    -12
+    9
    ],
-   "pressed": true,
-   "candidates": 0,
-   "candidatesVisible": 0,
+   "stages": {
+    "inRange": 0,
+    "afterGap": 0,
+    "visible": 0
+   },
    "result": "no-candidate-in-range"
   },
   {
-   "node": 2273,
+   "node": 2278,
    "at": [
     -4,
     8,
-    -1
+    4
    ],
-   "pressed": true,
-   "target": [
-    7,
-    10.2,
-    -1
-   ],
-   "dist": 11.1,
-   "hooked": true,
-   "end": [
-    8.61,
-    10.2,
-    -1
-   ],
-   "dxz": 1.61,
-   "dy": 0,
-   "landedAt": 1.17,
-   "caughtAt": 5.09,
-   "extraSeconds": 3.93,
-   "chargesLeft": 1,
-   "result": "ok"
+   "stages": {
+    "inRange": 1,
+    "afterGap": 1,
+    "visible": 1
+   },
+   "result": "all-blocked"
   },
   {
-   "node": 2317,
+   "node": 2315,
    "at": [
     -3,
     8,
-    -1
+    -3
    ],
-   "pressed": true,
-   "target": [
-    7,
-    10.2,
-    -1
-   ],
-   "dist": 10.1,
-   "hooked": true,
-   "end": [
-    8.54,
-    10.2,
-    -1
-   ],
-   "dxz": 1.54,
-   "dy": 0,
-   "landedAt": 1.11,
-   "caughtAt": 4.9,
-   "extraSeconds": 3.79,
-   "chargesLeft": 1,
-   "result": "ok"
+   "stages": {
+    "inRange": 1,
+    "afterGap": 0,
+    "visible": 0
+   },
+   "result": "all-near-zombies"
   },
   {
-   "node": 2362,
+   "node": 2353,
    "at": [
     -2,
     8,
-    1
+    -8
    ],
-   "pressed": true,
+   "stages": {
+    "inRange": 1,
+    "afterGap": 0,
+    "visible": 0
+   },
+   "result": "all-near-zombies"
+  },
+  {
+   "node": 2388,
+   "at": [
+    -1,
+    0,
+    -22
+   ],
    "target": [
-    7,
-    10.2,
-    -1
+    -8,
+    8,
+    -12
    ],
-   "dist": 9.3,
+   "dist": 12.2,
+   "gapToZombies": 7.6,
    "hooked": true,
    "end": [
-    8.42,
-    10.2,
-    -1.37
+    -8.41,
+    8,
+    -11.41
    ],
-   "dxz": 1.47,
+   "dxz": 0.72,
    "dy": 0,
-   "landedAt": 1.06,
-   "caughtAt": 4.43,
-   "extraSeconds": 3.37,
+   "landedAt": 1.32,
+   "minDistWhileFlying": 4.62,
+   "hit": false,
+   "caughtAt": null,
+   "extraSeconds": null,
    "chargesLeft": 1,
    "result": "ok"
   },
   {
-   "node": 2411,
+   "node": 2422,
    "at": [
     -1,
     8,
-    -6
+    5
    ],
-   "pressed": true,
    "target": [
     7,
     10.2,
     -1
    ],
-   "dist": 9.5,
+   "dist": 10,
+   "gapToZombies": 6.1,
    "hooked": true,
    "end": [
-    8.4,
+    8.3,
     10.2,
-    -0.13
+    -1.97
    ],
-   "dxz": 1.65,
+   "dxz": 1.62,
    "dy": 0,
-   "landedAt": 1.08,
-   "caughtAt": 4.16,
-   "extraSeconds": 3.07,
+   "landedAt": 1.1,
+   "minDistWhileFlying": 3.38,
+   "hit": false,
+   "caughtAt": 4.21,
+   "extraSeconds": 3.11,
    "chargesLeft": 1,
    "result": "ok"
   },
   {
-   "node": 2455,
+   "node": 2465,
    "at": [
     0,
-    0,
-    -17
+    4,
+    -12
    ],
-   "pressed": true,
-   "candidates": 95,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
+   "stages": {
+    "inRange": 173,
+    "afterGap": 162,
+    "visible": 0
+   },
+   "result": "all-blocked"
   },
   {
-   "node": 2508,
+   "node": 2503,
    "at": [
-    1,
     0,
-    -23
+    4,
+    17
    ],
-   "pressed": true,
-   "candidates": 25,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
+   "target": [
+    6,
+    8,
+    5
+   ],
+   "dist": 13.4,
+   "gapToZombies": 7,
+   "hooked": true,
+   "end": [
+    6.3,
+    8,
+    3.52
+   ],
+   "dxz": 1.51,
+   "dy": 0,
+   "landedAt": 1.37,
+   "minDistWhileFlying": 4.51,
+   "hit": false,
+   "caughtAt": 5.63,
+   "extraSeconds": 4.25,
+   "chargesLeft": 1,
+   "result": "ok"
   },
   {
-   "node": 2548,
+   "node": 2538,
    "at": [
     1,
     8,
-    11
+    1
    ],
-   "pressed": true,
-   "target": [
-    7,
-    10.2,
-    -1
-   ],
-   "dist": 13.5,
-   "hooked": true,
-   "end": [
-    7.93,
-    10.2,
-    -2.72
-   ],
-   "dxz": 1.96,
-   "dy": 0,
-   "landedAt": 1.32,
-   "caughtAt": 4.58,
-   "extraSeconds": 3.26,
-   "chargesLeft": 1,
-   "result": "ok"
+   "stages": {
+    "inRange": 1,
+    "afterGap": 0,
+    "visible": 0
+   },
+   "result": "all-near-zombies"
   },
   {
-   "node": 2593,
+   "node": 2576,
    "at": [
     2,
     8,
+    -3
+   ],
+   "stages": {
+    "inRange": 1,
+    "afterGap": 0,
+    "visible": 0
+   },
+   "result": "all-near-zombies"
+  },
+  {
+   "node": 2609,
+   "at": [
+    3,
+    0,
+    -15
+   ],
+   "stages": {
+    "inRange": 122,
+    "afterGap": 85,
+    "visible": 0
+   },
+   "result": "all-blocked"
+  },
+  {
+   "node": 2646,
+   "at": [
+    4,
+    -2.333333333333333,
+    -30
+   ],
+   "target": [
+    5,
+    0,
+    -24
+   ],
+   "dist": 6.1,
+   "gapToZombies": 11.2,
+   "hooked": true,
+   "end": [
+    5.22,
+    0,
+    -23.09
+   ],
+   "dxz": 0.94,
+   "dy": 0,
+   "landedAt": 0.87,
+   "minDistWhileFlying": 7.27,
+   "hit": false,
+   "caughtAt": 2.23,
+   "extraSeconds": 1.37,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 2680,
+   "at": [
+    4,
+    4,
     12
    ],
-   "pressed": true,
+   "stages": {
+    "inRange": 212,
+    "afterGap": 147,
+    "visible": 0
+   },
+   "result": "all-blocked"
+  },
+  {
+   "node": 2718,
+   "at": [
+    5,
+    8,
+    12
+   ],
+   "stages": {
+    "inRange": 1,
+    "afterGap": 1,
+    "visible": 1
+   },
+   "result": "all-blocked"
+  },
+  {
+   "node": 2758,
+   "at": [
+    6,
+    8,
+    13
+   ],
+   "stages": {
+    "inRange": 0,
+    "afterGap": 0,
+    "visible": 0
+   },
+   "result": "no-candidate-in-range"
+  },
+  {
+   "node": 2793,
+   "at": [
+    7,
+    7.6,
+    12
+   ],
+   "stages": {
+    "inRange": 1,
+    "afterGap": 1,
+    "visible": 1
+   },
+   "result": "all-blocked"
+  },
+  {
+   "node": 2828,
+   "at": [
+    8,
+    8,
+    8
+   ],
    "target": [
     7,
     10.2,
     -1
    ],
-   "dist": 14,
+   "dist": 9.1,
+   "gapToZombies": 5.7,
    "hooked": true,
    "end": [
-    8.08,
+    6.82,
     10.2,
-    -3.21
+    -2.65
    ],
-   "dxz": 2.46,
+   "dxz": 1.66,
    "dy": 0,
-   "landedAt": 1.37,
-   "caughtAt": 5.35,
+   "landedAt": 1.07,
+   "minDistWhileFlying": 4.05,
+   "hit": false,
+   "caughtAt": 4.79,
+   "extraSeconds": 3.73,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 2868,
+   "at": [
+    9,
+    8,
+    9
+   ],
+   "stages": {
+    "inRange": 1,
+    "afterGap": 0,
+    "visible": 0
+   },
+   "result": "all-near-zombies"
+  },
+  {
+   "node": 2905,
+   "at": [
+    10,
+    8,
+    2
+   ],
+   "target": [
+    19,
+    12,
+    -4
+   ],
+   "dist": 10.8,
+   "gapToZombies": 7.3,
+   "hooked": true,
+   "end": [
+    20.01,
+    12,
+    -4.67
+   ],
+   "dxz": 1.21,
+   "dy": 0,
+   "landedAt": 1.16,
+   "minDistWhileFlying": 4.76,
+   "hit": false,
+   "caughtAt": 5.6,
+   "extraSeconds": 4.44,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 2954,
+   "at": [
+    11,
+    8,
+    -2
+   ],
+   "target": [
+    19,
+    12,
+    -4
+   ],
+   "dist": 8.2,
+   "gapToZombies": 7.3,
+   "hooked": true,
+   "end": [
+    19.72,
+    12,
+    -4.18
+   ],
+   "dxz": 0.74,
+   "dy": 0,
+   "landedAt": 1.01,
+   "minDistWhileFlying": 6.36,
+   "hit": false,
+   "caughtAt": 4.98,
    "extraSeconds": 3.98,
    "chargesLeft": 1,
    "result": "ok"
   },
   {
-   "node": 2640,
+   "node": 2999,
    "at": [
-    3,
-    0,
-    16
-   ],
-   "pressed": true,
-   "candidates": 171,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
-  },
-  {
-   "node": 2685,
-   "at": [
-    4,
-    0,
-    17
-   ],
-   "pressed": true,
-   "candidates": 148,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
-  },
-  {
-   "node": 2739,
-   "at": [
-    6,
+    12,
     8,
-    -6
+    -10
    ],
-   "pressed": true,
    "target": [
-    7,
-    10.2,
-    -1
+    20,
+    12,
+    -3
    ],
-   "dist": 5.2,
+   "dist": 10.6,
+   "gapToZombies": 5.1,
    "hooked": true,
    "end": [
-    7.03,
-    10.2,
-    -0.86
+    20.1,
+    12,
+    -2.91
    ],
    "dxz": 0.14,
    "dy": 0,
-   "landedAt": 0.79,
-   "caughtAt": 2.63,
-   "extraSeconds": 1.84,
+   "landedAt": 1.1,
+   "minDistWhileFlying": 2.92,
+   "hit": false,
+   "caughtAt": 5.17,
+   "extraSeconds": 4.07,
    "chargesLeft": 1,
    "result": "ok"
   },
   {
-   "node": 2784,
-   "at": [
-    7,
-    8,
-    6
-   ],
-   "pressed": true,
-   "target": [
-    7,
-    10.2,
-    -1
-   ],
-   "dist": 7.1,
-   "hooked": true,
-   "end": [
-    7,
-    10.2,
-    -2
-   ],
-   "dxz": 1,
-   "dy": 0,
-   "landedAt": 0.92,
-   "caughtAt": 3.54,
-   "extraSeconds": 2.62,
-   "chargesLeft": 1,
-   "result": "ok"
-  },
-  {
-   "node": 2826,
-   "at": [
-    8,
-    9,
-    6
-   ],
-   "pressed": true,
-   "candidates": 0,
-   "candidatesVisible": 0,
-   "result": "no-candidate-in-range"
-  },
-  {
-   "node": 2873,
-   "at": [
-    9,
-    8,
-    12
-   ],
-   "pressed": true,
-   "target": [
-    7,
-    10.2,
-    -1
-   ],
-   "dist": 13.2,
-   "hooked": true,
-   "end": [
-    6.55,
-    10.2,
-    -2.85
-   ],
-   "dxz": 1.91,
-   "dy": 0,
-   "landedAt": 1.3,
-   "caughtAt": 5.08,
-   "extraSeconds": 3.78,
-   "chargesLeft": 1,
-   "result": "ok"
-  },
-  {
-   "node": 2917,
-   "at": [
-    10,
-    8,
-    12
-   ],
-   "pressed": true,
-   "target": [
-    7,
-    10.2,
-    -1
-   ],
-   "dist": 13.4,
-   "hooked": true,
-   "end": [
-    6.46,
-    10.2,
-    -2.76
-   ],
-   "dxz": 1.84,
-   "dy": 0,
-   "landedAt": 1.3,
-   "caughtAt": 4.67,
-   "extraSeconds": 3.37,
-   "chargesLeft": 1,
-   "result": "ok"
-  },
-  {
-   "node": 2986,
+   "node": 3045,
    "at": [
     12,
-    0,
-    -14
-   ],
-   "pressed": true,
-   "candidates": 82,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
-  },
-  {
-   "node": 3043,
-   "at": [
-    12,
-    0,
+    8,
     5
    ],
-   "pressed": true,
-   "candidates": 197,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
-  },
-  {
-   "node": 3100,
-   "at": [
-    13,
-    0,
+   "target": [
+    7,
+    10.2,
     -1
    ],
-   "pressed": true,
-   "candidates": 208,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
+   "dist": 7.8,
+   "gapToZombies": 5.1,
+   "hooked": true,
+   "end": [
+    6.19,
+    10.2,
+    -1.97
+   ],
+   "dxz": 1.27,
+   "dy": 0,
+   "landedAt": 0.97,
+   "minDistWhileFlying": 4.21,
+   "hit": false,
+   "caughtAt": 3.02,
+   "extraSeconds": 2.06,
+   "chargesLeft": 1,
+   "result": "ok"
   },
   {
-   "node": 3216,
+   "node": 3094,
    "at": [
-    18,
+    13,
+    8,
+    -5
+   ],
+   "target": [
+    19,
+    12,
+    -3
+   ],
+   "dist": 6.3,
+   "gapToZombies": 5,
+   "hooked": true,
+   "end": [
+    20.23,
+    12,
+    -2.61
+   ],
+   "dxz": 1.29,
+   "dy": 0,
+   "landedAt": 0.96,
+   "minDistWhileFlying": 4.53,
+   "hit": false,
+   "caughtAt": 4.08,
+   "extraSeconds": 3.12,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 3140,
+   "at": [
+    15,
     -3.5,
     -35
    ],
-   "pressed": true,
    "target": [
-    10,
+    9,
     0,
     -24
    ],
-   "dist": 13.8,
+   "dist": 12.5,
+   "gapToZombies": 11,
    "hooked": true,
    "end": [
-    9.6,
+    9.82,
     0,
-    -23.45
+    -22.54
    ],
-   "dxz": 0.69,
+   "dxz": 1.67,
    "dy": 0,
    "landedAt": 1.27,
-   "caughtAt": 7.38,
-   "extraSeconds": 6.11,
+   "minDistWhileFlying": 5.39,
+   "hit": false,
+   "caughtAt": 7.24,
+   "extraSeconds": 5.97,
    "chargesLeft": 1,
    "result": "ok"
   },
   {
-   "node": 3403,
+   "node": 3339,
    "at": [
-    27,
-    11.3,
-    -7
+    23,
+    12,
+    -2
    ],
-   "pressed": true,
-   "candidates": 0,
-   "candidatesVisible": 0,
+   "stages": {
+    "inRange": 0,
+    "afterGap": 0,
+    "visible": 0
+   },
    "result": "no-candidate-in-range"
+  },
+  {
+   "node": 3421,
+   "at": [
+    28,
+    12,
+    -6
+   ],
+   "target": [
+    41,
+    14.4,
+    -9
+   ],
+   "dist": 13.3,
+   "gapToZombies": 9.9,
+   "hooked": true,
+   "end": [
+    43.91,
+    14.4,
+    -9.67
+   ],
+   "dxz": 2.99,
+   "dy": 0,
+   "landedAt": 1.36,
+   "minDistWhileFlying": 4.33,
+   "hit": false,
+   "caughtAt": 4.12,
+   "extraSeconds": 2.77,
+   "chargesLeft": 1,
+   "result": "ok"
   },
   {
    "node": 3494,
@@ -1014,102 +1584,208 @@
     0.9000000000000004,
     3
    ],
-   "pressed": true,
+   "target": [
+    20,
+    12,
+    -3
+   ],
+   "dist": 13.4,
+   "gapToZombies": 17,
+   "hooked": true,
+   "end": [
+    20.31,
+    12,
+    -2.95
+   ],
+   "dxz": 0.31,
+   "dy": 0,
+   "landedAt": 1.44,
+   "minDistWhileFlying": 7.15,
+   "hit": false,
+   "caughtAt": 9.58,
+   "extraSeconds": 8.13,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 3555,
+   "at": [
+    35,
+    0,
+    0
+   ],
+   "target": [
+    42,
+    3,
+    -2
+   ],
+   "dist": 7.3,
+   "gapToZombies": 6.1,
+   "hooked": true,
+   "end": [
+    43.52,
+    3,
+    -2.43
+   ],
+   "dxz": 1.58,
+   "dy": 0,
+   "landedAt": 0.98,
+   "minDistWhileFlying": 5.01,
+   "hit": false,
+   "caughtAt": 3.22,
+   "extraSeconds": 2.24,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 3610,
+   "at": [
+    36,
+    1.5833333333333335,
+    3
+   ],
    "target": [
     42,
     4.4,
     12
    ],
-   "dist": 13.7,
+   "dist": 10.8,
+   "gapToZombies": 10,
    "hooked": true,
    "end": [
-    43.1,
+    42.45,
     4.4,
-    12.9
+    13.31
    ],
-   "dxz": 1.42,
-   "dy": 0,
-   "landedAt": 1.31,
-   "caughtAt": 9.53,
-   "extraSeconds": 8.22,
-   "chargesLeft": 1,
-   "result": "ok"
-  },
-  {
-   "node": 3576,
-   "at": [
-    36,
-    -3.5,
-    -35
-   ],
-   "pressed": true,
-   "target": [
-    37,
-    0,
-    -24
-   ],
-   "dist": 11.3,
-   "hooked": true,
-   "end": [
-    37.12,
-    0,
-    -22.78
-   ],
-   "dxz": 1.23,
+   "dxz": 1.38,
    "dy": 0,
    "landedAt": 1.17,
-   "caughtAt": 3.19,
-   "extraSeconds": 2.02,
+   "minDistWhileFlying": 5.03,
+   "hit": false,
+   "caughtAt": 8.52,
+   "extraSeconds": 7.34,
    "chargesLeft": 1,
    "result": "ok"
   },
   {
-   "node": 3655,
+   "node": 3669,
    "at": [
     37,
-    0,
-    -7
-   ],
-   "pressed": false,
-   "candidates": 44,
-   "candidatesVisible": 1,
-   "result": "not-pressed"
-  },
-  {
-   "node": 3720,
-   "at": [
-    38,
-    2.5277777777777777,
+    2.15,
     4
    ],
-   "pressed": true,
-   "candidates": 25,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
+   "target": [
+    42,
+    4.4,
+    12
+   ],
+   "dist": 9.4,
+   "gapToZombies": 12,
+   "hooked": true,
+   "end": [
+    42.39,
+    4.4,
+    13.2
+   ],
+   "dxz": 1.26,
+   "dy": 0,
+   "landedAt": 1.08,
+   "minDistWhileFlying": 6.45,
+   "hit": false,
+   "caughtAt": 7.09,
+   "extraSeconds": 6.01,
+   "chargesLeft": 1,
+   "result": "ok"
   },
   {
-   "node": 3806,
+   "node": 3749,
+   "at": [
+    39,
+    0,
+    -18
+   ],
+   "target": [
+    36,
+    3.4,
+    -16
+   ],
+   "dist": 3.6,
+   "gapToZombies": 5.8,
+   "hooked": true,
+   "end": [
+    36.39,
+    3.4,
+    -16.06
+   ],
+   "dxz": 0.39,
+   "dy": 0,
+   "landedAt": 0.72,
+   "minDistWhileFlying": 4.73,
+   "hit": false,
+   "caughtAt": 7.47,
+   "extraSeconds": 6.74,
+   "chargesLeft": 1,
+   "result": "ok"
+  },
+  {
+   "node": 3805,
    "at": [
     40,
     0,
-    -19
+    -20
    ],
-   "pressed": true,
-   "candidates": 5,
-   "candidatesVisible": 0,
-   "result": "candidates-all-blocked"
+   "target": [
+    36,
+    3.4,
+    -16
+   ],
+   "dist": 5.7,
+   "gapToZombies": 5,
+   "hooked": true,
+   "end": [
+    36.33,
+    3.4,
+    -16.33
+   ],
+   "dxz": 0.46,
+   "dy": 0,
+   "landedAt": 0.82,
+   "minDistWhileFlying": 4.83,
+   "hit": false,
+   "caughtAt": 4.22,
+   "extraSeconds": 3.4,
+   "chargesLeft": 1,
+   "result": "ok"
   },
   {
-   "node": 3859,
+   "node": 3850,
    "at": [
     41,
-    14.4,
-    -10
+    0,
+    -19
    ],
-   "pressed": true,
-   "candidates": 0,
-   "candidatesVisible": 0,
-   "result": "no-candidate-in-range"
+   "target": [
+    36,
+    3.4,
+    -16
+   ],
+   "dist": 5.8,
+   "gapToZombies": 7.1,
+   "hooked": true,
+   "end": [
+    35.69,
+    3.4,
+    -15.81
+   ],
+   "dxz": 0.36,
+   "dy": 0,
+   "landedAt": 0.87,
+   "minDistWhileFlying": 6.42,
+   "hit": false,
+   "caughtAt": 4.33,
+   "extraSeconds": 3.46,
+   "chargesLeft": 1,
+   "result": "ok"
   }
  ]
 }
