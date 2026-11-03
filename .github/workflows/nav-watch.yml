@@ -1,0 +1,28 @@
+name: Nav watch (stuck-zombie log and dev badge)
+on:
+  pull_request:
+    paths: ['nav-watch.js', 'telemetry-probe.js', 'enhancements.js', 'zombie-*.js', 'index.html', 'canyon.html', 'bench/nav-watch*', '.github/workflows/nav-watch.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  nav-watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Classification, thresholds, rate limit and record cap
+        run: node bench/nav-watch.test.cjs
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Roof drop onto floors with and without a nav node, in the real game
+        run: node bench/nav-watch-browser.cjs

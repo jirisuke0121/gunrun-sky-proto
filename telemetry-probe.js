@@ -1,7 +1,7 @@
 // Diagnostic telemetry for the dev build. Nothing is sent by this file.
 // The existing run recorder owns consent, storage, and transmission.
 (function () {
-  const caps = { jumps: 120, hooks: 100, opportunities: 80, zones: 120, falls: 40, frames: 18 };
+  const caps = { jumps: 120, hooks: 100, opportunities: 80, zones: 120, falls: 40, frames: 18, stuck: 6 };
   let run = null;
   let nextJump = 0;
   let opportunity = null;
@@ -20,7 +20,7 @@
   }
 
   function reset() {
-    run = { schema: 3, jumps: [], hooks: [], opportunities: [], zones: [], falls: [], frames: [], truncated: {} };
+    run = { schema: 3, jumps: [], hooks: [], opportunities: [], zones: [], falls: [], frames: [], stuck: [], truncated: {} };
     nextJump = 0;
     opportunity = null;
     seen = 0;
@@ -105,6 +105,11 @@
     });
   }
 
+  // Zombies standing still above a grounded player (nav-watch.js). One entry per episode.
+  function stuck(data) {
+    add("stuck", data);
+  }
+
   // RequestAnimationFrame intervals are kept separate from physics/recording intervals.
   function frame(ms, t, active) {
     if (!run || !active || !(ms > 0) || ms > 1000) return;
@@ -152,5 +157,5 @@
     return run ? JSON.parse(JSON.stringify(run)) : null;
   }
 
-  window.skyTelemetryProbe = { reset, jumpInput, jumpAccepted, hookAttempt, hookLaunch, observeOpportunity, observeZone, fall, frame, snapshot, inspect };
+  window.skyTelemetryProbe = { reset, jumpInput, jumpAccepted, hookAttempt, hookLaunch, observeOpportunity, observeZone, fall, stuck, frame, snapshot, inspect };
 })();
