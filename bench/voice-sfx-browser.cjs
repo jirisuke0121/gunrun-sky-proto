@@ -72,7 +72,8 @@ fs.mkdirSync('browser-evidence', { recursive: true });
           out.tensionZombies = near.length;
           place(3); await new Promise(res => setTimeout(res, 900));
                     out.tensionHigh = { v: +T.value.toFixed(2), pulse: +T.pulse().toFixed(2), gain: +T.bgmGain().toFixed(2), high: T.high };
-          place(60); await new Promise(res => setTimeout(res, 3500));
+          place(60); for (const e of sky.Jt) if (!near.includes(e) && !e.dead && !e.remove) e.pos.set(c.pos.x + 80, c.pos.y, c.pos.z + 80);   // nobody else may be near either
+          await new Promise(res => setTimeout(res, 4500));
           out.tensionLow = { v: +T.value.toFixed(2), pulse: +T.pulse().toFixed(2), release: T.stats.release };
           out.stingers = ['time', 'fell', 'caught', 'other'].map(k => window.skyStinger.play(k));
           out.stingerCounts = { ...T.stats.stingers };
