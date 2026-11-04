@@ -1,7 +1,7 @@
 // Boss zombie (hard only): the big chaser that used to be an unkillable "stalker", now a normal zombie with
 // five times the health. It is a slow-to-wear-down threat to shake off, not a gun sponge: the pistol carries
 // far fewer rounds than 5x a hard zombie's health, so it is mostly escaped, knocked off high ground or kicked.
-// It spawns from the `boss` script event (challenge-difficulty.js) as one body outside the shared 6-body budget,
+// It spawns from the `boss` script event (challenge-difficulty.js) as two bodies outside the ordinary-zombie budget,
 // so it arrives on time even when the ordinary crowd is full; nothing living is removed to make room for it.
 (function (root) {
   const CONFIG = Object.freeze({
@@ -27,17 +27,17 @@
   // 0..1 for the HUD bar; never negative, never above full.
   const fraction = (hp, max) => max > 0 ? Math.min(1, Math.max(0, hp / max)) : 0;
 
-  const state = { want: false, boss: null, maxHp: 0, lastT: 0, spawns: 0, timer: 0, bar: null, previewAsked: false };
+  const state = { want: false, bosses: [], lastT: 0, spawns: 0, timer: 0, bar: null, previewAsked: false };
 
   function reset() {
-    state.want = false; state.boss = null; state.maxHp = 0; state.lastT = 0; state.spawns = 0; state.previewAsked = false;
+    state.want = false; state.bosses = []; state.lastT = 0; state.spawns = 0; state.previewAsked = false;
     hideBar();
   }
   const begin = reset;
   // True from the moment the event fires until a spawn point has been found and the boss exists.
-  const pending = () => state.want && !state.boss;
-  const active = () => !!state.boss && !state.boss.dead && !state.boss.remove;
-  function request() { if (!state.boss) state.want = true; return state.want; }
+  const pending = () => state.want && state.spawns < 2;
+  const active = () => state.bosses.some(b => !b.dead && !b.remove);
+  function request() { if (state.spawns < 2) state.want = true; return state.want; }
 
   function ensureBar() {
     if (state.bar || typeof document === 'undefined') return state.bar;
@@ -53,16 +53,16 @@
     document.head.append(style);
     const bar = document.createElement('div');
     bar.id = 'bossBar'; bar.hidden = true;
-    bar.innerHTML = '<span>BOSS</span><i><b></b></i>';
+    bar.innerHTML = '<span>BOSS</span><i><b></b></i><i><b></b></i>';
     hud.append(bar); state.bar = bar;
     return bar;
   }
   function hideBar() { if (state.bar) state.bar.hidden = true; }
-  function showBar(value) {
+  function showBar(values) {
     const bar = ensureBar();
     if (!bar) return;
     bar.hidden = false;
-    bar.querySelector('b').style.transform = `scaleX(${value})`;
+    bar.querySelectorAll('b').forEach((fill, i) => { fill.style.transform = `scaleX(${values[i] || 0})`; });
   }
 
   // Tint a cloned material so the boss reads as "not a normal zombie" even from far away.
@@ -95,12 +95,12 @@
 
   // Place the boss on a walkable, well-connected node far from the player that its route can actually reach.
   function spawn(game = root.__game, sky = root.__skyInternals, challenge = root.skyChallenge) {
-    if (!game?.NAV || !game.P || !game.Zombie || !challenge?.profile?.() || state.boss) return false;
+    if (!game?.NAV || !game.P || !game.Zombie || !challenge?.profile?.() || state.spawns >= 2) return false;
     const { nodes, out } = game.NAV, reach = root.skySpawnReach;
     const node = pick(nodes, game.P.pos, Math.random, n => {
       const cost = game.FIELD[n.id], straight = Math.hypot(n.x - game.P.pos.x, n.z - game.P.pos.z);
       return out[n.id].length >= 3 && cost < Infinity && (reach ? reach.reachable(cost, straight) : true) &&
-        root.skyIndoorAccess?.allows?.(n) !== false;
+        root.skyIndoorAccess?.allows?.(n) !== false && challenge.spawnAllowed({ x: n.x, y: n.y + .01, z: n.z }, 'boss');
     });
     if (!node) return false;
     const point = { x: node.x, y: node.y + .01, z: node.z };
@@ -109,7 +109,7 @@
     const zombie = dress(new game.Zombie(point.x, point.y, point.z), base);
     zombie.bornDistance = Math.hypot(point.x - game.P.pos.x, point.z - game.P.pos.z);
     game.zombies.push(zombie);
-    state.boss = zombie; state.maxHp = zombie.maxHp; state.want = false; state.spawns++;
+    state.bosses.push(zombie); state.spawns++; if (state.spawns >= 2) state.want = false;
     sky?.rn?.('ボスが現れた');
     try { sky?.Tt?.roar?.(0, .95); } catch {}
     return true;
@@ -127,13 +127,14 @@
       state.previewAsked = true; request();
     }
     if (pending()) spawn(game, sky, challenge);
-    const boss = state.boss;
-    if (!boss) return;
-    if (boss.dead || boss.remove) { hideBar(); return; }
-    // Keep the tall body only where there is room for it; fall back to the normal height in low passages.
-    if (!boss.crawl && boss.h < CONFIG.height - .01 && sky.oe?.(boss.pos.x, boss.pos.y + .05, boss.pos.z, boss.r, CONFIG.height)) boss.h = CONFIG.height;
-    else if (boss.h > 1.85 && sky.oe && !sky.oe(boss.pos.x, boss.pos.y + .05, boss.pos.z, boss.r, boss.h)) boss.h = 1.8;
-    showBar(fraction(boss.hp, state.maxHp));
+    for (const boss of state.bosses) {
+      if (boss.dead || boss.remove) continue;
+      // Keep the tall body only where there is room for it.
+      if (!boss.crawl && boss.h < CONFIG.height - .01 && sky.oe?.(boss.pos.x, boss.pos.y + .05, boss.pos.z, boss.r, CONFIG.height)) boss.h = CONFIG.height;
+      else if (boss.h > 1.85 && sky.oe && !sky.oe(boss.pos.x, boss.pos.y + .05, boss.pos.z, boss.r, boss.h)) boss.h = 1.8;
+    }
+    if (active()) showBar(state.bosses.map(b => b.dead || b.remove ? 0 : fraction(b.hp, b.maxHp)));
+    else hideBar();
   }
 
   function start() {
@@ -142,7 +143,7 @@
   }
 
   const api = { CONFIG, health, pick, reaction, fraction, dress, spawn, upkeep, request, begin, reset, pending, active, start,
-    get boss() { return state.boss; }, get spawns() { return state.spawns; } };
+    get boss() { return state.bosses[0] || null; }, get bosses() { return state.bosses.slice(); }, get spawns() { return state.spawns; } };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else { root.skyBossZombie = api; if (typeof document !== 'undefined') start(); }
 })(globalThis);

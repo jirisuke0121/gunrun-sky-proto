@@ -3,13 +3,13 @@
 (() => {
   const { version, settings: fixedSettings } = window.skyRankedRules;
   const storage = 'gunrun-challenge-difficulty-v1';
-  // Shared across the three presets. A corpse also occupies a rendered body slot.
+  // Standard ordinary-zombie budget. Hard has its own eight-body budget; corpses also occupy slots.
   // This is a conservative population budget, not a device-FPS guarantee.
   const maxAlive = 6, corpseMinimum = .65;
   const levels = [
     { id: 'easy', lives: 8, spacing: 1, health: 4, name: 'イージー', note: '基本のジャンプや段差移動を使い、余裕をもって逃げる', startSpeed: 4.3, maxSpeed: 5.4, counts: [3, 4, 5], initial: 3, interval: 2.2, flank: .05, ahead: .1, drop: 0, lull: 5, quiet: 0, lead: 6, warn: 2.5 },
     { id: 'normal', lives: 5, spacing: 4, health: 8, name: 'ノーマル', note: '段差・隙間・壁走りで繰り返し追跡を引き離す。銃で逃げる時間を作る', startSpeed: 6, maxSpeed: 6.8, counts: [4, 5, 6], initial: 4, interval: 1.6, flank: .3, ahead: .35, drop: .15, lull: 4, quiet: 18, lead: 5, warn: 2.5 },
-    { id: 'hard', lives: 3, spacing: 7, health: 12, name: 'ハード', note: '技を連続させ、敵の配置から着地点と逃走路を選ぶ。銃は押し落としと足止めに使う', startSpeed: 6.8, maxSpeed: 8, counts: [5, 6, 6], initial: 5, interval: 1.1, flank: .5, ahead: .5, drop: .25, lull: 3, quiet: 12, lead: 4, warn: 2.2 },
+    { id: 'hard', lives: 3, spacing: 4, health: 12, name: 'ハード', note: '技を連続させ、敵の配置から着地点と逃走路を選ぶ。銃は押し落としと足止めに使う', startSpeed: 6.8, maxSpeed: 8, counts: [8, 8, 8], initial: 8, interval: .25, flank: .5, ahead: .5, drop: .25, lull: 0, quiet: 12, lead: 4, warn: 2.2 },
     { id: 'legacy', name: '自由調整', note: '従来の設定・追跡者・ランキング', counts: [] },
   ];
   const intro = { id: 'intro', name: '入門モード', lives: 3, unlimited: true, spacing: 0,
@@ -19,7 +19,7 @@
   for (const p of presets) p.ramp = 90;
   const byId = Object.fromEntries([intro, ...levels].map(p => [p.id, p]));
   for (const p of presets) p.values = {
-    zombieSpeed: p.maxSpeed, zombieHealth: p.health, maxZombies: Math.min(maxAlive, p.counts.at(-1)), flankShare: p.flank, aheadShare: p.ahead,
+    zombieSpeed: p.maxSpeed, zombieHealth: p.health, maxZombies: Math.min(p.id === 'hard' ? 8 : maxAlive, p.counts.at(-1)), flankShare: p.flank, aheadShare: p.ahead,
     dropperShare: p.drop, dropShare: p.drop, killLull: p.lull, paceGap: p.quiet,
     stalkerOn: false, stalker2: false, stalkerAt: 120, stalkerSpeed: 0, loseSight: 0,
   };
@@ -49,7 +49,7 @@
   const key = base => (active === 'legacy' ? base : `${base}-${version}-${rankingDifficulty(active)}`) + (oldTownSwingPreview ? '-oldtown-swing-preview' : debug ? '-debug' : '');
   function limit(time, fallback) {
     const p = profile();
-    return p ? Math.min(maxAlive, p.counts[Math.min(p.counts.length - 1, Math.floor(Math.max(0, time) / (p.counts.length === 3 ? 40 : 20)))]) : fallback;
+    return p ? Math.min(p.id === 'hard' ? 8 : maxAlive, p.counts[Math.min(p.counts.length - 1, Math.floor(Math.max(0, time) / (p.counts.length === 3 ? 40 : 20)))]) : fallback;
   }
   function value(name, fallback) {
     const p = profile();
@@ -57,15 +57,16 @@
     if (name === "zombieSpeed") return range(p).end;
     return name in p.values ? p.values[name] : fallback;
   }
-  // The hard boss is the one body outside the shared 6-body budget: it must arrive on time even when the
+  // Hard bosses are outside the ordinary-zombie budget: they must arrive even when the
   // ordinary crowd is full, and no living enemy is removed to make space for it.
   const ordinary = list => list.filter(e => !e.boss);
   function room(fallback) {
     if (!profile() || !game) return fallback;
+    const budget = profile().id === 'hard' ? 8 : maxAlive;
     const bodies = ordinary(game.Jt);
     const alive = bodies.filter(e => !e.dead).length;
     const protectedCorpses = bodies.filter(e => e.dead && !e.remove && e.deadT < corpseMinimum).length;
-    return Math.max(0, Math.min(limit(game.z.t, maxAlive) - alive, maxAlive - alive - protectedCorpses));
+    return Math.max(0, Math.min(limit(game.z.t, maxAlive) - alive, budget - alive - protectedCorpses));
   }
   function reserve(options) {
     if (!profile() || !game) return true;
@@ -73,13 +74,14 @@
     if (room(0) <= 0) return false;
     // Preserve the initial death feedback. Reclaim the oldest eligible corpse
     // only when a live spawn needs its slot; never cull a living enemy.
-    const corpses = game.Jt.filter(e => e.dead && (e.remove || e.deadT >= corpseMinimum)).sort((a,b) => b.deadT - a.deadT);
-    while (ordinary(game.Jt).length >= maxAlive && corpses.length) {
+    const budget = profile().id === 'hard' ? 8 : maxAlive;
+    const corpses = ordinary(game.Jt).filter(e => e.dead && (e.remove || e.deadT >= corpseMinimum)).sort((a,b) => b.deadT - a.deadT);
+    while (ordinary(game.Jt).length >= budget && corpses.length) {
       const e = corpses.shift(), index = game.Jt.indexOf(e);
       game.ue.remove(e.m.root); if (e.pool) game.ue.remove(e.pool);
       e.remove = true; if (index >= 0) game.Jt.splice(index, 1);
     }
-    return ordinary(game.Jt).length < maxAlive;
+    return ordinary(game.Jt).length < budget;
   }
   function events(fallback) {
     if (active === 'legacy') return fallback;
@@ -118,7 +120,7 @@
     custom.checked = selected === 'legacy';
     custom.disabled = game.modeRef() !== 'menu';
     document.getElementById('challengeDescription').textContent = preset
-      ? `${p.note}。ライフ${p.unlimited ? '無限（ランキング対象外）' : p.lives}。群れの上限 ${p.counts.join(' → ')}体、体力 ${p.health}（HGで${p.health}発）、通常追跡 ${range(p).start.toFixed(1)} → ${range(p).end.toFixed(1)}m/s。死体を含め表示は最大${maxAlive}体。引き離しても追跡は続きます。`
+      ? `${p.note}。ライフ${p.unlimited ? '無限（ランキング対象外）' : p.lives}。群れの上限 ${p.counts.join(' → ')}体、体力 ${p.health}（HGで${p.health}発）、通常追跡 ${range(p).start.toFixed(1)} → ${range(p).end.toFixed(1)}m/s。死体を含め通常ゾンビの表示は最大${p.id === 'hard' ? 8 : maxAlive}体。引き離しても追跡は続きます。`
       : 'メニューのゾンビ調整値を使います。6体の表示制限は対象外で、数を増やすほど負荷も増えます。これまでの記録はこちら。';
     document.getElementById('challengeSettingsNote').textContent = preset
       ? `${p.name}：移動・戦闘の条件は固定です。得点倍率はイージー×1.0・ノーマル×1.1・ハード×1.2。全難易度のスコアを同じランキングで競います。カメラ・感度・音量・画質は変更できます。${window.skyDevMode ? '個別に調整する場合はホームの詳細設定で「自由調整」を有効にします。' : ''}`
@@ -164,7 +166,8 @@
     document.dispatchEvent(new CustomEvent('sky-difficulty-change'));
   }
   window.skyChallenge = {
-    version, debug, maxAlive, maxRendered: maxAlive, corpseMinimum, levels, key, profile, limit, value, room, reserve, events, begin, rankingDifficulty,
+    version, debug, get maxAlive() { return profile()?.id === 'hard' ? 8 : maxAlive; },
+    get maxRendered() { return profile()?.id === 'hard' ? 8 : maxAlive; }, corpseMinimum, levels, key, profile, limit, value, room, reserve, events, begin, rankingDifficulty,
     settingsForStorage() { return game ? (fixedApplied ? { ...game.U, ...customSettings } : game.U) : undefined; },
     get id() { return active; }, get selected() { return selected; },
     get name() { return level(active).name; },
