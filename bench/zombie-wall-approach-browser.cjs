@@ -62,7 +62,14 @@ fs.mkdirSync(out,{recursive:true});
       g.advance(dt);if(c.life<life&&firstDamage===null)firstDamage=g.GAME.t;
       for(const e of g.zombies)if(e.act?.kind==='pillar'&&!s.oe(e.pos.x,e.pos.y+.012,e.pos.z,e.r,e.h))penetrations++;
      }
-     natural.push({seed:value,difficulty:skyChallenge.id,firstDamage,life:c.life,over:g.GAME.over,time:g.GAME.t,penetrations});
+     const result={seed:value,difficulty:skyChallenge.id,firstDamage,life:c.life,over:g.GAME.over,time:g.GAME.t,penetrations};
+     if (!result.over) {
+      result.player=c.pos.toArray();
+      result.playerNode=c.node;
+      result.approach=skyZombieClimb.navigationTargets();
+      result.enemies=g.zombies.filter(e=>!e.dead).map(e=>({pos:e.pos.toArray(),node:e.node,action:e.act?.kind,climb:skyZombieClimb.state(e)}));
+     }
+     natural.push(result);
     }
    }
    g.cam(0);g.frameOnce(0);return {rows,natural,gl:g.debug.renderer.getContext().getError()};

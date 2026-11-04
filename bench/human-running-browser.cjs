@@ -67,6 +67,7 @@ fs.mkdirSync(output, { recursive: true });
           // Controlled animation poses above the map avoid camera occlusion.
           // The unmodified game renderer still draws every resulting frame.
           c.pos.set(0, 200, 0); c.camY = 201.62; c.vel.set(0, 0, -6);
+          c.invuln = -Infinity; // Keep the spawn blink out of this pose-only fixture.
           c.state = 'normal'; c.onGround = true; c.yaw = 0; c.pitch = -.1; c.eye = 1.62;
           window.__runningQA = (action, count = 30) => {
             const sky = window.__skyInternals;
