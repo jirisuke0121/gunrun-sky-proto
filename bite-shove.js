@@ -377,7 +377,8 @@
       for (const e of game.Jt) {
         // A zombie dropping or leaping in lands beside the player, not inside the body (then it would be popped out later).
         const a = e !== biter && !e.dead && !e.stalker && !e.boss ? e.act : null;
-        if (a && a.tx !== undefined && (a.kind === 'drop' || a.kind === 'jumpdown' || a.kind === 'leap') && Math.abs(a.ty - c.pos.y) < 1.8) {
+        // Routing has already swept this trajectory and checked its landing.
+        if (a && !a.pursuitTraversal && a.tx !== undefined && (a.kind === 'drop' || a.kind === 'jumpdown' || a.kind === 'leap') && Math.abs(a.ty - c.pos.y) < 1.8) {
           const ax = a.tx - c.pos.x, az = a.tz - c.pos.z, ad = Math.hypot(ax, az);
           if (ad < MIN) {
             const ox = e.pos.x - c.pos.x, oz = e.pos.z - c.pos.z, od = Math.hypot(ox, oz);

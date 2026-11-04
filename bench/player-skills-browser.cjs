@@ -32,6 +32,13 @@ fs.mkdirSync('browser-evidence', { recursive: true });
       try {
         await page.goto(new URL(map, base).href);
         await page.waitForFunction(() => window.__game && window.skyDecoy && window.skyHumanView && document.body.dataset.skyHumanLoaded === 'true');
+        if (layout.width < layout.height) {
+          assert.equal(await page.locator('#rotate').isVisible(), true, 'portrait displays the rotate prompt');
+          assert.equal(await page.evaluate(() => document.documentElement.dataset.skyRotation), '0');
+          await context.close();
+          console.log('PASS', id, 'portrait rotate prompt');
+          continue;
+        }
         await page.locator('#bStart').click();
         const lane = await page.evaluate(() => {
           const g = window.__game, sky = window.__skyInternals, c = g.P;

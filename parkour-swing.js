@@ -196,6 +196,14 @@ export function createSwing(sky, game, course) {
     game.stats.barGrabs = (game.stats.barGrabs || 0) + 1; event('barGrab', { bar: bar.id, chain });
     sky.Tt.vault?.(); return true;
   }
+  function transferAimed(bar) {
+    if (!bar.alignTransfer || !c.swingFlight) return true;
+    const [x, z] = bar.direction;
+    const along = Math.abs(c.vel.x * x + c.vel.z * z);
+    // The northbound branch overlaps the westbound two-bar exit. A sideways
+    // flyby should keep its original landing instead of grabbing the branch.
+    return along * 2 >= Math.hypot(c.vel.x, c.vel.z);
+  }
   function step(dt, input = {}) {
     if (!bars.length) return false;
     if (sky.modeRef() !== 'play' || z.over) { jumpPressed = false; return false; }
@@ -250,7 +258,7 @@ export function createSwing(sky, game, course) {
     // hands, i.e. the feet are 0.9-1.9 m below it, so the pull into the hang is short.
     if (!cooldown && !c.onGround && c.state === 'normal' && c.vel.y < -1.2) {
       for (const b of bars) {
-        if (b.id===exhaustedBar || b.id===releasedBar && recatch>0) continue;
+        if (b.id===exhaustedBar || b.id===releasedBar && recatch>0 || !transferAimed(b)) continue;
         const side = [-b.direction[1], b.direction[0]];
         const across = (c.pos.x-b.at[0])*side[0]+(c.pos.z-b.at[2])*side[1];
         const along = (c.pos.x-b.at[0])*b.direction[0]+(c.pos.z-b.at[2])*b.direction[1];
@@ -264,7 +272,7 @@ export function createSwing(sky, game, course) {
     }
     if (cooldown || c.onGround || c.state !== 'normal' || c.vel.y < (course.oldTown ? -12 : -8) || Math.hypot(c.vel.x,c.vel.z) < 1) return false;
     for (const b of bars) {
-      if (b.id===exhaustedBar || b.id===releasedBar && recatch>0) continue;
+      if (b.id===exhaustedBar || b.id===releasedBar && recatch>0 || !transferAimed(b)) continue;
       const side = [-b.direction[1], b.direction[0]];
       const across = (c.pos.x-b.at[0])*side[0]+(c.pos.z-b.at[2])*side[1];
       const margin = course.oldTown ? .3 : .35;
