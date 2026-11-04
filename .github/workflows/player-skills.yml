@@ -1,7 +1,7 @@
 name: Player skills
 on:
   pull_request:
-    paths: ['player-skills.*', 'skill-decoy.js', 'decoy-audio.js', 'flashbang.js', 'human-view.js', 'enhancements.js', 'zombie-climb.js', 'index.html', 'canyon.html', 'bench/player-skills*', '.github/workflows/player-skills.yml']
+    paths: ['player-skills.*', 'skill-decoy.js', 'decoy-audio.js', 'flashbang.js', 'escape-guidance.js', 'weapon-drops.js', 'human-view.js', 'enhancements.js', 'zombie-climb.js', 'index.html', 'canyon.html', 'bench/player-skills*', 'bench/escape-guidance-browser.cjs', '.github/workflows/player-skills.yml']
 permissions:
   contents: read
 jobs:
@@ -30,6 +30,8 @@ jobs:
           fi
       - name: Exercise clone attraction, expiry, pause, touch and rotation
         run: node bench/player-skills-browser.cjs
+      - name: Exercise escape and supply guidance
+        run: node bench/escape-guidance-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
