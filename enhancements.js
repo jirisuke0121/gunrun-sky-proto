@@ -1,12 +1,12 @@
 import { installMinimap } from './minimap.js?v=20261101-unity-radar-v4';
 import { installRunRecords } from './run-records.js?v=20261102-players-v1';
 import { createGunRecoil } from './gun-recoil.js?v=20261101-recoil-v1';
-import { createSwing } from './parkour-swing.js?v=20261103-drop-catch-v1';
+import { createSwing } from './parkour-swing.js?v=20261104-branch-transfer';
 import { installRanking } from './ranking.js?v=20261102-players-v1';
 import { createFlashbang } from './flashbang.js?v=20261102-skill-keys-v1';
 import { installSkillDock } from './player-skills.js?v=20261102-skill-keys-v1';
 import { createDecoy } from './skill-decoy.js?v=20261102-skill-keys-v1';
-import { createZombieClimb } from './zombie-climb.js?v=20261104-wall-lip';
+import { createZombieClimb } from './zombie-climb.js?v=20261104-climb-queue';
 import { createZombieRouting } from './zombie-routing.js?v=20261102-free-climb-v1';
 import { createZombieFall } from './zombie-fall.js?v=20261102-fall-v1';
 import { createNavWatch } from './nav-watch.js?v=20261103-nav-watch-v1';

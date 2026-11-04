@@ -249,7 +249,7 @@
       const [bx,bz]=at(3.7,0),by=py+2.8;
       for(const side of [-1,1]){const [x,z]=at(3.7,side*1.45);strut([x,by,z],[x,by+1.4,z]);strut([x,by+1.4,z],[x,groundY,z]);}
       const [lx,lz]=at(3.7,-1.45),[rx,rz]=at(3.7,1.45);strut([lx,by+1.4,lz],[rx,by+1.4,rz]);
-      extraBars.push({id:'oldtown-'+id+'-bar',at:[bx,by,bz],direction:[dx,dz],width:2.6,route:id});
+      extraBars.push({id:'oldtown-'+id+'-bar',at:[bx,by,bz],direction:[dx,dz],width:2.6,route:id,alignTransfer:id==='gantry-b'});
       const [ax,az]=at(-1,0),[ex,ez]=at(15.7,0),[rvx,rvz]=at(13,0),[fx,fz]=at(-2,0);
       extraRoutes.push({id,name,approach:[ax,py,az],yaw:Math.atan2(-dx,-dz),exit:[ex,py+.2,ez],escape:[[ex,py+.2,ez]],returnVia:[rvx,py+.2,rvz],fallback:[fx,py,fz]});
     };
