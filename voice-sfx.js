@@ -247,6 +247,25 @@
     const edge = document.createElement('div'); edge.id = 'lowHpEdge'; document.body.appendChild(edge);
     let low = false, nextBreath = 0, breathVoice = null;
     const maxLives = () => { try { return window.skyChallenge?.maxLives?.(3) ?? 3; } catch { return 3; } };
+    // ---------- chased from behind: a zombie 3.5-13 m away and out of the player's view gets a sharp cue that is not muffled
+    // by distance (the normal idle groan is a dull 4-11 s one); closer means more often. Forward is (-sin yaw, -cos yaw). ----------
+    function rearCue(t) {
+      if (t < (rear.next || 0)) return;
+      let best = null, bd = 1e9;
+      for (const e of game.Jt) {
+        if (e.dead || e.remove || e.rise || e.spawnT > 0) continue;
+        const dx = e.pos.x - c.pos.x, dz = e.pos.z - c.pos.z, d = Math.hypot(dx, dz);
+        if (d < 3.5 || d > 13 || Math.abs(e.pos.y - c.pos.y) > 10 || d >= bd) continue;
+        if ((-Math.sin(c.yaw) * dx - Math.cos(c.yaw) * dz) / d > .1) continue;   // in front: the player can see it
+        best = e; bd = d;
+      }
+      if (!best) { rear.next = t + .4; return; }
+      rear.next = t + 1.4 + bd * .18;
+      const sp = spatial(best.pos.x, best.pos.y + 1.1, best.pos.z);
+      rear.n++; stats.rear = rear.n; rear.flip = !rear.flip;
+      play(rear.flip ? 'zalert' : 'zgroan', { gain: clamp(Math.max(sp.gain, .35) * .8, 0, .8), pan: sp.pan, rate: rand(.92, 1.05), lp: Math.max(sp.lp, 2200) });
+    }
+    const rear = { next: 0, n: 0, flip: false };
     function tick() {
       const t = now(), live = game.modeRef() === 'play' && !z.over;
       if (live && t > nextFar) {
@@ -258,6 +277,7 @@
         if (t > town.crow) { town.crow = t + rand(25, 50); play('crow', { gain: rand(.1, .18), pan: rand(-.9, .9), rate: rand(.9, 1.05), lp: 4200 }); }
         if (t > town.creak) { town.creak = t + rand(15, 35); play('creak', { gain: rand(.1, .18), pan: rand(-.9, .9), rate: rand(.85, 1.1), lp: 2600 }); }
       }
+      if (live) rearCue(t);
       const wantLow = live && maxLives() >= 2 && c.life === 1;
       if (wantLow !== low) {
         low = wantLow; edge.classList.toggle('on', low);

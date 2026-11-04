@@ -65,6 +65,13 @@ fs.mkdirSync('browser-evidence', { recursive: true });
           step('thudSoft', () => Tt.thud(.5, 0));
           step('thudFall', () => Tt.thud(.9, 0));
           step('impact', () => { for (let i = 0; i < 8; i++) { V.impact({ x: c.pos.x + 4, y: c.pos.y + 1, z: c.pos.z + 4 }); } });
+          // a zombie 8 m ahead (in view) gets no cue; the same zombie 8 m behind does
+          const rz = sky.Jt.filter(e => !e.dead && !e.remove)[0];
+          for (const e of sky.Jt) if (e !== rz && !e.dead && !e.remove) e.pos.set(c.pos.x + 80, c.pos.y, c.pos.z + 80);
+          const putRz = k => { rz.pos.set(c.pos.x - Math.sin(c.yaw) * 8 * k, c.pos.y, c.pos.z - Math.cos(c.yaw) * 8 * k); rz.rise = null; rz.act = null; rz.fall = null; rz.spawnT = 0; };
+          const rear0 = V.stats.rear || 0;
+          putRz(1); await new Promise(res => setTimeout(res, 1000)); out.rearFront = (V.stats.rear || 0) - rear0;
+          putRz(-1); await new Promise(res => setTimeout(res, 1000)); out.rearBehind = (V.stats.rear || 0) - rear0;
           // tension: four zombies at 3 m push the threat up, the pulse faster and the pad on; far away it falls and
           // the "got away" swell plays once
           const T = window.skyTension, near = sky.Jt.filter(e => !e.dead && !e.remove).slice(0, 4);
@@ -126,6 +133,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         assert.ok(r.weapon !== 'HG' || r.reload.reload === 1, `${map}: HG reload recording (weapon ${r.weapon}) ${JSON.stringify(r.reload)}`);
         assert.ok(r.echoSends.includes(.18), `${map}: a recorded HG shot sends .18 into the room-tail convolver ${JSON.stringify(r.echoSends)}`);
         assert.ok(r.flingBody.dead && r.flingBody.dx >= 3.7 && r.flingBody.vy >= 2.3 && r.flingHead.dx >= 6.4 && r.flingHead.vy >= 3.3, `${map}: gun kills throw the body ${JSON.stringify([r.flingBody, r.flingHead])}`);
+        assert.ok(r.rearFront === 0 && r.rearBehind >= 1, `${map}: only a zombie out of view gets the rear cue ${JSON.stringify([r.rearFront, r.rearBehind])}`);
         assert.ok(r.tensionZombies === 4 && r.tensionHigh.v > .6 && r.tensionHigh.pulse < .7 && r.tensionHigh.gain > 1.3, `${map}: close zombies raise the tension ${JSON.stringify(r.tensionHigh)}`);
         assert.ok(r.tensionLow.v < .25 && r.tensionLow.pulse > .85 && r.tensionLow.release >= 1, `${map}: getting away releases it ${JSON.stringify(r.tensionLow)}`);
         assert.ok(r.stingers.every(Boolean) && r.stingerCounts.time === 1 && r.stingerCounts.fell === 1 && r.stingerCounts.caught === 2, `${map}: run-end stingers ${JSON.stringify([r.stingers, r.stingerCounts])}`);
