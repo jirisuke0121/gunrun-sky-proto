@@ -42,6 +42,11 @@ fs.mkdirSync('browser-evidence', { recursive: true });
           const played = () => ({ ...V.stats.played });
           const diff = (a, b) => Object.fromEntries(Object.entries(b).filter(([k, v]) => v > (a[k] || 0)).map(([k, v]) => [k, v - (a[k] || 0)]));
           const out = {};
+          // gunshot echo: record the gain of every gain node wired into a convolver
+          const sends = []; const origConnect = AudioNode.prototype.connect;
+          AudioNode.prototype.connect = function (dest, ...r) { try { if (dest instanceof ConvolverNode && this.gain) sends.push(+this.gain.value.toFixed(3)); } catch {} return origConnect.call(this, dest, ...r); };
+          for (let i = 0; i < 30 && !sends.includes(.18); i++) { Tt.hg(); await new Promise(res => setTimeout(res, 200)); }
+          AudioNode.prototype.connect = origConnect; out.echoSends = [...new Set(sends)];
           const step = (name, fn) => { const a = played(); fn(); out[name] = diff(a, played()); };
           const realRandom = Math.random;
           Math.random = () => .1;                                  // force the "play this time" branch of the jump voice
@@ -52,10 +57,25 @@ fs.mkdirSync('browser-evidence', { recursive: true });
           const stepA = played(); Tt.step(.8); out.stepSample = diff(stepA, played());   // footsteps must stay the original synth
           step('groan', () => Tt.groan(.8, .2, false));
           step('casing', () => Tt.hg());
+          step('zstep', () => Tt.zstep(.3, .2));
+          step('empty', () => Tt.empty());
+          out.weapon = sky.wpc().n;
+          step('reload', () => Tt.reload());
           step('roar', () => Tt.roar(0, .8));
           step('thudSoft', () => Tt.thud(.5, 0));
           step('thudFall', () => Tt.thud(.9, 0));
           step('impact', () => { for (let i = 0; i < 8; i++) { V.impact({ x: c.pos.x + 4, y: c.pos.y + 1, z: c.pos.z + 4 }); } });
+          // tension: four zombies at 3 m push the threat up, the pulse faster and the pad on; far away it falls and
+          // the "got away" swell plays once
+          const T = window.skyTension, near = sky.Jt.filter(e => !e.dead && !e.remove).slice(0, 4);
+          const place = (r) => near.forEach((e, i) => { const a = i * 1.57; e.pos.set(c.pos.x + Math.cos(a) * r, c.pos.y, c.pos.z + Math.sin(a) * r); e.rise = null; e.act = null; e.fall = null; e.spawnT = 0; });
+          out.tensionZombies = near.length;
+          place(3); await new Promise(res => setTimeout(res, 900));
+                    out.tensionHigh = { v: +T.value.toFixed(2), pulse: +T.pulse().toFixed(2), gain: +T.bgmGain().toFixed(2), high: T.high };
+          place(60); await new Promise(res => setTimeout(res, 3500));
+          out.tensionLow = { v: +T.value.toFixed(2), pulse: +T.pulse().toFixed(2), release: T.stats.release };
+          out.stingers = ['time', 'fell', 'caught', 'other'].map(k => window.skyStinger.play(k));
+          out.stingerCounts = { ...T.stats.stingers };
           // zombies: place one in front of the player in the open, shoot it, then kill it with a "gun" kill
           const live = sky.Jt.filter(e => !e.dead && !e.remove)[0];
           live.pos.set(c.pos.x + 3, c.pos.y, c.pos.z); live.rise = null; live.act = null; live.fall = null; live.stun = 0;
@@ -65,6 +85,16 @@ fs.mkdirSync('browser-evidence', { recursive: true });
           live.gunT = sky.z.t;
           step('kill', () => live.hurt(1e9, 1, 0, .5, 3));
           out.dead = live.dead; out.hitStop = V.stats.hitStops - stopBefore; out.stopT = window.__stopT || 0;
+          // a gun kill throws the body along the shot (a headshot harder and higher)
+          const alive = sky.Jt.filter(e => !e.dead && !e.remove);
+          const flingOne = (zom, head) => {
+            zom.pos.set(c.pos.x + 3, c.pos.y, c.pos.z + 2); zom.rise = null; zom.act = null; zom.fall = null; zom.stun = 0;
+            zom.hurt(1e9, 1, 0, .5, 0);
+            const v0 = { x: zom.vel.x, y: zom.vel.y };
+            window.__gunFx.hit(head, new V3(zom.pos.x, zom.pos.y + 1.1, zom.pos.z), zom, new V3(1, 0, 0));
+            return { dx: +(zom.vel.x - v0.x).toFixed(2), vy: +zom.vel.y.toFixed(2), dead: zom.dead };
+          };
+          out.flingBody = flingOne(alive[0], false); out.flingHead = flingOne(alive[1], true);
           // distance falloff and occlusion: scan 16 directions around the player at 2 m and 40 m
           const ring = r => Array.from({ length: 16 }, (_, i) => V.spatial(c.pos.x + Math.cos(i * Math.PI / 8) * r, c.pos.y + 1, c.pos.z + Math.sin(i * Math.PI / 8) * r));
           const nearRing = ring(2), farRing = ring(40);
@@ -90,6 +120,14 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         assert.ok(r.land.land === 1 && !r.softLand.land, `${map}: hard landing has a voice, a soft one does not ${JSON.stringify([r.land, r.softLand])}`);
         assert.deepEqual(r.stepSample, {}, `${map}: footsteps are the original synthesized sound`);
         assert.ok(r.groan.zgroan === 1, `${map}: groan sample ${JSON.stringify(r.groan)}`);
+        assert.ok(r.zstep.zstep === 1, `${map}: zombie footstep sample ${JSON.stringify(r.zstep)}`);
+        assert.ok(r.empty.click === 1, `${map}: dry-fire click ${JSON.stringify(r.empty)}`);
+        assert.ok(r.weapon !== 'HG' || r.reload.reload === 1, `${map}: HG reload recording (weapon ${r.weapon}) ${JSON.stringify(r.reload)}`);
+        assert.ok(r.echoSends.includes(.18), `${map}: a recorded HG shot sends .18 into the room-tail convolver ${JSON.stringify(r.echoSends)}`);
+        assert.ok(r.flingBody.dead && r.flingBody.dx >= 3.7 && r.flingBody.vy >= 2.3 && r.flingHead.dx >= 6.4 && r.flingHead.vy >= 3.3, `${map}: gun kills throw the body ${JSON.stringify([r.flingBody, r.flingHead])}`);
+        assert.ok(r.tensionZombies === 4 && r.tensionHigh.v > .6 && r.tensionHigh.pulse < .7 && r.tensionHigh.gain > 1.3, `${map}: close zombies raise the tension ${JSON.stringify(r.tensionHigh)}`);
+        assert.ok(r.tensionLow.v < .25 && r.tensionLow.pulse > .85 && r.tensionLow.release >= 1, `${map}: getting away releases it ${JSON.stringify(r.tensionLow)}`);
+        assert.ok(r.stingers.every(Boolean) && r.stingerCounts.time === 1 && r.stingerCounts.fell === 1 && r.stingerCounts.caught === 2, `${map}: run-end stingers ${JSON.stringify([r.stingers, r.stingerCounts])}`);
         assert.ok(r.casing.imp === 1, `${map}: a casing tick follows a shot ${JSON.stringify(r.casing)}`);
         assert.ok(r.roar.zroar === 1, `${map}: roar layer ${JSON.stringify(r.roar)}`);
         assert.ok(!r.thudSoft.flesh && r.thudFall.flesh === 1, `${map}: only a hard body fall gets the impact ${JSON.stringify([r.thudSoft, r.thudFall])}`);
@@ -103,7 +141,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         assert.ok(r.lowOn && r.edgeOn && r.breath.breath >= 1, `${map}: last life shows the edge and breathes (no extra heartbeat sound) ${JSON.stringify([r.lowOn, r.edgeOn, r.breath])}`);
         assert.ok(r.lowOff, `${map}: effects stop when the life is back`);
         assert.deepEqual(errors, [], `${map}: no page errors`);
-        results.push(`PASS ${map}: jump/land/casing/groan/roar/fall/impact/hit/kill voices, hit-stop ${r.stopT}, near ${r.nearBest} far ${r.farBest}, ${r.blocked}/32 rays blocked, last-life edge + breath`);
+        results.push(`PASS ${map}: jump/land/casing/zstep/reload/click/groan/roar/fall/impact/hit/kill voices, echo, fling, tension, stingers, hit-stop ${r.stopT}, near ${r.nearBest} far ${r.farBest}, ${r.blocked}/32 rays blocked, last-life edge + breath`);
       } finally { await context.close(); }
     }
   } finally { await browser?.close(); server?.kill(); }

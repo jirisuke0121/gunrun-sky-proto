@@ -15,17 +15,23 @@ for (const name of names) {
   assert.ok(size > 1000 && size < 30000, `${file} is a short mono take (${size} bytes)`);
 }
 for (const stem of new Set(names.map(n => n.replace(/-\d$/, '')))) assert.ok(credits.includes(stem), stem + ' is credited');
-assert.ok(total < 300000, `all takes stay under 300 KB (${total})`);
+assert.ok(total < 400000, `all takes stay under 400 KB (${total})`);
 assert.ok(/CC0/.test(credits) && !/CC-BY-SA 4\.0\s*\|/.test(credits), 'only CC0 sources are listed');
 const files = fs.readdirSync('assets/sfx/voice').filter(f => f.endsWith('.mp3'));
 assert.equal(files.length, names.length, 'no stray take is shipped without being used');
 assert.ok(fs.existsSync('tools/build_voice_sfx.py'), 'the build script is kept');
 
+const enh = fs.readFileSync('enhancements.js', 'utf8');
+assert.ok(/RAW_ECHO\[name\]/.test(enh) && /bus\.conv/.test(enh), 'recorded shots send into the room-tail convolver');
+assert.ok(/skyTension\?\.pulse/.test(enh) && /skyTension\?\.bgmGain/.test(enh), 'the BGM asks tension-music.js for its pulse and level');
+assert.ok(fs.existsSync('tension-music.js'), 'tension-music.js exists');
 for (const page of ['index.html', 'canyon.html']) {
   const html = fs.readFileSync(page, 'utf8');
   assert.ok(html.includes('./voice-sfx.js?v='), page + ' loads the module');
   assert.ok(html.includes('Tt.kill(),window.skyVoice?.death(this)}startAct'), page + ' reports the dying zombie');
   assert.ok(html.includes('window.skyVoice?.impact(o)'), page + ' reports bullets that hit the world');
+  assert.ok(html.includes('./tension-music.js?v='), page + ' loads the tension module');
+  assert.ok(html.includes('z.reason=n,window.skyStinger?.play(n),'), page + ' plays a stinger when the run ends');
   assert.ok(!html.includes('Tt.kill()}startAct'), page + ' no longer ends die() with a bare Tt.kill()');
 }
 // Every recorded sound has a synthesized fallback: groan keeps the old function, the rest only add a layer. Footsteps are not touched.

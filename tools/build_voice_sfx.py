@@ -1,4 +1,4 @@
-# Builds assets/sfx/voice/*.mp3 (human and zombie voices, impacts, tired breathing) from CC0 packs on OpenGameArt.
+# Builds assets/sfx/voice/*.mp3 (human and zombie voices, impacts, zombie steps, reload, town ambience, tired breathing) from CC0 packs on OpenGameArt.
 # Usage: python3 tools/build_voice_sfx.py SRC_ROOT OUTDIR      (needs numpy, scipy and ffmpeg)
 # SRC_ROOT holds the extracted packs (see assets/sfx/voice/CREDITS.md for the pages):
 #   vocal/slightscream-NN.flac                          15 vocal male strain/hurt/pain/jump sounds (qubodup, CC0)
@@ -6,6 +6,12 @@
 #   squish/squish_NN.mp3                                Squish Sounds Effects (EZduzziteh, CC0)
 #   mw/metal_hit_0N.ogg, mw/wood_hit_0N.ogg             100 CC0 metal and wood SFX (rubberduck, CC0)
 #   breath/breath.wav                                   Breathing Tired (mikeask, CC0)
+#   fant/Fantozzi-footsteps/ogg/Fantozzi-SandXN.ogg     Fantozzi's Footsteps (Grass/Sand & Stone) (Fantozzi, CC0)
+#   extra/reload.wav                                    Handgun Reload Sound Effect (CC0)
+#   extra/click.mp3                                     Gun reload, lock or click sound (CC0)
+#   extra/siren.mp3                                     Sirens and Alarm Noise (CC0)
+#   extra/crows.ogg                                     Crows singing (CC0)
+#   extra/rpg/OGG/creakN.ogg                            50 RPG sound effects (Kenney, CC0)
 # Every take is mono 44.1 kHz, gets a 3 ms fade-in and a fade-out (no clicks), is band-limited, normalised to a fixed
 # peak and encoded as a 64 kbps MP3. Which source file feeds which take was chosen from length, attack and pitch
 # measurements (the takes were not auditioned by ear): swap a source number below and rebuild if one sounds wrong.
@@ -58,6 +64,16 @@ def finish(x, dur, peak, fade_out=.04, fade_in=.003):
     return (x * (peak / m)).astype(np.float32) if m > 0 else x
 
 
+def pitch(x, rate):
+    """Play back at `rate` (below 1 = lower and slower), by linear resampling."""
+    idx = np.arange(0, len(x) - 1, rate)
+    return np.interp(idx, np.arange(len(x)), x).astype(np.float32)
+
+
+def cut(x, a, b):
+    return x[int(a * SR):int(b * SR)]
+
+
 def vocal(n): return f'vocal/slightscream-{n:02d}.flac'
 def zomb(n): return f'zombies/zombies/zombie-{n}.wav'
 
@@ -87,6 +103,25 @@ for i in range(1, 6):
     TAKES[f'imp-{i}'] = (lambda i=i: finish(band(load(f'mw/metal_hit_0{i}.ogg'), hp=350, lp=9000), .22, .75, .12))
 for i in range(1, 4):
     TAKES[f'impw-{i}'] = (lambda i=i: finish(band(load(f'mw/wood_hit_0{i}.ogg'), hp=150, lp=8000), .2, .75, .1))
+# --- zombie footsteps: soft sand steps slowed to 0.72x (heavy, dragging) with a wet squish under each ---
+for i, (side, sq) in enumerate([('L1', '01_0'), ('R1', '03'), ('L2', '04'), ('R2', '01_0'), ('L3', '03'), ('R3', '04')], 1):
+    TAKES[f'zstep-{i}'] = (lambda side=side, sq=sq: finish(band(mix([
+        (pitch(load(f'fant/Fantozzi-footsteps/ogg/Fantozzi-Sand{side}.ogg'), .72), 0, 1),
+        (band(load(f'squish/squish_{sq}.mp3'), hp=80, lp=1400), .03, .35)]), hp=45, lp=2600), .5, .7, .15))
+# --- HG reload: magazine out, magazine in, slide. The 1.6 s recording has long silences; the three events are
+#     cut out and joined with short gaps so it fits the 1.15 s reload (1.12 s). Dry-fire click: the first 0.12 s. ---
+def reload_take():
+    r = load('extra/reload.wav'); gap = lambda d: np.zeros(int(d * SR), dtype=np.float32)
+    return np.concatenate([cut(r, .08, .28), gap(.12), cut(r, .52, .82), gap(.06), cut(r, .98, 1.42)])
+TAKES['reload-1'] = lambda: finish(band(reload_take(), hp=80, lp=9000), 1.15, .8, .08)
+TAKES['click-1'] = lambda: finish(band(load('extra/click.mp3'), hp=200, lp=9000), .12, .7, .03)
+# --- the town: one siren wail (heard far away), two crow takes, three creaks ---
+TAKES['siren-1'] = lambda: finish(band(cut(load('extra/siren.mp3'), 3.5, 7.0), hp=150, lp=5000), 3.4, .7, .4, .15)
+TAKES['crow-1'] = lambda: finish(band(cut(load('extra/crows.ogg'), 5.5, 7.5), hp=250, lp=7000), 2.0, .7, .3, .1)
+TAKES['crow-2'] = lambda: finish(band(cut(load('extra/crows.ogg'), 0.0, 2.0), hp=250, lp=7000), 2.0, .7, .3, .1)
+for i in range(1, 4):
+    TAKES[f'creak-{i}'] = (lambda i=i: finish(band(load(f'extra/rpg/OGG/creak{i}.ogg'), hp=120, lp=6500), .85, .75, .15))
+
 # --- tired breathing, played repeatedly while the player is on the last life ---
 TAKES['breath'] = lambda: finish(band(load('breath/breath.wav'), hp=80, lp=4500), 3.1, .6, .35, .25)
 

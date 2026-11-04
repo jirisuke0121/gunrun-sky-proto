@@ -11,7 +11,10 @@
 //   zombies: death cry (skyVoice.death, called from the zombie's die()), pain grunt + flesh impact on every bullet hit (__gunFx.hit), idle groan
 //            (Tt.groan), effort when it leaps / drops / climbs (startAct), roar layer (Tt.roar), body fall
 //            (Tt.thud), faint far-away groans so the town is never silent
-//   world:   bullet impact tick on metal / wood (called from the shot code as skyVoice.impact)
+//            (2026-11-05) zombie footsteps (Tt.zstep), HG reload + dry-fire click (Tt.reload, Tt.empty), a gun kill
+//            throws the body (see deathFling)
+//   world:   bullet impact tick on metal / wood (called from the shot code as skyVoice.impact), a far-off siren,
+//            crows and creaks every so often
 //   feel:    a 30 ms hit-stop on a gun kill close to the player (the same __stopT the headshot kill uses)
 // Zombie sounds are placed in space: pan from the camera yaw, volume and brightness fall with distance, and a
 // sound whose line to the player is blocked by a building is quieter and muffled.
@@ -30,8 +33,10 @@
       jump: names('jump', 4), land: names('land', 2), hurt: names('hurt', 3),
       zdie: names('zdie', 5), zhit: names('zhit', 5), zgroan: names('zgroan', 4), zalert: names('zalert', 3), zroar: ['zroar'],
       flesh: names('flesh', 3), imp: names('imp', 5), impw: names('impw', 3), breath: ['breath'],
+      zstep: names('zstep', 6), reload: names('reload', 1), click: names('click', 1),
+      siren: names('siren', 1), crow: names('crow', 2), creak: names('creak', 3),
     };
-    const BANK_VERSION = '20261104-voice-v1';
+    const BANK_VERSION = '20261105-voice-v2';
     const bank = {};
     let bankLoading = null;
     function loadBank() {
@@ -124,6 +129,21 @@
       if (ready('imp') && gate('casing', .12)) play('imp', { gain: rand(.1, .16), pan: rand(-.3, .3), rate: rand(1.9, 2.4), delay: rand(.28, .42), lp: 7000 });
     });
 
+    // ---------- 2026-11-05: zombie steps, reload, dry fire ----------
+    // Zombie footsteps: the recorded step replaces the synthesized one (same gain and pan the game passes).
+    wrap('zstep', prev => (n, pan, ...a) => {
+      if (!ready('zstep')) return prev(n, pan, ...a);
+      play('zstep', { gain: clamp(n * 2.4, 0, .9), pan: pan || 0, rate: rand(.92, 1.08), lp: 3200 });
+    });
+    // HG reload: the recording is cut to 1.1 s to fit the 1.15 s reload. Other weapons keep their own sound.
+    wrap('reload', prev => (...a) => {
+      let hg = false; try { hg = game.wpc?.().n === 'HG'; } catch {}
+      if (hg && ready('reload')) play('reload', { gain: .6, rate: rand(.98, 1.02) }); else prev(...a);
+    });
+    wrap('empty', prev => (...a) => {
+      if (ready('click')) play('click', { gain: .5, rate: rand(.95, 1.05) }); else prev(...a);
+    });
+
     // ---------- zombies ----------
     function deathVoice(zom) {
       if (!zom?.pos) return;
@@ -153,10 +173,19 @@
       play('flesh', { gain: sp.gain * .65, pan: sp.pan, rate: head ? 1.18 : rand(.92, 1.02), lp: sp.lp });
       play('zhit', { gain: sp.gain * (head ? .7 : .5), pan: sp.pan, rate: head ? rand(1.08, 1.2) : rand(.92, 1.06), lp: sp.lp, delay: .02 });
     }
+    // A gun kill throws the body along the shot: 3.8 m/s (about 1.3 m of slide) for a body hit, 6.5 m/s plus a
+    // little more lift for a headshot. The dead zombie already slides on its own velocity, with collision.
+    function deathFling(head, pt, zom, dir) {
+      if (!zom?.dead || zom._flung || !dir || !zom.vel) return;
+      zom._flung = true;
+      const k = head ? 6.5 : 3.8;
+      zom.vel.x += dir.x * k; zom.vel.z += dir.z * k; zom.vel.y = Math.max(zom.vel.y, head ? 3.4 : 2.4);
+      stats.flung = (stats.flung || 0) + 1;
+    }
     const fx = window.__gunFx;
     if (fx && typeof fx.hit === 'function') {
       const prevHit = fx.hit;
-      fx.hit = function (...a) { const r = prevHit.apply(this, a); try { hitVoice(...a); } catch {} return r; };
+      fx.hit = function (...a) { const r = prevHit.apply(this, a); try { hitVoice(...a); deathFling(...a); } catch {} return r; };
     }
 
     // Bullet into the world (the shot code calls this for a hit on a building): a short metal or wood tick.
@@ -204,6 +233,8 @@
 
     // ---------- the town is never silent: faint zombie groans far away ----------
     let nextFar = now() + 6;
+    // Rarer town sounds, each on its own timer: a siren far away, crows, a creak.
+    const town = { siren: now() + rand(30, 60), crow: now() + rand(14, 30), creak: now() + rand(9, 20) };
     // ---------- last life: tired breathing and a red screen edge pulsing on the 0.95 s period of the BGM's own heartbeat
     // (enhancements.js already thumps a 62 Hz pulse every 0.95 s; a second heartbeat of ours would beat against it) ----------
     const style = document.createElement('style');
@@ -222,6 +253,11 @@
         nextFar = t + rand(8, 18);
         play('zgroan', { gain: rand(.1, .2), pan: rand(-.9, .9), rate: rand(.72, .9), lp: 650 });
       }
+      if (live) {
+        if (t > town.siren) { town.siren = t + rand(45, 90); play('siren', { gain: rand(.05, .09), pan: rand(-.9, .9), rate: rand(.95, 1.05), lp: 1400 }); }
+        if (t > town.crow) { town.crow = t + rand(25, 50); play('crow', { gain: rand(.1, .18), pan: rand(-.9, .9), rate: rand(.9, 1.05), lp: 4200 }); }
+        if (t > town.creak) { town.creak = t + rand(15, 35); play('creak', { gain: rand(.1, .18), pan: rand(-.9, .9), rate: rand(.85, 1.1), lp: 2600 }); }
+      }
       const wantLow = live && maxLives() >= 2 && c.life === 1;
       if (wantLow !== low) {
         low = wantLow; edge.classList.toggle('on', low);
@@ -232,6 +268,7 @@
         nextBreath = t;
       }
       if (!low) return;
+      edge.style.animationDuration = (window.skyTension?.pulse?.() ?? .95) + 's';
       if (t >= nextBreath) { nextBreath = t + 2.85; breathVoice = play('breath', { gain: .55, rate: rand(.97, 1.04) }) || breathVoice; }
     }
     setInterval(tick, 120);

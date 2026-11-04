@@ -801,11 +801,11 @@ if (window.T2?.GLTFLoader) {
     const bgmLive = mode === 'play' && !z.over;
     if (bgmLive && !bgmNodes) bgmNodes = makeBgm();
     if (bgmNodes) {
-      bgmNodes.out.gain.setTargetAtTime(bgmLive ? 0.07 : 0, t, bgmLive ? 0.8 : 0.25);
+      bgmNodes.out.gain.setTargetAtTime(bgmLive ? 0.07 * (window.skyTension?.bgmGain?.() ?? 1) : 0, t, bgmLive ? 0.8 : 0.25);
       if (bgmLive) {
         bgmPulseT -= dt;
         if (bgmPulseT <= 0) {
-          bgmPulseT = 0.95;
+          bgmPulseT = window.skyTension?.pulse?.() ?? 0.95;   // faster when zombies are close (tension-music.js)
           tone('sine', 62, 0.2, 0.18, 40);
           setTimeout(() => tone('sine', 56, 0.12, 0.12, 36), 230);
           audioStats.bgm++;
@@ -1396,6 +1396,7 @@ window.__skyGhost = window.skyReplay;
   const SND_FULL = SND_MODE === 'full';
   const SND_DEBUG = typeof location !== 'undefined' && /[?&]snd_debug=1\b/.test(location.search || '');
   const RAW_GAIN = { HG: 0.6, SG: 0.8, SMG: 0.8, MG: 0.85 };
+  const RAW_ECHO = { HG: { rev: 0.18, slap: 0.12 }, SG: { rev: 0.3, slap: 0.2 }, SMG: { rev: 0.08, slap: 0 }, MG: { rev: 0.12, slap: 0.08 } };
   // Weight for the raw mode (the library's recordings are high-passed, so they feel shallow): a gentle low shelf
   // plus the same recording an octave down and low-passed, fading out. Linear, no compression or saturation.
   // Only used with ?snd=body.
@@ -1565,6 +1566,14 @@ window.__skyGhost = window.skyReplay;
         s2.connect(lp); lp.connect(g2); g2.connect(lim);
         s2.start(when); s2.stop(when + Math.min(buf.duration * 2, 0.5) + 0.05);
       } else { src.connect(g); g.connect(lim); }
+      // Street echo (2026-11-05): the raw recording stays dry in the main path; a quiet send into the room-tail
+      // convolver and the distant-wall slapback (the same bus the synthesized report uses) gives it the town around it.
+      const echo = RAW_ECHO[name];
+      if (echo) {
+        const bus = getBus(ctx, Ut.master);
+        const wet = ctx.createGain(); wet.gain.value = echo.rev; g.connect(wet); wet.connect(bus.conv);
+        if (echo.slap > 0) { const sl = ctx.createGain(); sl.gain.value = echo.slap; g.connect(sl); sl.connect(bus.slap); }
+      }
       src.start(when);
       return true;
     }
