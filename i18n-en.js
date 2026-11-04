@@ -451,6 +451,7 @@
  "爆破ジャンプ！ 空中で進路を調整": "Blast jump! Steer in the air",
  "爆風で上昇！ 空中で進路を調整": "Lifted by the blast! Steer in the air",
  "ドラム缶爆発！ 近くの敵を吹き飛ばした": "Barrel exploded! Nearby enemies blown away",
+ "ドラム缶爆発！": "Barrel exploded!",
  "東の隙間": "East gap",
  "北の梁": "North beam",
  "リング東壁": "Ring east wall",
