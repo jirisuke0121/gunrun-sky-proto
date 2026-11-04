@@ -1,4 +1,4 @@
-# Voice / impact / footstep / breathing sounds — sources
+# Voice / impact / breathing sounds — sources
 
 All takes were cut from the CC0 (public domain dedication) packs below, found on OpenGameArt.org. The licence shown on
 each page was read on 2026-11-04. CC0 needs no credit; this list is kept for traceability.
@@ -21,9 +21,8 @@ wrong in play, change the number in `tools/build_voice_sfx.py` and rebuild.
 | flesh-1 … 3 | `squish_01_0 / 03 / 04.mp3` + a synthesized 95 Hz thump (0.14 s) | Squish Sounds Effects (EZduzziteh) | https://opengameart.org/content/squish-sounds-effects |
 | imp-1 … 5 | `metal_hit_01 … 05.ogg` (first 0.22 s) | 100 CC0 metal and wood SFX (rubberduck) | https://opengameart.org/content/100-cc0-metal-and-wood-sfx |
 | impw-1 … 3 | `wood_hit_01 … 03.ogg` (first 0.2 s) | same | same |
-| step-1 … 6 | `Fantozzi-StoneL1 R1 L2 R2 L3 R3.ogg` | Fantozzi's Footsteps (Grass/Sand & Stone) (Fantozzi) | https://opengameart.org/content/fantozzis-footsteps-grasssand-stone |
 | breath | `breathing tired.wav` (3.1 s) | Breathing Tired (mikeask) | https://opengameart.org/content/breathing-tired |
 
-Total size of the forty-five takes: about 225 KB.
+Total size of the thirty-nine takes: about 207 KB.
 
 Not used on purpose: packs under CC-BY-SA (share-alike would reach the rest of the game's assets).

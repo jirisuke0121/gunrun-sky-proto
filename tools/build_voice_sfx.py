@@ -1,11 +1,10 @@
-# Builds assets/sfx/voice/*.mp3 (human and zombie voices, impacts, footsteps, tired breathing) from CC0 packs on OpenGameArt.
+# Builds assets/sfx/voice/*.mp3 (human and zombie voices, impacts, tired breathing) from CC0 packs on OpenGameArt.
 # Usage: python3 tools/build_voice_sfx.py SRC_ROOT OUTDIR      (needs numpy, scipy and ffmpeg)
 # SRC_ROOT holds the extracted packs (see assets/sfx/voice/CREDITS.md for the pages):
 #   vocal/slightscream-NN.flac                          15 vocal male strain/hurt/pain/jump sounds (qubodup, CC0)
 #   zombies/zombies/zombie-N.wav                        Zombies Sound Pack (artisticdude, CC0)
 #   squish/squish_NN.mp3                                Squish Sounds Effects (EZduzziteh, CC0)
 #   mw/metal_hit_0N.ogg, mw/wood_hit_0N.ogg             100 CC0 metal and wood SFX (rubberduck, CC0)
-#   fant/Fantozzi-footsteps/ogg/Fantozzi-StoneXN.ogg    Fantozzi's Footsteps (Grass/Sand & Stone) (Fantozzi, CC0)
 #   breath/breath.wav                                   Breathing Tired (mikeask, CC0)
 # Every take is mono 44.1 kHz, gets a 3 ms fade-in and a fade-out (no clicks), is band-limited, normalised to a fixed
 # peak and encoded as a 64 kbps MP3. Which source file feeds which take was chosen from length, attack and pitch
@@ -88,9 +87,6 @@ for i in range(1, 6):
     TAKES[f'imp-{i}'] = (lambda i=i: finish(band(load(f'mw/metal_hit_0{i}.ogg'), hp=350, lp=9000), .22, .75, .12))
 for i in range(1, 4):
     TAKES[f'impw-{i}'] = (lambda i=i: finish(band(load(f'mw/wood_hit_0{i}.ogg'), hp=150, lp=8000), .2, .75, .1))
-# --- footsteps on stone (left and right takes) ---
-for i, side in enumerate(['L1', 'R1', 'L2', 'R2', 'L3', 'R3'], 1):
-    TAKES[f'step-{i}'] = (lambda side=side: finish(band(load(f'fant/Fantozzi-footsteps/ogg/Fantozzi-Stone{side}.ogg'), hp=50, lp=7000), .3, .75, .12))
 # --- tired breathing, played repeatedly while the player is on the last life ---
 TAKES['breath'] = lambda: finish(band(load('breath/breath.wav'), hp=80, lp=4500), 3.1, .6, .35, .25)
 

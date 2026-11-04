@@ -1,13 +1,13 @@
-// Presence pass: recorded voices, impacts, footsteps and tired breathing on top of the synthesized sounds.
+// Presence pass: recorded voices, impacts and tired breathing on top of the synthesized sounds.
 // Before this, a zombie dying made a sine "thud", a jump made a puff of noise, the player never made a sound
-// when landing or hurt (outside a bite), bullets that hit the world were silent, and footsteps were one synth blip.
+// when landing or hurt (outside a bite), bullets that hit the world were silent.
 // Every sound here is a CC0 recording (assets/sfx/voice/CREDITS.md, about 225 KB in all). Until a take has loaded
 // (or if it fails) the original synthesized sound plays instead, so nothing goes silent.
 //
 // What this adds, and where it hooks in:
 //   player:  spent-casing tick after each shot (Tt.hg), jump / hard landing effort (Tt.jump, Tt.land), pain when hurt (Tt.hurt; during a bite a second pain
-//            cry half-way through the chewing), footsteps on stone (Tt.step), tired breathing + heartbeat + red
-//            screen edge on the last life
+//            cry half-way through the chewing), tired breathing + a red screen
+//            edge pulsing with the BGM heartbeat on the last life
 //   zombies: death cry (skyVoice.death, called from the zombie's die()), pain grunt + flesh impact on every bullet hit (__gunFx.hit), idle groan
 //            (Tt.groan), effort when it leaps / drops / climbs (startAct), roar layer (Tt.roar), body fall
 //            (Tt.thud), faint far-away groans so the town is never silent
@@ -29,7 +29,7 @@
     const BANK = {
       jump: names('jump', 4), land: names('land', 2), hurt: names('hurt', 3),
       zdie: names('zdie', 5), zhit: names('zhit', 5), zgroan: names('zgroan', 4), zalert: names('zalert', 3), zroar: ['zroar'],
-      flesh: names('flesh', 3), imp: names('imp', 5), impw: names('impw', 3), step: names('step', 6), breath: ['breath'],
+      flesh: names('flesh', 3), imp: names('imp', 5), impw: names('impw', 3), breath: ['breath'],
     };
     const BANK_VERSION = '20261104-voice-v1';
     const bank = {};
@@ -116,10 +116,6 @@
           if (window.skyBite.bankReady) setTimeout(() => { if (window.skyBite?.biting) play('hurt', { gain: .5, rate: rand(.95, 1.05) }); }, 430);
         } else play('hurt', { gain: .75, rate: rand(.95, 1.05) });
       }, 0);
-    });
-    wrap('step', prev => (n, ...a) => {
-      if (!ready('step')) return prev(n, ...a);
-      play('step', { gain: .1 + .6 * clamp(n, 0, 1), rate: rand(.93, 1.08) });
     });
 
     // A spent casing ticking on the ground a moment after the shot (the metal tick, pitched up and quiet).
@@ -208,16 +204,17 @@
 
     // ---------- the town is never silent: faint zombie groans far away ----------
     let nextFar = now() + 6;
-    // ---------- last life: tired breathing, heartbeat, red screen edge ----------
+    // ---------- last life: tired breathing and a red screen edge pulsing on the 0.95 s period of the BGM's own heartbeat
+    // (enhancements.js already thumps a 62 Hz pulse every 0.95 s; a second heartbeat of ours would beat against it) ----------
     const style = document.createElement('style');
     style.textContent = `#lowHpEdge{position:fixed;inset:0;pointer-events:none;z-index:6;opacity:0;transition:opacity .6s;
       box-shadow:inset 0 0 14vmin 3vmin rgba(150,0,0,.6)}
-      #lowHpEdge.on{opacity:1;animation:lowHpBeat .85s ease-in-out infinite}
+      #lowHpEdge.on{opacity:1;animation:lowHpBeat .95s ease-in-out infinite}
       @keyframes lowHpBeat{0%,100%{opacity:.55}18%{opacity:1}34%{opacity:.6}50%{opacity:.9}}
       @media (prefers-reduced-motion: reduce){#lowHpEdge.on{animation:none;opacity:.8}}`;
     document.head.appendChild(style);
     const edge = document.createElement('div'); edge.id = 'lowHpEdge'; document.body.appendChild(edge);
-    let low = false, nextBreath = 0, nextBeat = 0, breathVoice = null;
+    let low = false, nextBreath = 0, breathVoice = null;
     const maxLives = () => { try { return window.skyChallenge?.maxLives?.(3) ?? 3; } catch { return 3; } };
     function tick() {
       const t = now(), live = game.modeRef() === 'play' && !z.over;
@@ -232,14 +229,10 @@
           try { const ctx = Ut.ctx; breathVoice.gain.gain.setTargetAtTime(0, ctx.currentTime, .25); } catch {}
           breathVoice = null;
         }
-        nextBreath = nextBeat = t;
+        nextBreath = t;
       }
       if (!low) return;
       if (t >= nextBreath) { nextBreath = t + 2.85; breathVoice = play('breath', { gain: .55, rate: rand(.97, 1.04) }) || breathVoice; }
-      if (t >= nextBeat) {
-        nextBeat = t + .85;
-        try { game.ni(.32, 62, .13); setTimeout(() => game.ni(.22, 54, .13), 170); } catch {}
-      }
     }
     setInterval(tick, 120);
 

@@ -1,11 +1,11 @@
-// The voice / impact / footstep takes must exist, stay small, be credited, and the module must ask for exactly these files.
+// The voice / impact takes must exist, stay small, be credited, and the module must ask for exactly these files.
 // The game hooks (skyVoice.death, skyVoice.impact) must be present in both maps, and the module must keep its fallbacks.
 const assert = require('node:assert/strict'), fs = require('node:fs');
 const source = fs.readFileSync('voice-sfx.js', 'utf8');
 const names = [];
 for (const m of source.matchAll(/names\('([a-z]+)', (\d+)\)/g)) for (let i = 1; i <= +m[2]; i++) names.push(`${m[1]}-${i}`);
 names.push('zroar', 'breath');
-assert.ok(names.length >= 40, 'bank lists the takes');
+assert.ok(names.length >= 35, 'bank lists the takes');
 const credits = fs.readFileSync('assets/sfx/voice/CREDITS.md', 'utf8');
 let total = 0;
 for (const name of names) {
@@ -28,8 +28,8 @@ for (const page of ['index.html', 'canyon.html']) {
   assert.ok(html.includes('window.skyVoice?.impact(o)'), page + ' reports bullets that hit the world');
   assert.ok(!html.includes('Tt.kill()}startAct'), page + ' no longer ends die() with a bare Tt.kill()');
 }
-// Every recorded sound has a synthesized fallback: step / groan keep the old function, the rest only add a layer.
-assert.ok(/if \(!ready\('step'\)\) return prev\(n/.test(source), 'step falls back to the synthesized step');
+// Every recorded sound has a synthesized fallback: groan keeps the old function, the rest only add a layer. Footsteps are not touched.
+assert.ok(!/wrap\('step'/.test(source) && !/'step'/.test(source), 'footsteps stay the original synthesized sound');
 assert.ok(/prev\(n, pan, close\)/.test(source), 'groan falls back to the synthesized groan');
 assert.ok(/\.catch\(\(\) => null\)/.test(source), 'a failed download is skipped, not fatal');
 console.log(`PASS voice sfx: ${names.length} takes, ${total} bytes, credited, hooks present in both maps`);

@@ -1,5 +1,5 @@
 // Real-game check of the presence pass (voice-sfx.js): every recorded take decodes, and each hook in the running game
-// (jump, landing, footstep, zombie kill, bullet hit on a zombie, bullet into the world, groan, last-life breathing)
+// (jump, landing, zombie kill, bullet hit on a zombie, bullet into the world, groan, last-life breathing)
 // really reaches a recorded take. Also checks distance falloff, the gun-kill hit-stop and that nothing throws.
 const assert = require('node:assert/strict'), fs = require('node:fs'), { spawn } = require('node:child_process');
 const { chromium } = require('playwright');
@@ -49,7 +49,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
           Math.random = realRandom;
           step('land', () => Tt.land(1));
           step('softLand', () => { V.stats.played = { ...V.stats.played }; Tt.land(.2); });
-          step('step', () => Tt.step(.8));
+          const stepA = played(); Tt.step(.8); out.stepSample = diff(stepA, played());   // footsteps must stay the original synth
           step('groan', () => Tt.groan(.8, .2, false));
           step('casing', () => Tt.hg());
           step('roar', () => Tt.roar(0, .8));
@@ -88,7 +88,7 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         });
         assert.ok(r.jump.jump === 1, `${map}: jump voice ${JSON.stringify(r.jump)}`);
         assert.ok(r.land.land === 1 && !r.softLand.land, `${map}: hard landing has a voice, a soft one does not ${JSON.stringify([r.land, r.softLand])}`);
-        assert.ok(r.step.step === 1, `${map}: footstep sample ${JSON.stringify(r.step)}`);
+        assert.deepEqual(r.stepSample, {}, `${map}: footsteps are the original synthesized sound`);
         assert.ok(r.groan.zgroan === 1, `${map}: groan sample ${JSON.stringify(r.groan)}`);
         assert.ok(r.casing.imp === 1, `${map}: a casing tick follows a shot ${JSON.stringify(r.casing)}`);
         assert.ok(r.roar.zroar === 1, `${map}: roar layer ${JSON.stringify(r.roar)}`);
@@ -100,10 +100,10 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         assert.ok(r.hitStop === 1 && Math.abs(r.stopT - .03) < 1e-9, `${map}: gun kill hit-stop ${r.hitStop} / ${r.stopT}`);
         assert.ok(r.nearBest >= .8 && r.farBest <= .2 && r.nearLpBest > 5000 && r.farLpBest < 3000, `${map}: sound fades with distance ${JSON.stringify([r.nearBest, r.farBest, r.nearLpBest, r.farLpBest])}`);
         assert.ok(r.blocked > 0 && r.blockedMuffled && r.blockedQuiet, `${map}: a wall in between muffles and quiets (${r.blocked} blocked of 32)`);
-        assert.ok(r.lowOn && r.edgeOn && r.breath.breath >= 1, `${map}: last life shows the edge and breathes ${JSON.stringify([r.lowOn, r.edgeOn, r.breath])}`);
+        assert.ok(r.lowOn && r.edgeOn && r.breath.breath >= 1, `${map}: last life shows the edge and breathes (no extra heartbeat sound) ${JSON.stringify([r.lowOn, r.edgeOn, r.breath])}`);
         assert.ok(r.lowOff, `${map}: effects stop when the life is back`);
         assert.deepEqual(errors, [], `${map}: no page errors`);
-        results.push(`PASS ${map}: jump/land/step/casing/groan/roar/fall/impact/hit/kill voices, hit-stop ${r.stopT}, near ${r.nearBest} far ${r.farBest}, ${r.blocked}/32 rays blocked, last-life edge + breath`);
+        results.push(`PASS ${map}: jump/land/casing/groan/roar/fall/impact/hit/kill voices, hit-stop ${r.stopT}, near ${r.nearBest} far ${r.farBest}, ${r.blocked}/32 rays blocked, last-life edge + breath`);
       } finally { await context.close(); }
     }
   } finally { await browser?.close(); server?.kill(); }
