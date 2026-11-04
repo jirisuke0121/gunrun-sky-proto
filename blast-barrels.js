@@ -1,4 +1,4 @@
-// Two one-use escape tools for the canyon whitebox. The game calls pickShot
+// One-use escape tools shared by both maps and practice. The game calls pickShot
 // from its existing hitscan path, so walls and enemies keep their normal order.
 (() => {
   window.addEventListener('load', () => {
@@ -6,6 +6,8 @@
     const barrels = window.SKY_CANYON_BLAST_BARRELS;
     if (!game || !Array.isArray(barrels)) return;
     const stats = window.__game.stats;
+    const BLAST_RADIUS = 5.2;
+    const BLAST_CORE = BLAST_RADIUS / 2;
 
     const { Standard, Basic, Box, Torus, Sphere, Mesh, Group, Vector3 } = game.Geom;
     const red = new Standard({ color: 0xb52d1d, emissive: 0x541000,
@@ -191,16 +193,14 @@
                            distance - 0.2);
     }
 
-    function flash(barrel, topShot) {
-      // Unity's prototype combines a hot core, flame burst, dust, debris and a
-      // short light pulse. Keep this version procedural and short-lived.
+    function flash(barrel, feedback) {
       const root = new Group();
       root.position.set(barrel.x, barrel.y + 0.65, barrel.z);
       game.ue.add(root);
       const materials = [
         new Basic({ color: 0xfff3bd, transparent: true, opacity: 1, depthWrite: false }),
         new Basic({ color: 0xff711b, transparent: true, opacity: 0.62, depthWrite: false }),
-        new Basic({ color: 0xffca67, transparent: true, opacity: 0.8, depthWrite: false }),
+        new Basic({ color: 0xff8a35, transparent: true, opacity: 0.85, depthWrite: false }),
         new Basic({ color: 0x6e6258, transparent: true, opacity: 0.38, depthWrite: false }),
         new Basic({ color: 0xff9b38, transparent: true, opacity: 1, depthWrite: false }),
         new Basic({ color: 0xa42b1d, transparent: true, opacity: 1, depthWrite: false }),
@@ -209,13 +209,14 @@
       const coreGeo = new Sphere(1, 12, 8);
       const flameGeo = new Sphere(1, 6, 5);
       const smokeGeo = new Sphere(1, 7, 5);
-      const ringGeo = new Torus(1, 0.055, 6, 32);
+      const ringGeo = new Torus(1, 0.022, 6, 40);
       const sparkGeo = new Box(0.1, 0.1, 0.28);
       const debrisGeo = new Box(0.28, 0.1, 0.35);
       const core = new Mesh(coreGeo, materials[0]);
       const fire = new Mesh(coreGeo, materials[1]);
       const ring = new Mesh(ringGeo, materials[2]);
       ring.rotation.x = Math.PI / 2;
+      ring.position.y = -0.56;
       root.add(fire, core, ring);
       const flames = [], smoke = [], sparks = [], debris = [];
       for (let i = 0; i < 7; i++) {
@@ -244,14 +245,11 @@
         debris.push({ mesh: fragment, x: Math.cos(a), z: Math.sin(a),
                       lift: 1.4 + i % 3 * 0.5 });
       }
-      const light = window.T2?.PointLight ? new window.T2.PointLight(0xffaa40, 0, 7) : null;
-      if (light) { light.layers.disableAll(); root.add(light); } // Preserve the flash geometry without a local light.
-      const playerDistance = Math.hypot(game.c.pos.x - barrel.x, game.c.pos.z - barrel.z);
-      const screen = playerDistance < 11 ? document.createElement('div') : null;
+      const screen = feedback > 0 ? document.createElement('div') : null;
       if (screen) {
         Object.assign(screen.style, { position: 'fixed', inset: '0', zIndex: '19',
           pointerEvents: 'none',
-          background: 'radial-gradient(circle, #fff9e5 0%, #ffc36d 45%, transparent 90%)',
+          background: 'radial-gradient(ellipse, transparent 35%, #ffd090 100%)',
           opacity: '0' });
         document.body.appendChild(screen);
       }
@@ -259,13 +257,14 @@
       const tick = now => {
         const seconds = Math.max(0, (now - start) / 1000);
         const hit = Math.min(1, seconds / 0.12);
-        core.scale.setScalar(0.2 + 1.35 * hit);
-        materials[0].opacity = Math.max(0, 1 - seconds / 0.18);
+        core.scale.setScalar(0.32 + 0.88 * hit);
+        materials[0].opacity = Math.max(0, 1 - seconds / 0.15);
         fire.scale.setScalar(0.25 + Math.min(1, seconds / 0.22) * 0.95);
         materials[1].opacity = Math.max(0, 0.62 * (1 - seconds / 0.38));
-        ring.scale.setScalar(0.4 + Math.min(1, seconds / 0.42) * 5.6);
-        materials[2].opacity = Math.max(0, 0.8 * (1 - seconds / 0.42));
-        materials[3].opacity = Math.max(0, 0.38 * (1 - seconds / 1.2));
+        const wave = Math.min(1, seconds / 0.24);
+        ring.scale.setScalar(0.45 + (BLAST_RADIUS - 0.45) * (1 - (1 - wave) ** 2));
+        materials[2].opacity = 0.85 * Math.max(0, 1 - seconds / 0.36);
+        materials[3].opacity = Math.max(0, 0.26 * (1 - seconds / 1.05));
         materials[4].opacity = Math.max(0, 1 - seconds / 0.72);
         materials[5].opacity = materials[6].opacity = Math.max(0, 1 - seconds / 0.95);
         for (const tongue of flames) {
@@ -281,9 +280,10 @@
           puff.mesh.scale.setScalar(puff.size + seconds * 1.35);
         }
         for (const spark of sparks) {
-          spark.mesh.position.set(spark.x * seconds * 4.5,
-                                  spark.lift * seconds * 3 - 5 * seconds * seconds,
-                                  spark.z * seconds * 4.5);
+          const spread = 0.35 + seconds * (8 + spark.lift);
+          spark.mesh.position.set(spark.x * spread,
+                                  spark.lift * seconds * 6 - 8 * seconds * seconds,
+                                  spark.z * spread);
           spark.mesh.rotation.x += 0.08;
           spark.mesh.rotation.z += 0.05;
         }
@@ -294,9 +294,7 @@
           part.mesh.rotation.x += 0.13;
           part.mesh.rotation.y += 0.09;
         }
-        if (light) light.intensity = Math.max(0, 4 * (1 - seconds / 0.25));
-        if (screen) screen.style.opacity = String(Math.max(0,
-          (topShot ? 0.52 : 0.27) * (1 - playerDistance / 11) * (1 - seconds / 0.22)));
+        if (screen) screen.style.opacity = String(0.15 * feedback * Math.max(0, 1 - seconds / 0.16));
         if (seconds < 1.2) requestAnimationFrame(tick);
         else {
           game.ue.remove(root);
@@ -304,10 +302,9 @@
           for (const geometry of [coreGeo, flameGeo, smokeGeo, ringGeo, sparkGeo,
                                  debrisGeo]) geometry.dispose();
           for (const material of materials) material.dispose();
-          light?.dispose?.();
         }
       };
-      requestAnimationFrame(tick);
+      tick(start);
     }
 
     const blastRate = 44100;
@@ -315,31 +312,32 @@
     function prepareBlastSound() {
       if (blastSamples) return;
       const rate = blastRate;
-      const length = Math.ceil(rate * 1.9);
+      const length = Math.ceil(rate * 1.05);
       const data = new Float32Array(length);
       let seed = 73129, low = 0, previous = 0, phase = 0;
-      let crackEnv = 1, rumbleEnv = 1, bassEnv = 1, debrisEnv = 1, pitchEnv = 1;
-      const crackStep = Math.exp(-75 / rate);
-      const rumbleStep = Math.exp(-2.4 / rate);
-      const bassStep = Math.exp(-3.2 / rate);
-      const debrisStep = Math.exp(-2.7 / rate);
+      let crackEnv = 1, rumbleEnv = 1, bassEnv = 1, pitchEnv = 1;
+      const crackStep = Math.exp(-54 / rate);
+      const rumbleStep = Math.exp(-5.8 / rate);
+      const bassStep = Math.exp(-7 / rate);
       const pitchStep = Math.exp(-5 / rate);
       const random = () => ((seed = (1664525 * seed + 1013904223) >>> 0) / 0x80000000) - 1;
       for (let i = 0; i < length; i++) {
         const noise = random();
         low += (noise - low) * 0.035;
-        const crack = (noise - previous) * crackEnv * 0.5;
-        const rumble = low * rumbleEnv * 2.3;
-        phase += 2 * Math.PI * (42 + 95 * pitchEnv) / rate;
-        const bass = Math.sin(phase) * bassEnv * 0.42;
+        const crack = (noise - previous) * crackEnv * 0.58;
+        const rumble = low * rumbleEnv * 1.75;
+        phase += 2 * Math.PI * (55 + 120 * pitchEnv) / rate;
+        const bass = (Math.sin(phase) + 0.33 * Math.sin(2 * phase)) * bassEnv * 0.45;
         const seconds = i / rate;
-        const debris = noise * debrisEnv * (seconds > 0.18 ? 0.11 : 0.04);
-        data[i] = Math.tanh((crack + rumble + bass + debris) * 1.45) * 0.82;
+        const metalTime = Math.max(0, seconds - 0.025);
+        const metal = (Math.sin(2 * Math.PI * 1640 * metalTime) +
+          0.55 * Math.sin(2 * Math.PI * 2670 * metalTime)) * Math.exp(-23 * metalTime) * 0.13;
+        const fade = Math.min(1, i / 24, (length - 1 - i) / (rate * 0.06));
+        data[i] = Math.tanh((crack + rumble + bass + metal) * 1.35) * 0.82 * fade;
         previous = noise;
         crackEnv *= crackStep;
         rumbleEnv *= rumbleStep;
         bassEnv *= bassStep;
-        debrisEnv *= debrisStep;
         pitchEnv *= pitchStep;
       }
       blastSamples = data;
@@ -347,12 +345,12 @@
     if (window.requestIdleCallback) window.requestIdleCallback(prepareBlastSound, { timeout: 1000 });
     else setTimeout(prepareBlastSound, 0);
 
-    function playBlastSound(barrel) {
-      const distance = Math.hypot(game.c.pos.x - barrel.x, game.c.pos.z - barrel.z);
-      const volume = Math.max(0.18, 1 - distance / 28);
+    function playBlastSound(distance, visible) {
+      const volume = Math.max(0, 1 - distance / 32) ** 2;
+      if (volume === 0) return;
       const { ctx, master } = game.Ut;
       if (!ctx || !master) return;
-      if (ctx.state === 'suspended') ctx.resume();
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
       if (!blastSamples) prepareBlastSound();
       if (!blastSound) {
         blastSound = ctx.createBuffer(1, blastSamples.length, blastRate);
@@ -360,11 +358,15 @@
       }
       const source = ctx.createBufferSource();
       const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
       source.buffer = blastSound;
-      gain.gain.value = volume * 0.8;
-      source.connect(gain);
+      filter.type = 'lowpass';
+      filter.frequency.value = visible ? 6200 - distance * 145 : 700;
+      gain.gain.value = volume * (visible ? 0.78 : 0.38);
+      source.connect(filter);
+      filter.connect(gain);
       gain.connect(master);
-      source.onended = () => { source.disconnect(); gain.disconnect(); };
+      source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
       source.start();
     }
 
@@ -380,30 +382,38 @@
       barrel.cap.off = true;
       if (barrel.cap.mesh) barrel.cap.mesh.visible = false;
       barrel.target.visible = false;
-      game.c.shake = Math.max(game.c.shake || 0, topShot ? 0.58 : 0.38);
-      playBlastSound(barrel);
-      stats.blasts = (stats.blasts || 0) + 1;
-      flash(barrel, topShot);
-
-      // Local clearing only: enemies elsewhere continue the chase.
-      for (const zombie of game.Jt) {
-        if (zombie.dead || zombie.spawnT > 0) continue;
-        const dx = zombie.pos.x - barrel.x;
-        const dz = zombie.pos.z - barrel.z;
-        const distance = Math.hypot(dx, zombie.pos.y - barrel.y, dz);
-        if (distance > 5.2 || !blastVisible(barrel, zombie.pos.x,
-                                            zombie.pos.y + 0.9, zombie.pos.z)) continue;
-        const horizontal = Math.hypot(dx, dz) || 1;
-        zombie.hurt(distance < 2.6 ? 4 : 2, dx / horizontal, dz / horizontal,
-                    1.25, 9 * (1 - distance / 7));
-        zombie.blastT = 0.72;
-        zombie.blastSide = Math.cos(zombie.yaw) * dx - Math.sin(zombie.yaw) * dz < 0 ? -1 : 1;
-        zombie.vel.y = Math.max(zombie.vel.y, 2.7 + 1.8 * (1 - distance / 5.2));
-      }
-
+      barrel.badge.visible = false;
       const dx = player.pos.x - barrel.x;
       const dz = player.pos.z - barrel.z;
       const distance = Math.hypot(dx, player.pos.y + 0.8 - barrel.y - 0.56, dz);
+      const playerVisible = topShot || blastVisible(barrel, player.pos.x, player.pos.y + 1.0, player.pos.z);
+      const feedback = Math.max(0, 1 - distance / 11) * (playerVisible ? 1 : 0.18);
+      player.shake = Math.max(player.shake || 0, feedback * (topShot ? 0.39 : 0.32));
+      playBlastSound(distance, playerVisible);
+      stats.blasts = (stats.blasts || 0) + 1;
+      flash(barrel, feedback);
+
+      // Local clearing only: enemies elsewhere continue the chase.
+      let hitEnemy = false;
+      for (const zombie of game.Jt) {
+        if (zombie.dead || zombie.remove || zombie.spawnT > 0) continue;
+        const dx = zombie.pos.x - barrel.x;
+        const dz = zombie.pos.z - barrel.z;
+        const distance = Math.hypot(dx, zombie.pos.y - barrel.y, dz);
+        if (distance > BLAST_RADIUS || !blastVisible(barrel, zombie.pos.x,
+                                            zombie.pos.y + 0.9, zombie.pos.z)) continue;
+        const horizontal = Math.hypot(dx, dz) || 1;
+        const core = distance < BLAST_CORE;
+        const damage = core ? (zombie.boss || zombie.stalker ? 4 : zombie.hp) : 2;
+        const strength = 1 - distance / BLAST_RADIUS;
+        zombie.hurt(damage, dx / horizontal, dz / horizontal,
+                    core ? 1.25 : 1, 3 + 7 * strength);
+        if (!zombie.boss && !zombie.stalker) {
+          zombie.vel.y = Math.max(zombie.vel.y, 2.2 + 2.3 * strength);
+        }
+        hitEnemy = true;
+      }
+
       if (options.auto && barrel.land) {
         // The blast throws the player along an arc that ends on this barrel's
         // landing roof. The arc is solved from where the player actually is.
@@ -418,8 +428,7 @@
         player.vel.set(launch.x, launch.y, launch.z);
         stats.blastLaunches = (stats.blastLaunches || 0) + 1;
         game.rn('爆破ジャンプ！ 空中で進路を調整');
-      } else if (distance <= 4.6 && blastVisible(barrel, player.pos.x,
-                                          player.pos.y + 1.0, player.pos.z)) {
+      } else if (distance <= 4.6 && playerVisible) {
         const horizontal = Math.hypot(dx, dz) || 1;
         if (player.state === 'ledge' || player.state === 'ladder' ||
             player.state === 'slide') player.state = 'normal';
@@ -436,7 +445,7 @@
         stats.blastLaunches = (stats.blastLaunches || 0) + 1;
         game.rn(topShot ? '爆破ジャンプ！ 空中で進路を調整' :
           '爆風で上昇！ 空中で進路を調整');
-      } else game.rn('ドラム缶爆発！ 近くの敵を吹き飛ばした');
+      } else game.rn(hitEnemy ? 'ドラム缶爆発！ 近くの敵を吹き飛ばした' : 'ドラム缶爆発！');
       return true;
     }
 
@@ -566,7 +575,7 @@
           game.Tt?.hg?.();
         }
         if (a.fired && a.phaseT >= a.firedAt + SEQ.afterShot) {
-          fovKick = 14;
+          fovKick = 6;
           endAuto();           // restores the gun setting and eases the view back
           detonate(barrel, { auto: true });
         }
@@ -585,6 +594,7 @@
         barrel.cap.off = false;
         if (barrel.cap.mesh) barrel.cap.mesh.visible = true;
         barrel.target.visible = true;
+        barrel.badge.visible = true;
       }
       stats.blasts = 0;
       stats.blastLaunches = 0;
