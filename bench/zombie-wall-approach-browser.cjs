@@ -40,6 +40,7 @@ fs.mkdirSync(out,{recursive:true});
     {id:'lower-ring-flanker',p:[30,5.003,-26.3],e:[30,-3.497,-34],flank:true},
     {id:'right-end',p:[35,5.003,-26.3],e:[37,.003,-24]},
     {id:'left-end',p:[24,5.003,-26.3],e:[21,.003,-24]},
+    {id:'wall-lip-after-shove',p:[27.33,5.0001,-27.66],e:[33.25,.003,-24.9]},
     {id:'tower-descent',p:[30,5.003,-26.3],e:[43,14.403,-9],seconds:80}];
    const rows=[];
    for(const fixture of baseline?fixtures.slice(0,1):fixtures){

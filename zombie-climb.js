@@ -95,13 +95,28 @@ export function createZombieClimb(game, runtime, flashbang) {
     const node = runtime.nodeAt(p.x, p.y + 0.1, p.z);
     return node >= 0 && Math.abs(runtime.NAV.nodes[node].y - p.y) < 0.35 && Number.isFinite(fieldFor(enemy)?.[node]) ? node : -1;
   }
-  function onTop(body, cap) {
-    return !cap.off && body.onGround && Math.abs(body.pos.y - cap.maxY) < 0.12 &&
-      body.pos.x >= cap.minX && body.pos.x <= cap.maxX && body.pos.z >= cap.minZ && body.pos.z <= cap.maxZ;
+  function supportingWall(body) {
+    if (!body.onGround) return null;
+    const { x, y, z } = body.pos;
+    const radius = body.r || 0;
+    let best = null, gap = radius;
+    for (const cap of runtime.near(x - radius, z - radius, x + radius, z + radius)) {
+      if (cap.off || !columns.has(cap) || Math.abs(y - cap.maxY) >= 0.12) continue;
+      const distance = distanceToTop(body.pos, cap);
+      if (distance <= gap) { best = cap; gap = distance; }
+    }
+    return best;
   }
   function topPath(enemy, cap, from, player = targetFor(enemy)) {
     if (!player?.onGround || Math.abs(player.pos.y - cap.maxY) > 0.12) return false;
     const goal = point(player.pos.x, cap.maxY + 0.003, player.pos.z);
+    if (clearLine(enemy, from, goal, true)) return true;
+    // A grounded player's body can overlap a lip even when its center is over
+    // air. Route to the solid edge within attack reach of that player.
+    const gap = distanceToTop(player.pos, cap);
+    if (gap <= 0 || gap > (player.r || 0)) return false;
+    goal.x = clamp(goal.x, cap.minX, cap.maxX);
+    goal.z = clamp(goal.z, cap.minZ, cap.maxZ);
     return clearLine(enemy, from, goal, true);
   }
   function wallTarget(enemy) {
@@ -112,8 +127,7 @@ export function createZombieClimb(game, runtime, flashbang) {
     if (now === targetTime && key === targetKey) return targetTop;
     targetTime = now; targetKey = key; targetTop = null;
     if (player.onGround && landingNode(player.pos, enemy) < 0) {
-      targetTop = runtime.near(player.pos.x, player.pos.z, player.pos.x, player.pos.z)
-        .find(b => columns.has(b) && onTop(player, b)) || null;
+      targetTop = supportingWall(player);
     }
     return targetTop;
   }
@@ -228,8 +242,7 @@ export function createZombieClimb(game, runtime, flashbang) {
     if (run.mission || !realPlayer.onGround) return null;
     const node = runtime.nodeAt(realPlayer.pos.x, realPlayer.pos.y + 0.1, realPlayer.pos.z);
     if (node >= 0 && Math.abs(runtime.NAV.nodes[node].y - realPlayer.pos.y) < 0.35) return null;
-    const cap = runtime.near(realPlayer.pos.x, realPlayer.pos.z, realPlayer.pos.x, realPlayer.pos.z)
-      .find(b => columns.has(b) && onTop(realPlayer, b));
+    const cap = supportingWall(realPlayer);
     if (!cap) return null;
     if (approachGoal?.cap === cap && game.ceRef() < approachGoal.until &&
         distance(approachGoal.pos, realPlayer.pos) < 0.5) return approachGoal.ids.length ? approachGoal.ids : null;
