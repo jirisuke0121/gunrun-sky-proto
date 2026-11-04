@@ -14,7 +14,7 @@ const out = 'browser-evidence/zombie-search'; fs.mkdirSync(out, { recursive: tru
   try {
     for (const touch of [false, true]) for (const map of ['index.html', 'canyon.html']) {
       const id = `${map.split('.')[0]}-${touch ? 'touch' : 'desktop'}`, errors = [];
-      const ctx = await browser.newContext({ viewport: touch ? { width: 390, height: 844 } : { width: 1280, height: 720 }, hasTouch: touch, isMobile: touch });
+      const ctx = await browser.newContext({ viewport: touch ? { width: 844, height: 390 } : { width: 1280, height: 720 }, hasTouch: touch, isMobile: touch });
       await ctx.addInitScript(() => window.__hold = true);
       await ctx.route('https://**/*', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"top":[],"total":0,"ok":true}' }));
       const page = await ctx.newPage(); page.on('pageerror', e => errors.push(e.message));
