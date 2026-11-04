@@ -88,11 +88,12 @@
     if (active === 'normal') return [{ t: 60, do: 'surge', n: 1 }, { t: 90, do: 'squeeze', front: 1, back: 1 }];
     if (active !== 'hard') return [];
     return [
+      { t: 30, do: 'squeeze', front: 1, back: 1 },
       { t: 40, do: 'surge', n: 2 },
       { t: 50, do: 'boss' },
-      { t: 65, do: 'squeeze', front: 1, back: 1 },
+      { t: 60, do: 'squeeze', front: 1, back: 1 },
       { t: 85, do: 'surge', n: 2 },
-      { t: 100, do: 'squeeze', front: 2, back: 2 },
+      { t: 90, do: 'squeeze', front: 2, back: 2 },
     ];
   }
   const owned = ['zombieSpeed', 'zombieHealth', 'maxZombies', 'flankShare', 'aheadShare', 'dropperShare', 'dropShare', 'killLull', 'paceGap', 'stalkerOn', 'stalker2', 'stalkerAt', 'stalkerSpeed'];
