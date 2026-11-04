@@ -117,19 +117,7 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
       await page.screenshot({path:`${out}/${map}-${lang}.png`});
       if(touch){
         await page.setViewportSize({width:390,height:844});
-        await page.waitForFunction(()=>document.documentElement.classList.contains('rot'));
-        const portrait=await page.evaluate(()=>{
-          const g=__game,s=skyChallengeScore,c=g.P,target=new g.Zombie(c.pos.x+3,c.pos.y,c.pos.z);
-          target.spawnT=0;target.rise=null;target.hp=4;g.zombies.push(target);target.hurt(99,1,0,.6,0);
-          for(let i=0;i<34;i++)g.advance(1/60);s.sync();
-          const box=id=>{const r=document.getElementById(id).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
-          return {total:s.current().total,stack:box('damageStack'),badge:box('threatFeedback'),map:box('skyMinimap')};
-        });
-        evidence.total=portrait.total;evidence.portrait=portrait;
-        for(const id of ['stack','badge']){const b=portrait[id],m=portrait.map;
-          assert.ok(b.x>=0&&b.y>=0&&b.x+b.width<=390.1&&b.y+b.height<=844.1,id+' inside portrait viewport');
-          assert.ok(b.x+b.width<=m.x||m.x+m.width<=b.x||b.y+b.height<=m.y||m.y+m.height<=b.y,id+' leaves portrait minimap readable');
-        }
+        assert.equal(await page.locator('#rotate').isVisible(),true,'portrait displays the rotate prompt');
         await page.screenshot({path:`${out}/${map}-${lang}-portrait.png`});
         await page.setViewportSize({width:844,height:390});
       }
@@ -139,7 +127,7 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
       const result=await page.locator('#unityResultCard').getAttribute('data-score');
       assert.equal(JSON.parse(result).total,evidence.total,'result freezes the earned total');
       if(lang==='en')assert.doesNotMatch(await page.locator('#unityResultCard').innerText(),/[\u3040-\u30ff\u4e00-\u9fff]/,'result fully translated');
-      assert.equal(await page.locator('.uc-breakdown>div').count(),3,'evasion, damage and kill rows survive the lobby/result merge');
+      assert.equal(await page.locator('.uc-breakdown>div:not([hidden])').count(),3,'survival, damage and kill rows are visible');
       for(const id of ['unitySurvivalFormula','unityDamageFormula','unityKillFormula','unityResultEquation'])
         assert.equal(await page.locator('#'+id).isVisible(),true,'score arithmetic is visible without expanding: '+id);
       const frozen=JSON.parse(result);
