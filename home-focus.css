@@ -6,15 +6,16 @@
 .home-kicker{color:#a8b6c1;letter-spacing:.18em;font-size:11px;margin:0 0 7px}
 .home-heading h1{font-size:36px;margin:0;line-height:1.15;letter-spacing:.06em;color:#f4f0e8}.home-heading h1 span{color:#ec9a73;font-size:.55em;margin-left:.6em}
 #homeHero button{border-radius:5px;font-family:inherit;cursor:pointer;text-shadow:none}
-#homeSettings{min-height:44px;padding:8px 20px;border:1px solid #657380;background:transparent;color:#e0e6eb;font-size:14px}
+#homeSettings,#homeRankingButton{min-height:44px;padding:8px 20px;border:1px solid #657380;background:transparent;color:#e0e6eb;font-size:14px}
+#homeRankingButton{border-color:#ec9a73;color:#ffd2b8}
 .home-scene{min-height:310px;position:relative;display:flex;align-items:flex-end;background-size:cover;background-position:46% center;border:1px solid #3a4855;border-radius:6px;overflow:hidden}
 .home-scene-copy{padding:24px}.home-map{font-size:14px;letter-spacing:.08em;color:#f4f0e8}.home-map small{display:block;font-size:10px;color:#b9c8d4;margin-top:5px;letter-spacing:.18em}
 .home-scene h2{font-size:48px;font-weight:900;letter-spacing:.04em;line-height:1.2;margin:16px 0 10px;color:#fff}.home-scene p{font-size:13px;color:#d6dfe4;margin:0;line-height:1.6}
 .home-play{display:flex;flex-direction:column;justify-content:center;gap:16px;min-width:0}
 .home-difficulty-heading{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}.home-difficulty-heading h2{font-size:18px;color:#f4f0e8;margin:0}.home-difficulty-heading>span{font-size:12px;color:#b1c0cb}
 .home-difficulty-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.home-difficulty-choices button{display:grid;gap:9px;justify-items:center;min-height:92px;padding:12px 4px;border:1px solid #536372;background:#162330;color:#c6d1db}
-.home-difficulty-choices button>span{font-size:14px}.home-difficulty-choices button>strong{font-size:27px;line-height:1;color:#f4f0e8}
+.home-difficulty-choices button{display:grid;gap:6px;justify-items:center;align-content:center;min-height:104px;padding:12px 4px;border:1px solid #536372;background:#162330;color:#c6d1db}
+.home-difficulty-choices button>small{font-size:11px;line-height:1.35;color:#b9c8d4;text-align:center}.home-difficulty-choices button>small>span{display:block;white-space:nowrap}.home-difficulty-choices button[aria-pressed=true]>small{color:#e8d6ca}.home-difficulty-choices button>span{font-size:14px}.home-difficulty-choices button>strong{font-size:27px;line-height:1;color:#f4f0e8}
 .home-difficulty-choices button[aria-pressed=true]{border:2px solid #ec9a73;background:#342b29;padding:11px 3px;color:#fff}.home-difficulty-choices button[aria-pressed=true]>strong{color:#ffb98e}
 .home-difficulty-choices button:hover{background:#263542}.home-difficulty-choices button:focus-visible,#homeHero button:focus-visible{outline:3px solid #fff1c4;outline-offset:3px}
 .home-run-facts{display:flex;justify-content:space-between;gap:16px;color:#b1c0cb;font-size:13px}.home-run-facts b{margin-left:8px;color:#f4f0e8;font-size:18px}
@@ -50,3 +51,15 @@ html:not(.dev) .challenge-select details,html:not(.dev) .map-select{display:none
 #langToggle[hidden]{display:none}
 html[lang=en] #homeHero[data-compact=true] .home-scene h2{font-size:28px}
 .home-heading-actions{display:flex;align-items:center;gap:8px;flex:none}.home-heading-actions #langToggle{position:static;z-index:auto;font-size:12px;padding:8px 12px;min-height:44px}
+
+/* Ranking sits right under the lobby, on the same ink background, not in the folded practice area. */
+#homeRanking{margin-top:14px;padding-top:14px;border-top:1px solid #3a4855}#homeRanking:empty{display:none}#homeRanking .rankbox{margin:0;max-width:780px}
+#homeHero #introReadyStatus{display:none}
+/* Short screens (phones held sideways): a narrower picture, no tagline, tighter header; Start and Beginner stay on the first screen. */
+#homeHero[data-compact=true]{grid-template-columns:minmax(0,.62fr) minmax(0,1fr)}
+#homeHero[data-compact=true] .home-kicker{display:none}#homeHero[data-compact=true] .home-heading h1{font-size:24px;white-space:nowrap}
+#homeHero[data-compact=true] .home-heading-actions{gap:6px}#homeHero[data-compact=true] .home-heading-actions button{min-height:40px;padding:6px 12px;font-size:12px}
+#homeHero[data-compact=true] .home-scene p{display:none}#homeHero[data-compact=true] .home-scene h2{font-size:30px;margin:8px 0 0}#homeHero[data-compact=true] .home-scene-copy{padding:14px}
+#homeHero[data-compact=true] .home-difficulty-choices button{min-height:64px;gap:2px;padding:6px 3px}#homeHero[data-compact=true] .home-difficulty-choices button[aria-pressed=true]{padding:5px 2px}#homeHero[data-compact=true] .home-difficulty-choices button>strong{font-size:20px}
+#homeHero[data-compact=true] #bIntro{min-height:40px}
+html[lang=en] #homeHero[data-compact=true] .home-scene h2{font-size:24px}

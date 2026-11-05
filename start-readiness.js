@@ -31,7 +31,7 @@
         button.setAttribute('aria-busy', String(state.phase === 'loading'));
       }
       start.textContent = ready ? win.skyPracticeMode ? '練習をはじめる' : '本番をはじめる（2分）' : state.message;
-      intro.textContent = ready ? '入門モードで試す（ライフ無限）' : state.message;
+      intro.textContent = '入門モードで試す（ライフ無限）';
       for (const status of statuses) {
         status.hidden = ready;
         status.textContent = state.message;

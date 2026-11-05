@@ -3869,17 +3869,17 @@ three/build/three.module.js:
 <script src="./town-heights.js?v=20261103-open-barrels-v4"></script>
 <script src="./indoor-access.js?v=20261101-entry-v1"></script>
 <script src="./indoor-feedback.js?v=20261101-entry-v1"></script>
-<script src="./start-readiness.js?v=20261101-infection-fx-v2"></script>
+<script src="./start-readiness.js?v=20261105-lobby-v7"></script>
 <script src="./dev-mode.js?v=20261101-dev-v1"></script>
 <script src="./ranked-rules.js?v=20261102-score-balance-v14c"></script>
 <script src="./challenge-difficulty.js?v=20261105-squeeze30"></script>
 <script src="./render-quality.js?v=20261102-environment-v1"></script>
 <script type="module" src="./foundation-runtime.js?v=20261102-players-v1"></script>
-<link rel="stylesheet" href="./challenge-score.css?v=20261102-parkour-v1">
+<link rel="stylesheet" href="./challenge-score.css?v=20261105-lobby-v7">
 <link rel="stylesheet" href="./hud-unify.css?v=20261101-recoil-v1">
 <link rel="stylesheet" href="./touch-controls.css?v=20261103-controls-v2">
 <link rel="stylesheet" href="./player-skills.css?v=20261103-rescue-v1">
-<link rel="stylesheet" href="./home-focus.css?v=20261101-screen-v2">
+<link rel="stylesheet" href="./home-focus.css?v=20261105-lobby-v7">
 <link rel="stylesheet" href="./pause-focus.css?v=20261103-controls-v2">
 <script src="./survival-score.js?v=20261102-score-balance-v14c"></script>
 <script src="./next-step.js?v=20261102-next-step-v1"></script>
@@ -7821,7 +7821,7 @@ three/build/three.module.js:
    *)
 */
 
-function refreshChallengeBest(){Rd=window.skyChallenge.key("gunrun-sky-proto-chase-best-v2");try{let data=JSON.parse(localStorage.getItem(Rd)||"null");en=data&&data.score>0?data:null}catch{en=null}J("bestLine").textContent=(window.skyChallenge.id==="legacy"?"自由調整":"全難易度")+" ベスト "+(en?en.score+" 点":"—")}
+function refreshChallengeBest(){Rd=window.skyChallenge.key("gunrun-sky-proto-chase-best-v2");try{let data=JSON.parse(localStorage.getItem(Rd)||"null");en=data&&data.score>0?data:null}catch{en=null}J("bestLine").textContent=window.skyChallenge.id==="legacy"?"自由調整 ベスト "+(en?en.score+" 点":"—"):"ベスト得点 "+(en?en.score+" 点":"未記録")}
 window.__skyInternals={initAudio:wh,decoyField:(node,out)=>so([node],oo,200,out),startSlide:F_,near:zn,fallY:-22,inputState:Ot,keys:Oe,demoActive:()=>on,canExitLadder:L=>!!jc({pos:{x:L.nx?L.x+L.nx*(ke+.22):L.x,y:L.y1-.95,z:L.nz?L.z+L.nz*(ke+.22):L.z},r:ke},-L.nx,-L.nz,.1,2.2),refreshChallengeBest,zombieModels:()=>zMeshy,Ed,Ut,Mn,ni,wpc,WP,U,Jn,Et,ri,Tt,c,z,Jt,ls,oe,raycast:xs,searchNav:{field:so,cost:oo,dropCost:Pd,stalkerCost:Gd,decoyTarget:enemy=>window.skyDecoy?.targetFor(enemy)},searchEvent:ps,searchEscapeScore:()=>{let q=Ee.sk;q&&q.ch>0&&(q.ev=(q.ev||0)+1)},ue,fo,Se,za,tl,vd,uh,mr,us,mo,$a,jn,Ja,nn,Mr,rn,Ua,nl,An,br,gd,wv,fireWeapon:zd,aimTarget:lkT,ceRef:()=>ce,modeRef:()=>ie,Geom:{Box:tn,Cylinder:is,Torus:ya,Sphere:nr,Mesh:se,Group:En,Standard:ze,Basic:Qe,Vector3:P,Line:Gr,BufferGeometry:fn,Float32Attribute:un,Sprite:ga,SpriteMaterial:Vr,CanvasTexture:er,PointLight:sr}};
 window.skyChallenge.attach(window.__skyInternals);
 window.skyChallengeScore.attach(window.__skyInternals);
@@ -7839,7 +7839,7 @@ window.skyFoundation?.attach(window.__skyInternals,window.__game);
 <script src="./desktop-look-fallback.js?v=20261028-follow-v1"></script>
 <script type="module" src="./zombie-near.js?v=20261027-pool-v1"></script>
 <script src="./blast-barrels.js?v=20261105-blast-feedback-v1"></script><script src="./jump-pads.js?v=20261103-pad-v1"></script><script src="./free-hook.js?v=20261103-rescue-v1"></script><script src="./bite-shove.js?v=20261104-bite-traversal"></script><script src="./voice-sfx.js?v=20261105-voice-v2"></script><script src="./tension-music.js?v=20261105-tension-v1"></script>
-<script type="module" src="./enhancements.js?v=20261105-guidance-v1"></script>
+<script type="module" src="./enhancements.js?v=20261105-lobby-v7"></script>
 <script type="module" src="./human-view.js?v=20261103-bite-v5"></script>
 <script type="module" src="./auto-fire-controls.js?v=20261030-auto-fire-controls-v1"></script>
 <script type="module" src="./game-menu.js?v=20261103-controls-v2"></script>
@@ -7847,7 +7847,7 @@ window.skyFoundation?.attach(window.__skyInternals,window.__game);
 
 <script type="module" src="./escape-routes.js?v=20261030-escape-fixes-v1"></script>
 <script type="module" src="./escape-guidance.js?v=20261105-guidance-v1"></script>
-<script type="module" src="./home-focus.js?v=20261101-screen-v2"></script>
+<script type="module" src="./home-focus.js?v=20261105-lobby-v7"></script>
 <link rel="stylesheet" href="./onboarding.css?v=20261103-controls-v2">
 <script src="./player-name.js?v=20261102-onboarding-v3"></script>
 <script type="module" src="./onboarding.js?v=20261103-controls-v2"></script>
