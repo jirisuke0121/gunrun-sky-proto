@@ -56,8 +56,9 @@ fs.mkdirSync(out,{recursive:true});
    assert.equal((await snapshot()).pixelRatio,.75);await click('#bRestart');
    assert.equal((await snapshot()).pixelRatio,.5);assert.equal((await snapshot()).shadows,false);
    await click('#bSettings');await click('#bMenu');await page.waitForFunction(()=>__game.mode==='menu');
-   if(await page.locator('#homeMore').count())await page.locator('#homeMore > summary').click();
-   await page.locator('#homeRenderQuality').selectOption('high');await click('#bStart');
+   // Graphics settings live in Settings only (the home fold is developer-only): open them from the lobby.
+   await click('#homeSettings');await click('#pauseTab_display');await page.locator('#settingsRenderQuality').selectOption('high');
+   await page.evaluate(()=>document.getElementById('bSettings').click());await click('#bStart');
    // Controlled timestamps validate decision/transition wiring, not device FPS.
    await page.evaluate(()=>{for(let i=0;i<=800;i++)skyFoundation.frame(i*25,true)});
    assert.equal(await page.locator('#qualitySuggestion').count(),0);
@@ -82,7 +83,7 @@ fs.mkdirSync(out,{recursive:true});
   const english=await browser.newContext({locale:'en-US'}),englishPage=await english.newPage();
   await english.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"ok":true,"top":[],"total":0}'}));
   await englishPage.goto(base+'/index.html');await englishPage.waitForFunction(()=>window.skyStartReadiness?.ready&&document.documentElement.lang==='en');
-  if(await englishPage.locator('#homeMore').count())await englishPage.locator('#homeMore > summary').click();
+  assert.equal(await englishPage.locator('#homeMore').isVisible(),false);
   await englishPage.waitForFunction(()=>document.getElementById('homeRenderQuality').textContent.includes('Minimum (0.5×)'));
   assert.deepEqual(await englishPage.locator('#homeRenderQuality option').allTextContents(),['Original detail','Standard (1.0×)','Light (0.75×)','Minimum (0.5×)']);
   assert.doesNotMatch(await englishPage.locator('#homeRenderQualityDescription').innerText(),/[\u3040-\u30ff\u4e00-\u9fff]/);await english.close();

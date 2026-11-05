@@ -184,6 +184,13 @@
  "⚙ 設定（操作・感度・音量・画質）": "⚙ Settings (controls · sensitivity · volume · graphics)",
  "全難易度 ベスト —": "All difficulties Best —",
  "ランキング": "Ranking",
+ "ニックネーム": "Nickname",
+ "ニックネームを決める": "Choose a nickname",
+ "ランキングを閉じる": "Close ranking",
+ "開発者向け（?dev=1）": "Developer tools (?dev=1)",
+ "ランキングのため、ニックネーム・スコア・プレイ記録を送信します。設定で停止できます。": "Your nickname, score and play records are sent for the ranking. You can turn this off in Settings.",
+ "記録の送信は停止中です。ランキングには載りません。設定で変更できます。": "Sending is turned off, so you will not appear in the ranking. You can change this in Settings.",
+ "ニックネーム・スコア・プレイ記録は、ランキングのために送信されます（設定で停止できます）。": "Your nickname, score and play records are sent for the ranking (you can turn this off in Settings).",
  "数字は得点の倍率": "Number = score multiplier",
  "練習・スポット・ルール": "Practice · Spots · Rules",
  "全難易度の最高スコア順（難易度の倍率を反映）。": "Best score across all difficulties (difficulty multiplier included).",
@@ -549,6 +556,7 @@
  "スティックだけで走れます。カメラは進む向きに自動で追従します。右側をドラッグすると一時的に見回せます。": "You can run with the stick alone. The camera follows your direction automatically; drag the right side to look around briefly.",
 };
   const patterns = [
+    [/^ニックネーム (.+)（変更する）$/, (_, n) => `Nickname ${n} (change)`],
   // Ranking rows: "ハード · クリア" / "ノーマル · 101秒" (difficulty name, then the result)
   [/^(イージー|ノーマル|ハード|自由調整) · クリア$/, (m, a) => `${{ 'イージー': 'Easy', 'ノーマル': 'Normal', 'ハード': 'Hard', '自由調整': 'Free' }[a]} · Cleared`],
   [/^(イージー|ノーマル|ハード|自由調整) · (\d+)秒$/, (m, a, t) => `${{ 'イージー': 'Easy', 'ノーマル': 'Normal', 'ハード': 'Hard', '自由調整': 'Free' }[a]} · ${t} s`],

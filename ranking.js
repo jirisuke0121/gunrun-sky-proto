@@ -84,5 +84,6 @@ export function installRanking(game) {
       await refresh(over);
     }
   }).observe($('ovOver'), { attributes: true, attributeFilter: ['hidden'] });
+  window.skyRanking = { refreshTitle: () => reset(title) };
   reset(title);
 }

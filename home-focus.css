@@ -63,3 +63,24 @@ html[lang=en] #homeHero[data-compact=true] .home-scene h2{font-size:28px}
 #homeHero[data-compact=true] .home-difficulty-choices button{min-height:64px;gap:2px;padding:6px 3px}#homeHero[data-compact=true] .home-difficulty-choices button[aria-pressed=true]{padding:5px 2px}#homeHero[data-compact=true] .home-difficulty-choices button>strong{font-size:20px}
 #homeHero[data-compact=true] #bIntro{min-height:40px}
 html[lang=en] #homeHero[data-compact=true] .home-scene h2{font-size:24px}
+
+/* ---- Player-facing lobby: tuning and unfinished features live behind ?dev=1; camera/graphics live in Settings only. ---- */
+html:not(.dev) #homeMore{display:none}
+#homeMore .follow-camera-home,#homeMore .sky-quality-control{display:none}
+#homeName{display:inline-flex;align-items:center;gap:7px;min-height:44px;max-width:210px;padding:6px 12px;border:1px solid #657380;background:#162330;color:#f4f0e8;font-size:13px}
+#homeName small{font-size:10px;color:#a8b6c1;letter-spacing:.08em;white-space:nowrap}#homeName b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}#homeName i{font-style:normal;color:#ec9a73}
+#homeHero #homeSendNotice{grid-column:1/-1;margin:0;font-size:11px;line-height:1.5;color:#a8b6c1}
+#homeHero[data-compact=true] #homeName{min-height:40px;padding:5px 10px;max-width:130px;font-size:12px}#homeHero[data-compact=true] #homeName small{display:none}
+#homeHero[data-compact=true] #homeSendNotice{margin-top:-4px}
+/* Ranking overlay */
+#homeRanking{position:fixed;inset:0;z-index:70;display:grid;place-items:center;margin:0;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));border:0;background:#070c13f2;overflow:auto;box-sizing:border-box;align-content:center}
+#homeRanking[hidden]{display:none}
+#homeRanking>*{width:min(820px,100%);box-sizing:border-box}
+.home-ranking-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}.home-ranking-head h2{margin:0;font-size:20px;color:#f4f0e8}
+#homeRankingClose{min-height:44px;min-width:88px;padding:8px 18px;border:1px solid #ec9a73;border-radius:5px;background:transparent;color:#ffd2b8;font-size:14px;font-family:inherit;cursor:pointer}
+#homeRankingClose:focus-visible,#homeName:focus-visible{outline:3px solid #fff1c4;outline-offset:3px}
+.onb-name .onb-send{color:#f0c59b}
+/* Short screens: the controls hint is in 遊び方 (header); the one-line send notice keeps its place and Start stays on the first screen. */
+#homeHero[data-compact=true] .home-controls{display:none}
+#homeHero[data-compact=true] #homeSendNotice{margin-top:0;border-top:1px solid #3a4855;padding-top:6px}
+#homeRanking .rankbox{max-width:none}
