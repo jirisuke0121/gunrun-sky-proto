@@ -64,25 +64,23 @@ export function createZombieLadders(game, runtime, climb, flashbang) {
     if(!enabled()||edge?.kind!==5)return 0;
     const route=template(edge,!!enemy.stalker);if(!route)return 0;
     const from=runtime.NAV.nodes[edge.from],range=Math.hypot(enemy.pos.x-from.x,enemy.pos.z-from.z);
-    if(range>6||Math.abs(enemy.pos.y-from.y)>.65)return 0;
-    let delay=0,waitingAhead=0;const rank=game.Jt.indexOf(enemy);
+    if(range>7||Math.abs(enemy.pos.y-from.y)>.65)return 0;
+    let delay=0;const line=queue(enemy,edge),rank=line.indexOf(enemy);
+    const waitingAhead=line.slice(0,Math.max(0,rank)).reduce((sum,e)=>sum+(e.h+config.spacing)/speed(e),0);
     for(const other of game.Jt){
       if(other===enemy||!live(other))continue;
       if(other.act?.kind==='ladder'&&other.act.L===edge.ladder){
         delay=Math.max(delay,Math.max(0,other.h+config.spacing-(other.pos.y-route.attach.y))/speed(other));
         continue;
       }
-      const otherRange=Math.hypot(other.pos.x-from.x,other.pos.z-from.z);
       const atExit=Math.hypot(other.pos.x-route.finish.x,other.pos.z-route.finish.z)<other.r+enemy.r+.12&&Math.abs(other.pos.y-route.finish.y)<other.h;
       if(atExit)delay=Math.max(delay,other.stun>0?Math.min(12,other.stun):1.5);
       if(Math.abs(other.pos.y-from.y)>.65)continue;
       const atEntry=Math.hypot(other.pos.x-route.attach.x,other.pos.z-route.attach.z)<other.r+enemy.r+.12;
       if(atEntry&&other.stun>0)delay=Math.max(delay,Math.min(12,other.stun));
-      const same=waitFor(other,edge)||runtime.NAV.E[other.edge]?.ladder===edge.ladder;
-      if(same&&otherRange<3&&(otherRange<range-.1||Math.abs(otherRange-range)<=.1&&game.Jt.indexOf(other)<rank))waitingAhead++;
-      else if(atEntry)delay=Math.max(delay,1.5);
+      if(atEntry&&!line.includes(other))delay=Math.max(delay,1.5);
     }
-    return delay+waitingAhead*(enemy.h+config.spacing)/speed(enemy);
+    return delay+waitingAhead;
   }
   function penetration(body,p,other) {
     return Math.max(0,body.r+other.r+.03-Math.hypot(p.x-other.pos.x,p.z-other.pos.z))*

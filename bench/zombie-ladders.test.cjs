@@ -40,6 +40,10 @@ const assert=require('node:assert/strict');
   q.advance(head,2.2);assert.ok(q.ladders.start(follower,q.edge),'the next actor can climb after the leader clears the rung');
  }
  {
+  const q=setup(),line=Array.from({length:8},(_,i)=>q.enemy(-1-i*.85));
+  assert.ok(Math.abs(q.ladders.queueDelay(line[7],q.edge)-7*1.95/1.1)<.01,'queue ETA includes every actor ahead, including the back of a long line');
+ }
+ {
   const q=setup(),e=q.enemy(),block=q.enemy();block.pos.set(0,4.003,1);block.stun=12;
   assert.ok(q.ladders.start(e,q.edge),'a safe adjacent exit avoids an occupied nominal node');q.advance(e,5);
   assert.ok(Math.hypot(e.pos.x-block.pos.x,e.pos.z-block.pos.z)>.6);assert.ok(q.climb.clearLine(e,e.pos,e.pos,true));
