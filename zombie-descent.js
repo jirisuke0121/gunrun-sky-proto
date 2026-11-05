@@ -1,4 +1,4 @@
-import { traversalPoint } from './zombie-routing.js?v=20261106-pursuit-v1';
+import { traversalPoint } from './zombie-routing.js?v=20261106-pursuit-v2';
 
 // Recovery when the authored graph cannot reach a nearby standing target.
 // Every approach needs continuous floor; every flight uses a swept body and a

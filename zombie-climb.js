@@ -344,6 +344,7 @@ export function createZombieClimb(game, runtime, flashbang) {
   }
   function pursuing(enemy) {
     return runtime.mode === 'play' && !run.over && !run.mission && !enemy.dead && !enemy.remove &&
+      zombies.includes(enemy) &&
       !enemy.rise && !enemy.fall && !enemy.guard && !!targetFor(enemy) && enemy.spawnT <= 0 &&
       enemy.stun <= 0 && !flashbang.blinded(enemy) && run.t - enemy.lastHitT > 1;
   }
@@ -404,8 +405,10 @@ export function createZombieClimb(game, runtime, flashbang) {
     pumpedAt = now;
     const { enemy, goal } = scan;
     const player = targetFor(enemy);
-    if (!player || !pursuing(enemy) || Math.hypot(player.pos.x - goal.x, player.pos.z - goal.z) > 2.5 ||
+    if (!player || !pursuing(enemy) || enemy.act || Math.abs(enemy.pos.y - scan.sourceY) > .35 ||
+        Math.hypot(player.pos.x - goal.x, player.pos.z - goal.z) > 2.5 ||
         (player.onGround && Math.abs(player.pos.y - goal.y) > 0.4)) { scan = null; return; }
+    if (!enemy.onGround || !player.onGround) return;
     // One search shared by all pursuers; bounded work per simulation frame.
     const begin = performance.now();
     for (let i = 0; i < config.candidatesPerFrame; i++) {
@@ -453,7 +456,7 @@ export function createZombieClimb(game, runtime, flashbang) {
     // Do not climb unrelated walls because another zombie is blocking a clear
     // walking route, or because an enemy is already in melee range.
     if ((Math.abs(player.pos.y - enemy.pos.y) < 1.25 && d < 1.5) || clearLine(enemy, enemy.pos, player.pos, true)) return;
-    scan = { enemy, goal: point(player.pos.x, player.pos.y, player.pos.z), iterator: findRoute(enemy, !stalled) };
+    scan = { enemy, sourceY: enemy.pos.y, goal: point(player.pos.x, player.pos.y, player.pos.z), iterator: findRoute(enemy, !stalled) };
   }
   function interrupt(enemy) {
     if (enemy.act?.kind !== 'pillar') return;

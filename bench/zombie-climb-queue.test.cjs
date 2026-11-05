@@ -32,5 +32,17 @@ const assert = require('node:assert/strict');
   assert.equal(climb.state(enemy).searching,false,'occupied terrain releases the shared planner');
   assert.ok(climb.stats.candidates-before<=climb.config.planCandidates,'a queue cannot monopolize unbounded map search');
   assert.equal(enemy.act,undefined,'a follower cannot start through the occupied approach');
-  console.log('PASS climb queue: valid occupied terrain releases the bounded shared search');
+  function beginScan(){
+    for(let i=0;i<600;i++){
+      game.z.t+=1/60;enemy.update(1/60);
+      if(climb.state(enemy).searching)return;
+    }
+    throw new Error('expected another recovery scan');
+  }
+  beginScan();enemy.pos.y+=1;enemy.onGround=false;game.z.t+=1/60;enemy.update(1/60);
+  assert.equal(climb.state(enemy).searching,false,'changing floors discards candidates for the old elevation');
+  enemy.pos.y=.003;enemy.onGround=true;beginScan();
+  zombies.splice(zombies.indexOf(enemy),1);game.z.t+=1/60;enemy.update(1/60);
+  assert.equal(climb.state(enemy).searching,false,'a removed pursuer cannot retain the shared search after retry');
+  console.log('PASS climb queue: bounded occupied search, floor changes and removed pursuers');
 })().catch(e=>{console.error(e);process.exitCode=1;});
