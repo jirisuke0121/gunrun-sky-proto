@@ -15,19 +15,22 @@
   const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
   const angle = n => Math.atan2(Math.sin(n), Math.cos(n));
   const view = { yaw: c.yaw, pitch: c.pitch };
-  let manual = false, manualUntil = 0, mouseHeld = false, lastInput = 0;
+  let manual = false, manualTouch = false, manualUntil = 0, mouseHeld = false, lastInput = 0;
   // A turn gesture cannot become reverse until the thumb returns to neutral.
   let gesture = 'idle', gestureId = null, reverseTime = 0;
+  let direct = false, basis = c.yaw, desiredYaw = c.yaw, directReverse = false, fromAction = false;
+  const nativeStates = ['ladder', 'zip', 'hook', 'swing', 'ledge', 'wallrun'];
   const selectors = [];
   const enabled = () => mode === 'after' && !game.demoActive();
   const playing = () => enabled() && game.modeRef() === 'play' && !game.z.over;
 
   function reset() {
     view.yaw = c.yaw; view.pitch = c.pitch;
-    manual = mouseHeld = false; manualUntil = 0; lastInput = 0;
+    manual = manualTouch = mouseHeld = false; manualUntil = 0; lastInput = 0;
     gesture = 'idle'; gestureId = null; reverseTime = 0;
+    direct = false; fromAction = false; basis = desiredYaw = c.yaw; directReverse = false;
   }
-  function input(raw) {
+  function legacyInput(raw) {
     if (!playing()) return raw;
     // These actions own forward/back input (e.g. descending a ladder).
     if (['ladder', 'zip', 'hook', 'swing'].includes(c.state)) return raw;
@@ -66,7 +69,7 @@
     raw.precise = analog || Math.abs(raw.steer) > .01;
     return raw;
   }
-  function step(dt, controls) {
+  function legacyStep(dt, controls) {
     if (!playing()) return;
     if (controls.reversePending && c.onGround && c.state === 'normal') {
       reverseTime += Math.min(.05, Math.max(0, dt));
@@ -76,6 +79,56 @@
     if (!['normal', 'slide', 'wallrun'].includes(c.state)) return;
     const turn = (controls.steer || 0) * 2.4 * (c.state === 'wallrun' ? .3 : 1);
     c.yaw = angle(c.yaw - turn * Math.min(.05, Math.max(0, dt)));
+  }
+  // A touch gesture chooses a world direction once. Camera following must not
+  // feed back into that held direction and create a continuously curving path.
+  // Keyboard auto-camera retains its W/S drive + A/D steer mapping.
+  function input(raw) {
+    if (!playing()) { direct = false; fromAction = false; gestureId = null; return raw; }
+    if (!touch.on) {
+      direct = false; fromAction = false; gestureId = null;
+      return legacyInput(raw);
+    }
+    const magnitude = Math.min(1, raw.tmag);
+    if (nativeStates.includes(c.state)) {
+      // A sideways approach can attach to a ladder after being converted to
+      // forward travel. Keep climbing for that held gesture; neutral/release
+      // hands the ladder back to its ordinary up/down controls.
+      const climbing = c.state === 'ladder' && direct && !directReverse && gestureId === touch.id && magnitude > .18;
+      if (magnitude <= .18) direct = false;
+      fromAction = true; gestureId = touch.id;
+      return climbing ? { ...raw, fwdIn: magnitude } : raw;
+    }
+    if (magnitude <= .18) {
+      direct = false; fromAction = false; gestureId = null; gesture = 'idle';
+      return { ...raw, fwdIn: 0, strIn: 0, motionScale: 0, precise: true, steer: 0 };
+    }
+    const stickAngle = Math.atan2(raw.strIn, raw.fwdIn);
+    const fresh = !direct || gestureId !== touch.id;
+    if (fresh) directReverse = raw.fwdIn < -Math.abs(raw.strIn);
+    if (fromAction && gestureId === touch.id) {
+      // An action owns its exit heading. Keep held input on that exit path;
+      // only a new/neutralised gesture adopts the current view again.
+      directReverse = false;
+      const exitSpeed = Math.hypot(c.vel.x, c.vel.z);
+      const exitYaw = exitSpeed > .1 ? Math.atan2(-c.vel.x, -c.vel.z) : c.yaw;
+      basis = angle(exitYaw + stickAngle);
+    } else if (fresh) {
+      basis = view.yaw;
+      if (!mouseHeld && touch.lookId === null) manual = manualTouch = false;
+    }
+    fromAction = false; direct = true; gestureId = touch.id;
+    gesture = directReverse ? 'reverse' : 'drive';
+    desiredYaw = angle(basis - stickAngle + (directReverse ? Math.PI : 0));
+    return { ...raw, fwdIn: magnitude * (directReverse ? -1 : 1), strIn: 0,
+      motionScale: clamp((magnitude - .12) / .88, 0, 1),
+      precise: true, steer: 0, reversing: directReverse, direct: true };
+  }
+  function step(dt, controls) {
+    if (!playing()) { direct = false; fromAction = false; gestureId = null; return; }
+    if (!controls.direct) { legacyStep(dt, controls); return; }
+    lastInput = Math.abs(controls.fwdIn);
+    if (['normal', 'slide'].includes(c.state)) c.yaw = desiredYaw;
   }
   function speed(base, controls) {
     if (!playing() || !c.onGround || c.state !== 'normal') return base;
@@ -99,15 +152,19 @@
     view.yaw = angle(view.yaw - yawDelta);
     view.pitch = clamp(view.pitch - pitchDelta, -1.35, 1.35);
     if (Math.abs(yawDelta) + Math.abs(pitchDelta) > .00001) {
-      manual = true; manualUntil = performance.now() + 1100;
+      manual = true; manualTouch = coarse() || touch.on || touch.lookId !== null;
+      manualUntil = performance.now() + 1100;
     }
     return true;
   }
   function frame(dt) {
     if (!enabled() || ['menu', 'replay'].includes(game.modeRef())) return null;
-    if (!playing() || dt <= 0) return view;
+    if (!playing()) { direct = false; fromAction = false; gestureId = null; return view; }
+    if (dt <= 0) return view;
     const held = mouseHeld || touch.lookId !== null;
-    if (manual && (held || performance.now() < manualUntil || lastInput < .08)) return view;
+    // On touch, looking is deliberate: hold that view until the next left
+    // gesture. Do not spring back on a hidden timer while the same thumb runs.
+    if (manual && (manualTouch || held || performance.now() < manualUntil || lastInput < .08)) return view;
     manual = false;
     let targetYaw = c.yaw;
     let targetPitch = c.state === 'ledge' ? -.24 : c.onGround ? -.09 : -.16;
@@ -127,7 +184,7 @@
   }
   // Plain names for the two control types (the cards in control-style.js use the same words).
   const NAMES = coarse()
-    ? { before: 'FPS操作（右側をドラッグして視点を回す）', after: 'かんたん操作（スティックだけ・カメラ自動）' }
+    ? { before: 'FPS操作（右側をドラッグして視点を回す）', after: 'かんたん操作（左で移動・カメラおまかせ）' }
     : { before: 'マウス視点（WASD＋マウス・従来）', after: '自動カメラ（W/S 前後・A/D 旋回）' };
   function syncUI() {
     document.body.dataset.skyCameraMode = mode;
@@ -136,7 +193,7 @@
       note.textContent = mode === 'before'
         ? (coarse() ? '左スティックで移動、右側のドラッグで視点を自分で回します。' : 'WASDで移動、マウスで視点を回します。')
         : coarse()
-          ? 'スティックだけで走れます。カメラは進む向きに自動で追従します。右側をドラッグすると一時的に見回せます。'
+          ? '左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。'
           : 'W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。マウスで見回せます。';
     }
   }
@@ -176,7 +233,7 @@
   document.getElementById('humanStatus')?.after(control('cameraModeHome', true));
   document.getElementById('setGrid').prepend(control('cameraMode', false));
   document.getElementById('bReset').addEventListener('click', () => setMode(defaultMode()));
-  window.addEventListener('blur', () => { mouseHeld = false; });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) mouseHeld = false; });
+  window.addEventListener('blur', reset);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) reset(); });
   syncUI();
 })();

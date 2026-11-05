@@ -19,6 +19,11 @@
 .cs-zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;padding:3px;border-radius:10px;font-size:11px;line-height:1.25;text-align:center}
 .cs-zone b{font-weight:800;white-space:nowrap}
 .cs-zone svg{width:34px;height:34px;flex:none}
+.cs-move-gesture .cs-thumb{animation:cs-hold-forward 3.6s ease-in-out infinite}
+@keyframes cs-hold-forward{0%,15%{transform:translateY(0);opacity:.55}35%,78%{transform:translateY(-24px);opacity:1}88%,100%{transform:translateY(-24px);opacity:0}}
+@media(prefers-reduced-motion:reduce){.cs-move-gesture .cs-thumb{animation:none;transform:translateY(-24px)}}
+.cs-touch-help{grid-column:1/-1;display:flex;align-items:baseline;gap:8px;margin:0;color:#d9f9ed;font-size:12px;line-height:1.45}
+.cs-touch-help>b{flex:none;padding:0 6px;border-radius:4px;background:#1a4c3e;color:#d5ffef;font-size:11px}
 .cs-move{border:2px solid #4fe0bd;background:#2fbf9f2e;color:#c2ffec}
 .cs-view{border:2px solid #ffb06b;background:#ff9d4a2e;color:#ffe5cb}
 /* Easy type: no thumb is needed on this side, the camera moves by itself. */
@@ -44,6 +49,8 @@
 #ctrlPick{position:fixed;inset:0;z-index:62;display:grid;grid-template-rows:minmax(0,1fr);place-items:center;padding:10px;background:#070b10ee;color:#e8eef2}
 #ctrlPick[hidden]{display:none}
 .cs-dialog{box-sizing:border-box;width:min(800px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:14px 18px 12px;border:1px solid #3a4756;border-top:3px solid #e8805a;background:#0f1822}
+.cs-dialog>header,.cs-dialog>footer,.cs-dialog>.cs-note{flex:none}
+.cs-slot{min-height:0;overflow:auto}
 .cs-dialog h2{margin:0;font-size:22px;color:#f4f0e8;line-height:1.25}
 .cs-lead{margin:3px 0 0;font-size:13px;color:#c4d0d9}
 .cs-dialog footer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
@@ -54,7 +61,7 @@
 #app[data-fit=normal] .cs-dialog{gap:8px;padding:10px 16px 8px}
 #app[data-fit=normal] .cs-dialog h2{font-size:19px}
 #app[data-fit=normal] .cs-lead{margin-top:1px;font-size:12px}
-#app[data-fit=normal] #ctrlPick .cs-screen{aspect-ratio:3/1}
+#app[data-fit=normal] #ctrlPick .cs-screen{aspect-ratio:4/1}
 #app[data-fit=tight] #ctrlPick{padding:4px}
 #app[data-fit=tight] .cs-dialog{gap:5px;padding:6px 12px 6px}
 #app[data-fit=tight] .cs-dialog h2{font-size:16px;display:inline}
@@ -66,6 +73,7 @@
 #app[data-fit=tight] #ctrlPick .cs-zone svg{width:20px;height:20px}
 #app[data-fit=tight] #ctrlPick .cs-fact:not(.cs-fact-key){display:none}
 #app[data-fit=tight] #ctrlPick .cs-fact{font-size:11px}
+#app[data-fit=tight] .cs-touch-help{font-size:11px;line-height:1.35}
 #app[data-fit=tight] .cs-dialog button.cs-go,#app[data-fit=tight] .cs-dialog button.cs-cancel{min-height:40px;font-size:14px}
 #app[data-fit=tight] .cs-note{display:none}
 #app[data-fit=normal] #ctrlPick .cs-zone svg{width:28px;height:28px}

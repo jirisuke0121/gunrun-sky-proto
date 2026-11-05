@@ -1,6 +1,6 @@
 // Control type chooser: two cards side by side so the difference is visible at a glance.
 //   FPS操作（従来）      : left stick moves, the right side is dragged to turn the camera yourself.
-//   かんたん操作（未経験者）: the stick is all you need; the camera follows the running direction.
+//   かんたん操作（カメラおまかせ）: the stick selects movement; the camera follows that direction.
 // Shown in two places: a popup when the intro run starts on a touch device, and the 操作 tab of the
 // settings screen (pause-focus.js). It only switches window.skyFollowCamera's existing two modes
 // ('before' = FPS操作, 'after' = かんたん操作); movement and camera code are untouched.
@@ -35,14 +35,15 @@
     mouse: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="19" y="6" width="26" height="46" rx="13" fill="none" stroke="currentColor" stroke-width="3.5"/><path d="M32 6v18M19 24h26" fill="none" stroke="currentColor" stroke-width="3"/><path d="M6 36h8m-3-4l-3 4 3 4M58 36h-8m3-4l3 4-3 4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   };
   const keys = list => `<span class="cs-keys">${list.map(k => `<kbd>${k}</kbd>`).join('')}</span>`;
+  const moveGesture = '<svg class="cs-move-gesture" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="41" r="18" fill="none" stroke="currentColor" stroke-width="2" opacity=".55"/><path d="M32 34V8m-7 7 7-7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle class="cs-thumb" cx="32" cy="43" r="8" fill="currentColor"/></svg>';
   const TYPES = touch ? {
     before: {
-      name: 'FPS操作', tag: '従来どおり', look: '右側をドラッグして自分で回す', who: 'FPS・3Dゲームに慣れている人',
-      move: `${ICON.stick}<b>移動</b>`, view: `${ICON.drag}<b>視点を回す</b>`, auto: false,
+      name: 'FPS操作', tag: 'カメラを自分で操作', look: '右側に指を置き、動かして見回す',
+      move: `${moveGesture}<b>押したまま移動</b>`, view: `${ICON.drag}<b>指で見回す</b>`, auto: false,
     },
     after: {
-      name: 'かんたん操作', tag: 'FPS未経験の方に', look: '進む向きにカメラが自動でついてくる', who: 'はじめて・視点操作が苦手な人',
-      move: `${ICON.stick}<b>移動</b>`, view: `${ICON.auto}<b>自動</b>`, auto: true,
+      name: 'かんたん操作', tag: 'カメラおまかせ', look: '進む向きへ自動で回る。右側で見回しもできる',
+      move: `${moveGesture}<b>押したまま移動</b>`, view: `${ICON.auto}<b>カメラ自動</b>`, auto: true,
     },
   } : {
     before: {
@@ -66,7 +67,7 @@
         ${touch ? '<span class="cs-jump">ジャンプ</span>' : ''}
       </span>
       <span class="cs-fact cs-fact-key"><b>視点</b><span>${t.look}</span></span>
-      ${compact ? '' : `<span class="cs-fact"><b>向いている人</b><span>${t.who}</span></span>`}`;
+      ${compact || touch ? '' : `<span class="cs-fact"><b>向いている人</b><span>${t.who}</span></span>`}`;
     return el;
   }
 
@@ -78,6 +79,9 @@
     box.style.setProperty('--cs-scene', `url('./assets/lobby/${scene}.svg')`);
     const cards = ['before', 'after'].map(mode => card(mode, compact));
     box.append(...cards);
+    if (touch) {
+      box.append(make('p', { className: 'cs-touch-help' }, '<b>左手</b><span>左側に指を置く → 上へずらして押したまま前進。離すと止まります。</span>'));
+    }
     const sync = value => { for (const el of cards) el.setAttribute('aria-checked', String(el.dataset.mode === value)); };
     for (const el of cards) el.addEventListener('click', () => (onPick || (m => fc.setMode(m)))(el.dataset.mode));
     // Arrow keys move the selection like a radio group.
