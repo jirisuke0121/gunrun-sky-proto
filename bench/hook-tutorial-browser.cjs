@@ -20,6 +20,7 @@ const base = 'http://127.0.0.1:18819/';
       try {
         await page.goto(`${base}${map}?hookGuide=1&controlpick=0&lang=${lang}`);
         await page.waitForFunction(() => window.__game && window.skyHookTutorial && window.skyStartReadiness?.ready);
+        console.log('READY', tag);
         await page.locator('#bIntro').click();
         await page.waitForFunction(() => __game.mode === 'play' && skyChallenge.isIntroRun);
         const route = await page.evaluate(() => {
@@ -49,7 +50,14 @@ const base = 'http://127.0.0.1:18819/';
               }
               if (!landed || Math.hypot(c.pos.x - a[0], c.pos.z - a[2]) >= 5 || c.pos.y < a[1] - 3) continue;
               const result = { at: [n.x, n.y, n.z], anchor: s.us.indexOf(a), checked };
-              place(n, a); g.GAME.challenge = { ...g.GAME.challenge }; // fresh run identity for the controlled fixture
+              place(n, a);
+              if (!s.Jt.length) {
+                const at = g.NAV.nodes.find(p => Math.hypot(p.x - n.x, p.z - n.z) > 7 && Math.hypot(p.x - n.x, p.z - n.z) < 10 && Math.abs(p.y - n.y) < .5) || n;
+                const enemy = new s.ri(at.x, at.y + .01, at.z);
+                Object.assign(enemy, { spawnT: 0, rise: null, hp: 1e6, flank: false, dropper: false, stalker: false, onGround: true });
+                enemy.node = g.nodeAt(at.x, at.y + .1, at.z); s.Jt.push(enemy);
+              }
+              g.GAME.challenge = { ...g.GAME.challenge }; // fresh run identity for the controlled fixture
               for (let k = 0; k < 6 && skyHookTutorial.phase === 'idle'; k++) g.frameOnce(1 / 120);
               // The first call may clear an earlier case's pending instruction.
               if (skyHookTutorial.phase !== 'explain') { skyHookTutorial.beforeFrame(); }
@@ -58,10 +66,11 @@ const base = 'http://127.0.0.1:18819/';
           }
           throw Error('No native map hook route landed; checked=' + checked);
         });
+        console.log('ROUTE', tag, JSON.stringify(route));
         assert.equal(await page.evaluate(() => skyHookTutorial.phase), 'explain');
         const snapshot = () => page.evaluate(() => ({ t: __game.GAME.t, enemies: __skyInternals.Jt.map(e => e.pos.toArray()), hooks: __game.stats.hooks || 0 }));
-        const stopped = await snapshot();
-        await page.evaluate(() => { for (let i = 0; i < 120; i++) __game.frameOnce(1 / 120); });
+        const stopped = await snapshot(); assert.ok(stopped.enemies.length > 0, 'pause is checked with a real zombie');
+        await page.evaluate(() => { for (let i = 0; i < 120; i++) __game.advance(1 / 120); });
         assert.deepEqual(await snapshot(), stopped, 'reading the guide freezes time, enemies and native hook count');
         assert.equal(await page.locator('#ovPause').isVisible(), false, 'pointer unlock does not open settings');
         assert.equal(await page.locator('#hookGuideSpot').isVisible(), true);
