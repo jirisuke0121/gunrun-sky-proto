@@ -14,6 +14,7 @@ for(const id of Object.keys(defs)){
  if(id!=='flash')f.env.flash.charges=0;
  if(id==='rescue'){f.env.decoy.cooldown=3;f.env.rescue={available:()=>true,chooseTarget:()=>({}),charges:2};}
  if(id==='barrel')f.env.barrels={assistTarget:()=>({barrel:{x:1,y:0,z:0}}),sequence:null};
+ if(id==='wallrun'){f.env.wallRoutes=[{at:[0,0,0],normal:[1,0],direction:[0,-1]}];f.env.wallFaceAllowed=()=>true;f.g.jn=[{type:'mono',wr:true,maxX:0}];f.g.c.yaw=0;}
  if(id==='zip')f.g.$a=[{a:[0,2,0]}];if(id==='slide')f.env.slope={canStart:()=>true};
  const t=f.make();t.beforeFrame();assert.equal(t.item.id,id);assert.ok(t.worldPaused&&t.freezePlayer);
  t.afterFrame(.1);assert.equal(t.phase,'action','a press without native success cannot complete');
@@ -24,4 +25,4 @@ for(const id of Object.keys(defs)){
 }
 f=fixture();f.g.c.state='ladder';const t=f.make();t.beforeFrame();f.g.keys.KeyW=true;assert.equal(t.freezePlayer,false,'native movement resumes the required player physics');f.setHook('action');f=fixture();f.setIntro(false);f.g.c.state='ladder';const ranked=f.make();ranked.beforeFrame();assert.equal(ranked.phase,'idle','ranked play unaffected');
 f=fixture();f.g.c.state='ladder';f.setHook('action');const arbiter=f.make();arbiter.beforeFrame();assert.equal(arbiter.phase,'idle','no competing hook and context popups');
-console.log('PASS all 9 contextual actions: spatial/LOS eligibility, unusable controls, pause, native success, persistence, spacing, arbitration and ranked isolation');
+console.log('PASS all 10 contextual actions: spatial/LOS eligibility, unusable controls, pause, native success, persistence, spacing, arbitration and ranked isolation');

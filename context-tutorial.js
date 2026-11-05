@@ -2,6 +2,7 @@
 (function(root){
  const STORE='gunrun-context-guides-v1', GAP=8;
  const defs={
+ wallrun:{jp:['この壁を走って渡れる。','壁に沿って前へ進みながらジャンプします。','壁走り成功！'],en:['Run along this wall.','Move along the wall and jump.','WALL RUN!'],button:'tJump',jump:true,state:'wallrun'},
  walljump:{jp:['壁を蹴って、別の足場へ。','ジャンプで壁を蹴れます。','壁ジャンプ成功！'],en:['Kick off this wall.','Jump to push off the wall.','WALL JUMP!'],button:'tJump',jump:true,stat:'walljumps'},
  swing:{jp:['鉄棒から、向こうへ跳べる。','ジャンプで鉄棒から飛び出します。','鉄棒ジャンプ成功！'],en:['Jump off this bar.','Jump to release and fly forward.','BAR JUMP!'],button:'tJump',jump:true,stat:'barJumps'},
  ladder:{jp:['このはしごを登れる。','前へ移動すると登ります。後ろへ移動すると下ります。','はしご移動成功！'],en:['Climb this ladder.','Move forward to climb; backward to descend.','CLIMBING!'],move:true},
@@ -26,8 +27,9 @@
   if(flash?.charges>0&&near.filter(e=>Math.hypot(e.pos.x-p.x,e.pos.z-p.z)<=flash.config.radius).length>=2)add('flash');
   if(near.length>=2&&!decoy?.active&&decoy?.cooldown<=0&&env.decoyReady?.())add('decoy');
   if(near.some(e=>Math.hypot(e.pos.x-p.x,e.pos.z-p.z)<4)&&!(flash?.charges>0)&&!(decoy?.cooldown<=0)&&env.rescue?.available()&&env.rescue.chooseTarget())add('rescue');
-  const b=env.barrels?.assistTarget();if(b)add('barrel',[b.barrel.x,b.barrel.y+1,b.barrel.z]);
+  const b=env.barrels?.assistTarget();if(b)add('barrel',[b.barrel.x,(b.barrel.y||0)+1,b.barrel.z]);
   if(env.slope?.canStart()&&env.usable('tSlide'))add('slide');
+  for(const route of env.wallRoutes||[]){const [x,y,z]=route.at,[nx,nz]=route.normal,along=Math.abs(nx?p.z-z:p.x-x),outside=(p.x-x)*nx+(p.z-z)*nz;const face=g.jn?.find(w=>!w.off&&w.type==='mono'&&w.wr!==false&&env.wallFaceAllowed(w,{x:nx,z:nz})&&Math.abs((nx?(nx>0?w.maxX:w.minX):(nz>0?w.maxZ:w.minZ))-(nx?x:z))<.1);if(face&&outside>=0&&outside<=1.8&&along<=4&&Math.abs(p.y-y)<2.5&&(-Math.sin(c.yaw)*route.direction[0]-Math.cos(c.yaw)*route.direction[1])>.5){add('wallrun',[x,y+1,z]);break;}}
   for(const z of g.$a||[]){const [x,y,zz]=z.a;if(Math.hypot(p.x-x,p.z-zz)<=2.3&&p.y<=y-.8&&p.y>=y-3.4){add('zip',z.a);break;}}
   return out;
  }
@@ -78,9 +80,10 @@
    presentable:item=>{if(item.point&&!project(item.point))return false;const b=defs[item.id]?.button;return (!!b&&visible(b))||!!project(item.point)||!matchMedia('(pointer:coarse)').matches;},
    wallJumpReady:()=>root.__skyCanWallJumpAtSpot?.(g.c,(x,y,z)=>g.jn.find(w=>!w.off&&w.type==='mono'&&w.wr!==false&&x>w.minX&&x<w.maxX&&y>w.minY&&y<w.maxY&&z>w.minZ&&z<w.maxZ),g.c.wallN),
    decoyReady:()=>root.skyDecoy?.canActivate?.()===true,
+   get wallRoutes(){return root.__skyWallRunRoutes||[];},wallFaceAllowed:(w,n)=>root.__skyCanWallRunOnFace?.(w,n)===true,
    get flash(){return root.skyFlashbang;},get decoy(){return root.skyDecoy;},get rescue(){return root.skyRescue;},get barrels(){return root.skyBlastBarrels;},get slope(){return root.skySlopeSlide;}};
   const plate=document.createElement('section');plate.id='contextGuide';plate.hidden=true;plate.setAttribute('role','region');plate.setAttribute('aria-live','polite');
-  plate.innerHTML='<div id="contextSpot"></div><div class="context-card"><header><span id="contextPhase"></span><button id="contextClose" aria-label="Close guide">×</button></header><h2 id="contextTitle"></h2><p id="contextText"></p></div>';app.append(plate);
+  plate.innerHTML='<div id="contextSpot"></div><div id="contextButton"></div><div class="context-card"><header><span id="contextPhase"></span><button id="contextClose" aria-label="Close guide">×</button></header><h2 id="contextTitle"></h2><p id="contextText"></p></div>';app.append(plate);
   const $=id=>document.getElementById(id);let guide,last='';
   const automatic={vault:['障害物を自動で乗り越えた！','VAULTED!'],mantle:['縁をつかんで登れた！','CLIMBED UP!'],wallrun:['壁走り成功！','WALL RUN!']};
   const show=({phase,item,visible:vis,paused})=>{
@@ -88,7 +91,7 @@
    const en=root.skyI18n?.lang==='en',d=defs[item.id],copy=d?.[en?'en':'jp'];$('contextPhase').textContent=paused?(en?'Ⅱ WORLD PAUSED':'Ⅱ 敵・時間を停止中'):'SUCCESS';
    $('contextTitle').textContent=copy?(phase==='success'?copy[2]:copy[0]):automatic[item.id]?.[en?1:0]||'';
    $('contextText').textContent=phase==='success'?(en?'Keep going!':'そのまま進もう！'):copy[1];$('contextClose').hidden=phase==='success';
-   const el=d?.button&&document.getElementById(d.button),r=el&&visible(d.button)?el.getBoundingClientRect():null,ar=app.getBoundingClientRect();const p=r?{x:r.x-ar.x+r.width/2,y:r.y-ar.y+r.height/2}:project(item.point);$('contextSpot').hidden=!paused||!p;if(p){$('contextSpot').style.left=p.x+'px';$('contextSpot').style.top=p.y+'px';plate.querySelector('.context-card').classList.toggle('at-top',p.y>app.clientHeight*.55);}
+   const el=d?.button&&document.getElementById(d.button),r=el&&visible(d.button)?el.getBoundingClientRect():null,ar=app.getBoundingClientRect();const bp=r?{x:r.x-ar.x+r.width/2,y:r.y-ar.y+r.height/2}:null,wp=project(item.point),p=wp||bp;$('contextButton').hidden=!paused||!wp||!bp;if(wp&&bp){$('contextButton').style.left=bp.x+'px';$('contextButton').style.top=bp.y+'px';}$('contextSpot').hidden=!paused||!p;if(p){$('contextSpot').style.left=p.x+'px';$('contextSpot').style.top=p.y+'px';plate.querySelector('.context-card').classList.toggle('at-top',p.y>app.clientHeight*.55);}
   };
   guide=create({game:g,env,storage:{getItem:k=>localStorage.getItem(k),setItem:(k,v)=>localStorage.setItem(k,v)},map:root.SKY_CANYON_MAP?'canyon':'town',forced:params.get('guides')==='1',disabled:params.get('guides')==='0'||(navigator.webdriver&&!params.has('guides')),show,unlock:()=>document.exitPointerLock?.()});root.skyContextTutorial=guide;
   $('contextClose').onclick=()=>guide.skip();
