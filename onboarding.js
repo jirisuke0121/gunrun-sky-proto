@@ -42,8 +42,8 @@
       <p class="onb-lead" data-for="again">2分間、ゾンビから逃げ切るゲームです。30秒ごとにボーナス点が入ります。</p>
       <p class="onb-lead" data-for="name">ランキングに表示される名前です。あとからでも決められます。</p></header>
     <ol class="onb-steps">
-      <li><b>走る・跳ぶ</b><span class="onb-pc"><kbd>W A S D</kbd> 移動　<kbd>Space</kbd> ジャンプ　<kbd>C</kbd> スライド</span><span class="onb-touch">左ドラッグで移動、「ジャンプ」ボタンで跳ぶ。低い通路は自動でスライド</span></li>
-      <li><b>視点を回す</b><span class="onb-pc"><kbd>マウス</kbd> で視点を動かす</span><span class="onb-touch">画面の右側をドラッグ</span></li>
+      <li><b>走る・跳ぶ</b><span class="onb-pc"><kbd>W A S D</kbd> 移動　<kbd>Space</kbd> ジャンプ　<kbd>C</kbd> スライド</span><span class="onb-touch">左側に指を置き、上へずらして押したまま前進。離すと停止。「ジャンプ」で跳ぶ</span></li>
+      <li><b>視点を回す</b><span class="onb-pc"><kbd>マウス</kbd> で視点を動かす</span><span id="onbTouchLook" class="onb-touch"></span></li>
       <li><b>技で引き離す</b><span class="onb-pc">壁走り・縁つかみ・はしご・ジップラインに加えて、<kbd>Q</kbd> でフック</span><span class="onb-touch">壁走り・縁つかみ・はしご・ジップラインに加えて、画面の輪をタップでフック</span></li>
       <li><b>銃は自動</b><span class="onb-pc">近い敵を自動で狙って撃ちます。<kbd>1</kbd> の閃光弾で周りのゾンビを止め、<kbd>2</kbd> の分身でおびき寄せます</span><span class="onb-touch">近い敵を自動で狙って撃ちます。「閃光弾」ボタンで周りのゾンビを数秒止められます</span></li>
     </ol>
@@ -78,6 +78,9 @@
     input.value = savedName(); error.textContent = ''; input.removeAttribute('aria-invalid');
     $('onbTitle').textContent = kind === 'name' ? 'ニックネームを決めよう' : '遊び方';
     $('onbMain').textContent = kind === 'name' ? 'あとで' : '閉じる';
+    $('onbTouchLook').textContent = window.skyFollowCamera?.mode === 'after'
+      ? 'カメラは進む向きへ自動で回ります。右側で見回した後は、左の指を離して進む向きを選び直せます'
+      : '画面の右側に指を置き、横へ動かして見回します。左側の移動と一緒に使えます';
     root.hidden = false; document.body.classList.add('onb-open'); syncIntro();
     input.focus({ preventScroll: true });
   }
