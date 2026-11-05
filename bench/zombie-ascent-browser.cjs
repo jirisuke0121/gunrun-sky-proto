@@ -34,6 +34,7 @@ const out=process.env.ASCENT_OUT||'browser-evidence/ascent';fs.mkdirSync(out,{re
     await page.evaluate(()=>{const g=__game,L=g.LADDERS[ascentFixture.ladder],y=L.y0+(L.y1-L.y0)/2,target={x:L.x+L.nx*.5,y,z:L.z+L.nz*.5};
       const candidates=[];for(const back of [7,6,5,4,3,2])for(const side of [0,2,-2,4,-4])candidates.push({x:L.x+L.nx*back-L.nz*side,y:y+1,z:L.z+L.nz*back+L.nx*side});
       const camera=candidates.find(p=>skyZombieClimb.clearLine({r:.05,h:.05},p,target))||candidates.at(-1);
+      for(const e of g.zombies)e.m.root.visible=true;
       g.debug.camera.fov=90;g.debug.camera.updateProjectionMatrix();g.debug.camera.position.set(camera.x,camera.y,camera.z);g.debug.camera.lookAt(target.x,target.y,target.z);g.debug.renderer.render(g.debug.scene,g.debug.camera);});
     await page.screenshot({path:stem+'-'+f.ladder+'-'+f.count+'-'+f.mode+'.png'});
    }
