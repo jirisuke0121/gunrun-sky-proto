@@ -94,8 +94,8 @@
       // A sideways approach can attach to a ladder after being converted to
       // forward travel. Keep climbing for that held gesture; neutral/release
       // hands the ladder back to its ordinary up/down controls.
-      const climbing = c.state === 'ladder' && direct && !directReverse && gestureId === touch.id && magnitude > .18;
-      if (magnitude <= .18) direct = false;
+      if (gestureId !== touch.id || magnitude <= .18) direct = false;
+      const climbing = c.state === 'ladder' && direct && !directReverse;
       fromAction = true; gestureId = touch.id;
       return climbing ? { ...raw, fwdIn: magnitude } : raw;
     }

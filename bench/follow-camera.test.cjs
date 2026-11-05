@@ -177,6 +177,14 @@ for (const [x, forward] of [[1, 0], [.8, -.6]]) {
   near(f.controls(0, -1).fwdIn, -1, 'neutral then down descends ladder');
 }
 
+// A quick lift/repress can change pointer ID between simulation frames. It
+// must end the carried climb intent for every later frame of the new gesture.
+{
+  const f = fixture(); f.controls(1, 0, 1); f.c.state = 'ladder'; f.controls(1, 0, 1);
+  near(f.controls(0, -1, 2).fwdIn, -1, 'new ladder finger can descend');
+  near(f.controls(0, -1, 2).fwdIn, -1, 'descent remains native on following frames');
+}
+
 // Dragging down means backing away, rather than a sudden half-turn or a wait
 // for a hidden reverse timer. Its lower target speed is intentional.
 {
