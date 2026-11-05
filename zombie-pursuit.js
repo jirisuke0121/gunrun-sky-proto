@@ -16,8 +16,9 @@ export function createZombiePursuit(game, runtime) {
   function walking(enemy) {
     return !enemy.dead && !enemy.remove && enemy.spawnT <= 0 && enemy.onGround && !enemy.act && !enemy.rise && !enemy.fall &&
       !(enemy.stun > 0) && !enemy.guard && !enemy.bash && enemy.node >= 0 && !window.skyFlashbang?.blinded?.(enemy) &&
-      !window.skyDecoy?.targetFor?.(enemy) &&
-      Math.hypot(enemy.pos.x - game.c.pos.x, enemy.pos.z - game.c.pos.z) > STALL.nearPlayer;
+      !window.skyDecoy?.targetFor?.(enemy) && !window.skyZombieLadders?.state?.(enemy)?.queued &&
+      (Math.hypot(enemy.pos.x - game.c.pos.x, enemy.pos.z - game.c.pos.z) > STALL.nearPlayer ||
+        window.skyZombieRouting?.directChase?.(enemy, game.c.pos) === false);
   }
   function watchStall(enemy, dt) {
     let state = stalls.get(enemy);

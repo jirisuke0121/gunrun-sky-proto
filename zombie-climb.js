@@ -32,7 +32,8 @@ export function createZombieClimb(game, runtime, flashbang) {
     window.skyChallenge?.speed?.(enemy.speedMul || 1, game.U?.zombieSpeed || 6) || 6;
   function walkingETA(enemy) {
     const node = runtime.nodeAt(enemy.pos.x, enemy.pos.y, enemy.pos.z);
-    return wallTarget(enemy) || node < 0 ? Infinity : (fieldFor(enemy)?.[node] ?? Infinity) / walkSpeed(enemy);
+    return wallTarget(enemy) || node < 0 ? Infinity : (fieldFor(enemy)?.[node] ?? Infinity) / walkSpeed(enemy) +
+      (window.skyZombieRouting?.queueDelay?.(enemy) || 0);
   }
   const approachNodes = new Map();
   let approachGoal = null;
@@ -441,10 +442,13 @@ export function createZombieClimb(game, runtime, flashbang) {
     if (!player.onGround || enemy.act || !enemy.onGround) return;
     const d = Math.hypot(player.pos.x - enemy.pos.x, player.pos.z - enemy.pos.z, (player.pos.y - enemy.pos.y) * 1.3);
     const field = !wallTarget(enemy) && enemy.node >= 0 ? (fieldFor(enemy)?.[enemy.node] ?? Infinity) : Infinity;
-    if (Math.hypot(player.pos.x - track.x, player.pos.z - track.z) > 2.5 ||
-        d < track.best - 0.6 || field < track.field - 0.8) {
+    if (Math.hypot(player.pos.x - track.x, player.pos.z - track.z) > 2.5) {
       track.wait = 0; track.best = d; track.field = field;
       track.x = player.pos.x; track.z = player.pos.z;
+    } else if (d < track.best - 0.6 || field < track.field - 0.8) {
+      // Keep independent best values. Alternating between a closer position
+      // and a cheaper path node must not reset both baselines on every lap.
+      track.wait = 0; track.best = Math.min(track.best, d); track.field = Math.min(track.field, field);
     }
     track.wait += dt;
     const now = game.ceRef();
@@ -617,6 +621,7 @@ export function createZombieClimb(game, runtime, flashbang) {
     window.skyZombieRouting?.beforeStep(this, dt);
     if (window.skyZombieSearch?.deferSpawn(this)) { this.anim(0); return; }
     window.skyZombieSearch?.observe(this, dt);
+    if (window.skyZombieLadders?.step(this, dt)) return;
     if (window.skyZombieDescent?.step(this, dt)) {
       // A queued descent owns this recovery. Do not resume an older climb
       // scan when the queue briefly replans its landing lane.
