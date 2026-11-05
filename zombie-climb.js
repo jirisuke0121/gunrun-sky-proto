@@ -247,7 +247,7 @@ export function createZombieClimb(game, runtime, flashbang) {
       column.minY <= enemy.pos.y + (enemy.stalker ? 2.4 : 1.8) && column.maxY > enemy.pos.y + 0.02 &&
       (!opportunity || distanceToTop(enemy.pos, column) <= config.planRadius))
       .sort((a, b) => distanceToTop(enemy.pos, a) - distanceToTop(enemy.pos, b));
-    let best = null, checked = 0;
+    let best = null, queued = null, checked = 0;
     const limit = opportunity ? walkingETA(enemy) - config.planGain : Infinity;
     for (const column of candidates) {
       const caps = columns.get(column);
@@ -266,13 +266,21 @@ export function createZombieClimb(game, runtime, flashbang) {
           const route = makeRoute(enemy, column, cap, normal, along);
           if (route && route.score < limit && (!best || route.score < best.score)) {
             best = route; best.opportunity = opportunity;
+          } else if (!route) {
+            // A body occupying an otherwise valid approach is a queue, not
+            // missing terrain. Bound this scan too, so one blocked follower
+            // cannot monopolize the shared search and starve the leaders.
+            const waiting = makeRoute(enemy, column, cap, normal, along, true);
+            if (waiting && waiting.score < limit && (!queued || waiting.score < queued.score)) {
+              queued = waiting; queued.opportunity = opportunity;
+            }
           }
-          if (++checked >= config.planCandidates && (opportunity || best)) return best;
+          if (++checked >= config.planCandidates && (opportunity || best || queued)) return best || queued;
           yield;
         }
       }
     }
-    return best;
+    return best || queued;
   }
   function navigationTargets() {
     // A mono roof has no NAV node. Falling back to the player's old node

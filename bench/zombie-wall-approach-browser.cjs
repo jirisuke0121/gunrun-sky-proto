@@ -13,7 +13,7 @@ fs.mkdirSync(out,{recursive:true});
    for(let i=0;i<60;i++){if(await fetch(base).then(r=>r.ok,()=>false))break;await new Promise(r=>setTimeout(r,100));}
   }
   browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
-   args:process.platform==='darwin'?['--no-sandbox']:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+   args:process.platform==='darwin'&&process.env.WALL_APPROACH_SOFTWARE_GL!=='1'?['--no-sandbox']:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   for(const touch of baseline?[true]:[false,true]){
   const context=await browser.newContext({viewport:touch?{width:1280,height:591}:{width:1280,height:720},hasTouch:touch,isMobile:touch});
   await context.addInitScript(()=>{window.__hold=true;localStorage.setItem('gunrun-sky-proto-v1',JSON.stringify({sendLog:false}));});

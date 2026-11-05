@@ -18,6 +18,8 @@ jobs:
         run: node bench/nav-watch.test.cjs
       - name: Safe descent and interruption rules
         run: node bench/zombie-descent.test.cjs
+      - name: Occupied climb approaches release the shared search
+        run: node bench/zombie-climb-queue.test.cjs
       - name: Install browser
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
