@@ -105,7 +105,7 @@
       lastPhase = phase;
     }
     tutorial = createController({ game, intro: () => root.skyChallenge?.isIntroRun === true,
-      candidate: () => { const assist = game.hookAssist(), anchor = assist.target(); return anchor && !assist.inspect(anchor).reason ? { anchor } : null; },
+      candidate: () => { if(root.skyContextTutorial?.phase&&root.skyContextTutorial.phase!=='idle')return null; const assist = game.hookAssist(), anchor = assist.target(); return anchor && !assist.inspect(anchor).reason ? { anchor } : null; },
       storage: { getItem: k => localStorage.getItem(k), setItem: (k, v) => localStorage.setItem(k, v) },
       map: root.SKY_CANYON_MAP ? 'canyon' : 'old-town', forced: params.get('hookGuide') === '1',
       disabled: params.get('hookGuide') === '0' || (navigator.webdriver === true && params.get('hookGuide') !== '1'),

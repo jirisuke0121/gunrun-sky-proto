@@ -71,6 +71,6 @@ for (const path of ['index.html', 'canyon.html']) {
   assert.deepEqual(calls, ['before', ['native hook', [1, 2, 3]], 'after']); assert.equal(c.hookPressed, false);
   calls.length = 0; tutorial.freezePlayer = false; sandbox.Da(.016);
   assert.ok(calls.includes('player')); assert.ok(!calls.includes('world'), path + ': native hook physics move the player with enemies frozen');
-  assert.ok(html.includes('!window.skyHookTutorial?.active&&An("pause")'), 'opening the guide must not open settings via pointer unlock');
+  assert.ok(html.includes('!window.skyHookTutorial?.active&&!window.skyContextTutorial?.active&&An("pause")'), 'opening the guide must not open settings via pointer unlock');
 }
 console.log('PASS direct hook guide: immediately actionable, failed presses, native attachment success, immediate resume, retry/persistence, ranked isolation and both simulation dispatchers');
