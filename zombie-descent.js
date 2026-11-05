@@ -1,6 +1,6 @@
-import { traversalPoint } from './zombie-routing.js?v=20261102-free-climb-v1';
+import { traversalPoint } from './zombie-routing.js?v=20261106-pursuit-v1';
 
-// Recovery for lower targets when the authored graph cannot supply a descent.
+// Recovery when the authored graph cannot reach a nearby standing target.
 // Every approach needs continuous floor; every flight uses a swept body and a
 // supported landing with an onward route. Never insert speculative NAV links.
 export function createZombieDescent(game, runtime, climb, flashbang, routing) {
@@ -8,6 +8,7 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
   const stats = { scans: 0, checked: 0, started: 0, landed: 0, interrupted: 0, maxScanMs: 0 };
   const states = new WeakMap();
   let scan = null, nextScan = 0, pumpedAt = -Infinity;
+  let navGoal = null;
   const point = (x, y, z) => ({ x, y, z }), copy = p => point(p.x, p.y, p.z);
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -19,7 +20,68 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
     const id = runtime.nodeAt(body.pos.x, body.pos.y + .1, body.pos.z);
     return id >= 0 && Math.abs(runtime.NAV.nodes[id].y - body.pos.y) < .35 ? id : -1;
   };
-  const missingTarget = player => player?.onGround && standingNode(player) < 0 && !climb.navigationTargets?.()?.length;
+  const missingTarget = player => player?.onGround && standingNode(player) < 0 && !climb.navigationTargets?.()?.length &&
+    !(navGoal && distance(player.pos, navGoal.goal) < .5 && navGoal.ids.length);
+  function flightBetween(from, to) {
+    const fall = from.y - to.y, across = Math.hypot(from.x - to.x, from.z - to.z), leap = fall <= routing.config.rise;
+    return { kind: leap ? 'leap' : 'jumpdown', sx: from.x, sy: from.y, sz: from.z, tx: to.x, ty: to.y, tz: to.z,
+      t: 0, wait: .18, dur: leap ? .3 + across / 12 : .3 + Math.sqrt(2 * fall / game.U.gravity),
+      arc: 1.3 + Math.max(0, -fall) * .5, descentRecovery: true, localTraversal: true, pursuitTraversal: true };
+  }
+  function checkedFlight(body, from, to) {
+    if (Math.hypot(from.x - to.x, from.z - to.z) > routing.config.jump ||
+        to.y - from.y > routing.config.rise || from.y - to.y > routing.config.drop) return null;
+    const flight = flightBetween(from, to);
+    const originalArc = flight.arc;
+    for (const clearance of flight.kind === 'leap' ? [flight.arc, 1, .75, .5, .25] : [.5, .25, 0]) {
+      if (flight.kind === 'leap' && clearance < originalArc) {
+        // A ceiling-limited hop must still fit the player's available air
+        // time and horizontal speed; lowering the arc cannot bridge a long gap.
+        const height = clearance + Math.max(0, to.y - from.y), v = game.U.jumpVel || 6, gravity = game.U.gravity;
+        const air = (v - Math.sqrt(Math.max(0, v * v - 2 * gravity * height))) / gravity + Math.sqrt(2 * height / gravity);
+        if (Math.hypot(from.x - to.x, from.z - to.z) > (game.U.sprintSpeed || 6) * air + body.r * 2) continue;
+      }
+      if (flight.kind === 'leap') flight.arc = clearance; else flight.lift = clearance;
+      if (routing.sweep(body, flight, true)) return flight;
+    }
+    return null;
+  }
+  function navigationTargets() {
+    const player = game.c, existing = climb.navigationTargets?.();
+    if (game.z.mission || !player.onGround || standingNode(player) >= 0) return existing;
+    const now = game.ceRef(), key = runtime.INDOOR_ACCESS?.revision || 0;
+    if (navGoal && distance(player.pos, navGoal.goal) < .3 && now < navGoal.until && key === navGoal.key) return navGoal.ids.length ? navGoal.ids : existing;
+    const ids = existing ? [...existing] : [], costs = { ...existing?.costs }, body = { r: .3, h: 1.8 };
+    // A low overhang can block a vertical flight onto the exact player point.
+    // A nearby, supported landing followed by a clear walk reaches the same
+    // target without dropping through the overhang or aiming at an old roof.
+    const finishes = [copy(player.pos)];
+    for (const offset of [.3, .75]) for (const [x, z] of [[offset, 0], [-offset, 0], [0, offset], [0, -offset]]) {
+      const p = point(player.pos.x + x, player.pos.y, player.pos.z + z);
+      if (climb.clearLine(body, p, player.pos, true)) finishes.push(p);
+    }
+    for (const node of runtime.NAV.nodes) {
+      const from = { ...node, y: node.y + .003 }, rise = player.pos.y - from.y;
+      if (Math.hypot(from.x - player.pos.x, from.z - player.pos.z) > routing.config.jump + .75 || rise > routing.config.rise || -rise > routing.config.drop) continue;
+      if (Math.abs(rise) < .35 && climb.clearLine(body, from, player.pos, true)) {
+        if (costs[node.id] === undefined) ids.push(node.id);
+        costs[node.id] = Math.min(costs[node.id] ?? Infinity, distance(from, player.pos));
+        continue;
+      }
+      if (!climb.clearLine(body, from, from, true)) continue;
+      let cost = Infinity;
+      for (const to of finishes) {
+        const flight = checkedFlight(body, from, to);
+        if (flight) cost = Math.min(cost, (flight.wait + flight.dur) * 6 + distance(to, player.pos));
+      }
+      if (!Number.isFinite(cost)) continue;
+      if (costs[node.id] === undefined) ids.push(node.id);
+      costs[node.id] = Math.min(costs[node.id] ?? Infinity, cost);
+    }
+    Object.defineProperty(ids, 'costs', { value: costs });
+    navGoal = { goal: copy(player.pos), until: now + .5, key, ids };
+    return ids.length ? ids : existing;
+  }
   function walkable(from, to) {
     if (!runtime.wp || distance(from, to) > 12) return false;
     const path = runtime.wp(from, to.x, to.z, to.y);
@@ -49,6 +111,14 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
     const tops = [...new Set(runtime.near(p.x - config.radius, p.z - config.radius, p.x + config.radius, p.z + config.radius))]
       .filter(b => usable(b) && Math.abs(b.maxY - p.y) < .12);
     let best = null;
+    const direct = checkedFlight(enemy, p, player.pos);
+    if (player.pos.y - p.y <= routing.config.rise && p.y - player.pos.y <= routing.config.drop &&
+        Math.hypot(player.pos.x - p.x, player.pos.z - p.z) <= routing.config.jump &&
+        !climb.clearLine(enemy, p, player.pos, true) && landingFree(enemy, player.pos) && direct) {
+      const floor = runtime.near(player.pos.x, player.pos.z, player.pos.x, player.pos.z).find(b => !b.off &&
+        Math.abs(b.maxY - player.pos.y) < .05 && player.pos.x >= b.minX && player.pos.x <= b.maxX && player.pos.z >= b.minZ && player.pos.z <= b.maxZ);
+      if (floor) best = { from: p, to: copy(player.pos), floor, flight: direct, score: direct.wait + direct.dur, goal: copy(player.pos) };
+    }
     for (const top of tops) for (const [nx, nz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const lo = nx ? top.minZ : top.minX, hi = nx ? top.maxZ : top.maxX;
       if (hi - lo < pad * 2) continue;
@@ -63,24 +133,24 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
         const reach = routing.config.jump;
         for (const floor of new Set(runtime.near(from.x - reach, from.z - reach, from.x + reach, from.z + reach))) {
           yield;
-          if (!usable(floor) || from.y - floor.maxY < .5 || from.y - floor.maxY > routing.config.drop ||
+          if (!usable(floor) || floor.maxY - from.y > routing.config.rise || from.y - floor.maxY > routing.config.drop ||
               floor.maxX - floor.minX < enemy.r + .02 || floor.maxZ - floor.minZ < enemy.r + .02) continue;
-          const insetX = Math.min(pad, (floor.maxX - floor.minX - .02) / 2);
-          const insetZ = Math.min(pad, (floor.maxZ - floor.minZ - .02) / 2);
           // Reserve separate lanes/landings for a crowd. Without alternatives
           // every follower repeatedly selected the spot occupied by the leader.
           const lane = enemy.r * 2 + .12;
-          for (const anchor of [from, player.pos,
-            point(player.pos.x + nz * lane, player.pos.y, player.pos.z + nx * lane),
-            point(player.pos.x - nz * lane, player.pos.y, player.pos.z - nx * lane)]) {
+          const lanes = [0, 1, -1, 2, -2, 3, -3, 4, -4].map(offset =>
+            point(player.pos.x + nz * lane * offset, player.pos.y, player.pos.z + nx * lane * offset));
+          for (const anchor of [from, ...lanes]) for (const landingPad of [pad, .01]) {
+            const insetX = Math.min(landingPad, (floor.maxX - floor.minX - .02) / 2);
+            const insetZ = Math.min(landingPad, (floor.maxZ - floor.minZ - .02) / 2);
             const to = point(clamp(anchor.x + nx * pad * 2, floor.minX + insetX, floor.maxX - insetX), floor.maxY + .003,
               clamp(anchor.z + nz * pad * 2, floor.minZ + insetZ, floor.maxZ - insetZ));
             if (Math.hypot(to.x - from.x, to.z - from.z) > reach || (to.x - from.x) * nx + (to.z - from.z) * nz < pad) continue;
             if (!landingFree(enemy, to)) continue;
-            const flight = { kind: 'jumpdown', sx: from.x, sy: from.y, sz: from.z, tx: to.x, ty: to.y, tz: to.z,
-              t: 0, wait: .18, dur: .3 + Math.sqrt(2 * (from.y - to.y) / game.U.gravity), descentRecovery: true };
+            const flight = checkedFlight(enemy, from, to);
+            if (!flight) continue;
             const score = distance(p, from) / speed(enemy) + flight.wait + flight.dur + onward(enemy, to, player);
-            if (!Number.isFinite(score) || best && score >= best.score || !routing.sweep(enemy, flight)) continue;
+            if (!Number.isFinite(score) || best && score >= best.score || !routing.sweep(enemy, flight, true)) continue;
             best = { from, to, floor, flight, score, goal: copy(player.pos) };
           }
         }
@@ -92,13 +162,15 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
     const now = game.ceRef();
     if (!scan || pumpedAt === now) return;
     pumpedAt = now;
-    if (!eligible(scan.enemy) || scan.enemy.act || !scan.enemy.onGround || !target(scan.enemy)?.onGround) { scan = null; return; }
+    if (!eligible(scan.enemy) || scan.enemy.act) { scan = null; return; }
+    if (!scan.enemy.onGround || !target(scan.enemy)?.onGround) return;
     const start = performance.now();
     for (let i = 0; i < config.perFrame; i++) {
       const next = scan.iterator.next(); stats.checked++;
       if (next.done) {
         const enemy = scan.enemy, state = states.get(enemy), route = next.value;
-        if (route && distance(target(enemy).pos, route.goal) < .5 && climb.clearLine(enemy, enemy.pos, route.from, true) && routing.sweep(enemy, route.flight)) {
+        const checks = route && { fresh: distance(target(enemy).pos, route.goal) < .5, approach: climb.clearLine(enemy, enemy.pos, route.from, true), flight: routing.sweep(enemy, route.flight, true) };
+        if (checks && checks.fresh && checks.approach && checks.flight) {
           state.route = route; route.phase = 'approach'; route.blocked = 0;
           enemy.act = { ...route.flight, kind: 'descent' }; state.action = enemy.act;
           enemy.vel.set(0, 0, 0); enemy.edge = -1; enemy.navT = 0; enemy.atkT = 0; stats.started++;
@@ -109,16 +181,16 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
     }
     stats.maxScanMs = Math.max(stats.maxScanMs, performance.now() - start);
   }
-  function interrupt(enemy, state) {
+  function interrupt(enemy, state, queued = false) {
     // hurt() may already have replaced the action and assigned knockback.
     // Preserve that velocity; only stop motion which this recovery still owns.
     if (enemy.act === state.action) { enemy.act = null; enemy.onGround = false; enemy.vel.set(0, 0, 0); }
-    state.route = null; state.wait = 0; state.probe = game.ceRef() + config.retry;
+    state.route = null; state.wait = queued ? config.wait : 0; state.probe = game.ceRef() + (queued ? config.scanGap : config.retry);
     enemy.edge = -1; enemy.navT = 0; stats.interrupted++;
   }
   function animate(enemy, dt, airborne) {
     const action = enemy.act;
-    enemy.act = airborne ? { kind: 'jumpdown' } : null;
+    enemy.act = airborne ? { kind: action.kind === 'leap' ? 'leap' : 'jumpdown' } : null;
     enemy.anim(dt); enemy.act = action;
   }
   function move(enemy, state, dt) {
@@ -138,7 +210,7 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
       Math.max(0, Math.min(p.y + enemy.h, other.pos.y + other.h) - Math.max(p.y, other.pos.y));
     if (game.Jt.some(other => other !== enemy && !other.dead && !other.remove && penetration(next, other) > penetration(enemy.pos, other) + 1e-6)) {
       route.blocked += dt;
-      if (route.blocked > 3) { interrupt(enemy, state); return false; }
+      if (route.blocked > 3) { interrupt(enemy, state, true); return false; }
       enemy.vel.set(0, 0, 0); animate(enemy, dt, airborne); return true;
     }
     route.blocked = 0;
@@ -149,8 +221,8 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
     if (!airborne && distance(enemy.pos, route.from) < .001) {
       route.flight.wait -= dt;
       if (route.flight.wait <= 0) {
-        if (!routing.sweep(enemy, route.flight)) { interrupt(enemy, state); return false; }
-        route.phase = 'flight'; enemy.onGround = false;
+        if (!routing.sweep(enemy, route.flight, true)) { interrupt(enemy, state); return false; }
+        route.phase = 'flight'; enemy.onGround = false; enemy.act = route.flight; state.action = enemy.act;
       }
     } else if (airborne) {
       route.flight.t = Math.min(1, route.flight.t + dt / route.flight.dur);
@@ -164,7 +236,7 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
   }
   function step(enemy, dt) {
     let state = states.get(enemy);
-    if (!state) { state = { wait: 0, probe: 0, origin: copy(enemy.pos) }; states.set(enemy, state); }
+    if (!state) { state = { wait: 0, probe: 0 }; states.set(enemy, state); }
     if (state.route) return move(enemy, state, dt);
     const player = target(enemy);
     const staleTarget = missingTarget(player);
@@ -176,13 +248,24 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
       // at the real target, including the short stair walk after a descent.
       enemy.edge = -1; enemy.navT = Math.max(enemy.navT || 0, dt + .25);
     }
-    if (!eligible(enemy) || enemy.act || !enemy.onGround || !player?.onGround || enemy.pos.y - player.pos.y < .5) {
+    // The motor may briefly lose ground contact on the edge of a tread. Pause
+    // there, as the climb recovery does, rather than erase all stall history.
+    if (eligible(enemy) && (enemy.act || !enemy.onGround || !player?.onGround)) {
+      return false;
+    }
+    if (!eligible(enemy) || player.pos.y - enemy.pos.y > routing.config.rise ||
+        Math.abs(enemy.pos.y - player.pos.y) < .35 && climb.clearLine(enemy, enemy.pos, player.pos, true)) {
       state.wait = 0; if (scan?.enemy === enemy) scan = null; return false;
     }
     pump();
     if (state.route) return move(enemy, state, dt);
     const node = runtime.nodeAt(enemy.pos.x, enemy.pos.y, enemy.pos.z), reachable = !staleTarget && Number.isFinite(field(enemy)?.[node]);
-    if (reachable && distance(enemy.pos, state.origin) > 1.5) { state.origin = copy(enemy.pos); state.wait = 0; }
+    const remaining = reachable ? field(enemy)[node] : Infinity, separation = distance(enemy.pos, player.pos);
+    if (!state.goal || distance(player.pos, state.goal) > 2.5) {
+      state.goal = copy(player.pos); state.best = separation; state.field = remaining; state.wait = 0;
+    } else if (separation < state.best - .6 || remaining < state.field - .8) {
+      state.best = Math.min(state.best, separation); state.field = Math.min(state.field, remaining); state.wait = 0;
+    }
     state.wait += dt;
     const now = game.ceRef();
     if (state.wait >= (reachable ? config.wait : .5) && now >= state.probe && now >= nextScan && !scan) {
@@ -191,5 +274,6 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
     }
     return false;
   }
-  return { config, stats, step };
+  const hasNavigationTarget = player => !!navGoal?.ids.length && distance(player.pos, navGoal.goal) < .5;
+  return { config, stats, step, navigationTargets, hasNavigationTarget, isPlanning: enemy => scan?.enemy === enemy };
 }

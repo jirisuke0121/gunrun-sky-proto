@@ -10,8 +10,9 @@ window.createSkyIndoorAccess = function (volumes) {
     let first = 0, last = 1;
     for (const axis of ['x', 'y', 'z']) {
       const padding = axis === 'y' ? 0 : radius;
-      const min = b['min' + axis.toUpperCase()] - padding;
-      const max = b['max' + axis.toUpperCase()] + padding - (axis === 'y' ? .05 : 0);
+      const inset = axis === 'y' ? 0 : b.entryInset || 0;
+      const min = b['min' + axis.toUpperCase()] + inset - padding;
+      const max = b['max' + axis.toUpperCase()] - inset + padding - (axis === 'y' ? .05 : 0);
       const delta = to[axis] - from[axis];
       if (Math.abs(delta) < 1e-9) {
         if (from[axis] <= min || from[axis] >= max) return false;
@@ -28,7 +29,7 @@ window.createSkyIndoorAccess = function (volumes) {
       room.entered = true; revision++;
     }
   }
-  const allows = point => rooms.every(room => room.entered || !inside(point, room));
+  const allows = point => rooms.every(room => room.entered || !inside(point, room, room.entryInset || 0));
   const allowsMove = (from, to, radius = 0) => rooms.every(room => room.entered || !intersects(from, to, room, radius));
   function edgeAllowed(edge, nav) {
     let crossed = edgeRooms.get(edge);
@@ -48,7 +49,11 @@ window.createSkyIndoorAccess = function (volumes) {
     if (enemy.dead || enemy.remove || allowsMove({ x, y, z }, enemy.pos)) return;
     enemy.pos.set(x, y, z); enemy.vel.set(0, 0, 0);
     enemy.act = enemy.fall = enemy.rise = null;
-    enemy.edge = -1; enemy.navT = 0; enemy.atkT = 0;
+    enemy.edge = -1; enemy.navT = 0;
+    // The facade's entry buffer may stop forward movement while a human is
+    // already within clear melee reach. Blocking a step must not erase every
+    // attack wind-up and turn that doorway into a permanent safe spot.
+    if (!enemy.touching?.(1.3)) enemy.atkT = 0;
     enemy.anim(0);
   }
   return {
