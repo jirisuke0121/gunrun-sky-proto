@@ -25,7 +25,6 @@ wrong in play, change the number in `tools/build_voice_sfx.py` and rebuild.
 | zstep-1 … 6 | `Fantozzi-SandL1 R1 L2 R2 L3 R3.ogg` slowed to 0.72x + `squish_01_0 / 03 / 04.mp3` under each step | Fantozzi's Footsteps (Grass/Sand & Stone) (Fantozzi); Squish Sounds Effects (EZduzziteh) | https://opengameart.org/content/fantozzis-footsteps-grasssand-stone , https://opengameart.org/content/squish-sounds-effects |
 | reload-1 | `reload.wav` (three events cut out and joined, 1.1 s) | Handgun Reload Sound Effect | https://opengameart.org/content/handgun-reload-sound-effect |
 | click-1 | `gun_reload_lock_or_click_sound.mp3` (first 0.12 s) | Gun reload, lock or click sound | https://opengameart.org/content/gun-reload-lock-or-click-sound |
-| siren-1 | `siren_0.mp3` (3.5 s – 7.0 s) | Sirens and Alarm Noise | https://opengameart.org/content/sirens-and-alarm-noise |
 | crow-1 / 2 | `Crows.ogg` (5.5 – 7.5 s, 0 – 2 s) | Crows singing | https://opengameart.org/content/crows-singing |
 | creak-1 … 3 | `creak1 / 2 / 3.ogg` | 50 RPG sound effects (Kenney) | https://opengameart.org/content/50-rpg-sound-effects |
 

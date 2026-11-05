@@ -13,8 +13,8 @@
 //            (Tt.thud), faint far-away groans so the town is never silent
 //            (2026-11-05) zombie footsteps (Tt.zstep), HG reload + dry-fire click (Tt.reload, Tt.empty), a gun kill
 //            throws the body (see deathFling)
-//   world:   bullet impact tick on metal / wood (called from the shot code as skyVoice.impact), a far-off siren,
-//            crows and creaks every so often
+//   world:   bullet impact tick on metal / wood (called from the shot code as skyVoice.impact), crows and
+//            creaks every so often (no siren)
 //   feel:    a 30 ms hit-stop on a gun kill close to the player (the same __stopT the headshot kill uses)
 // Zombie sounds are placed in space: pan from the camera yaw, volume and brightness fall with distance, and a
 // sound whose line to the player is blocked by a building is quieter and muffled.
@@ -34,9 +34,9 @@
       zdie: names('zdie', 5), zhit: names('zhit', 5), zgroan: names('zgroan', 4), zalert: names('zalert', 3), zroar: ['zroar'],
       flesh: names('flesh', 3), imp: names('imp', 5), impw: names('impw', 3), breath: ['breath'],
       zstep: names('zstep', 6), reload: names('reload', 1), click: names('click', 1),
-      siren: names('siren', 1), crow: names('crow', 2), creak: names('creak', 3),
+      crow: names('crow', 2), creak: names('creak', 3),
     };
-    const BANK_VERSION = '20261105-voice-v2';
+    const BANK_VERSION = '20261105-voice-v3';
     const bank = {};
     let bankLoading = null;
     function loadBank() {
@@ -233,8 +233,8 @@
 
     // ---------- the town is never silent: faint zombie groans far away ----------
     let nextFar = now() + 6;
-    // Rarer town sounds, each on its own timer: a siren far away, crows, a creak.
-    const town = { siren: now() + rand(30, 60), crow: now() + rand(14, 30), creak: now() + rand(9, 20) };
+    // Rarer town sounds, each on its own timer: crows, a creak.
+    const town = { crow: now() + rand(14, 30), creak: now() + rand(9, 20) };
     // ---------- last life: tired breathing and a red screen edge pulsing on the 0.95 s period of the BGM's own heartbeat
     // (enhancements.js already thumps a 62 Hz pulse every 0.95 s; a second heartbeat of ours would beat against it) ----------
     const style = document.createElement('style');
@@ -273,7 +273,6 @@
         play('zgroan', { gain: rand(.1, .2), pan: rand(-.9, .9), rate: rand(.72, .9), lp: 650 });
       }
       if (live) {
-        if (t > town.siren) { town.siren = t + rand(45, 90); play('siren', { gain: rand(.05, .09), pan: rand(-.9, .9), rate: rand(.95, 1.05), lp: 1400 }); }
         if (t > town.crow) { town.crow = t + rand(25, 50); play('crow', { gain: rand(.1, .18), pan: rand(-.9, .9), rate: rand(.9, 1.05), lp: 4200 }); }
         if (t > town.creak) { town.creak = t + rand(15, 35); play('creak', { gain: rand(.1, .18), pan: rand(-.9, .9), rate: rand(.85, 1.1), lp: 2600 }); }
       }
