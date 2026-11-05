@@ -55,7 +55,7 @@ globalThis.SkyHookAssist = {
       }
       return best || { reason: 'no_anchor_near_tap', anchor: null, distance: null, pixel: null };
     }
-    return { target, pick, valid, diagnostic, tapRadius };
+    return { target, pick, valid, diagnostic, tapRadius, inspect };
   },
 };
 

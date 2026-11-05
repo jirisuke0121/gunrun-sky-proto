@@ -1,0 +1,22 @@
+/* A DOM ring highlights the real anchor. No 3D lights, shadows or video assets. */
+#hookGuide{position:absolute;inset:0;z-index:44;pointer-events:none;color:#edf9f4;font-family:system-ui,sans-serif}
+#hookGuide[hidden],#hookGuide [hidden]{display:none!important}
+#hookGuideSpot{position:absolute;width:76px;height:76px;transform:translate(-50%,-50%);border:3px solid #a9ffd8;border-radius:50%;box-shadow:0 0 0 9999px #030c146b,0 0 20px #9fffd855}
+#hookGuideSpot:before{content:"";position:absolute;inset:-10px;border:1px solid #b5ffe67a;border-radius:50%}
+#hookGuideTargetLabel{position:absolute;bottom:calc(100% + 18px);left:50%;transform:translateX(-50%);background:#122a24f5;border:1px solid #8eefba88;border-radius:4px;padding:6px 10px;font-size:12px;font-weight:700;white-space:nowrap;color:#caffdf}
+#hookGuideSpot.label-below #hookGuideTargetLabel{bottom:auto;top:calc(100% + 18px)}
+.hook-guide-card{position:absolute;bottom:clamp(15px,4vh,36px);left:50%;transform:translateX(-50%);width:min(470px,calc(100% - 220px));background:#102328f5;border:1px solid #8dd5b744;border-top:2px solid #adffd8;border-radius:7px;padding:17px 21px;box-shadow:0 12px 40px #0005;pointer-events:auto}
+.hook-guide-card.at-top{bottom:auto;top:68px}
+.hook-guide-card header{display:flex;justify-content:space-between;gap:12px;font-size:10px;letter-spacing:.09em;color:#aff3ce}
+.hook-guide-card h2{font-size:20px;line-height:1.4;margin:10px 0 8px;color:#edf9f4}
+.hook-guide-card p{font-size:13px;line-height:1.7;margin:0;color:#c8dcd8}
+.hook-guide-card footer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}
+.hook-guide-card button{min-height:40px;border-radius:4px;font:600 12px system-ui;padding:9px 15px;cursor:pointer}
+#hookGuideTry{background:#afffd5;color:#122e24;border:1px solid #afffd5}
+#hookGuideSkip{background:transparent;border:1px solid #ffffff26;color:#c3d9d1}
+.hook-guide-card button:focus-visible{outline:2px solid white;outline-offset:3px}
+#hookGuide[data-phase=flight] .hook-guide-card,#hookGuide[data-phase=success] .hook-guide-card{pointer-events:none}
+#hookGuide[data-phase=flight] footer,#hookGuide[data-phase=success] footer{display:none}
+body.hook-guide-paused #lookNote,body.hook-guide-paused #hint{visibility:hidden}
+@media(max-height:500px){.hook-guide-card{width:min(440px,calc(100% - 210px));bottom:12px;padding:12px 16px}.hook-guide-card.at-top{top:52px}.hook-guide-card h2{font-size:17px;margin:6px 0}.hook-guide-card p{font-size:12px;line-height:1.5}.hook-guide-card header{font-size:9px}.hook-guide-card footer{margin-top:9px}.hook-guide-card button{min-height:36px;padding:7px 12px}#hookGuideSpot{width:64px;height:64px}#hookGuideTargetLabel{font-size:11px}}
+@media(max-width:700px){.hook-guide-card{width:calc(100% - 160px);padding:11px 14px}.hook-guide-card h2{font-size:16px}.hook-guide-card p{font-size:11px}.hook-guide-card header{font-size:8px}.hook-guide-card button{font-size:11px;padding:7px 10px}}
