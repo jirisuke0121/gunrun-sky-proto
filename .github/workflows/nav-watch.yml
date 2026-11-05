@@ -1,7 +1,7 @@
 name: Nav watch (stuck-zombie log and dev badge)
 on:
   pull_request:
-    paths: ['nav-watch.js', 'telemetry-probe.js', 'enhancements.js', 'zombie-*.js', 'index.html', 'canyon.html', 'bench/nav-watch*', 'bench/zombie-descent*', '.github/workflows/nav-watch.yml']
+    paths: ['nav-watch.js', 'telemetry-probe.js', 'enhancements.js', 'zombie-*.js', 'indoor-access.js', 'index.html', 'canyon.html', 'bench/nav-watch*', 'bench/zombie-descent*', 'bench/zombie-climb-queue*', 'bench/pursuit-*', '.github/workflows/nav-watch.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,6 +18,8 @@ jobs:
         run: node bench/nav-watch.test.cjs
       - name: Safe descent and interruption rules
         run: node bench/zombie-descent.test.cjs
+      - name: Occupied climb approaches release the shared search
+        run: node bench/zombie-climb-queue.test.cjs
       - name: Install browser
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
@@ -30,9 +32,13 @@ jobs:
         run: node bench/nav-watch-browser.cjs
       - name: Descend and attack across both maps and all difficulty levels
         run: node bench/zombie-descent-browser.cjs
+      - name: Regress reported stalls on narrow roofs, entries and disconnected cells
+        run: AUDIT_SET=recovery node bench/pursuit-audit.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: zombie-descent-evidence
-          path: browser-evidence/descent/
+          path: |
+            browser-evidence/descent/
+            browser-evidence/pursuit-audit/
           retention-days: 14

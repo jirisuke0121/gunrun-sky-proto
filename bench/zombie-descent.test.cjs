@@ -40,6 +40,11 @@ const assert=require('node:assert/strict');
  const other={pos:vec(crowd.e.pos.x+.7,crowd.e.pos.y,crowd.e.pos.z),r:.3,h:1.8};crowd.game.Jt.push(other);const start=crowd.e.pos.x;
  for(let i=0;i<30;i++)crowd.step();assert.ok(crowd.e.pos.x-start<.2,'queue behind a body instead of merging');
  crowd.game.Jt.pop();assert.ok(crowd.until(()=>crowd.descent.stats.landed===1),'resume after the queue clears');
+ const tread=setup();
+ for(let i=0;i<1200&&!tread.descent.stats.started;i++){
+  tread.e.onGround=i%2===0;tread.step();
+ }
+ assert.equal(tread.descent.stats.started,1,'brief ground-contact flicker pauses the scan without restarting it');
  const narrow=setup();narrow.floor.maxX=.6;narrow.game.c.pos.x=.35;
  assert.ok(narrow.until(()=>narrow.descent.stats.landed===1),'a supported half-meter slab is a valid landing');
  const authored=setup();authored.e.edge=7;authored.e.navT=0;
@@ -48,7 +53,7 @@ const assert=require('node:assert/strict');
  window.skyZombieClimb=undefined;
  // createZombieDescent owns the supplied climb object, not the window alias.
  const {createZombieDescent:factory}=await import('../zombie-descent.js');
- const current=factory(authored.game,authored.runtime,{navigationTargets:()=>[42]},authored.flash,{});
+ const current=factory(authored.game,authored.runtime,{navigationTargets:()=>[42]},authored.flash,{config:{rise:1.2}});
  current.step(authored.e,1/60);assert.equal(authored.e.edge,7,'preserve authored recovery targets');
  for(const effect of ['hit','flash','decoy','landing','dead']){
   const b=setup();assert.ok(b.until(()=>b.e.act?.descentRecovery&&!b.e.onGround),'begin the flight');
@@ -60,5 +65,25 @@ const assert=require('node:assert/strict');
   b.step();assert.equal(b.e.act,null,effect+' interrupts in midair');
   if(effect==='hit')assert.deepEqual([b.e.vel.x,b.e.vel.y,b.e.vel.z],[4,2,1]);
  }
+ // A low ceiling permits ordinary walking but not a jump arc. The missing
+ // grid node must still receive a current, nonzero-cost departure field.
+ const low=setup();
+ low.runtime.NAV.nodes.push({id:0,x:1,y:4,z:0});
+ low.solids.push(box(.1,6,-3,5,6.4,3));
+ const goals=low.descent.navigationTargets();
+ assert.ok(goals.includes(0),'low-ceiling walk to an off-grid target remains routable');
+ assert.ok(Math.abs(goals.costs[0]-2)<.001,'departure includes the remaining walk cost');
+ assert.ok(low.descent.hasNavigationTarget(low.game.c));
+ low.game.c.pos.z+=2;
+ assert.equal(low.descent.hasNavigationTarget(low.game.c),false,'moving the player invalidates the local target');
+ // The motor can support an overhanging foot, but never a whole path in air.
+ const support=setup();
+ const {createZombieClimb:climbFactory}=await import('../zombie-climb.js');
+ const collision=climbFactory(support.game,support.runtime,support.flash);
+ assert.ok(collision.clearLine(support.e,{x:-4.2,y:8.003,z:0},{x:-4.2,y:8.003,z:1},true));
+ assert.equal(collision.clearLine(support.e,{x:-4.31,y:8.003,z:0},{x:-4.31,y:8.003,z:1},true),false);
+ assert.equal(collision.clearLine(support.e,{x:-3,y:8.003,z:0},{x:-5,y:8.003,z:0},true),false);
+ support.runtime.INDOOR_ACCESS={allowsMove:()=>false};
+ assert.equal(collision.clearLine(support.e,{x:-3,y:8.003,z:0},{x:-2,y:8.003,z:0}),false,'local traversals obey indoor access');
  console.log('PASS descent: NAV-less floor, continuous/swept motion, wall, unsupported approach, missing/disconnected floor, hit/flash/decoy/death/target/mission interruptions, knockback and crowd');
 })().catch(e=>{console.error(e);process.exitCode=1});

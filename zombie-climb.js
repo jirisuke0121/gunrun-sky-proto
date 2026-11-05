@@ -11,7 +11,7 @@ export function createZombieClimb(game, runtime, flashbang) {
   const point = (x, y, z) => ({ x, y, z });
   const distanceToTop = (p, b) => Math.hypot(p.x - clamp(p.x, b.minX, b.maxX), p.z - clamp(p.z, b.minZ, b.maxZ));
   const faces = [{ x: 1, z: 0 }, { x: -1, z: 0 }, { x: 0, z: 1 }, { x: 0, z: -1 }];
-  const overlap = (a, b) => a.minX < b.maxX && a.maxX > b.minX && a.minZ < b.maxZ && a.maxZ > b.minZ;
+  const overlap = (a, b) => a.minX <= b.maxX + .01 && a.maxX >= b.minX - .01 && a.minZ <= b.maxZ + .01 && a.maxZ >= b.minZ - .01;
   const columns = new Map();
   // Index solid faces once, including low ledges and long walls. A real landing
   // and a supported approach decide usability, rather than a height threshold.
@@ -20,7 +20,7 @@ export function createZombieClimb(game, runtime, flashbang) {
     if (b.canyonTier === 'wall' || !['slab', 'mono', 'beam'].includes(b.type) || b.maxY <= b.minY) continue;
     const caps = [...new Set(runtime.near(b.minX - 0.01, b.minZ - 0.01, b.maxX + 0.01, b.maxZ + 0.01))]
       .filter(cap => !cap.off && cap.type !== 'mono' && cap.type !== 'door' && cap.type !== 'prop' &&
-        cap.maxY >= b.maxY - 0.05 && cap.minY <= b.maxY + 0.05 && overlap(b, cap));
+        cap.maxY >= b.minY && cap.minY <= b.maxY + 0.05 && overlap(b, cap));
     if (!caps.includes(b)) caps.push(b);
     if (caps.length) columns.set(b, caps);
   }
@@ -53,6 +53,7 @@ export function createZombieClimb(game, runtime, flashbang) {
     return [enter, leave];
   }
   function clearLine(enemy, a, b, grounded = false) {
+    if (runtime.INDOOR_ACCESS?.allowsMove && !runtime.INDOOR_ACCESS.allowsMove(a, b)) return false;
     // Exact body sweeps and floor-coverage intervals, instead of samples every
     // 18cm. Cost depends on nearby geometry, not on the height of the wall.
     const r = enemy.r, h = enemy.h, supports = [];
@@ -66,7 +67,10 @@ export function createZombieClimb(game, runtime, flashbang) {
       ])) return false;
       if (grounded) {
         const interval = lineInterval([
-          [a.x, b.x, box.minX, box.maxX], [a.z, b.z, box.minZ, box.maxZ],
+          // Match the actual capsule/AABB motor: a grounded actor may have
+          // its centre beyond a lip while part of its feet still overlaps it.
+          [a.x, b.x, box.minX - r + .0001, box.maxX + r - .0001],
+          [a.z, b.z, box.minZ - r + .0001, box.maxZ + r - .0001],
           [a.y, b.y, box.maxY - 0.1, box.maxY + 0.35],
         ], false);
         if (interval) supports.push(interval);
@@ -86,9 +90,14 @@ export function createZombieClimb(game, runtime, flashbang) {
   }
   function facePoint(b, n, enemy, inset = false, pad = enemy.r + 0.09) {
     const along = Math.min(pad, (n.x ? b.maxZ - b.minZ : b.maxX - b.minX) / 2);
-    return point(n.x ? (n.x > 0 ? b.maxX : b.minX) + n.x * pad * (inset ? -1 : 1) :
+    // Like the player's collision solver, a narrow cap can support the feet
+    // while the body overhangs it. Keep the centre on the real cap and let
+    // the full body sweep decide clearance instead of requiring a .78m top.
+    const inward = Math.min(pad, (n.x ? b.maxX - b.minX : b.maxZ - b.minZ) / 2);
+    const normalPad = inset ? inward : pad;
+    return point(n.x ? (n.x > 0 ? b.maxX : b.minX) + n.x * normalPad * (inset ? -1 : 1) :
       clamp(enemy.pos.x, b.minX + along, b.maxX - along), enemy.pos.y,
-      n.z ? (n.z > 0 ? b.maxZ : b.minZ) + n.z * pad * (inset ? -1 : 1) :
+      n.z ? (n.z > 0 ? b.maxZ : b.minZ) + n.z * normalPad * (inset ? -1 : 1) :
       clamp(enemy.pos.z, b.minZ + along, b.maxZ - along));
   }
   function landingNode(p, enemy) {
@@ -160,15 +169,29 @@ export function createZombieClimb(game, runtime, flashbang) {
     });
   }
   function makeRoute(enemy, column, cap, normal, along, terrainOnly = false) {
+    return makeRouteAtPad(enemy, column, cap, normal, along, terrainOnly, false) ||
+      makeRouteAtPad(enemy, column, cap, normal, along, terrainOnly, true) ||
+      makeRouteAtPad(enemy, column, cap, normal, along, terrainOnly, false, true) ||
+      makeRouteAtPad(enemy, column, cap, normal, along, terrainOnly, true, true);
+  }
+  function makeRouteAtPad(enemy, column, cap, normal, along, terrainOnly, standOff, lip = false) {
     const player = targetFor(enemy), field = fieldFor(enemy);
     if (!player) return null;
     // An enemy already pressed against the face can climb from there. Making
     // it first step backwards into the crowd can deadlock the entire queue.
     const side = normal.x || normal.z, axis = normal.x ? 'X' : 'Z';
     const gap = ((normal.x ? enemy.pos.x : enemy.pos.z) - column[(side > 0 ? 'max' : 'min') + axis]) * side;
-    const pad = clamp(gap, enemy.r + 0.00005, enemy.r + 0.09);
+    const pad = standOff ? enemy.r + .09 : clamp(gap, enemy.r + 0.00005, enemy.r + 0.09);
     const start = facePoint(column, normal, enemy, false, pad), outside = facePoint(cap, normal, enemy, false, pad);
     const finish = facePoint(cap, normal, enemy, true, pad); finish.y = cap.maxY + 0.003;
+    // A roof's centre lane can be occupied by another solid/low ceiling while
+    // its lip remains standable. Keep real foot contact and sweep the body.
+    if (lip) {
+      if (normal.x) finish.x = (normal.x > 0 ? cap.maxX : cap.minX) - normal.x * .01;
+      else finish.z = (normal.z > 0 ? cap.maxZ : cap.minZ) - normal.z * .01;
+      if (normal.x) start.z = clamp(along, column.minZ + .01, column.maxZ - .01);
+      else start.x = clamp(along, column.minX + .01, column.maxX - .01);
+    }
     // Keep a narrow support's tangent coordinate when traversing its overhang.
     if (normal.x) outside.z = finish.z = along;
     else outside.x = finish.x = along;
@@ -182,7 +205,7 @@ export function createZombieClimb(game, runtime, flashbang) {
     const sourceCost = source >= 0 ? (field?.[source] ?? Infinity) : Infinity;
     // An isolated/decorative top must not become a new dead end. FIELD is usable
     // only when it targets this enemy's observed/remembered floor.
-    if (!directTop && (wallTarget(enemy) || node < 0 || (field?.[node] ?? Infinity) >= sourceCost - 0.5)) return null;
+    if (!directTop && (wallTarget(enemy) && !window.skyZombieDescent?.hasNavigationTarget?.(player) || node < 0 || (field?.[node] ?? Infinity) >= sourceCost - 0.5)) return null;
     const approach = approachPoints(enemy, column, start);
     if (!approach) return null;
     const segments = approach.map(to => ({ kind: 'approach', to, normal, surface: column }));
@@ -224,31 +247,40 @@ export function createZombieClimb(game, runtime, flashbang) {
       column.minY <= enemy.pos.y + (enemy.stalker ? 2.4 : 1.8) && column.maxY > enemy.pos.y + 0.02 &&
       (!opportunity || distanceToTop(enemy.pos, column) <= config.planRadius))
       .sort((a, b) => distanceToTop(enemy.pos, a) - distanceToTop(enemy.pos, b));
-    let best = null, checked = 0;
+    let best = null, queued = null, checked = 0;
     const limit = opportunity ? walkingETA(enemy) - config.planGain : Infinity;
     for (const column of candidates) {
       const caps = columns.get(column);
       for (const cap of caps) for (const normal of faces) {
         if (cap.off) continue;
         const pad = enemy.r + 0.09, axis = normal.x ? 'Z' : 'X', start = facePoint(column, normal, enemy);
-        if (cap['max' + axis] - cap['min' + axis] < pad * 2) continue;
+        const inset = Math.min(pad, (cap['max' + axis] - cap['min' + axis]) / 2);
         const base = normal.x ? start.z : start.x;
         const exits = [...new Set([base, normal.x ? player.pos.z : player.pos.x,
           (cap['min' + axis] + cap['max' + axis]) / 2, ...caps.flatMap(other => [other['min' + axis] - pad, other['max' + axis] + pad])]
-          .map(v => clamp(v, cap['min' + axis] + pad, cap['max' + axis] - pad)))]
+          .map(v => clamp(v, cap['min' + axis] + inset, cap['max' + axis] - inset)))]
           .sort((a, b) => Math.abs(a - base) - Math.abs(b - base));
+        exits.push(clamp(normal.x ? player.pos.z : player.pos.x, cap['min' + axis] + .01, cap['max' + axis] - .01));
         for (const along of exits) {
           stats.candidates++;
           const route = makeRoute(enemy, column, cap, normal, along);
           if (route && route.score < limit && (!best || route.score < best.score)) {
             best = route; best.opportunity = opportunity;
+          } else if (!route) {
+            // A body occupying an otherwise valid approach is a queue, not
+            // missing terrain. Bound this scan too, so one blocked follower
+            // cannot monopolize the shared search and starve the leaders.
+            const waiting = makeRoute(enemy, column, cap, normal, along, true);
+            if (waiting && waiting.score < limit && (!queued || waiting.score < queued.score)) {
+              queued = waiting; queued.opportunity = opportunity;
+            }
           }
-          if (++checked >= config.planCandidates && (opportunity || best)) return best;
+          if (++checked >= config.planCandidates && (opportunity || best || queued)) return best || queued;
           yield;
         }
       }
     }
-    return best;
+    return best || queued;
   }
   function navigationTargets() {
     // A mono roof has no NAV node. Falling back to the player's old node
@@ -257,25 +289,57 @@ export function createZombieClimb(game, runtime, flashbang) {
     // the wall itself remains outside the shared navigation graph.
     if (run.mission || !realPlayer.onGround) return null;
     const node = runtime.nodeAt(realPlayer.pos.x, realPlayer.pos.y + 0.1, realPlayer.pos.z);
-    if (node >= 0 && Math.abs(runtime.NAV.nodes[node].y - realPlayer.pos.y) < 0.35) return null;
+    const standingNode = node >= 0 && Math.abs(runtime.NAV.nodes[node].y - realPlayer.pos.y) < 0.35 ? node : -1;
     const cap = supportingWall(realPlayer);
     if (!cap) return null;
+    if (standingNode >= 0 && !(approachGoal?.cap === cap && approachGoal.standing === standingNode &&
+        distance(approachGoal.pos, realPlayer.pos) < .5)) {
+      // Ordinary connected floors keep the original field. Only recover an
+      // apparently valid target node when a real pursuer cannot reach it.
+      if (runtime.FIELD[standingNode] !== 0 || !zombies.some(e => {
+        if (e.dead || e.remove || e.stalker || !e.onGround) return false;
+        const id = runtime.nodeAt(e.pos.x, e.pos.y, e.pos.z);
+        return id >= 0 && !Number.isFinite(runtime.FIELD[id]);
+      })) return null;
+    }
     if (approachGoal?.cap === cap && game.ceRef() < approachGoal.until &&
         distance(approachGoal.pos, realPlayer.pos) < 0.5) return approachGoal.ids.length ? approachGoal.ids : null;
     let candidates = approachNodes.get(cap);
     if (!candidates) {
-      candidates = runtime.NAV.nodes.filter(n => n.y < cap.maxY - 0.35 &&
-        n.y + 1.8 >= cap.minY && distanceToTop(n, cap) <= 1.5);
+      candidates = [];
+      // The floor slab may hang above a real wall/column. Search from that
+      // support's foot, rather than requiring a NAV node beside the slab's
+      // underside (which can be several metres above all reachable floors).
+      for (const [column, caps] of columns) if (caps.includes(cap)) {
+        for (const n of runtime.NAV.nodes) if (n.y < cap.maxY - .35 &&
+          n.y + 1.8 >= column.minY && distanceToTop(n, column) <= 1.5) candidates.push({ n, column });
+      }
       approachNodes.set(cap, candidates);
     }
-    const ids = [];
-    for (const n of candidates) {
+    const ids = [], costs = {};
+    for (const { n, column } of candidates) {
       const body = { pos: point(n.x, n.y + 0.003, n.z), r: 0.3, h: 1.8, onGround: true };
       // This only establishes terrain clearance. Occupied climb lanes are
       // queued later, rather than invalidating the entire approach field.
-      if (faces.some(normal => makeRoute(body, cap, cap, normal, normal.x ? n.z : n.x, true))) ids.push(n.id);
+      let best = Infinity;
+      for (const normal of faces) {
+        const route = makeRoute(body, column, cap, normal, normal.x ? n.z : n.x, true);
+        if (route?.directTop) best = Math.min(best, route.score * 6);
+      }
+      if (Number.isFinite(best)) {
+        if (costs[n.id] === undefined) ids.push(n.id);
+        costs[n.id] = Math.min(costs[n.id] ?? Infinity, Math.round(best * 100) / 100);
+      }
     }
-    approachGoal = { cap, pos: point(realPlayer.pos.x, realPlayer.pos.y, realPlayer.pos.z), ids, set: new Set(ids), until: game.ceRef() + config.retry };
+    // A NAV node on a roof can itself be isolated. Keep that true goal at zero
+    // and add checked climb departures with their remaining travel cost, so
+    // a normal walk never loses to a misleading zero-cost wall-foot goal.
+    if (standingNode >= 0) {
+      if (!ids.length) return null;
+      ids.push(standingNode); costs[standingNode] = 0;
+    }
+    Object.defineProperty(ids, 'costs', { value: costs });
+    approachGoal = { cap, standing: standingNode, pos: point(realPlayer.pos.x, realPlayer.pos.y, realPlayer.pos.z), ids, set: new Set(ids), until: game.ceRef() + config.retry };
     return ids.length ? ids : null;
   }
   function pursuing(enemy) {
@@ -349,7 +413,16 @@ export function createZombieClimb(game, runtime, flashbang) {
       if (result.done) {
         const track = tracks.get(enemy); if (track) track.probe = now + config.retry;
         scan = null;
-        if (result.value && (!result.value.opportunity || result.value.score + config.planGain < walkingETA(enemy))) startRoute(enemy, result.value);
+        if (result.value) {
+          // The ordinary motor keeps moving while this incremental scan runs.
+          // Rebuild the chosen approach from its current position, including a
+          // pressed wall/lip, instead of repeatedly discarding a stale start.
+          const route = result.value, finish = route.segments.at(-1).to;
+          const fresh = makeRoute(enemy, route.column, route.cap, route.normal, route.normal.x ? finish.z : finish.x);
+          if (fresh && (!route.opportunity || fresh.score + config.planGain < walkingETA(enemy))) {
+            fresh.opportunity = route.opportunity; startRoute(enemy, fresh);
+          }
+        }
         break;
       }
       if (performance.now() - begin >= config.scanMs) break;
@@ -541,7 +614,18 @@ export function createZombieClimb(game, runtime, flashbang) {
     window.skyZombieRouting?.beforeStep(this, dt);
     if (window.skyZombieSearch?.deferSpawn(this)) { this.anim(0); return; }
     window.skyZombieSearch?.observe(this, dt);
-    if (window.skyZombieDescent?.step(this, dt)) return;
+    if (window.skyZombieDescent?.step(this, dt)) {
+      // A queued descent owns this recovery. Do not resume an older climb
+      // scan when the queue briefly replans its landing lane.
+      if (scan?.enemy === this) scan = null;
+      const track = tracks.get(this);
+      if (track) { track.wait = 0; track.best = track.field = Infinity; }
+      return;
+    }
+    if (window.skyZombieDescent?.isPlanning?.(this)) {
+      if (scan?.enemy === this) scan = null;
+      originalUpdate.call(this, dt); return;
+    }
     // Visible decoys own navigation; never recover toward the real player.
     if (window.skyDecoy?.targetFor(this)) {
       if (this.act?.kind === 'pillar') interrupt(this);
@@ -566,7 +650,7 @@ export function createZombieClimb(game, runtime, flashbang) {
         this.anim(dt); watch(this, dt); return;
       }
     }
-    if (target && eligible(this) && distanceToTop(this.pos, target) <= this.r + 0.3) {
+    if (target && !window.skyZombieDescent?.hasNavigationTarget?.(player) && eligible(this) && distanceToTop(this.pos, target) <= this.r + 0.3) {
       // At the wall's foot, use the usual direct chase/collision behavior
       // rather than follow a stale field back away from the wall.
       this.edge = -1; this.navT = Math.max(this.navT, dt + 0.25);
@@ -588,6 +672,9 @@ export function createZombieClimb(game, runtime, flashbang) {
         if (landing.clear) { this.edge = -1; this.navT = Math.max(this.navT, dt + 0.25); }
       }
     }
+    // A newly active pursuer has no source node yet. Pick its first edge
+    // before moving; the random repick delay can otherwise walk it off a lip.
+    if (this.node < 0 && eligible(this)) this.navT = 0;
     originalUpdate.call(this, dt); watch(this, dt);
   };
   ri.prototype.anim = function animatePillarClimb(dt) {

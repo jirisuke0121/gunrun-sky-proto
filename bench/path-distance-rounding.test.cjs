@@ -2,10 +2,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-function reference(graph, seeds, cost, limit) {
+function reference(graph, seeds, cost, limit, weights = {}) {
   const field = new Float32Array(graph.nodes.length).fill(Infinity);
   const visited = new Set();
-  for (const seed of seeds) if (seed >= 0) field[seed] = 0;
+  for (const seed of seeds) if (seed >= 0) field[seed] = Math.fround(weights[seed] || 0);
   while (true) {
     let node = -1, distance = Infinity;
     for (let i = 0; i < field.length; i++) {
@@ -43,11 +43,11 @@ for (const file of ['index.html', 'canyon.html']) {
   for (const state of ['initial', 'door-closed', 'jam-expired']) {
     if (state === 'door-closed') door.off = false;
     if (state === 'jam-expired') time = 21;
-    for (const seeds of [[0], [1], [-1, 0, 4]]) for (const limit of [1, 200, 400, 600]) {
+    for (const seeds of [[0], [1], [-1, 0, 4]]) for (const limit of [1, 200, 400, 600]) for (const weights of [{}, {0: 0, 1: 3.14159265, 4: 8.253}]) {
       let visits = 0;
       const actual = new Float32Array(graph.nodes.length);
-      context.search(seeds, edge => { visits++; return cost(edge); }, limit, actual);
-      assert.deepEqual(actual, reference(graph, seeds, cost, limit), `${file}: ${state}, seeds ${seeds}, limit ${limit}`);
+      context.search(seeds, edge => { visits++; return cost(edge); }, limit, actual, weights);
+      assert.deepEqual(actual, reference(graph, seeds, cost, limit, weights), `${file}: ${state}, seeds ${seeds}, limit ${limit}`);
       assert.ok(visits <= graph.E.length, `${file}: unchanged distances must not expand the same node again (${visits} edge visits)`);
     }
   }

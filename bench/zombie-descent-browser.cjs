@@ -21,6 +21,7 @@ const scenarios=fs.readFileSync('bench/zombie-descent-scenarios.js','utf8');
   const base=process.env.DESCENT_PUBLIC==='1'?'https://jirisuke0121.github.io/gunrun-sky-proto/':'https://descent.test/';
   await page.goto(base+map+'.html?verify=descent-v1',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.skyStartReadiness?.ready&&window.skyZombieDescent);
   await page.locator(difficulty==='intro'?'#bIntro':'#bStart').click();assert.equal(await page.evaluate(()=>skyChallenge.id),difficulty);
+  await page.evaluate(seconds=>window.__descentCrowdLimit=seconds,+process.env.DESCENT_CROWD_SECONDS||60);
   const rows=await page.evaluate(scenarios),crowds=map==='index'?await page.evaluate(fs.readFileSync('bench/zombie-descent-crowd.js','utf8')):[],stats=await page.evaluate(()=>({...skyZombieDescent.stats}));results.push({map,difficulty,touch,rows,crowds,stats,errors});fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2));
   for(const row of rows){assert.ok(row.valid,`${map}/${difficulty}/${row.id}: fixture must stand on real support`);assert.notEqual(row.firstDamage,null,`${map}/${difficulty}/${row.id}: must land and attack`);assert.equal(row.penetrations,0,row.id+': no terrain penetration');assert.ok(row.maxStep<1,row.id+': no teleport');}
   for(const crowd of crowds){assert.ok(crowd.initial,'valid crowd positions');assert.ok(crowd.landed.every(t=>t!==null),'every crowd member lands: '+JSON.stringify(crowd));assert.equal(crowd.penetrations,0);assert.ok(crowd.maxStep<1);}
@@ -28,7 +29,7 @@ const scenarios=fs.readFileSync('bench/zombie-descent-scenarios.js','utf8');
   if(map==='index'&&difficulty==='intro'){
    await page.evaluate(()=>{window.__descentFixtures=[{id:'photo-review',p:[1.3,4,-15.5],e:[-1,8,-13.5]}];window.__descentLimit=.01;});await page.evaluate(scenarios);
    const render=()=>{const g=__game;g.cam(1/60);g.debug.camera.position.set(1.3,5.8,-19);g.debug.camera.lookAt(1.3,6,-12);g.debug.renderer.render(g.debug.scene,g.debug.camera);};await page.evaluate(render);await page.screenshot({path:out+'/photo-before.png'});
-   await page.evaluate(()=>window.__descentLimit=12);await page.evaluate(scenarios);await page.evaluate(render);await page.screenshot({path:out+'/photo-after.png'});
+   await page.evaluate(()=>window.__descentLimit=45);const photo=await page.evaluate(scenarios);assert.notEqual(photo[0].firstDamage,null,'the photographed target is reached before the after image');await page.evaluate(render);await page.screenshot({path:out+'/photo-after.png'});
   }
   await context.close();
  }

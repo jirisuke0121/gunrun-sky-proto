@@ -4,7 +4,7 @@ export function traversalPoint(a, t) {
   const blend = v => v * v * (3 - 2 * v), mix = (x, y, v) => x + (y - x) * v;
   if (a.kind === 'leap') return { x: mix(a.sx, a.tx, t), y: mix(a.sy, a.ty, t) + a.arc * Math.sin(Math.PI * t), z: mix(a.sz, a.tz, t) };
   const across = Math.min(1, t / .25), fall = Math.max(0, (t - .25) / .75);
-  return { x: mix(a.sx, a.tx, blend(across)), y: a.sy + .5 * Math.sin(Math.PI * across * .5) * (1 - fall) + (a.ty - a.sy) * fall * fall,
+  return { x: mix(a.sx, a.tx, blend(across)), y: a.sy + (a.lift ?? .5) * Math.sin(Math.PI * across * .5) * (1 - fall) + (a.ty - a.sy) * fall * fall,
     z: mix(a.sz, a.tz, blend(across)) };
 }
 
@@ -44,9 +44,9 @@ export function createZombieRouting(game, runtime, climb, flashbang) {
       dur: kind === 6 ? .3 + length / 12 : .3 + Math.sqrt(2 * Math.max(0, fall) / game.U.gravity),
       arc: 1.3 + Math.max(0, -fall) * .5, pursuitTraversal: true };
   }
-  function sweep(body, a) {
+  function sweep(body, a, centreSupport = false) {
     const target = { x: a.tx, y: a.ty, z: a.tz };
-    if (!landing(target, body.r) || !climb.clearLine(body, target, target)) return false;
+    if (!(centreSupport ? climb.clearLine(body, target, target, true) : landing(target, body.r)) || !climb.clearLine(body, target, target)) return false;
     let previous = { x: a.sx, y: a.sy, z: a.sz };
     for (let i = 1; i <= 32; i++) {
       const next = traversalPoint(a, i / 32);
@@ -171,6 +171,7 @@ export function createZombieRouting(game, runtime, climb, flashbang) {
   function beforeStep(enemy, dt) {
     if (enemy.act?.kind === 'leap') loadLeap(enemy, enemy.act);
     const a = enemy.act;
+    if (a?.localTraversal) return;
     if (!a?.pursuitTraversal) return;
     const next = traversalPoint(a, Math.min(1, a.t + dt / a.dur));
     if (enemy.dead || enemy.stun > 0 || flashbang.blinded(enemy) || !landing({ x: a.tx, y: a.ty, z: a.tz }, enemy.r) || !climb.clearLine(enemy, enemy.pos, next)) {

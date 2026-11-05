@@ -56,3 +56,21 @@ test('enemy action and knockback guard clears an illegal action and permits purs
   access.updateZombie(enemy, .1);
   assert.equal(enemy.pos.x, 11);
 });
+
+
+test('facade recesses share the human entry boundary and do not cancel a reachable attack', () => {
+  const access = fixture();
+  assert.equal(access.allows(p(.4)), true);
+  assert.equal(access.allowsMove(p(-1), p(.4)), true);
+  assert.equal(access.allowsMove(p(.4), p(2)), false);
+  assert.equal(access.allowsMove(p(-1), p(11), .3), false);
+  const vector = (x, y, z) => ({x,y,z,set(x,y,z){Object.assign(this,{x,y,z});}});
+  const enemy = {pos:vector(.4,0,5),vel:vector(1,0,0),atkT:.3,
+    touching:()=>true,update(){this.pos.x=2;this.atkT-=.1;},anim(){}};
+  access.updateZombie(enemy,.1);
+  assert.equal(enemy.pos.x,.4);
+  assert.ok(Math.abs(enemy.atkT-.2)<1e-9,'a legal melee wind-up survives a blocked step');
+  enemy.touching=()=>false;
+  access.updateZombie(enemy,.1);
+  assert.equal(enemy.atkT,0,'out-of-range attacks reset');
+});
