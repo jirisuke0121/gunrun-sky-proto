@@ -5,8 +5,10 @@
   for(const k of Object.keys(g.keys))g.keys[k]=false;
   g.GAME.spawnT=g.GAME.surgeT=1e9;g.SCR.off=g.PACE.off=g.MARK.off=true;g.STALK.spawned=true;
   Object.assign(g.S,{sendLog:false,autoFire:false,aimAuto:false,stalkerOn:false});
+  const radius=f.archetype==='stalker'?.42:f.archetype==='boss'?.38:.3,height=f.archetype==='stalker'?2.4:f.archetype==='boss'?2.2:1.8;
+  if(f.archetype==='stalker')Object.assign(g.S,{stalkerOn:true,stalkerSpeed:5});
   const L=g.LADDERS[f.ladder],point=(x,y,z)=>({x,y:y+.003,z});
-  const free=p=>g.freeAt(p.x,p.y+.012,p.z,.3,1.8)&&g.near(p.x,p.z,p.x,p.z).some(b=>!b.off&&Math.abs(b.maxY-p.y)<.05&&p.x>=b.minX-.29&&p.x<=b.maxX+.29&&p.z>=b.minZ-.29&&p.z<=b.maxZ+.29);
+  const free=p=>g.freeAt(p.x,p.y+.012,p.z,radius,height)&&g.near(p.x,p.z,p.x,p.z).some(b=>!b.off&&Math.abs(b.maxY-p.y)<.05&&p.x>=b.minX-.29&&p.x<=b.maxX+.29&&p.z>=b.minZ-.29&&p.z<=b.maxZ+.29);
   const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z),arr=p=>[p.x,p.y,p.z];
   const top=point(L.x-L.nx*1.2,L.y1,L.z-L.nz*1.2),bottom=point(L.x+L.nx*1.2,L.y0,L.z+L.nz*1.2);
   const nodes=g.NAV.nodes.map(n=>point(n.x,n.y,n.z));
@@ -31,9 +33,10 @@
   const starts=[];
   if(blockerPoint)starts.push(blockerPoint);
   const candidates=[bottom,...nodes.filter(p=>Math.abs(p.y-bottom.y)<.1&&distance(p,bottom)<6).sort((a,b)=>distance(a,bottom)-distance(b,bottom))];
-  for(const p of candidates)if(starts.length<f.count&&free(p)&&g.INDOOR_ACCESS?.allows(p)!==false&&starts.every(q=>Math.abs(q.y-p.y)>1.8||distance(p,q)>.72))starts.push(p);
+  for(const p of candidates)if(starts.length<f.count&&free(p)&&g.INDOOR_ACCESS?.allows(p)!==false&&starts.every(q=>Math.abs(q.y-p.y)>1.8||distance(p,q)>radius*2+.12))starts.push(p);
   if(starts.length<f.count)return {...f,skipped:'not enough supported starts',available:starts.length};
-  const enemies=starts.map(p=>{const e=new g.Zombie(p.x,p.y,p.z);Object.assign(e,{spawnT:0,onGround:true,flank:false,dropper:false,stalker:false,pz:false,speedMul:1});g.zombies.push(e);return e;});
+  const enemies=starts.map(p=>{const e=new g.Zombie(p.x,p.y,p.z,f.archetype==='stalker'?'stalker':undefined);Object.assign(e,{spawnT:0,onGround:true,flank:false,dropper:false,stalker:f.archetype==='stalker',boss:f.archetype==='boss',r:radius,h:height,pz:false,speedMul:f.archetype==='boss'?.95:1});g.zombies.push(e);return e;});
+  if(f.archetype==='stalker'){g.STALK.z=enemies[0];g.STALK.extra=enemies.slice(1);}
   if(blockerPoint){enemies[0].stun=12;enemies[0].update=function(){this.anim(dt);};}
   const arrived=Array(f.count).fill(null),firstAction=Array(f.count).fill(null),actions=Array.from({length:f.count},()=>[]),last=Array(f.count).fill(null);
   let ladderPenetrations=0,ownedPenetrations=0,ladderBodyOverlaps=0,ladderPairOverlaps=0,ownedBodyOverlaps=0,maxStep=0,released=false;const trail=[];

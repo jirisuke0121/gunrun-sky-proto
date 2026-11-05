@@ -39,7 +39,10 @@ jobs:
       - name: Descend and attack across both maps and all difficulty levels
         run: node bench/zombie-descent-browser.cjs
       - name: All authored ladders with solo, crowd, entrance and exit blockers
-        run: node bench/zombie-ascent-browser.cjs
+        run: |
+          node bench/zombie-ascent-browser.cjs
+          ASCENT_ARCHETYPE=boss ASCENT_COUNTS=8 ASCENT_MODES=free ASCENT_OUT=browser-evidence/ascent-boss node bench/zombie-ascent-browser.cjs
+          ASCENT_ARCHETYPE=stalker ASCENT_COUNTS=1 ASCENT_MODES=free ASCENT_OUT=browser-evidence/ascent-stalker node bench/zombie-ascent-browser.cjs
       - name: Regress reported stalls on narrow roofs, entries and disconnected cells
         run: AUDIT_SET=recovery node bench/pursuit-audit.cjs
       - uses: actions/upload-artifact@v4
@@ -48,6 +51,8 @@ jobs:
           name: zombie-descent-evidence
           path: |
             browser-evidence/ascent/
+            browser-evidence/ascent-boss/
+            browser-evidence/ascent-stalker/
             browser-evidence/descent/
             browser-evidence/pursuit-audit/
           retention-days: 14

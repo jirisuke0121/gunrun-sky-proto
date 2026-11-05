@@ -54,6 +54,17 @@ const assert=require('node:assert/strict');
   block.dead=true;assert.ok(q.ladders.start(e,q.edge),'the queue resumes after the exit clears');
  }
  {
+  const q=setup(),e=q.enemy();Object.assign(q.L,{nx:1,nz:0});
+  Object.assign(q.runtime.NAV.nodes[0],{x:1,y:2/7,z:0});Object.assign(q.runtime.NAV.nodes[1],{x:-1,y:4,z:0});
+  q.solids.splice(1,1,box(-4,0,-2,0,4,2),box(.5,-1.4,-1,1.107142857,2/7,1),box(1.107142857,-1.4,-1,1.714285714,4/7,1));
+  Object.assign(e,{stalker:true,r:.42,h:2.4});e.pos.set(1,2/7+.003,0);
+  assert.ok(Number.isFinite(q.ladders.edgeCost(q.edge,true)),'a full body stands on the next tread above the thin NAV probe');
+  assert.equal(q.ladders.start(e,q.edge),false,'cost validation cannot snap an actor out of terrain');
+  assert.equal(e.pos.y,2/7+.003);
+  e.pos.y=4/7+.003;assert.ok(q.ladders.start(e,q.edge),'the real supported actor can grab the ladder');
+  q.advance(e,2.5);assert.equal(e.act,null);assert.ok(q.climb.clearLine(e,e.pos,e.pos,true));
+ }
+ {
   const q=setup(),e=q.enemy();q.solids.push(box(-2,2,-1,2,2.2,0));
   assert.equal(q.ladders.edgeCost(q.edge),Infinity,'body sweep rejects terrain through the climb');assert.equal(q.ladders.start(e,q.edge),false);
  }

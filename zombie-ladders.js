@@ -48,7 +48,16 @@ export function createZombieLadders(game, runtime, climb, flashbang) {
     let cache=validated.get(edge);if(!cache){cache=new Map();validated.set(edge,cache);}
     const variant=stalker?'stalker':'normal';if(cache.has(variant))return cache.get(variant);
     const from=runtime.NAV.nodes[edge.from],body={r:stalker?.42:.3,h:stalker?2.4:1.8,stalker};
-    const result=from?build(body,edge,point(from.x,from.y+.003,from.z)):null;
+    let origin=null;
+    if(from){
+      origin=point(from.x,from.y+.003,from.z);const maxFoot=from.y+.45;
+      // NAV uses a thin probe. A full body can overlap the next tread and
+      // stand higher than that probe; validate from the real supported pose.
+      for(const b of runtime.near(from.x-body.r,from.z-body.r,from.x+body.r,from.z+body.r))
+        if(!b.off&&b.maxY<=maxFoot&&b.maxY>=from.y-.05&&from.x+body.r>b.minX&&from.x-body.r<b.maxX&&from.z+body.r>b.minZ&&from.z-body.r<b.maxZ)
+          origin.y=Math.max(origin.y,b.maxY+.003);
+    }
+    const result=origin?build(body,edge,origin):null;
     cache.set(variant,result);stats.checked++;if(!result)stats.rejected++;return result;
   }
   function edgeCost(edge,stalker=false) {
