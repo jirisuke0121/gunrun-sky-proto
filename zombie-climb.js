@@ -541,6 +541,7 @@ export function createZombieClimb(game, runtime, flashbang) {
     window.skyZombieRouting?.beforeStep(this, dt);
     if (window.skyZombieSearch?.deferSpawn(this)) { this.anim(0); return; }
     window.skyZombieSearch?.observe(this, dt);
+    if (window.skyZombieDescent?.step(this, dt)) return;
     // Visible decoys own navigation; never recover toward the real player.
     if (window.skyDecoy?.targetFor(this)) {
       if (this.act?.kind === 'pillar') interrupt(this);

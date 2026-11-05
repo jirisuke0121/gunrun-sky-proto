@@ -32,6 +32,10 @@ const {chromium}=require('playwright');
 
  // A) Floors with no node under a player who just left a roof (found by scanning every standable surface).
  const dev=await open('?dev=1');
+ // Deliberately disable the recovery in these diagnostic-only fixtures: the
+ // logger must still explain an unavailable route. Actual recovery/attacks on
+ // both no-node floors are asserted by zombie-descent-browser.cjs.
+ await dev.page.evaluate(()=>window.skyZombieDescent=null);
  for(const [name,roof,floor,roofY] of [['stair tread',[-30,11.9,1],[-22.5,6.7,1.25],11.9],['small slab',[31,12.1,-8],[30.75,7.4,-12.15],12.1]]){
   const r=await drop(dev.page,roof,floor,9);
   assert.equal(r.zombies,3,name+': three zombies on the roof');
@@ -60,6 +64,7 @@ const {chromium}=require('playwright');
 
  // D) Players: nothing on screen, but the log is still collected.
  const play=await open('');
+ await play.page.evaluate(()=>window.skyZombieDescent=null);
  const rp=await drop(play.page,[-30,11.9,1],[-22.5,6.7,1.25],9);
  assert.ok(rp.stuck.length>=1,'logging does not depend on developer mode');
  assert.equal(await play.page.evaluate(()=>!!document.getElementById('navWatchBadge')),false,'players never get a badge element');

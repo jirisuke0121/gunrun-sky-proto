@@ -1,7 +1,7 @@
 name: Nav watch (stuck-zombie log and dev badge)
 on:
   pull_request:
-    paths: ['nav-watch.js', 'telemetry-probe.js', 'enhancements.js', 'zombie-*.js', 'index.html', 'canyon.html', 'bench/nav-watch*', '.github/workflows/nav-watch.yml']
+    paths: ['nav-watch.js', 'telemetry-probe.js', 'enhancements.js', 'zombie-*.js', 'index.html', 'canyon.html', 'bench/nav-watch*', 'bench/zombie-descent*', '.github/workflows/nav-watch.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,6 +16,8 @@ jobs:
         with: {node-version: '24'}
       - name: Classification, thresholds, rate limit and record cap
         run: node bench/nav-watch.test.cjs
+      - name: Safe descent and interruption rules
+        run: node bench/zombie-descent.test.cjs
       - name: Install browser
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
@@ -26,3 +28,11 @@ jobs:
           fi
       - name: Roof drop onto floors with and without a nav node, in the real game
         run: node bench/nav-watch-browser.cjs
+      - name: Descend and attack across both maps and all difficulty levels
+        run: node bench/zombie-descent-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zombie-descent-evidence
+          path: browser-evidence/descent/
+          retention-days: 14
