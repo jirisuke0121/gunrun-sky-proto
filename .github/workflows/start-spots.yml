@@ -1,0 +1,26 @@
+name: Start spots
+on:
+  pull_request:
+    paths: ['start-spots.js', 'index.html', 'bench/start-spots*', '.github/workflows/start-spots.yml']
+permissions:
+  contents: read
+jobs:
+  start-spots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Rules
+        run: node bench/start-spots.test.cjs
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Random high-ground start in the browser
+        run: node bench/start-spots-browser.cjs
