@@ -1,7 +1,7 @@
 name: Nav watch (stuck-zombie log and dev badge)
 on:
   pull_request:
-    paths: ['nav-watch.js', 'telemetry-probe.js', 'enhancements.js', 'zombie-*.js', 'indoor-access.js', 'index.html', 'canyon.html', 'bench/nav-watch*', 'bench/zombie-descent*', 'bench/pursuit-*', '.github/workflows/nav-watch.yml']
+    paths: ['nav-watch.js', 'telemetry-probe.js', 'enhancements.js', 'zombie-*.js', 'indoor-access.js', 'index.html', 'canyon.html', 'bench/nav-watch*', 'bench/zombie-descent*', 'bench/zombie-climb-queue*', 'bench/pursuit-*', '.github/workflows/nav-watch.yml']
   workflow_dispatch:
 permissions:
   contents: read
