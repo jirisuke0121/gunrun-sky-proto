@@ -13,8 +13,8 @@
  decoy:{jp:['分身に追手を引きつけられる。','分身ボタン／2キーで使用。追手の注意をそらして逃げよう。','分身発動！'],en:['Distract pursuers with a decoy.','Use Decoy / 2 to draw them away.','DECOY ACTIVE!'],button:'tDecoy',keys:['Digit2','Numpad2']},
  rescue:{jp:['救済フックで高台へ逃げられる。','救済ボタン／Vキー。安全な高台への移動は自動です。','救済フック発動！'],en:['Escape to higher ground.','Use Rescue / V. The hook chooses a safe platform.','RESCUE ACTIVE!'],button:'tRescue',keys:['KeyV']}
  };
- function candidates(g,env){
-  const c=g.c,p=c.pos,stats=env.stats||{},out=[],add=(id,point)=>out.push({id,point});
+ function candidates(g,env,seen={}){
+  const c=g.c,p=c.pos,stats=env.stats||{},out=[],add=(id,point)=>{if(!seen[id])out.push({id,point});};
   if(c.state==='wallrun'&&env.wallJumpReady?.())add('walljump',[p.x,p.y+1,p.z]);
   if(c.state==='swing')add('swing',null);
   if(c.state==='ladder')add('ladder',c.ladder?[c.ladder.x,(c.ladder.y0+c.ladder.y1)/2,c.ladder.z]:null);
@@ -24,12 +24,12 @@
    return d<=16&&!g.raycast(p.x,p.y+c.eye,p.z,dx/d,dy/d,dz/d,Math.max(0,d-.4));
   });
   const flash=env.flash,decoy=env.decoy;
-  if(flash?.charges>0&&near.filter(e=>Math.hypot(e.pos.x-p.x,e.pos.z-p.z)<=flash.config.radius).length>=2)add('flash');
-  if(near.length>=2&&!decoy?.active&&decoy?.cooldown<=0&&env.decoyReady?.())add('decoy');
-  if(near.some(e=>Math.hypot(e.pos.x-p.x,e.pos.z-p.z)<4)&&!(flash?.charges>0)&&!(decoy?.cooldown<=0)&&env.rescue?.available()&&env.rescue.chooseTarget())add('rescue');
-  const b=env.barrels?.assistTarget();if(b)add('barrel',[b.barrel.x,(b.barrel.y||0)+1,b.barrel.z]);
+  if(!seen.flash&&flash?.charges>0&&near.filter(e=>Math.hypot(e.pos.x-p.x,e.pos.z-p.z)<=flash.config.radius).length>=2)add('flash');
+  if(!seen.decoy&&near.length>=2&&!decoy?.active&&decoy?.cooldown<=0&&env.decoyReady?.())add('decoy');
+  if(!seen.rescue&&near.some(e=>Math.hypot(e.pos.x-p.x,e.pos.z-p.z)<4)&&!(flash?.charges>0)&&!(decoy?.cooldown<=0&&env.decoyReady?.())&&env.rescue?.available()&&env.rescue.chooseTarget())add('rescue');
+  const b=!seen.barrel&&env.barrels?.assistTarget();if(b)add('barrel',[b.barrel.x,(b.barrel.y||0)+1,b.barrel.z]);
   if(env.slope?.canStart()&&env.usable('tSlide'))add('slide');
-  for(const route of env.wallRoutes||[]){const [x,y,z]=route.at,[nx,nz]=route.normal,along=Math.abs(nx?p.z-z:p.x-x),outside=(p.x-x)*nx+(p.z-z)*nz;const face=g.jn?.find(w=>!w.off&&w.type==='mono'&&w.wr!==false&&env.wallFaceAllowed(w,{x:nx,z:nz})&&Math.abs((nx?(nx>0?w.maxX:w.minX):(nz>0?w.maxZ:w.minZ))-(nx?x:z))<.1);if(face&&outside>=0&&outside<=1.8&&along<=4&&Math.abs(p.y-y)<2.5&&(-Math.sin(c.yaw)*route.direction[0]-Math.cos(c.yaw)*route.direction[1])>.5){add('wallrun',[x,y+1,z]);break;}}
+  for(const route of (seen.wallrun?[]:env.wallRoutes)||[]){const [x,y,z]=route.at,[nx,nz]=route.normal,along=Math.abs(nx?p.z-z:p.x-x),outside=(p.x-x)*nx+(p.z-z)*nz;const face=g.jn?.find(w=>!w.off&&w.type==='mono'&&w.wr!==false&&env.wallFaceAllowed(w,{x:nx,z:nz})&&Math.abs((nx?(nx>0?w.maxX:w.minX):(nz>0?w.maxZ:w.minZ))-(nx?x:z))<.1);if(face&&outside>=0&&outside<=1.8&&along<=4&&Math.abs(p.y-y)<2.5&&(-Math.sin(c.yaw)*route.direction[0]-Math.cos(c.yaw)*route.direction[1])>.5){add('wallrun',[x,y+1,z]);break;}}
   for(const z of g.$a||[]){const [x,y,zz]=z.a;if(Math.hypot(p.x-x,p.z-zz)<=2.3&&p.y<=y-.8&&p.y>=y-3.4){add('zip',z.a);break;}}
   return out;
  }
@@ -57,7 +57,7 @@
    if(phase==='success'&&now()>=until){phase='idle';item=null;}
    if(phase==='action'){if(result()){finish(true);return;}render();return;}
    if(phase==='idle'&&hp==='idle'&&g.z.t>=nextAt&&!env.busy()){
-    const list=candidates(g,env);const next=list.find(x=>!seen[x.id]&&!closed.has(x.id)&&env.presentable(x));
+    const list=candidates(g,env,seen);const next=list.find(x=>!seen[x.id]&&!closed.has(x.id)&&env.presentable(x));
     if(next){item=next;phase='action';baseline={...env.stats,flash:env.flash?.stats.thrown||0,decoy:env.decoy?.stats.used||0,rescue:env.rescue?.charges??2};startedY=g.c.pos.y;attempt=false;attemptTime=0;clear();unlock();}
     // Automatic traversal has no extra input to teach: acknowledge first real use.
     else for(const [stat,id]of [['vaults','vault'],['mantles','mantle'],['wallruns','wallrun']])if(!seen[id]&&(env.stats[stat]||0)>(autoStats[stat]||0)){item={id};save(id);phase='success';until=now()+2200;nextAt=g.z.t+GAP;break;}
