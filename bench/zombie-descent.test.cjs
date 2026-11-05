@@ -47,6 +47,11 @@ const assert=require('node:assert/strict');
  assert.equal(tread.descent.stats.started,1,'brief ground-contact flicker pauses the scan without restarting it');
  const narrow=setup();narrow.floor.maxX=.6;narrow.game.c.pos.x=.35;
  assert.ok(narrow.until(()=>narrow.descent.stats.landed===1),'a supported half-meter slab is a valid landing');
+ const lower=setup();lower.solids.push(box(.9,7.6,-3,5,8,3));
+ lower.runtime.NAV.nodes.push({id:0,x:1,y:8,z:0},{id:1,x:3,y:4,z:0});
+ lower.runtime.FIELD.push(0,0);lower.runtime.nodeAt=(x,y)=>y>7?0:y>3?1:-1;
+ assert.ok(lower.until(()=>lower.descent.stats.landed===1));
+ assert.ok(Math.abs(lower.e.pos.y-4.003)<1e-9,'a supported descent beats a cheap same-roof hop toward a lower target');
  const authored=setup();authored.e.edge=7;authored.e.navT=0;
  // A real wall-climb approach field is current even though the target itself
  // has no NAV node. Never replace it with a walk straight toward a cliff.

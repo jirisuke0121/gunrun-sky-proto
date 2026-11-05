@@ -117,7 +117,8 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
         !climb.clearLine(enemy, p, player.pos, true) && landingFree(enemy, player.pos) && direct) {
       const floor = runtime.near(player.pos.x, player.pos.z, player.pos.x, player.pos.z).find(b => !b.off &&
         Math.abs(b.maxY - player.pos.y) < .05 && player.pos.x >= b.minX && player.pos.x <= b.maxX && player.pos.z >= b.minZ && player.pos.z <= b.maxZ);
-      if (floor) best = { from: p, to: copy(player.pos), floor, flight: direct, score: direct.wait + direct.dur, goal: copy(player.pos) };
+      if (floor) best = { from: p, to: copy(player.pos), floor, flight: direct, score: direct.wait + direct.dur,
+        descends: player.pos.y < p.y - .5, goal: copy(player.pos) };
     }
     for (const top of tops) for (const [nx, nz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const lo = nx ? top.minZ : top.minX, hi = nx ? top.maxZ : top.maxX;
@@ -150,8 +151,14 @@ export function createZombieDescent(game, runtime, climb, flashbang, routing) {
             const flight = checkedFlight(enemy, from, to);
             if (!flight) continue;
             const score = distance(p, from) / speed(enemy) + flight.wait + flight.dur + onward(enemy, to, player);
-            if (!Number.isFinite(score) || best && score >= best.score || !routing.sweep(enemy, flight, true)) continue;
-            best = { from, to, floor, flight, score, goal: copy(player.pos) };
+            // A short hop on the same roof can look cheap in an optimistic
+            // path field yet recreate the exact stall. Prefer a checked way
+            // down when the target is below; retain lateral recovery if no
+            // supported descent exists from this surface.
+            const descends = player.pos.y < p.y - .5 && to.y < p.y - .5;
+            if (!Number.isFinite(score) || best && (best.descends && !descends ||
+                best.descends === descends && score >= best.score) || !routing.sweep(enemy, flight, true)) continue;
+            best = { from, to, floor, flight, score, descends, goal: copy(player.pos) };
           }
         }
       }
