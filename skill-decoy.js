@@ -184,7 +184,7 @@ export function createDecoy(game, runtime) {
   document.addEventListener('keydown', e => { if (['Digit2', 'Numpad2'].includes(e.code) && !e.repeat && playing() && !/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName)) { e.preventDefault(); activate(); } });
   document.addEventListener('visibilitychange', () => audio.sync(!!active && playing() && !document.hidden, active?.age || 0));
   hud();
-  return { audio, activate, tick, frame, reset, clear, stats, config: DECOY,
+  return { audio, activate, canActivate: () => available() && !!landing(), tick, frame, reset, clear, stats, config: DECOY,
     get active() { return active; }, get remaining() { return active ? Math.max(0, DECOY.duration - active.age) : 0; }, get cooldown() { return cooldown; },
     get lured() { return lured; },
     targetFor(enemy) { return active && playing() && !enemy.dead && !enemy.remove ? active.pos : null; },
