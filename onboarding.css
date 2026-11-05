@@ -48,10 +48,7 @@ body.onb-open{overflow:hidden}
 #onbSplash{position:fixed;inset:0;z-index:61;display:grid;grid-template-rows:minmax(0,1fr);place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 35%,#16222f 0%,#0a1017 70%);color:#e8eef2}
 .onb-splash-card{box-sizing:border-box;width:min(520px,100%);display:flex;flex-direction:column;gap:12px;padding:28px 28px 24px;border-top:3px solid #e8805a;background:#0f1822e6;text-align:center}
 .onb-splash-card h1{margin:0;font-size:38px;color:#f4f0e8;line-height:1.1}.onb-splash-card h1 span{margin-left:10px;font-size:22px;color:#e8805a}
-.onb-splash-intro{margin:6px 0 0;font-size:16px;color:#dbe3e9}
-.onb-keys{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;font-size:15px}.onb-keys span{display:inline-flex;align-items:center;gap:8px}
-.onb-keys kbd,.onb-splash-card kbd{display:inline-block;padding:2px 8px;border:1px solid #657380;border-bottom-width:2px;border-radius:4px;background:#0d151d;font:700 13px/1.4 inherit;color:#f4f0e8}
-.onb-touch-line{margin:0;font-size:14px;color:#dbe3e9}
+.onb-splash-intro{margin:6px 0 0;font-size:24px;font-weight:800;line-height:1.3;color:#f4f0e8}.onb-splash-sub{margin:0;font-size:15px;line-height:1.6;color:#dbe3e9}
 .onb-splash-note{margin:0;font-size:12px;color:#9fb0bd}
 .onb-start{display:flex;align-items:center;justify-content:center;gap:14px;min-height:56px;margin-top:6px;border:1px solid #e8805a;border-radius:6px;background:#e8805a;color:#1b0f0a;font-size:18px;font-weight:800;letter-spacing:.04em;cursor:pointer}
 .onb-start:disabled{opacity:.55;cursor:default}
@@ -59,19 +56,8 @@ body.onb-open{overflow:hidden}
 #app:not([data-fit=roomy]) .onb-splash-card{gap:7px;padding:14px 20px 14px}
 #app:not([data-fit=roomy]) .onb-splash-card h1{font-size:26px}
 #app:not([data-fit=roomy]) .onb-splash-card h1 span{font-size:16px}
-#app:not([data-fit=roomy]) .onb-splash-intro{font-size:13px;margin:0}
-#app:not([data-fit=roomy]) .onb-keys,#app:not([data-fit=roomy]) .onb-touch-line{font-size:12px}
+#app:not([data-fit=roomy]) .onb-splash-intro{font-size:18px;margin:0}#app:not([data-fit=roomy]) .onb-splash-sub{font-size:12px}
 #app:not([data-fit=roomy]) .onb-start{min-height:46px;font-size:16px;margin-top:2px}
 #app:not([data-fit=roomy]) .onb-splash-card .onb-kicker{display:none}
 
-/* The player can move and look around while the tutorial card is visible. */
-#introTutorial{position:absolute;z-index:20;top:88px;left:50%;transform:translateX(-50%);box-sizing:border-box;width:min(460px,calc(100% - 320px));padding:12px 16px;border:1px solid #e8b479;border-left:4px solid #e8805a;border-radius:8px;background:#101c29ed;color:#f4f0e8;box-shadow:0 6px 24px #0007}
-#introTutorial[hidden]{display:none!important}
-#introTutorial small{color:#ffdfa0;font-size:11px;font-weight:700;letter-spacing:.08em}
-#introTutorial h2{margin:2px 0 4px;font-size:17px;line-height:1.2}
-#introTutorial p{margin:0;color:#dce7ed;font-size:13px;line-height:1.45}
-.tutorial-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
-.tutorial-actions button{min-height:38px;padding:5px 12px;border:1px solid #899ca9;border-radius:5px;background:#263745;color:#fff;font-size:12px;font-weight:700;touch-action:manipulation}
-.tutorial-actions #tutorialNext{background:#e8805a;border-color:#e8805a;color:#1b0f0a}
-@media(max-height:500px){#introTutorial{top:54px;width:min(390px,calc(100% - 260px));padding:7px 10px}#introTutorial h2{font-size:14px;margin:0 0 2px}#introTutorial p{font-size:11px;line-height:1.3}.tutorial-actions{margin-top:4px}.tutorial-actions button{min-height:32px;font-size:11px}}
 .onb-name .onb-send{color:#f0c59b;font-size:11px}

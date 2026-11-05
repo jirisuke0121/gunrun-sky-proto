@@ -106,9 +106,8 @@
     splash.innerHTML = `<div class="onb-splash-card">
       <p class="onb-kicker">GUNRUN · PARKOUR SURVIVAL</p>
       <h1 id="onbSplashTitle">空中回廊<span>追跡</span></h1>
-      <p class="onb-splash-intro">ライフ無限の入門で、操作を試そう。</p>
-      <div class="onb-keys onb-pc"><span><kbd>W A S D</kbd><b>で移動</b></span><span><kbd>Space</kbd><b>でジャンプ</b></span></div>
-      <p class="onb-touch onb-touch-line">左ドラッグで移動 · 右ドラッグで視点 · 「ジャンプ」ボタンで跳ぶ</p>
+      <p class="onb-splash-intro">ゾンビから2分間逃げろ。</p>
+      <p class="onb-splash-sub">銃・アイテム・地形を駆使して、とにかく逃げ切れ。</p>
       <p class="onb-splash-note">入門は記録・ランキングに反映されません。</p>
       <button id="onbStart" type="button" class="onb-start"><span id="onbStartLabel">タップしてスタート</span><span aria-hidden="true">❯❯</span></button>
     </div>`;
@@ -132,78 +131,6 @@
     saveState({ namePrompted: true });
     setTimeout(() => { if (root.hidden) openDialog('name'); }, 1600);
   });
-
-  // An actionable, non-modal tutorial: the player can keep moving while each card is open.
-  const tutorial = make('section', { id: 'introTutorial', hidden: true });
-  tutorial.setAttribute('aria-label', '入門チュートリアル');
-  tutorial.innerHTML = `<div class="tutorial-copy"><small id="tutorialProgress"></small><h2 id="tutorialTitle"></h2><p id="tutorialText"></p></div>
-    <div class="tutorial-actions"><button type="button" id="tutorialSkip"></button><button type="button" id="tutorialNext"></button></div>`;
-  $('app').append(tutorial);
-  for (const type of ['pointerdown', 'pointerup', 'click', 'touchstart', 'touchend'])
-    tutorial.addEventListener(type, event => event.stopPropagation());
-  const lessons = [
-    { ja: ['移動してみよう', 'W A S D で移動しよう。', '左側をドラッグして移動しよう。'], en: ['Move', 'Move with W A S D.', 'Drag on the left to move.'], action: 'move' },
-    { ja: ['周りを見よう', '画面を右ドラッグ、または画面をクリックしてマウスを動かそう。', '画面の右側をドラッグして視点を回そう。'], en: ['Look around', 'Right-drag, or click the game and move the mouse.', 'Drag on the right to look around.'], action: 'look' },
-    { ja: ['ジャンプしてみよう', 'Space でジャンプ。縁に向かって跳ぶと、つかめる場所もある。', '「ジャンプ」で跳ぼう。縁に向かって跳ぶと、つかめる場所もある。'], en: ['Jump', 'Press Space to jump. Jump toward an edge to grab it.', 'Tap Jump. Jump toward an edge to grab it.'], action: 'jump' },
-    { ja: ['地形を使って逃げよう', '壁ジャンプ・鉄棒で進路を変える。Q でフックを使える。', '壁ジャンプ・鉄棒で進路を変える。画面の輪をタップするとフックを使える。'], en: ['Use the terrain', 'Change routes with wall jumps and bars. Press Q to use the hook.', 'Change routes with wall jumps and bars. Tap a target ring to use the hook.'] },
-    { ja: ['ゾンビを引き離そう', '閃光玉は1、分身は2、困ったときの救済はV。銃は自動で撃つ。', '閃光玉・分身・救済のボタンで危機を切り抜けよう。銃は自動で撃つ。'], en: ['Escape the zombies', 'Press 1 for a flashbang, 2 for a decoy, or V for rescue. The gun fires automatically.', 'Use the flashbang, decoy or rescue buttons. The gun fires automatically.'] },
-  ];
-  let lesson = -1, introSeen = false, anchor = null, lastTime = 0, lookInput = 0;
-  const touch = () => document.documentElement.classList.contains('touch');
-  const english = () => document.documentElement.lang === 'en';
-  function snapshot() {
-    const game = window.__game, p = game.P, view = window.skyFollowCamera?.view || p;
-    return { x: p.pos.x, z: p.pos.z, yaw: view.yaw, pitch: view.pitch, jumps: game.stats.jumps || 0, lookInput };
-  }
-  function renderLesson() {
-    if (lesson < 0 || lesson >= lessons.length) { tutorial.hidden = true; return; }
-    // Pointer lock sends every mouse click to the canvas; release it so the card buttons work.
-    if (document.pointerLockElement) {
-      window.__introTutorialUnlock = true;
-      document.exitPointerLock?.();
-      setTimeout(() => { window.__introTutorialUnlock = false; }, 500);
-    }
-    const lang = english() ? 'en' : 'ja', item = lessons[lesson][lang];
-    $('tutorialProgress').textContent = `${lesson + 1} / ${lessons.length}`;
-    $('tutorialTitle').textContent = item[0]; $('tutorialText').textContent = item[touch() ? 2 : 1];
-    $('tutorialSkip').textContent = english() ? 'Skip tutorial' : 'チュートリアルを終了';
-    const nextLabel = lesson === lessons.length - 1 ? (english() ? 'Finish' : '終わる') : (english() ? 'Next' : '次へ');
-    $('tutorialNext').textContent = nextLabel + (touch() ? '' : ' [Enter]');
-    tutorial.hidden = false; anchor = snapshot();
-  }
-  function nextLesson() { lesson++; renderLesson(); }
-  $('tutorialNext').addEventListener('click', nextLesson);
-  $('tutorialSkip').addEventListener('click', () => { lesson = lessons.length; renderLesson(); });
-  window.addEventListener('keydown', event => {
-    if (event.code !== 'Enter' || event.repeat || tutorial.hidden || window.__game?.mode !== 'play') return;
-    event.preventDefault(); event.stopImmediatePropagation(); nextLesson();
-  }, true);
-  window.addEventListener('keydown', event => {
-    if (lesson === 1 && !tutorial.hidden && ['ArrowLeft', 'ArrowRight'].includes(event.code)) lookInput++;
-  }, true);
-  window.addEventListener('pointermove', event => {
-    if (lesson !== 1 || tutorial.hidden) return;
-    const lookId = window.__skyInternals?.inputState?.lookId;
-    if (event.pointerType === 'touch' ? lookId === event.pointerId : (document.pointerLockElement || (event.buttons & 2))) lookInput++;
-  }, true);
-  function tickTutorial() {
-    const game = window.__game, introRun = !!game && !!window.skyChallenge?.isIntroRun && !game.GAME?.over;
-    if (!introRun || game.mode === 'menu' || game.mode === 'over') {
-      tutorial.hidden = true; introSeen = false; lesson = -1; lastTime = 0; return;
-    }
-    if (game.mode !== 'play') { tutorial.hidden = true; return; }
-    if (!introSeen || game.GAME.t < lastTime - .5) { introSeen = true; lesson = 0; renderLesson(); }
-    lastTime = game.GAME.t;
-    if (lesson < 0 || lesson >= lessons.length) return;
-    if (tutorial.hidden) { tutorial.hidden = false; anchor = snapshot(); }
-    const p = game.P, view = window.skyFollowCamera?.view || p, action = lessons[lesson].action;
-    const moved = Math.hypot(p.pos.x - anchor.x, p.pos.z - anchor.z) >= 1;
-    const angle = Math.atan2(Math.sin(view.yaw - anchor.yaw), Math.cos(view.yaw - anchor.yaw));
-    const looked = lookInput > anchor.lookInput && (Math.abs(angle) >= .2 || Math.abs(view.pitch - anchor.pitch) >= .2);
-    const jumped = (game.stats.jumps || 0) > anchor.jumps;
-    if (action === 'move' && moved || action === 'look' && looked || action === 'jump' && jumped) nextLesson();
-  }
-  setInterval(tickTutorial, 100);
 
   window.skyOnboarding = { first, open: openDialog, name: savedName, commitName,
     get splashVisible() { return !!splash?.isConnected; }, get dialogVisible() { return !root.hidden; } };
