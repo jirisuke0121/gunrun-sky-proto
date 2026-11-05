@@ -1623,10 +1623,36 @@ window.__skyGhost = window.skyReplay;
     ni(0.34, rnd(135, 165), 0.09);
     Mn(0.3, 700, 0.8, 0.06);
   };
-  // A head hit is confirmed by a short low tick (no voice clip).
+  // Start the small download when play begins; a very early first hit waits for it.
+  let headshotBuffer = null, headshotLoading = null;
+  const loadHeadshot = () => {
+    if (!Ut.ctx) return Promise.resolve(null);
+    if (headshotBuffer) return Promise.resolve(headshotBuffer);
+    if (!headshotLoading) {
+      const ctx = Ut.ctx;
+      headshotLoading = fetch('./assets/sfx/gunrun-headshot.mp3')
+        .then((r) => r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status))))
+        .then((ab) => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
+        .then((buffer) => { headshotBuffer = buffer; return buffer; })
+        .catch(() => { headshotLoading = null; return null; });
+    }
+    return headshotLoading;
+  };
+  document.getElementById('bStart')?.addEventListener('click', loadHeadshot);
+  const playHeadshot = () => {
+    if (!Ut.ctx || !Ut.master || !headshotBuffer) return;
+    const src = Ut.ctx.createBufferSource(), gain = Ut.ctx.createGain();
+    src.buffer = headshotBuffer;
+    gain.gain.value = 0.42;
+    src.connect(gain); gain.connect(Ut.master); src.start();
+  };
   const ping = () => {
-    if (!Ut.ctx || !Ut.master) return;
-    ni(0.42, rnd(88, 100), 0.12);
+    if (!Ut.ctx || !Ut.master || window.__gunFxWarming) return;
+    if (headshotBuffer) { playHeadshot(); return; }
+    loadHeadshot().then((buffer) => {
+      if (buffer) playHeadshot();
+      else ni(0.42, rnd(88, 100), 0.12);
+    });
   };
 
   // ---- Pools ------------------------------------------------------------
@@ -1777,6 +1803,8 @@ window.__skyGhost = window.skyReplay;
   // stalls that frame. Fire one invisible-for-a-frame warm-up of each effect
   // (visuals only, no sound) while the menu is up so the shaders exist already.
   window.__gunFxWarm = () => {
+    // The fake head hit below must stay silent: it runs ~3 s after load, which is often right as a run starts.
+    window.__gunFxWarming = true;
     try {
       const w = game.WP && game.WP[0] || { n: 'HG', cone: 0 };
       const p = new V3(0, -500, 0), q = new V3(0, -500, -3), d = new V3(0, 0, -1);
@@ -1795,6 +1823,7 @@ window.__skyGhost = window.skyReplay;
         hidden.forEach((o) => { o.visible = false; });
       }
     } catch (e) { /* optional warm-up */ }
+    finally { window.__gunFxWarming = false; }
   };
   setTimeout(window.__gunFxWarm, 3000);
 

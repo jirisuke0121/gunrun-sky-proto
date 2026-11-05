@@ -185,7 +185,7 @@
     const fx = window.__gunFx;
     if (fx && typeof fx.hit === 'function') {
       const prevHit = fx.hit;
-      fx.hit = function (...a) { const r = prevHit.apply(this, a); try { hitVoice(...a); deathFling(...a); } catch {} return r; };
+      fx.hit = function (...a) { const r = prevHit.apply(this, a); if (window.__gunFxWarming) return r; try { hitVoice(...a); deathFling(...a); } catch {} return r; };
     }
 
     // Bullet into the world (the shot code calls this for a hit on a building): a short metal or wood tick.

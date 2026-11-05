@@ -1,8 +1,9 @@
-## 2026-11-05 サイレンと「ヘッドショット」音を廃止
+## 2026-11-05 サイレン廃止／開始時に勝手に鳴るヘッドショット音の修正
 
 - 街の環境音のサイレン（`voice-sfx.js` の `siren`、`assets/sfx/voice/siren-1.mp3`）を削除。カラス・きしみは残している。
-- 頭への命中の確認音は、声のクリップ（`assets/sfx/gunrun-headshot.mp3` と、開始時の先読み・初回命中待ち）をやめ、短い低めのティック（既存の合成音）だけにした。素材2点を削除（約37 KB減）。
-- 検証：`node bench/*.test.cjs`、`bench/voice-sfx-browser.cjs`。
+- 頭に当たったときの「ヘッドショット」音（`assets/sfx/gunrun-headshot.mp3`）は**残す**（一度外したが戻した）。
+- **開始時に勝手に鳴るバグ**：読み込みの3秒後に走るシェーダ温め `__gunFxWarm`（`enhancements.js`）が偽の頭部命中 `__gunFx.hit(true, …)` を出し、音声が解禁済み（開始ボタンを押した後など）だとヘッドショット音と被弾ボイス（`voice-sfx.js` が `hit` に被せている）が鳴っていた。温め中は `window.__gunFxWarming` を立て、`ping()` と `voice-sfx.js` のラッパーで無音にした。
+- 検証：`node bench/*.test.cjs`、`bench/gunfx-warm-browser.cjs`（開始後に温めを呼んでもヘッドショット音が鳴らない／実際の頭部命中では鳴る、旧市街・渓谷）。再現確認は、修正前はウォームアップ呼び出しで音が1回鳴り、修正後は0回。
 
 ## 2026-11-05 開始位置を高台のランダムに（`start-spots.js`、`index.html` の開始処理）
 
