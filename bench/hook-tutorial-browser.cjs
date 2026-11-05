@@ -60,14 +60,14 @@ const base = 'http://127.0.0.1:18819/';
               g.GAME.challenge = { ...g.GAME.challenge }; // fresh run identity for the controlled fixture
               for (let k = 0; k < 6 && skyHookTutorial.phase === 'idle'; k++) g.frameOnce(1 / 120);
               // The first call may clear an earlier case's pending instruction.
-              if (skyHookTutorial.phase !== 'explain') { skyHookTutorial.beforeFrame(); }
+              if (skyHookTutorial.phase !== 'action') { skyHookTutorial.beforeFrame(); }
               return result;
             }
           }
           throw Error('No native map hook route landed; checked=' + checked);
         });
         console.log('ROUTE', tag, JSON.stringify(route));
-        assert.equal(await page.evaluate(() => skyHookTutorial.phase), 'explain');
+        assert.equal(await page.evaluate(() => skyHookTutorial.phase), 'action');
         const snapshot = () => page.evaluate(() => ({ t: __game.GAME.t, enemies: __skyInternals.Jt.map(e => e.pos.toArray()), hooks: __game.stats.hooks || 0 }));
         const stopped = await snapshot(); assert.ok(stopped.enemies.length > 0, 'pause is checked with a real zombie');
         await page.evaluate(() => { for (let i = 0; i < 120; i++) __game.advance(1 / 120); });
@@ -78,23 +78,29 @@ const base = 'http://127.0.0.1:18819/';
         assert.ok(target && card && (target.y + target.height <= card.y || card.y + card.height <= target.y || target.x + target.width <= card.x || card.x + card.width <= target.x), 'guide does not cover the highlighted target');
         if (lang === 'en') assert.doesNotMatch(await page.locator('#hookGuide').innerText(), /[ぁ-んァ-ヶ一-龠]/);
         await page.screenshot({ path: `browser-evidence/hook-tutorial/${tag}-explain.png` });
-        await page.locator('#hookGuideTry').click();
-        await page.evaluate(() => __game.frameOnce(1 / 120));
+        assert.equal(await page.locator('#hookGuideTry').count(), 0, 'no Try / Next button is created');
+        assert.equal(await page.evaluate(() => skyHookTutorial.acceptsHook), true, 'native action is accepted immediately');
         if (touch) {
           const xy = await page.evaluate(() => { const g = __skyInternals, a = skyHookTutorial.target.anchor, p = g.hookAssist().inspect(a), r = document.getElementById('c').getBoundingClientRect(); return { x: p.x + r.x, y: p.y + r.y }; });
           await page.touchscreen.tap(xy.x, xy.y);
         } else await page.keyboard.press('q');
         await page.evaluate(() => __game.frameOnce(1 / 120));
-        assert.equal(await page.evaluate(() => skyHookTutorial.phase), 'flight', 'the existing input attaches the native hook');
+        assert.equal(await page.evaluate(() => skyHookTutorial.phase), 'success', 'one native press immediately shows success');
+        assert.equal(await page.evaluate(() => __game.P.state), 'hook', 'success is shown at attachment, before travel and landing');
+        assert.equal(await page.evaluate(() => skyHookTutorial.worldPaused), false, 'attachment immediately releases the pause');
         assert.equal((await snapshot()).hooks, stopped.hooks + 1);
+        await page.screenshot({ path: `browser-evidence/hook-tutorial/${tag}-success.png` });
         const flight = await page.evaluate(() => {
-          const startT = __game.GAME.t, zs = __skyInternals.Jt.map(z => z.pos.toArray());
-          for (let k = 0; k < 1000 && skyHookTutorial.phase === 'flight'; k++) __game.advance(1 / 120);
-          return { phase: skyHookTutorial.phase, time: __game.GAME.t, startT, before: zs, after: __skyInternals.Jt.map(z => z.pos.toArray()), onGround: __game.P.onGround };
+          const startT = __game.GAME.t; let landed = false;
+          for (let k = 0; k < 1000; k++) {
+            __game.advance(1 / 120);
+            if (__game.P.state === 'normal' && __game.P.onGround) { landed = true; break; }
+          }
+          return { landed, time: __game.GAME.t, startT, hooks: __game.stats.hooks, point: __game.P.pos.toArray() };
         });
-        assert.equal(flight.phase, 'success', JSON.stringify({ route, flight })); assert.equal(flight.onGround, true);
-        assert.equal(flight.time, flight.startT); assert.deepEqual(flight.after, flight.before);
-        await page.evaluate(() => __game.advance(.1)); assert.ok((await snapshot()).t > stopped.t, 'world resumes on landing');
+        assert.equal(flight.landed, true, JSON.stringify({ route, flight }));
+        assert.ok(flight.time > flight.startT, 'the world resumes during automatic hook travel');
+        assert.equal(flight.hooks, stopped.hooks + 1, 'automatic travel needs no second action');
         assert.equal(await page.locator('#tPull, #hookGuidePull').count(), 0, 'no extra pull action exists');
         assert.deepEqual(errors, []);
         console.log('PASS', tag, JSON.stringify(route));

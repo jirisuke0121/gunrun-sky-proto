@@ -4,9 +4,9 @@
   const KEY = 'gunrun-hook-guide-v1';
   function createController({ game, intro, candidate, storage, map, forced = false, disabled = false, show = () => {}, releasePointer = () => {}, now = () => performance.now() }) {
     const c = game.c;
-    let phase = 'idle', target = null, run = null, skipped = false, seen = false, origin = null, flight = 0, nextAt = 0, successUntil = 0;
+    let phase = 'idle', target = null, run = null, skipped = false, seen = false, nextAt = 0, successUntil = 0;
     const playing = () => game.modeRef() === 'play' && !game.z.over;
-    const active = () => ['explain', 'action', 'flight'].includes(phase);
+    const active = () => phase === 'action';
     const clear = () => {
       for (const key of Object.keys(game.keys)) game.keys[key] = false;
       Object.assign(game.inputState, { on: false, id: null, lookId: null, x: 0, y: 0, slideHeld: false });
@@ -15,7 +15,7 @@
     };
     const read = () => { try { return JSON.parse(storage.getItem(KEY) || '{}')[map] === true; } catch { return false; } };
     function reset() {
-      phase = 'idle'; target = origin = null; skipped = false; seen = !forced && read(); flight = nextAt = 0;
+      phase = 'idle'; target = null; skipped = false; seen = !forced && read(); nextAt = 0;
     }
     function render() { show({ phase, target, visible: playing() && phase !== 'idle', paused: playing() && active() }); }
     function stop(completed = false) {
@@ -34,40 +34,29 @@
       if (phase === 'idle' && !seen && !skipped && game.z.t >= nextAt && c.state === 'normal' && c.onGround && !(c.hookCD > 0) && !game.demoActive()) {
         const available = candidate();
         if (available) {
-          target = available; origin = { x: c.pos.x, y: c.pos.y, z: c.pos.z };
-          clear(); phase = 'explain'; releasePointer();
+          target = available;
+          clear(); phase = 'action'; releasePointer();
         }
       }
       if (phase === 'action') { const available = candidate(); if (available) target = available; }
       render();
     }
-    function afterFrame(dt) {
+    function afterFrame() {
       if (!playing() || !intro()) { render(); return; }
       if (phase === 'action' && c.state === 'hook') {
-        // Only an existing map anchor counts (the separate rescue skill does not).
+        // Accepted by the unchanged native hook handler, not merely a press.
+        // A rescue skill uses a temporary anchor and does not complete this guide.
         if (!game.us.includes(c.hook)) { stop(); return; }
-        target = { anchor: c.hook }; phase = 'flight'; flight = 0; clear();
-      } else if (phase === 'flight') {
-        flight += dt;
-        const moved = Math.hypot(c.pos.x - origin.x, c.pos.y - origin.y, c.pos.z - origin.z);
-        const a = target.anchor;
-        if (c.state === 'normal' && c.onGround) {
-          stop(moved > 2 && Math.hypot(c.pos.x - a[0], c.pos.z - a[2]) < 6 && c.pos.y >= a[1] - 3);
-          return;
-        }
-        // Failed/interrupted hooks resume the ordinary fall/respawn path. No
-        // new movement, safety platform, teleport or tutorial-only pull button.
-        if (flight > 8 || c.pos.y < game.fallY + 1) { stop(); return; }
+        target = { anchor: c.hook }; stop(true);
       }
       render();
     }
     return {
       beforeFrame, afterFrame,
-      tryAction() { if (phase !== 'explain' || !playing()) return; clear(); phase = 'action'; render(); },
       skip() { skipped = true; stop(); },
       get active() { return playing() && active(); },
       get worldPaused() { return playing() && active(); },
-      get freezePlayer() { return playing() && ['explain', 'action'].includes(phase); },
+      get freezePlayer() { return playing() && active(); },
       get acceptsHook() { return playing() && phase === 'action'; },
       get phase() { return phase; }, get target() { return target; },
     };
@@ -82,31 +71,29 @@
     const text = (jp, en) => english() ? en : jp;
     const plate = document.createElement('section'); plate.id = 'hookGuide'; plate.hidden = true;
     plate.setAttribute('aria-live', 'polite'); plate.setAttribute('aria-labelledby', 'hookGuideTitle');
-    plate.innerHTML = '<div id="hookGuideSpot" aria-hidden="true"><span id="hookGuideTargetLabel"></span></div><div class="hook-guide-card"><header><span id="hookGuideStep"></span><span id="hookGuidePause"></span></header><h2 id="hookGuideTitle"></h2><p id="hookGuideText"></p><footer><button id="hookGuideSkip" type="button"></button><button id="hookGuideTry" type="button"></button></footer></div>';
+    plate.innerHTML = '<div id="hookGuideSpot" aria-hidden="true"><span id="hookGuideTargetLabel"></span></div><div class="hook-guide-card"><header><span id="hookGuideStep"></span><span id="hookGuidePause"></span><button id="hookGuideSkip" type="button">×</button></header><h2 id="hookGuideTitle"></h2><p id="hookGuideText"></p></div>';
     app.append(plate);
-    const $ = id => document.getElementById(id), card = plate.querySelector('.hook-guide-card'), spot = $('hookGuideSpot'), tryButton = $('hookGuideTry'), skip = $('hookGuideSkip');
-    let lastPhase = '', tutorial;
+    const $ = id => document.getElementById(id), card = plate.querySelector('.hook-guide-card'), spot = $('hookGuideSpot'), skip = $('hookGuideSkip');
+    let lastPhase = '', wasVisible = false, tutorial;
     function show({ phase, target, visible, paused }) {
+      if (!visible && !wasVisible && lastPhase === phase) return;
+      wasVisible = visible;
       plate.hidden = !visible; plate.dataset.phase = phase;
       document.body.classList.toggle('hook-guide-paused', paused);
       if (!visible) { spot.hidden = true; lastPhase = phase; return; }
-      plate.setAttribute('role', phase === 'explain' ? 'dialog' : 'region');
-      if (phase === 'explain') plate.setAttribute('aria-modal', 'true'); else plate.removeAttribute('aria-modal');
+      plate.setAttribute('role', 'region');
       const copy = {
-        explain: ['HOOK / 01', text('ここは、フックで登れる。', 'Use a hook to reach this platform.'), text('光る輪がフックを掛けられる場所です。掛けると自動で引き寄せられ、高い足場へ移動できます。', 'The highlighted ring is a hook point. Attach your hook and it will automatically pull you up to the platform.')],
-        action: ['HOOK / 02', text('フックを掛けてみよう。', 'Attach your hook.'), touch() ? text('光る輪をタップしてください。その後の移動は自動です。', 'Tap the highlighted ring. Movement is automatic after that.') : text('光る輪が見えている状態で Q キー。掛けた後の移動は自動です。', 'Press Q while the highlighted ring is in view. Movement is automatic after that.')],
-        flight: ['HOOK / 03', text('フックで移動中。', 'Your hook is pulling you up.'), text('追加の操作は不要です。足場に着くまで、敵と時間は止まっています。', 'No extra input needed. Enemies and the clock stay paused until you land.')],
-        success: ['HOOK / COMPLETE', text('フックで足場へ移動できた！', 'You reached the platform!'), text('敵と時間が動き出します。ほかの輪も、同じ操作で使えます。', 'Enemies and the clock resume. Other rings work with the same controls.')],
+        action: ['HOOK / GUIDE', text('フックで、ここへ移動できる。', 'Hook onto this point to move up.'), touch() ? text('光る輪をタップするとフックが掛かり、自動で移動します。', 'Tap the highlighted ring to attach your hook and move automatically.') : text('光る輪へ視点を向けて Q キー。フックが掛かると、自動で移動します。', 'Face the highlighted ring and press Q. Your hook will pull you up automatically.')],
+        success: ['HOOK / SUCCESS', text('フック成功！', 'HOOK CONNECTED!'), text('そのまま自動で移動。ほかの輪も同じ操作で使えます。', 'Your hook pulls you up automatically. Other rings work the same way.')],
       }[phase];
       if (!copy) return;
       const set = (id, value) => { if ($(id).textContent !== value) $(id).textContent = value; };
       set('hookGuideStep', copy[0]); set('hookGuideTitle', copy[1]); set('hookGuideText', copy[2]);
       set('hookGuidePause', paused ? text('Ⅱ 敵・時間を停止中', 'Ⅱ WORLD PAUSED') : '');
       set('hookGuideTargetLabel', text('ここにフックを掛けられる', 'HOOK POINT'));
-      set('hookGuideSkip', text('今回は閉じる', 'Skip for this run')); set('hookGuideTry', text('試してみる', 'Try it'));
-      tryButton.hidden = phase !== 'explain'; skip.hidden = phase === 'success';
+      skip.setAttribute('aria-label', text('案内を閉じる', 'Close guide')); skip.hidden = phase === 'success';
       const view = target?.anchor && game.hookAssist().inspect(target.anchor);
-      spot.hidden = phase === 'flight' || phase === 'success' || !view || !!view.reason;
+      spot.hidden = phase === 'success' || !view || !!view.reason;
       if (!spot.hidden) {
         const bounds = app.getBoundingClientRect(), y = view.y;
         spot.style.left = view.x + 'px'; spot.style.top = y + 'px';
@@ -114,7 +101,7 @@
         // Put the card on the opposite side so it never hides the target.
         card.classList.toggle('at-top', y > bounds.height * .58);
       }
-      if (lastPhase !== phase && phase === 'explain') tryButton.focus({ preventScroll: true });
+      if (lastPhase !== phase && phase === 'action') document.getElementById('c').focus({ preventScroll: true });
       lastPhase = phase;
     }
     tutorial = createController({ game, intro: () => root.skyChallenge?.isIntroRun === true,
@@ -125,7 +112,6 @@
       releasePointer: () => { document.exitPointerLock?.(); }, show,
     });
     root.skyHookTutorial = tutorial;
-    tryButton.addEventListener('click', () => { tutorial.tryAction(); document.getElementById('c').focus(); });
     skip.addEventListener('click', () => { tutorial.skip(); document.getElementById('c').focus(); });
     for (const name of ['pointerdown', 'pointerup', 'touchstart', 'touchend']) card.addEventListener(name, e => e.stopPropagation());
     // Keep the instruction focused on the existing action. Escape/P and settings

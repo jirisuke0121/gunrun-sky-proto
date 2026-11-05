@@ -10,13 +10,12 @@
 .hook-guide-card header{display:flex;justify-content:space-between;gap:12px;font-size:10px;letter-spacing:.09em;color:#aff3ce}
 .hook-guide-card h2{font-size:20px;line-height:1.4;margin:10px 0 8px;color:#edf9f4}
 .hook-guide-card p{font-size:13px;line-height:1.7;margin:0;color:#c8dcd8}
-.hook-guide-card footer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}
 .hook-guide-card button{min-height:40px;border-radius:4px;font:600 12px system-ui;padding:9px 15px;cursor:pointer}
-#hookGuideTry{background:#afffd5;color:#122e24;border:1px solid #afffd5}
-#hookGuideSkip{background:transparent;border:1px solid #ffffff26;color:#c3d9d1}
+#hookGuideSkip{background:transparent;border:0;color:#c3d9d1;min-height:28px;min-width:28px;padding:0;font-size:20px;line-height:1;margin:-7px -8px -7px 0}
 .hook-guide-card button:focus-visible{outline:2px solid white;outline-offset:3px}
-#hookGuide[data-phase=flight] .hook-guide-card,#hookGuide[data-phase=success] .hook-guide-card{pointer-events:none}
-#hookGuide[data-phase=flight] footer,#hookGuide[data-phase=success] footer{display:none}
+#hookGuide[data-phase=success] .hook-guide-card{pointer-events:none;border-color:#b2ffdb;animation:hook-guide-success .35s ease-out}
+@keyframes hook-guide-success{from{box-shadow:0 0 30px #a9ffd844}to{box-shadow:0 12px 40px #0005}}
+@media(prefers-reduced-motion:reduce){#hookGuide[data-phase=success] .hook-guide-card{animation:none}}
 body.hook-guide-paused #lookNote,body.hook-guide-paused #hint{visibility:hidden}
-@media(max-height:500px){.hook-guide-card{width:min(440px,calc(100% - 210px));bottom:12px;padding:12px 16px}.hook-guide-card.at-top{top:52px}.hook-guide-card h2{font-size:17px;margin:6px 0}.hook-guide-card p{font-size:12px;line-height:1.5}.hook-guide-card header{font-size:9px}.hook-guide-card footer{margin-top:9px}.hook-guide-card button{min-height:36px;padding:7px 12px}#hookGuideSpot{width:64px;height:64px}#hookGuideTargetLabel{font-size:11px}}
+@media(max-height:500px){.hook-guide-card{width:min(440px,calc(100% - 210px));bottom:12px;padding:12px 16px}.hook-guide-card.at-top{top:52px}.hook-guide-card h2{font-size:17px;margin:6px 0}.hook-guide-card p{font-size:12px;line-height:1.5}.hook-guide-card header{font-size:9px}.hook-guide-card button{min-height:36px;padding:7px 12px}#hookGuideSpot{width:64px;height:64px}#hookGuideTargetLabel{font-size:11px}}
 @media(max-width:700px){.hook-guide-card{width:calc(100% - 160px);padding:11px 14px}.hook-guide-card h2{font-size:16px}.hook-guide-card p{font-size:11px}.hook-guide-card header{font-size:8px}.hook-guide-card button{font-size:11px;padding:7px 10px}}
