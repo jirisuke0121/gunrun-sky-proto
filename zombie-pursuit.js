@@ -13,11 +13,18 @@ export function createZombiePursuit(game, runtime) {
   // while it is simply walking toward the player, every edge it tried is closed for STALL.jam seconds and it re-routes.
   const STALL = Object.freeze({ seconds: 3, radius: 1.5, jam: 20, nearPlayer: 3 });
   const stalls = new WeakMap();
+  function canBashDoor(enemy,door) {
+    return !door.off&&!enemy.dead&&enemy.spawnT<=0&&enemy.stun<=0&&
+      runtime.INDOOR_ACCESS?.doorAllowed?.(door)!==false&&Math.abs(enemy.pos.y-door.minY)<1.2&&
+      Math.hypot(Math.max(door.minX-enemy.pos.x,0,enemy.pos.x-door.maxX),
+        Math.max(door.minZ-enemy.pos.z,0,enemy.pos.z-door.maxZ))<1.25;
+  }
   function walking(enemy) {
     return !enemy.dead && !enemy.remove && enemy.spawnT <= 0 && enemy.onGround && !enemy.act && !enemy.rise && !enemy.fall &&
       !(enemy.stun > 0) && !enemy.guard && !enemy.bash && enemy.node >= 0 && !window.skyFlashbang?.blinded?.(enemy) &&
-      !window.skyDecoy?.targetFor?.(enemy) &&
-      Math.hypot(enemy.pos.x - game.c.pos.x, enemy.pos.z - game.c.pos.z) > STALL.nearPlayer;
+      !window.skyDecoy?.targetFor?.(enemy) && !window.skyZombieLadders?.state?.(enemy)?.queued &&
+      (Math.hypot(enemy.pos.x - game.c.pos.x, enemy.pos.z - game.c.pos.z) > STALL.nearPlayer ||
+        window.skyZombieRouting?.directChase?.(enemy, game.c.pos) === false);
   }
   function watchStall(enemy, dt) {
     let state = stalls.get(enemy);
@@ -45,7 +52,7 @@ export function createZombiePursuit(game, runtime) {
     game.U.loseSight = 0;
   }
   return {
-    config: Object.freeze({ persistent: true, stall: STALL }), stats, observe, reset,
+    config: Object.freeze({ persistent: true, stall: STALL }), stats, observe, reset, canBashDoor,
     pickEdge() { return false; },
     recoveryTarget() { return game.c; },
     recoveryField() { return runtime.FIELD; },

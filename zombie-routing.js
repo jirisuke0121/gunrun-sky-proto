@@ -72,6 +72,7 @@ export function createZombieRouting(game, runtime, climb, flashbang) {
     validated.set(edge, valid); return valid;
   }
   function edgeCost(edge) {
+    if (edge?.kind === 5) return window.skyZombieLadders?.edgeCost(edge) ?? null;
     if (!owns(edge)) return null;
     if (runtime.INDOOR_ACCESS?.edgeAllowed && !runtime.INDOOR_ACCESS.edgeAllowed(edge, runtime.NAV)) return Infinity;
     if (!usable(edge)) return Infinity;
@@ -102,6 +103,7 @@ export function createZombieRouting(game, runtime, climb, flashbang) {
     plans.set(enemy, { field, cost, point: null });
   }
   function waypoint(enemy, edge) {
+    if (edge.kind === 5 && window.skyZombieLadders?.enabled()) return window.skyZombieLadders.waypoint(enemy, edge);
     const plan = plans.get(enemy);
     if (!active() || edge.kind !== 0 || !plan) return null;
     if (plan.point) return plan.point;
@@ -178,5 +180,14 @@ export function createZombieRouting(game, runtime, climb, flashbang) {
       enemy.act = null; enemy.onGround = false; enemy.navT = 0; enemy.vel.set(0, 0, 0); stats.interrupted++;
     }
   }
-  return { config, stats, owns, edgeCost, afterPick, waypoint, directChase, startTraversal, beforeStep, sweep };
+  function queueDelay(enemy) {
+    const plan=plans.get(enemy);let edge=edges[enemy.edge];
+    for(let i=0;edge&&i<config.lookAhead;i++){
+      if(edge.kind===5)return window.skyZombieLadders?.queueDelay(enemy,edge)||0;
+      if(edge.kind!==0||!plan)break;
+      edge=edges[bestEdge(edge.to,plan.field,plan.cost)];
+    }
+    return 0;
+  }
+  return { config, stats, owns, edgeCost, afterPick, waypoint, directChase, startTraversal, beforeStep, sweep, queueDelay };
 }

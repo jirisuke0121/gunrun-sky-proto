@@ -1,14 +1,14 @@
 name: Nav watch (stuck-zombie log and dev badge)
 on:
   pull_request:
-    paths: ['nav-watch.js', 'telemetry-probe.js', 'enhancements.js', 'zombie-*.js', 'indoor-access.js', 'index.html', 'canyon.html', 'bench/nav-watch*', 'bench/zombie-descent*', 'bench/zombie-climb-queue*', 'bench/pursuit-*', '.github/workflows/nav-watch.yml']
+    paths: ['nav-watch.js', 'telemetry-probe.js', 'enhancements.js', 'zombie-*.js', 'indoor-access.js', 'index.html', 'canyon.html', 'bench/nav-watch*', 'bench/zombie-descent*', 'bench/zombie-climb-*', 'bench/zombie-ladders*', 'bench/zombie-ascent*', 'bench/pursuit-*', 'bench/zombie-pursuit-*', '.github/workflows/nav-watch.yml']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   nav-watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
@@ -18,8 +18,14 @@ jobs:
         run: node bench/nav-watch.test.cjs
       - name: Safe descent and interruption rules
         run: node bench/zombie-descent.test.cjs
+      - name: Ladder timing, body sweeps, queues and interruption rules
+        run: |
+          node bench/zombie-ladders.test.cjs
+          node bench/zombie-pursuit-stall.test.cjs
       - name: Occupied climb approaches release the shared search
-        run: node bench/zombie-climb-queue.test.cjs
+        run: |
+          node bench/zombie-climb-queue.test.cjs
+          node bench/zombie-climb-progress.test.cjs
       - name: Install browser
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
@@ -32,6 +38,11 @@ jobs:
         run: node bench/nav-watch-browser.cjs
       - name: Descend and attack across both maps and all difficulty levels
         run: node bench/zombie-descent-browser.cjs
+      - name: All authored ladders with solo, crowd, entrance and exit blockers
+        run: |
+          node bench/zombie-ascent-browser.cjs
+          ASCENT_ARCHETYPE=boss ASCENT_COUNTS=8 ASCENT_MODES=free ASCENT_OUT=browser-evidence/ascent-boss node bench/zombie-ascent-browser.cjs
+          ASCENT_ARCHETYPE=stalker ASCENT_COUNTS=1 ASCENT_MODES=free ASCENT_OUT=browser-evidence/ascent-stalker node bench/zombie-ascent-browser.cjs
       - name: Regress reported stalls on narrow roofs, entries and disconnected cells
         run: AUDIT_SET=recovery node bench/pursuit-audit.cjs
       - uses: actions/upload-artifact@v4
@@ -39,6 +50,9 @@ jobs:
         with:
           name: zombie-descent-evidence
           path: |
+            browser-evidence/ascent/
+            browser-evidence/ascent-boss/
+            browser-evidence/ascent-stalker/
             browser-evidence/descent/
             browser-evidence/pursuit-audit/
           retention-days: 14
