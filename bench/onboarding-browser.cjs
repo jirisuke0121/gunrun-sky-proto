@@ -14,7 +14,7 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
  const mk=async(lang,touch,seed)=>{const ctx=await browser.newContext({locale:lang==='ja'?'ja-JP':'en-US',viewport:touch?{width:844,height:390}:{width:1280,height:720},hasTouch:touch,isMobile:touch});
   await ctx.addInitScript(()=>window.__hold=true);if(seed)await ctx.addInitScript(seed);
   let posts=0;await ctx.route('https://**/*',r=>{if(r.request().method()==='POST')posts++;return r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'})});ctx.posts=()=>posts;return ctx};
- const coachText=page=>page.evaluate(()=>{const c=document.getElementById('introCoach');return c.hidden?null:[...c.children].find(e=>getComputedStyle(e).display!=='none').textContent});
+ const tutorialTitle=page=>page.locator('#tutorialTitle').textContent();
  const at=async(page,t)=>{await page.evaluate(t=>{__game.GAME.t=t},t);await page.waitForTimeout(450)};
  const endIntro=async page=>{await page.evaluate(()=>{__game.endGame('caught');__game.advance(1.5)});await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true')};
  for(const map of ['index.html','canyon.html']){
@@ -22,7 +22,9 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   let ctx=await mk('ja',false),page=await open(ctx,map);
   assert.equal(await splash(page),false,'automation skips the first-visit card by default');
   assert.equal(await page.locator('#introEntry').isVisible(),true,'automated browsers keep the home intro block');
-  assert.equal(await page.locator('#homeGuide').isVisible(),true);await ctx.close();
+  assert.equal(await page.locator('#homeGuide').isVisible(),true);
+  await page.click('#bStart');await page.waitForFunction(()=>__game.mode==='play');await page.waitForTimeout(300);
+  assert.equal(await page.locator('#introTutorial').isVisible(),false,'normal play does not show tutorial');await ctx.close();
 
   // First visit: the start card replaces the home screen, there is no form and no skip.
   ctx=await mk('ja',false);page=await open(ctx,map+'?onboarding=auto');
@@ -37,12 +39,18 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   assert.equal(await splash(page),false);
   assert.equal(JSON.parse(await page.evaluate(()=>localStorage.getItem('gunrun-onboarding-v1'))).phase,'started');
   assert.equal(await page.evaluate(()=>localStorage.getItem('gunrun-name')),null,'name is not asked before playing');
-  // Coach: one line per scene.
-  await at(page,2);assert.match(await coachText(page),/W A S D で移動/);
-  await at(page,12);assert.match(await coachText(page),/マウスで視点/);
-  await at(page,25);assert.match(await coachText(page),/フック/);
-  await at(page,45);assert.match(await coachText(page),/銃は自動/);
-  await at(page,60);assert.equal(await coachText(page),null,'the coach goes away after the first minute');
+  // The popup waits for real input rather than advancing on a timer.
+  await page.waitForFunction(()=>!document.getElementById('introTutorial').hidden);
+  assert.equal(await tutorialTitle(page),'移動してみよう');
+  await at(page,12);assert.equal(await tutorialTitle(page),'移動してみよう','time alone does not advance');
+  await page.keyboard.down('KeyA');await page.evaluate(()=>{for(let i=0;i<70;i++)__game.advance(1/120)});await page.keyboard.up('KeyA');
+  await page.waitForFunction(()=>document.getElementById('tutorialTitle').textContent==='周りを見よう');
+  await page.keyboard.down('ArrowLeft');await page.evaluate(()=>{for(let i=0;i<30;i++)__game.advance(1/120)});await page.keyboard.up('ArrowLeft');
+  await page.waitForFunction(()=>document.getElementById('tutorialTitle').textContent==='ジャンプしてみよう');
+  await page.keyboard.press('Space');await page.evaluate(()=>{for(let i=0;i<30;i++)__game.advance(1/120)});
+  await page.waitForFunction(()=>document.getElementById('tutorialTitle').textContent==='地形を使って逃げよう');
+  await page.click('#tutorialNext');assert.equal(await tutorialTitle(page),'ゾンビを引き離そう');
+  await page.click('#tutorialNext');assert.equal(await page.locator('#introTutorial').isVisible(),false,'completion hides the popup');
   // After the run: the nickname is asked once; "あとで" skips it.
   await endIntro(page);
   await page.waitForFunction(()=>!document.getElementById('onboarding').hidden,null,{timeout:8000});
@@ -121,8 +129,24 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   assert.equal(await page.textContent('#onbStartLabel'),'Tap to start');
   assert.equal(await page.evaluate(()=>getComputedStyle(document.querySelector('#onbSplash .onb-pc')).display),'none','keyboard wording hidden on touch');
   await page.tap('#onbStart');await page.waitForFunction(()=>__game.mode==='play');
-  await at(page,2);assert.equal(await coachText(page),'Drag left to move · Jump button to jump');
+  await page.waitForFunction(()=>!document.getElementById('introTutorial').hidden);assert.equal(await tutorialTitle(page),'Move');assert.match(await page.textContent('#tutorialText'),/Drag on the left/);
+  const popup=await page.locator('#introTutorial').boundingBox();assert.ok(popup&&popup.y>=0&&popup.y+popup.height<=390,'tutorial fits on a landscape phone');
+  const cdp=await ctx.newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:130,y:240}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:90,y:175}]});
+  await page.evaluate(()=>{for(let i=0;i<100;i++)__game.advance(1/120)});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await page.waitForFunction(()=>document.getElementById('tutorialTitle').textContent==='Look around');
+  await page.evaluate(()=>{for(let i=0;i<120;i++){__game.advance(1/120);__game.cam(1/120)}});await page.waitForTimeout(150);
+  assert.equal(await tutorialTitle(page),'Look around','automatic camera follow does not count as looking');
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:700,y:220}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:790,y:220}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await page.waitForFunction(()=>document.getElementById('tutorialTitle').textContent==='Jump');
+  await page.tap('#tJump');await page.evaluate(()=>{for(let i=0;i<30;i++)__game.advance(1/120)});
+  await page.waitForFunction(()=>document.getElementById('tutorialTitle').textContent==='Use the terrain');
+  await page.tap('#tutorialSkip');assert.equal(await page.locator('#introTutorial').isVisible(),false,'tutorial is skippable');
   assert.deepEqual(page.errors,[]);await ctx.close();
-  console.log('PASS',map,'start card, straight into the intro run, coach tips, one-time nickname prompt, result-based next step, returning player, phone/English');
+  console.log('PASS',map,'start card, straight into the intro run, interactive tutorial, one-time nickname prompt, result-based next step, returning player, phone/English');
  }
 }finally{await browser?.close();server?.kill()}})().catch(e=>{console.error(e);process.exitCode=1});

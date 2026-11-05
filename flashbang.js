@@ -159,7 +159,6 @@ export function createFlashbang(game) {
     }
     stats.affected += hits;
     message(hits ? `閃光！ ${hits}体が${FLASHBANG.duration}秒停止` : '閃光！ 命中なし');
-    if (hits) window.skyEscapeGuidance?.afterFlash();
     playGearSound(game, 'flash');
     if (window.__skyAudio) window.__skyAudio.flashbang++;
   }

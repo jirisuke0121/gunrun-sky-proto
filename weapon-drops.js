@@ -48,12 +48,12 @@ export function createWeaponDrops(sky, game) {
   const status = document.createElement('div'); status.id = 'weaponSupplyStatus'; status.hidden = true;
   document.getElementById('hud').append(status);
   let candidates = [], previous = null, recent = [], elapsed = 0, next = WEAPON_DROP_INTERVAL, sequence = 0;
-  let spawned = 0, collected = 0, ladderHint = null, ladderHintAt = -Infinity, ladderTarget = null;
+  let spawned = 0, collected = 0;
 
   function reset() {
     sky.resetWeaponRun();
     elapsed = sequence = spawned = collected = 0; next = WEAPON_DROP_INTERVAL;
-    previous = null; recent = []; candidates = []; ladderHint = ladderTarget = null; ladderHintAt = -Infinity;
+    previous = null; recent = []; candidates = [];
     game.stats.weaponPickups = 0;
     items.forEach(item => { item.node = null; item.group.visible = false; });
     status.hidden = true;
@@ -131,16 +131,6 @@ export function createWeaponDrops(sky, game) {
     if (elapsed + 1e-6 >= next) { next += WEAPON_DROP_INTERVAL; spawn(); }
     previous = to;
   }
-  function walkableTo(x, z) {
-    const dx = x - c.pos.x, dz = z - c.pos.z, distance = Math.hypot(dx, dz);
-    if (distance > 16) return false;
-    for (let t = .5; t < distance; t += .5) {
-      const px = c.pos.x + dx * t / distance, pz = c.pos.z + dz * t / distance;
-      const floor = sky.raycast(px, c.pos.y + .35, pz, 0, -1, 0, .8);
-      if (!sky.oe(px, c.pos.y + .04, pz, c.r, 1.75) || !floor || Math.abs(floor.b.maxY - c.pos.y) > .4) return false;
-    }
-    return true;
-  }
   function frame() {
     const playing = !window.skyPracticeMode && sky.modeRef() === 'play' && !z.over && !z.mission;
     root.visible = playing; status.hidden = !playing;
@@ -156,49 +146,9 @@ export function createWeaponDrops(sky, game) {
     const target = active.reduce((best, item) => !best || c.pos.distanceTo(item.group.position) < c.pos.distanceTo(best.group.position) ? item : best, null);
     if (target) {
       const dx = target.node.x - c.pos.x, dz = target.node.z - c.pos.z, dy = target.node.y - c.pos.y;
-      const arrow = (x, z) => {
-        const angle = Math.atan2(x * Math.cos(c.yaw) - z * Math.sin(c.yaw), -x * Math.sin(c.yaw) - z * Math.cos(c.yaw));
-        return ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'][(Math.round(angle / (Math.PI / 4)) + 8) % 8];
-      };
-      // Only suggest a nearby ladder when its foot has a continuous, unobstructed
-      // walking approach and its top is near the supply's height and position.
-      if (target !== ladderTarget || elapsed - ladderHintAt > .75) {
-        ladderTarget = target; ladderHintAt = elapsed; ladderHint = null;
-        if (dy > 1.5 && c.onGround && c.state === 'normal') {
-          let best = Infinity;
-          for (const L of game.LADDERS) {
-            if (Math.abs(L.y0 - c.pos.y) > .45 || Math.abs(L.y1 - target.node.y) > 1.5 || Math.hypot(L.x - target.node.x, L.z - target.node.z) > 14) continue;
-            const x = L.x + L.nx * .9, z = L.z + L.nz * .9, lx = x - c.pos.x, lz = z - c.pos.z, d = Math.hypot(lx, lz);
-            if (d > 16 || d < 1 || d >= best) continue;
-            if (walkableTo(x, z)) { best = d; ladderHint = { x, z, kind: 'ladder' }; }
-          }
-          // Canyon's ground-to-middle ramps are the established walking routes.
-          if (!ladderHint && location.pathname.endsWith('canyon.html')) {
-            const paths = [
-              [[-25, .34, -6], [-28, 1.6, 6], [-25, 3.3, 16], [-20, 4, 13]],
-              [[25, .34, 8], [28, 1.6, -4], [25, 3.3, -16], [20, 4, -13]],
-            ];
-            const path = paths[target.node.x < 0 ? 0 : 1];
-            for (let i = 0; i < path.length - 1 && !ladderHint; i++) {
-              const a = path[i], b = path[i + 1], vx = b[0] - a[0], vz = b[2] - a[2];
-              const t = Math.max(0, Math.min(1, ((c.pos.x - a[0]) * vx + (c.pos.z - a[2]) * vz) / (vx * vx + vz * vz)));
-              if (Math.hypot(c.pos.x - (a[0] + vx * t), c.pos.z - (a[2] + vz * t)) < 2 && Math.abs(c.pos.y - (a[1] + (b[1] - a[1]) * t)) < .8) {
-                const next = t > .85 && i + 2 < path.length ? path[i + 2] : b;
-                ladderHint = { x: next[0], z: next[2], kind: 'ramp' };
-              }
-            }
-            if (!ladderHint && Math.abs(c.pos.y - path[0][1]) < .6 && walkableTo(path[0][0], path[0][2])) ladderHint = { x: path[0][0], z: path[0][2], kind: 'ramp' };
-          }
-        }
-      }
-      const en = document.documentElement.lang === 'en';
-      if (ladderHint && dy > 1.5) {
-        const lx = ladderHint.x - c.pos.x, lz = ladderHint.z - c.pos.z;
-        const name = ladderHint.kind === 'ramp' ? (en ? 'Ramp option' : '坂の候補') : (en ? 'Ladder option' : 'はしご候補');
-        status.textContent = en ? `${arrow(lx, lz)} ${name} ${Math.round(Math.hypot(lx, lz))}m · ${TYPES[target.type].name} above` : `${arrow(lx, lz)} ${name} ${Math.round(Math.hypot(lx, lz))}m · ${TYPES[target.type].name}は上層`;
-      } else {
-        status.textContent = `${arrow(dx, dz)} ${TYPES[target.type].name} ${en ? 'direct' : '直線'} ${Math.round(Math.hypot(dx, dz))}m${dy > 1 ? ` ↑${Math.round(dy)}m` : dy < -1 ? ` ↓${Math.round(-dy)}m` : ''}`;
-      }
+      const angle = Math.atan2(dx * Math.cos(c.yaw) - dz * Math.sin(c.yaw), -dx * Math.sin(c.yaw) - dz * Math.cos(c.yaw));
+      const arrow = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'][(Math.round(angle / (Math.PI / 4)) + 8) % 8];
+      status.textContent = `${arrow} ${TYPES[target.type].name} ${Math.round(Math.hypot(dx, dz))}m${dy > 1 ? ` ↑${Math.round(dy)}m` : ''}`;
     }
     status.hidden = !playing || !target;
     document.body.dataset.skyWeaponDrops = JSON.stringify({ interval: WEAPON_DROP_INTERVAL, limit: WEAPON_DROP_LIMIT,
