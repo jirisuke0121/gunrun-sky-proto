@@ -193,6 +193,8 @@
  "記録の送信は停止中です。ランキングには載りません。設定で変更できます。": "Sending is turned off, so you will not appear in the ranking. You can change this in Settings.",
  "ニックネーム・スコア・プレイ記録は、ランキングのために送信されます（設定で停止できます）。": "Your nickname, score and play records are sent for the ranking (you can turn this off in Settings).",
  "数字は得点の倍率": "Number = score multiplier",
+ "難しいほど得点にボーナス": "Harder = bonus points",
+ "スコア": "Score",
  "練習・スポット・ルール": "Practice · Spots · Rules",
  "全難易度の最高スコア順（難易度の倍率を反映）。": "Best score across all difficulties (difficulty multiplier included).",
  "難易度 · 日時（日本時間）· スコア": "Difficulty · Date (JST) · Score",

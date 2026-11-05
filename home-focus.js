@@ -30,12 +30,12 @@
   const scene = make('section', { className: 'home-scene', ariaLabel: canyon ? '岩壁渓谷のゲーム風景' : '旧市街のゲーム風景' }, `<div class="home-scene-copy"><span class="home-map">${canyon ? '岩壁渓谷' : '旧市街'}</span><h2>2分間、<br>逃げ切れ。</h2><p>跳ぶ。壁を走る。追跡を引き離す。</p></div>`);
   scene.style.backgroundImage = `linear-gradient(0deg,#0c1219f5 0%,#0c12191a 85%),url('./assets/lobby/${canyon ? 'canyon' : 'old-town'}.svg')`;
   const main = make('section', { className: 'home-play', ariaLabel: '逃走の準備' });
-  const difficulty = make('div', { id: 'homeDifficulty' }, '<div class="home-difficulty-heading"><h2>難易度を選ぶ</h2><span>数字は得点の倍率</span></div>');
+  const difficulty = make('div', { id: 'homeDifficulty' }, '<div class="home-difficulty-heading"><h2>難易度を選ぶ</h2><span>難しいほど得点にボーナス</span></div>');
   const selector = $('challengeDifficulty'); selector.hidden = true;
   const choices = make('div', { className: 'home-difficulty-choices', role: 'group', ariaLabel: '難易度' });
   const levels = window.skyChallenge.levels.filter(p => p.id !== 'legacy');
   for (const [index, p] of levels.entries()) {
-    const button = make('button', { type: 'button' }, `<span>${p.name}</span><strong>×${(1 + .1 * index).toFixed(1)}</strong><small><span>追手 最大${Math.max(...p.counts)}体</span><span>ライフ${p.lives}</span></small>`);
+    const button = make('button', { type: 'button' }, `<span>${p.name}</span><strong><em>スコア</em><b>×${(1 + .1 * index).toFixed(1)}</b></strong><small><span>追手 最大${Math.max(...p.counts)}体</span><span>ライフ${p.lives}</span></small>`);
     button.dataset.difficulty = p.id;
     button.addEventListener('click', () => {
       if (selector.disabled || window.__game.mode !== 'menu') return;
