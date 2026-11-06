@@ -89,7 +89,13 @@
       const geometry = original.clone(); // a new object the renderer has never seen (see the note at the top)
       geometry.setAttribute('color', new Attribute(colors, 3));
       let clone = clones.get(material.uuid);
-      if (!clone) { clone = material.clone(); clone.vertexColors = true; clone.needsUpdate = true; clones.set(material.uuid, clone); }
+      if (!clone) {
+        clone = material.clone();
+        // Material.copy omits custom shader hooks (e.g. the facade's coping).
+        clone.onBeforeCompile = material.onBeforeCompile;
+        clone.customProgramCacheKey = material.customProgramCacheKey.bind(material);
+        clone.vertexColors = true; clone.needsUpdate = true; clones.set(material.uuid, clone);
+      }
       mesh.geometry = geometry;
       mesh.material = clone;
       replaced.push(original);
