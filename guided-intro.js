@@ -1,5 +1,5 @@
 import { describeLesson } from './guided-prompts.js?v=20261106-parity-v1';
-import { createLessons } from './guided-lessons.js?v=20261106-parity-v1';
+import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
 // A real input trial followed by a physical course. No action is fired on the player's behalf.
 (() => {
  const params=new URLSearchParams(location.search),$=id=>document.getElementById(id);

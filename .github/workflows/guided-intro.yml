@@ -1,7 +1,7 @@
 name: Live control trial and guided course
 on:
   pull_request:
-    paths: ['guided-*', 'practice*', 'enhancements.js', 'world-batching.js', 'control-style.js', 'fixed-camera-trial.js', 'hook-targeting.js', 'human-view.js', 'parkour-swing.js', 'free-hook.js', 'onboarding.*', 'challenge-difficulty.js', 'challenge-score.js', 'home-focus.*', 'random-uuid.js', 'run-records.js', 'foundation-runtime.js', 'index.html', 'canyon.html', 'bench/guided-intro*', 'bench/development-entry*', 'bench/random-uuid*', '.github/workflows/guided-intro.yml']
+    paths: ['guided-*', 'practice*', 'enhancements.js', 'world-batching.js', 'control-style.js', 'fixed-camera-trial.js', 'hook-targeting.js', 'human-view.js', 'parkour-swing.js', 'free-hook.js', 'onboarding.*', 'challenge-difficulty.js', 'challenge-score.js', 'home-focus.*', 'random-uuid.js', 'run-records.js', 'foundation-runtime.js', 'index.html', 'canyon.html', 'bench/guided-intro*', 'bench/guided-swing*', 'bench/development-entry*', 'bench/random-uuid*', '.github/workflows/guided-intro.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -28,6 +28,8 @@ jobs:
       - run: node bench/guided-intro-parity-browser.cjs
       - run: node bench/development-entry-browser.cjs
       - run: node bench/random-uuid.test.cjs
+      - run: node bench/guided-swing-landing.test.cjs
+      - run: node bench/guided-swing-landing-browser.cjs
       - run: node bench/follow-camera.test.cjs && node bench/hook-touch-exits.test.cjs && node bench/stair-walk.test.cjs && node bench/player-skills.test.cjs && node bench/human-view-running.test.cjs
       - uses: actions/upload-artifact@v4
         if: always()
