@@ -3,6 +3,7 @@
 (() => {
   const tr = text => window.skyI18n.tr(text);
   const exact = {
+ "停止中 · Xキーで再開": "Stopped · Press X to resume",
  "高台へ自動移動中 · 到着後は自分で逃げよう": "Auto-moving to higher ground · Choose your route after landing",
  "高台へ自動退避": "Auto-escape upward",
  "分身発動 · 追手を引きつけている間に逃げよう": "Decoy deployed · Move away while it draws the pursuers",

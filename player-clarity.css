@@ -17,3 +17,8 @@ html.touch #actionFeedback{left:calc(50% - 64px);max-width:min(240px,calc(100vw 
 #hud:has(#actionFeedback) #decoyBanner{display:none}
 html.touch #supplyFeedback{top:calc(var(--touch-top) + 72px);max-width:175px;font-size:11px}
 @media(max-height:360px){#runResponsibility{top:47px;font-size:11px;max-width:calc(100% - 290px)}#actionFeedback{font-size:11px;padding:4px 7px}}
+@media(max-height:360px){
+  html.touch #hud #skyMinimap{width:96px}
+  html.touch #hud #tAutoFire{font-size:11px;line-height:1.2;min-height:54px;padding:4px 6px}
+  html.touch #hud #gunState{font-size:10px;line-height:1.25}
+}
