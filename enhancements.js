@@ -22,6 +22,7 @@ import { createJumpPickups } from './jump-pickups.js?v=20261101-jump-stash-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261106-player-clarity-v2';
 import { createDash } from './dash-boost.js?v=20261101-run-feel-v1';
 import { mergeStaticMaterialGroups } from './world-batching.js?v=20261106-rooftop-v2';
+import { installWallReadability } from './wall-readability.js?v=20261106-south-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -2016,6 +2017,8 @@ if (/[?&]perf=1/.test(location.search)) {
   };
   requestAnimationFrame(tick);
 }
+
+installWallReadability(game);
 
 // Static world merge (2026-10-24). The level is built from one mesh per collision
 // box (300-430 of them), each drawn once for the picture and again for the shadow

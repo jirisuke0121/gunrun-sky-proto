@@ -15,15 +15,24 @@
   const fadeWalls = p.get('fixedOcclusion') !== 'zoom';
   const faded = new Set(), originals = new Map(), translucent = new Map();
   const footHeight = { value: 0 };
-  function fadeMaterial(material) {
+  function fadeMaterial(material, bounds) {
     const copy=material.clone();copy.transparent=true;copy.opacity=.13;copy.depthWrite=false;
-    const prepare=copy.onBeforeCompile;
+    const prepare=material.onBeforeCompile;
+    copy.customProgramCacheKey=()=>material.customProgramCacheKey()+'|fixed-outline-v1';
     // A single static mesh can contain both a wall and the floor beneath us.
     // Keep its surface below the feet opaque; fade only the part above it.
     copy.onBeforeCompile=function(shader,renderer){
       prepare.call(this,shader,renderer);shader.uniforms.skyFixedFoot=footHeight;
-      shader.vertexShader='varying float vSkyFixedY;\n'+shader.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\nvSkyFixedY=(modelMatrix*vec4(transformed,1.0)).y;');
-      shader.fragmentShader='varying float vSkyFixedY;\nuniform float skyFixedFoot;\n'+shader.fragmentShader.replace('#include <alphatest_fragment>', 'if(vSkyFixedY<=skyFixedFoot) diffuseColor.a=1.0;\n#include <alphatest_fragment>');
+      shader.uniforms.skyFixedMin={value:bounds.min};shader.uniforms.skyFixedMax={value:bounds.max};
+      shader.uniforms.skyFixedOutline={value:p.get('wallReadability')==='classic'?0:.62};
+      shader.vertexShader='varying vec3 vSkyFixedPosition;\n'+shader.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\nvSkyFixedPosition=(modelMatrix*vec4(transformed,1.0)).xyz;');
+      shader.fragmentShader='varying vec3 vSkyFixedPosition;\nuniform float skyFixedFoot;\nuniform vec3 skyFixedMin;\nuniform vec3 skyFixedMax;\nuniform float skyFixedOutline;\n'+shader.fragmentShader.replace('#include <alphatest_fragment>', `
+        vec3 edgeDistance=min(abs(vSkyFixedPosition-skyFixedMin),abs(vSkyFixedPosition-skyFixedMax));
+        vec3 edge=1.0-smoothstep(vec3(.025),vec3(.075),edgeDistance);
+        float outline=max(edge.x*edge.y,max(edge.y*edge.z,edge.z*edge.x));
+        diffuseColor.a=max(diffuseColor.a,skyFixedOutline*outline);
+        if(vSkyFixedPosition.y<=skyFixedFoot) diffuseColor.a=1.0;
+        #include <alphatest_fragment>`);
     };
     return copy;
   }
@@ -97,7 +106,9 @@
       const mesh=box.mesh;if(!mesh.material)continue;
       if(!originals.has(mesh)){
         originals.set(mesh,mesh.material);
-        translucent.set(mesh,Array.isArray(mesh.material)?mesh.material.map(fadeMaterial):fadeMaterial(mesh.material));
+        if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();
+        const bounds=mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+        translucent.set(mesh,Array.isArray(mesh.material)?mesh.material.map(m=>fadeMaterial(m,bounds)):fadeMaterial(mesh.material,bounds));
       }
       mesh.material=translucent.get(mesh);next.add(mesh);
     }
