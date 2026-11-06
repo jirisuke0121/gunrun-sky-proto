@@ -51,6 +51,7 @@ export function createSwing(sky, game, course) {
     }
   }
   function label(text, at, scale = 1) {
+    if(window.skyGuidedMode)return;
     const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 96;
     const ctx = canvas.getContext('2d'); ctx.fillStyle = '#23364deb'; ctx.fillRect(0,0,512,96);
     ctx.strokeStyle = '#ffb647'; ctx.lineWidth = 6; ctx.strokeRect(3,3,506,90);
@@ -78,6 +79,7 @@ export function createSwing(sky, game, course) {
     mount.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),delta.normalize());group.add(mount);
   }
   function arrow(x,y,z,dx,dz) {
+    if(window.skyGuidedMode)return;
     const chevron = new T.Group(); chevron.position.set(x,y,z); chevron.rotation.y=Math.atan2(dx,dz)+Math.PI;
     chevron.userData.skyStaticBatch = true;
     for(const side of [-1,1]) {

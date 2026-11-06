@@ -1,0 +1,15 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><title>固定カメラ・操作比較</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>html,body{margin:0;height:100%;background:#101d27;color:#eef8fa;font:14px system-ui}body{display:flex;flex-direction:column}header{padding:10px 16px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}h1{margin:0 10px 0 0;font-size:18px}button,select,a{font:inherit;padding:7px 10px;background:#203d4b;color:#fff;border:1px solid #527482;border-radius:5px;cursor:pointer}a{text-decoration:none}button[aria-pressed=true]{background:#db9365;color:#15232a}p{margin:0;padding:0 16px 8px;color:#bad4df}iframe{display:block;width:100%;flex:1;min-height:0;border:0}#status{color:#ffe3b0}select:disabled{opacity:.4}@media(max-height:500px){header{padding:4px 10px;gap:5px}h1{font-size:14px}button,select,a{font-size:12px;padding:4px 6px}p{font-size:11px;padding:0 10px 4px}}</style>
+<header><h1>固定カメラの試作</h1><select id="map" aria-label="マップ"><option value="index.html">旧市街</option><option value="canyon.html">岩壁渓谷</option></select><button data-kind="fixed" aria-pressed="true">固定カメラ</button><button data-kind="follow" aria-pressed="false">現在の簡単操作</button><button data-kind="fps" aria-pressed="false">FPS操作</button><select id="view" aria-label="見え方"><option value="middle">見渡す</option><option value="high">高く見下ろす</option><option value="near">近くから</option></select><button id="start">入門を始める</button></header>
+<p><span id="help"></span> <a id="direct">ゲーム画面だけで試す</a> <span id="status">読み込み中…</span></p>
+<iframe id="game" title="カメラ比較用ゲーム"></iframe>
+<script>
+const frame=document.querySelector('iframe'),status=document.querySelector('#status');let kind='fixed';
+function load(){status.textContent='読み込み中…';document.querySelector('#view').disabled=kind!=='fixed';document.querySelector('#help').textContent={fixed:'スティック／WASDで画面の方向へ移動。ジャンプはボタン／Space。視点操作なし。',follow:'現在の簡単操作：左で移動、右ドラッグで視点調整。PCはW/Sで前後、A/Dで旋回。',fps:'FPS操作：左スティック／WASDで移動、右ドラッグ／マウスで視点。'}[kind];frame.src=document.querySelector('#map').value+'?camera='+ (kind==='fps'?'before':'after')+'&cameraTrial='+kind+'&fixedPitch='+({middle:-.65,high:-.95,near:-.35}[document.querySelector('#view').value])+'&fixedDistance='+({middle:8,high:10,near:3.6}[document.querySelector('#view').value])+'&controlpick=0&hookGuide=0&dev=1&lang=ja';document.querySelector('#direct').href=frame.src;}
+for(const b of document.querySelectorAll('[data-kind]'))b.onclick=()=>{kind=b.dataset.kind;for(const c of document.querySelectorAll('[data-kind]'))c.setAttribute('aria-pressed',String(c===b));load()};
+document.querySelector('#map').onchange=load;document.querySelector('#view').onchange=load;
+frame.onload=async()=>{for(let i=0;i<500;i++){if(frame.contentWindow.skyStartReadiness?.ready){status.textContent='準備できました。試作はランキングに記録しません。';return}await new Promise(r=>setTimeout(r,100))}};
+document.querySelector('#start').onclick=()=>{const w=frame.contentWindow,b=w.document.getElementById('bIntro');if(b&&!b.disabled){b.click();w.document.getElementById('c').focus();status.textContent='入門中。Escapeでメニュー。比較ボタンで切り替えできます。'}};
+load();
+</script></html>

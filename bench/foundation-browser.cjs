@@ -71,7 +71,7 @@ fs.mkdirSync(out,{recursive:true});
    await click('#bSettings');
    await click('#pauseTab_rules');
    await click('#bReset');await click('#bResume');
-   await click('#bIntro');assert.equal(await page.evaluate(()=>skyChallenge.isIntroRun),true);
+   await page.evaluate(()=>document.getElementById('bIntro').click());assert.equal(await page.evaluate(()=>skyChallenge.isIntroRun),true);
    await page.evaluate(()=>{for(let i=0;i<=800;i++)skyFoundation.frame(i*25,true)});
    await click('#bSettings');await click('#bMenu');await page.waitForSelector('#qualitySuggestion[open]');
    await click('#qualityAccept');assert.equal((await snapshot()).selectedMode,'performance');

@@ -5,13 +5,13 @@ const {SPOTS}=require('../start-spots.js');
 const dir=path.resolve(__dirname,'..'),port=process.argv[2]||'18841';
 (async()=>{
  const server=spawn('python3',['-m','http.server',port,'--bind','127.0.0.1'],{stdio:'ignore',cwd:dir});await new Promise(r=>setTimeout(r,1200));
- const browser=await chromium.launch({headless:true,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const open=async(url,{difficulty='normal'}={})=>{
   const ctx=await browser.newContext({viewport:{width:800,height:450}});await ctx.addInitScript(()=>window.__hold=true);
   await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'}));
   const page=await ctx.newPage();page.setDefaultTimeout(120000);await page.goto(`http://127.0.0.1:${port}/${url}`);
   await page.waitForFunction(()=>window.__game&&window.skyStartReadiness?.ready);
-  if(difficulty==='intro')await page.locator('#bIntro').click();else{await page.locator(`#homeDifficulty [data-difficulty="${difficulty}"]`).click();await page.locator('#bStart').click()}
+  if(difficulty==='intro')await page.evaluate(()=>document.getElementById('bIntro').click());else{await page.locator(`#homeDifficulty [data-difficulty="${difficulty}"]`).click();await page.locator('#bStart').click()}
   await page.waitForFunction(()=>__game.mode==='play');return{ctx,page}};
  const where=page=>page.evaluate(()=>({x:+__game.P.pos.x.toFixed(1),y:+__game.P.pos.y.toFixed(1),z:+__game.P.pos.z.toFixed(1)}));
  const isSpot=p=>SPOTS.find(s=>Math.hypot(s.x-p.x,s.z-p.z)<.6&&Math.abs(s.y-p.y)<.3);

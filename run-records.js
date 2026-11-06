@@ -1,3 +1,4 @@
+import { randomUUID } from './random-uuid.js?v=20261106-lan-v1';
 import { recordMap } from './replay-data.js?v=20261031-ghost-scene-v1';
 import { formatReplayTime } from './replay-time.js?v=20261026-gear-polish-v1';
 
@@ -20,7 +21,7 @@ export function resultOnly(a) {
 
 // Collection, durable local storage, server acknowledgement and ranking are
 // separate states. A closed collector never means a successful upload.
-export function createRunRecords({ storage, fetcher = fetch, uuid = () => crypto.randomUUID(), allowed = () => true,
+export function createRunRecords({ storage, fetcher = fetch, uuid = () => randomUUID(), allowed = () => true,
   announce = () => {}, emit = () => {}, endpoint = RECORD_ENDPOINT } = {}) {
   const read = (key, fallback) => { try { return JSON.parse(storage.getItem(key)) || fallback; } catch { return fallback; } };
   const queue = read(OUTBOX, {}); let history = read(HISTORY, []), protocol = 0;
@@ -179,7 +180,7 @@ export function installRunRecords(game, win = window, doc = document) {
     const legacy = doc.getElementById('oLog'); if (legacy && legacy.textContent !== status) legacy.textContent = status;
   }
   const storage = {getItem:key=>{try{return win.localStorage.getItem(key);}catch{return null;}},setItem:(key,value)=>win.localStorage.setItem(key,value)};
-  store = createRunRecords({ storage,fetcher:(...args)=>win.fetch(...args),uuid:()=>win.crypto.randomUUID(),
+  store = createRunRecords({ storage,fetcher:(...args)=>win.fetch(...args),uuid:()=>randomUUID(win.crypto),
     allowed:()=>!win.skyOwnerReplay&&!win.skyPracticeMode&&!win.skyChallenge.debug&&!win.skyChallenge.isIntro&&!!game.U.sendLog,
     announce:row=>render(row),emit:detail=>doc.dispatchEvent(new CustomEvent('sky-run-uploaded',{detail})) });
   for (const [id,target] of [['recordDeliveryHome',doc.getElementById('recNote')],['recordDeliveryResult',doc.getElementById('unityRecordStatus') || doc.getElementById('oLog')]]) {

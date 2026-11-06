@@ -126,12 +126,15 @@ export function installMinimap(game, publicGame) {
     currentMarkers=active?liveMarkers(game.Jt,p,model.bounds):[];
     currentPlayer=active?{...projectPoint(p.pos,model.bounds),yaw:p.yaw}:null;
     viewport=localViewport(p.pos);
-    localMarkers=active?nearbyMarkers(currentMarkers,viewport,p.yaw):[];
-    localPlayer=active?{...projectPoint(p.pos,viewport,LOCAL_MAP_SIZE),yaw:0}:null;
+    const fixed=window.skyFixedCamera?.active, mapYaw=fixed?window.skyFixedCamera.pose.yaw:p.yaw;
+    localMarkers=active?nearbyMarkers(currentMarkers,viewport,mapYaw):[];
+    localPlayer=active?{...projectPoint(p.pos,viewport,LOCAL_MAP_SIZE),yaw:p.yaw-mapYaw}:null;
     metrics.lastCount=currentMarkers.length;
     if(show){
-      if(smallLevel!==automatic || lastX!==p.pos.x || lastZ!==p.pos.z || lastYaw!==p.yaw){terrain(staticCanvas,automatic,viewport,p.yaw);smallLevel=automatic;lastX=p.pos.x;lastZ=p.pos.z;lastYaw=p.yaw;}
-      drawMarkers(markersCanvas,localMarkers,localPlayer,automatic,viewport,LOCAL_MAP_SIZE,p.yaw);
+      if(smallLevel!==automatic || lastX!==p.pos.x || lastZ!==p.pos.z || lastYaw!==mapYaw){terrain(staticCanvas,automatic,viewport,mapYaw);smallLevel=automatic;lastX=p.pos.x;lastZ=p.pos.z;lastYaw=mapYaw;}
+      drawMarkers(markersCanvas,localMarkers,localPlayer,automatic,viewport,LOCAL_MAP_SIZE,mapYaw);
+      const label=fixed?tr('周辺20mのレーダー。ゲーム画面と同じ向き。全体地図はメニューまたはMキーから','Nearby radar: same orientation as the game camera. Full map: menu or M key'):tr('周辺20mのレーダー。上が前方。全体地図はメニューまたはMキーから','Nearby radar: 20m radius, forward up. Full map: menu or M key');
+      if(small.getAttribute('aria-label')!==label)small.setAttribute('aria-label',label);
       const text=`${tr('周辺','NEARBY')} · ${layerName(automatic)}`;
       if(title.textContent!==text)title.textContent=text;
       const info=tr(`ゾンビ ${localMarkers.length} · ${LOCAL_MAP_SPAN}m四方`,`Zombies ${localMarkers.length} · ${LOCAL_MAP_SPAN}m square`);
@@ -177,7 +180,7 @@ export function installMinimap(game, publicGame) {
       markerFrames:metrics.markerFrames,terrainCopies:metrics.terrainCopies,count:metrics.lastCount,
       totalMarkerMs:metrics.totalMarkerMs,closedDoors:doors.filter(b=>!b.off).length,
       markers:currentMarkers.map(m=>({...m,world:{...m.world}})),player:currentPlayer?{...currentPlayer}:null,
-      localSpan:LOCAL_MAP_SPAN,shape:'circle',headingUp:true,localBounds:viewport?{...viewport}:null,nearbyCount:localMarkers.length,
+      localSpan:LOCAL_MAP_SPAN,shape:'circle',headingUp:!window.skyFixedCamera?.active,localBounds:viewport?{...viewport}:null,nearbyCount:localMarkers.length,
       nearbyMarkers:localMarkers.map(m=>({...m,world:{...m.world}})),playerLocal:localPlayer?{...localPlayer}:null,
       markerMeanMs:cost.reduce((a,b)=>a+b,0)/(cost.length||1),markerP95Ms:cost[Math.floor(cost.length*.95)]||0,
     };},

@@ -43,7 +43,7 @@ html:not(.dev) .challenge-select details,html:not(.dev) .map-select{display:none
 .sky-lobby #ovStart:has(#homeHero[data-compact=true]){padding:12px}.sky-lobby #ovStart:has(#homeHero[data-compact=true])>.plate{padding:14px 20px 10px}#homeHero[data-compact=true]+#homeMore{margin-top:6px;padding-top:5px}
 #homeHero[data-narrow=true]:not([data-compact=true]){grid-template-columns:1fr}#homeHero[data-narrow=true]:not([data-compact=true]) .home-scene{min-height:150px}#homeHero[data-narrow=true]:not([data-compact=true]) .home-scene h2{font-size:32px}#homeHero[data-narrow=true]:not([data-compact=true]) .home-scene h2 br{display:none}#homeHero[data-narrow=true]:not([data-compact=true]) .home-heading h1{font-size:28px}
 #homeHero[data-tiny=true] .home-kicker,#homeHero[data-tiny=true] .home-controls,#homeHero[data-tiny=true] #bestLine{display:none}#homeHero[data-tiny=true] .home-heading{padding-bottom:7px}#homeHero[data-tiny=true] .home-heading h1{font-size:24px}#homeHero[data-tiny=true] .home-play{gap:6px}#homeHero[data-tiny=true] .home-difficulty-choices button{min-height:56px;padding-block:6px}#homeHero[data-tiny=true] .home-difficulty-choices button[aria-pressed=true]{padding-block:5px}#homeHero[data-tiny=true] .home-difficulty-choices button>strong{font-size:20px}
-.sky-lobby #bSettings{background:#162330;color:#dce3e8;border-color:#657380}
+.sky-lobby #bSettings,.guided-intro #bSettings{background:#162330;color:#dce3e8;border-color:#657380}
 /* The lobby has its own Settings action; the floating menu is for play. */
 .sky-lobby:has(#ovStart:not([hidden])) #bSettings{display:none}
 /* Language switch remains reachable outside the rotated game surface. */
@@ -66,6 +66,10 @@ html[lang=en] #homeHero[data-compact=true] .home-scene h2{font-size:24px}
 
 /* ---- Player-facing lobby: tuning and unfinished features live behind ?dev=1; camera/graphics live in Settings only. ---- */
 html:not(.dev) #homeMore{display:none}
+#introEntry{display:none!important}
+#homeDevelopment{margin:8px 0 0;border:0;font-size:11px;color:#a8b6c1}
+#homeDevelopment summary{cursor:pointer;width:max-content;padding:6px 0}
+#homeDevelopment #bGuidedIntro{display:block;margin:6px 0;min-height:44px;padding:8px 12px;border:1px solid #657380;background:transparent;color:#c9d1d8;font:inherit}
 #homeMore .follow-camera-home,#homeMore .sky-quality-control{display:none}
 #homeName{display:inline-flex;align-items:center;gap:7px;min-height:44px;max-width:210px;padding:6px 12px;border:1px solid #657380;background:#162330;color:#f4f0e8;font-size:13px}
 #homeName small{font-size:10px;color:#a8b6c1;letter-spacing:.08em;white-space:nowrap}#homeName b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}#homeName i{font-style:normal;color:#ec9a73}

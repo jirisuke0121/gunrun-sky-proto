@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const {adviseNext,READY_SECONDS}=require('../next-step.js');
 // The intro run's result decides the next recommendation.
 assert.equal(READY_SECONDS,60);
-assert.deepEqual(adviseNext({elapsed:120,cleared:true,reason:'time'}),{primary:'next',title:'入門クリア！',goal:'2分間逃げ切れました。次はイージーで本番に挑戦できます。'});
+assert.deepEqual(adviseNext({elapsed:120,cleared:true,reason:'time'}),{primary:'next',title:'入門クリア！',goal:'2分間逃げ切れました。「本番イージーを始める」で、ライフ8の本番へ進めます。'});
 assert.equal(adviseNext({elapsed:75.9,reason:'caught'}).primary,'next','60 s or more is ready for the real run');
 assert.match(adviseNext({elapsed:75.9,reason:'caught'}).goal,/^75秒生き残りました/);
 assert.equal(adviseNext({elapsed:60,reason:'fell'}).primary,'next');

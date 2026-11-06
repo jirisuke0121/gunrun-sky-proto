@@ -1,5 +1,5 @@
 import { createDecoyAudio } from './decoy-audio.js?v=20261030-decoy-lock-v2';
-import { bindSkillPress } from './player-skills.js?v=20261102-skill-keys-v1';
+import { bindSkillPress } from './player-skills.js?v=20261106-player-clarity-v2';
 
 export const DECOY = Object.freeze({ duration: 6, cooldown: 18, radius: 16, releaseRadius: 22, speed: 2.4, travel: 4.8 });
 
@@ -41,6 +41,8 @@ export function createDecoy(game, runtime) {
   const audio = createDecoyAudio(game.Ut);
   const playing = () => game.modeRef() === 'play' && !z.over && !game.demoActive();
   const available = () => playing() && !active && cooldown <= 0;
+  const unavailableReason = () => !playing() ? 'プレイ中に使えます' : active ? `分身発動中 · あと${Math.ceil(DECOY.duration-active.age)}秒` : cooldown>0 ? `分身は再使用待ち · あと${Math.ceil(cooldown)}秒` : null;
+  const explain = text => window.skyPlayerClarity?.explain('tDecoy',text);
 
   function fallbackAvatar(color) {
     const avatar = new Group(), material = new Basic({ color, transparent: true, opacity: .7, depthWrite: false, fog: false, toneMapped: false, blending: 1 });
@@ -86,13 +88,13 @@ export function createDecoy(game, runtime) {
   }
   function reset() { clear(); cooldown = 0; scanTime = fieldTime = 0; runtime.stats.decoys = runtime.stats.decoyLures = 0; hud(); }
   function hud() {
-    const value = active ? `${Math.ceil(DECOY.duration - active.age)}s` : cooldown > 0 ? `${Math.ceil(cooldown)}` : '✓';
+    const value = active ? `${Math.ceil(DECOY.duration - active.age)}s` : cooldown > 0 ? `${Math.ceil(cooldown)}s` : '✓';
     const state = `${value}:${!!active}:${cooldown > 0}:${available()}`;
     if (state !== hudStamp) {
       button.querySelector('.skill-value').textContent = value;
       button.classList.toggle('active', !!active); button.classList.toggle('cool', cooldown > 0 && !active);
       button.setAttribute('aria-disabled', String(!available()));
-      button.setAttribute('aria-label', active ? `分身発動中 残り${value}` : cooldown > 0 ? `分身 再使用まで${value}秒` : '分身 2キー 6秒間ゾンビを撹乱');
+      button.setAttribute('aria-label', active ? `分身発動中 残り${value}` : cooldown > 0 ? `分身 再使用まで${Math.ceil(cooldown)}秒` : '分身 2キー 6秒間ゾンビを撹乱');
       hudStamp = state;
     }
     button.style.setProperty('--skill-progress', String(active ? Math.max(0, 1 - active.age / DECOY.duration) : 1 - cooldown / DECOY.cooldown));
@@ -114,9 +116,9 @@ export function createDecoy(game, runtime) {
     }
   }
   function activate() {
-    if (!available()) return false;
+    if (!available()) { explain(unavailableReason()); return false; }
     const pos = landing();
-    if (!pos) { rn('分身を出せる足場の近くで使おう'); return false; }
+    if (!pos) { if(window.skyPlayerClarity)explain('分身を出せる足場がありません · 足場に戻って使おう');else rn('分身を出せる足場の近くで使おう'); return false; }
     const speed = Math.hypot(c.vel.x, c.vel.z), direction = new Vector3(speed > .5 ? c.vel.x / speed : -Math.sin(c.yaw), 0, speed > .5 ? c.vel.z / speed : -Math.cos(c.yaw));
     // Walk only a checked, supported lane. The hologram never crosses a wall,
     // floats across a gap, or drags its navigation field onto another floor.
@@ -128,7 +130,8 @@ export function createDecoy(game, runtime) {
     cooldown = DECOY.cooldown; scanTime = fieldTime = 0; root.visible = true;
     stats.used++; runtime.stats.decoys = (runtime.stats.decoys || 0) + 1;
     buildField(true); scan(); frame(); hud();
-    rn('分身発動 — 追手を引きつけて逃げよう');
+    if(window.skyPlayerClarity)explain('分身発動 · 追手を引きつけている間に逃げよう');
+    else rn('分身発動 — 追手を引きつけて逃げよう');
     audio.start();
     return true;
   }
@@ -180,11 +183,11 @@ export function createDecoy(game, runtime) {
     banner.textContent = `DECOY / 分身  ${Math.ceil(DECOY.duration - t)}s · 誘導 ${lured.size}体`;
     banner.classList.toggle('on', t < 1.4 || t > DECOY.duration - 1.5);
   }
-  const cancelPress = bindSkillPress(button, available, activate);
+  const cancelPress = bindSkillPress(button, available, activate, () => explain(unavailableReason()));
   document.addEventListener('keydown', e => { if (['Digit2', 'Numpad2'].includes(e.code) && !e.repeat && playing() && !/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName)) { e.preventDefault(); activate(); } });
   document.addEventListener('visibilitychange', () => audio.sync(!!active && playing() && !document.hidden, active?.age || 0));
   hud();
-  return { audio, activate, canActivate: () => available() && !!landing(), tick, frame, reset, clear, stats, config: DECOY,
+  return { audio, activate, unavailableReason, canActivate: () => available() && !!landing(), tick, frame, reset, clear, stats, config: DECOY,
     get active() { return active; }, get remaining() { return active ? Math.max(0, DECOY.duration - active.age) : 0; }, get cooldown() { return cooldown; },
     get lured() { return lured; },
     targetFor(enemy) { return active && playing() && !enemy.dead && !enemy.remove ? active.pos : null; },

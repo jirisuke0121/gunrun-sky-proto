@@ -13,7 +13,7 @@
   // Any of these means someone has played here before (the intro run alone leaves none of the first four).
   const TRACES = [STORE, NAME, 'gunrun-run-history-v1', 'gunrun-run-outbox-v1', 'gunrun-sky-ghost-v1', 'gunrun-sky-ghost-rock-canyon-v1',
     'gunrun-challenge-difficulty-v1', 'gunrun-follow-camera-v1', 'gunrun-render-quality-v1'];
-  const SPECIAL = ['practice', 'oldtown_swing', 'dev', 'replay', 'qa'];
+  const SPECIAL = ['learned', 'practice', 'oldtown_swing', 'dev', 'replay', 'qa'];
   const names = window.skyPlayerName;
   const read = key => { try { return localStorage.getItem(key); } catch { return null; } };
   const write = (key, value) => { try { localStorage.setItem(key, value); return true; } catch { return false; } };
@@ -23,7 +23,7 @@
   // ?onboarding=auto applies the normal first-visit rule inside an automated browser (tests).
   const automated = navigator.webdriver === true && params.get('onboarding') !== 'auto';
   const traced = () => TRACES.some(key => Boolean(read(key)));
-  const first = forced || (!automated && !SPECIAL.some(key => params.has(key)) && !window.skyDevMode && !traced());
+  const first = forced || (params.get('onboarding')==='auto' && !SPECIAL.some(key => params.has(key)) && !window.skyDevMode && !traced());
   const make = (tag, props = {}, html = '') => Object.assign(document.createElement(tag), props, html ? { innerHTML: html } : {});
   const state = () => { try { return JSON.parse(read(STORE) || 'null') || {}; } catch { return {}; } };
   const saveState = patch => write(STORE, JSON.stringify({ at: new Date().toISOString(), ...state(), ...patch }));
@@ -39,11 +39,11 @@
   root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'onbTitle');
   root.innerHTML = `<div class="onb-card">
     <header><p class="onb-kicker">GUNRUN · PARKOUR SURVIVAL</p><h2 id="onbTitle">遊び方</h2>
-      <p class="onb-lead" data-for="again">2分間、ゾンビから逃げ切るゲームです。30秒ごとにボーナス点が入ります。</p>
+      <p class="onb-lead" data-for="again">2分間、ゾンビから逃げ切ろう。自分で移動して逃げ道を選び、銃の自動照準・射撃で逃げる時間を作ります。</p>
       <p class="onb-lead" data-for="name">ランキングに表示される名前です。あとからでも決められます。</p></header>
     <ol class="onb-steps">
-      <li><b>走る・跳ぶ</b><span class="onb-pc"><kbd>W A S D</kbd> 移動　<kbd>Space</kbd> ジャンプ　<kbd>C</kbd> スライド</span><span class="onb-touch">左側に指を置き、上へずらして押したまま前進。離すと停止。「ジャンプ」で跳ぶ</span></li>
-      <li><b>視点を回す</b><span class="onb-pc"><kbd>マウス</kbd> で視点を動かす</span><span id="onbTouchLook" class="onb-touch"></span></li>
+      <li><b>走る・跳ぶ</b><span class="onb-pc"><kbd>W A S D</kbd> 移動　<kbd>Space</kbd> ジャンプ　<kbd>C</kbd> スライド</span><span id="onbTouchMove" class="onb-touch">左側に指を置き、上へずらして押したまま前進。離すと停止。「ジャンプ」で跳ぶ</span></li>
+      <li><b id="onbLookTitle">視点を回す</b><span id="onbPcLook" class="onb-pc"><kbd>マウス</kbd> で視点を動かす</span><span id="onbTouchLook" class="onb-touch"></span></li>
       <li><b>技で引き離す</b><span class="onb-pc">壁走り・縁つかみ・はしご・ジップラインに加えて、<kbd>Q</kbd> でフック</span><span class="onb-touch">壁走り・縁つかみ・はしご・ジップラインに加えて、画面の輪をタップでフック</span></li>
       <li><b>銃は自動</b><span class="onb-pc">近い敵を自動で狙って撃ちます。<kbd>1</kbd> の閃光弾で周りのゾンビを止め、<kbd>2</kbd> の分身でおびき寄せます</span><span class="onb-touch">近い敵を自動で狙って撃ちます。「閃光弾」ボタンで周りのゾンビを数秒止められます</span></li>
     </ol>
@@ -57,6 +57,7 @@
       <button id="onbSettings" type="button" class="onb-link">操作設定を開く</button></footer>
   </div>`;
   ($('app') || document.body).append(root);
+  $('onbIntro').hidden=!params.has('onboarding');
   const input = $('onbName'), error = $('onbError');
   let mode = 'again';
 
@@ -78,7 +79,11 @@
     input.value = savedName(); error.textContent = ''; input.removeAttribute('aria-invalid');
     $('onbTitle').textContent = kind === 'name' ? 'ニックネームを決めよう' : '遊び方';
     $('onbMain').textContent = kind === 'name' ? 'あとで' : '閉じる';
-    $('onbTouchLook').textContent = window.skyFollowCamera?.mode === 'after'
+    const fixed = params.get('cameraTrial') === 'fixed' && window.skyFollowCamera?.mode === 'after';
+    $('onbLookTitle').textContent = fixed ? 'カメラは固定' : '視点を回す';
+    $('onbTouchMove').textContent = fixed ? '左側に指を置き、画面の進みたい方向へずらして押したまま移動。離すと停止。「ジャンプ」で跳ぶ' : '左側に指を置き、上へずらして押したまま前進。離すと停止。「ジャンプ」で跳ぶ';
+    $('onbPcLook').innerHTML = fixed ? 'カメラの向きは固定です。視点操作はありません' : '<kbd>マウス</kbd> で視点を動かす';
+    $('onbTouchLook').textContent = fixed ? 'カメラの向きは固定です。右側で視点を回す操作はありません' : window.skyFollowCamera?.mode === 'after'
       ? 'カメラは進む向きへ自動で回ります。右側で見回した後は、左の指を離して進む向きを選び直せます'
       : '画面の右側に指を置き、横へ動かして見回します。左側の移動と一緒に使えます';
     root.hidden = false; document.body.classList.add('onb-open'); syncIntro();

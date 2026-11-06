@@ -32,7 +32,7 @@ const base = 'http://127.0.0.1:8793/';
         await route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: await response.text() });
       });
       const page = await context.newPage(), errors = []; page.on('pageerror', error => errors.push(error.message));
-      page.setDefaultTimeout(60000); await page.goto(base + map);
+      page.setDefaultTimeout(60000); await page.goto(base + map + '?dev=1');
       await page.waitForFunction(() => window.__game && window.skyReplay && window.skyAudioRecovery && window.skyDecoy && window.skyRunRecording, null, { timeout: 120000 });
       if(map==='index.html')await require('./home-controls.cjs').revealHomeControl(page,'.parkour-spot-list button');
       const selectors = map === 'index.html'

@@ -1,0 +1,36 @@
+name: Player roles and action explanations
+on:
+  pull_request:
+    paths: ['player-clarity.*', 'player-skills.js', 'skill-decoy.js', 'flashbang.js', 'free-hook.js', 'auto-fire-controls.js', 'weapon-drops.js', 'challenge-score.js', 'next-step.js', 'onboarding.js', 'enhancements.js', 'i18n-en.js', 'index.html', 'canyon.html', 'bench/player-clarity-browser.cjs', '.github/workflows/player-clarity.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  clarity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Start local fixture
+        run: python3 -m http.server 8879 --bind 127.0.0.1 > /tmp/player-clarity-server.log 2>&1 &
+      - name: Native actions, feedback and result flow on both maps
+        run: node bench/player-clarity-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: player-clarity-evidence
+          path: browser-evidence/player-clarity/
+          retention-days: 7

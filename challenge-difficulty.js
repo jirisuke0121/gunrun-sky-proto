@@ -179,9 +179,9 @@
       if (!profile()?.unlimited) game.c.life = Math.max(0, game.c.life - 1);
       return game.c.life;
     },
-    lifeLabel(life) { return profile()?.unlimited ? '∞' : String(life); },
+    lifeLabel(life) { return window.skyGuidedMode||profile()?.unlimited ? '∞' : String(life); },
     lifeDisplay(life, fallback = 3) {
-      if (profile()?.unlimited) return '∞';
+      if (window.skyGuidedMode||profile()?.unlimited) return '∞';
       const maximum = profile()?.lives ?? fallback;
       return '●'.repeat(Math.max(0, Math.min(maximum, life))) + '○'.repeat(Math.max(0, maximum - life));
     },

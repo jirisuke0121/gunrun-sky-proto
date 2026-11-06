@@ -1,3 +1,4 @@
+import { randomUUID } from './random-uuid.js?v=20261106-lan-v1';
 import { createAutoResolutionMonitor } from './auto-resolution-monitor.js?v=20261101-foundation-v1';
 import { createFrameMetrics } from './foundation-metrics.js?v=20261101-foundation-v1';
 import { collectEnvironment } from './environment-profile.js?v=20261102-environment-v1';
@@ -5,7 +6,7 @@ import { collectEnvironment } from './environment-profile.js?v=20261102-environm
 // Independent of result/ghost delivery. No requests or failures block gameplay.
 const BUILD = '2026-11-02-players-v1';
 const endpoint = 'https://gunrun-runs.jirisuke0121.workers.dev/telemetry';
-const session = crypto.randomUUID();
+const session = randomUUID();
 let game, publicGame, round = null, finished = null, starts = 0, errors = 0;
 const CHECK_KEY = 'gunrun-quality-check-v1';
 let qualityChecked = false, suggestion = null;
@@ -29,13 +30,13 @@ let playerId;
 function player() {
   if(window.skyRunRecording?.player)playerId=window.skyRunRecording.player;
   if(playerId)return playerId;
-  try {playerId=localStorage.getItem('gunrun-pid');if(!playerId){playerId=crypto.randomUUID();localStorage.setItem('gunrun-pid',playerId)}}catch{}
+  try {playerId=localStorage.getItem('gunrun-pid');if(!playerId){playerId=randomUUID();localStorage.setItem('gunrun-pid',playerId)}}catch{}
   return playerId || null;
 }
 function name(){try{return localStorage.getItem('gunrun-name')||null}catch{return null}}
 function send(event, extra = {}) {
   if (!allowed()) return;
-  const body = JSON.stringify({ v: 1, id: crypto.randomUUID(), session, event, build: BUILD, map, source,
+  const body = JSON.stringify({ v: 1, id: randomUUID(), session, event, build: BUILD, map, source,
     device, environment, player:player(), name:name(),
     difficulty: game?.z.challenge?.id || window.skyChallenge?.id || 'unknown', ...extra });
   try { fetch(endpoint, { method: 'POST', headers: { 'content-type': 'text/plain;charset=UTF-8' }, body, keepalive: true }).catch(() => {}); } catch {}

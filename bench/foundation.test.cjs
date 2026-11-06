@@ -98,6 +98,7 @@ test('both maps connect the same runtime hooks without removing canyon practice 
 });
 
 test('home-only quality guidance respects consent, decline, manual changes and intro opt-out', async () => {
+  const { randomUUID } = await import('../random-uuid.js');
   const { createFrameMetrics } = await import('../foundation-metrics.js');
   const { createAutoResolutionMonitor } = await import('../auto-resolution-monitor.js');
   const { collectEnvironment } = await import('../environment-profile.js');
@@ -108,7 +109,7 @@ test('home-only quality guidance respects consent, decline, manual changes and i
     const makeDialog=()=>{const actions={};return{style:{},setAttribute(){},querySelectorAll(){return[]},
       querySelector(id){return{addEventListener(type,fn){actions[id]=fn}}},addEventListener(type,fn){actions[type]=fn},
       showModal(){this.open=true},close(){this.open=false},remove(){},actions};};
-    const context={createFrameMetrics,createAutoResolutionMonitor,collectEnvironment,crypto,
+    const context={createFrameMetrics,createAutoResolutionMonitor,collectEnvironment,randomUUID,crypto,
       location:{hostname:'jirisuke0121.github.io',pathname:'/index.html',search:''},navigator:{userAgent:'Desktop fixture',maxTouchPoints:0},URL,URLSearchParams,innerWidth:800,innerHeight:400,
       localStorage:{getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)},
       document:{hidden:false,hasFocus:()=>true,referrer:'',addEventListener(){},exitPointerLock(){},getElementById(){return{focus(){}}},

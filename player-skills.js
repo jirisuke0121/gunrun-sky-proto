@@ -15,7 +15,7 @@ export function installSkillDock() {
   return { dock, flash, decoy };
 }
 
-export function bindSkillPress(button, canUse, activate) {
+export function bindSkillPress(button, canUse, activate, unavailable = () => {}) {
   let press = null;
   const inside = e => { const r = button.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; };
   function cancel() {
@@ -24,7 +24,8 @@ export function bindSkillPress(button, canUse, activate) {
   }
   button.addEventListener('pointerdown', e => {
     e.preventDefault(); e.stopPropagation();
-    if (press || e.button !== 0 || !canUse()) return;
+    if (press || e.button !== 0) return;
+    if (!canUse()) { unavailable(); return; }
     press = { id: e.pointerId, x: e.clientX, y: e.clientY };
     button.setPointerCapture(e.pointerId); button.classList.add('armed');
   });
@@ -35,10 +36,10 @@ export function bindSkillPress(button, canUse, activate) {
     e.preventDefault(); e.stopPropagation();
     if (press?.id !== e.pointerId) return;
     const confirmed = inside(e) && Math.hypot(e.clientX - press.x, e.clientY - press.y) <= 14;
-    cancel(); if (confirmed && canUse()) activate();
+    cancel(); if (confirmed) { if (canUse()) activate(); else unavailable(); }
   });
   for (const type of ['pointercancel', 'lostpointercapture']) button.addEventListener(type, cancel);
-  button.addEventListener('click', e => { if (e.detail === 0 && canUse()) { e.preventDefault(); activate(); } });
+  button.addEventListener('click', e => { if (e.detail === 0) { e.preventDefault(); if (canUse()) activate(); else unavailable(); } });
   button.addEventListener('contextmenu', e => e.preventDefault());
   window.addEventListener('blur', cancel); window.addEventListener('resize', cancel);
   document.addEventListener('visibilitychange', () => { if (document.hidden) cancel(); });
