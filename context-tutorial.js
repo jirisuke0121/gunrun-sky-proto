@@ -1,11 +1,9 @@
 // In-course instruction. Detect availability and native results; never activate a skill for the player.
 (function(root){
- const STORE='gunrun-context-guides-v1', GAP=8;
+ const STORE='gunrun-context-guides-v1', GAP=8, DANGER_RADIUS=4;
  const defs={
  wallrun:{jp:['この壁を走って渡れる。','壁に沿って前へ進みながらジャンプします。','壁走り成功！'],en:['Run along this wall.','Move along the wall and jump.','WALL RUN!'],button:'tJump',jump:true,state:'wallrun'},
  walljump:{jp:['壁を蹴って、別の足場へ。','ジャンプで壁を蹴れます。','壁ジャンプ成功！'],en:['Kick off this wall.','Jump to push off the wall.','WALL JUMP!'],button:'tJump',jump:true,stat:'walljumps'},
- swing:{jp:['鉄棒から、向こうへ跳べる。','ジャンプで鉄棒から飛び出します。','鉄棒ジャンプ成功！'],en:['Jump off this bar.','Jump to release and fly forward.','BAR JUMP!'],button:'tJump',jump:true,stat:'barJumps'},
- ladder:{jp:['このはしごを登れる。','前へ移動すると登ります。後ろへ移動すると下ります。','はしご移動成功！'],en:['Climb this ladder.','Move forward to climb; backward to descend.','CLIMBING!'],move:true},
  zip:{jp:['このロープで向こうへ渡れる。','ジャンプでロープにつかまります。その後は自動で移動します。','ジップライン成功！'],en:['Ride this zipline.','Jump to attach. Travel is automatic.','ZIPLINE CONNECTED!'],button:'tJump',jump:true,state:'zip'},
  slide:{jp:['この斜面を滑って下れる。','斜面滑りボタン／Cキーで滑れます。','斜面滑り成功！'],en:['Slide down this slope.','Use Slide / C to slide downhill.','SLIDING!'],button:'tSlide',crouch:true,state:'slide'},
  barrel:{jp:['ドラム缶で高い場所へ跳べる。','表示されたドラム缶をタップ／Bキー。接近・爆破ジャンプは自動です。','爆破ジャンプ開始！'],en:['Launch upward with this barrel.','Tap the marked barrel / press B. The launch sequence is automatic.','BARREL LAUNCH STARTED!'],keys:['KeyB']},
@@ -14,18 +12,19 @@
  rescue:{jp:['救済フックで高台へ逃げられる。','救済ボタン／Vキー。安全な高台への移動は自動です。','救済フック発動！'],en:['Escape to higher ground.','Use Rescue / V. The hook chooses a safe platform.','RESCUE ACTIVE!'],button:'tRescue',keys:['KeyV']}
  };
  function candidates(g,env,seen={}){
-  const c=g.c,p=c.pos,stats=env.stats||{},out=[],add=(id,point)=>{if(!seen[id])out.push({id,point});};
+  const c=g.c,p=c.pos,out=[],add=(id,point)=>{if(!seen[id])out.push({id,point});};
   if(c.state==='wallrun'&&env.wallJumpReady?.())add('walljump',[p.x,p.y+1,p.z]);
-  if(c.state==='swing')add('swing',null);
-  if(c.state==='ladder')add('ladder',c.ladder?[c.ladder.x,(c.ladder.y0+c.ladder.y1)/2,c.ladder.z]:null);
   if(c.state!=='normal'||!c.onGround)return out;
   const near=(g.Jt||[]).filter(e=>!e.dead&&!e.remove&&!e.rise&&Math.abs(e.pos.y-p.y)<3).filter(e=>{
    const dx=e.pos.x-p.x,dy=e.pos.y+1-p.y-c.eye,dz=e.pos.z-p.z,d=Math.hypot(dx,dy,dz)||1;
    return d<=16&&!g.raycast(p.x,p.y+c.eye,p.z,dx/d,dy/d,dz/d,Math.max(0,d-.4));
   });
   const flash=env.flash,decoy=env.decoy;
-  if(!seen.flash&&flash?.charges>0&&near.filter(e=>Math.hypot(e.pos.x-p.x,e.pos.z-p.z)<=flash.config.radius).length>=2)add('flash');
-  if(!seen.decoy&&near.length>=2&&!decoy?.active&&decoy?.cooldown<=0&&env.decoyReady?.())add('decoy');
+  // Reuse the rescue guide's close-danger window, excluding enemies already neutralized.
+  const threats=near.filter(e=>!(e.stun>0)&&!(e.fall?.wait>0)&&!flash?.blinded?.(e)&&!decoy?.targetFor?.(e));
+  const danger=threats.some(e=>Math.hypot(e.pos.x-p.x,e.pos.z-p.z)<=DANGER_RADIUS);
+  if(!seen.flash&&danger&&flash?.charges>0&&threats.filter(e=>Math.hypot(e.pos.x-p.x,e.pos.z-p.z)<=flash.config.radius).length>=2)add('flash');
+  if(!seen.decoy&&danger&&threats.length>=2&&!decoy?.active&&decoy?.cooldown<=0&&env.decoyReady?.())add('decoy');
   if(!seen.rescue&&near.some(e=>Math.hypot(e.pos.x-p.x,e.pos.z-p.z)<4)&&!(flash?.charges>0)&&!(decoy?.cooldown<=0&&env.decoyReady?.())&&env.rescue?.available()&&env.rescue.chooseTarget())add('rescue');
   const b=!seen.barrel&&env.barrels?.assistTarget();if(b)add('barrel',[b.barrel.x,(b.barrel.y||0)+1,b.barrel.z]);
   if(env.slope?.canStart()&&env.usable('tSlide'))add('slide');
@@ -34,14 +33,13 @@
   return out;
  }
  function create({game:g,env,storage,map,forced=false,disabled=false,show=()=>{},now=()=>performance.now(),unlock=()=>{}}){
-  let phase='idle',item=null,run=null,seen={},closed=new Set(),nextAt=2,baseline={},startedY=0,attempt=false,attemptTime=0,until=0,hookPhase='idle',autoStats={};
+  let phase='idle',item=null,run=null,seen={},closed=new Set(),nextAt=2,baseline={},attempt=false,attemptTime=0,until=0,hookPhase='idle',autoStats={};
   const playing=()=>g.modeRef()==='play'&&!g.z.over;
   const clear=()=>{for(const k of Object.keys(g.keys))g.keys[k]=false;Object.assign(g.inputState,{on:false,id:null,lookId:null,x:0,y:0,slideHeld:false});g.c.jumpBuf=0;g.c.crouchPressed=false;g.c.hookPressed=false;g.c.hookPick=null;g.Et.held=false;g.Et.trigger=0;};
   const save=id=>{seen[id]=true;try{const all=JSON.parse(storage.getItem(STORE)||'{}');all[map]=seen;storage.setItem(STORE,JSON.stringify(all));}catch{}};
   const result=()=>{if(!item)return false;const d=defs[item.id],c=g.c;
    if(d.stat)return (env.stats[d.stat]||0)>(baseline[d.stat]||0);
    if(d.state)return c.state===d.state;
-   if(item.id==='ladder')return Math.abs(c.pos.y-startedY)>.08;
    if(item.id==='flash')return (env.flash?.stats.thrown||0)>baseline.flash;
    if(item.id==='decoy')return (env.decoy?.stats.used||0)>baseline.decoy;
    if(item.id==='rescue')return (env.rescue?.charges??2)<baseline.rescue;
@@ -58,14 +56,14 @@
    if(phase==='action'){if(result()){finish(true);return;}render();return;}
    if(phase==='idle'&&hp==='idle'&&g.z.t>=nextAt&&!env.busy()){
     const list=candidates(g,env,seen);const next=list.find(x=>!seen[x.id]&&!closed.has(x.id)&&env.presentable(x));
-    if(next){item=next;phase='action';baseline={...env.stats,flash:env.flash?.stats.thrown||0,decoy:env.decoy?.stats.used||0,rescue:env.rescue?.charges??2};startedY=g.c.pos.y;attempt=false;attemptTime=0;clear();unlock();}
+    if(next){item=next;phase='action';baseline={...env.stats,flash:env.flash?.stats.thrown||0,decoy:env.decoy?.stats.used||0,rescue:env.rescue?.charges??2};attempt=false;attemptTime=0;clear();unlock();}
     // Automatic traversal has no extra input to teach: acknowledge first real use.
     else for(const [stat,id]of [['vaults','vault'],['mantles','mantle'],['wallruns','wallrun']])if(!seen[id]&&(env.stats[stat]||0)>(autoStats[stat]||0)){item={id};save(id);phase='success';until=now()+2200;nextAt=g.z.t+GAP;break;}
    }
    autoStats={...env.stats};render();
   }
   function input(){if(!item||!defs[item.id])return false;const d=defs[item.id],c=g.c,t=g.inputState;
-   return (d.jump&&c.jumpBuf>0)||(d.crouch&&c.crouchPressed)||(d.move&&(g.keys.KeyW||g.keys.KeyS||g.keys.ArrowUp||g.keys.ArrowDown||(t.on&&Math.abs(t.y)>.2)))|| (d.jump&&(g.keys.KeyW||(t.on&&Math.abs(t.y)>.2)));
+   return (d.jump&&c.jumpBuf>0)||(d.crouch&&c.crouchPressed)|| (d.jump&&(g.keys.KeyW||(t.on&&Math.abs(t.y)>.2)));
   }
   return {beforeFrame,afterFrame(dt){if(!playing()||phase!=='action')return;if(result()){finish(true);return;}if(attempt){attemptTime+=dt;if(attemptTime>2.5||g.c.pos.y<-21)finish(false);}},skip(){if(item)closed.add(item.id);finish(false);},
    get active(){return playing()&&phase==='action';},get worldPaused(){return playing()&&phase==='action';},get freezePlayer(){if(!playing()||phase!=='action')return false;if(input())attempt=true;return !attempt;},get phase(){return phase;},get item(){return item;}};
