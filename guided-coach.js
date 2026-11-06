@@ -8,7 +8,7 @@ export function installGuidedCoach({game,sky,english,active,lesson,cue}) {
   const text=(ja,en)=>english()?en:ja;const write=(selector,value)=>{const node=root.querySelector(selector);if(node.textContent!==value)node.textContent=value;};
   function candidate(){
     const q=cue(),id=lesson();if(!q)return null;
-    if(id==='move')return {key:'move',target:window.skyFollowCamera.touchDevice?'stick':'learnKeys',kind:'move',title:text('左のスティックを動かす','Move the left stick'),hint:text('指を置き、進みたい方向へずらす','Touch, then drag toward where you want to move')};
+    if(id==='move'){const touch=window.skyFollowCamera.touchDevice;return {key:'move',target:touch?'stick':'learnKeys',kind:'move',title:text('左のスティックを動かす','Move the left stick'),hint:touch?text('指を置き、進みたい方向へずらす','Touch, then drag toward where you want to move'):text('進みたい方向のキーを押す','Press the key for the direction you want to move')};}
     if(q.action&&q.press&&document.getElementById(q.action))return {key:id+':'+q.cue+':'+(id==='swing'?window.skySwing.active?.bar.id||'entry':''),target:q.action,kind:'button',title:q.title,hint:q.hint};
     if(id==='hook'&&game.P.state!=='hook'&&document.getElementById('hookMark')?.classList.contains('on'))return {key:'hook',target:'hookMark',kind:'world',title:text('ひし形をタップして、フック','Tap the diamond to hook'),hint:text('光るマークをタップすると移動します','Tap the highlighted marker to travel')};
     if(id==='blast'&&!window.skyBlastBarrels.sequence&&!(game.stats.blastLaunches>0)&&window.skyBlastBarrels.assistTarget())return {key:'blast',target:'blastMark',kind:'world',title:text('赤い爆破マークをタップ','Tap the red blast marker'),hint:text('タップすると、爆破ジャンプします','Tap to launch from the barrel')};
