@@ -1,27 +1,59 @@
-body.guided-intro #practicePanel,body.guided-intro #skillDock,body.guided-intro #tAutoFire,body.guided-intro #ammoBox,body.guided-intro #skyMinimap,body.guided-intro #toast,body.guided-intro #catchBox,body.guided-intro #swingHint,body.guided-intro #lookNote,body.guided-intro #dashStatus,body.guided-intro #weaponSupplyStatus{display:none!important}
-body.guided-intro[data-learn-stage=flash] #skillDock,body.guided-intro[data-learn-stage=decoy] #skillDock,body.guided-intro[data-learn-stage=jumpgun] #skillDock{display:flex!important}
-body.guided-intro #skillDock #tRescue,body.guided-intro #skillDock #tFlash,body.guided-intro #skillDock #tDecoy,body.guided-intro #skillDock #tJumpGun{display:none}
-body.guided-intro[data-learn-stage=flash] #skillDock #tFlash,body.guided-intro[data-learn-stage=decoy] #skillDock #tDecoy,body.guided-intro[data-learn-stage=jumpgun] #skillDock #tJumpGun{display:block}
-#learnUI{position:absolute;inset:0;pointer-events:none;z-index:30;font-family:var(--font);color:#fff7df}
-#learnModes{position:absolute;left:max(16px,env(safe-area-inset-left));top:max(8px,env(safe-area-inset-top));display:flex;gap:8px;width:min(520px,calc(100% - 148px));pointer-events:auto}
-#learnModes button{flex:1;text-align:left;font:700 13px/1.4 var(--font);color:#f2f8ed;background:#172b32ee;border:1px solid #cad4be66;border-radius:8px;padding:8px 10px;touch-action:manipulation;min-height:48px}
-#learnModes button small{display:block;font-size:11px;font-weight:500}
-#learnModes button[aria-pressed=true]{background:#dae9b6;color:#18352c;border-color:#f4ffc9}
-#learnHint{position:absolute;top:84px;left:max(16px,env(safe-area-inset-left));width:min(205px,calc(33vw - 24px));padding:7px 9px;border-radius:7px;background:#172b32ed;font:600 12px/1.5 var(--font);box-sizing:border-box;overflow-wrap:anywhere}
-#learnHint b{display:block;font-size:11px;font-weight:600;color:#cfe5ac;margin-bottom:3px}
-#learnGo{position:absolute;left:50%;transform:translateX(-50%);bottom:max(29px,env(safe-area-inset-bottom));pointer-events:auto;min-height:48px;padding:10px 18px;border:1px solid #e3f3ba;border-radius:9px;background:#dcebb9;color:#18352c;font:800 14px var(--font);touch-action:manipulation}
-#learnTarget{position:absolute;transform:translate(-50%,-50%);border:2px solid #defaa3;border-radius:50%;width:38px;height:38px;box-shadow:0 0 10px #ccff8066}
-#learnTarget.edge{width:auto;height:auto;border:0;border-radius:7px;padding:4px 7px;background:#172b32e8;box-shadow:none;font-size:12px;white-space:nowrap}
-#learnUI [hidden]{display:none!important}
-#learnSkip{margin-left:10px}
-@media(max-height:360px){#learnHint{top:74px}#learnModes button{padding:5px 8px;font-size:12px}#learnModes button small{font-size:11px}}
-body.guided-intro .hud-tl{display:block!important;position:absolute!important;left:16px!important;top:0!important;width:0;height:0;padding:0;border:0;background:none}
-body.guided-intro .hud-tl>:not(#clarityRail){display:none!important}
-body.guided-intro #clarityRail{top:8px;left:0}
-body.guided-intro #decoyBanner,body.guided-intro #flashNotice{display:none!important}
+body.guided-intro{--learn-ink:#193c4c;--learn-paper:#fffdf2;--learn-gold:#edbc72}
+body.guided-intro #practicePanel,body.guided-intro #skillDock,body.guided-intro #tAutoFire,body.guided-intro #ammoBox,body.guided-intro #skyMinimap,body.guided-intro #toast,body.guided-intro #catchBox,body.guided-intro #swingHint,body.guided-intro #lookNote,body.guided-intro #dashStatus,body.guided-intro #weaponSupplyStatus,body.guided-intro #tFire{display:none!important}
+body.guided-intro[data-learn-stage=flash] #skillDock,body.guided-intro[data-learn-stage=decoy] #skillDock,body.guided-intro[data-learn-stage=jumpgun] #skillDock,body.guided-intro[data-learn-stage=rescue] #skillDock{display:flex!important}
+body.guided-intro #skillDock button{display:none}
+body.guided-intro[data-learn-stage=flash] #skillDock #tFlash,body.guided-intro[data-learn-stage=decoy] #skillDock #tDecoy,body.guided-intro[data-learn-stage=jumpgun] #skillDock #tJumpGun,body.guided-intro[data-learn-stage=rescue] #skillDock #tRescue{display:block}
 body.guided-intro #skillDock button[hidden]{display:none!important}
-body.guided-intro #tFire{display:none!important}
-body.guided-intro[data-learn-stage=rescue] #skillDock{display:flex!important}
-body.guided-intro[data-learn-stage=rescue] #skillDock #tRescue{display:block}
+#learnUI{position:absolute;inset:0;pointer-events:none;z-index:30;font-family:var(--font);color:var(--learn-ink)}
+#learnUI::before{content:'';position:absolute;left:0;top:0;width:65%;height:150px;background:radial-gradient(ellipse at top left,#edf2f1c9,transparent 72%);pointer-events:none}
+#learnHeader{position:absolute;left:max(22px,env(safe-area-inset-left));top:max(20px,env(safe-area-inset-top));max-width:min(460px,calc(100% - 160px));text-shadow:0 1px 8px #f4f7f0}
+#learnChapter{margin:0 0 6px;font-size:11px;letter-spacing:.1em;font-weight:700;color:#496675}
+#learnTitle{margin:0;font-size:clamp(19px,2.3vw,27px);line-height:1.4;letter-spacing:.025em;font-weight:750}
+#learnHint{margin:7px 0 0;font-size:12px;line-height:1.5;font-weight:550;color:#385768}
+#learnProgress{display:flex;gap:5px;margin-top:10px}
+#learnProgress i{display:block;width:25px;height:3px;background:#7d99a344;border-radius:2px}
+#learnProgress i[data-on=true]{background:#405e6b}
+#learnModes{position:absolute;left:50%;bottom:65px;transform:translateX(-50%);display:flex;gap:6px;width:min(354px,calc(100% - 260px));pointer-events:auto}
+#learnModes button{display:flex;align-items:center;gap:8px;flex:1;min-width:0;min-height:49px;padding:7px 10px;text-align:left;font-family:var(--font);color:#486572;background:#f8fcf4dd;border:1px solid #ffffffa6;border-radius:10px;box-shadow:0 2px 10px #1b394b12;touch-action:manipulation}
+#learnModes button svg{width:29px;height:27px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#learnModes button span{display:block;min-width:0}
+#learnModes button b{display:block;font-size:13px;line-height:1.4;font-weight:700;white-space:nowrap}
+#learnModes button small{display:block;font-size:11px;line-height:1.5;white-space:nowrap}
+#learnModes button[aria-pressed=true]{background:#214958;color:#fff8e7;border-color:#f0d7a4;box-shadow:0 0 0 1px #edc58277,0 3px 12px #18394e1f}
+#learnModes button:focus-visible,#learnGo:focus-visible{outline:3px solid #48c1d9;outline-offset:3px}
+#learnGo{position:absolute;left:50%;transform:translateX(-50%);bottom:max(12px,env(safe-area-inset-bottom));min-height:44px;min-width:220px;display:flex;align-items:center;justify-content:space-between;gap:30px;padding:8px 17px;pointer-events:auto;border:1px solid #f7e0ae;border-radius:10px;background:#f2c98b;color:#294b59;box-shadow:0 3px 12px #2445541a;font:750 14px/1.4 var(--font);touch-action:manipulation}
+#learnGo span{font-size:20px;font-weight:400}
+#learnTarget{position:absolute;transform:translate(-50%,calc(-100% - 12px));padding:3px 8px;border-radius:12px;background:#fcfff1e0;color:#325364;border:1px solid #fff9;font-size:11px;font-weight:650;white-space:nowrap;box-shadow:0 2px 8px #193a4d12}
+#learnTarget:empty{display:none}
+#learnMoveCue,#learnJumpCue{position:absolute;bottom:128px;font-size:11px;font-weight:650;color:#234859;text-shadow:0 1px 5px #fff}
+#learnMoveCue{left:26px}#learnJumpCue{right:24px}
+#learnLookCue{position:absolute;right:36px;top:40%;display:grid;justify-items:center;color:#2c5666a6;text-shadow:0 1px 4px #fff}
+#learnLookCue span{font:400 34px/1 system-ui;letter-spacing:8px}#learnLookCue small{font-size:11px;margin-top:4px;font-weight:600}
+#learnUI [hidden]{display:none!important}
+body.guided-intro .hud-tl{display:block!important;position:absolute!important;left:22px!important;top:112px!important;width:0;height:0;padding:0;border:0;background:none}
+body.guided-intro .hud-tl>:not(#clarityRail){display:none!important}
+body.guided-intro #clarityRail{top:0;left:0}
+body.guided-intro #decoyBanner,body.guided-intro #flashNotice{display:none!important}
 body.guided-intro #tSlide{visibility:hidden}
 body.guided-intro[data-learn-stage=downhill] #tSlide{visibility:visible}
+body.guided-intro #tJump,body.guided-intro #tSlide{background:#fffdf1e6;color:#2b5261;border:1px solid #fff9;box-shadow:0 3px 14px #1c3a4b22;text-shadow:none;font-family:var(--font);font-size:12px;font-weight:750}
+body.guided-intro #tJump::before{content:'↑';display:block;font-size:25px;line-height:1;margin-bottom:4px;font-weight:400}
+body.guided-intro #stick{border-color:#f8fff0c9!important;background:#fcfff120!important;box-shadow:0 0 0 1px #2d576211,0 2px 12px #23495711!important;opacity:.9!important}
+body.guided-intro #knob{background:#fffdf1bb!important;border:1px solid #fff!important;box-shadow:0 2px 8px #2a526722!important}
+body.guided-intro #bSettings{background:#f8fcf5b8;color:#3a5966;border:1px solid #fff9;border-radius:9px;font-size:12px;box-shadow:none;text-shadow:none}
+body.guided-intro[data-learn-action=tJump] #tJump,body.guided-intro[data-learn-action=tSlide] #tSlide,body.guided-intro[data-learn-action=tFlash] #tFlash,body.guided-intro[data-learn-action=tDecoy] #tDecoy,body.guided-intro[data-learn-action=tJumpGun] #tJumpGun,body.guided-intro[data-learn-action=tRescue] #tRescue{outline:2px solid #68cfda;outline-offset:4px}
+#learnSkip{margin-left:10px}
+html:not(.touch) #learnMoveCue{bottom:27px;left:26px;background:#f7fcf2a8;padding:7px 10px;border-radius:7px}
+html:not(.touch) #learnJumpCue{bottom:27px;right:26px;background:#f7fcf2a8;padding:7px 10px;border-radius:7px}
+@media(max-height:360px){#learnHeader{top:14px;left:18px}#learnTitle{font-size:18px}#learnHint{margin-top:4px;font-size:11px}#learnModes{bottom:62px;width:330px}#learnModes button{min-height:46px;padding:5px 8px;gap:6px}#learnModes button b{font-size:12px}#learnModes button small{font-size:10px}#learnGo{min-height:42px;font-size:13px}#learnMoveCue,#learnJumpCue{bottom:113px}body.guided-intro .hud-tl{top:98px!important}}
+/* Use the same quiet, legible controls throughout the learning course. */
+body.guided-intro #skillDock :is(#tFlash,#tDecoy,#tJumpGun,#tRescue){background:#fffdf1ed;color:#2b5261;border-color:#fff9;box-shadow:0 3px 14px #1c3a4b22;text-shadow:none}
+body.guided-intro #skillDock button svg{filter:none}
+body.guided-intro #skillDock .skill-name,body.guided-intro #skillDock :is(#tFlash,#tDecoy,#tJumpGun,#tRescue) small{color:#234859;text-shadow:0 1px 5px #fff}
+body.guided-intro #skillDock .skill-value{background:#254b5a;color:#fff8e8;border-color:#fff7;text-shadow:none}
+body.guided-intro #clarityRail #actionFeedback{background:#fffdf0e8;color:#284b59;border-color:#fff9;text-shadow:none}
+
+body.guided-intro #hookMark{width:56px;height:56px;margin:-28px;display:grid;place-items:center;transform:none;border:2px solid #d7f9ff;border-radius:50%;background:#187e96e8;color:#fff;box-shadow:0 0 0 5px #50bdd32b;text-shadow:none}
+body.guided-intro #hookMark span{transform:translate(-50%,-50%);color:#fff;font-size:12px;text-shadow:none}
+body.guided-intro:not([data-learn-stage=hook]) #hookMark,body.guided-intro #speedlines,body.guided-intro #dashSpeedFx,body.guided-intro #dashPickupFlash{display:none!important}
+body.guided-intro #blastMark{background:#b74739!important;box-shadow:0 0 0 5px #ca6e5029!important}

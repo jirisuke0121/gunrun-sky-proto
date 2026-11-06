@@ -1,7 +1,7 @@
 // A separate geometry, selected from home; uses the same movement/collision code.
 (() => {
   const guided = new URLSearchParams(location.search).has('learn');
-  if (!guided && !new URLSearchParams(location.search).has('practice')) return;
+  if (window.skyGuidedScene || (!guided && !new URLSearchParams(location.search).has('practice'))) return;
   window.skyGuidedMode = guided;
   window.skyPracticeMode = true;
   const sections = [

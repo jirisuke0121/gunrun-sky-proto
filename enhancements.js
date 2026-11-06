@@ -21,7 +21,7 @@ import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261031-g
 import { createJumpPickups } from './jump-pickups.js?v=20261101-jump-stash-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261106-player-clarity-v2';
 import { createDash } from './dash-boost.js?v=20261101-run-feel-v1';
-import { mergeStaticMaterialGroups } from './world-batching.js?v=20261030-material-groups-v2';
+import { mergeStaticMaterialGroups } from './world-batching.js?v=20261106-rooftop-v2';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -2026,7 +2026,8 @@ if (/[?&]perf=1/.test(location.search)) {
 // alone. ?nomerge=1 turns this off, for comparison.
 {
   try {
-    if (!/[?&]nomerge=1/.test(location.search)) {
+    // The guided scene styles individual roofs and batches its own decoration.
+    if (!window.skyGuidedScene && !/[?&]nomerge=1/.test(location.search)) {
       const { BufferGeometry, Float32Attribute, Mesh, Vector3: V3 } = game.Geom;
       const scene = ue;
       const doors = new Set(game.jn.filter((n) => n.type === 'door' && n.mesh).map((n) => n.mesh));

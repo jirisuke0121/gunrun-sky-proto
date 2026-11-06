@@ -1,4 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright');
+const base=process.env.RUNNING_QA_URL||'http://127.0.0.1:8878/';
 const out=process.env.FIXED_QA_OUT||'browser-evidence/fixed-camera';fs.mkdirSync(out,{recursive:true});
 (async()=>{const b=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox']});const rows=[];try{
 for(const map of ['index.html','canyon.html'])for(const startsPortrait of [false,true]){
@@ -6,7 +7,7 @@ for(const map of ['index.html','canyon.html'])for(const startsPortrait of [false
  await ctx.addInitScript(()=>{window.__hold=true});
  await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'}));
  const p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
- await p.goto('http://127.0.0.1:8878/'+map+'?camera=after&cameraTrial=fixed&controlpick=0&hookGuide=0&dev=1');
+ await p.goto(base+map+'?camera=after&cameraTrial=fixed&controlpick=0&hookGuide=0&dev=1');
  await p.waitForFunction(()=>window.skyStartReadiness?.ready&&window.skyFixedCamera,null,{timeout:120000});
  // This game supports landscape only. Verify the portrait guard, then the
  // supported transition into landscape rather than forcing past that guard.

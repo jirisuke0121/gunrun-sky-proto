@@ -32,7 +32,7 @@
   // Stationary partners use the same hit/stomp/kick targets, with no AI attacks.
   const targets=[];
   function restoreTargets(){
-    const positions=[[5,0,18],[1,0,18]];
+    const positions=course.targetPositions||[[5,0,18],[1,0,18]];
     if(!targets.length)for(const p of positions)targets.push(new sky.ri(...p));
     g.zombies.length=0;
     targets.forEach((t,i)=>{
@@ -47,7 +47,7 @@
     z.challenge=null;z.over=false;z.mission=null;z.t=0;g.G.ammo=12;falls=0;
     restoreTargets();place(section);
   }
-  function retry(){if(!['play','pause'].includes(g.mode))return;window.skyGuidedIntro?.retrying();falls++;restoreTargets();place();}
+  function retry(){if(!['play','pause'].includes(g.mode))return;window.skyGuidedIntro?.retrying();falls++;restoreTargets();place();window.skyGuidedIntro?.restored?.();}
   function choose(){if(g.mode!=='play')return;document.exitPointerLock?.();sky.An('pause');pausePlate.prepend(panel);panel.dataset.paused='true';select.focus();}
   panel.querySelector('#practiceChoose').addEventListener('click',choose);
   select.addEventListener('change',()=>{restoreTargets();place(course.sections.find(s=>s.id===select.value));});
@@ -60,7 +60,8 @@
   },true);
   function tick(dt){
     if(guided&&window.skyGuidedIntro?.trial){
-      c.pos.x=Math.max(-40.3,Math.min(-29.7,c.pos.x));c.pos.z=Math.max(-21.3,Math.min(-10.7,c.pos.z));
+      const b=course.trialBounds||{minX:-40.3,maxX:-29.7,minZ:-21.3,maxZ:-10.7};
+      c.pos.x=Math.max(b.minX,Math.min(b.maxX,c.pos.x));c.pos.z=Math.max(b.minZ,Math.min(b.maxZ,c.pos.z));
     }
     if(!guided){
     // Recognise an intentional drop to the lower return lane before checking
@@ -69,7 +70,8 @@
     if(c.onGround&&c.pos.y<.6&&c.pos.z>14){section=course.sections.find(s=>s.id===(c.pos.x>-7?'kick':'blast'));select.value=section.id;}
     for(const s of course.sections)if(s!==section&&Math.hypot(c.pos.x-s.at[0],c.pos.z-s.at[2])<2&&Math.abs(c.pos.y-s.at[1])<.65){section=s;select.value=s.id;break;}
     }
-    if(!Number.isFinite(c.pos.y)||c.pos.y<-3||(c.pos.x < (guided?-42:-34)||c.pos.x>(guided?39:34))||Math.abs(c.pos.z)>26||(c.onGround&&c.state==='normal'&&c.pos.y<section.floor-.8)){retry();return;}
+    const b=course.bounds||{minX:guided?-42:-34,maxX:guided?39:34,minZ:-26,maxZ:26};
+    if(!Number.isFinite(c.pos.y)||c.pos.y<-3||c.pos.x<b.minX||c.pos.x>b.maxX||c.pos.z<b.minZ||c.pos.z>b.maxZ||(c.onGround&&c.state==='normal'&&c.pos.y<section.floor-.8)){retry();return;}
     c.invuln=Infinity;U.sendLog=false;
     if(window.skyBlastBarrels?.barrels.some(b=>!b.active)){blastReset+=dt;if(blastReset>3){const a=g.stats.blasts,b=g.stats.blastLaunches;window.skyBlastBarrels.reset();g.stats.blasts=a;g.stats.blastLaunches=b;blastReset=0;}}else blastReset=0;
     for(const t of targets){
