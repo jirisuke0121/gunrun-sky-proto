@@ -30,8 +30,9 @@ window.addEventListener("load", () => {
     const yaw = (event.clientX - lastX) * sensitivity;
     const pitch = (event.clientY - lastY) * sensitivity * (game.U.invertY ? -1 : 1);
     if (!window.skyFollowCamera?.look(yaw, pitch)) {
-      game.c.yaw -= yaw;
-      game.c.pitch = Math.max(-1.5, Math.min(1.5, game.c.pitch - pitch));
+      // FPS base look gain matches the native mouse/touch handler.
+      game.c.yaw -= yaw * 1.5;
+      game.c.pitch = Math.max(-1.5, Math.min(1.5, game.c.pitch - pitch * 1.5));
     }
     lastX = event.clientX;
     lastY = event.clientY;
