@@ -52,9 +52,20 @@
   main.append(intro);
   const best = $('bestLine'); main.append(best);
   const controls = make('p', { className: 'home-controls' }, '<span class="home-controls-desktop"><kbd>W A S D</kbd> 移動　<kbd>マウス</kbd> 視点　<kbd>Space</kbd> ジャンプ</span><span class="home-controls-touch">左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ</span>');
+  const trial = new URLSearchParams(location.search).get('cameraTrial');
+  if (trial === 'fixed') {
+    const originalControls = controls.innerHTML;
+    const syncTrialControls = () => {
+      const fixed = (window.skyFollowCamera?.mode || 'after') === 'after';
+      controls.innerHTML = fixed ? '<span class="home-controls-desktop"><kbd>W A S D</kbd> 画面の方向へ移動　<kbd>Space</kbd> ジャンプ · 視点操作なし</span><span class="home-controls-touch">左スティックで画面の方向へ移動 · ボタンでジャンプ · 視点操作なし</span>' : originalControls;
+    };
+    new MutationObserver(syncTrialControls).observe(document.body, { attributes: true, attributeFilter: ['data-sky-camera-mode'] });
+    syncTrialControls();
+  }
   // What is sent is said on the home screen, and the way to stop it is one tap away (Settings).
   const notice = make('p', { id: 'homeSendNotice' });
   const syncNotice = () => {
+    if (trial) { notice.textContent = 'ローカル比較用の試作です。ランキング・プレイ記録は送信しません。'; return; }
     const on = window.__game?.U?.sendLog !== false;
     notice.textContent = on ? 'ランキングのため、ニックネーム・スコア・プレイ記録を送信します。設定で停止できます。' : '記録の送信は停止中です。ランキングには載りません。設定で変更できます。';
   };

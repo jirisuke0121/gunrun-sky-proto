@@ -1,6 +1,11 @@
 // Combine immutable, opaque material groups and explicitly marked decoration.
 // Doors, animated models and transparent sorting stay separate.
 export function mergeStaticMaterialGroups(game, cellSize = 32) {
+  // The local fixed-camera prototype fades individual occluding surfaces.
+  // Keep originals for this opt-in experiment; baseline batching is unchanged.
+  if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('cameraTrial') === 'fixed' && new URLSearchParams(location.search).get('fixedOcclusion') !== 'zoom') {
+    return { revision: 'fixed-camera-trial-unbatched', objects: 0, taggedObjects: 0, groupsBefore: 0, groupsAfter: 0, triangles: 0, trianglesAfter: 0, cellSize };
+  }
   const { ue: scene, jn, Geom } = game;
   const { BufferGeometry, Float32Attribute, Mesh, Vector3 } = Geom;
   const interactive = new Set(jn.filter(box => box.type === 'door' || box.type === 'prop' || box.shape).map(box => box.mesh));

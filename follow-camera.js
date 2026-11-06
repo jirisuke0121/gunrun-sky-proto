@@ -25,6 +25,7 @@
   const playing = () => enabled() && game.modeRef() === 'play' && !game.z.over;
 
   function reset() {
+    window.skyFixedCamera?.reset();
     view.yaw = c.yaw; view.pitch = c.pitch;
     manual = manualTouch = mouseHeld = false; manualUntil = 0; lastInput = 0;
     gesture = 'idle'; gestureId = null; reverseTime = 0;
@@ -84,6 +85,7 @@
   // feed back into that held direction and create a continuously curving path.
   // Keyboard auto-camera retains its W/S drive + A/D steer mapping.
   function input(raw) {
+    if (playing() && window.skyFixedCamera?.active) return window.skyFixedCamera.input(raw);
     if (!playing()) { direct = false; fromAction = false; gestureId = null; return raw; }
     if (!touch.on) {
       direct = false; fromAction = false; gestureId = null;
@@ -125,6 +127,7 @@
       precise: true, steer: 0, reversing: directReverse, direct: true };
   }
   function step(dt, controls) {
+    if (playing() && window.skyFixedCamera?.active) { window.skyFixedCamera.step(dt, controls); return; }
     if (!playing()) { direct = false; fromAction = false; gestureId = null; return; }
     if (!controls.direct) { legacyStep(dt, controls); return; }
     lastInput = Math.abs(controls.fwdIn);
@@ -148,6 +151,7 @@
     return true;
   }
   function look(yawDelta, pitchDelta) {
+    if (window.skyFixedCamera?.active) return true;
     if (!playing()) return false;
     view.yaw = angle(view.yaw - yawDelta);
     view.pitch = clamp(view.pitch - pitchDelta, -1.35, 1.35);
@@ -158,6 +162,7 @@
     return true;
   }
   function frame(dt) {
+    if (window.skyFixedCamera?.active && !['menu', 'replay'].includes(game.modeRef())) return window.skyFixedCamera.pose;
     if (!enabled() || ['menu', 'replay'].includes(game.modeRef())) return null;
     if (!playing()) { direct = false; fromAction = false; gestureId = null; return view; }
     if (dt <= 0) return view;
@@ -183,14 +188,16 @@
     return view;
   }
   // Plain names for the two control types (the cards in control-style.js use the same words).
+  const fixedTrial = new URLSearchParams(location.search).get('cameraTrial') === 'fixed';
   const NAMES = coarse()
     ? { before: 'FPS操作（右側をドラッグして視点を回す）', after: 'かんたん操作（左で移動・カメラおまかせ）' }
     : { before: 'マウス視点（WASD＋マウス・従来）', after: '自動カメラ（W/S 前後・A/D 旋回）' };
+  if (fixedTrial) NAMES.after = '固定カメラ（試作・方向は固定）';
   function syncUI() {
     document.body.dataset.skyCameraMode = mode;
     for (const select of selectors) select.value = mode;
     for (const note of document.querySelectorAll('.follow-camera-help')) {
-      note.textContent = mode === 'before'
+      note.textContent = fixedTrial && mode === 'after' ? '画面の方向へ移動します。カメラの回転操作はありません。視界を遮る壁は透けますが、通り抜けはできません。' : mode === 'before'
         ? (coarse() ? '左スティックで移動、右側のドラッグで視点を自分で回します。' : 'WASDで移動、マウスで視点を回します。')
         : coarse()
           ? '左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。'
@@ -201,7 +208,7 @@
     if (!['before', 'after'].includes(next)) return;
     if (mode !== next) {
       // Switching back preserves the picture, then the original input path owns it again.
-      if (next === 'before') { c.yaw = view.yaw; c.pitch = view.pitch; }
+      if (next === 'before') { const oldView = window.skyFixedCamera?.active ? window.skyFixedCamera.pose : view; c.yaw = oldView.yaw; c.pitch = oldView.pitch; }
       mode = next; reset();
     }
     if (persist) {
@@ -227,7 +234,7 @@
     get active() { return enabled(); },
     get mode() { return mode; },
     get touchDevice() { return coarse(); },
-    get view() { return enabled() ? view : c; },
+    get view() { return window.skyFixedCamera?.active ? window.skyFixedCamera.pose : enabled() ? view : c; },
     get state() { return { mode, yaw: view.yaw, pitch: view.pitch, heading: c.yaw, manual, moving: lastInput, gesture }; },
   };
   document.getElementById('humanStatus')?.after(control('cameraModeHome', true));

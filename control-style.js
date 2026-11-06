@@ -42,8 +42,8 @@
       move: `${moveGesture}<b>押したまま移動</b>`, view: `${ICON.drag}<b>指で見回す</b>`, auto: false,
     },
     after: {
-      name: 'かんたん操作', tag: 'カメラおまかせ', look: '進む向きへ自動で回る。右側で見回しもできる',
-      move: `${moveGesture}<b>押したまま移動</b>`, view: `${ICON.auto}<b>カメラ自動</b>`, auto: true,
+      name: params.get('cameraTrial') === 'fixed' ? '固定カメラ（試作）' : 'かんたん操作', tag: params.get('cameraTrial') === 'fixed' ? 'スティックだけ' : 'カメラおまかせ', look: params.get('cameraTrial') === 'fixed' ? '向きは固定・位置だけ追従。右側の視点操作はなし' : '進む向きへ自動で回る。右側で見回しもできる',
+      move: `${moveGesture}<b>押したまま移動</b>`, view: `${ICON.auto}<b>${params.get('cameraTrial') === 'fixed' ? '向き固定' : 'カメラ自動'}</b>`, auto: true,
     },
   } : {
     before: {
@@ -51,8 +51,8 @@
       move: `${keys(['W', 'A', 'S', 'D'])}<b>移動</b>`, view: `${ICON.mouse}<b>視点を回す</b>`, auto: false,
     },
     after: {
-      name: '自動カメラ', tag: 'FPS未経験の方に', look: 'A/Dで曲がると、カメラが自動でついてくる', who: 'はじめて・視点操作が苦手な人',
-      move: `${keys(['W', 'S'])}<b>前後</b>${keys(['A', 'D'])}<b>旋回</b>`, view: `${ICON.auto}<b>自動</b>`, auto: true,
+      name: params.get('cameraTrial') === 'fixed' ? '固定カメラ（試作）' : '自動カメラ', tag: params.get('cameraTrial') === 'fixed' ? 'スティックだけ' : 'FPS未経験の方に', look: params.get('cameraTrial') === 'fixed' ? '向きは固定・位置だけ追従。視点操作はなし' : 'A/Dで曲がると、カメラが自動でついてくる', who: 'はじめて・視点操作が苦手な人',
+      move: params.get('cameraTrial') === 'fixed' ? `${keys(['W','A','S','D'])}<b>移動</b>` : `${keys(['W', 'S'])}<b>前後</b>${keys(['A', 'D'])}<b>旋回</b>`, view: `${ICON.auto}<b>${params.get('cameraTrial') === 'fixed' ? '向き固定' : '自動'}</b>`, auto: true,
     },
   };
 

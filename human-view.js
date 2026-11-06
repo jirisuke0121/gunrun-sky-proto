@@ -520,6 +520,7 @@ function updateWorldWeapon(third, dt = 0) {
   }
 }
 function update(dt, preparingShot = false) {
+  if (window.skyFixedCamera && !window.skyFixedCamera.active) window.skyFixedCamera.restore();
   if (!c.doorAction) {
     delete document.body.dataset.skyHumanDoorAction;
     delete document.body.dataset.skyHumanDoorPhase;
@@ -597,15 +598,20 @@ function update(dt, preparingShot = false) {
   pivot.set(c.pos.x, c.camY === undefined ? c.pos.y + c.eye : c.camY, c.pos.z);
   if (c.state === 'swing') pivot.y=c.pos.y+c.eye;
   if (c.state === 'ledge' && holder) pivot.y = holder.position.y + Math.min(c.eye, 1.5);
+  if (window.skyFixedCamera?.active) {
+    window.skyFixedCamera.camera(camera);
+    pivot.set(c.pos.x, c.pos.y + 1.3, c.pos.z);
+  }
   forward.set(0, 0, -1).applyQuaternion(camera.quaternion);
   right.set(1, 0, 0).applyQuaternion(camera.quaternion);
-  const chase = window.skyDash?.camera || { distance: 3.6, shoulder: .62, height: .18 };
+  const chase = window.skyFixedCamera?.active ? window.skyFixedCamera.chase : window.skyDash?.camera || { distance: 3.6, shoulder: .62, height: .18 };
   wanted.copy(pivot).addScaledVector(forward, -chase.distance).addScaledVector(right, chase.shoulder);
   wanted.y += chase.height;
   // The maps expose the same solid-field query used by player movement.
   delta.copy(wanted).sub(pivot);
   let safe = 1;
-  for (let step = 1; step <= 24; step++) {
+  const fixedClear = window.skyFixedCamera?.active && window.skyFixedCamera.occlusion(pivot, wanted);
+  for (let step = 1; !fixedClear && step <= 24; step++) {
     probe.copy(pivot).addScaledVector(delta, step / 24);
     if (!sky.oe(probe.x, probe.y - .16, probe.z, .16, .32)) { safe = Math.max(0, (step - 2) / 24); break; }
   }
