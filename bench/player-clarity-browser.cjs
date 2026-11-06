@@ -15,6 +15,13 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  await ctx.route('https://**/*',r=>{if(r.request().method()==='POST')posts++;return r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'})});
  const p=await ctx.newPage();p.on('pageerror',e=>errors.push(e.message));p.setDefaultTimeout(20000);
  const press=async selector=>{if(!layout.touch){await p.keyboard.press({'#tDecoy':'2','#tFlash':'1','#tRescue':'v','#tAutoFire':'x'}[selector]);return}const r=await p.locator(selector).boundingBox();assert.ok(r);await p.touchscreen.tap(r.x+r.width/2,r.y+r.height/2)};
+ const clearView=async()=>{
+  const boxes=await p.evaluate(()=>{const box=e=>{const r=e.getBoundingClientRect();return{x:r.x,y:r.y,w:r.width,h:r.height}};return{messages:[...document.querySelectorAll('#runResponsibility,#actionFeedback,#supplyFeedback,#weaponSupplyStatus')].filter(e=>e.checkVisibility({visibilityProperty:true})).map(e=>({id:e.id,...box(e)})),life:box(document.querySelector('.hud-tl')),labels:[...document.querySelectorAll('#skillDock [data-action-state],#tFlash small')].map(e=>({text:e.textContent,...box(e),button:box(e.closest('button'))}))}});
+  assert.ok(boxes.messages.length<=1,`${id}: duplicate HUD explanations`);
+  for(const r of boxes.messages){assert.ok(r.x>=0&&r.x+r.w<=layout.width*.33&&r.y>=boxes.life.y+boxes.life.h&&r.y+r.h<layout.height*.68,`${id}: ${r.id} covers the central play view or life HUD: ${JSON.stringify(boxes)}`)}
+  for(const r of boxes.labels){const b=r.button;assert.ok(r.x>=b.x-1&&r.x+r.w<=b.x+b.w+1&&r.y>=b.y&&r.y+r.h<=b.y+b.h,`${id}: skill caption outside its button: ${JSON.stringify(r)}`);if(lang==='en')assert.ok(!jp.test(r.text),r.text)}
+  return boxes;
+ };
  await p.goto(base+map+`?lang=${lang}&controlpick=0&hookGuide=0&guides=0`);
  await p.waitForFunction(()=>skyStartReadiness?.ready&&window.skyPlayerClarity,null,{timeout:120000});
  const hasRescue=await p.evaluate(()=>!!window.skyRescue);assert.equal(hasRescue,map==='index.html','rescue remains available only on its existing map');
@@ -27,7 +34,7 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
   window.clarityPlace=()=>{skySwing.reset();c.pos.fromArray(clarityFoot);c.lastGround.copy(c.pos);c.safe.copy(c.pos);c.vel.set(0,0,0);c.state='normal';c.onGround=true;c.h=1.75;c.ledge=c.ladder=c.zip=c.hook=c.doorAction=null;c.jumpBuf=c.slideBuf=0;skyFollowCamera.reset()};
   window.clarityTick=n=>{for(let i=0;i<n;i++)g.advance(1/60);g.frameOnce(0);skyPlayerClarity.render()};clarityPlace();g.frameOnce(0);skyPlayerClarity.render();
  });
- assert.equal(await p.locator('#runResponsibility').isVisible(),true);await p.screenshot({path:`${out}/${id}-roles.png`});
+ assert.equal(await p.locator('#runResponsibility').isVisible(),true);await clearView();await p.screenshot({path:`${out}/${id}-roles.png`});
  const shotReasons=await p.evaluate(map=>{const s=__skyInternals,g=__game,c=g.P,rows=[];
   for(const state of ['reload','ledge','ladder','swing',...(map==='index.html'?['door']:[])]){
    clarityPlace();s.Et.reloadT=state==='reload'?.8:0;c.state=['ledge','ladder','swing'].includes(state)?state:'normal';c.doorAction=state==='door'?{}:null;
@@ -48,6 +55,7 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  await p.evaluate(()=>clarityTick(380));
  await press('#tDecoy');await p.evaluate(()=>skyPlayerClarity.render());
  const cooldown=await p.locator('#actionFeedback').innerText();assert.match(cooldown,lang==='ja'?/再使用待ち.*秒/:/recharging.*s left/);
+ const view=await clearView();
  await p.screenshot({path:`${out}/${id}-cooldown.png`});
  const rects=await p.evaluate(()=>{const ids=['actionFeedback','toast','tJump','tSlide','tAutoFire','ammoBox','skyMinimap','tFlash','tDecoy','tRescue'];return Object.fromEntries(ids.map(id=>{const e=document.getElementById(id),r=e?.getBoundingClientRect();return[id,r?{x:r.x,y:r.y,w:r.width,h:r.height,visible:e.checkVisibility()&&+getComputedStyle(e).opacity>.01}:{visible:false}]}))});
  const overlaps=(a,b)=>a.x<b.x+b.w-.5&&a.x+a.w>b.x+.5&&a.y<b.y+b.h-.5&&a.y+a.h>b.y+.5;
@@ -57,7 +65,7 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  await p.evaluate(()=>{skyDecoy.clear();clarityPlace()});
  await press('#tFlash');const charges=await p.evaluate(()=>skyFlashbang.charges);assert.equal(charges,0);
  await press('#tFlash');await p.evaluate(()=>skyPlayerClarity.render());const emptyFlash=await p.locator('#actionFeedback').innerText();assert.match(emptyFlash,lang==='ja'?/残り0個.*補充/:/No flashbangs.*refill/);assert.equal(await p.evaluate(()=>skyFlashbang.charges),0);
- await p.screenshot({path:`${out}/${id}-flash.png`});
+ await clearView();await p.screenshot({path:`${out}/${id}-flash.png`});
  // There is no higher platform 200m above the map; the failed rescue costs no charge.
  let rescue=null;
  if(hasRescue){
@@ -76,7 +84,7 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  await p.evaluate(()=>{__game.setMode('play');clarityPlace();clarityTick(400);skyWeaponDrops.frame();skyPlayerClarity.render()});
  const drops=await p.evaluate(()=>JSON.parse(document.body.dataset.skyWeaponDrops));assert.ok(drops.spawned>=1,JSON.stringify(drops));
  const status=await p.locator('#weaponSupplyStatus').innerText();assert.match(status,lang==='ja'?/触れて武器・弾を補充/:/Touch to equip and refill/);
- await p.screenshot({path:`${out}/${id}-supply-target.png`});
+ await clearView();await p.screenshot({path:`${out}/${id}-supply-target.png`});
  const pickup=await p.evaluate(()=>{const g=__game,s=__skyInternals,d=JSON.parse(document.body.dataset.skyWeaponDrops).items[0];clarityPlace();g.P.pos.fromArray(d.position);g.P.pos.y+=.01;s.Et.ammo=1;s.Et.reserve=0;const before=g.stats.weaponPickups||0;skyWeaponDrops.step(.01);skyWeaponDrops.frame();g.frameOnce(0);skyPlayerClarity.render();return{before,after:g.stats.weaponPickups,ammo:s.Et.ammo,reserve:s.Et.reserve,mag:s.wpc().mag,text:document.getElementById('supplyFeedback').textContent}});
  assert.equal(pickup.after,pickup.before+1);assert.equal(pickup.ammo,pickup.mag);assert.ok(pickup.reserve>0);assert.match(pickup.text,lang==='ja'?/装填.*予備.*逃げよう/:/Loaded.*reserve.*Keep moving/);await p.screenshot({path:`${out}/${id}-supply-collected.png`});
  const marker=await p.evaluate(()=>{const g=__game,m=g.MARK,site=g.MARK_SITES.find(n=>g.freeAt(n[0],n[1]+.03,n[2],.3,1.75));m.off=false;m.i=g.MARK_SITES.indexOf(site);m.goal=null;g.P.pos.set(site[0],site[1]+.01,site[2]);g.P.onGround=true;const before=m.reached;clarityTick(2);return{before,after:m.reached,action:document.getElementById('markAction').textContent}});
@@ -86,5 +94,5 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  await p.locator('#introNext').click();await p.waitForFunction(()=>__game.mode==='play'&&skyChallenge.id==='easy'&&!skyChallenge.isIntroRun);
  const next=await p.evaluate(()=>({mode:__game.mode,difficulty:skyChallenge.id,intro:skyChallenge.isIntroRun,life:__game.P.life}));assert.equal(next.life,8);
  if(lang==='en')for(const text of [active,cooldown,emptyFlash,rescue?.text||'',status,pickup.text,marker.action])assert.ok(!jp.test(text),text);
- assert.equal(posts,0);assert.deepEqual(errors,[]);results.push({id,home,shotReasons,active,cooldown,emptyFlash,rescue,rects,drops,pickup,marker,next,posts,errors});fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2));console.log('PASS',id,'roles, native shot blocks, skill denial/no spend, supplies, route marker, direct intro-to-Easy, layout and no uploads');await ctx.close();
+ assert.equal(posts,0);assert.deepEqual(errors,[]);results.push({id,home,shotReasons,active,cooldown,emptyFlash,rescue,rects,view,drops,pickup,marker,next,posts,errors});fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2));console.log('PASS',id,'roles, native shot blocks, skill denial/no spend, supplies, route marker, direct intro-to-Easy, clear central view and no uploads');await ctx.close();
 }}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

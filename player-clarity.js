@@ -3,12 +3,13 @@ export function installPlayerClarity(sky,game) {
   const $=id=>document.getElementById(id), tr=text=>window.skyI18n?.tr(text)||text;
   const write=(node,text)=>{text=tr(text);if(node&&node.textContent!==text)node.textContent=text;};
   const make=(id,parent,cls='')=>{const node=document.createElement('div');node.id=id;node.className=cls;parent.append(node);return node;};
-  const role=make('runResponsibility',$('hud'));
+  const rail=make('clarityRail',document.querySelector('.hud-tl'));
+  const role=make('runResponsibility',rail);
   const gun=make('gunState',$('tAutoFire'));
   $('tAutoFire').setAttribute('aria-describedby','gunState');
-  const feedback=make('actionFeedback',$('skillDock'));
+  const feedback=make('actionFeedback',rail);
   feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
-  const supplies=make('supplyFeedback',$('hud'));
+  const supplies=make('supplyFeedback',rail);
   supplies.setAttribute('role','status');
   const mark=make('markAction',$('markMark'));
   let explanation=null,supply=null,lastFrame=-Infinity,lastClock=0,lastReached=game.MARK?.reached||0;
@@ -17,6 +18,10 @@ export function installPlayerClarity(sky,game) {
     :sky.U.autoFire&&sky.U.aimAuto?'移動・逃げ道選びは自分で。銃は自動で狙い撃ちます。'
     :sky.U.autoFire?'移動・逃げ道選びと照準は自分で。敵に向けると自動射撃。'
     :'移動・逃げ道選びは自分で。自動射撃は停止中です。';
+  const roleCue=()=>!sky.U.gunOn?'自分：移動・逃げ道\n銃：未装備'
+    :sky.U.autoFire&&sky.U.aimAuto?'自分：移動・逃げ道\n自動：照準・射撃'
+    :sky.U.autoFire?'自分：移動・逃げ道・照準\n自動：射撃'
+    :'自分：移動・逃げ道\n自動射撃：停止中';
   function gunText(){
     const {Et,U,c}=sky;
     const blocked=sky.gunBlockReason?.();
@@ -48,22 +53,26 @@ export function installPlayerClarity(sky,game) {
     const on=playing(),clock=sky.z.t;
     if(clock<lastClock||sky.modeRef()==='menu'){explanation=supply=null;lastReached=game.MARK?.reached||0;}
     lastClock=clock;
-    role.hidden=!on||clock>=8||!!window.skyPracticeMode||!!sky.z.mission;
-    write(role,responsibility());
+    const explaining=on&&explanation&&clock<explanation.until;
+    const supplying=on&&supply&&clock<supply.until;
+    role.hidden=!on||clock>=8||!!window.skyPracticeMode||!!sky.z.mission||explaining||supplying;
+    write(role,roleCue());
     const home=document.querySelector('.home-scene-copy p');if(home)write(home,responsibility());
     if(gun.parentElement!==$('tAutoFire'))$('tAutoFire').append(gun);
     gun.hidden=!on||!sky.U.gunOn||!!sky.wpc().jumpGun;
     if(!gun.hidden){write(gun,gunText());gun.dataset.empty=String(sky.Et.ammo<=0&&sky.U.reserveAmmo<99&&sky.Et.reserve<=0);}
     const decoy=window.skyDecoy;
-    if(decoy)skill('tDecoy',decoy.active?'発動中':decoy.cooldown>0?'再使用待ち':'追手を引きつける');
+    if(decoy)skill('tDecoy',decoy.active?'発動中':decoy.cooldown>0?'待機':'おとり');
     const rescue=window.skyRescue;
-    if(rescue)skill('tRescue',rescue.charges<=0?'残り0回':!rescue.available()?'移動終了を待つ':'高台へ自動退避');
-    feedback.hidden=!on||!explanation||clock>=explanation.until;
+    if(rescue)skill('tRescue',rescue.charges<=0?'残り0回':!rescue.available()?'移動中':'退避');
+    feedback.hidden=!explaining;
     if(!feedback.hidden){write(feedback,explanation.text);feedback.dataset.action=explanation.id;}
     for(const id of ['tFlash','tDecoy','tRescue'])if($(id))$(id).dataset.reasonShown=String(!feedback.hidden&&explanation.id===id);
-    supplies.hidden=!on||!supply||clock>=supply.until;
+    supplies.hidden=!supplying||explaining;
     if(!supplies.hidden)write(supplies,supply.text);
     document.body.dataset.supplyFeedback=String(!supplies.hidden);
+    const target=$('weaponSupplyStatus');if(target&&target.parentElement!==rail)rail.append(target);
+    rail.dataset.notice=String(!role.hidden||!feedback.hidden||!supplies.hidden);
     const route=on&&!sky.z.mission&&!window.skyPracticeMode;
     mark.hidden=!route;write(mark,'逃げ道の候補 · 光の輪に近づくだけ');
     if(route&&game.MARK.reached>lastReached&&(!supply||clock>=supply.until))supply={text:'目印に到着 · 別の足場へ進んで追手を離そう',until:clock+4};

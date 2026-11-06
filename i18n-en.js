@@ -3,6 +3,14 @@
 (() => {
   const tr = text => window.skyI18n.tr(text);
   const exact = {
+ "自分：移動・逃げ道 銃：未装備": "You: move + choose route\nGun: not equipped",
+ "自分：移動・逃げ道 自動：照準・射撃": "You: move + choose route\nAuto: aim + fire",
+ "自分：移動・逃げ道・照準 自動：射撃": "You: move + route + aim\nAuto: fire",
+ "自分：移動・逃げ道 自動射撃：停止中": "You: move + choose route\nAuto-fire: stopped",
+ "待機": "Wait",
+ "おとり": "Lure",
+ "移動中": "Moving",
+ "退避": "Escape",
  "停止中 · Xキーで再開": "Stopped · Press X to resume",
  "高台へ自動移動中 · 到着後は自分で逃げよう": "Auto-moving to higher ground · Choose your route after landing",
  "高台へ自動退避": "Auto-escape upward",
@@ -618,6 +626,8 @@
  "左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。": "Place your thumb on the left. Slide toward your destination and keep holding. Release to stop. The camera follows your movement. After looking around on the right, release your left thumb and move again to choose a direction from that view.",
 };
   const patterns = [
+  [/^(\d+)秒停止$/, 'Stun $1s'],
+  [/^技あと(\d+)$/, '$1 moves'],
   [/^装填中 · あと([\d.]+)秒$/, 'Reloading · $1 s left'],
   [/^分身発動中 · あと(\d+)秒$/, 'Decoy active · $1 s left'],
   [/^分身は再使用待ち · あと(\d+)秒$/, 'Decoy recharging · $1 s left'],
