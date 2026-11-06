@@ -43,6 +43,7 @@ export function installPlayerClarity(sky,game) {
     explanation={id,text,until:sky.z.t+2.8};render();
   }
   function supplyNotice(text){supply={text,until:sky.z.t+4};render();}
+  function guideNotice(text){if(!explanation||sky.z.t>=explanation.until)explain(null,text);}
   function skill(id,text){
     const button=$(id);if(!button)return;
     let label=button.querySelector('[data-action-state]');
@@ -80,6 +81,6 @@ export function installPlayerClarity(sky,game) {
   }
   // No simulation clocks or action gates are changed by this presentation loop.
   function frame(now){if(now-lastFrame>=80){lastFrame=now;render();}requestAnimationFrame(frame);}
-  window.skyPlayerClarity={explain,supplyNotice,responsibility,gunText,render};
+  window.skyPlayerClarity={explain,supplyNotice,guideNotice,responsibility,gunText,render};
   render();requestAnimationFrame(frame);
 }

@@ -82,13 +82,16 @@
    get flash(){return root.skyFlashbang;},get decoy(){return root.skyDecoy;},get rescue(){return root.skyRescue;},get barrels(){return root.skyBlastBarrels;},get slope(){return root.skySlopeSlide;}};
   const plate=document.createElement('section');plate.id='contextGuide';plate.hidden=true;plate.setAttribute('role','region');plate.setAttribute('aria-live','polite');
   plate.innerHTML='<div id="contextSpot"></div><div id="contextButton"></div><div class="context-card"><header><span id="contextPhase"></span><button id="contextClose" aria-label="Close guide">×</button></header><h2 id="contextTitle"></h2><p id="contextText"></p></div>';app.append(plate);
-  const $=id=>document.getElementById(id);let guide,last='';
+  const $=id=>document.getElementById(id);let guide,last='',lastItem='';
   const automatic={vault:['障害物を自動で乗り越えた！','VAULTED!'],mantle:['縁をつかんで登れた！','CLIMBED UP!'],wallrun:['壁走り成功！','WALL RUN!']};
   const show=({phase,item,visible:vis,paused})=>{
-   if(!vis&&last==='idle')return;last=phase;plate.hidden=!vis;plate.dataset.phase=phase;document.body.classList.toggle('context-guide-paused',paused);if(!vis)return;
+   if(!vis&&last==='idle')return;
+   const relayed=phase==='success'&&!!root.skyPlayerClarity?.guideNotice,newSuccess=phase==='success'&&(last!=='success'||lastItem!==item?.id);
+   last=phase;lastItem=item?.id;plate.hidden=!vis||relayed;plate.dataset.phase=phase;document.body.classList.toggle('context-guide-paused',paused);if(!vis)return;
    const en=root.skyI18n?.lang==='en',d=defs[item.id],copy=d?.[en?'en':'jp'];$('contextPhase').textContent=paused?(en?'Ⅱ WORLD PAUSED':'Ⅱ 敵・時間を停止中'):'SUCCESS';
    $('contextTitle').textContent=copy?(phase==='success'?copy[2]:copy[0]):automatic[item.id]?.[en?1:0]||'';
    $('contextText').textContent=phase==='success'?(en?'Keep going!':'そのまま進もう！'):copy[1];$('contextClose').hidden=phase==='success';
+   if(relayed&&newSuccess)root.skyPlayerClarity.guideNotice($('contextTitle').textContent+' '+$('contextText').textContent);
    const el=d?.button&&document.getElementById(d.button),r=el&&visible(d.button)?el.getBoundingClientRect():null,ar=app.getBoundingClientRect();const bp=r?{x:r.x-ar.x+r.width/2,y:r.y-ar.y+r.height/2}:null,wp=project(item.point),p=wp||bp;$('contextButton').hidden=!paused||!wp||!bp;if(wp&&bp){$('contextButton').style.left=bp.x+'px';$('contextButton').style.top=bp.y+'px';}$('contextSpot').hidden=!paused||!p;if(p){$('contextSpot').style.left=p.x+'px';$('contextSpot').style.top=p.y+'px';plate.querySelector('.context-card').classList.toggle('at-top',p.y>app.clientHeight*.55);}
   };
   guide=create({game:g,env,storage:{getItem:k=>localStorage.getItem(k),setItem:(k,v)=>localStorage.setItem(k,v)},map:root.SKY_CANYON_MAP?'canyon':'town',forced:params.get('guides')==='1',disabled:params.get('guides')==='0'||(navigator.webdriver&&!params.has('guides')),show,unlock:()=>document.exitPointerLock?.()});root.skyContextTutorial=guide;
