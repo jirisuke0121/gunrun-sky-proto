@@ -2,7 +2,7 @@ const assert = require('node:assert/strict'), fs = require('node:fs'), vm = requ
 function fixture(floors) {
   const c = { pos: {x: 0, y: 3, z: 0}, vel: {x: 8, y: 4.5, z: 5},
     r: .32, h: 1.75, state: 'normal', onGround: false, jumpBuf: 0, edgeJump: true };
-  const game = { c, U: {gravity: 20, hookSpeed: 18}, z: {over: false},
+  const game = { c, U: {gravity: 20, hookSpeed: 18, walkSpeed:4.6}, z: {over: false}, fallY:-22,
     near: () => floors, oe: () => true, modeRef: () => 'play' };
   const window = {__skyInternals: game};
   vm.runInNewContext(fs.readFileSync('hook-landing.js', 'utf8'), {window, Math});
@@ -29,7 +29,24 @@ const floor = {minX:-2,maxX:2,minZ:-30,maxZ:30,maxY:1,solid:true};
   c.jumpBuf=.15;assist.step(1/120);assert.equal(assist.active,null,'intentional jump cancels guidance');
   assert.equal(c.vel.x,8);
 }
-for(const bad of [{...floor,off:true},{...floor,solid:false},{...floor,maxY:-10}]) {
+{
+  const lower={minX:4,maxX:20,minZ:-20,maxZ:20,maxY:-4,solid:true};
+  const {c,assist}=fixture([floor,lower]);
+  assert.ok(assist.begin([0,2,0]));
+  assert.equal(assist.active.floor,lower,'any safe lower floor can be the destination');
+  assert.equal(c.vel.x,8,'retain forward momentum when a later floor will catch the player');
+  assert.equal(c.vel.z,5);
+}
+{
+  const next={minX:4,maxX:20,minZ:16,maxZ:25,maxY:-4,solid:true};
+  const {c,assist}=fixture([floor,next]);
+  assert.ok(assist.begin());assert.equal(assist.active.floor,floor);
+  c.vel.x=8;c.vel.z=16;
+  assist.step(1/120);
+  assert.equal(assist.active.floor,next,'input may lead to a different safe landing');
+  assert.equal(c.vel.x,8);assert.equal(c.vel.z,16,'do not pull the player back to the old floor');
+}
+for(const bad of [{...floor,off:true},{...floor,solid:false},{...floor,maxY:-23}]) {
   const {c,assist}=fixture([bad]);assert.equal(assist.begin([0,2,0]),false);assert.equal(c.vel.x,8);
 }
 {
