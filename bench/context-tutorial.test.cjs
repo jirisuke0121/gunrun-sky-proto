@@ -2,14 +2,24 @@ const assert=require('node:assert/strict'),{create,candidates,defs,STORE}=requir
 function fixture(){let mode='play',intro=true,hook='idle',time=0;const memory=new Map();const g={c:{pos:{x:0,y:0,z:0},eye:1.6,state:'normal',onGround:true,slideCD:0,jumpBuf:0},z:{t:10,over:false,challenge:{}},keys:{},inputState:{},Et:{},Jt:[],$a:[],modeRef:()=>mode,raycast:()=>null};const stats={};const env={stats,intro:()=>intro,hookPhase:()=>hook,busy:()=>false,presentable:()=>true,usable:()=>true,wallJumpReady:()=>true,decoyReady:()=>true,flash:{charges:1,config:{radius:8},stats:{thrown:0}},decoy:{cooldown:0,active:null,stats:{used:0}}};const make=()=>create({game:g,env,storage:{getItem:k=>memory.get(k),setItem:(k,v)=>memory.set(k,v)},map:'town',show:()=>{},now:()=>time});return{g,env,stats,memory,make,setMode:v=>mode=v,setIntro:v=>intro=v,setHook:v=>hook=v,setTime:v=>time=v};}
 let f=fixture();assert.equal(candidates(f.g,f.env).length,0,'idle time alone does not teach anything');
 f.g.Jt=[{pos:{x:2,y:0,z:0}},{pos:{x:3,y:0,z:0}}];assert.deepEqual(candidates(f.g,f.env).map(x=>x.id),['flash','decoy']);
+// Both skills need a close, still dangerous pursuer in addition to multiple valid targets.
+for(const xs of [[6,7],[10,11]]){f.g.Jt=xs.map(x=>({pos:{x,y:0,z:0}}));assert.equal(candidates(f.g,f.env).length,0,'distant groups do not interrupt play');}
+f.g.Jt=[{pos:{x:4,y:0,z:0}},{pos:{x:7,y:0,z:0}}];assert.deepEqual(candidates(f.g,f.env).map(x=>x.id),['flash','decoy'],'4m danger boundary');
+f.g.Jt[0].pos.x=4.01;assert.equal(candidates(f.g,f.env).length,0,'outside danger window');
+f.g.Jt[0].pos.x=2;f.g.Jt[0].stun=1;assert.equal(candidates(f.g,f.env).length,0,'stunned close enemy is no threat');f.g.Jt[0].stun=0;
+f.env.flash.blinded=e=>e===f.g.Jt[0];assert.equal(candidates(f.g,f.env).length,0,'blinded close enemy is no threat');delete f.env.flash.blinded;
+f.env.decoy.targetFor=()=>({});assert.equal(candidates(f.g,f.env).length,0,'enemies distracted by an active decoy are no threat');delete f.env.decoy.targetFor;
+f.g.Jt[0].fall={wait:1};assert.equal(candidates(f.g,f.env).length,0,'waiting to respawn is no threat');delete f.g.Jt[0].fall;
+f.g.Jt[1].dead=true;assert.equal(candidates(f.g,f.env).length,0,'one pursuer alone does not teach a crowd-control skill');delete f.g.Jt[1].dead;
+f.g.Jt[1].pos.x=3;
 f.g.raycast=()=>({});assert.equal(candidates(f.g,f.env).length,0,'walls prevent false threat prompts');f.g.raycast=()=>null;
 f.env.flash.charges=0;f.env.decoy.cooldown=3;f.env.rescue={available:()=>true,chooseTarget:()=>({}),charges:2};assert.deepEqual(candidates(f.g,f.env).map(x=>x.id),['rescue']);
 f.env.rescue.chooseTarget=()=>null;assert.equal(candidates(f.g,f.env).length,0,'rescue needs an actual safe destination');
-for(const [state,id]of [['wallrun','walljump'],['swing','swing'],['ladder','ladder']]){f.g.c.state=state;assert.equal(candidates(f.g,f.env)[0].id,id);}f.env.wallJumpReady=()=>false;f.g.c.state='wallrun';assert.equal(candidates(f.g,f.env).length,0);
+for(const state of ['swing','ladder']){f.g.c.state=state;assert.deepEqual(candidates(f.g,f.env),[],'bar and ladder traversal never opens a guide');}assert.equal(defs.swing,undefined);assert.equal(defs.ladder,undefined);f.g.c.state='wallrun';assert.equal(candidates(f.g,f.env)[0].id,'walljump');f.env.wallJumpReady=()=>false;f.g.c.state='wallrun';assert.equal(candidates(f.g,f.env).length,0);
 f.g.c.state='normal';f.g.Jt=[];f.g.$a=[{a:[0,2,0]}];assert.equal(candidates(f.g,f.env)[0].id,'zip');f.g.c.pos.y=3;assert.equal(candidates(f.g,f.env).length,0,'do not advertise a zipline from its far/upper side');
 f.g.c.pos.y=0;f.g.$a=[];f.env.slope={canStart:()=>true};assert.equal(candidates(f.g,f.env)[0].id,'slide');f.env.usable=()=>false;assert.equal(candidates(f.g,f.env).length,0,'hidden touch controls are never taught');
 for(const id of Object.keys(defs)){
- f=fixture();f.g.c.state=id==='walljump'?'wallrun':id==='swing'?'swing':id==='ladder'?'ladder':'normal';
+ f=fixture();f.g.c.state=id==='walljump'?'wallrun':'normal';
  if(['flash','decoy','rescue'].includes(id))f.g.Jt=[{pos:{x:2,y:0,z:0}},{pos:{x:3,y:0,z:0}}];
  if(id!=='flash')f.env.flash.charges=0;
  if(id==='rescue'){f.env.decoy.cooldown=3;f.env.rescue={available:()=>true,chooseTarget:()=>({}),charges:2};}
@@ -19,10 +29,10 @@ for(const id of Object.keys(defs)){
  const t=f.make();t.beforeFrame();assert.equal(t.item.id,id);assert.ok(t.worldPaused&&t.freezePlayer);
  t.afterFrame(.1);assert.equal(t.phase,'action','a press without native success cannot complete');
  f.setMode('pause');t.beforeFrame();assert.equal(t.worldPaused,false);f.setMode('play');t.beforeFrame();assert.equal(t.phase,'action');
- const d=defs[id];if(d.stat)f.stats[d.stat]=1;else if(d.state)f.g.c.state=d.state;else if(id==='ladder')f.g.c.pos.y=.2;else if(id==='flash')f.env.flash.stats.thrown=1;else if(id==='decoy')f.env.decoy.stats.used=1;else if(id==='rescue')f.env.rescue.charges=1;else f.env.barrels.sequence={};
+ const d=defs[id];if(d.stat)f.stats[d.stat]=1;else if(d.state)f.g.c.state=d.state;else if(id==='flash')f.env.flash.stats.thrown=1;else if(id==='decoy')f.env.decoy.stats.used=1;else if(id==='rescue')f.env.rescue.charges=1;else f.env.barrels.sequence={};
  t.afterFrame(.016);assert.equal(t.phase,'success',id);assert.equal(t.worldPaused,false);assert.equal(JSON.parse(f.memory.get(STORE)).town[id],true);
  f.setTime(3000);t.beforeFrame();assert.equal(t.phase,'idle');t.beforeFrame();assert.equal(t.phase,'idle','inter-guide quiet period');
 }
-f=fixture();f.g.c.state='ladder';const t=f.make();t.beforeFrame();f.g.keys.KeyW=true;assert.equal(t.freezePlayer,false,'native movement resumes the required player physics');f.setHook('action');f=fixture();f.setIntro(false);f.g.c.state='ladder';const ranked=f.make();ranked.beforeFrame();assert.equal(ranked.phase,'idle','ranked play unaffected');
-f=fixture();f.g.c.state='ladder';f.setHook('action');const arbiter=f.make();arbiter.beforeFrame();assert.equal(arbiter.phase,'idle','no competing hook and context popups');
-console.log('PASS all 10 contextual actions: spatial/LOS eligibility, unusable controls, pause, native success, persistence, spacing, arbitration and ranked isolation');
+f=fixture();f.g.c.state='wallrun';const t=f.make();t.beforeFrame();f.g.c.jumpBuf=.1;assert.equal(t.freezePlayer,false,'native movement resumes the required player physics');f.setHook('action');f=fixture();f.setIntro(false);f.g.c.state='wallrun';const ranked=f.make();ranked.beforeFrame();assert.equal(ranked.phase,'idle','ranked play unaffected');
+f=fixture();f.g.c.state='wallrun';f.setHook('action');const arbiter=f.make();arbiter.beforeFrame();assert.equal(arbiter.phase,'idle','no competing hook and context popups');
+console.log('PASS all 8 contextual actions: close-danger/LOS eligibility, no bar/ladder guides, unusable controls, pause, native success, persistence, spacing, arbitration and ranked isolation');
