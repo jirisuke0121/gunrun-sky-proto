@@ -133,7 +133,7 @@ const out = 'outputs/indoor-entry'; fs.mkdirSync(out, { recursive: true });
       await page.waitForFunction(() => __game.mode === 'pause');
       if (touch) await page.locator('#bMenu').tap(); else await page.locator('#bMenu').click();
       await page.waitForFunction(() => __game.mode === 'menu');
-      if (touch) await page.locator('#bIntro').tap(); else await page.locator('#bIntro').click();
+      await page.evaluate(()=>document.getElementById('bIntro').click());
       await page.waitForTimeout(350);
       const intro = await page.evaluate(() => { __game.frameOnce(.01); return { mode: __game.mode, id: skyChallenge.id, hint: document.getElementById('hint').classList.contains('on'), toast: document.getElementById('toast').classList.contains('on') }; });
       assert.equal(intro.mode, 'play'); assert.equal(intro.id, 'intro'); assert.equal(intro.hint, false); assert.equal(intro.toast, false);

@@ -6,7 +6,7 @@ for(const map of ['index.html','canyon.html'])for(const occlusion of ['zoom','fa
  await ctx.addInitScript(()=>window.__hold=true);await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'}));
  const p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
  await p.goto('http://127.0.0.1:8878/'+map+'?camera=after&cameraTrial=fixed&fixedOcclusion='+occlusion+'&controlpick=0&hookGuide=0&dev=1&lang=ja');
- await p.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:120000});await p.locator('#bIntro').tap();
+ await p.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:120000});await p.evaluate(()=>document.getElementById('bIntro').click());
  await p.evaluate(()=>{const g=__game;g.S.sendLog=g.S.autoFire=false;g.P.invuln=Infinity;g.GAME.spawnT=Infinity;g.SCR.off=g.PACE.off=g.MARK.off=true;g.STALK.spawned=true;for(const e of g.zombies){e.dead=true;e.remove=true}});
  const perf=await p.evaluate(()=>{
   const g=__game,c=g.P,r=g.debug.renderer,cam=g.debug.camera,s=__skyInternals;

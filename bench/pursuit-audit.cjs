@@ -44,7 +44,7 @@ fs.mkdirSync(out, { recursive: true });
       });
       await page.goto(base + map + '.html?verify=pursuit-20261106');
       await page.waitForFunction(() => window.skyStartReadiness?.ready && window.skyZombieDescent);
-      await page.locator(difficulty === 'intro' ? '#bIntro' : '#bStart').click();
+      await page.evaluate(id=>document.querySelector(id).click(),difficulty === 'intro' ? '#bIntro' : '#bStart');
       assert.equal(await page.evaluate(() => skyChallenge.id), difficulty);
       const inventory = await page.evaluate(fs.readFileSync('bench/pursuit-audit-inventory.js', 'utf8'));
       fs.writeFileSync(out + '/' + map + '-inventory.json', JSON.stringify(inventory, null, 2));

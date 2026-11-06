@@ -21,7 +21,7 @@ const base = 'http://127.0.0.1:18819/';
         await page.goto(`${base}${map}?hookGuide=1&controlpick=0&lang=${lang}`);
         await page.waitForFunction(() => window.__game && window.skyHookTutorial && window.skyStartReadiness?.ready);
         console.log('READY', tag);
-        await page.locator('#bIntro').click();
+        await page.evaluate(()=>document.getElementById('bIntro').click());
         await page.waitForFunction(() => __game.mode === 'play' && skyChallenge.isIntroRun);
         const route = await page.evaluate(() => {
           const g = __game, s = __skyInternals, c = g.P;

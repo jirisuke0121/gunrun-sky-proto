@@ -1,5 +1,5 @@
 import { installMinimap } from './minimap.js?v=20261101-unity-radar-v4';
-import { installRunRecords } from './run-records.js?v=20261102-players-v1';
+import { installRunRecords } from './run-records.js?v=20261106-dev-entry-v1';
 import { createGunRecoil } from './gun-recoil.js?v=20261101-recoil-v1';
 import { createSwing } from './parkour-swing.js?v=20261104-branch-transfer';
 import { installRanking } from './ranking.js?v=20261105-lobby-v9';

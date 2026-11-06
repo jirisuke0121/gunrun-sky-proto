@@ -23,7 +23,7 @@ const out=process.env.ASCENT_OUT||'browser-evidence/ascent';fs.mkdirSync(out,{re
   const base=process.env.ASCENT_PUBLIC==='1'?'https://jirisuke0121.github.io/gunrun-sky-proto/':'https://ascent.test/';
   await page.goto(base+map+'.html?verify=ascent'+(difficulty==='legacy'?'&dev=1':''));await page.waitForFunction(()=>skyStartReadiness?.ready&&window.skyZombieClimb);
   if(difficulty==='legacy')await page.evaluate(()=>{const custom=document.getElementById('challengeCustom');custom.checked=true;custom.dispatchEvent(new Event('change',{bubbles:true}));});
-  await page.locator(difficulty==='intro'?'#bIntro':'#bStart').click();assert.equal(await page.evaluate(()=>skyChallenge.id),difficulty);
+  await page.evaluate(id=>document.querySelector(id).click(),difficulty==='intro'?'#bIntro':'#bStart');assert.equal(await page.evaluate(()=>skyChallenge.id),difficulty);
   const inventory=await page.evaluate(()=>__game.LADDERS.map((L,i)=>({ladder:i,x:L.x,z:L.z,y0:L.y0,y1:L.y1,nx:L.nx,nz:L.nz,edges:__game.NAV.E.filter(e=>e.kind===5&&e.ladder===L).map(e=>({from:__game.NAV.nodes[e.from],to:__game.NAV.nodes[e.to],len:e.len,climb:e.climb}))})));
   fs.writeFileSync(stem+'-ladders.json',JSON.stringify(inventory,null,2));
   const fixtures=inventory.flatMap(({ladder})=>[{ladder,archetype,count:1,mode:'free'},{ladder,archetype,count:8,mode:'free'},{ladder,archetype,count:8,mode:'entry'},{ladder,archetype,count:8,mode:'exit'}]).filter(f=>!process.env.ASCENT_COUNTS||process.env.ASCENT_COUNTS.split(',').includes(String(f.count))).filter(f=>!process.env.ASCENT_MODES||process.env.ASCENT_MODES.split(',').includes(f.mode)).slice(+process.env.ASCENT_START||0,(+process.env.ASCENT_START||0)+(+process.env.ASCENT_LIMIT||10000));

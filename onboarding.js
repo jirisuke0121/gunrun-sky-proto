@@ -23,7 +23,7 @@
   // ?onboarding=auto applies the normal first-visit rule inside an automated browser (tests).
   const automated = navigator.webdriver === true && params.get('onboarding') !== 'auto';
   const traced = () => TRACES.some(key => Boolean(read(key)));
-  const first = forced || (!automated && !SPECIAL.some(key => params.has(key)) && !window.skyDevMode && !traced());
+  const first = forced || (params.get('onboarding')==='auto' && !SPECIAL.some(key => params.has(key)) && !window.skyDevMode && !traced());
   const make = (tag, props = {}, html = '') => Object.assign(document.createElement(tag), props, html ? { innerHTML: html } : {});
   const state = () => { try { return JSON.parse(read(STORE) || 'null') || {}; } catch { return {}; } };
   const saveState = patch => write(STORE, JSON.stringify({ at: new Date().toISOString(), ...state(), ...patch }));
@@ -57,6 +57,7 @@
       <button id="onbSettings" type="button" class="onb-link">操作設定を開く</button></footer>
   </div>`;
   ($('app') || document.body).append(root);
+  $('onbIntro').hidden=!params.has('onboarding');
   const input = $('onbName'), error = $('onbError');
   let mode = 'again';
 

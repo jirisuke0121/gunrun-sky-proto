@@ -20,7 +20,7 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   // Automated browsers are not interrupted by default.
   let ctx=await mk('ja',false),page=await open(ctx,map);
   assert.equal(await splash(page),false,'automation skips the first-visit card by default');
-  assert.equal(await page.locator('#introEntry').isVisible(),true,'automated browsers keep the home intro block');
+  assert.equal(await page.locator('#introEntry').isVisible(),false,'the development tutorial is absent from the main start area');
   assert.equal(await page.locator('#homeGuide').isVisible(),true);
   await page.click('#bStart');await page.waitForFunction(()=>__game.mode==='play');await page.waitForTimeout(300);
   assert.equal(await page.locator('#introTutorial').count(),0,'there is no tutorial card');await ctx.close();

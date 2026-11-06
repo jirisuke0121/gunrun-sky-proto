@@ -5,7 +5,8 @@
  if(!q.has('cameraTrial')&&read('gunrun-fixed-controls-v1')==='1'){
   q.set('cameraTrial','fixed');history.replaceState(history.state,'',u.href);
  }
- if(navigator.webdriver&&q.get('guidedEntry')!=='1')return;
+ // Opening the home page never starts the development course automatically.
+ if(q.get('guidedEntry')!=='1')return;
  if(['learn','learned','practice','ownerReplay','replay','qa','dev','oldtown_swing'].some(k=>q.has(k)))return;
  const traces=['gunrun-onboarding-v1','gunrun-name','gunrun-run-history-v1','gunrun-run-outbox-v1','gunrun-challenge-difficulty-v1','gunrun-follow-camera-v1','gunrun-pc-camera-v1'];
  if(!['1','reset'].includes(q.get('onboarding'))&&traces.some(k=>read(k)))return;

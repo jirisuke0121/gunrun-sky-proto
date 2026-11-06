@@ -66,6 +66,10 @@ html[lang=en] #homeHero[data-compact=true] .home-scene h2{font-size:24px}
 
 /* ---- Player-facing lobby: tuning and unfinished features live behind ?dev=1; camera/graphics live in Settings only. ---- */
 html:not(.dev) #homeMore{display:none}
+#introEntry{display:none!important}
+#homeDevelopment{margin:8px 0 0;border:0;font-size:11px;color:#a8b6c1}
+#homeDevelopment summary{cursor:pointer;width:max-content;padding:6px 0}
+#homeDevelopment #bGuidedIntro{display:block;margin:6px 0;min-height:44px;padding:8px 12px;border:1px solid #657380;background:transparent;color:#c9d1d8;font:inherit}
 #homeMore .follow-camera-home,#homeMore .sky-quality-control{display:none}
 #homeName{display:inline-flex;align-items:center;gap:7px;min-height:44px;max-width:210px;padding:6px 12px;border:1px solid #657380;background:#162330;color:#f4f0e8;font-size:13px}
 #homeName small{font-size:10px;color:#a8b6c1;letter-spacing:.08em;white-space:nowrap}#homeName b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}#homeName i{font-style:normal;color:#ec9a73}

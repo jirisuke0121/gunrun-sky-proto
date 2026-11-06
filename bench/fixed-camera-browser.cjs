@@ -10,7 +10,7 @@ try{for(const map of ['index.html','canyon.html'])for(const preset of [{id:'near
  const p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
  await p.goto(base+map+'?camera=after&cameraTrial=fixed&fixedPitch='+preset.pitch+'&fixedDistance='+preset.distance+'&onboarding=0&controlpick=0&hookGuide=0&dev=1');
  await p.waitForFunction(()=>window.skyStartReadiness?.ready&&window.skyFixedCamera,null,{timeout:120000});
- await p.locator('#bIntro').tap();
+ await p.evaluate(()=>document.getElementById('bIntro').click());
  await p.evaluate(()=>{const g=__game;g.S.sendLog=g.S.autoFire=false;g.P.invuln=Infinity;for(const z of g.zombies){z.dead=true;z.remove=true}g.GAME.spawnT=Infinity;});
  const movement=await p.evaluate(()=>{
   const g=__game,c=g.P,s=__skyInternals,rows=[];

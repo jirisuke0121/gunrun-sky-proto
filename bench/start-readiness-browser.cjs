@@ -45,7 +45,7 @@ const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{p
   await click('#bSettings');await click('#bMenu');await page.waitForFunction(()=>__game.mode==='menu');
   // The settings panel opened before play must return to the home screen.
   await click('#bSettings');await click('#bResume');assert.equal((await state()).mode,'menu');
-  await click('#bIntro');const intro=await state();assert.equal(intro.mode,'play');assert.equal(intro.id,'intro');assert.equal(intro.hud,'∞');assert.equal(intro.view,'third');assert.equal(intro.model,true);assert.equal(intro.held,true);
+  await page.evaluate(()=>document.getElementById('bIntro').click());const intro=await state();assert.equal(intro.mode,'play');assert.equal(intro.id,'intro');assert.equal(intro.hud,'∞');assert.equal(intro.view,'third');assert.equal(intro.model,true);assert.equal(intro.held,true);
   assert.equal(await page.evaluate(()=>__skyInternals.Jt.filter(e=>!e.dead).length),3,'intro initially spawns three pursuers');
   const introPopulation=await page.evaluate(()=>{
    const g=__game,rows=[];

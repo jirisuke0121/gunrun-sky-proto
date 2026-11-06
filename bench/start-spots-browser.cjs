@@ -11,7 +11,7 @@ const dir=path.resolve(__dirname,'..'),port=process.argv[2]||'18841';
   await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'}));
   const page=await ctx.newPage();page.setDefaultTimeout(120000);await page.goto(`http://127.0.0.1:${port}/${url}`);
   await page.waitForFunction(()=>window.__game&&window.skyStartReadiness?.ready);
-  if(difficulty==='intro')await page.locator('#bIntro').click();else{await page.locator(`#homeDifficulty [data-difficulty="${difficulty}"]`).click();await page.locator('#bStart').click()}
+  if(difficulty==='intro')await page.evaluate(()=>document.getElementById('bIntro').click());else{await page.locator(`#homeDifficulty [data-difficulty="${difficulty}"]`).click();await page.locator('#bStart').click()}
   await page.waitForFunction(()=>__game.mode==='play');return{ctx,page}};
  const where=page=>page.evaluate(()=>({x:+__game.P.pos.x.toFixed(1),y:+__game.P.pos.y.toFixed(1),z:+__game.P.pos.z.toFixed(1)}));
  const isSpot=p=>SPOTS.find(s=>Math.hypot(s.x-p.x,s.z-p.z)<.6&&Math.abs(s.y-p.y)<.3);

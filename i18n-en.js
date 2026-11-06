@@ -3,6 +3,8 @@
 (() => {
   const tr = text => window.skyI18n.tr(text);
   const exact = {
+ "開発用": "Development",
+ "入門モードで遊ぶ": "Play the guided tutorial",
  "自分：移動・逃げ道 銃：未装備": "You: move + choose route\nGun: not equipped",
  "自分：移動・逃げ道 自動：照準・射撃": "You: move + choose route\nAuto: aim + fire",
  "自分：移動・逃げ道・照準 自動：射撃": "You: move + route + aim\nAuto: fire",

@@ -49,7 +49,14 @@
   const intro = $('introEntry');
   const introButton = $('bIntro'), introStatus = $('introReadyStatus'), introRetries = [...intro.querySelectorAll('[data-retry-start]')];
   intro.replaceChildren(make('div', {}, '<b>はじめての方へ</b><small>ライフ無限で、操作を練習。</small>'), introButton, introStatus, ...introRetries);
-  main.append(intro);
+  // The unfinished guided course is available from the quiet development fold.
+  const development = make('details', { id:'homeDevelopment' });
+  development.append(make('summary', {}, '開発用'));
+  const developmentButton=make('button', { id:'bGuidedIntro', type:'button' }, '入門モードで遊ぶ');
+  development.append(developmentButton);
+  const syncDevelopment = () => { developmentButton.disabled = introButton.disabled; };
+  new MutationObserver(syncDevelopment).observe(introButton,{attributes:true,attributeFilter:['disabled']});
+  syncDevelopment();intro.hidden=true;
   const best = $('bestLine'); main.append(best);
   const controls = make('p', { className: 'home-controls' }, '<span class="home-controls-desktop"><kbd>W A S D</kbd> 移動　<kbd>マウス</kbd> 視点　<kbd>Space</kbd> ジャンプ</span><span class="home-controls-touch">左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ</span>');
   const trial = new URLSearchParams(location.search).get('cameraTrial');
@@ -77,11 +84,11 @@
   more.append(make('summary', {}, '開発者向け（?dev=1）'));
   const body = make('div', { className: 'homeMoreBody' }); more.append(body);
   const mainControls = new Set(main.children);
-  const rotFlip = $('rotFlip'); plate.insertBefore(rankSlot, rotFlip || null); plate.insertBefore(more, rotFlip || null);
+  const rotFlip = $('rotFlip'); plate.insertBefore(rankSlot, rotFlip || null); plate.insertBefore(development, rotFlip || null); plate.insertBefore(more, rotFlip || null);
   // The ranking module adds #titleRanking next to the (hidden) map switch, which sits in the fold: bring it out.
   const adoptRanking = () => { const box = $('titleRanking'); if (box && box.parentElement !== rankSlot) rankSlot.append(box); };
   const sweep = () => {
-    for (const child of [...plate.children]) if (![hero, rankSlot, more, rotFlip].includes(child)) body.append(child);
+    for (const child of [...plate.children]) if (![hero, rankSlot, development, more, rotFlip].includes(child)) body.append(child);
     adoptRanking();
   };
   sweep(); new MutationObserver(sweep).observe(plate, { childList: true });

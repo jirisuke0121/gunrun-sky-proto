@@ -26,7 +26,7 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  await p.waitForFunction(()=>skyStartReadiness?.ready&&window.skyPlayerClarity,null,{timeout:120000});
  const hasRescue=await p.evaluate(()=>!!window.skyRescue);assert.equal(hasRescue,map==='index.html','rescue remains available only on its existing map');
  const home=await p.locator('.home-scene-copy p').innerText();assert.match(home,lang==='ja'?/移動.*自動/:/You move.*automatically/);
- await p.locator('#bIntro').click();
+ await p.evaluate(()=>document.getElementById('bIntro').click());
  await p.evaluate(()=>{const g=__game,s=__skyInternals,c=g.P;g.S.sendLog=false;c.invuln=Infinity;g.SCR.off=g.PACE.off=g.MARK.off=true;g.GAME.spawnT=Infinity;
   for(const z of g.zombies){z.dead=true;z.remove=true;z.m.root.visible=false}
   const n=g.NAV.nodes.find(n=>g.freeAt(n.x,n.y+.03,n.z,.3,1.75)&&g.solids.some(b=>b.solid&&!b.off&&b.type!=='mono'&&Math.abs(b.maxY-n.y)<.08&&n.x-.26>=b.minX&&n.x+.26<=b.maxX&&n.z-.26>=b.minZ&&n.z+.26<=b.maxZ));
