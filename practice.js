@@ -3,7 +3,7 @@
   if(!window.skyPracticeMode)return;
   const guided=!!window.skyGuidedMode;
   const sky=window.__skyInternals,g=window.__game,{c,U,z,Geom:T}=sky,course=window.skyPracticeCourse;
-  document.body.classList.add('practice-mode');document.title='パルクール練習場 | 空中回廊';
+  if(!guided)document.body.classList.add('practice-mode');document.title='パルクール練習場 | 空中回廊';
   const style=document.createElement('link');style.rel='stylesheet';style.href='./practice.css?v=20261028-practice-controls-v2';document.head.append(style);
   document.querySelector('#ovStart h1').textContent='パルクール練習場';
   document.querySelector('#ovStart h1 + p').textContent='追手・制限時間なし。技を繋げて一周したり、好きな技からすぐ試せます。落ちたら直前の地点に戻ります。';
@@ -20,7 +20,7 @@
     section=s;select.value=s.id;clearInput();
     g.placeAt({x:s.at[0],y:s.at[1],z:s.at[2],yaw:s.yaw});
     c.state='normal';c.ledge=c.ladder=c.hook=c.zip=null;c.onGround=true;c.h=1.75;c.eye=1.62;c.camY=c.pos.y+1.62;c.pitch=-.03;c.roll=0;
-    c.coyote=.15;c.catchCD=c.hookCD=c.setCD=c.slideCD=0;c.vel.set(0,0,0);c.lastGround.copy(c.pos);c.safe.copy(c.pos);c.edgeOff=null;c.life=3;c.invuln=Infinity;
+    c.coyote=.15;c.catchCD=c.hookCD=c.setCD=c.slideCD=0;c.vel.set(0,0,0);c.lastGround.copy(c.pos);c.safe.copy(c.pos);c.edgeOff=null;c.life=guided?8:3;c.invuln=Infinity;
     g.SLIDE.cool=0;g.KICK.cd=0;window.skyDash?.reset(true);window.skyJumpPickups?.reset();window.skyBlastBarrels?.reset();
     window.skyDash?.placePickups(c.pos,c.yaw);window.skyJumpPickups?.placePickups(c.pos,c.yaw);
     window.skyFollowCamera?.reset();
@@ -43,9 +43,10 @@
   function begin(){
     for(const key of ['jumpVel','gravity','airAccel','mantleReach','wallRunTime','wallRunSpeed','wallRunGravity','wallJumpPush','ladderSpeed','zipSpeed','hookRange','hookSpeed','hookCooldown','momentumDecay','jumpGunUp','jumpGunPush','stompUp','kickUp','kickBack','kickPush','slideBoost','slideFriction','coyote','jumpBuffer','groundAccel','groundBrake','edgeCatch','edgeSafeR','slideCool'])U[key]=g.DEF[key];
     Object.assign(U,{sendLog:false,gunOn:true,autoFire:false,aimAuto:false,stalkerOn:false,stalker2:false,reserveAmmo:99,autoSprint:true,sprintSpeed:6,walkSpeed:4.6});
+    if(guided)Object.assign(U,window.skyRankedRules.settings,{sendLog:false,autoFire:true,aimAuto:true,autoSprint:true});
     g.RL.on=false;g.RL.sealed=true;g.SCR.off=g.PACE.off=g.MARK.off=true;g.MARK.goal=null;
     z.challenge=null;z.over=false;z.mission=null;z.t=0;g.G.ammo=12;falls=0;
-    restoreTargets();place(section);
+    restoreTargets();place(section);if(guided){c.life=8;g.G.ammo=8;g.G.reserve=24;}
   }
   function retry(){if(!['play','pause'].includes(g.mode))return;window.skyGuidedIntro?.retrying();falls++;restoreTargets();place();window.skyGuidedIntro?.restored?.();}
   function choose(){if(g.mode!=='play')return;document.exitPointerLock?.();sky.An('pause');pausePlate.prepend(panel);panel.dataset.paused='true';select.focus();}
@@ -77,7 +78,8 @@
     for(const t of targets){
       if(guided&&window.skyGuidedIntro?.defense){t.atkT=0;t.atkCD=999;t.update(dt);continue;}
       t.vel.y-=U.gravity*dt;t.pos.addScaledVector(t.vel,dt);
-      if(t.pos.y<0){t.pos.y=0;t.vel.y=0;t.onGround=true;}else t.onGround=false;
+      const floor=guided?(t.practiceFloor||0):0;
+      if(t.pos.y<floor){t.pos.y=floor;t.vel.y=0;t.onGround=true;}else t.onGround=false;
       t.vel.x*=Math.exp(-6*dt);t.vel.z*=Math.exp(-6*dt);t.m.root.position.copy(t.pos);
       t.anim(dt);t.atkT=t.atkCD=0;t.stun=Math.max(0,t.stun-dt);
     }

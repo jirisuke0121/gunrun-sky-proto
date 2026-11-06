@@ -601,7 +601,6 @@ function update(dt, preparingShot = false) {
   if (window.skyFixedCamera?.active) {
     window.skyFixedCamera.camera(camera);
     pivot.set(c.pos.x, c.pos.y + 1.3, c.pos.z);
-    window.skyGuidedIntro?.cameraPivot(pivot);
   }
   forward.set(0, 0, -1).applyQuaternion(camera.quaternion);
   right.set(1, 0, 0).applyQuaternion(camera.quaternion);

@@ -78,7 +78,8 @@
     sync();
   }
   function sync() {
-    document.body.classList.toggle('unity-challenge-score', enabled());
+    document.body.classList.toggle('unity-challenge-score', enabled() || !!window.skyGuidedMode);
+    if(window.skyGuidedMode){set('unityDifficulty','入門モード');fx?.setActive(false);return;}
     if (!game || !enabled()) { fx?.setActive(false); return; }
     const b = current(), mode = game.modeRef();
     const active = mode === 'play' && !game.z.over;

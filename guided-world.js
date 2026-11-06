@@ -13,16 +13,16 @@
     section('downhill', [70.3, 5.07, 0], 0), section('ladder', [87.5, 0, 0]),
     section('zip', [93, 4, 0], 2.8), section('walljump', [115, 2.8, 0]),
     section('swing', [119, 4, 0]), section('dash', [142, 6.8, 0], 0),
-    section('stomp', [165.5, 0, 0]), section('kick', [166.5, 0, 0]),
+    section('pausefire', [163, 0, 0]), section('stomp', [165.5, 0, 0]), section('kick', [166.5, 0, 0]),
     section('flash', [169, 0, 0]), section('decoy', [171, 0, 0]),
     section('blast', [183, 0, 0]), section('jumpgun', [199, 2, 0]),
-    section('exit', [220, 8, 0]), section('rescue', [227, 8, 0]),
+    section('shoot', [222, 8, 0]), section('exit', [220, 8, 0]), section('rescue', [243, 8, 0]),
   ];
   const course = window.skyPracticeCourse = {
     version: 'rooftop-learning-v2', sections, start: sections[0],
-    bounds: { minX: -7, maxX: 252, minZ: -8, maxZ: 8 },
+    bounds: { minX: -7, maxX: 270, minZ: -8, maxZ: 8 },
     trialBounds: { minX: -2.8, maxX: 6.4, minZ: -2.4, maxZ: 2.4 },
-    trialGoal: [5.7, 2, 0], targetPositions: [[169, 0, 0], [172, 0, .35]],
+    trialGoal: [5.7, 2, 0], shootPositions: [[234,8,-1.2],[238,8,1.2]], targetPositions: [[169, 0, 0], [172, 0, .35]],
     dashPositions: [[145, 6.8, 0]], jumpPositions: [[201, 2, 0]],
     wallSpots: [], paint: [], gates: [],
   };
@@ -35,7 +35,7 @@
     };
     const roof = (id, x1, x2, y, z1 = -3.5, z2 = 3.5, lesson = '') =>
       add(id, [x1, y - .55, z1], [x2, y, z2], 'beam', lesson);
-    add('catch-street', [-8, -4.6, -9], [253, -4, 9], 'slab');
+    add('catch-street', [-8, -4.6, -9], [271, -4, 9], 'slab');
     roof('start-roof', -4, 18, 2);
     // The starting terrace is compact; the exit opens as soon as controls are confirmed.
     for (const z of [-3.5, 3.25]) add('start-parapet', [-4, 2, z], [7.5, 2.55, z + .25], 'prop');
@@ -87,11 +87,11 @@
     barrel.step = add('blast-step', [186.52, 0, -.65], [187.28, .55, .65], 'prop', 'blast');
     window.SKY_CANYON_BLAST_BARRELS = [barrel];
     roof('blast-landing', 194, 207, 2, -3.5, 3.5, 'blast');
-    roof('jumpgun-landing', 214, 231, 8, -3.5, 3.5, 'jumpgun');
-    roof('rescue-roof', 237, 248, 11, -3.5, 3.5, 'rescue');
+    roof('jumpgun-landing', 214, 245, 8, -3.5, 3.5, 'jumpgun');
+    roof('rescue-roof', 253, 268, 11, -3.5, 3.5, 'rescue');
     // Short surface marks indicate the single route, rather than a field of floating labels.
-    for (const [x1, x2, y, z] of [[-1, 11, 2, 0], [13.5, 17, 2, 0], [20.7, 29, 2, 0], [31, 36, 4.4, 0], [47, 55, 4.4, 0], [62, 69, 5.2, 0], [83, 89, 0, 0], [91, 95, 4, 0], [108, 115, 2.8, -3.2], [134, 152, 6.8, 0], [155, 187, 0, 0], [195, 205, 2, 0], [215, 229, 8, 0]]) course.paint.push({ x1, x2, y, z });
+    for (const [x1, x2, y, z] of [[-1, 11, 2, 0], [13.5, 17, 2, 0], [20.7, 29, 2, 0], [31, 36, 4.4, 0], [47, 55, 4.4, 0], [62, 69, 5.2, 0], [83, 89, 0, 0], [91, 95, 4, 0], [108, 115, 2.8, -3.2], [134, 152, 6.8, 0], [155, 187, 0, 0], [195, 205, 2, 0], [215, 243, 8, 0]]) course.paint.push({ x1, x2, y, z });
   };
   const finish = window.finishSkyCanyon;
-  window.finishSkyCanyon = game => { finish(game); document.body.dataset.mapId = course.version; };
+  window.finishSkyCanyon = game => { course.surfaceMaterial=game.jn.find(b=>b.practice==='start-roof').mesh.material; finish(game); document.body.dataset.mapId = course.version; };
 })();

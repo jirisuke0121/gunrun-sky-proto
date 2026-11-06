@@ -7,8 +7,8 @@
   const bounded = (key, fallback, lo, hi) => p.has(key) && Number.isFinite(+p.get(key))
     ? Math.max(lo, Math.min(hi, +p.get(key))) : fallback;
   const pose = Object.freeze({ yaw: bounded('fixedYaw', window.skyGuidedScene?-Math.PI/2:0, -Math.PI, Math.PI),
-    pitch: bounded('fixedPitch', window.skyGuidedScene?-.43:p.has('learn')?-.95:-.65, -1.2, -.3) });
-  const chase = Object.freeze({ distance: bounded('fixedDistance', window.skyGuidedScene?6.8:p.has('learn')?12:8, 3.6, 12), shoulder: 0, height: 0 });
+    pitch: bounded('fixedPitch', -.65, -1.2, -.3) });
+  const chase = Object.freeze({ distance: bounded('fixedDistance', 8, 3.6, 12), shoulder: 0, height: 0 });
   const { c, inputState: touch } = sky;
   const native = new Set(['ladder', 'zip', 'hook', 'swing', 'ledge', 'wallrun']);
   const active = () => fc.mode === 'after' && !sky.demoActive() && !['menu','replay'].includes(sky.modeRef());

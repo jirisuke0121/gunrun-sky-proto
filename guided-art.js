@@ -4,26 +4,18 @@ import { mergeStaticMaterialGroups } from './world-batching.js?v=20261106-roofto
   if (!window.skyGuidedScene) return;
   const sky = window.__skyInternals, g = window.__game, T = sky.Geom, course = window.skyPracticeCourse;
   const root = new T.Group(); root.name = 'Rooftop learning district'; sky.ue.add(root);
-  const colors = { roof:0xc5d0cf, side:0x3f5666, dark:0x213a4a, trim:0xe9b975, paint:0xf8f3df, active:0xefb453 };
+  const colors = { roof:0xd9c79c, side:0x9b8b6d, dark:0x625845, trim:0xe9b975, paint:0xf8f3df, active:0xefb453 };
   const matte = color => new T.Standard({color, roughness:.9, metalness:.04});
-  const seam=matte(0x9cacae),windows=matte(0xa5bdc8);
-  const roof = matte(colors.roof), side = matte(colors.side), dark = matte(colors.dark), trim = matte(colors.trim);
-  const wall = matte(0x365a6c), gate = matte(0x577681), vent = matte(0x9dafb5);
+  const seam=matte(0x998f78),windows=matte(0xc1b9a0);
+  const roof = course.surfaceMaterial?.clone()||matte(colors.roof), side = matte(colors.side), dark = matte(colors.dark), trim = matte(colors.trim);
+  const wall = matte(0x8f8267), gate = matte(0xa49a80), vent = matte(0xa6a294);
   const paint = new T.Basic({color:colors.paint}), amber = new T.Basic({color:colors.active});
   const box = (w,h,d,x,y,z,mat,parent=root) => {const m=new T.Mesh(new T.Box(w,h,d),mat);m.position.set(x,y,z);m.userData.skyStaticBatch=parent===root||parent.parent===root;parent.add(m);return m;};
-  for(const child of sky.Se.children)if(child.geometry?.parameters?.radius===500)child.visible=false;
-  // An airy sky / blue haze, instead of the test map's flat beige field.
-  const canvas=document.createElement('canvas');canvas.width=4;canvas.height=512;
-  const ctx=canvas.getContext('2d'),gradient=ctx.createLinearGradient(0,0,0,512);
-  gradient.addColorStop(0,'#8faebf');gradient.addColorStop(.55,'#c3d4dc');gradient.addColorStop(1,'#e3e6dc');ctx.fillStyle=gradient;ctx.fillRect(0,0,4,512);
-  sky.ue.background=new T.CanvasTexture(canvas);
-  if(sky.ue.fog){sky.ue.fog.color.setHex(0xcbd9df);if('near' in sky.ue.fog){sky.ue.fog.near=24;sky.ue.fog.far=78;}else sky.ue.fog.density=.019;}
-  sky.ue.traverse(o=>{if(o.isHemisphereLight){o.color.setHex(0xe1edf4);o.groundColor.setHex(0x7c8f96);}if(o.isDirectionalLight)o.color.setHex(0xfff1d8);});
   // Windows are generated here, not downloaded assets.
   const wc=document.createElement('canvas');wc.width=256;wc.height=256;const wctx=wc.getContext('2d');
-  wctx.fillStyle='#49616f';wctx.fillRect(0,0,256,256);
-  for(let y=12;y<250;y+=43)for(let x=12;x<250;x+=31){wctx.fillStyle=(x+y)%4?'#8096a1':'#bcc5bc';wctx.fillRect(x,y,12,21);}
-  const windowTexture=new T.CanvasTexture(wc), facade=new T.Standard({map:windowTexture,color:0xc4d1d6,roughness:.95});
+  wctx.fillStyle='#8b826d';wctx.fillRect(0,0,256,256);
+  for(let y=12;y<250;y+=43)for(let x=12;x<250;x+=31){wctx.fillStyle=(x+y)%4?'#afa68d':'#d0c8b2';wctx.fillRect(x,y,12,21);}
+  const windowTexture=new T.CanvasTexture(wc), facade=new T.Standard({map:windowTexture,color:0xd9ceb1,roughness:.95});
   for(const b of sky.jn){
     if(!b.mesh)continue;
     if(b.practice==='catch-street'){b.mesh.traverse(o=>{if(o.isMesh)o.material=matte(0x5e7480);});continue;}
@@ -56,7 +48,7 @@ import { mergeStaticMaterialGroups } from './world-batching.js?v=20261106-roofto
   box(.08,.08,5.8,6.5,2.72,0,side);
   // Ordered, low-detail skyline. Everything stays well outside the walking lane.
   let seed=14;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
-  const cityMats=[matte(0x7894a4),matte(0x8da4af),matte(0x688595),matte(0xa8b9bd)];
+  const cityMats=[matte(0xa69e86),matte(0xb6ad95),matte(0x958b76),matte(0xc5bda6)];
   for(let x=-38;x<285;x+=13)for(const sign of [-1,1]){
     const z=sign*(16+random()*18),h=5+random()*13,w=6+random()*7,d=6+random()*7;
     const m=box(w,h,d,x+random()*4,-9+h/2,z,cityMats[Math.floor(random()*cityMats.length)]);
@@ -69,6 +61,8 @@ import { mergeStaticMaterialGroups } from './world-batching.js?v=20261106-roofto
 
   function chevron(x,y,z,material){const group=new T.Group();group.position.set(x,y+.035,z);for(const s of [-1,1]){const stroke=box(.52,.012,.085,0,0,s*.15,material,group);stroke.rotation.y=s*.6;}root.add(group);return group;}
   for(const segment of course.paint)for(let x=segment.x1;x<segment.x2;x+=1.9)chevron(x,segment.y,segment.z,paint);
+  for(const [x,y,z] of [[17,2,0],[29.1,2,0],[37.5,4.4,-1.3]])box(.10,.018,2.2,x,y+.035,z,amber);
+  for(const z of [-2.6,-1.5,-.4])chevron(115,2.8,z,paint).rotation.y=-Math.PI/2;
   // A wall stencil points along the runnable face, never onto an ordinary wall.
   for(let x=38;x<47;x+=2){for(const s of [-1,1]){const stroke=box(.7,.10,.025,x,5.5+s*.18,-1.832,paint);stroke.rotation.z=-s*.5;}}
   window.skyGuidedArtBatch=mergeStaticMaterialGroups({...sky,ue:root},48,{force:true});
@@ -79,7 +73,7 @@ import { mergeStaticMaterialGroups } from './world-batching.js?v=20261106-roofto
   let target=[5.7,2,0],stage='controls',hidden=false;
   window.skyGuidedPresentation={target(at,id,done){target=at;stage=id;hidden=done;}};
   function frame(){
-    destination.visible=g.mode==='play'&&!hidden&&!['hook','zip','swing'].includes(stage);
+    destination.visible=g.mode==='play'&&!hidden&&!['hook','swing'].includes(stage)&&!(stage==='zip'&&g.P.state==='zip');
     for(const b of sky.jn)if(b.mesh&&!b.shape&&b.practice!=='trial-gate')b.mesh.visible=!b.off&&b.maxX>c.pos.x-45&&b.minX<c.pos.x+80;
     for(const mesh of root.children)if(mesh.geometry?.boundingSphere)mesh.visible=Math.abs(mesh.geometry.boundingSphere.center.x-c.pos.x)<110;
     destination.position.set(target[0],target[1]+.05,target[2]);
