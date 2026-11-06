@@ -1,5 +1,5 @@
 import { createDecoyAudio } from './decoy-audio.js?v=20261030-decoy-lock-v2';
-import { bindSkillPress } from './player-skills.js?v=20261106-player-clarity-v1';
+import { bindSkillPress } from './player-skills.js?v=20261106-player-clarity-v2';
 
 export const DECOY = Object.freeze({ duration: 6, cooldown: 18, radius: 16, releaseRadius: 22, speed: 2.4, travel: 4.8 });
 

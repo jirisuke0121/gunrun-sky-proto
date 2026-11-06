@@ -1,24 +1,27 @@
-/* Short explanations stay with the controls they describe. */
-#runResponsibility{position:absolute;left:50%;top:54px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 320px);padding:5px 9px;border-radius:7px;background:#14212de8;color:#fff4ca;font:600 12px/1.45 var(--font);text-align:center;pointer-events:none}
+/* One message at the HUD edge; the character and landing view stay clear. */
+#clarityRail{position:absolute;left:0;top:calc(100% + 8px);width:min(205px,calc(33vw - 24px));pointer-events:none}
+#runResponsibility,#actionFeedback,#supplyFeedback{padding:6px 8px;border:1px solid var(--hud-line);border-radius:7px;background:#172630e8;color:#fff0c4;font:600 12px/1.5 var(--font);overflow-wrap:anywhere}
+#runResponsibility{white-space:pre-line}
+#actionFeedback{border-color:#ffce83}
+#supplyFeedback{border-color:#b4ecd1;color:#e4ffed}
+#clarityRail #weaponSupplyStatus{position:static;max-width:none;margin:0}
+#clarityRail[data-notice=true] #weaponSupplyStatus{visibility:hidden}
 #gunState{max-width:170px;font:600 11px/1.4 var(--font);color:#fff0bb;white-space:normal}
 #tAutoFire:has(#gunState) small{display:none}
 #gunState[data-empty=true]{color:#ffb89b}
-#skillDock button [data-action-state]{width:calc(var(--skill-size) + 10px);top:-28px;min-height:22px;display:grid;place-items:center;font-size:10px;line-height:1.15;white-space:normal;text-align:center;color:#e8fff5}
-#skillDock #tFlash small{top:-28px;width:calc(var(--skill-size) + 10px);min-height:22px;display:grid;place-items:center;white-space:normal;line-height:1.15;text-align:center}
-#actionFeedback{position:absolute;left:50%;bottom:calc(100% + 34px);transform:translateX(-50%);width:max-content;max-width:min(290px,70vw);padding:6px 10px;border:1px solid #ffce83;border-radius:8px;background:#182630f5;color:#fff0c4;font:700 12px/1.5 var(--font);text-align:center;pointer-events:none;white-space:normal}
-#supplyFeedback{position:absolute;left:max(16px,env(safe-area-inset-left));top:98px;max-width:210px;padding:6px 9px;border:1px solid #b4ecd1;border-radius:7px;background:#172b2af0;color:#e4ffed;font:600 12px/1.5 var(--font);pointer-events:none}
-body[data-supply-feedback=true] #weaponSupplyStatus{visibility:hidden}
-#markAction{font-size:10px;line-height:1.4;color:#fff4d2;max-width:210px;white-space:normal}
-#weaponSupplyStatus{max-width:210px}
-#runResponsibility[hidden],#gunState[hidden],#actionFeedback[hidden],#supplyFeedback[hidden],#markAction[hidden]{display:none}
-html.touch #gunState{max-width:104px;font-size:10px}
-html.touch #actionFeedback{left:calc(50% - 64px);max-width:min(240px,calc(100vw - 460px))}
+/* State labels fit inside the existing buttons, rather than floating over feet. */
+#skillDock button:has([data-action-state]) svg,#skillDock #tFlash svg{position:absolute;left:50%;top:7px;transform:translateX(-50%);width:24px;height:24px}
+#skillDock button [data-action-state],#skillDock #tFlash small{position:absolute;left:50%;top:auto;bottom:7px;transform:translateX(-50%);width:calc(var(--skill-size) - 4px);min-height:0;margin:0;font:700 10px/1 var(--font);white-space:nowrap;text-align:center;color:#e8fff5}
 #skillDock button[data-reason-shown=true]{outline:2px solid #ffce83;outline-offset:3px}
 #hud:has(#actionFeedback) #decoyBanner{display:none}
-html.touch #supplyFeedback{top:calc(var(--touch-top) + 72px);max-width:175px;font-size:11px}
-@media(max-height:360px){#runResponsibility{top:47px;font-size:11px;max-width:calc(100% - 290px)}#actionFeedback{font-size:11px;padding:4px 7px}}
+#markAction{font-size:10px;line-height:1.4;color:#fff4d2;max-width:210px;white-space:normal}
+#runResponsibility[hidden],#gunState[hidden],#actionFeedback[hidden],#supplyFeedback[hidden],#markAction[hidden]{display:none}
+html.touch #gunState{max-width:104px;font-size:10px}
+html.touch #skillDock button:has([data-action-state]) svg,html.touch #skillDock #tFlash svg{top:5px;width:22px;height:22px}
+html.touch #skillDock button [data-action-state],html.touch #skillDock #tFlash small{bottom:6px}
 @media(max-height:360px){
   html.touch #hud #skyMinimap{width:96px}
   html.touch #hud #tAutoFire{font-size:11px;line-height:1.2;min-height:54px;padding:4px 6px}
   html.touch #hud #gunState{font-size:10px;line-height:1.25}
+  html.touch #skillDock button:has([data-action-state]) svg,html.touch #skillDock #tFlash svg{top:4px;width:20px;height:20px}
 }

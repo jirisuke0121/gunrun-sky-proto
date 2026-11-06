@@ -3,10 +3,10 @@ import { installRunRecords } from './run-records.js?v=20261102-players-v1';
 import { createGunRecoil } from './gun-recoil.js?v=20261101-recoil-v1';
 import { createSwing } from './parkour-swing.js?v=20261104-branch-transfer';
 import { installRanking } from './ranking.js?v=20261105-lobby-v9';
-import { createFlashbang } from './flashbang.js?v=20261106-player-clarity-v1';
-import { installSkillDock } from './player-skills.js?v=20261106-player-clarity-v1';
-import { installPlayerClarity } from './player-clarity.js?v=20261106-player-clarity-v1';
-import { createDecoy } from './skill-decoy.js?v=20261106-player-clarity-v1';
+import { createFlashbang } from './flashbang.js?v=20261106-player-clarity-v2';
+import { installSkillDock } from './player-skills.js?v=20261106-player-clarity-v2';
+import { installPlayerClarity } from './player-clarity.js?v=20261106-player-clarity-v2';
+import { createDecoy } from './skill-decoy.js?v=20261106-player-clarity-v2';
 import { createZombieClimb } from './zombie-climb.js?v=20261106-ascent-v1';
 import { createZombieRouting } from './zombie-routing.js?v=20261106-ascent-v1';
 import { createZombieLadders } from './zombie-ladders.js?v=20261106-ascent-v1';
@@ -19,7 +19,7 @@ import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapo
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261031-no-point-lights-v1';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261031-grip-v1';
 import { createJumpPickups } from './jump-pickups.js?v=20261101-jump-stash-v1';
-import { createWeaponDrops } from './weapon-drops.js?v=20261106-player-clarity-v1';
+import { createWeaponDrops } from './weapon-drops.js?v=20261106-player-clarity-v2';
 import { createDash } from './dash-boost.js?v=20261101-run-feel-v1';
 import { mergeStaticMaterialGroups } from './world-batching.js?v=20261030-material-groups-v2';
 
