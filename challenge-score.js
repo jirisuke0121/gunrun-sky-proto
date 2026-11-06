@@ -247,12 +247,13 @@
     $('unityResultActions').before(perf);
     for (const [id, accept] of [['unityAdviceLight', true], ['unityAdviceKeep', false]]) $(id).addEventListener('click', () => { window.skyFoundation?.answerQualityAdvice?.(accept); perf.hidden = true; });
     const next = document.createElement('button'); next.id = 'introNext'; next.type = 'button';
-    next.textContent = 'イージーから挑戦する'; next.hidden = true;
+    next.textContent = '本番イージーを始める'; next.hidden = true;
     $('unityResultActions').prepend(next);
     next.addEventListener('click', async () => {
       window.__game.setMode('menu'); await Promise.resolve();
       const custom = $('challengeCustom'); if (custom.checked) custom.click();
       $('challengeDifficulty').value = 'easy'; $('challengeDifficulty').dispatchEvent(new Event('change'));
+      $('bStart').click();
     });
     $('unityScoreDetails').setAttribute('role', 'dialog');
     $('unityScoreDetails').setAttribute('aria-label', 'ランキング・プレイの記録');

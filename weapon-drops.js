@@ -99,7 +99,7 @@ export function createWeaponDrops(sky, game) {
     item.label.material = material.label; item.group.position.set(pick.x, pick.y + 1, pick.z);
     recent.push(pick); if (recent.length > 2) recent.shift();
     sequence++; spawned++;
-    sky.rn(`${type.name}補給！ 屋根・上層の光る武器箱へ`);
+    if(!window.skyPlayerClarity)sky.rn(`${type.name}の武器箱が出現 · 光る箱に触れると装備・弾を補充`);
   }
   function collect(item) {
     const type = TYPES[item.type], profile = sky.WP[type.index];
@@ -108,7 +108,11 @@ export function createWeaponDrops(sky, game) {
       reserve: U.reserveAmmo >= 99 ? 99 : profile.res, reloadT: 0, autoReload: 0, fireCD: .18, held: false, trigger: 0 });
     item.node = null; item.group.visible = false; collected++;
     game.stats.weaponPickups = collected;
-    sky.Tt.mark?.(); sky.rn(`${type.name}取得！ ${profile.mag}発装填・移動しながら撃てる`);
+    const reserve=U.reserveAmmo>=99?'∞':Et.reserve;
+    const message=`${type.name}を装備 · 装填${Et.ammo}発／予備${reserve}発`;
+    sky.Tt.mark?.();
+    if(window.skyPlayerClarity)window.skyPlayerClarity.supplyNotice(message+' · 次の足場へ逃げよう');
+    else sky.rn(message);
   }
   function step(dt) {
     if(window.skyPracticeMode)return;
@@ -146,9 +150,13 @@ export function createWeaponDrops(sky, game) {
     const target = active.reduce((best, item) => !best || c.pos.distanceTo(item.group.position) < c.pos.distanceTo(best.group.position) ? item : best, null);
     if (target) {
       const dx = target.node.x - c.pos.x, dz = target.node.z - c.pos.z, dy = target.node.y - c.pos.y;
-      const angle = Math.atan2(dx * Math.cos(c.yaw) - dz * Math.sin(c.yaw), -dx * Math.sin(c.yaw) - dz * Math.cos(c.yaw));
+      const yaw=window.skyFollowCamera?.view?.yaw??c.yaw;
+      const angle = Math.atan2(dx * Math.cos(yaw) - dz * Math.sin(yaw), -dx * Math.sin(yaw) - dz * Math.cos(yaw));
       const arrow = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'][(Math.round(angle / (Math.PI / 4)) + 8) % 8];
-      status.textContent = `${arrow} ${TYPES[target.type].name} ${Math.round(Math.hypot(dx, dz))}m${dy > 1 ? ` ↑${Math.round(dy)}m` : ''}`;
+      const height=dy>1?` 上${Math.round(dy)}m`:dy< -1?` 下${Math.round(-dy)}m`:'';
+      const action=target.age<FALL_SECONDS?'落下中 · 着地を待つ':'触れて武器・弾を補充';
+      const text=`${arrow} ${TYPES[target.type].name}の箱 ${Math.round(Math.hypot(dx,dz))}m${height} · ${action}`;
+      status.textContent = window.skyI18n?.tr(text)||text;
     }
     status.hidden = !playing || !target;
     document.body.dataset.skyWeaponDrops = JSON.stringify({ interval: WEAPON_DROP_INTERVAL, limit: WEAPON_DROP_LIMIT,

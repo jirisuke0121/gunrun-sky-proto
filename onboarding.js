@@ -39,7 +39,7 @@
   root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'onbTitle');
   root.innerHTML = `<div class="onb-card">
     <header><p class="onb-kicker">GUNRUN · PARKOUR SURVIVAL</p><h2 id="onbTitle">遊び方</h2>
-      <p class="onb-lead" data-for="again">2分間、ゾンビから逃げ切るゲームです。30秒ごとにボーナス点が入ります。</p>
+      <p class="onb-lead" data-for="again">2分間、ゾンビから逃げ切ろう。自分で移動して逃げ道を選び、銃の自動照準・射撃で逃げる時間を作ります。</p>
       <p class="onb-lead" data-for="name">ランキングに表示される名前です。あとからでも決められます。</p></header>
     <ol class="onb-steps">
       <li><b>走る・跳ぶ</b><span class="onb-pc"><kbd>W A S D</kbd> 移動　<kbd>Space</kbd> ジャンプ　<kbd>C</kbd> スライド</span><span class="onb-touch">左側に指を置き、上へずらして押したまま前進。離すと停止。「ジャンプ」で跳ぶ</span></li>

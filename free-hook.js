@@ -36,6 +36,8 @@
     const playing = () => game.modeRef() === 'play' && !game.z.over;
     const busy = () => ['hook', 'zip', 'swing'].includes(c.state);
     const available = () => playing() && charges > 0 && !busy() && !window.skyBite?.locked && performance.now() >= lockUntil;
+    const unavailableReason = () => !playing()?'プレイ中に使えます':charges<=0?'救済は残り0回 · このランでは使い切りました':window.skyBite?.locked?'つかまれ中は救済を使えません':busy()||performance.now()<lockUntil?'移動技の終了後に救済を使えます':null;
+    const explain = text => window.skyPlayerClarity?.explain('tRescue',text);
 
     const segDist = (x, z, x0, z0, x1, z1) => { const dx = x1 - x0, dz = z1 - z0, l2 = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((x - x0) * dx + (z - z0) * dz) / l2)); return Math.hypot(x - (x0 + dx * t), z - (z0 + dz * t)); };
     // 引き終わりの勢い（約3m）で行き過ぎないよう、足場の手前（同じ足場の上）にフックポイントを置く。
@@ -88,20 +90,24 @@
     }
 
     function activate() {
-      if (!available()) return false;
+      if (!available()) { explain(unavailableReason()); return false; }
       const target = chooseTarget();
-      if (!target) { say('近くに登れる高台がありません'); return false; }
+      if (!target) { explain('安全に登れる高台がありません · 別の足場で使おう'); if(!window.skyPlayerClarity)say('近くに登れる高台がありません'); return false; }
       if (['ledge', 'ladder', 'slide'].includes(c.state)) { c.state = 'normal'; c.ledge = null; c.ladder = null; }
       const dx = target.x - c.pos.x, dz = target.z - c.pos.z;
       c.yaw = Math.atan2(-dx, -dz);
       c.state = 'hook'; c.hook = target.anchor; c.hookT = 0; c.wallKey = null;
       c.h = 1.75; c.onGround = false; c.jumpBuf = 0; c.hookPressed = false; c.crouchPressed = false;
       charges--; lockUntil = performance.now() + CFG.lockSeconds * 1000; stats.rescues = (stats.rescues || 0) + 1; last = target; render();
+      explain('高台へ自動移動中 · 到着後は自分で逃げよう');
       return true;
     }
-    let last = null;
+    let last = null, renderStamp = '';
 
     function render() {
+      const stamp=charges+':'+available();
+      if(stamp===renderStamp)return;
+      renderStamp=stamp;
       button.querySelector('.skill-value').textContent = charges;
       button.classList.toggle('empty', charges <= 0);
       button.disabled = false; button.setAttribute('aria-disabled', String(!available()));
@@ -110,6 +116,7 @@
       if (game.modeRef() !== 'play') wasPlay = false;
       else if (!wasPlay || game.z.t < lastT - .5) { wasPlay = true; charges = CFG.charges; lockUntil = 0; render(); }
       lastT = game.z.t;
+      render();
       if (note.style.display === 'block' && performance.now() > noteUntil) note.style.display = 'none';
     }
     const loop = () => { step(); requestAnimationFrame(loop); }; requestAnimationFrame(loop);
@@ -118,7 +125,7 @@
       if (e.code !== 'KeyV' || e.repeat || e.ctrlKey || e.metaKey || !playing() || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '')) return;
       e.preventDefault(); activate();
     });
-    import('./player-skills.js?v=20261102-skill-keys-v1').then(({ bindSkillPress }) => bindSkillPress(button, available, activate));
+    import('./player-skills.js?v=20261106-player-clarity-v1').then(({ bindSkillPress }) => bindSkillPress(button, available, activate, () => explain(unavailableReason())));
     window.skyRescue = { CFG, step, activate, chooseTarget, dryPull, makeAnchor, available, interior, get charges() { return charges; }, get last() { return last; }, reset() { charges = CFG.charges; lockUntil = 0; render(); } };
   });
 })();

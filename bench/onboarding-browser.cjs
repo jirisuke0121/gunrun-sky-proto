@@ -84,7 +84,7 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   assert.match(await page.textContent('#unityResultGoal'),/追いつかれました/);assert.deepEqual(await recommended(),['unityRetry'],'early catch: practise again');
   assert.equal(await page.locator('#unityAdvicePerf').isVisible(),false,'no performance question when the run was smooth');
   await again();await at(page,75);await endIntro(page);
-  assert.match(await page.textContent('#unityResultGoal'),/75秒生き残りました。次はイージー/);assert.deepEqual(await recommended(),['introNext'],'60 s or more: go to the real run');
+  assert.match(await page.textContent('#unityResultGoal'),/75秒生き残りました。「本番イージーを始める」/);assert.deepEqual(await recommended(),['introNext'],'60 s or more: go to the real run');
   await again();await at(page,30);await page.evaluate(()=>{__game.endGame('fell');__game.advance(1.5)});await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
   assert.match(await page.textContent('#unityResultGoal'),/落下しました/);assert.deepEqual(await recommended(),['unityRetry']);
   await again();await page.evaluate(()=>{__game.GAME.t=119.95;__game.advance(.2);__game.advance(1.5)});await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
