@@ -5,7 +5,7 @@ const {SPOTS}=require('../start-spots.js');
 const dir=path.resolve(__dirname,'..'),port=process.argv[2]||'18841';
 (async()=>{
  const server=spawn('python3',['-m','http.server',port,'--bind','127.0.0.1'],{stdio:'ignore',cwd:dir});await new Promise(r=>setTimeout(r,1200));
- const browser=await chromium.launch({headless:true,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const open=async(url,{difficulty='normal'}={})=>{
   const ctx=await browser.newContext({viewport:{width:800,height:450}});await ctx.addInitScript(()=>window.__hold=true);
   await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'}));
