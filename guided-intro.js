@@ -129,7 +129,7 @@ import { createLessons } from './guided-lessons.js?v=20261106-parity-v1';
    if(schedule)requestAnimationFrame(()=>render());
  }
  for(const b of modes.querySelectorAll('button'))b.onclick=()=>{clearInput();window.skyFollowCamera.setMode(b.dataset.learnMode,false);};
- go.onclick=()=>{if(!trial)return;clearInput();storage.set('gunrun-fixed-controls-v1','1');window.skyFollowCamera.setMode(window.skyFollowCamera.mode);trial=false;modes.hidden=go.hidden=true;course.gates.forEach(b=>{b.off=true;b.mesh.visible=false;});enter(0);render(false);$('c').focus();};
+ go.onclick=()=>{if(!trial)return;clearInput();storage.set('gunrun-fixed-controls-v1','1');window.skyFollowCamera.setMode(window.skyFollowCamera.mode);trial=false;modes.hidden=go.hidden=true;course.gates.forEach(b=>{b.off=true;b.mesh.visible=false;});enter(0);render(false);$('c').focus();if(!window.skyFollowCamera.touchDevice&&window.skyFollowCamera.mode==='before'){try{$('c').requestPointerLock?.()?.catch(()=>{});}catch{}}};
  addEventListener('keydown',e=>{if(trial&&['KeyQ','KeyB','KeyV','KeyZ','KeyC','Digit1','Digit2'].includes(e.code)){e.preventDefault();e.stopImmediatePropagation();}},true);
  $('bMenu').addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();location.assign(new URL(params.get('return')==='canyon'?'canyon.html':'index.html',location.href).href);},true);
  const skip=document.createElement('button');skip.id='learnSkip';skip.textContent=text('練習を終えて本番へ','Leave practice and play');skip.onclick=finish;$('bResume').after(skip);

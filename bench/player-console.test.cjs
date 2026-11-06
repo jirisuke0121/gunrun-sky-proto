@@ -45,10 +45,11 @@ test('keyset pages are deterministic with ties, record mirror failure rolls back
 });
 
 test('telemetry reuses the existing browser player ID and opt-out / owner replay send nothing',async()=>{
+ const {randomUUID}=await import('../random-uuid.js');
  const vm=require('node:vm'),source=fs.readFileSync('foundation-runtime.js','utf8').replace(/^import .*;\n/gm,'');
  for(const mode of ['normal','off','owner']){
   const id=crypto.randomUUID(),disk=new Map([['gunrun-pid',id],['gunrun-name','RUNNER'],['gunrun-sky-proto-v1',JSON.stringify({sendLog:mode!=='off'})]]),sent=[];
-  const context={URLSearchParams,Date,Math,JSON,crypto,location:{hostname:'jirisuke0121.github.io',pathname:'/gunrun-sky-proto/index.html',search:''},navigator:{userAgent:'fixture'},screen:{},devicePixelRatio:1,
+  const context={URLSearchParams,Date,Math,JSON,crypto,randomUUID,location:{hostname:'jirisuke0121.github.io',pathname:'/gunrun-sky-proto/index.html',search:''},navigator:{userAgent:'fixture'},screen:{},devicePixelRatio:1,
    document:{referrer:'',addEventListener(){},hasFocus(){return true}},addEventListener(){},localStorage:{getItem:k=>disk.get(k),setItem:(k,v)=>disk.set(k,v)},collectEnvironment:()=>({os:'android',cores:8}),fetch:async(url,options)=>{sent.push(JSON.parse(options.body));return{}},skyOwnerReplay:mode==='owner'};
   context.window=context;vm.runInNewContext(source,context);
   context.skyFoundation.attach({U:{sendLog:mode!=='off'},z:{}},{});
