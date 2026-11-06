@@ -30,9 +30,10 @@ const out=process.env.ASCENT_OUT||'browser-evidence/ascent';fs.mkdirSync(out,{re
   const results=[];
   for(const f of fixtures){
    const row=await page.evaluate(({f,seconds,code,retain})=>{window.ascentFixture=f;window.ascentSeconds=seconds;window.ascentRetain=retain;return eval(code);},{f,seconds:+process.env.ASCENT_SECONDS||90,retain:process.env.ASCENT_RETAIN==='1',code:fs.readFileSync('bench/zombie-ascent-scenarios.js','utf8')});
+   if(archetype==='boss'&&!row.skipped){assert.equal(row.bossCount,2);assert.equal(row.bossSpawns,2);assert.equal(row.arrived.length,f.count+2);}
    results.push(row);fs.writeFileSync(stem+'-results.json',JSON.stringify({map,difficulty,touch,archetype,errors,results},null,2));
-   console.log(map,difficulty,f.ladder,f.count,f.mode,row.skipped||JSON.stringify({arrived:row.arrived,first:row.firstAction,ladderPenetrations:row.ladderPenetrations,ladderPairOverlaps:row.ladderPairOverlaps,climbs:row.climbs}));
-   if(row.skipped||row.arrived.some(t=>t===null)||row.ladderPenetrations||row.ladderPairOverlaps||row.maxStep>=1)failures.push({map,difficulty,...f,skipped:row.skipped,arrived:row.arrived,ladderPairOverlaps:row.ladderPairOverlaps,ownedPenetrations:row.ownedPenetrations,maxStep:row.maxStep});
+   console.log(map,difficulty,f.ladder,row.count||f.count,f.mode,row.skipped||JSON.stringify({arrived:row.arrived,first:row.firstAction,ladderPenetrations:row.ladderPenetrations,ladderPairOverlaps:row.ladderPairOverlaps,climbs:row.climbs}));
+   if(row.skipped||row.arrived.some(t=>t===null)||row.ladderPenetrations||row.ladderPairOverlaps||row.maxStep>=1)failures.push({map,difficulty,...f,count:row.count||f.count,ordinaryCount:row.ordinaryCount,bossCount:row.bossCount,skipped:row.skipped,arrived:row.arrived,ladderPairOverlaps:row.ladderPairOverlaps,ownedPenetrations:row.ownedPenetrations,maxStep:row.maxStep});
    if(process.env.ASCENT_DETAIL==='1'){
     await page.evaluate(()=>{const g=__game,L=g.LADDERS[ascentFixture.ladder],y=L.y0+(L.y1-L.y0)/2,target={x:L.x+L.nx*.5,y,z:L.z+L.nz*.5};
       const candidates=[];for(const back of [7,6,5,4,3,2])for(const side of [0,2,-2,4,-4])candidates.push({x:L.x+L.nx*back-L.nz*side,y:y+1,z:L.z+L.nz*back+L.nx*side});

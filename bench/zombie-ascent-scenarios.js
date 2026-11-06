@@ -5,10 +5,11 @@
   for(const k of Object.keys(g.keys))g.keys[k]=false;
   g.GAME.spawnT=g.GAME.surgeT=1e9;g.SCR.off=g.PACE.off=g.MARK.off=true;g.STALK.spawned=true;
   Object.assign(g.S,{sendLog:false,autoFire:false,aimAuto:false,stalkerOn:false});
-  const radius=f.archetype==='stalker'?.42:f.archetype==='boss'?.38:.3,height=f.archetype==='stalker'?2.4:f.archetype==='boss'?2.2:1.8;
+  const radius=f.archetype==='stalker'?.42:.3,height=f.archetype==='stalker'?2.4:1.8;
+  const bossCount=f.archetype==='boss'?2:0,totalCount=f.count+bossCount;
   if(f.archetype==='stalker')Object.assign(g.S,{stalkerOn:true,stalkerSpeed:5});
   const L=g.LADDERS[f.ladder],point=(x,y,z)=>({x,y:y+.003,z});
-  const free=p=>g.freeAt(p.x,p.y+.012,p.z,radius,height)&&g.near(p.x,p.z,p.x,p.z).some(b=>!b.off&&Math.abs(b.maxY-p.y)<.05&&p.x>=b.minX-.29&&p.x<=b.maxX+.29&&p.z>=b.minZ-.29&&p.z<=b.maxZ+.29);
+  const free=(p,r=radius,h=height)=>g.freeAt(p.x,p.y+.012,p.z,r,h)&&g.near(p.x,p.z,p.x,p.z).some(b=>!b.off&&Math.abs(b.maxY-p.y)<.05&&p.x>=b.minX-.29&&p.x<=b.maxX+.29&&p.z>=b.minZ-.29&&p.z<=b.maxZ+.29);
   const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z),arr=p=>[p.x,p.y,p.z];
   const top=point(L.x-L.nx*1.2,L.y1,L.z-L.nz*1.2),bottom=point(L.x+L.nx*1.2,L.y0,L.z+L.nz*1.2);
   const nodes=g.NAV.nodes.map(n=>point(n.x,n.y,n.z));
@@ -30,21 +31,30 @@
   if(blockerPoint&&!free(blockerPoint))return {...f,skipped:'no supported blocker'};
   c.pos.set(goal.x,goal.y,goal.z);c.vel.set(0,0,0);Object.assign(c,{onGround:true,state:'normal',h:1.75,invuln:1e9,ledge:null,ladder:null,hook:null,zip:null});
   c.lastGround.copy(c.pos);c.safe.copy(c.pos);g.INDOOR_ACCESS?.observe(c.pos);g.updateField();
-  const starts=[];
-  if(blockerPoint)starts.push(blockerPoint);
+  const starts=[],radii=[];
+  if(blockerPoint){starts.push(blockerPoint);radii.push(radius);}
   const candidates=[bottom,...nodes.filter(p=>Math.abs(p.y-bottom.y)<.1&&distance(p,bottom)<6).sort((a,b)=>distance(a,bottom)-distance(b,bottom))];
-  for(const p of candidates)if(starts.length<f.count&&free(p)&&g.INDOOR_ACCESS?.allows(p)!==false&&starts.every(q=>Math.abs(q.y-p.y)>1.8||distance(p,q)>radius*2+.12))starts.push(p);
-  if(starts.length<f.count)return {...f,skipped:'not enough supported starts',available:starts.length};
-  const enemies=starts.map(p=>{const e=new g.Zombie(p.x,p.y,p.z,f.archetype==='stalker'?'stalker':undefined);Object.assign(e,{spawnT:0,onGround:true,flank:false,dropper:false,stalker:f.archetype==='stalker',boss:f.archetype==='boss',r:radius,h:height,pz:false,speedMul:f.archetype==='boss'?.95:1});g.zombies.push(e);return e;});
+  for(const p of candidates){
+    if(starts.length>=totalCount)break;
+    const boss=starts.length>=f.count,r=boss?skyBossZombie.CONFIG.radius:radius,h=boss?skyBossZombie.CONFIG.height:height;
+    if(starts.length<totalCount&&free(p,r,h)&&g.INDOOR_ACCESS?.allows(p)!==false&&starts.every((q,j)=>Math.abs(q.y-p.y)>1.8||distance(p,q)>r+radii[j]+.12)){starts.push(p);radii.push(r);}
+  }
+  if(starts.length<totalCount)return {...f,skipped:'not enough supported starts',available:starts.length};
+  const enemies=starts.slice(0,f.count).map(p=>{const e=new g.Zombie(p.x,p.y,p.z,f.archetype==='stalker'?'stalker':undefined);Object.assign(e,{spawnT:0,onGround:true,flank:false,dropper:false,stalker:f.archetype==='stalker',r:radius,h:height,pz:false,speedMul:1});g.zombies.push(e);return e;});
+  for(let j=0;j<bossCount;j++){
+    if(!skyBossZombie.spawn(g,s,skyChallenge))throw Error('The real boss spawn must succeed');
+    const e=skyBossZombie.bosses.at(-1),p=starts[f.count+j];e.pos.set(p.x,p.y,p.z);e.vel.set(0,0,0);Object.assign(e,{spawnT:0,onGround:true,rise:null,fall:null});enemies.push(e);
+  }
   if(f.archetype==='stalker'){g.STALK.z=enemies[0];g.STALK.extra=enemies.slice(1);}
   if(blockerPoint){enemies[0].stun=12;enemies[0].update=function(){this.anim(dt);};}
-  const arrived=Array(f.count).fill(null),firstAction=Array(f.count).fill(null),actions=Array.from({length:f.count},()=>[]),last=Array(f.count).fill(null);
+  const arrived=Array(totalCount).fill(null),firstAction=Array(totalCount).fill(null),actions=Array.from({length:totalCount},()=>[]),last=Array(totalCount).fill(null);
   let ladderPenetrations=0,ownedPenetrations=0,ladderBodyOverlaps=0,ladderPairOverlaps=0,ownedBodyOverlaps=0,maxStep=0,released=false;const trail=[];
   const before={climb:skyZombieClimb.stats.started,stalls:skyZombieSearch.stats.stalls};
   for(let i=0;i<(window.ascentSeconds||90)*60;i++){
     c.pos.set(goal.x,goal.y,goal.z);c.vel.set(0,0,0);c.onGround=true;
     if(blockerPoint&&!released&&g.GAME.t>=12){delete enemies[0].update;enemies[0].stun=0;released=true;}
     const prev=enemies.map(e=>e.pos.clone());g.advance(dt);
+    if(bossCount&&i%15===0)skyBossZombie.upkeep(g,s,skyChallenge);
     enemies.forEach((e,j)=>{
       if(e.remove)return;
       maxStep=Math.max(maxStep,e.pos.distanceTo(prev[j]));
@@ -62,5 +72,5 @@
     if(i%120===0)trail.push({t:g.GAME.t,p:arr(c.pos),enemies:enemies.map(e=>({p:arr(e.pos),act:e.act?.kind,node:e.node,edge:e.edge}))});
     if(arrived.every(t=>t!==null))break;
   }
-  return {...f,ladderData:{x:L.x,z:L.z,y0:L.y0,y1:L.y1,nx:L.nx,nz:L.nz},goal:arr(goal),starts:starts.map(arr),arrived,firstAction,actions,ladderPenetrations,ownedPenetrations,ladderBodyOverlaps,ladderPairOverlaps,ownedBodyOverlaps,maxStep,climbs:skyZombieClimb.stats.started-before.climb,stalls:skyZombieSearch.stats.stalls-before.stalls,trail};
+  return {...f,count:totalCount,ordinaryCount:f.count,bossCount,bossSpawns:bossCount?skyBossZombie.spawns:0,ladderData:{x:L.x,z:L.z,y0:L.y0,y1:L.y1,nx:L.nx,nz:L.nz},goal:arr(goal),starts:starts.map(arr),arrived,firstAction,actions,ladderPenetrations,ownedPenetrations,ladderBodyOverlaps,ladderPairOverlaps,ownedBodyOverlaps,maxStep,climbs:skyZombieClimb.stats.started-before.climb,stalls:skyZombieSearch.stats.stalls-before.stalls,trail};
 })()
