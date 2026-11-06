@@ -7,5 +7,13 @@ assert.equal(await p.evaluate(()=>skyContextTutorial.phase),'idle','a distant gr
 await p.evaluate(()=>{const g=__game,s=__skyInternals;const enemies=s.Jt.filter(e=>!e.dead);enemies.forEach((e,i)=>{e.pos.x=2+i;e.stun=10;});g.P.pos.y=200;g.P.onGround=true;g.advance(.016);});
 assert.equal(await p.evaluate(()=>skyContextTutorial.phase),'idle','stunned enemies must not pause play');
 await p.evaluate(()=>{for(const e of __skyInternals.Jt)if(!e.dead)e.stun=0;__game.P.pos.y=200;__game.P.onGround=true;__game.advance(.016);});
-assert.equal(await p.evaluate(()=>skyContextTutorial.item.id),'flash');const time=await p.evaluate(()=>__game.GAME.t);await p.evaluate(()=>{for(let i=0;i<60;i++)__game.advance(1/60)});assert.equal(await p.evaluate(()=>__game.GAME.t),time);assert.equal(await p.locator('#contextGuide button').count(),1,'only close exists, no confirmation');await p.locator('#tFlash').click();await p.evaluate(()=>__game.advance(.016));assert.equal(await p.evaluate(()=>skyContextTutorial.phase),'success');assert.ok(await p.evaluate(t=>__game.GAME.t>t,time));assert.deepEqual(errors,[]);console.log('PASS danger-only prompt, native flash tap, immediate success and resume',map);await ctx.close();}
+assert.equal(await p.evaluate(()=>skyContextTutorial.item.id),'flash');const time=await p.evaluate(()=>__game.GAME.t);await p.evaluate(()=>{for(let i=0;i<60;i++)__game.advance(1/60)});assert.equal(await p.evaluate(()=>__game.GAME.t),time);assert.equal(await p.locator('#contextGuide button').count(),1,'only close exists, no confirmation');await p.locator('#tFlash').click();await p.evaluate(()=>__game.advance(.016));assert.equal(await p.evaluate(()=>skyContextTutorial.phase),'success');assert.ok(await p.evaluate(t=>__game.GAME.t>t,time));assert.equal(await p.locator('#contextGuide').isVisible(),false,'success card must not cover controls after play resumes');
+assert.match(await p.locator('#actionFeedback').innerText(),/閃光玉を投げた/);
+await p.waitForTimeout(2250);
+await p.evaluate(()=>{for(const e of __skyInternals.Jt)e.dead=true;__game.GAME.t+=10;__game.stats.mantles++;__game.advance(.016);skyPlayerClarity.render()});
+assert.equal(await p.evaluate(()=>skyContextTutorial.item.id),'mantle');assert.equal(await p.evaluate(()=>skyContextTutorial.worldPaused),false);
+assert.equal(await p.locator('#contextGuide').isVisible(),false);
+assert.match(await p.locator('#actionFeedback').innerText(),/縁をつかんで登れた/);
+const note=await p.locator('#actionFeedback').boundingBox();assert.ok(note.x+note.width<844/3&&note.y+note.height<390*.68,'movement success remains at HUD edge');
+assert.deepEqual(errors,[]);console.log('PASS danger-only prompt, native flash, automatic climb success at HUD edge and immediate resume',map);await ctx.close();}
 }finally{await browser?.close();server?.kill();}})().catch(e=>{console.error(e);process.exitCode=1});
