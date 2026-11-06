@@ -1,6 +1,7 @@
 // Testing controls belong to this map, rather than changing saved match settings.
 (() => {
   if(!window.skyPracticeMode)return;
+  const guided=!!window.skyGuidedMode;
   const sky=window.__skyInternals,g=window.__game,{c,U,z,Geom:T}=sky,course=window.skyPracticeCourse;
   document.body.classList.add('practice-mode');document.title='パルクール練習場 | 空中回廊';
   const style=document.createElement('link');style.rel='stylesheet';style.href='./practice.css?v=20261028-practice-controls-v2';document.head.append(style);
@@ -22,7 +23,8 @@
     c.coyote=.15;c.catchCD=c.hookCD=c.setCD=c.slideCD=0;c.vel.set(0,0,0);c.lastGround.copy(c.pos);c.safe.copy(c.pos);c.edgeOff=null;c.life=3;c.invuln=Infinity;
     g.SLIDE.cool=0;g.KICK.cd=0;window.skyDash?.reset(true);window.skyJumpPickups?.reset();window.skyBlastBarrels?.reset();
     window.skyDash?.placePickups(c.pos,c.yaw);window.skyJumpPickups?.placePickups(c.pos,c.yaw);
-    if(s.id==='jumpgun')window.skyJumpGun?.grant();
+    window.skyFollowCamera?.reset();
+    if(s.id==='jumpgun'&&!guided)window.skyJumpGun?.grant();
     if(s.id==='blast'){U.weapon=0;sky.nl();g.G.ammo=12;}
     chain=0;lastStats={...g.stats};message='';
     g.cam(0);window.skyHumanView?.update(0);if(g.mode==='pause')sky.Ed();document.getElementById('c').focus();
@@ -45,7 +47,7 @@
     z.challenge=null;z.over=false;z.mission=null;z.t=0;g.G.ammo=12;falls=0;
     restoreTargets();place(section);
   }
-  function retry(){if(!['play','pause'].includes(g.mode))return;falls++;restoreTargets();place();}
+  function retry(){if(!['play','pause'].includes(g.mode))return;window.skyGuidedIntro?.retrying();falls++;restoreTargets();place();}
   function choose(){if(g.mode!=='play')return;document.exitPointerLock?.();sky.An('pause');pausePlate.prepend(panel);panel.dataset.paused='true';select.focus();}
   panel.querySelector('#practiceChoose').addEventListener('click',choose);
   select.addEventListener('change',()=>{restoreTargets();place(course.sections.find(s=>s.id===select.value));});
@@ -53,19 +55,25 @@
   panel.querySelector('#practiceNext').addEventListener('click',()=>{restoreTargets();place(course.sections[(course.sections.indexOf(section)+1)%course.sections.length]);});
   for(const name of ['pointerdown','pointerup','touchstart','touchend'])panel.addEventListener(name,e=>e.stopPropagation());
   addEventListener('keydown',e=>{
-    if(g.mode==='play'&&e.code==='Tab'){e.preventDefault();e.stopImmediatePropagation();choose();}
+    if(!guided&&g.mode==='play'&&e.code==='Tab'){e.preventDefault();e.stopImmediatePropagation();choose();}
     else if(g.mode==='play'&&e.code==='KeyT'&&!e.repeat){e.preventDefault();retry();}
   },true);
   function tick(dt){
+    if(guided&&window.skyGuidedIntro?.trial){
+      c.pos.x=Math.max(-40.3,Math.min(-29.7,c.pos.x));c.pos.z=Math.max(-21.3,Math.min(-10.7,c.pos.z));
+    }
+    if(!guided){
     // Recognise an intentional drop to the lower return lane before checking
     // for a missed elevated platform.
     if(section.id==='zip'&&c.state==='normal'&&c.onGround&&c.pos.x<-18&&c.pos.y<4.7){section=course.sections.find(s=>s.id==='walljump');select.value=section.id;}
     if(c.onGround&&c.pos.y<.6&&c.pos.z>14){section=course.sections.find(s=>s.id===(c.pos.x>-7?'kick':'blast'));select.value=section.id;}
     for(const s of course.sections)if(s!==section&&Math.hypot(c.pos.x-s.at[0],c.pos.z-s.at[2])<2&&Math.abs(c.pos.y-s.at[1])<.65){section=s;select.value=s.id;break;}
-    if(!Number.isFinite(c.pos.y)||c.pos.y<-3||Math.abs(c.pos.x)>34||Math.abs(c.pos.z)>26||(c.onGround&&c.state==='normal'&&c.pos.y<section.floor-.8)){retry();return;}
+    }
+    if(!Number.isFinite(c.pos.y)||c.pos.y<-3||(c.pos.x < (guided?-42:-34)||c.pos.x>(guided?39:34))||Math.abs(c.pos.z)>26||(c.onGround&&c.state==='normal'&&c.pos.y<section.floor-.8)){retry();return;}
     c.invuln=Infinity;U.sendLog=false;
     if(window.skyBlastBarrels?.barrels.some(b=>!b.active)){blastReset+=dt;if(blastReset>3){const a=g.stats.blasts,b=g.stats.blastLaunches;window.skyBlastBarrels.reset();g.stats.blasts=a;g.stats.blastLaunches=b;blastReset=0;}}else blastReset=0;
     for(const t of targets){
+      if(guided&&window.skyGuidedIntro?.defense){t.atkT=0;t.atkCD=999;t.update(dt);continue;}
       t.vel.y-=U.gravity*dt;t.pos.addScaledVector(t.vel,dt);
       if(t.pos.y<0){t.pos.y=0;t.vel.y=0;t.onGround=true;}else t.onGround=false;
       t.vel.x*=Math.exp(-6*dt);t.vel.z*=Math.exp(-6*dt);t.m.root.position.copy(t.pos);
@@ -79,7 +87,7 @@
   const resumeAudio=()=>{if(sky.Ut.ctx?.state==='suspended')sky.Ut.ctx.resume().catch(()=>{});};
   addEventListener('pointerdown',resumeAudio,true);addEventListener('keydown',resumeAudio,true);
   function frame(){
-    panel.hidden=!['play','pause'].includes(g.mode);
+    panel.hidden=guided||!['play','pause'].includes(g.mode);
     panel.dataset.paused=String(g.mode==='pause');
     // During play the panel shares the game's rotation and safe-area mapping.
     // The paused settings sheet deliberately stays in the physical viewport.
@@ -94,18 +102,18 @@
   }
   // World signs and repeated floor marks help read the loop at running speed.
   const mat=new T.Basic({color:0x58e7e2}),root=new T.Group();sky.ue.add(root);
-  for(const s of course.sections){
+  if(!guided)for(const s of course.sections){
     const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const ctx=canvas.getContext('2d');
     ctx.fillStyle='#18343ee8';ctx.fillRect(0,0,512,96);ctx.fillStyle='#cafff6';ctx.font='700 32px system-ui';ctx.textAlign='center';ctx.fillText(s.name,256,61);
     const label=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(canvas),depthWrite:false}));label.position.set(s.at[0],s.at[1]+2.8,s.at[2]);label.scale.set(3.5,.65,1);root.add(label);
     const mark=new T.Mesh(new T.Torus(.65,.035,5,20),mat);mark.rotation.x=Math.PI/2;mark.position.set(s.at[0],s.at[1]+.03,s.at[2]);root.add(mark);
   }
-  for(let x=-28;x<20;x+=2){const m=new T.Mesh(new T.Box(.09,.02,.6),mat);m.position.set(x,2.025,-14);root.add(m);}
+  if(!guided)for(let x=-28;x<20;x+=2){const m=new T.Mesh(new T.Box(.09,.02,.6),mat);m.position.set(x,2.025,-14);root.add(m);}
   const arrows=[[-24,2,-16,1,0],[-14.5,2,-16,1,0],[1,4.4,-17,1,-.5],[17,4.4,-16,.4,1],[23.5,5.2,-1,-1,0],[-23.8,4,-10.5,1,0],[-20,4,-8.8,0,1],[9,8,-5,0,1],[9,11.2,4,0,1],[9,0,22,-1,-.6],[-11,0,17,-1,0],[-21,2,10,-1,-.5],[-27,2,5.8,0,-1],[-30,8,-15,0,-1],[-30,2,-24,1,0],[-26,2,-22,0,1]];
-  for(const [x,y,z0,dx,dz] of arrows){
+  if(!guided)for(const [x,y,z0,dx,dz] of arrows){
     const arrow=new T.Group();arrow.position.set(x,y+.03,z0);arrow.rotation.y=Math.atan2(dx,dz)+Math.PI;
     for(const side of [-1,1]){const stroke=new T.Mesh(new T.Box(.09,.025,.7),mat);stroke.position.x=side*.21;stroke.rotation.y=side*.72;arrow.add(stroke);}root.add(arrow);
   }
-  window.skyPractice={begin,tick,retry,place,get section(){return section;},get retries(){return falls;}};
+  window.skyPractice={begin,tick,retry,place,targets, checkpoint(s){section=s;}, get section(){return section;},get retries(){return falls;}};
   frame();
 })();

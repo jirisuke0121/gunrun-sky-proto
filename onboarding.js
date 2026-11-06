@@ -13,7 +13,7 @@
   // Any of these means someone has played here before (the intro run alone leaves none of the first four).
   const TRACES = [STORE, NAME, 'gunrun-run-history-v1', 'gunrun-run-outbox-v1', 'gunrun-sky-ghost-v1', 'gunrun-sky-ghost-rock-canyon-v1',
     'gunrun-challenge-difficulty-v1', 'gunrun-follow-camera-v1', 'gunrun-render-quality-v1'];
-  const SPECIAL = ['practice', 'oldtown_swing', 'dev', 'replay', 'qa'];
+  const SPECIAL = ['learned', 'practice', 'oldtown_swing', 'dev', 'replay', 'qa'];
   const names = window.skyPlayerName;
   const read = key => { try { return localStorage.getItem(key); } catch { return null; } };
   const write = (key, value) => { try { localStorage.setItem(key, value); return true; } catch { return false; } };

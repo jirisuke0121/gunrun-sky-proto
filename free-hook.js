@@ -5,7 +5,7 @@
   const CFG = Object.freeze({ charges: 2, maxXZ: 14, minRise: 2, maxRise: 12, minZombieGap: 4.5, pathGap: 3, lockSeconds: 1, lift: .8 });
   addEventListener('load', () => {
     const game = window.__skyInternals, G = window.__game, dock = document.getElementById('skillDock');
-    if (!game || !G || !G.NAV || !dock || window.skyPracticeMode) return;
+    if (!game || !G || !G.NAV || !dock || (window.skyPracticeMode&&!window.skyGuidedMode) || (window.SKY_CANYON_MAP&&(!window.skyGuidedMode||new URLSearchParams(location.search).get('return')==='canyon'))) return;
     const c = game.c, stats = G.stats, nodes = G.NAV.nodes;
     let charges = CFG.charges, wasPlay = false, lastT = 0, lockUntil = 0, noteUntil = 0;
 

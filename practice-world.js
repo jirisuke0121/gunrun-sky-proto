@@ -1,6 +1,8 @@
 // A separate geometry, selected from home; uses the same movement/collision code.
 (() => {
-  if (!new URLSearchParams(location.search).has('practice')) return;
+  const guided = new URLSearchParams(location.search).has('learn');
+  if (!guided && !new URLSearchParams(location.search).has('practice')) return;
+  window.skyGuidedMode = guided;
   window.skyPracticeMode = true;
   const sections = [
     {id:'flow',name:'連続コース',at:[-26,2,-16],yaw:-Math.PI/2,floor:2,hint:'前へ走る → 低い壁を乗り越え → 隙間でジャンプ'},
@@ -19,6 +21,7 @@
     {id:'jumpgun',name:'ジャンプガン',at:[-27,2,7],yaw:0,floor:2,hint:'金色のJUMPを拾い、発射で高台へ → 左奥の階段で開始地点へ'},
     {id:'loop',name:'周回の戻り道',at:[-30,8,-16],yaw:0,floor:0,hint:'階段を下る → 右へ曲がる → STARTへ戻ってもう一周'},
   ];
+  if(guided)sections.unshift({id:'controls',name:'操作を試す',at:[-35,2,-16],yaw:-Math.PI/2,floor:2,hint:'光の輪へ移動してジャンプ。操作はいつでも切り替えて試せます'});
   window.skyPracticeCourse = {sections,start:sections[0],dashPositions:[[9,11.2,8]],jumpPositions:[[-27,2,5.8]],wallSpots:[]};
   window.buildSkyCanyon = function({ne,Mh,ld,us,jn,hd}) {
     const stairGroups=new Map();
@@ -31,6 +34,7 @@
     hd('x',14,30,7,11,0,8,.3);
     add('floor',[-34,-.6,-26],[34,0,26],'slab','G');
     // Colour/rail rhythm makes forward travel legible without dense decoration.
+    if(guided)add('control-trial',[-41,1.6,-22],[-29,2,-10]);
     add('start',[-29,1.6,-19],[-15,2,-13]);
     add('vault',[-21,2,-18.8],[-20.4,2.8,-13.2],'prop');
     add('gap-landing',[-12.6,1.6,-19],[3,2,-13]);
@@ -45,6 +49,13 @@
     add('run-exit',[13,4,-19],[20.5,4.4,-13]);
     add('hook-deck',[19,4.8,-8],[27,5.2,1]);
     us.push([22,6.6,-5]);
+    if(guided){
+      add('downhill-link',[26,4.8,0],[33,5.2,1.1]);
+      for(let i=0;i<14;i++)add('downhill-stair',[29,4.8,1+i*.36],[33,5.4+i*.2,1.36+i*.36]);
+      add('zip-return-ground',[30,-.6,11.5],[38,0,15]);
+      for(let i=0;i<26;i++)add('zip-return-stair',[34,0,13-(i+1)*.5],[38,(i+1)*.2,13-i*.5]);
+      add('zip-return-bridge',[25,4.8,-2],[38,5.2,0]);
+    }
     // One smooth westbound zip joins the wall-kick approach.
     ld([23.5,7.5,-1],[-19.8,6.3,-9.5]);
     add('kick-approach',[-26,3.6,-12],[-19.4,4,-2]);

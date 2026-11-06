@@ -20,7 +20,7 @@ globalThis.SkyHookAssist = {
     const valid = anchor => anchors.includes(anchor) && !inspect(anchor).reason;
     function target() {
       if (player.state === 'hook' || player.state === 'ledge') { marked = null; return null; }
-      const limit = touch() ? 55 * Math.PI / 180 : 0.61;
+      const limit = globalThis.skyFixedCamera?.active ? Math.PI : touch() ? 55 * Math.PI / 180 : 0.61;
       let best = null, previous = null;
       for (const anchor of anchors) {
         const candidate = inspect(anchor);

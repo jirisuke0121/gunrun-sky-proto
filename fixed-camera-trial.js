@@ -7,8 +7,8 @@
   const bounded = (key, fallback, lo, hi) => p.has(key) && Number.isFinite(+p.get(key))
     ? Math.max(lo, Math.min(hi, +p.get(key))) : fallback;
   const pose = Object.freeze({ yaw: bounded('fixedYaw', 0, -Math.PI, Math.PI),
-    pitch: bounded('fixedPitch', -.65, -1.2, -.3) });
-  const chase = Object.freeze({ distance: bounded('fixedDistance', 8, 3.6, 12), shoulder: 0, height: 0 });
+    pitch: bounded('fixedPitch', p.has('learn')?-.95:-.65, -1.2, -.3) });
+  const chase = Object.freeze({ distance: bounded('fixedDistance', p.has('learn')?12:8, 3.6, 12), shoulder: 0, height: 0 });
   const { c, inputState: touch } = sky;
   const native = new Set(['ladder', 'zip', 'hook', 'swing', 'ledge', 'wallrun']);
   const active = () => fc.mode === 'after' && !sky.demoActive() && !['menu','replay'].includes(sky.modeRef());
@@ -51,6 +51,7 @@
     const same = touch.on ? pointer === touch.id : pointer === 'keys';
     if (native.has(c.state)) {
       if (magnitude <= .18 || !same) moving = false;
+      if(c.state==='wallrun'){const delta=pose.yaw-Math.atan2(raw.strIn,raw.fwdIn)-c.yaw;return {...raw,fwdIn:magnitude*Math.cos(delta),strIn:-magnitude*Math.sin(delta)};}
       return c.state === 'ladder' && moving ? { ...raw, fwdIn: magnitude } : raw;
     }
     pointer = touch.on ? touch.id : 'keys';

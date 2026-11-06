@@ -1,0 +1,57 @@
+name: Live control trial and guided course
+on:
+  pull_request:
+    paths: ['guided-*', 'practice*', 'control-style.js', 'fixed-camera-trial.js', 'hook-targeting.js', 'human-view.js', 'parkour-swing.js', 'free-hook.js', 'onboarding.js', 'index.html', 'canyon.html', 'bench/guided-intro*', '.github/workflows/guided-intro.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  entry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - run: python3 -m http.server 8881 --bind 127.0.0.1 > /tmp/learn-server.log 2>&1 &
+      - run: node bench/guided-intro-browser.cjs
+      - run: node bench/follow-camera.test.cjs && node bench/hook-touch-exits.test.cjs && node bench/stair-walk.test.cjs && node bench/player-skills.test.cjs && node bench/human-view-running.test.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: guided-entry, path: browser-evidence/guided-intro/, retention-days: 7}
+  physical-course:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        camera: [before, after]
+        return: [town, canyon]
+        lang: [ja, en]
+    env:
+      LEARN_CAMERA: ${{ matrix.camera }}
+      LEARN_RETURN: ${{ matrix.return }}
+      LEARN_LANG: ${{ matrix.lang }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - run: node bench/guided-intro-flow-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: 'guided-course-${{ matrix.camera }}-${{ matrix.return }}-${{ matrix.lang }}', path: browser-evidence/guided-intro/, retention-days: 7}
