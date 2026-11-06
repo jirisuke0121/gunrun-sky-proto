@@ -10,7 +10,7 @@ const base=process.env.RUNNING_QA_URL||'http://127.0.0.1:8778/';
   const errors=[],posts=[];await ctx.addInitScript(()=>{window.__hold=true;localStorage.setItem('gunrun-sky-proto-v1',JSON.stringify({sprintSpeed:6,sendLog:true}));});
   const p=await ctx.newPage();p.on('pageerror',e=>errors.push(e.message));
   await p.route('https://**/*',r=>{if(r.request().method()==='POST')posts.push(r.request().url());return r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'});});
-  await p.goto(base+'index.html');await p.waitForFunction(()=>window.skyHumanView&&window.skySwing);
+  await p.goto(base+'index.html?dev=1');await p.waitForFunction(()=>window.skyHumanView&&window.skySwing);
   await revealHomeControl(p,p.getByRole('link',{name:'鉄棒から試す',exact:true,includeHidden:true}));
   await p.getByRole('link',{name:'鉄棒から試す',exact:true}).click();
   await p.waitForFunction(()=>window.skyPractice&&__game.mode==='play',null,{timeout:90000});
