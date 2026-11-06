@@ -1,3 +1,5 @@
+import { installGuidedChoice } from './guided-choice.js?v=20261106-paused-v1';
+import { installGuidedCoach } from './guided-coach.js?v=20261106-paused-v1';
 import { describeLesson } from './guided-prompts.js?v=20261106-parity-v1';
 import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
 // A real input trial followed by a physical course. No action is fired on the player's behalf.
@@ -32,13 +34,11 @@ import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
  document.title = text('屋上で操作を試す','Try your controls on the rooftops');
  const ui = document.createElement('section'); ui.id = 'learnUI'; ui.setAttribute('aria-label',text('操作を試して覚える','Try the controls'));
  ui.innerHTML = `<header id="learnHeader"><p id="learnChapter"></p><h2 id="learnTitle"></h2><p id="learnHint" role="status" aria-live="polite"></p><div id="learnProgress" aria-hidden="true"><i></i><i></i><i></i><i></i></div></header>
-   <div id="learnModes" aria-label="操作方式"><button type="button" data-learn-mode="after"></button><button type="button" data-learn-mode="before"></button></div>
-   <button id="learnGo" type="button"></button><div id="learnTarget" hidden></div>
-   <div id="learnMoveCue" aria-hidden="true"></div><div id="learnJumpCue" aria-hidden="true"></div><div id="learnPressCue" hidden></div><div id="learnLookCue" aria-hidden="true"><span>↔</span><small></small></div>`;
+   <div id="learnTrialBar"><button id="learnBack" type="button"></button><button id="learnGo" type="button"></button></div><div id="learnTarget" hidden></div>
+   <div id="learnKeys" aria-hidden="true">W A S D</div><div id="learnMoveCue" aria-hidden="true"></div><div id="learnJumpCue" aria-hidden="true"></div><div id="learnPressCue" hidden></div><div id="learnLookCue" aria-hidden="true"><span>↔</span><small></small></div>`;
  $('app').append(ui);
- const modes = $('learnModes'), go = $('learnGo'), target = $('learnTarget');
- const moveIcon = '<svg viewBox="0 0 36 28" aria-hidden="true"><circle cx="11" cy="17" r="8"/><circle cx="11" cy="17" r="3"/><path d="M11 8V2m-3 3 3-3 3 3M25 17h7m-3-3 3 3-3 3"/></svg>';
- const lookIcon = '<svg viewBox="0 0 36 28" aria-hidden="true"><circle cx="8" cy="18" r="6"/><circle cx="8" cy="18" r="2"/><path d="M21 9h12m-3-3 3 3-3 3M19 18c4-6 10-6 14 0-4 6-10 6-14 0Z"/></svg>';
+ const go=$('learnGo'),target=$('learnTarget');
+ let choice,coach;
  function clearInput() {
    Object.keys(g.keys).forEach(k => g.keys[k] = false);
    Object.assign(sky.inputState, {on:false,x:0,y:0,id:null,lookId:null}); c.jumpBuf = c.slideBuf = 0;
@@ -88,26 +88,20 @@ import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
  };
  function setText(node,value){if(node.textContent!==value)node.textContent=value;}
  function render(schedule=true) {
-   if(!started&&g.mode==='play'){started=true;trialJumps=g.stats.jumps||0;targets(false);document.body.dataset.learnStage='controls';}
+   if(!started&&g.mode==='play'){started=true;trialJumps=g.stats.jumps||0;targets(false);document.body.dataset.learnStage='controls';choice.start();}
    ui.hidden=!started||g.mode!=='play';
    if(ui.hidden){if(schedule)requestAnimationFrame(()=>render());return;}
    const touch=window.skyFollowCamera.touchDevice, english=en(), key=String(english)+touch;
-   modes.hidden=go.hidden=!trial;
+   choice.sync();if(trial)coach.sync();$('learnTrialBar').hidden=!trial||choice.phase!=='try';
    if(key!==copyKey){
-     copyKey=key;modes.setAttribute('aria-label',text('操作方式','Control style'));
-     modes.querySelector('[data-learn-mode="after"]').innerHTML=moveIcon+'<span><b>'+text('視点操作なし','No camera input')+'</b><small>'+text(touch?'スティックで移動':'WASDで移動',touch?'Move with the stick':'WASD to move')+'</small></span>';
-     modes.querySelector('[data-learn-mode="before"]').innerHTML=lookIcon+'<span><b>'+text('自分で視点操作','Control the view')+'</b><small>'+text(touch?'左で移動・右で視点':'マウスで視点',touch?'Right drag to look':'Mouse to look')+'</small></span>';
-     go.innerHTML=text('この操作で進む','Use these controls')+'<span aria-hidden="true">→</span>';
+     copyKey=key;go.innerHTML=text('この操作にする','Use these controls')+'<span aria-hidden="true">→</span>';setText($('learnBack'),text('選択画面に戻る','Back to choices'));
      setText($('learnMoveCue'),text(touch?'左で移動':'W A S D で移動',touch?'Move with your left thumb':'W A S D to move'));
      setText($('learnJumpCue'),text(touch?'タップでジャンプ':'Spaceでジャンプ',touch?'Tap to jump':'Space to jump'));
      setText($('learnLookCue').querySelector('small'),text('右で見回す','Drag here to look'));
    }
-   modes.querySelectorAll('button').forEach(b=>{const value=String(window.skyFollowCamera.mode===b.dataset.learnMode);if(b.getAttribute('aria-pressed')!==value)b.setAttribute('aria-pressed',value);});
    const current=lesson();coaching=trial?null:describeLesson(current,{game:g,sky,practice,progress,goal,near,english});
-   let heading=trial?text('光るマークへ、動いてみよう','Move to the marker'):coaching.title;
+   let heading=trial?text('お試し：'+(window.skyFollowCamera.mode==='after'?'視点操作なし':'自分で視点操作'),'Try: '+(window.skyFollowCamera.mode==='after'?'No camera input':'Control the view')):coaching.title;
    let hint=trial?text(touch?'左の丸を上へずらす → 離すと止まる':'WASDで移動。Spaceでジャンプ。',touch?'Slide the left stick up. Release to stop.':'WASD to move. Space to jump.'):coaching.hint;
-   if(trial&&trialReached){heading=text('ジャンプも、試してみよう','Try a jump, too');hint=text(touch?'右の「ジャンプ」をタップ':'Spaceでジャンプ',touch?'Tap Jump on the right':'Press Space to jump');}
-   if(trial&&trialReached&&(g.stats.jumps||0)>trialJumps){heading=text('動かしやすい方で、進もう','Go with the controls you prefer');hint=text('いつでも切り替えて試せます','You can try either style here');}
    if(!trial&&g.GAME.t<retryUntil)hint=text('もう一度。','Try again. ')+hint;
    setText($('learnChapter'),trial?text('操作を試す','Try the controls'):chapters[current.chapter][english?1:0]);
    setText($('learnTitle'),heading);setText($('learnHint'),hint);
@@ -125,17 +119,20 @@ import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
    const visible=v.z>-1&&v.z<1&&Math.abs(v.x)<.88&&Math.abs(v.y)<.8;
    target.hidden=!visible||(trial&&trialReached)||['hook','blast'].includes(id);
    if(!target.hidden){target.style.left=(v.x+1)*w/2+'px';target.style.top=(1-v.y)*h/2+'px';setText(target,trial?text('ここまで','This way'):'');}
-   document.body.dataset.skyGuided=JSON.stringify({stage:trial?'controls':id,index,trial,completed:lessons.slice(0,Math.max(0,index)).map(s=>s.id),retries:practice.retries,goal:at});
+   const snapshot=JSON.stringify({stage:trial?'controls':id,index,trial,completed:lessons.slice(0,Math.max(0,index)).map(s=>s.id),retries:practice.retries,goal:at});if(document.body.dataset.skyGuided!==snapshot)document.body.dataset.skyGuided=snapshot;
+   if(!trial)coach.beforeFrame();
    if(schedule)requestAnimationFrame(()=>render());
  }
- for(const b of modes.querySelectorAll('button'))b.onclick=()=>{clearInput();window.skyFollowCamera.setMode(b.dataset.learnMode,false);};
- go.onclick=()=>{if(!trial)return;clearInput();storage.set('gunrun-fixed-controls-v1','1');window.skyFollowCamera.setMode(window.skyFollowCamera.mode);trial=false;modes.hidden=go.hidden=true;course.gates.forEach(b=>{b.off=true;b.mesh.visible=false;});enter(0);render(false);$('c').focus();if(!window.skyFollowCamera.touchDevice&&window.skyFollowCamera.mode==='before'){try{$('c').requestPointerLock?.()?.catch(()=>{});}catch{}}};
+ function startCourse(){if(!trial)return;clearInput();storage.set('gunrun-fixed-controls-v1','1');window.skyFollowCamera.setMode(window.skyFollowCamera.mode);trial=false;course.gates.forEach(b=>{b.off=true;b.mesh.visible=false;});enter(0);render(false);$('c').focus();}
+ choice=installGuidedChoice({game:g,sky,english:en,clearInput,adopt:startCourse,reset:()=>{practice.place(course.start);trialReached=false;},exit:()=>location.assign(new URL(params.get('return')==='canyon'?'canyon.html':'index.html',location.href).href)});
+ coach=installGuidedCoach({game:g,sky,english:en,active:()=>!trial&&!finished,lesson:()=>lesson()?.id,cue:()=>coaching});
+ go.onclick=()=>choice.confirm();$('learnBack').onclick=()=>{clearInput();practice.place(course.start);trialReached=false;choice.show();};
  addEventListener('keydown',e=>{if(trial&&['KeyQ','KeyB','KeyV','KeyZ','KeyC','Digit1','Digit2'].includes(e.code)){e.preventDefault();e.stopImmediatePropagation();}},true);
  $('bMenu').addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();location.assign(new URL(params.get('return')==='canyon'?'canyon.html':'index.html',location.href).href);},true);
  const skip=document.createElement('button');skip.id='learnSkip';skip.textContent=text('練習を終えて本番へ','Leave practice and play');skip.onclick=finish;$('bResume').after(skip);
- for(const node of [modes,go])for(const type of ['pointerdown','pointerup','touchstart','touchend'])node.addEventListener(type,e=>e.stopPropagation());
- window.skyGuidedIntro={get total(){return lessons.length},get finished(){return finished},get trial(){return trial},get stage(){return trial?'controls':lesson()?.id},get defense(){return defense()},get cue(){return coaching},get completed(){return lessons.slice(0,Math.max(0,index)).map(s=>s.id)},
-   retrying(){retryUntil=g.GAME.t+2;progress.lured=false;progress.reloadSeen=false;progress.kickReady=false;if(lesson()?.id==='flash')window.skyFlashbang.reset();if(lesson()?.id==='decoy')window.skyDecoy.reset();if(lesson()?.id==='walljump')progress.path=lesson().path.length;},
+ for(const node of [$('learnTrialBar')])for(const type of ['pointerdown','pointerup','touchstart','touchend'])node.addEventListener(type,e=>e.stopPropagation());
+ window.skyGuidedIntro={beforeFrame(){if(!started&&g.mode==='play')render(false);if(trial)return choice.blocked;render(false);return coach.blocked;},get blocked(){return trial?choice.blocked:coach.blocked},get choice(){return choice.phase},get pausedTarget(){return coach.target},get pauseSequence(){return coach.sequence},get total(){return lessons.length},get finished(){return finished},get trial(){return trial},get stage(){return trial?'controls':lesson()?.id},get defense(){return defense()},get cue(){return coaching},get completed(){return lessons.slice(0,Math.max(0,index)).map(s=>s.id)},
+   retrying(){coach.reset();retryUntil=g.GAME.t+2;progress.lured=false;progress.reloadSeen=false;progress.kickReady=false;if(lesson()?.id==='flash')window.skyFlashbang.reset();if(lesson()?.id==='decoy')window.skyDecoy.reset();if(lesson()?.id==='walljump')progress.path=lesson().path.length;},
    restored(){progress.stats={...g.stats};targets(combat());if(lesson()?.id==='shoot'){g.G.ammo=1;g.G.reserve=24;} },finish};
  render();
 })();
