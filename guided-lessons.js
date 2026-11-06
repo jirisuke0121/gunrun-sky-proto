@@ -3,6 +3,11 @@ export function createLessons(sky, game, practice, progress) {
   const c = game.P, course = window.skyPracticeCourse;
   const changed = key => (game.stats[key] || 0) > (progress.stats[key] || 0);
   const landed = () => c.onGround && c.state === 'normal';
+  const landedAfterSwing = () => changed('barJumps') && landed() && sky.jn.some(b =>
+    !b.off && (b.swingCourse === 'upper-landing' || b.practice === 'dash-roof') &&
+    Math.abs(c.pos.y - b.maxY) < .05 &&
+    c.pos.x >= b.minX - c.r && c.pos.x <= b.maxX + c.r &&
+    c.pos.z >= b.minZ - c.r && c.pos.z <= b.maxZ + c.r);
   const near = (at, r = 1.3) => Math.hypot(c.pos.x - at[0], c.pos.z - at[2]) < r && Math.abs(c.pos.y - at[1]) < 1;
   const make = (id, chapter, title, hint, goal, done, extra = {}) => ({
     id, chapter, title, hint, goal, done, checkpoint: course.sections.find(s => s.id === id), ...extra,
@@ -19,7 +24,7 @@ export function createLessons(sky, game, practice, progress) {
     make('ladder', 1, ['はしごを登ろう', 'Climb the ladder'], ['はしごへ、そのまま前入力', 'Move into it and keep moving forward'], [92, 4, 0], () => changed('ladders') && c.pos.y > 3.9 && landed(), { path: [[88, 0, 0]] }),
     make('zip', 1, ['ロープへ、ジャンプ', 'Jump to the zipline'], ['つかまれば自動で渡ります', 'Travel is automatic once attached'], [111.5, 2.8, -3.2], () => changed('zips') && c.pos.x > 107 && c.pos.y > 2.7 && landed(), { path: [[94, 4, 0]], action: 'tJump' }),
     make('walljump', 1, ['壁を蹴って、上へ', 'Kick off the wall'], ['ジャンプ → 空中でもう一度', 'Jump, then jump again in midair'], [119, 4, 0], () => changed('walljumps') && c.pos.x > 117.7 && c.pos.y > 3.9 && landed(), { path: [[115, 2.8, -3.2]], action: 'tJump' }),
-    make('swing', 1, ['鉄棒をつなごう', 'Swing from bar to bar'], ['前へ振れたらジャンプ', 'Jump as you swing forward'], [140, 6.8, 0], () => (game.stats.barJumps || 0) - (progress.stats.barJumps || 0) >= 2 && c.pos.x > 133 && c.pos.y > 6.7 && landed(), { action: 'tJump' }),
+    make('swing', 1, ['鉄棒で、向こうの足場へ', 'Swing onto the next roof'], ['前へ振れたらジャンプ', 'Jump as you swing forward'], [140, 6.8, 0], landedAfterSwing, { action: 'tJump' }),
     make('dash', 1, ['加速して、跳ぶ', 'Speed up and jump'], ['青いDASHを取って、先の屋上へ', 'Collect DASH and jump to the next roof'], [163, 0, 0], () => changed('dashPickups') && c.pos.x > 154 && c.pos.y < .2 && landed(), { action: 'tJump' }),
     make('pausefire',2,['自動射撃を一度止める','Pause automatic fire'],['踏み台を試すため、射撃を停止する','Pause fire to practise the springboard'],[165.5,0,0],()=>!sky.U.autoFire,{action:'tAutoFire'}),
     make('stomp', 2, ['追手を、踏み台にしよう', 'Use a pursuer as a springboard'], ['近くまで走って、ジャンプ', 'Run close, then jump'], () => practice.targets[0].pos.toArray(), () => changed('stomps'), { action: 'tJump' }),

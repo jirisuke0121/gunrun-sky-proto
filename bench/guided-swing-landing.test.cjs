@@ -1,0 +1,20 @@
+const assert=require('node:assert/strict');
+(async()=>{
+ const {createLessons}=await import('../guided-lessons.js');
+ global.window={skyPracticeCourse:{sections:[]}};global.location={search:'?return=canyon'};
+ const c={pos:{x:138,y:6.8001,z:0},r:.28,onGround:true,state:'normal'};
+ const game={P:c,stats:{barJumps:8}},progress={stats:{barJumps:7}};
+ const sky={jn:[{swingCourse:'upper-landing',minX:132.99,maxX:142.59,minZ:-2.2,maxZ:2.2,maxY:6.8},{practice:'dash-roof',minX:140,maxX:153,minZ:-3.5,maxZ:3.5,maxY:6.8}]};
+ const lesson=createLessons(sky,game,{},progress).lessons.find(l=>l.id==='swing');
+ assert.equal(lesson.done(),true,'one native release and a valid destination landing completes the task');
+ c.pos.x=132.8;assert.equal(lesson.done(),true,'native supported landings at the near edge count');
+ c.pos.x=148;assert.equal(lesson.done(),true,'a farther landing on the connected roof counts');
+ c.onGround=false;assert.equal(lesson.done(),false,'airborne success is not a landing');c.onGround=true;
+ c.state='ledge';assert.equal(lesson.done(),false);c.state='normal';
+ game.stats.barJumps=7;assert.equal(lesson.done(),false,'walking onto a roof without using a bar is not completion');
+ game.stats.barJumps=9;assert.equal(lesson.done(),true,'the original two-bar route also completes');
+ c.pos.y=0;assert.equal(lesson.done(),false,'landing on the lower return floor is not completion');c.pos.y=6.8001;
+ c.pos.z=5;assert.equal(lesson.done(),false);c.pos.z=0;
+ c.pos.x=161;assert.equal(lesson.done(),false,'being beyond the destination is not a substitute for landing on it');
+ console.log('PASS native swing release, physical landing surface, edge support, no action/air/ledge/lower-floor exclusions');
+})().catch(e=>{console.error(e);process.exitCode=1});
