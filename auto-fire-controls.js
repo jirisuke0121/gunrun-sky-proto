@@ -59,9 +59,10 @@ function sync() {
   const state = `${visible}:${U.autoFire}:${U.aimAuto}`;
   if (state !== lastState) {
     const label = U.autoFire ? '自動射撃を停止' : '自動射撃を再開';
-    button.innerHTML = `<span>${label}</span><small>${U.autoFire ? U.aimAuto ? '照準・射撃は自動' : '照準は手動・射撃は自動' : '停止中・弾を温存'} <kbd>X</kbd></small>`;
+    button.innerHTML = `<span>${label} <kbd>X</kbd></span><small>${U.autoFire ? U.aimAuto ? '照準・射撃は自動' : '照準は手動・射撃は自動' : '停止中・弾を温存'}</small>`;
     button.setAttribute('aria-label', label);
     button.setAttribute('aria-pressed', String(!!U.autoFire));
+    button.setAttribute('aria-keyshortcuts','X');
     button.classList.toggle('is-stopped', !U.autoFire);
     lastState = state;
     window.skyPlayerClarity?.render();

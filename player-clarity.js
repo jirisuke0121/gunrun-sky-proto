@@ -28,7 +28,7 @@ export function installPlayerClarity(sky,game) {
     if(blocked==='swing')return '鉄棒を離すと射撃再開';
     if(blocked==='ledge')return '縁を登り終えると射撃再開';
     if(Et.ammo<=0)return U.reserveAmmo>=99||Et.reserve>0?'弾切れ · 自動装填を待とう':'弾切れ · 光る武器箱で補給';
-    if(!U.autoFire)return '停止中 · 押すと再開';
+    if(!U.autoFire)return window.skyFollowCamera?.touchDevice?'停止中 · 押すと再開':'停止中 · Xキーで再開';
     if(!U.aimAuto)return '照準は自分で · 敵に向けると射撃';
     const target=sky.aimLock?.();
     return target&&!target.dead&&!target.remove?'自動照準・射撃ON':'撃てる敵を待機中';

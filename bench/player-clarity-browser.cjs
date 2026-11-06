@@ -8,12 +8,13 @@ const maps=(process.env.CLARITY_MAPS||'index.html,canyon.html').split(',');
 const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:process.platform==='darwin'?['--no-sandbox']:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});const results=process.env.CLARITY_MAPS&&fs.existsSync(out+'/results.json')?JSON.parse(fs.readFileSync(out+'/results.json')).filter(r=>!maps.some(m=>r.id.startsWith(m.split('.')[0]+'-'))):[];
 try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id:'phone',width:844,height:390,touch:true},{id:'small',width:640,height:320,touch:true},{id:'desktop',width:1280,height:720,touch:false}]){
  if(process.env.CLARITY_SMOKE&&(lang!=='ja'||layout.id!=='phone'))continue;
+ if(process.env.CLARITY_LAYOUTS&&!process.env.CLARITY_LAYOUTS.split(',').includes(layout.id))continue;
  const id=`${map.split('.')[0]}-${lang}-${layout.id}`,errors=[];
  const ctx=await browser.newContext({locale:lang==='ja'?'ja-JP':'en-US',viewport:{width:layout.width,height:layout.height},isMobile:layout.touch,hasTouch:layout.touch});
  await ctx.addInitScript(()=>{window.__hold=true;localStorage.setItem('gunrun-name','Clarity test');localStorage.setItem('gunrun-quality-check-v1','done')});let posts=0;
  await ctx.route('https://**/*',r=>{if(r.request().method()==='POST')posts++;return r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'})});
  const p=await ctx.newPage();p.on('pageerror',e=>errors.push(e.message));p.setDefaultTimeout(20000);
- const press=async selector=>{const r=await p.locator(selector).boundingBox();assert.ok(r);if(layout.touch)await p.touchscreen.tap(r.x+r.width/2,r.y+r.height/2);else await p.mouse.click(r.x+r.width/2,r.y+r.height/2)};
+ const press=async selector=>{if(!layout.touch){await p.keyboard.press({'#tDecoy':'2','#tFlash':'1','#tRescue':'v','#tAutoFire':'x'}[selector]);return}const r=await p.locator(selector).boundingBox();assert.ok(r);await p.touchscreen.tap(r.x+r.width/2,r.y+r.height/2)};
  await p.goto(base+map+`?lang=${lang}&controlpick=0&hookGuide=0&guides=0`);
  await p.waitForFunction(()=>skyStartReadiness?.ready&&window.skyPlayerClarity,null,{timeout:120000});
  const hasRescue=await p.evaluate(()=>!!window.skyRescue);assert.equal(hasRescue,map==='index.html','rescue remains available only on its existing map');
@@ -37,9 +38,9 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  for(const row of shotReasons.rows){assert.equal(row.blocked,row.state);assert.equal(row.before,row.after);assert.ok(row.text.length>4);if(lang==='en')assert.ok(!jp.test(row.text),row.text)}
  assert.match(shotReasons.empty,lang==='ja'?/弾切れ.*補給/:/Out of ammo.*refill/);await p.screenshot({path:`${out}/${id}-empty.png`});
  await p.evaluate(()=>{const s=__skyInternals;s.Et.ammo=s.Et.mag;s.Et.reserve=24;s.Et.reloadT=0;skyPlayerClarity.render()});
- await p.locator('#tAutoFire').click();await p.waitForFunction(()=>!__game.S.autoFire);await p.evaluate(()=>skyPlayerClarity.render());
+ await press('#tAutoFire');await p.waitForFunction(()=>!__game.S.autoFire);await p.evaluate(()=>skyPlayerClarity.render());
  assert.match(await p.locator('#gunState').innerText(),lang==='ja'?/停止中.*再開/:/Stopped.*resume/i);
- await p.locator('#tAutoFire').click();await p.waitForFunction(()=>__game.S.autoFire);await p.evaluate(()=>{__game.S.autoFire=false;skyPlayerClarity.render()});
+ await press('#tAutoFire');await p.waitForFunction(()=>__game.S.autoFire);await p.evaluate(()=>{__game.S.autoFire=false;skyPlayerClarity.render()});
  // The real skill button consumes once; rejected repeated presses consume nothing.
  await press('#tDecoy');assert.equal(await p.evaluate(()=>skyDecoy.stats.used),1);
  await press('#tDecoy');await p.evaluate(()=>skyPlayerClarity.render());
@@ -52,9 +53,10 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  const overlaps=(a,b)=>a.x<b.x+b.w-.5&&a.x+a.w>b.x+.5&&a.y<b.y+b.h-.5&&a.y+a.h>b.y+.5;
  for(const name of ['toast','tJump','tSlide','tAutoFire','ammoBox','skyMinimap'])if(rects[name].visible)assert.equal(overlaps(rects.actionFeedback,rects[name]),false,`${id}: feedback overlaps ${name} ${JSON.stringify(rects)}`);
  for(const name of ['tAutoFire','actionFeedback'])assert.ok(rects[name].x>=0&&rects[name].y>=0&&rects[name].x+rects[name].w<=layout.width+1&&rects[name].y+rects[name].h<=layout.height+1,`${id}: ${name} outside viewport`);
+ for(const name of ['skyMinimap','tJump','tSlide'])if(rects[name].visible)assert.equal(overlaps(rects.tAutoFire,rects[name]),false,`${id}: fire control overlaps ${name}`);
  await p.evaluate(()=>{skyDecoy.clear();clarityPlace()});
- await p.locator('#tFlash').click();const charges=await p.evaluate(()=>skyFlashbang.charges);assert.equal(charges,0);
- await p.locator('#tFlash').click();await p.evaluate(()=>skyPlayerClarity.render());const emptyFlash=await p.locator('#actionFeedback').innerText();assert.match(emptyFlash,lang==='ja'?/残り0個.*補充/:/No flashbangs.*refill/);assert.equal(await p.evaluate(()=>skyFlashbang.charges),0);
+ await press('#tFlash');const charges=await p.evaluate(()=>skyFlashbang.charges);assert.equal(charges,0);
+ await press('#tFlash');await p.evaluate(()=>skyPlayerClarity.render());const emptyFlash=await p.locator('#actionFeedback').innerText();assert.match(emptyFlash,lang==='ja'?/残り0個.*補充/:/No flashbangs.*refill/);assert.equal(await p.evaluate(()=>skyFlashbang.charges),0);
  await p.screenshot({path:`${out}/${id}-flash.png`});
  // There is no higher platform 200m above the map; the failed rescue costs no charge.
  let rescue=null;
