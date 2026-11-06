@@ -33,7 +33,7 @@ export function installGuidedCoach({game,sky,english,active,lesson,cue}) {
     sync();return !!paused;
   }
   const point=e=>e.changedTouches?.[0]||e;
-  function inside(e){const p=point(e),r=document.getElementById(paused.target)?.getBoundingClientRect();return r&&p.clientX>=r.left-8&&p.clientX<=r.right+8&&p.clientY>=r.top-8&&p.clientY<=r.bottom+8;}
+  function inside(e){const p=point(e),r=document.getElementById(paused.target)?.getBoundingClientRect();return r&&p.clientX>=r.left&&p.clientX<=r.right&&p.clientY>=r.top&&p.clientY<=r.bottom;}
   function intercept(e){
     if(!paused||game.mode!=='play'||!active())return;
     if(e.target.closest?.('#bSettings,#ovPause'))return;
