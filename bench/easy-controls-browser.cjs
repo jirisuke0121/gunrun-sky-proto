@@ -194,7 +194,7 @@ const difference = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 
     for (const map of ['index.html', 'canyon.html']) for (const lang of ['ja', 'en']) {
       const { context, page, errors, posts } = await open(map, lang, true);
-      await page.locator('#homeGuide').tap(); await page.locator('#onbIntro').tap();
+      await page.locator('#bStart').tap();
       // This is the same visible entry used by a player; no forced click or
       // direct invocation of the chooser is needed.
       await page.locator('#ctrlPick').waitFor({ state: 'visible' });
