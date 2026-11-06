@@ -4,10 +4,10 @@
   // Surviving this long in the intro run means the player can handle the real run.
   const READY_SECONDS = 60;
   const GOALS = {
-    cleared: '2分間逃げ切れました。次はイージーで本番に挑戦できます。',
-    ready: seconds => `${seconds}秒生き残りました。次はイージーで本番に挑戦できます。`,
+    cleared: '2分間逃げ切れました。「本番イージーを始める」で、ライフ8の本番へ進めます。',
+    ready: seconds => `${seconds}秒生き残りました。「本番イージーを始める」で、ライフ8の本番へ進めます。`,
     fell: '落下しました。縁・壁へ跳ぶとつかんで越えられます。もう一度入門で試そう。',
-    caught: '追いつかれました。壁走り・フック・はしごで距離をとると逃げやすくなります。もう一度入門で試そう。',
+    caught: '追いつかれました。移動・逃げ道選びは自分で。もう一度入門で、段差や別の足場へ逃げてみよう。',
   };
   // primary: which result button to highlight ('next' = start the real run on Easy, 'retry' = intro again).
   function adviseNext({ elapsed = 0, cleared = false, reason = 'caught' } = {}) {
