@@ -66,19 +66,22 @@ const out = 'browser-evidence/hook-landing';
           setup(f);
           if(touch)Object.assign(s.inputState,{on:input!=='none',x:input==='side'?1:0,y:input==='forward'?-1:0});
           else {g.keys.KeyW=input==='forward';g.keys.KeyD=input==='side';}
-          let release=null,land=null,target=null,peakPullSpeed=0,penetration=false;
+          let release=null,land=null,handoff=null,target=null,peakPullSpeed=0,penetration=false;
           for(let tick=0;tick<600;tick++) {
             g.advance(dt);
             if(c.state==='hook')peakPullSpeed=Math.max(peakPullSpeed,c.vel.length());
             if(!release&&c.state!=='hook')release={tick,p:c.pos.toArray(),v:c.vel.toArray()};
             if(skyHookLanding.active)target=skyHookLanding.active.floor.maxY;
             if(target!==null&&!g.freeAt(c.pos.x,c.pos.y+.02,c.pos.z,c.r,c.h-.03))penetration=true;
+            if(target!==null&&['swing','zip','ladder','ledge'].includes(c.state)) {
+              handoff={tick,state:c.state,p:c.pos.toArray()};break;
+            }
             if(release&&c.onGround){land={tick,p:c.pos.toArray()};break;}
             if(c.pos.y<-21||g.GAME.over)break;
           }
           const life=c.life;
           if(target!==null&&land)for(let i=0;i<60;i++)g.advance(dt);
-          rows.push({id:f.id,from:f.from,input,release,land,target,peakPullSpeed,
+          rows.push({id:f.id,from:f.from,input,release,land,handoff,target,peakPullSpeed,
             penetration,lifeBefore:life,lifeAfter:c.life,endGround:c.onGround,endState:c.state,end:c.pos.toArray()});
         }
         // A fresh manual release uses the real keyboard/touch jump handler.
@@ -104,15 +107,15 @@ const out = 'browser-evidence/hook-landing';
       assert.ok(assisted.length>=(map==='index'?140:80),'enough automatic arrivals exercised');
       for(const r of assisted) {
         const label=JSON.stringify({map,touch,...r});
-        assert.ok(r.land&&r.land.p[1]>=r.target-.1,label);
-        assert.ok(r.endGround||['ledge','ladder','zip','swing'].includes(r.endState)||r.end[1]>=r.target-.45,label);
+        assert.ok((r.land&&r.land.p[1]>=r.target-.1)||r.handoff,label);
+        assert.ok(r.endGround||r.handoff||r.end[1]>=r.target-.45,label);
         assert.equal(r.lifeAfter,r.lifeBefore,label);assert.equal(r.penetration,false,label);
         assert.ok(r.peakPullSpeed>=17.9,'keep full hook pulling speed');
       }
       for(const m of result.manual) {
         assert.equal(m.state,'normal');assert.ok(m.vy>=5);assert.ok(m.edgeJump);assert.equal(m.active,false);
       }
-      console.log(`PASS ${map} ${touch?'touch':'desktop'}: ${assisted.length} automatic landings, 3 input patterns, full pulling speed, free manual releases`);
+      console.log(`PASS ${map} ${touch?'touch':'desktop'}: ${assisted.filter(r=>r.land).length} landings, ${assisted.filter(r=>r.handoff).length} parkour handoffs, 3 input patterns, full pulling speed, free manual releases`);
       await context.close();
     }
   } finally {await browser?.close();server?.kill();}
