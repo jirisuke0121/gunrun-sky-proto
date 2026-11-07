@@ -21,8 +21,9 @@ import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261031-g
 import { createJumpPickups } from './jump-pickups.js?v=20261101-jump-stash-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261106-player-clarity-v2';
 import { createDash } from './dash-boost.js?v=20261101-run-feel-v1';
-import { mergeStaticMaterialGroups } from './world-batching.js?v=20261106-rooftop-v2';
+import { mergeStaticMaterialGroups } from './world-batching.js?v=20261108-opaque-v1';
 import { installWallReadability } from './wall-readability.js?v=20261106-south-v1';
+import { installSurfaceReadability } from './surface-readability.js?v=20261108-opaque-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -893,7 +894,9 @@ window.__skyGhost = window.skyReplay;
     }
   });
   const mat = {
-    plaster: [0xe8d9bb, 0xd9b98a, 0xe2c6a8, 0xcfae84].map((color) => new Standard({ color, map: stoneTex, roughness: 0.97 })),
+    plaster: (new URLSearchParams(location.search).get('wallView')==='classic'
+      ? [0xe8d9bb,0xd9b98a,0xe2c6a8,0xcfae84].map(color=>new Standard({color,map:stoneTex,roughness:.97}))
+      : [0x90998f,0x96998d,0x8d9791,0x9b9c8e].map(color=>new Standard({color,roughness:1}))),
     tile: new Standard({ color: 0xffffff, map: tileTex, roughness: 0.85 }),
     window: new Standard({ color: 0x1f1a16, roughness: 0.6 }),
     wood: new Standard({ color: 0x5a4130, roughness: 0.9 }),
@@ -951,6 +954,11 @@ window.__skyGhost = window.skyReplay;
     [-25, -12, -22, -9.5, 6.4, 4.2, 'shed'], [-56, 1.5, -54.2, 3.5, 5.4, 3.4, 'shed'],
   ];
   const inside = (x, z, skip) => houses.some((h) => h !== skip && !h[6] && x > h[0] - 0.05 && x < h[2] + 0.05 && z > h[1] - 0.05 && z < h[3] + 0.05);
+  // Camera clearance follows the visible roof/eave, including its small
+  // overhang. Player collision intentionally retains the original dimensions.
+  if(!window.SKY_CANYON_MAP)window.skyCameraVolumes=houses.map(([x0,z0,x1,z1,top,base=0])=>({
+    minX:x0-.18,maxX:x1+.18,minZ:z0-.18,maxZ:z1+.18,minY:base,maxY:top+.1,solid:true
+  }));
   let seed = 7;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   houses.forEach((h, idx) => {
@@ -2021,6 +2029,7 @@ if (/[?&]perf=1/.test(location.search)) {
   requestAnimationFrame(tick);
 }
 
+installSurfaceReadability(game);
 installWallReadability(game);
 
 // Static world merge (2026-10-24). The level is built from one mesh per collision

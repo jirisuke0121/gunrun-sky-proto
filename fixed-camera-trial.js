@@ -12,7 +12,9 @@
   const { c, inputState: touch } = sky;
   const native = new Set(['ladder', 'zip', 'hook', 'swing', 'ledge', 'wallrun']);
   const active = () => fc.mode === 'after' && !sky.demoActive() && !['menu','replay'].includes(sky.modeRef());
-  const fadeWalls = p.get('fixedOcclusion') !== 'zoom';
+  // Keep the published fade available for a same-location comparison.
+  const fadeWalls = p.get('fixedOcclusion') === 'fade' || p.get('wallView') === 'classic';
+  const opaque = !fadeWalls && p.get('fixedOcclusion') !== 'zoom';
   const faded = new Set(), originals = new Map(), translucent = new Map();
   const footHeight = { value: 0 };
   function fadeMaterial(material, bounds) {
@@ -95,7 +97,7 @@
     faded.clear();
   }
   function occlusion(pivot, wanted) {
-    if(!fadeWalls){restore();return false;}
+    if(!fadeWalls){restore();document.documentElement.dataset.cameraTrial='fixed';return opaque;}
     footHeight.value=c.pos.y+.06;
     const next=new Set();
     const points=[pivot,{x:c.pos.x,y:c.pos.y+.3,z:c.pos.z},
@@ -116,10 +118,74 @@
     faded.clear();for(const mesh of next)faded.add(mesh);
     return true;
   }
-  function visible(from,to){return !blockers().some(b=>!b.off&&!faded.has(b.mesh)&&intersects(from,to,b));}
-  const reset = () => { moving = false; pointer = null; };
+  function visible(from,to){return opaque?!blocked(from,to):!blockers().some(b=>!b.off&&!faded.has(b.mesh)&&intersects(from,to,b));}
+  // Test actual collision boxes, not the bounding box of a whole merged city
+  // mesh. A distant face in that mesh must not hide or move the camera here.
+  function blocked(from,to) {
+    const boxes=sky.near(Math.min(from.x,to.x),Math.min(from.z,to.z),Math.max(from.x,to.x),Math.max(from.z,to.z));
+    const hit=b=>!b.off&&b.solid&&b.maxY>c.pos.y+.08&&intersects(from,to,b);
+    return boxes.some(hit)||(window.skyCameraVolumes||[]).some(b=>b.maxY>c.pos.y+.15&&hit(b));
+  }
+  let cameraFraction=1, cameraAt=null, cameraPitch=pose.pitch;
+  function cameraSafe(q){return sky.oe(q.x,q.y-.16,q.z,.16,.32)&&!(window.skyCameraVolumes||[]).some(b=>
+    q.x>b.minX-.16&&q.x<b.maxX+.16&&q.z>b.minZ-.16&&q.z<b.maxZ+.16&&q.y>b.minY-.16&&q.y<b.maxY+.16);}
+  function resolveCamera(pivot,wanted,dt) {
+    const foot={x:c.pos.x,y:c.pos.y+.18,z:c.pos.z};
+    const head={x:c.pos.x,y:c.pos.y+1.35,z:c.pos.z};
+    const delta=wanted.clone().sub(pivot), length=delta.length();
+    const safeAt=cameraSafe;
+    let target=1, found=false, targetPitch=pose.pitch;
+    // First try a closer camera with the original yaw/pitch and movement axes.
+    // Never zoom into the avatar to solve a wall.
+    for(let i=24;i>=8;i--){
+      const t=i/24;if(t*length<2.8)continue;
+      const q=pivot.clone().addScaledVector(delta,t);
+      if(safeAt(q)&&!blocked(q,foot)&&!blocked(q,head)){target=t;found=true;break;}
+    }
+    if(!found){
+      // A house can fill the entire space behind the player. In that case a
+      // closer camera cannot reveal the feet: look down more steeply while
+      // retaining north/up and the same screen-relative movement directions.
+      for(const pitch of[-1,-1.2,-1.4,-1.5,-1.54]){
+        if(pitch>=pose.pitch)continue;
+        const q=pivot.clone();q.x+=Math.sin(pose.yaw)*Math.cos(pitch)*length;
+        q.y-=Math.sin(pitch)*length;q.z+=Math.cos(pose.yaw)*Math.cos(pitch)*length;
+        if(safeAt(q)&&!blocked(q,foot)&&!blocked(q,head)){target=1;targetPitch=pitch;found=true;break;}
+      }
+    }
+    if(!found&&!safeAt(wanted)){
+      // The old translucent view could put the camera inside a whole house.
+      // Back out of that house along the same viewing axis, then show the
+      // occluded body as a silhouette. Never collapse into a crate-sized view.
+      target=3;
+      for(let i=25;i<=72;i++){
+        const q=pivot.clone().addScaledVector(delta,i/24);
+        if(safeAt(q)){target=i/24;break;}
+      }
+    }
+    const jumped=!cameraAt||cameraAt.distanceTo(c.pos)>3;
+    if(jumped||dt<=0||target<cameraFraction)cameraFraction=target;
+    else cameraFraction+=(target-cameraFraction)*(1-Math.exp(-4*Math.min(.05,dt)));
+    if(jumped||dt<=0||targetPitch<cameraPitch)cameraPitch=targetPitch;
+    else cameraPitch+=(targetPitch-cameraPitch)*(1-Math.exp(-4*Math.min(.05,dt)));
+    function direction(pitch){const q=pivot.clone();q.x+=Math.sin(pose.yaw)*Math.cos(pitch)*length;
+      q.y-=Math.sin(pitch)*length;q.z+=Math.cos(pose.yaw)*Math.cos(pitch)*length;return q;}
+    wanted.copy(direction(cameraPitch));
+    if(!safeAt(pivot.clone().lerp(wanted,cameraFraction))){cameraFraction=target;cameraPitch=targetPitch;wanted.copy(direction(cameraPitch));}
+    if(!cameraAt)cameraAt=c.pos.clone();else cameraAt.copy(c.pos);
+    document.body.dataset.skyOpaqueFootHidden=String(!found);
+    document.body.dataset.skyOpaquePitch=cameraPitch.toFixed(3);
+    return cameraFraction;
+  }
+  function bodyOccluded(camera){
+    // Animated boots/gear can extend beyond the .32m movement capsule. The
+    // depth test still limits the overlay to genuinely hidden body pixels.
+    return [[0,.8,0],[0,1.45,0],[0,.05,0],[.5,.05,0],[-.5,.05,0],[0,.05,.5],[0,.05,-.5]]
+      .some(([x,y,z])=>blocked(camera,{x:c.pos.x+x,y:c.pos.y+y,z:c.pos.z+z}));
+  }
+  const reset = () => { moving = false; pointer = null; cameraAt=null;cameraFraction=1;cameraPitch=pose.pitch; };
   window.skyFixedCamera = { get active() { return active(); }, pose, chase, input, step, camera, reset,
-    occlusion, restore, visible, get fadedCount(){return faded.size} };
+    occlusion, restore, visible, resolveCamera, bodyOccluded, cameraSafe, get pitch(){return cameraPitch}, get opaque(){return opaque}, get fadedCount(){return faded.size} };
   document.documentElement.dataset.cameraTrial='fixed';
   const style=document.createElement('style');style.textContent='html[data-camera-trial=fixed] #lookNote{display:none!important}';document.head.append(style);
   window.addEventListener('blur', reset);

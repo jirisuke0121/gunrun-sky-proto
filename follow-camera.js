@@ -197,7 +197,7 @@
     document.body.dataset.skyCameraMode = mode;
     for (const select of selectors) select.value = mode;
     for (const note of document.querySelectorAll('.follow-camera-help')) {
-      note.textContent = fixedTrial && mode === 'after' ? '画面の方向へ移動します。カメラの回転操作はありません。視界を遮る壁は透けますが、通り抜けはできません。' : mode === 'before'
+      note.textContent = fixedTrial && mode === 'after' ? '画面の方向へ移動します。カメラの回転操作はありません。壁は実体を残し、足元に合わせてカメラの距離・見下ろし角度を補助します。' : mode === 'before'
         ? (coarse() ? '左スティックで移動、右側のドラッグで視点を自分で回します。' : 'WASDで移動、マウスで視点を回します。')
         : coarse()
           ? '左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。'

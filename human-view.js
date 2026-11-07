@@ -4,6 +4,7 @@ import { GRIP_SLIP_SECONDS } from './swing-fatigue.js?v=20261031-grip-v1';
 import { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
 import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261030-rotation-cache-v2';
 import { flipPose } from './swing-flip.js?v=20261030-frontflip-cue-v2';
+import { createHumanOcclusion } from './human-occlusion.js?v=20261108-opaque-v1';
 const sky = window.__skyInternals;
 const { c, Se: camera, ue: world, fo, tl, Geom, mr, ls } = sky;
 const { Group, Vector3 } = Geom;
@@ -19,6 +20,7 @@ const status = document.getElementById('humanStatus');
 const loader = new T2.GLTFLoader();
 let asset = null, holder = null, model = null, motion = null, grip = null, morphMeshes = [], worldWeapon = null, worldWeaponIndex = -1, view = 'first';
 let loading = null, activeClip = '', clipTime = 0, jumpTime = 0, landTime = 0, wasGrounded = true, shotTime = 1, lastAmmo = null, slidePose = 0;
+let occludedHuman=null;
 let gripPoint = new Vector3(), muzzleFlash = null;
 let gaitPhase = 0, runPose = 0, gripPitch = 0, bodyYawOffset = 0, turnBank = 0;
 let swingLean = 0;
@@ -119,6 +121,8 @@ function loadHuman() {
       if (motion) aimRig = createHumanAim(model, motion, Geom);
       morphMeshes = [];
       model.traverse(node => { if (node.isMesh && node.morphTargetDictionary) morphMeshes.push(node); });
+      const outlineSources=[];model.traverse(node=>{if(node.isMesh)outlineSources.push(node)});
+      occludedHuman?.dispose();occludedHuman=createHumanOcclusion(Geom,world,outlineSources,document);
       grip = model.getObjectByName('GunRunRightHandGrip');
       if (motion) gripPoint.set(...motion.grips.idle[0]);
       holder.visible = false;
@@ -593,7 +597,7 @@ function update(dt, preparingShot = false) {
       document.body.dataset.skyHumanHandError = Math.hypot(contactWorld.x - contactFrame.anchor.x, contactWorld.y - contactFrame.anchor.y, contactWorld.z - contactFrame.anchor.z).toFixed(4);
     } else delete document.body.dataset.skyHumanHandError;
   }
-  if (!third) { updateWorldWeapon(false,dt);window.skyFirstPersonView?.update(dt, false); return; }
+  if (!third) { occludedHuman?.update(false);updateWorldWeapon(false,dt);window.skyFirstPersonView?.update(dt, false); return; }
   // Match Unity's over-shoulder distance while keeping the player in frame.
   pivot.set(c.pos.x, c.camY === undefined ? c.pos.y + c.eye : c.camY, c.pos.z);
   if (c.state === 'swing') pivot.y=c.pos.y+c.eye;
@@ -615,6 +619,10 @@ function update(dt, preparingShot = false) {
     probe.copy(pivot).addScaledVector(delta, step / 24);
     if (!sky.oe(probe.x, probe.y - .16, probe.z, .16, .32)) { safe = Math.max(0, (step - 2) / 24); break; }
   }
+  if(window.skyFixedCamera?.active&&window.skyFixedCamera.opaque){
+    safe=window.skyFixedCamera.resolveCamera(pivot,wanted,dt);
+    delta.copy(wanted).sub(pivot);camera.rotation.x=window.skyFixedCamera.pitch;
+  }
   camera.position.copy(pivot).addScaledVector(delta, safe);
   camera.updateMatrixWorld();
   const follow = window.skyFollowCamera?.active;
@@ -628,6 +636,7 @@ function update(dt, preparingShot = false) {
   const blinkOff = !!window.skyBite?.blinkOff, holster = !!window.skyBite?.holster;
   updateWorldWeapon(!close && !blinkOff && !holster,dt);
   if (holder) holder.visible = !close && !blinkOff;
+  occludedHuman?.update(!!window.skyFixedCamera?.active&&window.skyFixedCamera.opaque&&!close&&!blinkOff&&window.skyFixedCamera.bodyOccluded(camera.position));
   window.skyBite?.body(holder, !close && !blinkOff);
   if (worldWeapon && (close || blinkOff || holster)) worldWeapon.visible = false;
   if (ls) ls.root.visible = close && !follow && !!sky.U.showBody;
