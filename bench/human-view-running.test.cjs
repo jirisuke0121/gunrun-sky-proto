@@ -8,6 +8,7 @@ const { fixture } = require('./human-running.test.cjs');
   const aim = await import('../human-aim.js');
   const flip = await import('../swing-flip.js');
   const fatigue = await import('../swing-fatigue.js');
+  const occlusion = await import('../human-occlusion.js');
   const { gltf, motion } = await fixture();
   const Group = gltf.scene.constructor, Vector3 = gltf.scene.position.constructor;
   let body; gltf.scene.traverse(o => { if (o.name.startsWith('Body_mesh')) body = o; });
@@ -36,14 +37,14 @@ const { fixture } = require('./human-running.test.cjs');
   let mode = 'play';
   const sky = { c, U: { weapon: 0, gunOn: true, walkSpeed: 4.6, sprintSpeed: 6, jumpVel: 7.2, gravity: 20 },
     Et: { ammo: 12, reloadT: 0 }, wpc: () => ({ rl: 1.5 }), modeRef: () => mode,
-    Se: new Group(), ue: new Group(), fo: new Group(), tl: new Group(), Geom: { Group, Vector3, Float32Attribute, Basic: body.material.constructor }, oe: () => true, mr: [] };
+    Se: new Group(), ue: new Group(), fo: new Group(), tl: new Group(), Geom: { Group, Vector3, Float32Attribute, Basic: body.material.constructor, Standard: body.material.constructor }, oe: () => true, mr: [] };
   const prototype=new Group();prototype.name='Sky HG';prototype.add(new body.constructor(weaponGeometry,body.material));sky.tl.add(prototype);
   const nodes = new Map(), keys = new Map(), dataset = {};
   const document = { body: { dataset }, querySelectorAll: () => [],
     getElementById(id) { if (!nodes.has(id)) nodes.set(id, { textContent: '', addEventListener() {} }); return nodes.get(id); },
     addEventListener(type, listener) { keys.set(type, listener); } };
   const context = vm.createContext({ window: { __skyInternals: sky }, document, sessionStorage: { getItem() { return null; }, setItem() {} },
-    T2: { GLTFLoader: class {} }, console, ...running, ...aim, ...flip, ...fatigue, gltf, motionFixture: motion });
+    T2: { GLTFLoader: class {} }, console, ...running, ...aim, ...flip, ...fatigue, ...occlusion, gltf, motionFixture: motion });
   const source = fs.readFileSync('human-view.js', 'utf8').replace(/^import .*;\n/gm, '');
   // Function declarations are hoisted: replace loading before the module's
   // default Unity model starts, rather than after its initial async call.

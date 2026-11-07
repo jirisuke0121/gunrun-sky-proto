@@ -1,0 +1,22 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>壁と足場の比較</title>
+<style>body{margin:0;background:#17232b;color:#edf1ef;font:15px system-ui}header{padding:12px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}h1{font-size:18px;margin:0 16px 0 0}button,select{font:inherit;color:inherit;background:#30434e;border:1px solid #8caaac;border-radius:6px;padding:9px 14px}button[aria-pressed=true]{background:#bce1cd;color:#132b21}p{margin:0;padding:0 16px 12px;color:#bdcccf}iframe{display:block;width:100%;height:calc(100vh - 125px);border:0;min-height:390px}@media(max-height:500px){header{padding:5px 10px;gap:5px}h1{font-size:14px}button,select{padding:5px;font-size:12px}p{font-size:12px}iframe{height:calc(100vh - 95px);min-height:280px}}</style>
+<header><h1>壁と足場の比較</h1><button data-variant="classic" aria-pressed="false">変更前</button><button data-variant="opaque" aria-pressed="true">変更後</button><select id="scene" aria-label="場所"></select><button id="play" disabled>ここから遊ぶ</button></header><p id="status">読み込み中…</p><iframe id="game" title="写真の場所で比較"></iframe>
+<script type="module">
+import {OPAQUE_WALL_SCENES as scenes} from './opaque-wall-scenes.js';
+const frame=document.querySelector('#game'),status=document.querySelector('#status'),play=document.querySelector('#play'),select=document.querySelector('#scene');let variant='opaque',generation=0,active;
+for(const scene of scenes){const o=document.createElement('option');o.value=scene.id;o.textContent=scene.label;select.append(o)}select.value='street';
+const pause=()=>new Promise(r=>setTimeout(r,50));
+async function load(){const gen=++generation;play.disabled=true;active=null;status.textContent='比較画面を読み込み中…';document.querySelectorAll('[data-variant]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.variant===variant)));
+ const loaded=new Promise(r=>frame.addEventListener('load',r,{once:true}));frame.src='../index.html?camera=after&cameraTrial=fixed&wallView='+variant+'&fixedOcclusion='+(variant==='classic'?'fade':'opaque')+'&onboarding=0&controlpick=0&hookGuide=0&dev=1&lang=ja';await loaded;
+ const w=frame.contentWindow;w.__hold=true;
+ for(let i=0;i<2400&&(!w.skyStartReadiness?.ready||!w.skyLookInfo);i++){if(gen!==generation)return;if(w.skyStartReadiness?.state.phase==='error')throw Error(w.skyStartReadiness.state.message);await pause()}
+ if(gen!==generation)return;if(!w.skyStartReadiness?.ready)throw Error('読み込みを完了できませんでした。');
+ w.document.getElementById('bStart').click();const g=w.__game;g.S.sendLog=g.S.autoFire=false;g.GAME.spawnT=g.GAME.surgeT=Infinity;g.SCR.off=g.PACE.off=g.MARK.off=true;g.P.invuln=Infinity;
+ for(const z of g.zombies){w.__skyInternals.ue.remove(z.m.root);if(z.pool)w.__skyInternals.ue.remove(z.pool)}g.zombies.length=0;
+ w.skySwing.reset();g.P.pos.set(...scenes.find(x=>x.id===select.value).at);g.P.lastGround.copy(g.P.pos);g.P.safe.copy(g.P.pos);g.P.vel.set(0,0,0);g.P.state='normal';g.P.onGround=true;g.P.yaw=g.P.pitch=0;g.P.shake=0;w.skyFollowCamera.reset();g.frameOnce(0);
+ active=w;play.disabled=false;status.textContent='壁と立てる面の境界を比べてください。変更後は壁際で足元が見える角度に補助します。';
+}
+const reload=()=>load().catch(e=>status.textContent=e.message);
+document.querySelectorAll('[data-variant]').forEach(b=>b.onclick=()=>{variant=b.dataset.variant;reload()});select.onchange=reload;
+play.onclick=()=>{if(!active)return;active.__hold=false;frame.focus();play.disabled=true;status.textContent='敵と記録送信を止めた比較用プレイです。移動・ジャンプで足場を確認できます。'};reload();
+</script></html>
