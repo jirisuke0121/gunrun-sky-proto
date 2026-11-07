@@ -1,5 +1,6 @@
-// 塔のトンネル（実物理）: 長い斜面を滑る → 塔の穴 → U字 → 出口から打ち上がる → 屋上に着地。
-// あわせて、東の上段回廊が掘削の下で歩いて通れること、止まっていると打ち上がらないことを確かめる。
+// 塔のトンネル（実物理）: 長い斜面を滑る → 塔の穴 → U字 → 出口から西へ流れて打ち上がる → 西の広場の床に着地。
+// 入口は、斜面の上から勢いをつけて滑った人だけ（歩く・助走なし・途中から滑る・穴へ落ちるでは発動しない）。
+// あわせて、東の上段回廊が掘削の下で歩いて通れることを確かめる。
 const assert = require('node:assert/strict'), fs = require('node:fs'), { spawn } = require('node:child_process'), { chromium } = require('playwright');
 const { revealHomeControl } = require('./home-controls.cjs');
 (async () => {
@@ -32,26 +33,39 @@ const { revealHomeControl } = require('./home-controls.cjs');
       for (let i = 0; i < 120 * 3; i++) { g.advance(dt); minH = Math.min(minH, c.h); maxDy = Math.max(maxDy, Math.abs(c.pos.y - 4)); }
       out.corridor = { endZ: +c.pos.z.toFixed(2), minH, maxDy: +maxDy.toFixed(3), launches: launches() };
 
-      // B. 長い斜面の上から滑る。途中でキーを離しても、打ち上がって屋上に着地する。
-      reset(); g.placeAt({ x: 37, y: 13.8, z: -8, yaw: Math.PI / 2 }); settle();
-      g.keys.KeyW = true; c.crouchPressed = true;
-      let released = false, t0 = null, landed = null, apex = 0, over20 = 0, rideStart = null, enterSpeed = 0, maxSpeed = 0;
-      for (let i = 0; i < 120 * 14; i++) {
-        g.advance(dt); const t = i * dt;
-        if (!released && c.pos.x < 30) { g.keys.KeyW = false; released = true; }
-        if (rideStart === null && c.pos.x < T.XB + 1 && c.pos.x > T.XB - .2) { rideStart = t; enterSpeed = Math.hypot(c.vel.x, c.vel.z); }
-        maxSpeed = Math.max(maxSpeed, Math.hypot(c.vel.x, c.vel.y, c.vel.z));
-        if (launches() && t0 === null) t0 = t;
-        if (t0 !== null) { apex = Math.max(apex, c.pos.y); if (c.pos.y >= 20) over20 += dt; }
-        if (t0 !== null && landed === null && c.onGround && t > t0 + .5) { landed = [c.pos.x, c.pos.y, c.pos.z, t - t0]; break; }
-      }
-      out.slide = { launches: launches(), enterSpeed: +enterSpeed.toFixed(1), maxSpeed: +maxSpeed.toFixed(1), apex: +apex.toFixed(2), over20: +over20.toFixed(2), landed: landed && landed.map(v => +v.toFixed(2)), over: g.GAME.over, life: c.life };
+      // 斜面を滑る共通の手順。startX から滑り始め、発動したら着地まで追う。
+      const slideFrom = (startX, y, keepKeys = false) => {
+        const n = launches(), tickets = g.stats.towerTickets || 0;
+        reset(); g.placeAt({ x: startX, y, z: -8, yaw: Math.PI / 2 }); settle();
+        g.keys.KeyW = true; c.crouchPressed = true;
+        let released = false, t0 = null, landed = null, apex = 0, over20 = 0, enterSpeed = 0, maxVx = 0;
+        for (let i = 0; i < 120 * 14; i++) {
+          g.advance(dt); const t = i * dt;
+          if (!released && !keepKeys && c.pos.x < Math.min(30, startX - 3)) { g.keys.KeyW = false; released = true; }
+          if (c.pos.x < T.XB + 1 && c.pos.x > T.XB - .2 && !enterSpeed) enterSpeed = Math.hypot(c.vel.x, c.vel.z);
+          if (launches() > n && t0 === null) t0 = t;
+          if (t0 !== null) { apex = Math.max(apex, c.pos.y); maxVx = Math.min(maxVx, c.vel.x); if (c.pos.y >= 20) over20 += dt; }
+          if (t0 !== null && landed === null && c.onGround && t > t0 + .5) { landed = [c.pos.x, c.pos.y, c.pos.z, t - t0]; break; }
+          if (t0 === null && t > 7) break;
+        }
+        return { launches: launches() - n, tickets: (g.stats.towerTickets || 0) - tickets, enterSpeed: +enterSpeed.toFixed(1), apex: +apex.toFixed(2), over20: +over20.toFixed(2), maxWestSpeed: +(-maxVx).toFixed(1), landed: landed && landed.map(v => +v.toFixed(2)), over: g.GAME.over, life: c.life };
+      };
+      // B. 長い斜面の上から滑る。途中でキーを離しても、打ち上がって広場の床に着地する。
+      out.slide = slideFrom(37, 13.8);
+      // B2. 斜面の上から4割あたり（x34、約2.3秒の滑走）から滑っても届く。
+      out.slideMid = slideFrom(34, 13.0);
 
-      // C. 走って降りても（スライディングなしで）打ち上がる。
-      const n0 = launches(); reset(); g.placeAt({ x: 16, y: 8.1, z: -8.75, yaw: Math.PI / 2 }); settle();
-      g.keys.KeyW = true; g.keys.ShiftLeft = true; let apexRun = 0;
-      for (let i = 0; i < 120 * 6; i++) { g.advance(dt); apexRun = Math.max(apexRun, c.pos.y); }
-      out.run = { launches: launches() - n0, apex: +apexRun.toFixed(2) };
+      // C. 入口の制限: 発動しないこと。
+      reset(); const nRun = launches(); g.placeAt({ x: 16, y: 8.1, z: -8.75, yaw: Math.PI / 2 }); settle();
+      g.keys.KeyW = true; g.keys.ShiftLeft = true;
+      for (let i = 0; i < 120 * 6; i++) g.advance(dt);
+      out.run = { launches: launches() - nRun, ticket: skyTowerTunnel.hasTicket() };        // 屋上から走って降りる
+      out.low = slideFrom(28, 11.55);                                                          // 斜面の中ほど（x28、約1.8秒の滑走）から滑る（助走が足りない）
+      out.edge = slideFrom(14.6, 8.2);                                                         // 屋上の縁から滑る
+      reset(); const nIn = launches(); g.placeAt({ x: 10.5, y: 6.8, z: -8.75, yaw: Math.PI / 2 }); settle();   // 坑の途中に落ちてから滑る
+      g.keys.KeyW = true; c.crouchPressed = true;
+      for (let i = 0; i < 120 * 5; i++) g.advance(dt);
+      out.dropIn = { launches: launches() - nIn };
 
       // D. 底で止まっていれば打ち上がらない（立ち止まって眺められる）。
       const n1 = launches(); reset(); g.placeAt({ x: 3.4, y: 3.8, z: -8.75, yaw: Math.PI / 2 }); settle();
@@ -68,14 +82,19 @@ const { revealHomeControl } = require('./home-controls.cjs');
     });
     console.log(JSON.stringify(result));
     assert.ok(result.corridor.endZ > -5 && result.corridor.minH >= 1.75 && result.corridor.maxDy < .05 && result.corridor.launches === 0, '東の上段回廊を、しゃがまず同じ高さで通り抜けられる');
-    assert.equal(result.slide.launches, 1, '滑り降りると1回だけ打ち上がる');
-    assert.ok(result.slide.enterSpeed >= 14, '底には最高速近くで着く: ' + result.slide.enterSpeed);
-    assert.ok(result.slide.apex >= 22 && result.slide.apex <= 24, '頂点は約23 m: ' + result.slide.apex);
-    assert.ok(result.slide.over20 >= 1, '20 m以上に1秒以上いる: ' + result.slide.over20);
-    assert.ok(result.slide.landed && Math.abs(result.slide.landed[1] - 8) < .1 && result.slide.landed[0] > -13.5 && result.slide.landed[0] < -6.5, '塔の屋上に着地する');
-    assert.ok(!(result.slide.landed[0] > -12.3 && result.slide.landed[0] < -8.7 && result.slide.landed[2] < -8.2), '西の小屋の上に降りない');
-    assert.equal(result.slide.over, false); assert.equal(result.slide.life, 5, '着地で命が減らない');
-    assert.equal(result.run.launches, 1, '走って降りても打ち上がる'); assert.ok(result.run.apex >= 22);
+    const S = result.slide;
+    assert.equal(S.launches, 1, '滑り降りると1回だけ打ち上がる');
+    assert.ok(S.enterSpeed >= 14, '底には最高速近くで着く: ' + S.enterSpeed);
+    assert.ok(S.apex >= 22 && S.apex <= 24, '頂点は約23 m: ' + S.apex);
+    assert.ok(S.over20 >= 1, '20 m以上に1秒以上いる: ' + S.over20);
+    assert.ok(S.maxWestSpeed >= 5, '西へ流れる速さがある: ' + S.maxWestSpeed);
+    assert.ok(S.landed && Math.abs(S.landed[1]) < .1 && S.landed[0] < -15.5 && S.landed[0] > -20.5 && S.landed[2] > -7.5 && S.landed[2] < 7.5, '西の広場の床に着地する: ' + JSON.stringify(S.landed));
+    assert.equal(S.over, false); assert.equal(S.life, 5, '着地で命が減らない');
+    assert.equal(result.slideMid.launches, 1, '斜面の上から4割あたりから滑っても届く'); assert.ok(result.slideMid.tickets >= 1);
+    assert.equal(result.run.launches, 0, '走って降りても発動しない'); assert.equal(result.run.ticket, false);
+    assert.equal(result.low.launches, 0, '助走が足りない滑りでは発動しない'); assert.equal(result.low.tickets, 0);
+    assert.equal(result.edge.launches, 0, '屋上の縁から滑るだけでは発動しない'); assert.equal(result.edge.tickets, 0);
+    assert.equal(result.dropIn.launches, 0, '坑の途中へ落ちてから滑っても発動しない');
     assert.equal(result.still.launches, 0, '止まっていれば打ち上がらない');
     assert.equal(result.rideActive, true, '乗っている途中の状態を作れた'); assert.equal(result.carryOver, false, '次の試合に持ち越さない');
     assert.deepEqual(errors, []);

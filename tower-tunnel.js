@@ -8,27 +8,35 @@
 //   * 芯（x -11〜11 の塊）は帯の中だけ掘る。外側の回廊・階段・扉は変えない。
 //   * 屋根は入口の坑（x 7.2〜14）と出口の穴（x -3.0〜-1.4）だけ開ける。間の x -1.4〜7.2 は屋根が残るのでトンネルになる。
 // 射出は見える仕掛け: U字の内面に橙の帯、出口の穴に光の柱。ここを通ると決まった速度で打ち上がる（ジャンプ台と同じ考え方）。
+// 入口の制限（2026-11-07）: 長い斜面を滑り降りて入口（x=14）を速く通った人だけが「入場券」を得る。券と速さが底まで残ったときだけ打ち上がる。
+//   歩いて入る・横や穴から落ちる・助走なしで滑るだけでは発動しない（誰でも即発動する乱用を防ぐ）。
+// 出口は西へ流れる角度（77°）。屋上の西の広場の床（x≈-19）に降りる。
 (() => {
   const Z0 = -10, Z1 = -7.5;               // 帯（トンネルの幅 2.5 m）
   const XB = 2.07, YB = 3.43;              // 滑り台の底＝U字の始点
   const XT = 14, YT = 8;                   // 滑り台の上端（塔の屋上の縁）
   const XC = 11;                           // ここより東は回廊の上（殻だけ）
-  const R = 5.1, TH = 84 * Math.PI / 180;  // U字の半径と出口の角度
+  const R = 5.1, TH = 77 * Math.PI / 180;  // U字の半径と出口の角度
   const SHELL = .3, FILL0 = 3.2, ROOF_Y = 7.6;
   const HOLE_E = -1.4;                     // 出口の穴の東端（頭が屋根の縁に触れない余裕）
+  const HOLE_W = -3.6;                     // 出口の穴の西端（西へ流れる体が壁に触れない余裕）
   const LIP_X = XB - R * Math.sin(TH), LIP_Y = YB + R * (1 - Math.cos(TH));
-  const EXIT_SPEED = 24.6, EXIT_VZ = 1;   // vz: 西の小屋（x -12〜-9, z -12〜-8.5）をよけて屋上の南寄りに降りる
-  const MIN_SPEED = 5.5;                   // これ以上の速さで底に着くと打ち上がる（走って降りてもよい）
-  const T = { Z0, Z1, XB, YB, XT, YT, XC, R, TH, SHELL, FILL0, ROOF_Y, HOLE_E, LIP_X, LIP_Y, EXIT_SPEED, EXIT_VZ, MIN_SPEED,
+  const EXIT_SPEED = 25.5, EXIT_VZ = 1;   // vz: 広場の床（z -8〜8）の内側に降りる（入った位置が帯の北端でも床の外に出ない）
+  const ENTRY_SPEED = 12.5;                // 入口（x=14）をこれ以上の速さで滑り降りて通ると入場券を得る。実測: x31より上から約2秒以上滑ると届く（x28で11.3、x34で13.2、x38で14.5）
+  const MIN_SPEED = 11;                    // 底でもこれ以上の速さが残っていること
+  const TICKET_SECONDS = 6;                // 券の有効時間（入口から底まで約1.3秒。余裕を見た上限）
+  const T = { Z0, Z1, XB, YB, XT, YT, XC, R, TH, SHELL, FILL0, ROOF_Y, HOLE_E, HOLE_W, LIP_X, LIP_Y, EXIT_SPEED, EXIT_VZ, ENTRY_SPEED, MIN_SPEED, TICKET_SECONDS,
     arcLength: R * TH, grade: (YT - YB) / (XT - XB) };
 
   const surfaceY = x => YB + (YT - YB) * (x - XB) / (XT - XB);
   const arcPoint = th => ({ x: XB - R * Math.sin(th), y: YB + R * (1 - Math.cos(th)) });
   function exitVelocity() { return { x: -Math.cos(TH) * EXIT_SPEED, y: Math.sin(TH) * EXIT_SPEED, z: EXIT_VZ }; }
   function flight(gravity = 20) {
-    const v = exitVelocity(), apexT = v.y / gravity, apex = LIP_Y + v.y * v.y / (2 * gravity), landT = 2 * v.y / gravity;
+    const v = exitVelocity(), apexT = v.y / gravity, apex = LIP_Y + v.y * v.y / (2 * gravity);
     const over = h => { const d = Math.sqrt(Math.max(0, v.y * v.y - 2 * gravity * (h - LIP_Y))); return [(v.y - d) / gravity, (v.y + d) / gravity]; };
     const [t20a, t20b] = over(20);
+    // 着地は広場の床（y=0）。
+    const landT = (v.y + Math.sqrt(v.y * v.y + 2 * gravity * LIP_Y)) / gravity;
     return { v, apex, apexT, landT, landX: LIP_X + v.x * landT, landZ: v.z * landT, above20: t20b - t20a };
   }
 
@@ -60,10 +68,10 @@
     const isCore = b => b.type === 'mono';
     const isRoof = b => b.type === 'slab' && b.minY >= ROOF_Y - .05 && b.maxY <= 8.05;
     // 1. 芯と東の外壁を、帯の中だけ y 3.2 より上を取り除く（下は残す）。
-    cut(jn, { minX: LIP_X, maxX: XT, minY: FILL0, maxY: 8.5, ...lane }, isCore);
+    cut(jn, { minX: HOLE_W, maxX: XT, minY: FILL0, maxY: 8.5, ...lane }, isCore);
     // 2. 屋根を開ける: 入口の坑と出口の穴。
     cut(jn, { minX: 7.2, maxX: XT, minY: 7, maxY: 8.5, ...lane }, isRoof);
-    cut(jn, { minX: LIP_X, maxX: HOLE_E, minY: 7, maxY: 8.5, ...lane }, isRoof);
+    cut(jn, { minX: HOLE_W, maxX: HOLE_E, minY: 7, maxY: 8.5, ...lane }, isRoof);
     // 3. 滑り台。芯の中（x<11）は下を詰める。回廊の上（11〜13）は薄い殻だけ。東の外壁（13〜14）は殻の下を詰める。
     const made = [];
     const chute = (x0, x1, y0, y1) => {
@@ -87,6 +95,8 @@
       const nx = (cx - mx) / R, ny = (cy - my) / R;   // 空洞側（曲線の中心向き）
       Ja.push({ x: mx - nx * .15, y: my - ny * .15, z: zc, w: len, h: .3, d: Z1 - Z0, rx: 0, ry: 0, rz: Math.atan2(dy, dx), solidLook: true });
     }
+    // 出口の縁の手前（穴の西端〜縁）は、縁の高さまで詰める。
+    ne(HOLE_W, FILL0, Z0, LIP_X, LIP_Y, Z1, 'mono').tunnel = 'arc';
     return { made: made.length };
   }
 
@@ -107,46 +117,60 @@
     const beam = new Basic({ color: 0xff9a1f, transparent: true, opacity: .26, depthWrite: false });
     const group = new Group(); group.name = 'Tower tunnel marks';
     const put = (geometry, material, x, y, z, rz = 0) => { const m = new Mesh(geometry, material); m.position.set(x, y, z); m.rotation.z = rz; group.add(m); return m; };
-    for (let deg = 12; deg < 84; deg += 12) {
+    for (let deg = 12; deg < TH * 180 / Math.PI - 1; deg += 12) {
       const th = deg * Math.PI / 180, p = arcPoint(th);
       put(new Box(.16, .03, Z1 - Z0 - .2), stripe, p.x - Math.sin(th) * .0, p.y + .03, zc, -th);
     }
     const slope = Math.atan2(YT - YB, XT - XB);
     for (const x of [13.2, 11.6, 9.8, 7.8, 5.6, 3.4]) put(new Box(.3, .03, Z1 - Z0 - .2), stripe, x, surfaceY(x) + .03, zc, slope);
-    const rimY = 8.03, hx = (LIP_X + HOLE_E) / 2, hw = HOLE_E - LIP_X;
+    const rimY = 8.03, hx = (HOLE_W + HOLE_E) / 2, hw = HOLE_E - HOLE_W;
     put(new Box(hw + .3, .05, .15), stripe, hx, rimY, Z0 - .075);
     put(new Box(hw + .3, .05, .15), stripe, hx, rimY, Z1 + .075);
-    put(new Box(.15, .05, Z1 - Z0), stripe, LIP_X - .075, rimY, zc);
+    put(new Box(.15, .05, Z1 - Z0), stripe, HOLE_W - .075, rimY, zc);
     put(new Box(.15, .05, Z1 - Z0), stripe, HOLE_E + .075, rimY, zc);
     const shaft = put(new Box(hw, 15, Z1 - Z0 - .2), beam, hx, 8 + 7.5, zc);
     game.ue.add(group);
     const pulse = () => { beam.opacity = .22 + .08 * Math.sin(performance.now() / 400); requestAnimationFrame(pulse); };
     requestAnimationFrame(pulse);
 
-    // 底に着いた速さが MIN_SPEED 以上なら、U字を回って出口の穴から打ち上がる。操作は効かない（見える仕掛け）。
-    let riding = null;
+    // 入口（x=14）を ENTRY_SPEED 以上で滑り降りて通った人だけが入場券を得る。底でも券と MIN_SPEED が残っていれば、
+    // U字を回って出口の穴から打ち上がる。操作は効かない（見える仕掛け）。
+    let riding = null, ticket = null, prevX = null;
     const playing = () => game.modeRef() === 'play' && !game.z.over;
     function begin() {
       const speed = Math.hypot(c.vel.x, c.vel.z);
       riding = { s: 0, v0: Math.min(15, Math.max(9, speed)), z: Math.min(Z1 - .4, Math.max(Z0 + .4, c.pos.z)), t0: game.z.t, last: null };
+      ticket = null;
       if (['slide', 'ledge', 'ladder'].includes(c.state)) c.state = 'normal';
       c.onGround = false; c.coyote = 0; c.jumpBuf = 0; c.edgeJump = false; c.slideT = 0; c.h = .9; c.crouchPressed = false;
       window.skyLandingRoll?.cancel?.();
     }
     function release() {
       const v = exitVelocity();
-      c.pos.set(LIP_X, LIP_Y + .1, riding.z);
+      c.pos.set(LIP_X, LIP_Y + .05, riding.z);
       c.vel.set(v.x, v.y, v.z);
       c.state = 'normal'; c.onGround = false; c.coyote = 0; c.airT = 0; c.edgeJump = false; c.jumpBuf = 0; c.slideCD = .4; c.h = 1.75;
       c.yaw = Math.atan2(-v.x, -v.z); c.shake = Math.max(c.shake || 0, .4);
       stats.towerTunnel = (stats.towerTunnel || 0) + 1;
       riding = null;
     }
+    function updateTicket(p, speed) {
+      const inLane = p.z > Z0 + .05 && p.z < Z1 - .05;
+      // 入口の線を、斜面から西向きに、速く、滑りながら通った瞬間だけ券が出る。
+      if (prevX !== null && prevX > XT && p.x <= XT && inLane && p.y >= YT - .6 && speed >= ENTRY_SPEED && c.state === 'slide' && c.vel.x < -.8 * speed) {
+        ticket = { t: game.z.t };
+        stats.towerTickets = (stats.towerTickets || 0) + 1;
+      }
+      if (ticket && (p.x > XT + .6 || !inLane && p.x > XB - 1 || game.z.t < ticket.t || game.z.t - ticket.t > TICKET_SECONDS)) ticket = null;
+      prevX = p.x;
+    }
     function step(dt) {
       if (riding && (!playing() || game.z.t < riding.t0 || (riding.last && c.pos.distanceTo(riding.last) > .6))) riding = null;
       if (!riding) {
-        if (!playing() || !['normal', 'slide'].includes(c.state) || window.skyBite?.locked) return false;
+        if (!playing()) { ticket = null; prevX = null; return false; }
         const p = c.pos, speed = Math.hypot(c.vel.x, c.vel.z);
+        updateTicket(p, speed);
+        if (!ticket || !['normal', 'slide'].includes(c.state) || window.skyBite?.locked) return false;
         if (p.z < Z0 + .05 || p.z > Z1 - .05 || p.x > XB + .05 || p.x < XB - .7 || Math.abs(p.y - YB) > .6 ||
             speed < MIN_SPEED || c.vel.x > -.8 * speed) return false;
         begin();
@@ -162,6 +186,7 @@
     }
     window.skyTowerTunnel.step = step;
     window.skyTowerTunnel.active = () => !!riding;
+    window.skyTowerTunnel.hasTicket = () => !!ticket;
     window.skyTowerTunnel.shaft = shaft;
   });
 })();

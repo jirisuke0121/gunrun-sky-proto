@@ -39,17 +39,19 @@ const flight = tunnel.flight(20);
 assert.ok(flight.apex >= 22 && flight.apex <= 24, '頂点は約23 m: ' + flight.apex);
 assert.ok(flight.above20 >= 1, '20 m以上に1秒以上いる（マップ全体が見渡せる）: ' + flight.above20.toFixed(2));
 assert.ok(Math.abs(Math.hypot(flight.v.x, flight.v.y) - T.EXIT_SPEED) < 1e-6);
+assert.ok(flight.v.x <= -5, '西へ流れる速度がある（5 m/s以上）: ' + flight.v.x.toFixed(2));
+// 着地は西の広場の床（x -22〜-14, z -8〜8, y=0）の内側。入った位置が帯の北端でも南端でも。
 for (const z0 of [T.Z0 + .4, (T.Z0 + T.Z1) / 2, T.Z1 - .4]) {
   const x = flight.landX, z = z0 + flight.landZ;
-  assert.ok(x > -13.5 && x < -6.5 && z > -13.5 && z < 13.5, `着地は屋上の上: (${x.toFixed(2)}, ${z.toFixed(2)})`);
-  assert.ok(!(x > -12.4 && x < -8.6 && z > -12.4 && z < -8.1), `西の小屋の上に降りない: (${x.toFixed(2)}, ${z.toFixed(2)})`);
+  assert.ok(x < -15.5 && x > -20.5 && z > -7.5 && z < 7.5, `着地は広場の床の内側: (${x.toFixed(2)}, ${z.toFixed(2)})`);
 }
-// 打ち上げ中も、出口の穴の上は何もない（小屋や壁に当たらない）。
-const hut = { minX: -12, maxX: -9, minY: 8, maxY: 10.2, minZ: -12, maxZ: -8.5 }, wall = { minX: -6, maxX: -5, minY: 8, maxY: 9, minZ: -10, maxZ: -2 };
-for (const z0 of [T.Z0 + .4, T.Z1 - .4]) for (let t = 0; t <= flight.landT; t += .005) {
-  const p = { minX: T.LIP_X + flight.v.x * t - .32, maxX: T.LIP_X + flight.v.x * t + .32, minY: T.LIP_Y + .1 + flight.v.y * t - 10 * t * t, maxY: T.LIP_Y + .1 + flight.v.y * t - 10 * t * t + 1.75, minZ: z0 + flight.v.z * t - .32, maxZ: z0 + flight.v.z * t + .32 };
-  if (t > flight.landT - .02) break;
-  assert.ok(!overlap(p, hut) && !overlap(p, wall), `飛行中に屋上の物へ当たらない t=${t.toFixed(2)} z0=${z0}`);
+// 打ち上げから着地まで、小屋・壁・塔の西壁に当たらない（出口を出た直後は穴のまわりの箱も含めて確かめる）。
+const hut = { minX: -12, maxX: -9, minY: 8, maxY: 10.2, minZ: -12, maxZ: -8.5 }, wall = { minX: -6, maxX: -5, minY: 8, maxY: 9, minZ: -10, maxZ: -2 },
+  west = { minX: -14, maxX: -13, minY: 0, maxY: 8, minZ: -14, maxZ: -1.5 };
+for (const z0 of [T.Z0 + .4, T.Z1 - .4]) for (let t = 0; t < flight.landT - .05; t += .005) {
+  const y = T.LIP_Y + .05 + flight.v.y * t - 10 * t * t, x = T.LIP_X + flight.v.x * t, z = z0 + flight.v.z * t;
+  const p = { minX: x - .32, maxX: x + .32, minY: y, maxY: y + 1.75, minZ: z - .32, maxZ: z + .32 };
+  assert.ok(!overlap(p, hut) && !overlap(p, wall) && !overlap(p, west), `飛行中に屋上の物へ当たらない t=${t.toFixed(2)} z0=${z0}`);
 }
 
 // --- 掘り方 ---
@@ -84,7 +86,7 @@ assert.ok(Math.abs(volume(after.jn.filter(b => b.tunnel === undefined), () => tr
 // 3. 屋根: 入口の坑と出口の穴だけ開く。間（トンネルの天井）は残る。
 const roofAt = (x, z = -8.75) => after.jn.some(b => b.type === 'slab' && b.minY >= 7.55 && x > b.minX && x < b.maxX && z > b.minZ && z < b.maxZ);
 for (const x of [7.5, 9, 11, 12.5, 13.8]) assert.ok(!roofAt(x), `入口の坑は開いている x=${x}`);
-for (const x of [T.LIP_X + .05, -2.2, T.HOLE_E - .05]) assert.ok(!roofAt(x), `出口の穴は開いている x=${x}`);
+for (const x of [T.HOLE_W + .05, -2.2, T.HOLE_E - .05]) assert.ok(!roofAt(x), `出口の穴は開いている x=${x}`);
 for (const x of [T.HOLE_E + .05, 0, 3, 6, 7.1]) assert.ok(roofAt(x), `トンネルの天井は残る x=${x}`);
 for (const z of [T.Z0 - .3, T.Z1 + .3]) for (const x of [9, 13.5, -2.2]) assert.ok(roofAt(x, z), `帯の外の屋根は残る x=${x} z=${z}`);
 
@@ -114,7 +116,14 @@ for (const b of after.jn.filter(b => b.tunnel === 'arc')) {
 }
 const start = tunnel.arcPoint(0), end = tunnel.arcPoint(T.TH);
 assert.ok(Math.abs(start.x - T.XB) < 1e-9 && Math.abs(start.y - T.YB) < 1e-9);
-assert.ok(Math.abs(end.x - T.LIP_X) < 1e-9 && Math.abs(end.y - 8) < .01, '出口の縁は屋上の高さ: ' + end.y.toFixed(3));
+assert.ok(Math.abs(end.x - T.LIP_X) < 1e-9 && Math.abs(end.y - T.LIP_Y) < 1e-9);
+// 出口を出た体（半径0.32・高さ1.75）が、掘った後の箱（穴の縁・壁・屋根）に一度も当たらない。
+for (const z0 of [T.Z0 + .4, T.Z1 - .4]) for (let t = 0; t < .5; t += .002) {
+  const y = T.LIP_Y + .05 + flight.v.y * t - 10 * t * t, x = T.LIP_X + flight.v.x * t;
+  const p = { minX: x - .32, maxX: x + .32, minY: y + 1e-6, maxY: y + 1.75, minZ: z0 - .32, maxZ: z0 + .32 };
+  const hit = after.jn.find(b => overlap(b, p));
+  assert.ok(!hit, `出口の直後に壁・屋根へ当たらない t=${t.toFixed(3)} ${hit && JSON.stringify([hit.minX, hit.maxX, hit.minY, hit.maxY])}`);
+}
 for (let th = 0; th <= T.TH; th += .005) {
   const p = tunnel.arcPoint(th);
   if (p.y + 1.75 > T.ROOF_Y) assert.ok(p.x + .32 <= T.HOLE_E + 1e-9, `出口の穴で頭が屋根の縁に当たらない th=${(th * 180 / Math.PI).toFixed(1)}° x=${p.x.toFixed(2)}`);
