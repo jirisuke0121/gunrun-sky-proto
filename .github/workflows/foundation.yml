@@ -1,7 +1,7 @@
 name: Minimal runtime foundation
 on:
   pull_request:
-    paths: ['foundation-*.js', 'environment-profile.js', 'auto-resolution-monitor.js', 'render-quality.js', 'wall-readability.js', 'look-pass.js', 'fixed-camera-trial.js', 'owner.*', 'owner-token.html', 'server/telemetry*', 'server/player*', 'ghost-replay.js', 'replay-scene.js', 'replay-audio.js', 'server/worker.js', 'index.html', 'canyon.html', 'bench/wall-readability*', 'bench/foundation*', 'bench/db-efficiency.test.cjs', 'bench/player-console.test.cjs', 'server/*schema.sql', 'server/ranking-index.sql', '.github/workflows/foundation.yml']
+    paths: ['foundation-*.js', 'environment-profile.js', 'auto-resolution-monitor.js', 'render-quality.js', 'wall-readability.js', 'surface-readability.js', 'world-batching.js', 'enhancements.js', 'follow-camera.js', 'human-occlusion.js', 'human-view.js', 'look-pass.js', 'fixed-camera-trial.js', 'owner.*', 'owner-token.html', 'server/telemetry*', 'server/player*', 'ghost-replay.js', 'replay-scene.js', 'replay-audio.js', 'server/worker.js', 'index.html', 'canyon.html', 'bench/opaque-wall*', 'bench/wall-readability*', 'bench/foundation*', 'bench/db-efficiency.test.cjs', 'bench/player-console.test.cjs', 'server/*schema.sql', 'server/ranking-index.sql', '.github/workflows/foundation.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,6 +38,8 @@ jobs:
         run: node bench/start-readiness-browser.cjs
       - name: Wall floor and edge readability in both maps
         run: node bench/wall-readability-browser.cjs
+      - name: Opaque walls photo fixtures and native movement
+        run: node bench/opaque-walls-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -46,4 +48,5 @@ jobs:
             browser-evidence/foundation/
             browser-evidence/start-readiness/
             browser-evidence/wall-readability/
+            browser-evidence/opaque-walls/
           retention-days: 7

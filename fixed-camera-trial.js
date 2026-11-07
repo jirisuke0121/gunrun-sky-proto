@@ -178,7 +178,9 @@
     return cameraFraction;
   }
   function bodyOccluded(camera){
-    return [[0,.8,0],[0,1.45,0],[0,.05,0],[.28,.05,0],[-.28,.05,0],[0,.05,.28],[0,.05,-.28]]
+    // Animated boots/gear can extend beyond the .32m movement capsule. The
+    // depth test still limits the overlay to genuinely hidden body pixels.
+    return [[0,.8,0],[0,1.45,0],[0,.05,0],[.5,.05,0],[-.5,.05,0],[0,.05,.5],[0,.05,-.5]]
       .some(([x,y,z])=>blocked(camera,{x:c.pos.x+x,y:c.pos.y+y,z:c.pos.z+z}));
   }
   const reset = () => { moving = false; pointer = null; cameraAt=null;cameraFraction=1;cameraPitch=pose.pitch; };

@@ -15,12 +15,13 @@ try{browser=await chromium.launch({headless:true,executablePath:process.env.PLAY
    return[g.solids.map(b=>[b.minX,b.minY,b.minZ,b.maxX,b.maxY,b.maxZ,b.type,b.off,b.hidden]),g.NAV.nodes.map(n=>[n.x,n.y,n.z]),g.NAV.E.length]});
   const hash=crypto.createHash('sha256').update(JSON.stringify(structure)).digest('hex');if(!baselineHash)baselineHash=hash;assert.equal(hash,baselineHash,'all player collision and nav data match');
   async function place(at){await p.evaluate(at=>{const g=__game,c=g.P;skySwing.reset();c.pos.set(...at);c.lastGround.copy(c.pos);c.safe.copy(c.pos);c.vel.set(0,0,0);c.state='normal';c.onGround=true;c.yaw=c.pitch=c.shake=0;c.ledge=c.ladder=c.hook=c.zip=c.doorAction=null;c.jumpBuf=c.slideBuf=0;skyFollowCamera.reset();g.frameOnce(0)},at)}
+  if(!classic)assert.notEqual(await p.evaluate(()=>window.__staticMerge?.materialGroups?.revision),'fixed-camera-trial-unbatched','opaque scenery keeps static batching');
   const snapshots=[];
   for(const scene of scenes){await place(scene.at);
    const snap=await p.evaluate(()=>{const g=__game,c=g.P,cam=g.debug.camera,v=c.pos.clone().add({x:0,y:.3,z:0}).project(cam),r=g.debug.renderer;
     return{pos:c.pos.toArray(),free:g.freeAt(c.pos.x,c.pos.y+.03,c.pos.z,.32,1.75),camera:cam.position.toArray(),rotation:cam.rotation.toArray().slice(0,3),faded:skyFixedCamera.fadedCount,cameraSafe:skyFixedCamera.cameraSafe(cam.position),footHidden:document.body.dataset.skyOpaqueFootHidden,outline:document.body.dataset.skyHumanOccluded,footScreen:v.toArray(),view:document.body.dataset.skyHumanView,gl:r.getContext().getError(),shaderErrors:r.info.programs.filter(x=>x.diagnostics?.runnable===false).length};});
    assert.equal(snap.free,true,'valid physical photo fixture '+scene.id);assert.equal(snap.gl,0);assert.equal(snap.shaderErrors,0);assert.ok(Math.abs(snap.rotation[1])<1e-6&&Math.abs(snap.rotation[2])<1e-6);
-   if(!classic){assert.equal(snap.faded,0);assert.equal(snap.cameraSafe,true,scene.id+' camera outside solid/eave');if(!['inside','occluded'].includes(scene.id))assert.equal(snap.footHidden,'false',scene.id+' standing surface visible');assert.ok(Math.abs(snap.footScreen[0])<.95&&Math.abs(snap.footScreen[1])<.95);if(scene.id==='occluded')assert.equal(snap.outline,'true');}
+   if(!classic){assert.equal(snap.faded,0);assert.equal(snap.cameraSafe,true,scene.id+' camera outside solid/eave');if(!['inside','occluded'].includes(scene.id))assert.equal(snap.footHidden,'false',scene.id+' standing surface visible');assert.ok(Math.abs(snap.footScreen[0])<.95&&Math.abs(snap.footScreen[1])<.95);if(['street','occluded'].includes(scene.id))assert.equal(snap.outline,'true');}
    const label=`${touch?'touch':'desktop'}-${classic?'before':'after'}-${scene.id}`;await p.screenshot({path:path.join(out,label+'.png')});snapshots.push({id:scene.id,...snap});
   }
   await place(scenes.find(s=>s.id==='street').at);await p.keyboard.down('d');

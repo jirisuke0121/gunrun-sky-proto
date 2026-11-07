@@ -21,9 +21,9 @@ import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261031-g
 import { createJumpPickups } from './jump-pickups.js?v=20261101-jump-stash-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261106-player-clarity-v2';
 import { createDash } from './dash-boost.js?v=20261101-run-feel-v1';
-import { mergeStaticMaterialGroups } from './world-batching.js?v=20261106-rooftop-v2';
+import { mergeStaticMaterialGroups } from './world-batching.js?v=20261108-opaque-v1';
 import { installWallReadability } from './wall-readability.js?v=20261106-south-v1';
-import { installSurfaceReadability } from './surface-readability.js?v=20261107-opaque-v1';
+import { installSurfaceReadability } from './surface-readability.js?v=20261108-opaque-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
