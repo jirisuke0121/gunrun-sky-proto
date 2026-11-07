@@ -1,0 +1,79 @@
+{
+ "corridor": {
+  "endZ": 9.26,
+  "minH": 1.75,
+  "maxDy": 0,
+  "launches": 0
+ },
+ "slide": {
+  "launches": 1,
+  "tickets": 1,
+  "enterSpeed": 15,
+  "apex": 22.76,
+  "over20": 1.05,
+  "maxWestSpeed": 5.7,
+  "landed": [
+   -18.67,
+   0,
+   -5.25,
+   2.74
+  ],
+  "over": false,
+  "life": 5
+ },
+ "slideMid": {
+  "launches": 1,
+  "tickets": 1,
+  "enterSpeed": 15,
+  "apex": 22.76,
+  "over20": 1.05,
+  "maxWestSpeed": 5.7,
+  "landed": [
+   -18.67,
+   0,
+   -5.25,
+   2.74
+  ],
+  "over": false,
+  "life": 5
+ },
+ "run": {
+  "launches": 0,
+  "ticket": false
+ },
+ "low": {
+  "launches": 0,
+  "tickets": 0,
+  "enterSpeed": 15,
+  "apex": 0,
+  "over20": 0,
+  "maxWestSpeed": 0,
+  "landed": null,
+  "over": false,
+  "life": 5
+ },
+ "edge": {
+  "launches": 0,
+  "tickets": 0,
+  "enterSpeed": 12.3,
+  "apex": 0,
+  "over20": 0,
+  "maxWestSpeed": 0,
+  "landed": null,
+  "over": false,
+  "life": 5
+ },
+ "dropIn": {
+  "launches": 0
+ },
+ "still": {
+  "launches": 0,
+  "pos": [
+   3.4,
+   4.1,
+   -8.75
+  ]
+ },
+ "rideActive": true,
+ "carryOver": false
+}
