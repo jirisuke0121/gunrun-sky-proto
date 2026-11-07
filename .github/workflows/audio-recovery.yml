@@ -1,7 +1,7 @@
 name: Audio interruption recovery
 on:
   pull_request:
-    paths: ['audio-recovery.js', 'index.html', 'canyon.html', 'bench/audio-recovery*', '.github/workflows/audio-recovery.yml']
+    paths: ['audio-recovery.js', 'enhancements.js', 'index.html', 'canyon.html', 'bench/audio-recovery*', 'bench/ambient-wind*', '.github/workflows/audio-recovery.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -28,9 +28,17 @@ jobs:
           fi
       - name: Restore real audio in both maps with desktop and touch input
         run: node bench/audio-recovery-browser.cjs
+      - name: Bound rendered wind in manual starts and intro-to-Easy transitions
+        env:
+          RUNNING_QA_URL: http://127.0.0.1:8793/
+        run: |
+          python3 -m http.server 8793 --bind 127.0.0.1 > /tmp/wind-server.log 2>&1 &
+          node bench/ambient-wind-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: audio-recovery-evidence
-          path: browser-evidence/audio-recovery.json
+          path: |
+            browser-evidence/audio-recovery.json
+            browser-evidence/ambient-wind.json
           retention-days: 7
