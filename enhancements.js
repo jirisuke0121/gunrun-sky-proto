@@ -794,13 +794,16 @@ if (window.T2?.GLTFLoader) {
     if (!loops) loops = { zip: makeLoop(1500, 3), reel: makeLoop(900, 5) };
     const t = Ut.ctx.currentTime;
     const playing = mode === 'play' && !z.over;
+    const audible = playing && !window.skyGuidedIntro?.blocked;
+    // Guided coaching freezes the physics tick that normally fades the wind.
+    if (!audible) Ut.wind?.gain.setTargetAtTime(0, t, 0.08);
     const state = playing ? c.state : 'none';
     const speed = Math.hypot(c.vel.x, c.vel.y, c.vel.z);
-    loops.zip.amp.gain.setTargetAtTime(state === 'zip' ? 0.1 + Math.min(0.16, speed * 0.01) : 0, t, 0.06);
+    loops.zip.amp.gain.setTargetAtTime(audible && state === 'zip' ? 0.1 + Math.min(0.16, speed * 0.01) : 0, t, 0.06);
     loops.zip.filter.frequency.setTargetAtTime(1100 + speed * 80, t, 0.1);
     loops.zip.osc.frequency.setTargetAtTime(55 + speed * 5, t, 0.1);
     const reel = c.hookT || 0;
-    loops.reel.amp.gain.setTargetAtTime(state === 'hook' ? 0.12 : 0, t, 0.04);
+    loops.reel.amp.gain.setTargetAtTime(audible && state === 'hook' ? 0.12 : 0, t, 0.04);
     loops.reel.filter.frequency.setTargetAtTime(700 + reel * 900, t, 0.08);
     loops.reel.osc.frequency.setTargetAtTime(100 + reel * 160, t, 0.08);
     // Background music: a low detuned drone with a slow heartbeat pulse. It is
