@@ -1,0 +1,37 @@
+{
+ "corridor": {
+  "endZ": 9.26,
+  "minH": 1.75,
+  "maxDy": 0,
+  "launches": 0
+ },
+ "slide": {
+  "launches": 1,
+  "enterSpeed": 15,
+  "maxSpeed": 24.5,
+  "apex": 22.96,
+  "over20": 1.08,
+  "landed": [
+   -9.3,
+   8,
+   -5.55,
+   2.44
+  ],
+  "over": false,
+  "life": 5
+ },
+ "run": {
+  "launches": 1,
+  "apex": 22.96
+ },
+ "still": {
+  "launches": 0,
+  "pos": [
+   3.4,
+   4.1,
+   -8.75
+  ]
+ },
+ "rideActive": true,
+ "carryOver": false
+}

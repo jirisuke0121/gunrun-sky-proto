@@ -1,0 +1,26 @@
+name: Tower tunnel (slide, U-arc, launch, corridors stay open)
+on:
+  pull_request:
+    paths: ['index.html', 'tower-tunnel.js', 'town-heights.js', 'slope-slide.js', 'landing-roll.js', 'bench/tower-tunnel*', '.github/workflows/tower-tunnel.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tower-tunnel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: node bench/tower-tunnel.test.cjs
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - run: node bench/tower-tunnel-browser.cjs
