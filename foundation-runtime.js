@@ -13,7 +13,7 @@ let qualityChecked = false, suggestion = null;
 try { qualityChecked = localStorage.getItem(CHECK_KEY) === 'done'; } catch {}
 const local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 const search = new URLSearchParams(location.search);
-const dev = local || search.has('practice') || search.has('perf') || search.has('oldtown_swing') || search.has('swingCourse');
+const dev = local || search.has('practice') || search.has('oldtown_swing') || search.has('swingCourse');
 const map = location.pathname.endsWith('canyon.html') ? 'rock-canyon' : 'old-town';
 let host = location.hostname;
 try { if (document.referrer) host += ' ' + new URL(document.referrer).hostname; } catch {}

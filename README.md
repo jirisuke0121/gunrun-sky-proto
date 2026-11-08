@@ -3,6 +3,7 @@
 - 切替を残す理由が無いので撤去。設定の「プレイ記録と動作情報を匿名で送信する」、ホーム・結果画面のチェックボックス、「設定で停止できます」の案内を削除。保存済みの「オフ」も起動のたびにオンへ戻す（`enhancements.js`）。
 - 送信しないのは、練習場・入門モード・検証モード・オーナー再生・ローカル（127.0.0.1 / localhost）だけ。内部の `U.sendLog` は残し、これらの場面で false にしている。
 - 画面には「ランキングのため、ニックネーム・スコア・プレイ記録（操作・国・端末環境）を匿名で送信します」と常時表示（ホーム・オンボーディング・記録パネル・英語版）。
+- `?perf=…` を付けて開くと、起動・開始などの利用状況（`/telemetry`）が開発扱いで送られなかった。計測は常時オンになったので、この条件を外した（`foundation-runtime.js`）。
 - 前日の「端末ごとに一度だけオンへ戻す」移行（`gunrun-send-default-20261108`）は不要になったので削除。
 - 確認：`bench/send-default-browser.cjs`（両マップ。保存済みオフ→オン、再オフしても次の起動でオン、切替UI・チェックボックス・停止案内が無い、ローカルは送信しない）、`record-integrity` / `ranked-spots` / `perf-trace` / `foundation` / `player-console` の単体、`perf-trace-browser` / `home-first-paint` / `onboarding` / `development-entry` / `guided-intro` のブラウザ。実機（iPhone 等）の送信は未確認。
 - 注意：公開先（CrazyGames・Y8・PlaytestCloud）の提出時は、データ送信のプライバシー表記が必要になる場合がある。
