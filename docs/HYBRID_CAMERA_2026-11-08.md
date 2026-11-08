@@ -1,6 +1,6 @@
 # 見通しが悪い区間だけ切り替えるカメラ
 
-基点 `f5a14a4`。作業ブランチ `codex/hybrid-camera-20261108`。試作は `?camera=after&cameraTrial=hybrid`、比較画面は `bench/hybrid-camera-review.html`。公開前のローカル検証版。
+基点 `f5a14a4`。作業ブランチ `codex/hybrid-camera-20261108`。ユーザーの公開依頼に基づいて反映する。試作は `?camera=after&cameraTrial=hybrid`、比較画面は `bench/hybrid-camera-review.html`。
 
 ## 要件と実装
 
@@ -34,4 +34,4 @@
 
 狭い通路でカメラを回り込ませる空間がない場合はカットが残る。すべての地形・全パルクール経路を網羅した検証ではない。実機iPhoneでの操作感・FPS、初見プレイヤーが迷わず進めるかは未確認。ヘッドレスブラウザのタッチ入力確認を実機確認として扱わない。
 
-容量17.51MB：20MB目安の88%、50MB上限の35%。公開・Pagesの配信確認は今回の作業では未実施。
+容量17.51MB：20MB目安の88%、50MB上限の35%。公開時はCI、意図したSHAのPagesデプロイ、公開ファイルのバイト一致、両マップと比較ページの実動作を別々に確認する。公開検証の生結果は `browser-evidence/hybrid-camera/` に保存する。
