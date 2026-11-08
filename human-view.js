@@ -625,6 +625,7 @@ function update(dt, preparingShot = false) {
   }
   camera.position.copy(pivot).addScaledVector(delta, safe);
   camera.updateMatrixWorld();
+  if(window.skyFixedCamera?.active)window.skyFixedCamera.updateCutaway?.(camera);
   const follow = window.skyFollowCamera?.active;
   // Hide the avatar before it fills the view, with a wider return threshold
   // so a wall edge does not flicker between a full body and first person.

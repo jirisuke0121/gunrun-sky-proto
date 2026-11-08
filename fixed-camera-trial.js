@@ -1,9 +1,12 @@
 import { createHybridCamera } from './hybrid-camera.js?v=20261108-hybrid-v1';
+import { createStableCamera } from './stable-camera.js?v=20261108-stable-v1';
+import { createCameraCutaway } from './camera-cutaway.js?v=20261108-stable-v1';
 // Local prototype, opt-in only. No saved preferences or ranked rules change.
 (() => {
   const p = new URLSearchParams(location.search);
   if (!['fixed','hybrid'].includes(p.get('cameraTrial'))) return;
   const hybrid = p.get('cameraTrial') === 'hybrid';
+  const stable = hybrid && p.get('cameraControl') !== 'legacy';
   const sky = window.__skyInternals, fc = window.skyFollowCamera;
   if (!sky || !fc) return;
   const bounded = (key, fallback, lo, hi) => p.has(key) && Number.isFinite(+p.get(key))
@@ -61,6 +64,15 @@ import { createHybridCamera } from './hybrid-camera.js?v=20261108-hybrid-v1';
   let moving = false, pointer = null, inputYaw = pose.yaw, fromAction=false;
   function input(raw) {
     const magnitude = Math.min(1, Math.hypot(raw.strIn, raw.fwdIn));
+    if(stable){
+      const held=magnitude>(touch.on?.18:0),stick=Math.atan2(raw.strIn,raw.fwdIn);
+      adaptive.setMoving(held);inputYaw=adaptive.view.yaw;
+      // Native parkour keeps its own forward/action semantics. Returning to
+      // normal movement uses the same displayed axes without a neutral rebase.
+      if(native.has(c.state))return raw;
+      return {...raw,fwdIn:held?magnitude:0,strIn:0,steer:0,fixed:true,
+        heading:inputYaw-stick,precise:true,motionScale:held?(touch.on?Math.max(0,(magnitude-.12)/.88):1):0};
+    }
     const same = touch.on ? pointer === touch.id : pointer === 'keys';
     if (native.has(c.state)) {
       if (magnitude <= .18 || !same) moving = false;
@@ -103,6 +115,7 @@ import { createHybridCamera } from './hybrid-camera.js?v=20261108-hybrid-v1';
     return hi>.001&&lo<.995;
   }
   function restore() {
+    cutaway?.disable();
     document.documentElement.dataset.cameraTrial='off';
     for(const mesh of faded)mesh.material=originals.get(mesh);
     faded.clear();
@@ -165,7 +178,8 @@ import { createHybridCamera } from './hybrid-camera.js?v=20261108-hybrid-v1';
     }
     return null;
   }
-  const adaptive=createHybridCamera({player:c,pose,safe:hybridSafe,blocked:hybridBlocked,regionCamera});
+  const adaptive=(stable?createStableCamera:createHybridCamera)({player:c,pose,safe:hybridSafe,blocked:hybridBlocked,regionCamera,canTurn:()=>!window.skyBite?.biting});
+  const cutaway=stable?createCameraCutaway(sky):null;
   function resolveCamera(pivot,wanted,dt) {
     if(hybrid){const state=adaptive.resolve(pivot,wanted,dt);cameraPitch=state.pitch;
       document.body.dataset.skyCameraSection=state.section;document.body.dataset.skyOpaqueFootHidden=String(!state.clear);
@@ -225,7 +239,7 @@ import { createHybridCamera } from './hybrid-camera.js?v=20261108-hybrid-v1';
   }
   const reset = () => { moving = false; pointer = null; fromAction=false;inputYaw=pose.yaw;cameraAt=null;cameraFraction=1;cameraPitch=pose.pitch;adaptive.reset(); };
   window.skyFixedCamera = { get active() { return active(); }, pose, chase, input, step, camera, reset,
-    occlusion, restore, visible, resolveCamera, bodyOccluded:camera=>hybrid?hybridBlocked(camera,{x:c.pos.x,y:c.pos.y+.1,z:c.pos.z})||hybridBlocked(camera,{x:c.pos.x,y:c.pos.y+1.5,z:c.pos.z}):bodyOccluded(camera),
+    occlusion, restore, visible, resolveCamera,updateCutaway:camera=>cutaway?.update(camera),bodyOccluded:camera=>stable?false:hybrid?hybridBlocked(camera,{x:c.pos.x,y:c.pos.y+.1,z:c.pos.z})||hybridBlocked(camera,{x:c.pos.x,y:c.pos.y+1.5,z:c.pos.z}):bodyOccluded(camera),
     cameraSafe:q=>hybrid?hybridSafe(q):cameraSafe(q),get view(){return hybrid?adaptive.view:pose},get hybridState(){return hybrid?{...adaptive.state,inputYaw}:null},
     get pitch(){return cameraPitch}, get opaque(){return opaque}, get fadedCount(){return faded.size} };
   document.documentElement.dataset.cameraTrial='fixed';

@@ -7,7 +7,7 @@ for(const touch of[false,true])for(const [x,f]of[[1,0],[0,1],[-1,0],[0,-1],[.6,.
  const view={yaw:0,pitch:-.65},c={yaw:0,pos:{x:0,y:0,z:0},vel:{x:0,y:0,z:0},state:'normal',onGround:true};
  const inputState={on:touch,id:touch?1:null},doc={body:{dataset:{}},documentElement:{dataset:{}},head:{append(){}},createElement:()=>({}),addEventListener(){}};
  const window={__skyInternals:{c,inputState},skyFollowCamera:{mode:'after'},addEventListener(){}};
- vm.runInNewContext(source,{window,document:doc,location:{search:'?cameraTrial=hybrid'},URLSearchParams,Math,
+ vm.runInNewContext(source,{window,document:doc,location:{search:'?cameraTrial=hybrid&cameraControl=legacy'},URLSearchParams,Math,
   createHybridCamera:()=>({view,reset(){view.yaw=0},get state(){return {section:'assist'}}})});
  const api=window.skyFixedCamera,raw=(x,f)=>({strIn:x,fwdIn:f});
  const initial=api.input(raw(x,f)).heading;
