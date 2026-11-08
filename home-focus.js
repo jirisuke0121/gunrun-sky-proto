@@ -73,7 +73,7 @@
   // What is sent is said on the home screen. Sending cannot be turned off.
   const notice = make('p', { id: 'homeSendNotice' });
   const syncNotice = () => {
-    if (trial) { notice.textContent = 'ローカル比較用の試作です。ランキング・プレイ記録は送信しません。'; return; }
+    if (trial === 'hybrid' || (trial && ['localhost', '127.0.0.1'].includes(location.hostname))) { notice.textContent = 'ローカル比較用の試作です。ランキング・プレイ記録は送信しません。'; return; }
     notice.textContent = 'ランキングのため、ニックネーム・スコア・プレイ記録（操作・国・端末環境）を匿名で送信します。';
   };
   syncNotice(); addEventListener('load', syncNotice); document.addEventListener('sky-difficulty-change', syncNotice);
