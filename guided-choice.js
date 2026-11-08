@@ -13,7 +13,7 @@ export function installGuidedChoice({game,sky,english,clearInput,adopt,reset,exi
     root.querySelector('#learnChoiceExit').textContent=tr('ホーム','Home');
     for(const a of root.querySelectorAll('article')){
       const fixed=a.dataset.choice==='after';
-      const automaticOnly=['follow','fixed','hybrid'].includes(new URLSearchParams(location.search).get('cameraTrial'));
+      const automaticOnly=new URLSearchParams(location.search).get('cameraTrial')!=='follow-legacy';
       const title=fixed?(automaticOnly?tr('視点操作なし','No camera input'):tr('カメラに任せる','Automatic follow')):tr('自分で視点操作','Control the view');
       a.querySelector('h3').textContent=title;
       const preview=a.querySelector('.learn-preview');preview.setAttribute('aria-label',title+tr('を試す',' — try'));preview.querySelector('img').alt=title+tr('の実際のゲーム画面',' in the actual game');

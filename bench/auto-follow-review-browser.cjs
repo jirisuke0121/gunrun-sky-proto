@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright');
-const base=process.env.RUNNING_QA_URL||'http://127.0.0.1:8895/',out='browser-evidence/auto-follow';
+const base=process.env.RUNNING_QA_URL||'http://127.0.0.1:8895/',out=process.env.AUTO_FOLLOW_OUT||'browser-evidence/auto-follow-release';
 (async()=>{fs.mkdirSync(out,{recursive:true});const b=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--enable-unsafe-swiftshader']});const rows=[];
 try{for(const mobile of[false,true]){
  const c=await b.newContext({viewport:mobile?{width:844,height:390}:{width:1280,height:720},hasTouch:mobile,isMobile:mobile,locale:'ja-JP'});let posts=0;const errors=[];

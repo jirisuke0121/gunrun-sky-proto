@@ -81,12 +81,13 @@ fs.mkdirSync(out, { recursive: true });
         assert.ok(active.on&&active.opacity>.8&&Math.abs(active.left-start.x)<1&&Math.abs(active.top-start.y)<1,JSON.stringify(active));
         assert.ok(active.speed>1&&active.knob.includes('-56px'),JSON.stringify(active));
         await p.screenshot({path:`${out}/${id}-active.png`});
-        // A second finger looks around; releasing it leaves the movement thumb active.
+        // Easy mode consumes the second finger without manual camera input;
+        // releasing it must still leave the movement thumb active.
         const right=await point(650,170,2),rightMoved=await point(680,170,2);
         await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[b,right]});
         await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[b,rightMoved]});
         await p.waitForFunction(()=>__skyInternals.inputState.lx===680,null,{timeout:3000});
-        const look=await snapshot();assert.ok(Math.abs(look.viewYaw-active.viewYaw)>.001,JSON.stringify({id,look,active,right,rightMoved}));
+        const look=await snapshot();assert.equal(await p.evaluate(()=>skyFollowCamera.manualLook),false);assert.ok(Math.abs(look.viewYaw-active.viewYaw)<1e-8,JSON.stringify({id,look,active,right,rightMoved}));
         await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[rightMoved]});
         await p.waitForFunction(()=>__skyInternals.inputState.lookId===null,null,{timeout:3000});
         await p.evaluate(()=>stickTick(2));const oneLeft=await snapshot();assert.ok(oneLeft.on,JSON.stringify(oneLeft));
@@ -104,7 +105,7 @@ fs.mkdirSync(out, { recursive: true });
       await p.evaluate(()=>{skyDash.step(5);__game.cam(0);});assert.equal(await p.evaluate(()=>skyDash.swingRemaining),0);assert.ok(await p.locator('#dashStatus').isVisible());assert.equal(await p.locator('#dashStatus').innerText(),'速度 +0%');
       assert.deepEqual(errors,[]);results.push({id,idle,probes,errors});
       fs.writeFileSync(`${out}/results.json`,JSON.stringify(results,null,2));
-      console.log('PASS',id,'three left-zone origins, movement, second-finger look/release, idle marker, pause, speed below life');
+      console.log('PASS',id,'three left-zone origins, movement, second-finger camera suppression/release, idle marker, pause, speed below life');
       await ctx.close();
     }
   } finally { await browser.close(); server?.kill(); }

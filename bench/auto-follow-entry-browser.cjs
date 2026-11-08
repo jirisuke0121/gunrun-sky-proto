@@ -1,14 +1,14 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright');
-const base=process.env.RUNNING_QA_URL||'http://127.0.0.1:8895/',out='browser-evidence/auto-follow';
+const base=process.env.RUNNING_QA_URL||'http://127.0.0.1:8895/',out=process.env.AUTO_FOLLOW_OUT||'browser-evidence/auto-follow-release';
 (async()=>{fs.mkdirSync(out,{recursive:true});const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--enable-unsafe-swiftshader']});const rows=[];
-try{for(const [map,lang]of[['index.html','ja'],['canyon.html','en']]){
+try{for(const [map,lang]of[['index.html','ja'],['index.html','en'],['canyon.html','ja'],['canyon.html','en']]){
  const ctx=await browser.newContext({viewport:{width:844,height:390},hasTouch:true,isMobile:true,locale:lang==='ja'?'ja-JP':'en-US'});let posts=0;const errors=[];
  await ctx.addInitScript(()=>{window.__hold=true;localStorage.setItem('gunrun-fixed-controls-v1','1')});
  await ctx.route('https://**/*',r=>{if(r.request().method()==='POST')posts++;return r.fulfill({status:200,contentType:'application/json',body:'{"ok":true,"top":[],"total":0}'})});
  const p=await ctx.newPage();p.setDefaultTimeout(90000);p.on('pageerror',e=>errors.push(e.message));
  const normalURL=base+map+`?camera=after&lang=${lang}&controlpick=0&hookGuide=0&dev=1`,url=normalURL+'&cameraTrial=follow';
  const ready=()=>p.waitForFunction(()=>window.skyStartReadiness?.ready);
- const check=async(label,trial='follow')=>{const s=await p.evaluate(()=>({trial:new URL(location.href).searchParams.get('cameraTrial'),mode:skyFollowCamera.mode,manualLook:skyFollowCamera.manualLook,fixed:!!window.skyFixedCamera?.active,savedFixed:localStorage.getItem('gunrun-fixed-controls-v1')}));assert.equal(s.trial,trial,label);assert.equal(s.mode,'after');assert.equal(s.manualLook,trial!=='follow');assert.equal(s.fixed,false);assert.equal(s.savedFixed,null);return s;};
+ const check=async(label,trial='follow')=>{const s=await p.evaluate(()=>({trial:new URL(location.href).searchParams.get('cameraTrial'),mode:skyFollowCamera.mode,manualLook:skyFollowCamera.manualLook,fixed:!!window.skyFixedCamera?.active,savedFixed:localStorage.getItem('gunrun-fixed-controls-v1')}));assert.equal(s.trial,trial,label);assert.equal(s.mode,'after');assert.equal(s.manualLook,trial==='follow-legacy');assert.equal(s.fixed,false);assert.equal(s.savedFixed,null);return s;};
  await p.goto(normalURL);await ready();const normal=await check('normal baseline',null);
  await p.goto(url);await ready();const candidate=await check('candidate start');
  await p.locator('#homeGuide').tap();
