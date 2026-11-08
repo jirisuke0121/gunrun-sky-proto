@@ -1,0 +1,24 @@
+name: Home first paint
+on:
+  pull_request:
+    paths: ['index.html', 'canyon.html', 'home-focus.*', 'onboarding.*', 'bench/home-first-paint*', '.github/workflows/home-first-paint.yml']
+permissions:
+  contents: read
+jobs:
+  home-first-paint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: No old start screen before the home is built
+        run: node bench/home-first-paint-browser.cjs
