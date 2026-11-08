@@ -2,9 +2,10 @@
 // 塔の中をU字に抜けて、屋上の穴から真上へ打ち上がる。打ち上がった先でマップ全体が見渡せる（頂点 約23 m）。
 //
 // 屋内通路を壊さない掘り方（2026-11-07）:
-//   * 掘るのは東面の屋根の帯 z -10.0〜-7.5 だけ。東の回廊（x 11〜13・床 y 4）は残し、
-//     その真上に薄い滑り台の殻（厚さ0.3 m）を被せる。殻の下端は y 6.5 以上なので天井高 2.5 m 以上が残る。
-//   * 回廊の梁（z -7.5〜-6.5）は帯の外。触らない。
+//   * 掘るのは東面の屋根の帯 z -9.6〜-7.1 だけ。東の回廊（x 11〜13・床 y 4）は残し、
+//     その真上に薄い滑り台の殻（厚さ0.3 m）を被せる。殻の下端は y 6.6 以上なので天井高 2.6 m 以上が残る。
+//   * 帯は長い斜面（z -8.7〜-7.3、中心 -8.0）の左右に余裕を持たせた幅。体（半径0.32）が斜面の中心から左右 0.5 m ずれても壁に当たらない。
+//   * 回廊の天井の梁（z -7.5〜-6.5）は、帯に入る 0.4 m だけ削る（残りは z -7.1〜-6.5。天井高は梁の下 2.5 m のまま）。
 //   * 芯（x -11〜11 の塊）は帯の中だけ掘る。外側の回廊・階段・扉は変えない。
 //   * 屋根は入口の坑（x 7.2〜14）と出口の穴（x -3.0〜-1.4）だけ開ける。間の x -1.4〜7.2 は屋根が残るのでトンネルになる。
 // 射出は見える仕掛け: U字の内面に橙の帯、出口の穴に光の柱。ここを通ると決まった速度で打ち上がる（ジャンプ台と同じ考え方）。
@@ -12,7 +13,7 @@
 //   歩いて入る・横や穴から落ちる・助走なしで滑るだけでは発動しない（誰でも即発動する乱用を防ぐ）。
 // 出口は西へ流れる角度（77°）。屋上の西の広場の床（x≈-19）に降りる。
 (() => {
-  const Z0 = -10, Z1 = -7.5;               // 帯（トンネルの幅 2.5 m）
+  const Z0 = -9.6, Z1 = -7.1;               // 帯（トンネルの幅 2.5 m。長い斜面の中心 z=-8.0 から右 0.9 m・左 1.6 m）
   const XB = 2.07, YB = 3.43;              // 滑り台の底＝U字の始点
   const XT = 14, YT = 8;                   // 滑り台の上端（塔の屋上の縁）
   const XC = 11;                           // ここより東は回廊の上（殻だけ）
@@ -24,8 +25,9 @@
   const EXIT_SPEED = 25.5, EXIT_VZ = 1;   // vz: 広場の床（z -8〜8）の内側に降りる（入った位置が帯の北端でも床の外に出ない）
   const ENTRY_SPEED = 12.5;                // 入口（x=14）をこれ以上の速さで滑り降りて通ると入場券を得る。実測: x31より上から約2秒以上滑ると届く（x28で11.3、x34で13.2、x38で14.5）
   const MIN_SPEED = 11;                    // 底でもこれ以上の速さが残っていること
+  const CATCH = .4;                        // 入口で帯の外へこの距離までずれていても帯の端へ寄せる
   const TICKET_SECONDS = 6;                // 券の有効時間（入口から底まで約1.3秒。余裕を見た上限）
-  const T = { Z0, Z1, XB, YB, XT, YT, XC, R, TH, SHELL, FILL0, ROOF_Y, HOLE_E, HOLE_W, LIP_X, LIP_Y, EXIT_SPEED, EXIT_VZ, ENTRY_SPEED, MIN_SPEED, TICKET_SECONDS,
+  const T = { Z0, Z1, XB, YB, XT, YT, XC, R, TH, SHELL, FILL0, ROOF_Y, HOLE_E, HOLE_W, LIP_X, LIP_Y, EXIT_SPEED, EXIT_VZ, ENTRY_SPEED, MIN_SPEED, CATCH, TICKET_SECONDS,
     arcLength: R * TH, grade: (YT - YB) / (XT - XB) };
 
   const surfaceY = x => YB + (YT - YB) * (x - XB) / (XT - XB);
@@ -67,6 +69,9 @@
     const lane = { minZ: Z0, maxZ: Z1 };
     const isCore = b => b.type === 'mono';
     const isRoof = b => b.type === 'slab' && b.minY >= ROOF_Y - .05 && b.maxY <= 8.05;
+    const isLintel = b => b.type === 'beam' && !b.hidden && b.minY >= 6.4 && b.maxY <= 7.7;
+    // 0. 回廊の天井の梁のうち、帯に入る分だけ削る（殻の上に梁が出っ張らないように）。
+    cut(jn, { minX: XC, maxX: 13, minY: 6.4, maxY: 7.7, ...lane }, isLintel);
     // 1. 芯と東の外壁を、帯の中だけ y 3.2 より上を取り除く（下は残す）。
     cut(jn, { minX: HOLE_W, maxX: XT, minY: FILL0, maxY: 8.5, ...lane }, isCore);
     // 2. 屋根を開ける: 入口の坑と出口の穴。
@@ -155,12 +160,15 @@
       riding = null;
     }
     function updateTicket(p, speed) {
-      const inLane = p.z > Z0 + .05 && p.z < Z1 - .05;
       // 入口の線を、斜面から西向きに、速く、滑りながら通った瞬間だけ券が出る。
-      if (prevX !== null && prevX > XT && p.x <= XT && inLane && p.y >= YT - .6 && speed >= ENTRY_SPEED && c.state === 'slide' && c.vel.x < -.8 * speed) {
+      // 斜面の縁にはみ出して滑っている人（体が帯の外 0.4 m 以内）は、その瞬間に帯の端へ寄せる（ちょっとのズレで入れなくなるのを防ぐ）。
+      if (prevX !== null && prevX > XT && p.x <= XT && p.y >= YT - .6 && speed >= ENTRY_SPEED && c.state === 'slide' && c.vel.x < -.8 * speed &&
+          p.z > Z0 - CATCH && p.z < Z1 + CATCH) {
+        if (p.z > Z1 - .35) p.z = Z1 - .35; else if (p.z < Z0 + .35) p.z = Z0 + .35;
         ticket = { t: game.z.t };
         stats.towerTickets = (stats.towerTickets || 0) + 1;
       }
+      const inLane = p.z > Z0 + .05 && p.z < Z1 - .05; // 寄せたあとの位置で判定する
       if (ticket && (p.x > XT + .6 || !inLane && p.x > XB - 1 || game.z.t < ticket.t || game.z.t - ticket.t > TICKET_SECONDS)) ticket = null;
       prevX = p.x;
     }
