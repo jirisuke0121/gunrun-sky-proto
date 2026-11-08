@@ -2,6 +2,8 @@
 
 基点 `f5a14a4`。作業ブランチ `codex/hybrid-camera-20261108`。ユーザーの公開依頼に基づいて反映する。試作は `?camera=after&cameraTrial=hybrid`、比較画面は `bench/hybrid-camera-review.html`。
 
+公開直前のmain `56c8c49`（塔入口の許容帯・寄せ・券の維持の修正）を保持して統合。塔スクリプトのキャッシュ識別子を更新し、統合後に塔入口と区間カメラを再確認する。
+
 ## 要件と実装
 
 | 要件 | 実装 | 確認方法 |
