@@ -26,18 +26,24 @@ for (const file of ['canyon.html', 'index.html']) {
     },
   });
   vm.runInContext(html.slice(start, end), context);
-  const go = () => vm.runInContext('go()', context);
+  // 2枚目の距離マップは次のフレームで作る（soLdStep）。1回の更新は go()＋次フレームで2回の探索。
+  const go = () => { vm.runInContext('go()', context); vm.runInContext('soLdStep()', context); };
+  const goOnly = () => vm.runInContext('go()', context);
   const jam = () => vm.runInContext(canyon ? 'flankJamEdges.add(1)' : 'pathJamEdges.add(1)', context);
 
+  goOnly();
+  assert.equal(searches, 2, `${file}: the first refresh (new round) builds both fields at once`);
   go();
-  assert.equal(searches, 2, `${file}: first refresh builds both fields`);
+  assert.equal(searches, 2, `${file}: nothing pending after the first refresh`);
   assert.equal(near[0], 1);
   go();
   player.pos.x = 1.4; go();
   assert.equal(searches, 2, `${file}: same target and graph reuse both fields`);
 
-  player.pos.x = 2.1; go();
-  assert.equal(searches, 4, `${file}: new target refreshes both fields`);
+  player.pos.x = 2.1; goOnly();
+  assert.equal(searches, 3, `${file}: a new target rebuilds the player field at once (a delayed refresh sent zombies the long way round) and leaves the long-fall field for the next frame`);
+  vm.runInContext('soLdStep()', context);
+  assert.equal(searches, 4, `${file}: the long-fall field follows on the next frame`);
   assert.equal(near[0], 2);
   door.off = false; go();
   assert.equal(searches, 6, `${file}: door change refreshes both fields`);
@@ -54,15 +60,23 @@ for (const file of ['canyon.html', 'index.html']) {
   go();
   assert.equal(searches, 12, `${file}: ladder destination refreshes both fields`);
   assert.equal(near[0], 13);
+  // 再開の直前に次フレーム待ちの更新が残っていても、再開後に古い目的地で上書きしない。
+  context.ce = 22; player.state = 'normal'; player.pos.x = 4.9; goOnly();
+  assert.equal(searches, 13, `${file}: the player field is rebuilt now and the long-fall field is left pending`);
   vm.runInContext('pathFieldKey=null', context);
+  goOnly();
+  assert.equal(searches, 15, `${file}: a restart rebuilds both fields at once`);
+  const afterRestart = searches;
+  vm.runInContext('soLdStep()', context);
+  assert.equal(searches, afterRestart, `${file}: a restart drops the pending long-fall refresh`);
   go();
-  assert.equal(searches, 14, `${file}: restart forces a fresh field`);
+  assert.equal(searches, 15, `${file}: nothing is rebuilt twice after a restart`);
   if (!canyon) {
     context.indoorAccess.revision++; go();
-    assert.equal(searches, 16, 'human entry refreshes both fields even when the player target and doors stay the same');
-    go(); assert.equal(searches, 16, 'unchanged indoor access reuses the fields');
+    assert.equal(searches, 17, 'human entry refreshes both fields even when the player target and doors stay the same');
+    go(); assert.equal(searches, 17, 'unchanged indoor access reuses the fields');
     context.indoorAccess.revision++; go();
-    assert.equal(searches, 18, 'resetting indoor access invalidates both fields');
+    assert.equal(searches, 19, 'resetting indoor access invalidates both fields');
   }
   const previous = searches;
   context.window.skyZombieClimb = { navigationTargets: () => [3, 4] };

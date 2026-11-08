@@ -54,6 +54,8 @@ jobs:
         run: node bench/zombie-wall-approach-browser.cjs
       - name: Shortcuts and moving-player pursuit in both maps
         run: node bench/zombie-routing-browser.cjs
+      - name: Path search matches a plain search on both real maps
+        run: node bench/path-search-memo-browser.cjs
       - name: Editor auto-save in desktop and touch browsers
         run: |
           node bench/editor-autosave-browser.cjs
