@@ -1,7 +1,9 @@
+import { createHybridCamera } from './hybrid-camera.js?v=20261108-hybrid-v1';
 // Local prototype, opt-in only. No saved preferences or ranked rules change.
 (() => {
   const p = new URLSearchParams(location.search);
-  if (p.get('cameraTrial') !== 'fixed') return;
+  if (!['fixed','hybrid'].includes(p.get('cameraTrial'))) return;
+  const hybrid = p.get('cameraTrial') === 'hybrid';
   const sky = window.__skyInternals, fc = window.skyFollowCamera;
   if (!sky || !fc) return;
   const bounded = (key, fallback, lo, hi) => p.has(key) && Number.isFinite(+p.get(key))
@@ -13,8 +15,8 @@
   const native = new Set(['ladder', 'zip', 'hook', 'swing', 'ledge', 'wallrun']);
   const active = () => fc.mode === 'after' && !sky.demoActive() && !['menu','replay'].includes(sky.modeRef());
   // Keep the published fade available for a same-location comparison.
-  const fadeWalls = p.get('fixedOcclusion') === 'fade' || p.get('wallView') === 'classic';
-  const opaque = !fadeWalls && p.get('fixedOcclusion') !== 'zoom';
+  const fadeWalls = !hybrid && (p.get('fixedOcclusion') === 'fade' || p.get('wallView') === 'classic');
+  const opaque = hybrid || !fadeWalls && p.get('fixedOcclusion') !== 'zoom';
   const faded = new Set(), originals = new Map(), translucent = new Map();
   const footHeight = { value: 0 };
   function fadeMaterial(material, bounds) {
@@ -56,19 +58,27 @@
     }
     return [...sky.jn,...visuals];
   }
-  let moving = false, pointer = null;
+  let moving = false, pointer = null, inputYaw = pose.yaw, fromAction=false;
   function input(raw) {
     const magnitude = Math.min(1, Math.hypot(raw.strIn, raw.fwdIn));
     const same = touch.on ? pointer === touch.id : pointer === 'keys';
     if (native.has(c.state)) {
       if (magnitude <= .18 || !same) moving = false;
-      if(c.state==='wallrun'){const delta=pose.yaw-Math.atan2(raw.strIn,raw.fwdIn)-c.yaw;return {...raw,fwdIn:magnitude*Math.cos(delta),strIn:-magnitude*Math.sin(delta)};}
+      fromAction=hybrid;
+      if(c.state==='wallrun'){const delta=inputYaw-Math.atan2(raw.strIn,raw.fwdIn)-c.yaw;return {...raw,fwdIn:magnitude*Math.cos(delta),strIn:-magnitude*Math.sin(delta)};}
       return c.state === 'ladder' && moving ? { ...raw, fwdIn: magnitude } : raw;
     }
-    pointer = touch.on ? touch.id : 'keys';
+    const wasMoving=moving, stick=Math.atan2(raw.strIn,raw.fwdIn);
+    if(hybrid&&magnitude>(touch.on ? .18 : 0)){
+      if(fromAction&&same&&wasMoving){
+        const speed=Math.hypot(c.vel.x,c.vel.z);
+        inputYaw=(speed>.1?Math.atan2(-c.vel.x,-c.vel.z):c.yaw)+stick;
+      }else if(!wasMoving||!same)inputYaw=adaptive.view.yaw;
+    }
+    fromAction=false;pointer = touch.on ? touch.id : 'keys';
     moving = magnitude > (touch.on ? .18 : 0);
     return { ...raw, fwdIn: moving ? magnitude : 0, strIn: 0, steer: 0,
-      fixed: true, heading: pose.yaw - Math.atan2(raw.strIn, raw.fwdIn),
+      fixed: true, heading: (hybrid?inputYaw:pose.yaw) - stick,
       precise: true, motionScale: moving ? (touch.on ? Math.max(0, (magnitude - .12) / .88) : 1) : 0 };
   }
   function step(_dt, raw) {
@@ -76,7 +86,8 @@
   }
   function camera(camera) {
     document.documentElement.dataset.cameraTrial='fixed';
-    camera.rotation.set(pose.pitch, pose.yaw, 0);
+    const view=hybrid?adaptive.view:pose;
+    camera.rotation.set(view.pitch, view.yaw, 0);
     if (camera.fov !== 65) { camera.fov = 65; camera.updateProjectionMatrix(); }
     camera.updateMatrixWorld();
   }
@@ -129,7 +140,36 @@
   let cameraFraction=1, cameraAt=null, cameraPitch=pose.pitch;
   function cameraSafe(q){return sky.oe(q.x,q.y-.16,q.z,.16,.32)&&!(window.skyCameraVolumes||[]).some(b=>
     q.x>b.minX-.16&&q.x<b.maxX+.16&&q.z>b.minZ-.16&&q.z<b.maxZ+.16&&q.y>b.minY-.16&&q.y<b.maxY+.16);}
+  // Hollow/open houses have real doorway walls in the physical field. Only
+  // their roof/plaster cap is an additional visual blocker for an inside view.
+  let volumeSource,volumeCache=[];
+  function hybridVolumes(){if(volumeSource!==window.skyCameraVolumes){volumeSource=window.skyCameraVolumes;
+    volumeCache=(volumeSource||[]).map(b=>({...b,minY:b.kind==='hollow'?2.3:b.kind==='open'?b.maxY-.16:b.minY}));}return volumeCache;}
+  const hybridSafe=q=>sky.oe(q.x,q.y-.16,q.z,.16,.32)&&!hybridVolumes().some(b=>
+    q.x>b.minX-.16&&q.x<b.maxX+.16&&q.z>b.minZ-.16&&q.z<b.maxZ+.16&&q.y>b.minY-.16&&q.y<b.maxY+.16);
+  function hybridBlocked(a,b){return sky.near(Math.min(a.x,b.x),Math.min(a.z,b.z),Math.max(a.x,b.x),Math.max(a.z,b.z))
+    .some(q=>q.solid&&!q.off&&q.maxY>c.pos.y+.04&&intersects(a,b,q))||hybridVolumes().some(q=>intersects(a,b,q));}
+  function regionCamera(usable){
+    if(window.SKY_CANYON_MAP||window.skyGuidedScene)return null;
+    // The real west hall is two metres wide. A camera that alternates between
+    // the outside of its doorway and its inner wall cannot make a stable shot.
+    // Keep the camera on the hall centreline through the entire doorway.
+    const at=c.pos, hall=at.x>-13.1&&at.x<-10.9&&at.z>-10.7&&at.z<10.7;
+    const doorway=at.x>-19.5&&at.x<=-10.9&&Math.abs(at.z)<1.25;
+    if((!hall&&!doorway)||at.y<-.1||at.y>6.1)return null;
+    const floor=(c.onGround?at.y:c.lastGround?.y??at.y)>=3.5?4:0;
+    for(const d of[6,4.5,3,2.5,2,1.5,1]){
+      const q={x:-12,y:floor+2.15,z:Math.min(10.5,at.z+d)};
+      if(Math.hypot(q.x-at.x,q.y-at.y-1.3,q.z-at.z)<2.6)continue;
+      if(usable(q,at))return{id:'central-west-'+floor,axisYaw:0,q};
+    }
+    return null;
+  }
+  const adaptive=createHybridCamera({player:c,pose,safe:hybridSafe,blocked:hybridBlocked,regionCamera});
   function resolveCamera(pivot,wanted,dt) {
+    if(hybrid){const state=adaptive.resolve(pivot,wanted,dt);cameraPitch=state.pitch;
+      document.body.dataset.skyCameraSection=state.section;document.body.dataset.skyOpaqueFootHidden=String(!state.clear);
+      return 1;}
     const foot={x:c.pos.x,y:c.pos.y+.18,z:c.pos.z};
     const head={x:c.pos.x,y:c.pos.y+1.35,z:c.pos.z};
     const delta=wanted.clone().sub(pivot), length=delta.length();
@@ -183,9 +223,11 @@
     return [[0,.8,0],[0,1.45,0],[0,.05,0],[.5,.05,0],[-.5,.05,0],[0,.05,.5],[0,.05,-.5]]
       .some(([x,y,z])=>blocked(camera,{x:c.pos.x+x,y:c.pos.y+y,z:c.pos.z+z}));
   }
-  const reset = () => { moving = false; pointer = null; cameraAt=null;cameraFraction=1;cameraPitch=pose.pitch; };
+  const reset = () => { moving = false; pointer = null; fromAction=false;inputYaw=pose.yaw;cameraAt=null;cameraFraction=1;cameraPitch=pose.pitch;adaptive.reset(); };
   window.skyFixedCamera = { get active() { return active(); }, pose, chase, input, step, camera, reset,
-    occlusion, restore, visible, resolveCamera, bodyOccluded, cameraSafe, get pitch(){return cameraPitch}, get opaque(){return opaque}, get fadedCount(){return faded.size} };
+    occlusion, restore, visible, resolveCamera, bodyOccluded:camera=>hybrid?hybridBlocked(camera,{x:c.pos.x,y:c.pos.y+.1,z:c.pos.z})||hybridBlocked(camera,{x:c.pos.x,y:c.pos.y+1.5,z:c.pos.z}):bodyOccluded(camera),
+    cameraSafe:q=>hybrid?hybridSafe(q):cameraSafe(q),get view(){return hybrid?adaptive.view:pose},get hybridState(){return hybrid?{...adaptive.state,inputYaw}:null},
+    get pitch(){return cameraPitch}, get opaque(){return opaque}, get fadedCount(){return faded.size} };
   document.documentElement.dataset.cameraTrial='fixed';
   const style=document.createElement('style');style.textContent='html[data-camera-trial=fixed] #lookNote{display:none!important}';document.head.append(style);
   window.addEventListener('blur', reset);

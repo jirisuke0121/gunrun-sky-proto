@@ -126,7 +126,7 @@ export function installMinimap(game, publicGame) {
     currentMarkers=active?liveMarkers(game.Jt,p,model.bounds):[];
     currentPlayer=active?{...projectPoint(p.pos,model.bounds),yaw:p.yaw}:null;
     viewport=localViewport(p.pos);
-    const fixed=window.skyFixedCamera?.active, mapYaw=fixed?window.skyFixedCamera.pose.yaw:p.yaw;
+    const fixed=window.skyFixedCamera?.active, mapYaw=fixed?window.skyFixedCamera.view.yaw:p.yaw;
     localMarkers=active?nearbyMarkers(currentMarkers,viewport,mapYaw):[];
     localPlayer=active?{...projectPoint(p.pos,viewport,LOCAL_MAP_SIZE),yaw:p.yaw-mapYaw}:null;
     metrics.lastCount=currentMarkers.length;

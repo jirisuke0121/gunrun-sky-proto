@@ -86,6 +86,11 @@
     $('onbTouchLook').textContent = fixed ? 'カメラの向きは固定です。右側で視点を回す操作はありません' : window.skyFollowCamera?.mode === 'after'
       ? 'カメラは進む向きへ自動で回ります。右側で見回した後は、左の指を離して進む向きを選び直せます'
       : '画面の右側に指を置き、横へ動かして見回します。左側の移動と一緒に使えます';
+    if(params.get('cameraTrial')==='hybrid'&&window.skyFollowCamera?.mode==='after'){
+      $('onbLookTitle').textContent='カメラは区間に合わせて補助';
+      $('onbTouchMove').textContent='左側に指を置き、進みたい方向へずらして押したまま移動。離すと新しい画面の方向で動きます';
+      $('onbPcLook').textContent=$('onbTouchLook').textContent='見通しが悪い区間だけ向きが変わります。押し続けた移動方向は変わりません';
+    }
     root.hidden = false; document.body.classList.add('onb-open'); syncIntro();
     input.focus({ preventScroll: true });
   }

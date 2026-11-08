@@ -162,7 +162,7 @@
     return true;
   }
   function frame(dt) {
-    if (window.skyFixedCamera?.active && !['menu', 'replay'].includes(game.modeRef())) return window.skyFixedCamera.pose;
+    if (window.skyFixedCamera?.active && !['menu', 'replay'].includes(game.modeRef())) return window.skyFixedCamera.view;
     if (!enabled() || ['menu', 'replay'].includes(game.modeRef())) return null;
     if (!playing()) { direct = false; fromAction = false; gestureId = null; return view; }
     if (dt <= 0) return view;
@@ -188,16 +188,18 @@
     return view;
   }
   // Plain names for the two control types (the cards in control-style.js use the same words).
-  const fixedTrial = new URLSearchParams(location.search).get('cameraTrial') === 'fixed';
+  const trial = new URLSearchParams(location.search).get('cameraTrial');
+  const fixedTrial = ['fixed','hybrid'].includes(trial);
   const NAMES = coarse()
     ? { before: 'FPS操作（右側をドラッグして視点を回す）', after: 'かんたん操作（左で移動・カメラおまかせ）' }
     : { before: 'マウス視点（WASD＋マウス・従来）', after: '自動カメラ（W/S 前後・A/D 旋回）' };
   if (fixedTrial) NAMES.after = '固定カメラ（試作・方向は固定）';
+  if (trial==='hybrid') NAMES.after = '区間カメラ（試作）';
   function syncUI() {
     document.body.dataset.skyCameraMode = mode;
     for (const select of selectors) select.value = mode;
     for (const note of document.querySelectorAll('.follow-camera-help')) {
-      note.textContent = fixedTrial && mode === 'after' ? '画面の方向へ移動します。カメラの回転操作はありません。壁は実体を残し、足元に合わせてカメラの距離・見下ろし角度を補助します。' : mode === 'before'
+      note.textContent = trial==='hybrid'&&mode==='after' ? '普段は固定視点。壁や屋根で見通しが悪い区間だけ向きを変えます。押し続けた移動方向は保ち、いったん離すと新しい画面の方向で動きます。' : fixedTrial && mode === 'after' ? '画面の方向へ移動します。カメラの回転操作はありません。壁は実体を残し、足元に合わせてカメラの距離・見下ろし角度を補助します。' : mode === 'before'
         ? (coarse() ? '左スティックで移動、右側のドラッグで視点を自分で回します。' : 'WASDで移動、マウスで視点を回します。')
         : coarse()
           ? '左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。'
@@ -208,7 +210,7 @@
     if (!['before', 'after'].includes(next)) return;
     if (mode !== next) {
       // Switching back preserves the picture, then the original input path owns it again.
-      if (next === 'before') { const oldView = window.skyFixedCamera?.active ? window.skyFixedCamera.pose : view; c.yaw = oldView.yaw; c.pitch = oldView.pitch; }
+      if (next === 'before') { const oldView = window.skyFixedCamera?.active ? window.skyFixedCamera.view : view; c.yaw = oldView.yaw; c.pitch = oldView.pitch; }
       mode = next; reset();
     }
     if (persist) {
@@ -234,7 +236,7 @@
     get active() { return enabled(); },
     get mode() { return mode; },
     get touchDevice() { return coarse(); },
-    get view() { return window.skyFixedCamera?.active ? window.skyFixedCamera.pose : enabled() ? view : c; },
+    get view() { return window.skyFixedCamera?.active ? window.skyFixedCamera.view : enabled() ? view : c; },
     get state() { return { mode, yaw: view.yaw, pitch: view.pitch, heading: c.yaw, manual, moving: lastInput, gesture }; },
   };
   document.getElementById('humanStatus')?.after(control('cameraModeHome', true));
