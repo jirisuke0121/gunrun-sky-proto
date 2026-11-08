@@ -28,6 +28,7 @@
 - 生結果と画像は `browser-evidence/hybrid-camera/`。比較用のプレイ記録は送信しない。
 - CIのソフトウェアGPUへ連続描画を積みすぎないよう、移動・入力・カメラ判定は60Hz、走行中の描画は10Hzで検証する。撮影待ちは90秒。ゲーム本体の描画頻度は変更しない。カメラの試験は既存のfoundation試験から独立したCIジョブで実行する。
 - 比較ページは両表示・地点選択・実キーによる移動・PC/タッチ幅・外部POST 0を確認。
+- 比較画面ではカーソルを固定せず、ゲームをクリックした後も比較ボタンを操作できる。検証は読み込み完了だけでなく、選んだ表示・地点への切替完了を待つ。
 - 回帰確認：`follow-camera.test.cjs`、`human-view-running.test.cjs`、`minimap.test.cjs`、`start-readiness.test.cjs`、`roof-clearance.test.cjs`、`tower-tunnel.test.cjs`。ブラウザでは `opaque-walls-browser.cjs` の従来表示と全衝突/ナビ一致、`human-running-browser.cjs` の両マップ/PC・タッチの既存動作、`start-readiness-browser.cjs` の冷間読込・通常開始・入門・メニュー・再挑戦・読込失敗からの回復を確認。
 - `minimap-browser.cjs` の両マップ×4画面配置、`easy-controls-browser.cjs` の通常の移動・二本指の見回し・解除・手動視点復帰・日英の操作選択も通過。
 

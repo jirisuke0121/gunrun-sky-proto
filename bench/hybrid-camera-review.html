@@ -6,15 +6,18 @@ import {HYBRID_CAMERA_SCENES as scenes} from './hybrid-camera-scenes.js';
 const frame=document.querySelector('#game'),status=document.querySelector('#status'),play=document.querySelector('#play'),select=document.querySelector('#scene');let variant='hybrid',generation=0,active;
 for(const scene of scenes){const o=document.createElement('option');o.value=scene.id;o.textContent=scene.label;select.append(o)}select.value='north-corridor';
 const pause=()=>new Promise(r=>setTimeout(r,50));
-async function load(){const gen=++generation;play.disabled=true;active=null;status.textContent='比較画面を読み込み中…';document.querySelectorAll('[data-variant]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.variant===variant)));
+async function load(){const gen=++generation;play.disabled=true;active=null;delete frame.dataset.readyVariant;delete frame.dataset.readyScene;status.textContent='比較画面を読み込み中…';document.querySelectorAll('[data-variant]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.variant===variant)));
  const loaded=new Promise(r=>frame.addEventListener('load',r,{once:true}));frame.src='../index.html?camera=after&wallView=opaque&cameraTrial='+variant+'&onboarding=0&controlpick=0&hookGuide=0&dev=1&lang=ja';await loaded;
  const w=frame.contentWindow;w.__hold=true;
  for(let i=0;i<2400&&(!w.skyStartReadiness?.ready||!w.skyLookInfo);i++){if(gen!==generation)return;if(w.skyStartReadiness?.state.phase==='error')throw Error(w.skyStartReadiness.state.message);await pause()}
  if(gen!==generation)return;if(!w.skyStartReadiness?.ready)throw Error('読み込みを完了できませんでした。');
+ // Keep comparison controls reachable on desktop, including after clicking
+ // the game. Fixed/hybrid views do not require pointer capture.
+ w.document.getElementById('c').requestPointerLock=()=>w.Promise.reject(new w.DOMException('Comparison keeps the pointer free','NotAllowedError'));
  w.document.getElementById('bStart').click();const g=w.__game;g.S.sendLog=g.S.autoFire=false;g.GAME.spawnT=g.GAME.surgeT=Infinity;g.SCR.off=g.PACE.off=g.MARK.off=true;g.P.invuln=Infinity;
  for(const z of g.zombies){w.__skyInternals.ue.remove(z.m.root);if(z.pool)w.__skyInternals.ue.remove(z.pool)}g.zombies.length=0;
  w.skySwing.reset();g.P.pos.set(...scenes.find(x=>x.id===select.value).at);g.P.lastGround.copy(g.P.pos);g.P.safe.copy(g.P.pos);g.P.vel.set(0,0,0);g.P.state='normal';g.P.onGround=true;g.P.yaw=g.P.pitch=0;g.P.shake=0;w.skyFollowCamera.reset();g.frameOnce(0);
- active=w;play.disabled=false;status.textContent='普段は固定、見通しが悪い区間だけ切り替えます。押し続けた方向はそのまま。いったん離すと新しい画面の方向で動きます。';
+ active=w;frame.dataset.readyVariant=variant;frame.dataset.readyScene=select.value;play.disabled=false;status.textContent='普段は固定、見通しが悪い区間だけ切り替えます。押し続けた方向はそのまま。いったん離すと新しい画面の方向で動きます。';
 }
 const reload=()=>load().catch(e=>status.textContent=e.message);
 document.querySelectorAll('[data-variant]').forEach(b=>b.onclick=()=>{variant=b.dataset.variant;reload()});select.onchange=reload;
