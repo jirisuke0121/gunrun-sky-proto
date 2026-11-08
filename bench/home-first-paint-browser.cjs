@@ -5,6 +5,16 @@ const base = 'http://127.0.0.1:8798/', out = 'browser-evidence/home-first-paint'
 fs.mkdirSync(out, { recursive: true });
 const deferred = () => { let release; const promise = new Promise(r => release = r); return { promise, release }; };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+// Loading is deliberately suspended here. Playwright's font-ready wait can
+// depend on that same document completing; capture the currently painted
+// viewport directly instead of waiting for a finished document.
+async function capturePending(page, path) {
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    const { data } = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path, Buffer.from(data, 'base64'));
+  } finally { await cdp.detach(); }
+}
 
 (async () => {
   let browser, server; const results = [];
@@ -41,7 +51,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
         oldTitle: document.querySelector('#ovStart .eyebrow')?.checkVisibility({ visibilityProperty: true }) === true,
         oldBtn: document.getElementById('bStart')?.checkVisibility({ visibilityProperty: true }) === true,
       }));
-      await a.page.screenshot({ path: `${out}/${map.replace('.html', '')}${query ? '-first' : ''}-before-lobby.png` });
+      await capturePending(a.page, `${out}/${map.replace('.html', '')}${query ? '-first' : ''}-before-lobby.png`);
       assert.equal(before.hero, false, label + ': home-focus を止めている間は新ホームは未構築');
       assert.equal(before.start, 'hidden', label + ': 組み替え前の #ovStart は非表示');
       assert.equal(before.oldTitle, false, label + ': 旧タイトル（GunRun 追跡の試作）が見えない');

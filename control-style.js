@@ -57,8 +57,8 @@
   };
 
   if(params.get('cameraTrial')==='hybrid')Object.assign(TYPES.after,{
-    name:'区間カメラ（試作）',tag:'見通しを自動で補助',look:'普段は固定。見通しが悪い区間だけ向きを変えます。移動中の方向はそのまま',
-    move:touch?`${moveGesture}<b>押したまま移動</b>`:`${keys(['W','A','S','D'])}<b>移動</b>`,view:`${ICON.auto}<b>区間に合わせる</b>`,
+    name:'区間カメラ（試作）',tag:'見通しを自動で補助',look:params.get('cameraControl')==='legacy'?'普段は固定。見通しが悪い区間だけ向きを変えます。移動中の方向はそのまま':'画面の方向へ移動。移動中は方角を保ち、十分に止まってから見通しを調整します',
+    move:touch?`${moveGesture}<b>押したまま移動</b>`:`${keys(['W','A','S','D'])}<b>移動</b>`,view:`${ICON.auto}<b>${params.get('cameraControl')==='legacy'?'区間に合わせる':'停止後に調整'}</b>`,
   });
 
   function card(mode, compact) {

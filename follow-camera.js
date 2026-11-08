@@ -199,7 +199,7 @@
     document.body.dataset.skyCameraMode = mode;
     for (const select of selectors) select.value = mode;
     for (const note of document.querySelectorAll('.follow-camera-help')) {
-      note.textContent = trial==='hybrid'&&mode==='after' ? '普段は固定視点。壁や屋根で見通しが悪い区間だけ向きを変えます。押し続けた移動方向は保ち、いったん離すと新しい画面の方向で動きます。' : fixedTrial && mode === 'after' ? '画面の方向へ移動します。カメラの回転操作はありません。壁は実体を残し、足元に合わせてカメラの距離・見下ろし角度を補助します。' : mode === 'before'
+      note.textContent = trial==='hybrid'&&mode==='after' ? (new URLSearchParams(location.search).get('cameraControl')==='legacy'?'区間ごとに視点を切り替えます。押している間は以前の方向を保ち、離すと新しい画面の方向へ切り替わります。':'画面の方向へ移動します。移動中はカメラの方角を保ち、止まってから見通しを調整します。手前の壁や屋根は足元の周囲だけ切り欠いて見せます。') : fixedTrial && mode === 'after' ? '画面の方向へ移動します。カメラの回転操作はありません。壁は実体を残し、足元に合わせてカメラの距離・見下ろし角度を補助します。' : mode === 'before'
         ? (coarse() ? '左スティックで移動、右側のドラッグで視点を自分で回します。' : 'WASDで移動、マウスで視点を回します。')
         : coarse()
           ? '左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。'
