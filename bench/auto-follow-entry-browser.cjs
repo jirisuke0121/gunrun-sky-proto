@@ -11,6 +11,7 @@ try{for(const [map,lang]of[['index.html','ja'],['index.html','en'],['canyon.html
  const check=async(label,trial='follow')=>{const s=await p.evaluate(()=>({trial:new URL(location.href).searchParams.get('cameraTrial'),mode:skyFollowCamera.mode,manualLook:skyFollowCamera.manualLook,fixed:!!window.skyFixedCamera?.active,savedFixed:localStorage.getItem('gunrun-fixed-controls-v1')}));assert.equal(s.trial,trial,label);assert.equal(s.mode,'after');assert.equal(s.manualLook,trial==='follow-legacy');assert.equal(s.fixed,false);assert.equal(s.savedFixed,null);return s;};
  await p.goto(normalURL);await ready();const normal=await check('normal baseline',null);
  await p.goto(url);await ready();const candidate=await check('candidate start');
+ assert.doesNotMatch(await p.locator('.home-controls').textContent(),/右ドラッグ|drag.{0,12}(view|look)/i,'home hint agrees with automatic-only controls');
  await p.locator('#homeGuide').tap();
  const helpText=lang==='ja'?'カメラは進む向きへ自動で追従します。視点操作はありません':'The camera follows your travel direction automatically. No camera controls.';
  await p.waitForFunction(text=>document.getElementById('onbTouchLook').textContent===text,helpText);

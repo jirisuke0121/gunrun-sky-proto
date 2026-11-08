@@ -1,4 +1,4 @@
-import { installGuidedChoice } from './guided-choice.js?v=20261108-auto-follow-v2';
+import { installGuidedChoice } from './guided-choice.js?v=20261109-auto-follow-v3';
 import { installGuidedCoach } from './guided-coach.js?v=20261106-paused-v1';
 import { describeLesson } from './guided-prompts.js?v=20261106-parity-v1';
 import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';

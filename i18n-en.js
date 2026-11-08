@@ -3,6 +3,8 @@
 (() => {
   const tr = text => window.skyI18n.tr(text);
   const exact = {
+ "W/S：前後、A/D：旋回、Space：ジャンプ。カメラは自動。": "W/S: forward/back, A/D: turn, Space: jump. Automatic camera.",
+ "左側で移動 · ボタンでジャンプ · 視点は自動": "Move on the left · Buttons: jump · Automatic view",
  "カメラは自動": "Automatic camera",
  "進む向きへ自動で追従します。視点操作はありません": "Follows your travel direction automatically. No camera controls.",
  "カメラは進む向きへ自動で追従します。視点操作はありません": "The camera follows your travel direction automatically. No camera controls.",
