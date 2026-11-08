@@ -38,6 +38,8 @@ jobs:
         run: node bench/nav-watch-browser.cjs
       - name: Descend and attack across both maps and all difficulty levels
         run: node bench/zombie-descent-browser.cjs
+      - name: Reused body sweeps give the same climb targets as plain sweeps
+        run: node bench/climb-line-memo-browser.cjs
       - name: All authored ladders with solo, crowd, entrance and exit blockers
         run: |
           node bench/zombie-ascent-browser.cjs

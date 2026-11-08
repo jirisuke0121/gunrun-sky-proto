@@ -3,7 +3,7 @@ export function createZombieClimb(game, runtime, flashbang) {
   const { ri, c: realPlayer, z: run, Jt: zombies, jn: solids, Geom: { Vector3 } } = game;
   const config = Object.freeze({ wait: 4, speed: 0.8, retry: 1.5, scanGap: 0.12, scanMs: 2, candidatesPerFrame: 12,
     planRadius: 40, planCandidates: 192, planGain: .75, planInterval: 1.5 });
-  const stats = { scans: 0, started: 0, finished: 0, interrupted: 0, candidates: 0, maxScanMs: 0, navDrops: 0, faster: 0 };
+  const stats = { scans: 0, started: 0, finished: 0, interrupted: 0, candidates: 0, maxScanMs: 0, navDrops: 0, faster: 0, lineHits: 0, lineMisses: 0, targetBuilds: 0 };
   const tracks = new WeakMap(), rigs = new WeakMap(), dropProbes = new WeakMap();
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const smooth = v => { v = clamp(v, 0, 1); return v * v * (3 - 2 * v); };
@@ -53,7 +53,40 @@ export function createZombieClimb(game, runtime, flashbang) {
     }
     return [enter, leave];
   }
+  // A navigationTargets rebuild asks the same body sweeps over and over (about 13x
+  // in a replay of a player standing off-graph at the old-town west edge, 150-250ms
+  // per rebuild). A sweep depends only on its arguments, the boxes' off flags, the
+  // box list and which rooms are entered, so within a rebuild its answer is reused
+  // and re-checked against that state. Exact comparison of every input, no hashing
+  // shortcuts: a slot that does not match is simply recomputed.
+  const LINE_SLOTS = 1 << 16, lineScratch = new Float64Array(8), lineWords = new Uint32Array(lineScratch.buffer);
+  let lineKeys = null, lineValue = null, lineState = '', lineMemoOn = false, lineMemoAllowed = true;
+  function lineMemoSync() {
+    let off = '';
+    for (let i = 0; i < solids.length; i++) if (solids[i].off) off += i + ',';
+    const state = (runtime.INDOOR_ACCESS?.revision | 0) + ':' + solids.length + ':' + off;
+    if (!lineKeys) { lineKeys = new Float64Array(LINE_SLOTS * 8); lineValue = new Uint8Array(LINE_SLOTS); }
+    if (state !== lineState) { lineValue.fill(0); lineState = state; }
+  }
   function clearLine(enemy, a, b, grounded = false) {
+    if (!lineMemoOn) return clearLineRaw(enemy, a, b, grounded);
+    const k = lineScratch;
+    k[0] = a.x; k[1] = a.y; k[2] = a.z; k[3] = b.x; k[4] = b.y; k[5] = b.z; k[6] = enemy.r; k[7] = enemy.h;
+    let hash = grounded ? 0x2545f491 : 0x1b873593;
+    for (let i = 0; i < 16; i++) hash = Math.imul(hash ^ lineWords[i], 0x9e3779b1) ^ (hash >>> 15);
+    const slot = hash & (LINE_SLOTS - 1), base = slot * 8, stored = lineValue[slot];
+    if (stored !== 0 && ((stored - 1) & 2 ? grounded : !grounded) && lineKeys[base] === k[0] && lineKeys[base + 1] === k[1] &&
+        lineKeys[base + 2] === k[2] && lineKeys[base + 3] === k[3] && lineKeys[base + 4] === k[4] &&
+        lineKeys[base + 5] === k[5] && lineKeys[base + 6] === k[6] && lineKeys[base + 7] === k[7]) {
+      stats.lineHits++; return ((stored - 1) & 1) === 1;
+    }
+    stats.lineMisses++;
+    const result = clearLineRaw(enemy, a, b, grounded);
+    for (let i = 0; i < 8; i++) lineKeys[base + i] = k[i];
+    lineValue[slot] = 1 + (grounded ? 2 : 0) + (result ? 1 : 0);
+    return result;
+  }
+  function clearLineRaw(enemy, a, b, grounded = false) {
     if (runtime.INDOOR_ACCESS?.allowsMove && !runtime.INDOOR_ACCESS.allowsMove(a, b)) return false;
     // Exact body sweeps and floor-coverage intervals, instead of samples every
     // 18cm. Cost depends on nearby geometry, not on the height of the wall.
@@ -318,6 +351,9 @@ export function createZombieClimb(game, runtime, flashbang) {
       approachNodes.set(cap, candidates);
     }
     const ids = [], costs = {};
+    stats.targetBuilds++;
+    if (lineMemoAllowed) { lineMemoSync(); lineMemoOn = true; }
+    try {
     for (const { n, column } of candidates) {
       const body = { pos: point(n.x, n.y + 0.003, n.z), r: 0.3, h: 1.8, onGround: true };
       // This only establishes terrain clearance. Occupied climb lanes are
@@ -332,6 +368,7 @@ export function createZombieClimb(game, runtime, flashbang) {
         costs[n.id] = Math.min(costs[n.id] ?? Infinity, Math.round(best * 100) / 100);
       }
     }
+    } finally { lineMemoOn = false; }
     // A NAV node on a roof can itself be isolated. Keep that true goal at zero
     // and add checked climb departures with their remaining travel cost, so
     // a normal walk never loses to a misleading zero-cost wall-foot goal.
@@ -693,6 +730,6 @@ export function createZombieClimb(game, runtime, flashbang) {
     if (approaching) this.act = action;
     if (!this.dead && this.stun <= 0 && !flashbang.blinded(this)) pose(this);
   };
-  return { config, stats, navigationTargets, clearLine, get columns() { return columns.size; },
+  return { config, stats, navigationTargets, clearLine, setLineMemo(on) { lineMemoAllowed = !!on; }, get columns() { return columns.size; },
     state(enemy) { const t = tracks.get(enemy); return { wait: t?.wait || 0, climbing: enemy.act?.kind === 'pillar', stage: enemy.act?.segments?.[enemy.act.index]?.kind || null, searching: scan?.enemy === enemy }; } };
 }
