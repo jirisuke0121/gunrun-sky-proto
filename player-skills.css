@@ -12,6 +12,11 @@
   box-shadow:0 3px 12px #0008,0 0 14px color-mix(in srgb,var(--skill-color) 22%,transparent);
   text-shadow:0 1px 3px #000;white-space:normal;transition:filter .15s,box-shadow .15s;
 }
+/* Invisible ring: a thumb that lands just beside the 48-60px circle still counts as a press.
+   Half of the 14px gap between buttons, so neighbouring targets never overlap. */
+#skillDock #tFlash::before,#skillDock #tDecoy::before,#skillDock #tJumpGun::before,#skillDock #tRescue::before{
+  content:"";position:absolute;inset:-7px;border-radius:50%;
+}
 #skillDock #tDecoy{--skill-color:#67f5ec}
 #skillDock #tRescue{--skill-color:#8be9a8}
 #skillDock #tRescue .skill-name kbd{padding:0 .25em;font-size:9px}

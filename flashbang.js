@@ -1,5 +1,5 @@
 import { playGearSound } from './gear-audio.js?v=20261026-gear-polish-v1';
-import { FLASH_ICON } from './player-skills.js?v=20261106-player-clarity-v2';
+import { FLASH_ICON, bindSkillPress } from './player-skills.js?v=20261108-skill-tap-v1';
 // Defensive flashbang. Simulation time owns the fuse and stun, including pause.
 export const FLASHBANG = Object.freeze({ radius: 8, duration: 4, fuse: 0.22, maxCharges: 2, burstDuration: 1, screenDuration: 0.8, reducedScreenDuration: 0.4 });
 
@@ -295,43 +295,10 @@ export function createFlashbang(game) {
   document.addEventListener('keydown', event => {
     if (['Digit1', 'Numpad1', 'KeyG'].includes(event.code) && !event.repeat && playing()) { event.preventDefault(); throwFlashbang(); }
   });
-  // A consumable fires on release. A camera drag that starts here can leave
-  // the button or move 14px to cancel, without spending a charge.
-  let press = null;
-  function cancelPress() {
-    const pointer = press?.id; press = null;
-    button?.classList.remove('armed');
-    if (pointer !== undefined && button?.hasPointerCapture(pointer)) button.releasePointerCapture(pointer);
-  }
-  function inside(event) {
-    const rect = button.getBoundingClientRect();
-    return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-  }
-  button?.addEventListener('pointerdown', event => {
-    event.preventDefault(); event.stopPropagation();
-    if (press || event.button !== 0 || !playing()) return;
-    if (charges <= 0) { throwFlashbang(); return; }
-    press = { id: event.pointerId, x: event.clientX, y: event.clientY };
-    button.setPointerCapture(event.pointerId); button.classList.add('armed');
-  });
-  button?.addEventListener('pointermove', event => {
-    if (press?.id === event.pointerId && (!inside(event) || Math.hypot(event.clientX - press.x, event.clientY - press.y) > 14)) cancelPress();
-  });
-  button?.addEventListener('pointerup', event => {
-    event.preventDefault(); event.stopPropagation();
-    if (press?.id !== event.pointerId) return;
-    const confirmed = inside(event) && Math.hypot(event.clientX - press.x, event.clientY - press.y) <= 14;
-    cancelPress();
-    if (confirmed) throwFlashbang();
-  });
-  button?.addEventListener('pointercancel', cancelPress);
-  button?.addEventListener('lostpointercapture', cancelPress);
-  button?.addEventListener('contextmenu', event => event.preventDefault());
-  // Keyboard / assistive activation produces a click without a pointer press.
-  button?.addEventListener('click', event => { if (event.detail === 0) { event.preventDefault(); throwFlashbang(); } });
-  window.addEventListener('blur', cancelPress);
-  window.addEventListener('resize', cancelPress);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) cancelPress(); });
+  // A consumable fires on release. A camera drag that starts here can slide clearly off the button
+  // to cancel without spending a charge. The press logic is shared with the other skill buttons.
+  const cancelPress = button ? bindSkillPress(button, () => playing() && charges > 0, throwFlashbang, throwFlashbang) : () => {};
+  // Keyboard / assistive activation produces a click without a pointer press (handled by bindSkillPress).
   hud();
   return { tick, reset, clear, throw: throwFlashbang, stats, grenades, bursts, affected, blinded, config: FLASHBANG,
     get charges() { return charges; }, get skillCount() { return skills; }, setGrenadeTemplate(template) { grenadeTemplate = template; },

@@ -15,9 +15,18 @@ export function installSkillDock() {
   return { dock, flash, decoy };
 }
 
+// A press is confirmed when the finger lifts on the button or within this margin around it.
+// The old rule (cancel after 14px of drift, lift strictly inside the circle) silently dropped taps made
+// while running, so now only sliding clearly off the button cancels. player-skills.css enlarges the
+// touch target by the same idea.
+export const SKILL_TOUCH_SLOP = 14;
+
 export function bindSkillPress(button, canUse, activate, unavailable = () => {}) {
   let press = null;
-  const inside = e => { const r = button.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; };
+  const inside = e => {
+    const r = button.getBoundingClientRect(), s = SKILL_TOUCH_SLOP;
+    return e.clientX >= r.left - s && e.clientX <= r.right + s && e.clientY >= r.top - s && e.clientY <= r.bottom + s;
+  };
   function cancel() {
     const id = press?.id; press = null; button.classList.remove('armed');
     if (id !== undefined && button.hasPointerCapture(id)) button.releasePointerCapture(id);
@@ -26,16 +35,16 @@ export function bindSkillPress(button, canUse, activate, unavailable = () => {})
     e.preventDefault(); e.stopPropagation();
     if (press || e.button !== 0) return;
     if (!canUse()) { unavailable(); return; }
-    press = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    press = { id: e.pointerId };
     button.setPointerCapture(e.pointerId); button.classList.add('armed');
   });
   button.addEventListener('pointermove', e => {
-    if (press?.id === e.pointerId && (!inside(e) || Math.hypot(e.clientX - press.x, e.clientY - press.y) > 14)) cancel();
+    if (press?.id === e.pointerId && !inside(e)) cancel();
   });
   button.addEventListener('pointerup', e => {
     e.preventDefault(); e.stopPropagation();
     if (press?.id !== e.pointerId) return;
-    const confirmed = inside(e) && Math.hypot(e.clientX - press.x, e.clientY - press.y) <= 14;
+    const confirmed = inside(e);
     cancel(); if (confirmed) { if (canUse()) activate(); else unavailable(); }
   });
   for (const type of ['pointercancel', 'lostpointercapture']) button.addEventListener(type, cancel);
