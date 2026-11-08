@@ -147,7 +147,7 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => random
 
 export function installRunRecords(game, win = window, doc = document) {
   const panels = [];
-  const scope = () => win.skyChallenge.isIntro ? '入門モード：ランキング対象外・記録送信なし' : win.skyPracticeMode ? '練習場：ランキング対象外' : win.skyChallenge.debug ? '検証モード：ランキング対象外' : game.U.sendLog ? '記録を送信します' : '送信なし：結果はこの端末だけに保存';
+  const scope = () => win.skyChallenge.isIntro ? '入門モード：ランキング対象外・記録送信なし' : win.skyPracticeMode ? '練習場：ランキング対象外' : win.skyChallenge.debug ? '検証モード：ランキング対象外' : game.U.sendLog ? '' : '送信なし：結果はこの端末だけに保存';
   let current;
   const message = row => {
     if (!row) return scope();
@@ -164,7 +164,7 @@ export function installRunRecords(game, win = window, doc = document) {
       panel.querySelector('[data-record-status]').textContent = win.skyChallenge.isIntro ? scope() :
         (panel.id === 'recordDeliveryHome' && current ? '直近の結果：' : '') + message(current);
       panel.querySelector('button').hidden = !store?.pending;
-      panel.querySelector('small').textContent = `${scope()}${store?.pending ? ` ・ 未送信 ${store.pending}件` : ''}`;
+      panel.querySelector('small').textContent = [scope(), store?.pending ? `未送信 ${store.pending}件` : ''].filter(Boolean).join(' ・ ');
       const history = panel.querySelector('ol'); history.replaceChildren();
       for (const entry of (store?.history || []).slice(0,5)) {
         const li = doc.createElement('li');
@@ -184,7 +184,7 @@ export function installRunRecords(game, win = window, doc = document) {
   for (const [id,target] of [['recordDeliveryHome',doc.getElementById('recNote')],['recordDeliveryResult',doc.getElementById('unityRecordStatus') || doc.getElementById('oLog')]]) {
     if (!target) continue;
     const panel = doc.createElement('section'); panel.id = id; panel.className = 'record-delivery';
-    panel.innerHTML = '<strong>プレイ記録</strong><p data-record-status role="status"></p><em>ランキングのため、ニックネーム・スコア・操作・国・端末環境を送信します。</em><small></small><button type="button" hidden>未送信の記録を再送</button><details><summary>この端末の最近の記録</summary><ol></ol></details>';
+    panel.innerHTML = '<strong>プレイ記録</strong><p data-record-status role="status"></p><small></small><button type="button" hidden>未送信の記録を再送</button><details><summary>この端末の最近の記録</summary><ol></ol></details>';
     panel.querySelector('button').addEventListener('click',()=>store.retry()); target.before(panel); panels.push(panel);
     if (target.id === 'recNote') target.hidden = true;
   }

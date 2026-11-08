@@ -49,8 +49,7 @@
     </ol>
     <section class="onb-name"><label for="onbName">ニックネーム（ランキングに表示されます）</label>
       <input id="onbName" type="text" maxlength="14" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="例：RUNNER">
-      <p id="onbError" class="onb-error" role="alert"></p><small>2〜14文字の文字・数字・_・-。空欄のままでも遊べます。</small>
-      <small class="onb-send">ニックネーム・スコア・プレイ記録は、ランキングのために送信されます。</small></section>
+      <p id="onbError" class="onb-error" role="alert"></p><small>2〜14文字の文字・数字・_・-。空欄のままでも遊べます。</small></section>
     <footer><button id="onbSave" type="button" class="onb-primary">保存する</button>
       <button id="onbIntro" type="button" class="onb-primary">入門モードで練習する</button>
       <button id="onbMain" type="button" class="onb-secondary">閉じる</button>
