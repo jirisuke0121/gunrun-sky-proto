@@ -70,14 +70,14 @@
     new MutationObserver(syncTrialControls).observe(document.body, { attributes: true, attributeFilter: ['data-sky-camera-mode'] });
     syncTrialControls();
   }
-  // What is sent is said on the home screen. Sending cannot be turned off.
-  const notice = make('p', { id: 'homeSendNotice' });
-  const syncNotice = () => {
-    if (trial === 'hybrid' || (trial && ['localhost', '127.0.0.1'].includes(location.hostname))) { notice.textContent = 'ローカル比較用の試作です。ランキング・プレイ記録は送信しません。'; return; }
-    notice.textContent = 'ランキングのため、ニックネーム・スコア・プレイ記録（操作・国・端末環境）を送信します。';
-  };
-  syncNotice(); addEventListener('load', syncNotice); document.addEventListener('sky-difficulty-change', syncNotice);
-  hero.append(heading, scene, main, controls, notice); plate.prepend(hero);
+  // Sending is always on and needs no notice. Only the comparison trials, which send nothing, say so.
+  const notSent = trial === 'hybrid' || (trial && ['localhost', '127.0.0.1'].includes(location.hostname));
+  if (notSent) {
+    const notice = make('p', { id: 'homeSendNotice' });
+    notice.textContent = 'ローカル比較用の試作です。ランキング・プレイ記録は送信しません。';
+    hero.append(heading, scene, main, controls, notice);
+  } else hero.append(heading, scene, main, controls);
+  plate.prepend(hero);
   const rankSlot = make('section', { id: 'homeRanking', ariaLabel: 'ランキング' });
   const more = make('details', { id: 'homeMore' });
   more.append(make('summary', {}, '開発者向け（?dev=1）'));

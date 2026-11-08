@@ -53,7 +53,7 @@ const port = process.env.SEND_DEFAULT_PORT || '8875';
       await sp.waitForTimeout(1500);
       const sv = await sp.evaluate(() => ({ trial: new URLSearchParams(location.search).get('cameraTrial'), notice: document.getElementById('homeSendNotice')?.textContent || '' }));
       assert.equal(sv.trial, 'fixed', `${map}: saved fixed controls restore cameraTrial=fixed`);
-      assert.ok(!/試作|送信しません|not sent|trial/i.test(sv.notice) && /送信します|are sent/.test(sv.notice), `${map}: notice says records are sent (${sv.notice})`);
+      assert.equal(sv.notice, '', `${map}: no send notice on the home screen (${sv.notice})`);
       assert.ok(hits.some(h => h.includes('workers.dev')), `${map}: worker requests are not blocked for saved fixed controls (${hits.join(',')})`);
       await saved.close();
       // 比較用の hybrid 試作だけは従来どおり通信を止める。
