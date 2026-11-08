@@ -48,5 +48,5 @@ window.addEventListener("load", () => {
 
   // The bundled game only shows this hint after an explicit pointer lock error.
   // Some embedded browsers simply never grant the lock or report an error.
-  setInterval(() => { note.hidden = !unlockedPlay(); }, 250);
+  setInterval(() => { note.hidden = !unlockedPlay() || window.skyFollowCamera?.manualLook === false; }, 250);
 });

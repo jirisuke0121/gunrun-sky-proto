@@ -60,18 +60,20 @@
   const best = $('bestLine'); main.append(best);
   const controls = make('p', { className: 'home-controls' }, '<span class="home-controls-desktop"><kbd>W A S D</kbd> 移動　<kbd>マウス</kbd> 視点　<kbd>Space</kbd> ジャンプ</span><span class="home-controls-touch">左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ</span>');
   const trial = new URLSearchParams(location.search).get('cameraTrial');
-  if (['fixed','hybrid'].includes(trial)) {
+  {
     const originalControls = controls.innerHTML;
     const syncTrialControls = () => {
-      const fixed = (window.skyFollowCamera?.mode || 'after') === 'after';
+      const automatic = window.skyFollowCamera?.mode === 'after';
+      const fixed = automatic && ['fixed','hybrid'].includes(trial);
       controls.innerHTML = fixed ? '<span class="home-controls-desktop"><kbd>W A S D</kbd> 画面の方向へ移動　<kbd>Space</kbd> ジャンプ · 視点操作なし</span><span class="home-controls-touch">左スティックで画面の方向へ移動 · ボタンでジャンプ · 視点操作なし</span>' : originalControls;
+      if (automatic && !fixed && window.skyFollowCamera.manualLook === false) controls.innerHTML = '<span class="home-controls-desktop">W/S：前後、A/D：旋回、Space：ジャンプ。カメラは自動。</span><span class="home-controls-touch">左側で移動 · ボタンでジャンプ · 視点は自動</span>';
       if(fixed&&trial==='hybrid')controls.append(document.createTextNode(' · 見通しが悪い区間だけカメラが切り替わります'));
     };
-    new MutationObserver(syncTrialControls).observe(document.body, { attributes: true, attributeFilter: ['data-sky-camera-mode'] });
+    new MutationObserver(syncTrialControls).observe(document.body, { attributes: true, attributeFilter: ['data-sky-camera-mode','data-sky-camera-look'] });
     syncTrialControls();
   }
   // Sending is always on and needs no notice. Only the comparison trials, which send nothing, say so.
-  const notSent = trial === 'hybrid' || (trial && ['localhost', '127.0.0.1'].includes(location.hostname));
+  const notSent = ['hybrid','follow','follow-legacy'].includes(trial) || (trial && ['localhost', '127.0.0.1'].includes(location.hostname));
   if (notSent) {
     const notice = make('p', { id: 'homeSendNotice' });
     notice.textContent = 'ローカル比較用の試作です。ランキング・プレイ記録は送信しません。';

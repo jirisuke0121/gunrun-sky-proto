@@ -1,5 +1,5 @@
 // 記録送信はオフにできない。保存済みの「オフ」は起動のたびにオンへ戻り、設定の切替・チェックボックス・停止の案内は無い。
-// チュートリアル後の固定カメラ保存でも通信は止めない（hybrid の比較試作とローカルだけ止める）。両マップで確認する。
+// 旧固定カメラ保存の移行後・明示した固定URLでも通信は止めない（比較試作とローカルは止める）。両マップで確認する。
 // ローカル（127.0.0.1 / localhost）の試走は従来どおり送信しない。
 const assert = require('node:assert/strict'), { spawn } = require('node:child_process');
 const { chromium } = require('playwright');
@@ -43,7 +43,7 @@ const port = process.env.SEND_DEFAULT_PORT || '8875';
       const fp = await fresh.newPage(); fp.setDefaultTimeout(120000); await fp.goto(`http://gunrun.test/${map}`, { waitUntil: 'domcontentloaded' }); await fp.waitForFunction(() => window.__game); 
       assert.equal((await fp.evaluate(() => __game.S.sendLog)), true, `${map}: new device sends by default`);
       await fresh.close();
-      // チュートリアル後の「固定カメラ」保存（URL に cameraTrial=fixed が復元される）でも、公開サイトではランキング・記録の通信を止めない。
+      // 旧固定保存は通常操作へ移行し、公開サイトのランキング・記録の通信を止めない。
       const saved = await browser.newContext({ viewport: { width: 480, height: 270 } }); const hits = [];
       await saved.addInitScript(() => { window.__hold = true; localStorage.setItem('gunrun-fixed-controls-v1', '1'); });
       await saved.route('**/*', async route => { const u = new URL(route.request().url());
@@ -52,21 +52,28 @@ const port = process.env.SEND_DEFAULT_PORT || '8875';
       const sp = await saved.newPage(); sp.setDefaultTimeout(120000); await sp.goto(`http://gunrun.test/${map}`, { waitUntil: 'domcontentloaded' }); await sp.waitForFunction(() => window.__game && window.skyPerfTrace);
       await sp.waitForTimeout(1500);
       const sv = await sp.evaluate(() => ({ trial: new URLSearchParams(location.search).get('cameraTrial'), notice: document.getElementById('homeSendNotice')?.textContent || '' }));
-      assert.equal(sv.trial, 'fixed', `${map}: saved fixed controls restore cameraTrial=fixed`);
+      assert.equal(sv.trial, null, `${map}: obsolete fixed preference does not restore an experimental URL`);
+      assert.equal(await sp.evaluate(()=>localStorage.getItem('gunrun-fixed-controls-v1')),null);
       assert.equal(sv.notice, '', `${map}: no send notice on the home screen (${sv.notice})`);
       assert.ok(hits.some(h => h.includes('workers.dev')), `${map}: worker requests are not blocked for saved fixed controls (${hits.join(',')})`);
+      // 明示した公開の固定カメラURLも通常どおり通信できる。
+      hits.length=0;await sp.goto(`http://gunrun.test/${map}?camera=after&cameraTrial=fixed`);await sp.waitForFunction(()=>window.__game&&window.skyPerfTrace);await sp.waitForTimeout(1500);
+      assert.equal(await sp.evaluate(()=>new URLSearchParams(location.search).get('cameraTrial')),'fixed');
+      assert.ok(hits.some(h=>h.includes('workers.dev')),`${map}: explicit published fixed controls retain communication`);
       await saved.close();
-      // 比較用の hybrid 試作だけは従来どおり通信を止める。
+      // 明示した比較用の試作は通信を止める。
+      for(const reviewTrial of ['hybrid','follow','follow-legacy']){
       const hy = await browser.newContext({ viewport: { width: 480, height: 270 } }); const hyHits = [];
       await hy.addInitScript(() => { window.__hold = true; });
       await hy.route('**/*', async route => { const u = new URL(route.request().url());
         if (u.hostname === 'gunrun.test') { const r = await fetch(`http://127.0.0.1:${port}${u.pathname}${u.search}`); return route.fulfill({ status: r.status, headers: { 'content-type': r.headers.get('content-type') || 'text/plain' }, body: Buffer.from(await r.arrayBuffer()) }); }
         hyHits.push(u.hostname + u.pathname); return route.fulfill({ status: 200, contentType: 'application/json', body: '{"top":[],"total":0,"ok":true}' }); });
-      const hp = await hy.newPage(); hp.setDefaultTimeout(120000); await hp.goto(`http://gunrun.test/${map}?cameraTrial=hybrid`, { waitUntil: 'domcontentloaded' }); await hp.waitForFunction(() => window.__game && window.skyPerfTrace);
+      const hp = await hy.newPage(); hp.setDefaultTimeout(120000); await hp.goto(`http://gunrun.test/${map}?cameraTrial=${reviewTrial}`, { waitUntil: 'domcontentloaded' }); await hp.waitForFunction(() => window.__game && window.skyPerfTrace);
       await hp.waitForTimeout(1500);
-      assert.ok(!hyHits.some(h => h.includes('workers.dev')), `${map}: hybrid review trial sends nothing (${hyHits.join(',')})`);
-      assert.match(await hp.evaluate(() => document.getElementById('homeSendNotice')?.textContent || ''), /試作|trial|comparison/i, `${map}: hybrid trial keeps its notice`);
+      assert.ok(!hyHits.some(h => h.includes('workers.dev')), `${map}: ${reviewTrial} review trial sends nothing (${hyHits.join(',')})`);
+      assert.match(await hp.evaluate(() => document.getElementById('homeSendNotice')?.textContent || ''), /試作|trial|comparison/i, `${map}: ${reviewTrial} trial keeps its notice`);
       await hy.close();
+      }
       // ローカルの試走は従来どおり送信しない。
       const local = await browser.newContext({ viewport: { width: 480, height: 270 } });
       await local.addInitScript(() => { window.__hold = true; });

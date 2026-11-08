@@ -1,7 +1,7 @@
 name: Easy touch controls
 on:
   pull_request:
-    paths: ['follow-camera.*', 'control-style.*', 'onboarding.*', 'i18n*.js', 'index.html', 'canyon.html', 'bench/follow-camera.test.cjs', 'bench/easy-controls-browser.cjs', '.github/workflows/easy-controls.yml']
+    paths: ['follow-camera.*', 'control-style.*', 'onboarding.*', 'i18n*.js', 'guided-*', 'index.html', 'canyon.html', 'bench/auto-follow*', 'bench/follow-camera.test.cjs', 'bench/easy-controls-browser.cjs', '.github/workflows/easy-controls.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,4 +33,36 @@ jobs:
         with:
           name: easy-controls-evidence
           path: browser-evidence/easy-controls/
+          retention-days: 7
+  automatic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RUNNING_QA_URL: http://127.0.0.1:8895/
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: node bench/auto-follow-routing.test.cjs
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - run: python3 -m http.server 8895 --bind 127.0.0.1 > /tmp/auto-follow-server.log 2>&1 &
+      - name: Continuous touch corners, returns, reverse, jump and native pursuers
+        run: node bench/auto-follow-browser.cjs
+      - name: Normal entry, bilingual help, retry and tutorial return
+        run: node bench/auto-follow-entry-browser.cjs
+      - name: Comparison and actual desktop/touch play
+        run: node bench/auto-follow-review-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: auto-follow-evidence
+          path: browser-evidence/auto-follow-release/
           retention-days: 7

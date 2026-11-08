@@ -79,11 +79,12 @@
     $('onbTitle').textContent = kind === 'name' ? 'ニックネームを決めよう' : '遊び方';
     $('onbMain').textContent = kind === 'name' ? 'あとで' : '閉じる';
     const fixed = params.get('cameraTrial') === 'fixed' && window.skyFollowCamera?.mode === 'after';
-    $('onbLookTitle').textContent = fixed ? 'カメラは固定' : '視点を回す';
+    const automatic = window.skyFollowCamera?.mode === 'after' && window.skyFollowCamera.manualLook === false;
+    $('onbLookTitle').textContent = fixed ? 'カメラは固定' : automatic ? 'カメラは自動' : '視点を回す';
     $('onbTouchMove').textContent = fixed ? '左側に指を置き、画面の進みたい方向へずらして押したまま移動。離すと停止。「ジャンプ」で跳ぶ' : '左側に指を置き、上へずらして押したまま前進。離すと停止。「ジャンプ」で跳ぶ';
-    $('onbPcLook').innerHTML = fixed ? 'カメラの向きは固定です。視点操作はありません' : '<kbd>マウス</kbd> で視点を動かす';
+    $('onbPcLook').innerHTML = fixed ? 'カメラの向きは固定です。視点操作はありません' : automatic ? 'カメラは進む向きへ自動で追従します。視点操作はありません' : '<kbd>マウス</kbd> で視点を動かす';
     $('onbTouchLook').textContent = fixed ? 'カメラの向きは固定です。右側で視点を回す操作はありません' : window.skyFollowCamera?.mode === 'after'
-      ? 'カメラは進む向きへ自動で回ります。右側で見回した後は、左の指を離して進む向きを選び直せます'
+      ? automatic ? 'カメラは進む向きへ自動で追従します。視点操作はありません' : 'カメラは進む向きへ自動で回ります。右側で見回した後は、左の指を離して進む向きを選び直せます'
       : '画面の右側に指を置き、横へ動かして見回します。左側の移動と一緒に使えます';
     if(params.get('cameraTrial')==='hybrid'&&window.skyFollowCamera?.mode==='after'){
       $('onbLookTitle').textContent='カメラは区間に合わせて補助';

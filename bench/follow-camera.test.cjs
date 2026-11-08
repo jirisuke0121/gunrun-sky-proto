@@ -35,7 +35,7 @@ function fixture({ touchDevice = true, saved, search = '', yaw = 0 } = {}) {
     history: { state: null, replaceState(_state, _title, url) { location.href = String(url); } },
     matchMedia: query => ({ matches: query.includes('coarse') ? touchDevice : !touchDevice }),
   };
-  vm.runInNewContext(fs.readFileSync(require.resolve('../follow-camera.js'), 'utf8'), sandbox);
+  vm.runInNewContext(fs.readFileSync(process.env.FOLLOW_CAMERA_SOURCE || require.resolve('../follow-camera.js'), 'utf8'), sandbox);
   const api = window.skyFollowCamera;
   function controls(x, fwd, id = 1) {
     Object.assign(inputState, { on: true, id, x, y: -fwd });
@@ -68,7 +68,9 @@ const angleError = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 
 // The novice default remains automatic camera, separately from mouse users.
 assert.equal(fixture().api.mode, 'after');
+assert.equal(fixture().api.manualLook, false, 'ordinary easy mode has automatic view only');
 assert.equal(fixture({ touchDevice: false }).api.mode, 'before');
+assert.equal(fixture({ touchDevice: false }).api.manualLook, true, 'ordinary PC mouse look remains manual');
 assert.equal(fixture({ saved: { 'gunrun-follow-camera-v1': 'before' } }).api.mode, 'before');
 assert.equal(fixture({ touchDevice: false, saved: { 'gunrun-follow-camera-v1': 'after' } }).api.mode, 'before');
 {
@@ -95,7 +97,7 @@ for (const [x, fwd] of [[1, 0], [-1, 0], [.6, .8], [0, 1], [0, -1]]) {
 // Looking around with the right thumb neither steers the held left thumb nor
 // snaps back after an arbitrary timeout. A fresh move uses the new view.
 {
-  const f = fixture(), original = f.world(f.controls(0, 1));
+  const f = fixture({ search: '?cameraTrial=follow-legacy' }), original = f.world(f.controls(0, 1));
   f.inputState.lookId = 2;
   f.api.look(-Math.PI / 2, -.2);
   const looked = { ...f.api.view };
@@ -129,7 +131,7 @@ for (const [x, fwd] of [[1, 0], [-1, 0], [.6, .8], [0, 1], [0, -1]]) {
 // A pointer ID change, a paused run, or losing window focus must not carry a
 // previous gesture's world reference into the next input.
 for (const interrupt of ['pointer', 'pause', 'blur', 'hidden', 'reset']) {
-  const f = fixture(); f.controls(1, 0);
+  const f = fixture({ search: '?cameraTrial=follow-legacy' }); f.controls(1, 0);
   f.inputState.lookId = 2; f.api.look(-.7, 0); f.inputState.lookId = null;
   if (interrupt === 'pause') { f.setMode('pause'); f.api.frame(1 / 60); f.setMode('play'); }
   if (interrupt === 'blur') f.emitWindow('blur');
@@ -213,4 +215,61 @@ for (const [x, forward] of [[1, 0], [.8, -.6]]) {
   f.api.step(.05, raw);
   assert.ok(f.c.yaw < 0, 'keyboard auto mode still steers');
 }
-console.log('PASS follow camera: direct touch movement, stable held heading, manual look, rebase/interruption, native traversal, FPS and PC isolation');
+// Automatic following has one camera owner. A second finger/mouse may not
+// rotate it or freeze following, including while the left thumb changes course.
+for (const touchDevice of [false, true]) {
+  const f = fixture({ touchDevice, search: '?camera=after&cameraTrial=follow' });
+  f.controls(0, 1); const start = { ...f.api.view };
+  f.inputState.lookId = 2; f.api.holdLook(true);
+  assert.equal(f.api.look(-.8, .4), true, 'auto consumes manual look');
+  near(f.api.view.yaw, start.yaw, 'manual yaw ignored'); near(f.api.view.pitch, start.pitch, 'manual pitch ignored');
+  assert.equal(f.api.state.manual, false); assert.equal(f.api.manualLook, false);
+  f.controls(1, 0);
+  for (let i = 0; i < 120; i++) f.api.frame(1 / 60);
+  near(angleError(f.api.view.yaw, f.c.yaw), 0, 'camera still follows with right pointer down', .001);
+  assert.equal(f.api.state.lookPolicy, 'auto');
+  f.api.setMode('before', false); assert.equal(f.api.look(.2, .1), false); assert.equal(f.api.manualLook, true);
+  f.api.setMode('after', false); assert.equal(f.api.look(.2, .1), true); assert.equal(f.api.state.manual, false);
+}
+// A continuous corner must not require a neutral/release. Test the gradual
+// physical return as well as a one-event return, so fixing only the final
+// up sample cannot hide an unwanted turn during the thumb's return arc.
+for (const side of [-1, 1]) for (const returnFrames of [1, 30]) {
+  const f = fixture({ search: '?camera=after&cameraTrial=follow' });
+  f.controls(0, 1);
+  for (let i = 1; i <= 30; i++) {
+    const a = side * Math.PI / 2 * i / 30;
+    f.controls(Math.sin(a), Math.cos(a)); f.api.frame(1 / 60);
+  }
+  const heading = f.c.yaw;
+  for (let i = 1; i <= returnFrames; i++) {
+    const a = side * Math.PI / 2 * (1 - i / returnFrames);
+    f.controls(Math.sin(a), Math.cos(a)); f.api.frame(1 / 60);
+    near(angleError(f.c.yaw, heading), 0, 'returning upward continues the corner', .04);
+  }
+  for (let i = 0; i < 120; i++) { f.controls(0, 1); f.api.frame(1 / 60); }
+  near(angleError(f.api.view.yaw, heading), 0, 'camera catches the continuing heading', .001);
+  const raw = f.controls(0, -1);
+  near(angleError(f.c.yaw, heading), 0, 'same-finger backing never turns the body');
+  near(raw.fwdIn, -1, 'same-finger down immediately backs away');
+  f.controls(0, 1); near(angleError(f.c.yaw, heading), 0, 'up resumes the same heading');
+  // An opposite corner and another return can be chained with the same finger.
+  f.controls(-side, 0); const second = f.c.yaw;
+  near(angleError(second, heading + side * Math.PI / 2), 0, 'opposite corner uses current travel direction');
+  f.controls(0, 1); near(angleError(f.c.yaw, second), 0, 'second return keeps the new direction');
+}
+// Holding an input with one-pixel angular jitter cannot accumulate camera
+// feedback or repeated tiny turn strokes. Radius-only changes are speed only.
+{
+  const f = fixture({ search: '?camera=after&cameraTrial=follow' });
+  f.controls(.6, .8); const heading = f.c.yaw;
+  for (let i = 0; i < 600; i++) {
+    const a = Math.atan2(.6, .8) + (i % 2 ? 1 : -1) / 56;
+    f.controls(Math.sin(a), Math.cos(a)); f.api.frame(1 / 60);
+    near(angleError(f.c.yaw, heading), 0, 'touch jitter cannot ratchet heading', .001);
+  }
+  for (const r of [.3, .6, 1, .4]) {
+    f.controls(.6*r, .8*r); near(angleError(f.c.yaw, heading), 0, 'radius changes only speed');
+  }
+}
+console.log('PASS follow camera: continuous corners/returns/reverse, jitter, stable held heading, manual legacy, native traversal, FPS and PC isolation');

@@ -42,7 +42,7 @@
       move: `${moveGesture}<b>押したまま移動</b>`, view: `${ICON.drag}<b>指で見回す</b>`, auto: false,
     },
     after: {
-      name: params.get('cameraTrial') === 'fixed' ? '固定カメラ（試作）' : 'かんたん操作', tag: params.get('cameraTrial') === 'fixed' ? 'スティックだけ' : 'カメラおまかせ', look: params.get('cameraTrial') === 'fixed' ? '向きは固定・位置だけ追従。右側の視点操作はなし' : '進む向きへ自動で回る。右側で見回しもできる',
+      name: params.get('cameraTrial') === 'fixed' ? '固定カメラ（試作）' : 'かんたん操作', tag: params.get('cameraTrial') === 'fixed' ? 'スティックだけ' : 'カメラおまかせ', look: params.get('cameraTrial') === 'fixed' ? '向きは固定・位置だけ追従。右側の視点操作はなし' : params.get('cameraTrial') === 'follow-legacy' ? '進む向きへ自動で回る。右側で見回しもできる' : '進む向きへ自動で追従します。視点操作はありません',
       move: `${moveGesture}<b>押したまま移動</b>`, view: `${ICON.auto}<b>${params.get('cameraTrial') === 'fixed' ? '向き固定' : 'カメラ自動'}</b>`, auto: true,
     },
   } : {

@@ -9,6 +9,9 @@
   const storageKey = coarse() ? 'gunrun-follow-camera-v1' : 'gunrun-pc-camera-v1';
   const defaultMode = () => coarse() ? 'after' : 'before';
   const queryMode = new URLSearchParams(location.search).get('camera');
+  // Manual look remains available in the explicitly named old comparison.
+  // Ordinary easy controls have a single camera owner: automatic following.
+  const allowManualLook = new URLSearchParams(location.search).get('cameraTrial') === 'follow-legacy';
   let savedMode;
   try { savedMode = localStorage.getItem(storageKey); } catch {}
   let mode = [queryMode, savedMode, defaultMode()].find(value => value === 'before' || value === 'after');
@@ -19,6 +22,7 @@
   // A turn gesture cannot become reverse until the thumb returns to neutral.
   let gesture = 'idle', gestureId = null, reverseTime = 0;
   let direct = false, basis = c.yaw, desiredYaw = c.yaw, directReverse = false, fromAction = false;
+  let turnAngle = 0, reverseZone = false, forwardZone = false;
   const nativeStates = ['ladder', 'zip', 'hook', 'swing', 'ledge', 'wallrun'];
   const selectors = [];
   const enabled = () => mode === 'after' && !game.demoActive();
@@ -30,6 +34,7 @@
     manual = manualTouch = mouseHeld = false; manualUntil = 0; lastInput = 0;
     gesture = 'idle'; gestureId = null; reverseTime = 0;
     direct = false; fromAction = false; basis = desiredYaw = c.yaw; directReverse = false;
+    turnAngle = 0; reverseZone = forwardZone = false;
   }
   function legacyInput(raw) {
     if (!playing()) return raw;
@@ -81,8 +86,9 @@
     const turn = (controls.steer || 0) * 2.4 * (c.state === 'wallrun' ? .3 : 1);
     c.yaw = angle(c.yaw - turn * Math.min(.05, Math.max(0, dt)));
   }
-  // A touch gesture chooses a world direction once. Camera following must not
-  // feed back into that held direction and create a continuously curving path.
+  // A held deflection never feeds the following camera back into movement.
+  // In automatic-only mode a turn is committed as the thumb returns upward:
+  // continue the new heading, then accept another left/right turn without a lift.
   // Keyboard auto-camera retains its W/S drive + A/D steer mapping.
   function input(raw) {
     if (playing() && window.skyFixedCamera?.active) return window.skyFixedCamera.input(raw);
@@ -103,10 +109,13 @@
     }
     if (magnitude <= .18) {
       direct = false; fromAction = false; gestureId = null; gesture = 'idle';
+      turnAngle = 0; reverseZone = forwardZone = false;
       return { ...raw, fwdIn: 0, strIn: 0, motionScale: 0, precise: true, steer: 0 };
     }
     const stickAngle = Math.atan2(raw.strIn, raw.fwdIn);
     const fresh = !direct || gestureId !== touch.id;
+    const nextReverseZone = raw.fwdIn < -Math.abs(raw.strIn);
+    const nextForwardZone = raw.fwdIn > Math.abs(raw.strIn);
     if (fresh) directReverse = raw.fwdIn < -Math.abs(raw.strIn);
     if (fromAction && gestureId === touch.id) {
       // An action owns its exit heading. Keep held input on that exit path;
@@ -119,9 +128,31 @@
       basis = view.yaw;
       if (!mouseHeld && touch.lookId === null) manual = manualTouch = false;
     }
+    if (!allowManualLook && !fresh && !fromAction) {
+      // Down/up can change between backing and advancing with the same finger.
+      // Only entering the respective cone changes the mode; a native action's
+      // held exit input must retain that action's forward travel direction.
+      const change = nextReverseZone && !reverseZone && !directReverse ||
+        nextForwardZone && !forwardZone && directReverse;
+      if (change) directReverse = !directReverse;
+      const nextAngle = angle(stickAngle - (directReverse ? Math.PI : 0));
+      if (change) {
+        turnAngle = nextAngle;
+      } else if (Math.abs(angle(nextAngle - turnAngle)) * magnitude > 2 / 56) {
+        // Ignore less than two pixels of angular thumb movement. Returning
+        // toward the forward axis commits the turn rather than undoing it.
+        const outward = Math.sign(nextAngle) !== Math.sign(turnAngle) ? nextAngle
+          : Math.abs(nextAngle) > Math.abs(turnAngle) ? angle(nextAngle - turnAngle) : 0;
+        desiredYaw = angle(desiredYaw - outward);
+        turnAngle = nextAngle;
+      }
+    } else {
+      desiredYaw = angle(basis - stickAngle + (directReverse ? Math.PI : 0));
+      turnAngle = angle(stickAngle - (directReverse ? Math.PI : 0));
+    }
+    reverseZone = nextReverseZone; forwardZone = nextForwardZone;
     fromAction = false; direct = true; gestureId = touch.id;
     gesture = directReverse ? 'reverse' : 'drive';
-    desiredYaw = angle(basis - stickAngle + (directReverse ? Math.PI : 0));
     return { ...raw, fwdIn: magnitude * (directReverse ? -1 : 1), strIn: 0,
       motionScale: clamp((magnitude - .12) / .88, 0, 1),
       precise: true, steer: 0, reversing: directReverse, direct: true };
@@ -153,6 +184,7 @@
   function look(yawDelta, pitchDelta) {
     if (window.skyFixedCamera?.active) return true;
     if (!playing()) return false;
+    if (!allowManualLook) return true;
     view.yaw = angle(view.yaw - yawDelta);
     view.pitch = clamp(view.pitch - pitchDelta, -1.35, 1.35);
     if (Math.abs(yawDelta) + Math.abs(pitchDelta) > .00001) {
@@ -169,7 +201,7 @@
     const held = mouseHeld || touch.lookId !== null;
     // On touch, looking is deliberate: hold that view until the next left
     // gesture. Do not spring back on a hidden timer while the same thumb runs.
-    if (manual && (manualTouch || held || performance.now() < manualUntil || lastInput < .08)) return view;
+    if (allowManualLook && manual && (manualTouch || held || performance.now() < manualUntil || lastInput < .08)) return view;
     manual = false;
     let targetYaw = c.yaw;
     let targetPitch = c.state === 'ledge' ? -.24 : c.onGround ? -.09 : -.16;
@@ -197,13 +229,14 @@
   if (trial==='hybrid') NAMES.after = '区間カメラ（試作）';
   function syncUI() {
     document.body.dataset.skyCameraMode = mode;
+    document.body.dataset.skyCameraLook = mode === 'before' ? 'manual' : fixedTrial ? 'fixed' : allowManualLook ? 'mixed' : 'auto';
     for (const select of selectors) select.value = mode;
     for (const note of document.querySelectorAll('.follow-camera-help')) {
       note.textContent = trial==='hybrid'&&mode==='after' ? (new URLSearchParams(location.search).get('cameraControl')==='legacy'?'区間ごとに視点を切り替えます。押している間は以前の方向を保ち、離すと新しい画面の方向へ切り替わります。':'画面の方向へ移動します。移動中はカメラの方角を保ち、止まってから見通しを調整します。手前の壁や屋根は足元の周囲だけ切り欠いて見せます。') : fixedTrial && mode === 'after' ? '画面の方向へ移動します。カメラの回転操作はありません。壁は実体を残し、足元に合わせてカメラの距離・見下ろし角度を補助します。' : mode === 'before'
         ? (coarse() ? '左スティックで移動、右側のドラッグで視点を自分で回します。' : 'WASDで移動、マウスで視点を回します。')
         : coarse()
-          ? '左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。'
-          : 'W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。マウスで見回せます。';
+          ? allowManualLook ? '左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。' : '左側で移動。左右へ倒して曲がり、上へ戻すと直進。下で後退。右側のボタンでジャンプや技を出します。カメラは自動で追従します。'
+          : allowManualLook ? 'W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。マウスで見回せます。' : 'W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。視点は自動で追従します。';
     }
   }
   function setMode(next, persist = true) {
@@ -232,12 +265,13 @@
   }
   window.skyFollowCamera = {
     input, step, speed, move, look, frame, reset, setMode,
-    holdLook(held) { mouseHeld = held; },
+    holdLook(held) { mouseHeld = allowManualLook && held; },
     get active() { return enabled(); },
     get mode() { return mode; },
     get touchDevice() { return coarse(); },
+    get manualLook() { return !enabled() || allowManualLook && !window.skyFixedCamera?.active; },
     get view() { return window.skyFixedCamera?.active ? window.skyFixedCamera.view : enabled() ? view : c; },
-    get state() { return { mode, yaw: view.yaw, pitch: view.pitch, heading: c.yaw, manual, moving: lastInput, gesture }; },
+    get state() { return { mode, yaw: view.yaw, pitch: view.pitch, heading: c.yaw, manual, moving: lastInput, gesture, lookPolicy: document.body.dataset.skyCameraLook }; },
   };
   document.getElementById('humanStatus')?.after(control('cameraModeHome', true));
   document.getElementById('setGrid').prepend(control('cameraMode', false));
