@@ -36,7 +36,7 @@ for (const file of ['index.html', 'canyon.html']) {
   // identical distances re-enter the heap and expand outgoing edges repeatedly.
   for (let layer = 0; layer < 3; layer++) for (let copy = 0; copy < 8; copy++) add(layer + 1, layer, 1.00000008);
   add(4, 0, 3, { door }); add(5, 4, 2, { jamT: 20 }); add(5, 3, 2);
-  const context = vm.createContext({ lt: graph });
+  const context = vm.createContext({ lt: graph, window: { skyPerfTrace: { on: false } } });
   vm.runInContext(html.slice(start, end) + '\nthis.search = so;', context);
   let time = 0;
   const cost = edge => edge.len + (edge.door && !edge.door.off ? 14 : 0) + (edge.jamT > time ? 80 : 0);

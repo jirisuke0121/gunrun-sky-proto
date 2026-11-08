@@ -1,0 +1,27 @@
+name: Real-device performance trace
+on:
+  pull_request:
+    paths: ['perf-trace.js', 'index.html', 'canyon.html', 'run-records.js', 'telemetry-probe.js', 'tools/telemetry/**', 'bench/perf-*', '.github/workflows/perf-trace.yml']
+permissions:
+  contents: read
+jobs:
+  perf-trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Aggregation, caps, off-by-default and per-frame cost
+        run: node bench/perf-trace.test.cjs
+      - name: Analysis script reads only dev runs with a perf block
+        run: node bench/perf-analyze.test.cjs
+      - name: Record carries channel dev and the frame breakdown only when opted in (both maps)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH="${PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH:-$(command -v google-chrome || true)}" node bench/perf-trace-browser.cjs

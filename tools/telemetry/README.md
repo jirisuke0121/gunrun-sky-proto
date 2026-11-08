@@ -1,3 +1,33 @@
+# 実機の計測（フレーム時間の内訳）
+
+遊ぶ端末（iPhoneなど）で次を開くと、その端末だけ計測モードになる。`?perf=0` で戻す。設定は端末（localStorage）に残るので、同じ端末では引数なしでも続く。
+
+- 旧市街 `https://jirisuke0121.github.io/gunrun-sky-proto/index.html?perf=1`
+- 渓谷 `https://jirisuke0121.github.io/gunrun-sky-proto/canyon.html?perf=1`
+
+計測中は画面左下に小さく「計測中 (dev)」が出る。プレイ記録は `channel:"dev"` で送られ、順位には入らない（Worker が `channel:'dev'` を除外）。記録送信（「プレイ記録を匿名で送信する」）がオフだと何も送られない。Worker・D1の変更は不要（診断JSONはそのまま保存される）。
+
+記録は `diagnostics.perf`（10秒ごと最大18窓＝3分と、遅いフレーム上位12件。1プレイ数KB）。
+
+- `iv` 描画の間隔（体感）、`cpu` ゲームのフレーム処理にかかった時間。`iv - cpu` は描画（GPU）や垂直同期の待ち。
+- `adv` ゲーム更新、`cam` カメラ、`hv` 人物の腕、`render` 描画の提出。この4つは重ならない。`ai`（ゾンビ更新）と `so`（経路検索）は `adv` の中。`rest` は残り（HUD・ミニマップ等）。
+- 遅いフレーム（CPU 33 ms超か間隔 67 ms超）には、時刻・自分の位置・ゾンビ数（10 m内）・そのフレームで最も遅かったゾンビ1体の位置と状態が付く。
+- Safari はタイマーが約1 ms単位。小さい区間は0か1 msになるが、10秒平均は使える。`timerMs` に測れた精度を残す。
+
+```sh
+cd server
+npx wrangler d1 execute gunrun-runs --remote \
+  --command "SELECT json FROM runs WHERE json_extract(json,'$.channel')='dev' ORDER BY received_at ASC" --json > runs-export.json
+python3 ../tools/telemetry/analyze_perf.py runs-export.json
+```
+
+`analyze_perf.py` は端末（OS・ブラウザ・コア数・画面）とマップごとに、間隔・CPU内訳・遅いフレームを並べ、次の基準で「次にやること」を書く。
+
+1. 平均18.5 ms以下で33 ms超が1%未満なら、その端末では最適化を止める。
+2. CPUが間隔の半分未満なら、描画（GPU）待ちが支配的。ゾンビ側の最適化は打ち切り、影・解像度・描画数を調べる。
+3. CPUが重いなら最大の区間で決める。人物の腕が最大か25%以上なら腕の曲げの間引き、ゲーム更新ならゾンビ／経路の内訳を見る。
+4. 50 ms超のスパイクは、遅いフレームの位置と最遅ゾンビの状態から関数まで特定する。
+
 # 空中回廊の仮説検証用計測（devのみ）
 
 ビルド `2026-10-24b-telemetry-dev` は [公開 dev 版](https://jirisuke0121.github.io/gunrun-sky-proto/dev/) に計測を追加する。ルートの公開ゲーム、Worker、D1スキーマは変更していない。

@@ -4,6 +4,12 @@
 - 手前の壁・屋根は人物と次の足場の周囲だけ切り欠き、現在の床と奥の地形を残す。`bench/hybrid-camera-review.html` で修正前・修正版・固定視点を比較できる。
 - 旧市街・渓谷×PC・CDPタッチで8方向、北側通路・西入口での連続走行、折り返し、短い押し直し、二本指ジャンプを検証。遮蔽3か所の実描画で人物・床上の可視性と床の不透明性も確認。[検証範囲と限界](docs/STABLE_CAMERA_2026-11-08.md)。実機の操作感は未確認。
 
+## 2026-11-08 実機のフレーム時間を端末で計測できるようにした（`?perf=1`）
+
+- 端末で `index.html?perf=1`（渓谷は `canyon.html?perf=1`）を一度開くと、その端末だけ計測モード。`?perf=0` で戻る。記録は `channel:"dev"` で順位に入らず、`diagnostics.perf` にフレームの内訳（ゲーム更新・カメラ・人物の腕・描画・ゾンビ・経路）と遅いフレームの場所が付く。既定（引数なし）の端末は従来どおりで、記録も変わらない。Worker・D1の変更なし。
+- 回収と読み方は [tools/telemetry/README.md](tools/telemetry/README.md)。`tools/telemetry/analyze_perf.py` が端末ごとに「描画待ちが支配的か／人物の腕が重いか／ゾンビ更新か」を判定する。
+- 確認：`bench/perf-trace.test.cjs`（集計・上限・1フレーム約1.5 µs）、`bench/perf-analyze.test.cjs`、`bench/perf-trace-browser.cjs`（実際の描画ループで両マップ。既定は production のまま、`?perf=1` で dev＋内訳、端末に残る、`?perf=0` で戻る）。CI は `perf-trace.yml`。iPhone実機のデータはまだ無い。
+
 ## 2026-11-08 旧市街の西端で出る100ms超のカクつきを解消：回り込み目標の作り直しで同じ判定を使い回す
 
 - 足場の上でナビ網の外に立つと、追うゾンビの更新が約1.5秒おきに150〜390 msかかっていた。原因は `zombie-climb.js` の `navigationTargets` の作り直しで、体の掃引判定（`clearLine`）を同じ問い合わせで約13倍重複して呼んでいたこと。作り直しの間だけ結果を使い回す（扉の開閉・入室で捨てる。判定自体は不変）。
