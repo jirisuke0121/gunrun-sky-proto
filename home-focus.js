@@ -60,11 +60,12 @@
   const best = $('bestLine'); main.append(best);
   const controls = make('p', { className: 'home-controls' }, '<span class="home-controls-desktop"><kbd>W A S D</kbd> 移動　<kbd>マウス</kbd> 視点　<kbd>Space</kbd> ジャンプ</span><span class="home-controls-touch">左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ</span>');
   const trial = new URLSearchParams(location.search).get('cameraTrial');
-  if (trial === 'fixed') {
+  if (['fixed','hybrid'].includes(trial)) {
     const originalControls = controls.innerHTML;
     const syncTrialControls = () => {
       const fixed = (window.skyFollowCamera?.mode || 'after') === 'after';
       controls.innerHTML = fixed ? '<span class="home-controls-desktop"><kbd>W A S D</kbd> 画面の方向へ移動　<kbd>Space</kbd> ジャンプ · 視点操作なし</span><span class="home-controls-touch">左スティックで画面の方向へ移動 · ボタンでジャンプ · 視点操作なし</span>' : originalControls;
+      if(fixed&&trial==='hybrid')controls.append(document.createTextNode(' · 見通しが悪い区間だけカメラが切り替わります'));
     };
     new MutationObserver(syncTrialControls).observe(document.body, { attributes: true, attributeFilter: ['data-sky-camera-mode'] });
     syncTrialControls();

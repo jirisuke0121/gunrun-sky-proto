@@ -621,7 +621,7 @@ function update(dt, preparingShot = false) {
   }
   if(window.skyFixedCamera?.active&&window.skyFixedCamera.opaque){
     safe=window.skyFixedCamera.resolveCamera(pivot,wanted,dt);
-    delta.copy(wanted).sub(pivot);camera.rotation.x=window.skyFixedCamera.pitch;
+    delta.copy(wanted).sub(pivot);camera.rotation.set(window.skyFixedCamera.pitch,window.skyFixedCamera.view.yaw,0);
   }
   camera.position.copy(pivot).addScaledVector(delta, safe);
   camera.updateMatrixWorld();

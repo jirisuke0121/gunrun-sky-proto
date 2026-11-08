@@ -1,4 +1,4 @@
-import { installMinimap } from './minimap.js?v=20261101-unity-radar-v4';
+import { installMinimap } from './minimap.js?v=20261108-hybrid-v1';
 import { installRunRecords } from './run-records.js?v=20261106-dev-entry-v1';
 import { createGunRecoil } from './gun-recoil.js?v=20261101-recoil-v1';
 import { createSwing } from './parkour-swing.js?v=20261104-branch-transfer';
@@ -956,8 +956,8 @@ window.__skyGhost = window.skyReplay;
   const inside = (x, z, skip) => houses.some((h) => h !== skip && !h[6] && x > h[0] - 0.05 && x < h[2] + 0.05 && z > h[1] - 0.05 && z < h[3] + 0.05);
   // Camera clearance follows the visible roof/eave, including its small
   // overhang. Player collision intentionally retains the original dimensions.
-  if(!window.SKY_CANYON_MAP)window.skyCameraVolumes=houses.map(([x0,z0,x1,z1,top,base=0])=>({
-    minX:x0-.18,maxX:x1+.18,minZ:z0-.18,maxZ:z1+.18,minY:base,maxY:top+.1,solid:true
+  if(!window.SKY_CANYON_MAP)window.skyCameraVolumes=houses.map(([x0,z0,x1,z1,top,base=0,kind=''])=>({
+    minX:x0-.18,maxX:x1+.18,minZ:z0-.18,maxZ:z1+.18,minY:base,maxY:top+.1,solid:true,kind
   }));
   let seed = 7;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
