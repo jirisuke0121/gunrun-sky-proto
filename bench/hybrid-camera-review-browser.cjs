@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),{spawn}=require('node:child_process'),{chromium}=require('playwright');
-(async()=>{let server,browser;const rows=[],base='http://127.0.0.1:8896/',out='browser-evidence/hybrid-camera';try{
+(async()=>{fs.mkdirSync('browser-evidence/hybrid-camera',{recursive:true});let server,browser;const rows=[],base='http://127.0.0.1:8896/',out='browser-evidence/hybrid-camera';try{
 server=spawn('python3',['-m','http.server','8896','--bind','127.0.0.1'],{stdio:'ignore'});
 for(let i=0;i<100;i++){if(await fetch(base).then(r=>r.ok,()=>false))break;await new Promise(r=>setTimeout(r,100));}
 browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--enable-unsafe-swiftshader']});

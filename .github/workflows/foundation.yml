@@ -67,18 +67,64 @@ jobs:
           else
             npx playwright install --with-deps chromium
           fi
-      - name: Hybrid camera sections and held movement
+      - name: Verify hybrid-camera
         run: |
           node bench/hybrid-camera.test.cjs
-          node bench/stable-camera.test.cjs
           node bench/hybrid-camera-browser.cjs
-          node bench/stable-camera-browser.cjs
-          node bench/hybrid-camera-review-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: hybrid-camera-evidence
-          path: |
-            browser-evidence/hybrid-camera/
-            browser-evidence/stable-camera/
+          path: browser-evidence/hybrid-camera/
+          retention-days: 7
+  stable-camera:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Verify stable-camera
+        run: |
+          node bench/stable-camera.test.cjs
+          node bench/stable-camera-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stable-camera-evidence
+          path: browser-evidence/stable-camera/
+          retention-days: 7
+  camera-comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Verify camera-comparison
+        run: |
+          node bench/hybrid-camera-review-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: camera-comparison-evidence
+          path: browser-evidence/hybrid-camera/
           retention-days: 7
