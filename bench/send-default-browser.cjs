@@ -54,7 +54,7 @@ const port = process.env.SEND_DEFAULT_PORT || '8875';
       const sv = await sp.evaluate(() => ({ trial: new URLSearchParams(location.search).get('cameraTrial'), notice: document.getElementById('homeSendNotice')?.textContent || '' }));
       assert.equal(sv.trial, null, `${map}: obsolete fixed preference does not restore an experimental URL`);
       assert.equal(await sp.evaluate(()=>localStorage.getItem('gunrun-fixed-controls-v1')),null);
-      assert.ok(!/試作|送信しません|not sent|trial/i.test(sv.notice) && /匿名|anonymous/.test(sv.notice), `${map}: notice says records are sent (${sv.notice})`);
+      assert.ok(!/試作|送信しません|not sent|trial/i.test(sv.notice) && /送信します|are sent/.test(sv.notice), `${map}: notice says records are sent (${sv.notice})`);
       assert.ok(hits.some(h => h.includes('workers.dev')), `${map}: worker requests are not blocked for saved fixed controls (${hits.join(',')})`);
       // 明示した公開の固定カメラURLも通常どおり通信できる。
       hits.length=0;await sp.goto(`http://gunrun.test/${map}?camera=after&cameraTrial=fixed`);await sp.waitForFunction(()=>window.__game&&window.skyPerfTrace);await sp.waitForTimeout(1500);
