@@ -19,25 +19,30 @@ function load({ search = '', stored = null } = {}) {
   return { trace: sandbox.skyPerfTrace, store, added };
 }
 
-// 1) 既定はオフ：副作用なし、スナップショットは null。
+// 1) 既定でオン：引数も保存もなくても計測する。バッジは出さない。
 {
   const { trace, added } = load();
-  assert.equal(trace.on, false);
-  assert.equal(trace.t('adv', () => 7), 7, 'off: t() just calls the function');
-  trace.add('so', 5); trace.frame(30, 1, true, 20); trace.reset();
-  assert.equal(trace.snapshot(), null);
-  assert.equal(added.length, 0, 'off: no badge');
+  assert.equal(trace.on, true);
+  assert.equal(added.length, 0, 'no badge');
+  trace.frame(16.7, 1, true, 6);
+  assert.equal(trace.snapshot().buckets.length, 1);
 }
-// 2) ?perf=1 で保存してオン、?perf=0 で消えてオフ、保存済みなら引数なしでもオン。
+// 2) ?perf=0 でこの端末だけ止まる（保存される）。?perf=1 で戻る。保存済みなら引数なしでも止まったまま。
 {
-  const a = load({ search: '?perf=1' }); assert.equal(a.trace.on, true); assert.equal(a.store.get('gunrun-perf'), '1'); assert.equal(a.added.length, 1, 'badge shown');
-  const b = load({ stored: '1' }); assert.equal(b.trace.on, true);
-  const c = load({ search: '?perf=0', stored: '1' }); assert.equal(c.trace.on, false); assert.equal(c.store.has('gunrun-perf'), false);
-  const d = load({ search: '?perf=2' }); assert.equal(d.trace.on, false, 'only 1 turns it on');
+  const off = load({ search: '?perf=0' });
+  assert.equal(off.trace.on, false); assert.equal(off.store.get('gunrun-perf'), '0');
+  assert.equal(off.trace.t('adv', () => 7), 7, 'off: t() just calls the function');
+  off.trace.add('so', 5); off.trace.frame(30, 1, true, 20); off.trace.reset();
+  assert.equal(off.trace.snapshot(), null);
+  assert.equal(load({ stored: '0' }).trace.on, false, 'the stop is remembered');
+  const back = load({ search: '?perf=1', stored: '0' });
+  assert.equal(back.trace.on, true); assert.equal(back.store.has('gunrun-perf'), false);
+  assert.equal(load({ search: '?perf=2' }).trace.on, true, 'only 0 turns it off');
+  assert.equal(load().trace.on, true);
 }
 // 3) 集計：区間の合計と最大、10秒ごとのバケット、描画待ち（iv - cpu）の材料。
 {
-  const { trace } = load({ stored: '1' });
+  const { trace } = load();
   const f = (iv, t, cpu, parts = {}) => {
     for (const [k, v] of Object.entries(parts)) trace.add(k, v);
     trace.frame(iv, t, true, cpu);
@@ -59,10 +64,11 @@ function load({ search = '', stored = null } = {}) {
   assert.equal(w.cpu, 36); assert.equal(w.adv, 30); assert.equal(w.rest, 1, 'rest = cpu - adv - cam - hv - render');
   assert.equal(w.zMax, null); assert.ok(!('key' in w), 'internal ranking key is not exported');
   assert.ok(Number.isFinite(snap.timerMs) || snap.timerMs === null);
+  assert.equal(trace.snapshot().timerMs, snap.timerMs, 'timer resolution is measured once');
 }
 // 4) 区間は呼ぶたびに加算され、フレームごとに空に戻る。非アクティブなフレームは数えない。
 {
-  const { trace } = load({ stored: '1' });
+  const { trace } = load();
   assert.equal(trace.t('cam', () => 'x'), 'x');
   trace.frame(16, 1, false, 10);
   assert.equal(trace.snapshot().buckets.length, 0, 'inactive frames are skipped');
@@ -74,7 +80,7 @@ function load({ search = '', stored = null } = {}) {
 }
 // 5) 上限：バケット18、遅いフレーム12（重い順に残る）、超過は truncated。
 {
-  const { trace } = load({ stored: '1' });
+  const { trace } = load();
   trace.context = () => ({ p: [1.234, 2, 3], z: 5, near: 2, m: 'play' });
   for (let i = 0; i < 25; i++) trace.frame(16, i * 10 + 1, true, 5);
   for (let i = 0; i < 40; i++) trace.frame(30, 1, true, 40 + i);
@@ -88,7 +94,7 @@ function load({ search = '', stored = null } = {}) {
 }
 // 6) 1体で一番遅い更新を、位置と状態つきで覚える。
 {
-  const { trace } = load({ stored: '1' });
+  const { trace } = load();
   trace.zombie({ pos: { x: -44.64, y: 1.1, z: 0 }, act: { kind: 'pillar' }, flank: true }, 90);
   trace.zombie({ pos: { x: 3, y: 0, z: 3 } }, 5);
   trace.frame(120, 3, true, 100);
@@ -98,13 +104,13 @@ function load({ search = '', stored = null } = {}) {
 }
 // 7) リセットで空に戻る。
 {
-  const { trace } = load({ stored: '1' });
+  const { trace } = load();
   trace.frame(16, 1, true, 5); trace.reset();
   assert.equal(trace.snapshot().buckets.length, 0);
 }
 // 8) 負荷：計測オンの1フレーム分（区間の計測6回と集計）が小さい。
 {
-  const { trace } = load({ stored: '1' });
+  const { trace } = load();
   const N = 60000, t0 = process.hrtime.bigint();
   for (let i = 0; i < N; i++) {
     trace.t('adv', () => 0); trace.t('cam', () => 0); trace.t('hv', () => 0); trace.t('render', () => 0);

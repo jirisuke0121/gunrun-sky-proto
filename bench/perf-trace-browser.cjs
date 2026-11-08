@@ -1,5 +1,5 @@
-// 実機計測：?perf=1 の端末だけ、実際の描画ループの内訳が diagnostics.perf に載り、channel が dev になる。
-// 引数なし（既定）では何も変わらない。?perf=0 で戻る。両マップで確認する。
+// 実機計測：既定で全員、実際の描画ループの内訳が diagnostics.perf に載る。channel は production のまま（順位に影響しない）。
+// ?perf=0 でその端末だけ止まり、?perf=1 で戻る。両マップで確認する。
 const assert = require('node:assert/strict'), { spawn } = require('node:child_process');
 const { chromium } = require('playwright');
 const port = process.env.PERF_TRACE_PORT || '8874', base = `http://127.0.0.1:${port}/`;
@@ -34,18 +34,11 @@ const port = process.env.PERF_TRACE_PORT || '8874', base = `http://127.0.0.1:${p
   }
 
   try {
-    // 既定（引数なし）：本番扱いのまま、perf は付かない。
     const context = await browser.newContext({ viewport: { width: 480, height: 270 } });
-    const off = await play(context, 'index.html', 6);
-    assert.ok(off.body, 'default: a record was sent');
-    assert.equal(off.on, false); assert.equal(off.badge, false, 'default: no badge');
-    assert.equal(off.body.channel, 'production'); assert.ok(!off.body.diagnostics || !('perf' in off.body.diagnostics), 'default: no perf block');
-    console.log('PASS default off: channel=' + off.body.channel);
-
-    // ?perf=1：dev になり、内訳が載る。
-    const on = await play(context, 'index.html?perf=1', 8, { fake: true });
-    assert.equal(on.on, true); assert.equal(on.badge, true, 'badge shown');
-    assert.equal(on.body.channel, 'dev', 'perf runs never count as production');
+    // 既定（引数なし）：計測が付き、channel は production のまま。
+    const on = await play(context, 'index.html', 8, { fake: true });
+    assert.equal(on.on, true, 'on by default'); assert.equal(on.badge, false, 'no badge');
+    assert.equal(on.body.channel, 'production', 'the ranking is not affected');
     const perf = on.body.diagnostics?.perf;
     assert.ok(perf && perf.schema === 1 && perf.buckets.length >= 1, 'perf block with at least one window: ' + JSON.stringify(perf)?.slice(0, 200));
     for (const b of perf.buckets) {
@@ -59,20 +52,23 @@ const port = process.env.PERF_TRACE_PORT || '8874', base = `http://127.0.0.1:${p
     const fakeFrame = perf.worst.find(w => w.cpu === 950 && w.iv === 990);
     assert.ok(fakeFrame, 'slow frames are kept');
     assert.ok(fakeFrame.ctx && fakeFrame.ctx.p.length === 3 && fakeFrame.ctx.p.every(Number.isFinite) && fakeFrame.ctx.m === 'play', 'slow frames carry the place: ' + JSON.stringify(fakeFrame.ctx));
+    assert.ok(Number.isFinite(perf.timerMs) || perf.timerMs === null, 'timer resolution recorded');
     assert.ok(on.body.diagnostics.jumps && on.body.diagnostics.frames, 'the existing diagnostics are still there');
     assert.ok(JSON.stringify(perf).length < 40000, 'perf block is small');
-    console.log('PASS perf on: ' + perf.buckets.length + ' windows, cpu ' + perf.buckets.map(b => b.cpu).join('/') + ' ms, worst ' + perf.worst.length + ', record ' + JSON.stringify(perf).length + ' B');
+    console.log('PASS default on: channel=' + on.body.channel + ', ' + perf.buckets.length + ' windows, cpu ' + perf.buckets.map(b => b.cpu).join('/') + ' ms, worst ' + perf.worst.length + ', record ' + JSON.stringify(perf).length + ' B');
 
-    // 同じ端末（localStorage）では引数なしでも続く。?perf=0 で戻る。
-    const again = await play(context, 'index.html', 4);
-    assert.equal(again.on, true); assert.equal(again.body.channel, 'dev', 'the opt-in sticks on this device');
-    const gone = await play(context, 'index.html?perf=0', 4);
-    assert.equal(gone.on, false); assert.equal(gone.body.channel, 'production'); assert.ok(!gone.body.diagnostics || !('perf' in gone.body.diagnostics));
-    console.log('PASS opt-in persists, ?perf=0 turns it off');
+    // ?perf=0：この端末だけ止まる（保存され、引数なしでも止まったまま）。?perf=1 で戻る。
+    const stopped = await play(context, 'index.html?perf=0', 4);
+    assert.equal(stopped.on, false); assert.equal(stopped.body.channel, 'production'); assert.ok(!stopped.body.diagnostics || !('perf' in stopped.body.diagnostics), 'no perf block when stopped');
+    const still = await play(context, 'index.html', 4);
+    assert.equal(still.on, false, 'the stop is remembered on this device'); assert.ok(!still.body.diagnostics || !('perf' in still.body.diagnostics));
+    const back = await play(context, 'index.html?perf=1', 6);
+    assert.equal(back.on, true); assert.equal(back.body.channel, 'production'); assert.ok(back.body.diagnostics?.perf?.buckets.length >= 1);
+    console.log('PASS ?perf=0 stops this device, ?perf=1 resumes');
 
     // 渓谷でも同じ。
-    const canyon = await play(context, 'canyon.html?perf=1', 8);
-    assert.equal(canyon.body.channel, 'dev'); assert.ok(canyon.body.diagnostics?.perf?.buckets.length >= 1, 'canyon: perf block');
+    const canyon = await play(context, 'canyon.html', 8);
+    assert.equal(canyon.body.channel, 'production'); assert.ok(canyon.body.diagnostics?.perf?.buckets.length >= 1, 'canyon: perf block');
     console.log('PASS canyon: ' + canyon.body.diagnostics.perf.buckets.length + ' windows');
     assert.deepEqual(errors, [], 'no page errors');
     await context.close();

@@ -4,11 +4,12 @@
 - 手前の壁・屋根は人物と次の足場の周囲だけ切り欠き、現在の床と奥の地形を残す。`bench/hybrid-camera-review.html` で修正前・修正版・固定視点を比較できる。
 - 旧市街・渓谷×PC・CDPタッチで8方向、北側通路・西入口での連続走行、折り返し、短い押し直し、二本指ジャンプを検証。遮蔽3か所の実描画で人物・床上の可視性と床の不透明性も確認。[検証範囲と限界](docs/STABLE_CAMERA_2026-11-08.md)。実機の操作感は未確認。
 
-## 2026-11-08 実機のフレーム時間を端末で計測できるようにした（`?perf=1`）
+## 2026-11-08 実機のフレーム時間を全員のプレイ記録に付ける
 
-- 端末で `index.html?perf=1`（渓谷は `canyon.html?perf=1`）を一度開くと、その端末だけ計測モード。`?perf=0` で戻る。記録は `channel:"dev"` で順位に入らず、`diagnostics.perf` にフレームの内訳（ゲーム更新・カメラ・人物の腕・描画・ゾンビ・経路）と遅いフレームの場所が付く。既定（引数なし）の端末は従来どおりで、記録も変わらない。Worker・D1の変更なし。
+- 遊ぶ全員のプレイ記録の `diagnostics.perf` に、フレームの内訳（ゲーム更新・カメラ・人物の腕・描画・ゾンビ・経路）と遅いフレームの場所が自動で付く。`channel` は `production` のままで順位に影響しない。記録送信がオフの端末は何も送らない。その端末だけ止めるなら `?perf=0`（戻すのは `?perf=1`）。Worker・D1の変更なし。1プレイ数KB増える。
 - 回収と読み方は [tools/telemetry/README.md](tools/telemetry/README.md)。`tools/telemetry/analyze_perf.py` が端末ごとに「描画待ちが支配的か／人物の腕が重いか／ゾンビ更新か」を判定する。
-- 確認：`bench/perf-trace.test.cjs`（集計・上限・1フレーム約1.5 µs）、`bench/perf-analyze.test.cjs`、`bench/perf-trace-browser.cjs`（実際の描画ループで両マップ。既定は production のまま、`?perf=1` で dev＋内訳、端末に残る、`?perf=0` で戻る）。CI は `perf-trace.yml`。iPhone実機のデータはまだ無い。
+- 確認：`bench/perf-trace.test.cjs`（集計・上限・1フレーム約1.5 µs）、`bench/perf-analyze.test.cjs`、`bench/perf-trace-browser.cjs`（実際の描画ループで両マップ。既定でオン・channel は production、`?perf=0` で止まり端末に残る、`?perf=1` で戻る）。CI は `perf-trace.yml`。iPhone実機のデータはまだ無い。
+- 経緯：最初は `?perf=1` の端末だけを `channel:"dev"`（順位から除外）で計測する形にしたが、順位から外す意味が無いので、dev 切替とバッジを撤去して全員オンにした。
 
 ## 2026-11-08 旧市街の西端で出る100ms超のカクつきを解消：回り込み目標の作り直しで同じ判定を使い回す
 

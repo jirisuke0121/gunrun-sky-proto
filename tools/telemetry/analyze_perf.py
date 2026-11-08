@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Summarize real-device frame traces (diagnostics.perf) from a read-only Wrangler D1 JSON export.
 
-Only runs recorded with channel "dev" and a perf block are read. Device IDs are never printed.
+Every run that carries a perf block is read (all play is traced by default). Device IDs are never printed.
 Usage: python3 analyze_perf.py runs-export.json
 """
 
@@ -30,7 +30,7 @@ def perf_runs(rows):
         if isinstance(payload, str):
             payload = json.loads(payload)
         perf = ((payload or {}).get("diagnostics") or {}).get("perf")
-        if isinstance(payload, dict) and payload.get("channel") == "dev" and isinstance(perf, dict) and perf.get("buckets"):
+        if isinstance(payload, dict) and isinstance(perf, dict) and perf.get("buckets"):
             yield payload, perf
 
 
@@ -110,7 +110,7 @@ def report(path):
     for payload, perf in perf_runs(rows):
         groups[(device_key(payload), payload.get("mapKey") or payload.get("map") or "?")].append((payload, perf))
     if not groups:
-        return "perf付きのdevプレイ記録がありません（端末で ?perf=1 を開き、記録送信をオンにして遊ぶ）。"
+        return "perf付きのプレイ記録がありません（この版以降のプレイ記録に付く。記録送信がオフの端末、?perf=0 の端末は付かない）。"
     out = []
     for (device, map_key), entries in sorted(groups.items(), key=lambda kv: str(kv[0])):
         s = summarize(entries)

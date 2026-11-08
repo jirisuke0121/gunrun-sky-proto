@@ -12,11 +12,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: '24'}
-      - name: Aggregation, caps, off-by-default and per-frame cost
+      - name: Aggregation, caps, ?perf=0 switch and per-frame cost
         run: node bench/perf-trace.test.cjs
-      - name: Analysis script reads only dev runs with a perf block
+      - name: Analysis script reads runs with a perf block
         run: node bench/perf-analyze.test.cjs
-      - name: Record carries channel dev and the frame breakdown only when opted in (both maps)
+      - name: Records carry the frame breakdown by default, channel stays production, ?perf=0 stops it (both maps)
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
           if command -v google-chrome >/dev/null 2>&1; then

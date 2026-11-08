@@ -1,11 +1,8 @@
 # 実機の計測（フレーム時間の内訳）
 
-遊ぶ端末（iPhoneなど）で次を開くと、その端末だけ計測モードになる。`?perf=0` で戻す。設定は端末（localStorage）に残るので、同じ端末では引数なしでも続く。
+遊ぶ全員のプレイ記録に、フレーム時間の内訳が自動で付く（既定でオン）。`channel` は `production` のままで、順位には一切影響しない。記録送信（「プレイ記録を匿名で送信する」）がオフの端末では何も送られない。Worker・D1の変更は不要（診断JSONはそのまま保存される）。
 
-- 旧市街 `https://jirisuke0121.github.io/gunrun-sky-proto/index.html?perf=1`
-- 渓谷 `https://jirisuke0121.github.io/gunrun-sky-proto/canyon.html?perf=1`
-
-計測中は画面左下に小さく「計測中 (dev)」が出る。プレイ記録は `channel:"dev"` で送られ、順位には入らない（Worker が `channel:'dev'` を除外）。記録送信（「プレイ記録を匿名で送信する」）がオフだと何も送られない。Worker・D1の変更は不要（診断JSONはそのまま保存される）。
+その端末だけ止めたいときは `index.html?perf=0`（渓谷は `canyon.html?perf=0`）を一度開く。設定は端末に残る。戻すときは `?perf=1`。
 
 記録は `diagnostics.perf`（10秒ごと最大18窓＝3分と、遅いフレーム上位12件。1プレイ数KB）。
 
@@ -17,7 +14,7 @@
 ```sh
 cd server
 npx wrangler d1 execute gunrun-runs --remote \
-  --command "SELECT json FROM runs WHERE json_extract(json,'$.channel')='dev' ORDER BY received_at ASC" --json > runs-export.json
+  --command "SELECT json FROM runs WHERE json_extract(json,'$.diagnostics.perf') IS NOT NULL ORDER BY received_at ASC" --json > runs-export.json
 python3 ../tools/telemetry/analyze_perf.py runs-export.json
 ```
 

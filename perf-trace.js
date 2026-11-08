@@ -1,7 +1,7 @@
-// Real-device frame budget trace. Opt-in per browser: open the game once with ?perf=1 (?perf=0 turns it off).
-// While on, runs are recorded with channel "dev" (the Worker keeps those out of the ranking) and carry
+// Real-device frame budget trace. On by default for every device, so real play on real phones shows what is slow.
+// It changes nothing about the game or the ranking: runs keep channel "production" and the breakdown rides along in
 // diagnostics.perf. Nothing is sent by this file: the run recorder attaches snapshot() and still honours the
-// "send play records" setting. While off, every entry point is a no-op and the game pays one property read per frame.
+// "send play records" setting. A device can stop it with ?perf=0 (remembered) and resume with ?perf=1.
 //
 // What is recorded, per 10 s of play (game time) and for the slowest frames:
 //   iv      requestAnimationFrame interval (what the player feels)
@@ -16,11 +16,11 @@
   const KEY = 'gunrun-perf';
   try {
     const query = new URLSearchParams(location.search).get('perf');
-    if (query === '1') localStorage.setItem(KEY, '1');
-    else if (query === '0') localStorage.removeItem(KEY);
+    if (query === '0') localStorage.setItem(KEY, '0');
+    else if (query === '1') localStorage.removeItem(KEY);
   } catch {}
-  let enabled = false;
-  try { enabled = localStorage.getItem(KEY) === '1'; } catch {}
+  let enabled = true;
+  try { enabled = localStorage.getItem(KEY) !== '0'; } catch {}
   if (!enabled) {
     window.skyPerfTrace = { on: false, t: (name, fn) => fn(), add() {}, frame() {}, reset() {}, snapshot: () => null, context: null };
     return;
@@ -32,20 +32,22 @@
   const round = v => Math.round(v * 10) / 10;
   const binOf = ms => ms <= 16.7 ? 0 : ms <= 25 ? 1 : ms <= 33.3 ? 2 : ms <= 50 ? 3 : ms <= 100 ? 4 : 5;
   const blank = () => ({ adv: 0, cam: 0, hv: 0, render: 0, ai: 0, so: 0, soCalls: 0 });
+  // Measured once, when the first record is built (not at page load): a coarse clock needs up to 1 ms per sample.
+  let timerMs;
   const timerResolution = () => {
+    if (timerMs !== undefined) return timerMs;
     let best = Infinity;
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 8; i++) {
       const a = now(); let b = a;
       for (let k = 0; k < 200000 && b === a; k++) b = now();
       if (b > a) best = Math.min(best, b - a);
     }
-    return Number.isFinite(best) ? Math.round(best * 1000) / 1000 : null;
+    return timerMs = Number.isFinite(best) ? Math.round(best * 1000) / 1000 : null;
   };
-  const timerMs = timerResolution();
   let cur = blank(), zMax = { ms: 0 }, run = null, wrapped = false;
 
   function reset() {
-    run = { schema: 1, timerMs, buckets: [], worst: [], truncated: 0 };
+    run = { schema: 1, buckets: [], worst: [], truncated: 0 };
     cur = blank(); zMax = { ms: 0 };
   }
   reset();
@@ -137,16 +139,8 @@
       s: Object.fromEntries(SECTIONS.map((name, i) => [name, [round(b.sum[i] / b.n), round(b.max[i])]])),
     }));
     const worst = run.worst.slice().sort((a, b) => b.key - a.key).map(({ key, ...rest }) => rest);
-    return { schema: run.schema, timerMs: run.timerMs, buckets, worst, truncated: run.truncated };
+    return { schema: run.schema, timerMs: timerResolution(), buckets, worst, truncated: run.truncated };
   }
 
   window.skyPerfTrace = { on: true, t, add, frame, reset, snapshot, context: null, zombie };
-
-  function badge() {
-    const d = document.createElement('div');
-    d.textContent = '計測中 (dev)';
-    d.style.cssText = 'position:fixed;left:4px;bottom:2px;z-index:99999;font:10px sans-serif;color:#9cf;opacity:.55;pointer-events:none';
-    document.body.appendChild(d);
-  }
-  if (document.body) badge(); else addEventListener('DOMContentLoaded', badge);
 })();
