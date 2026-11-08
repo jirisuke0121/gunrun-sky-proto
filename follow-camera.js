@@ -9,6 +9,9 @@
   const storageKey = coarse() ? 'gunrun-follow-camera-v1' : 'gunrun-pc-camera-v1';
   const defaultMode = () => coarse() ? 'after' : 'before';
   const queryMode = new URLSearchParams(location.search).get('camera');
+  // Evaluate automatic-only following before adopting it for ordinary play.
+  // The comparison changes look input only; locomotion stays identical.
+  const allowManualLook = new URLSearchParams(location.search).get('cameraTrial') !== 'follow';
   let savedMode;
   try { savedMode = localStorage.getItem(storageKey); } catch {}
   let mode = [queryMode, savedMode, defaultMode()].find(value => value === 'before' || value === 'after');
@@ -153,6 +156,7 @@
   function look(yawDelta, pitchDelta) {
     if (window.skyFixedCamera?.active) return true;
     if (!playing()) return false;
+    if (!allowManualLook) return true;
     view.yaw = angle(view.yaw - yawDelta);
     view.pitch = clamp(view.pitch - pitchDelta, -1.35, 1.35);
     if (Math.abs(yawDelta) + Math.abs(pitchDelta) > .00001) {
@@ -169,7 +173,7 @@
     const held = mouseHeld || touch.lookId !== null;
     // On touch, looking is deliberate: hold that view until the next left
     // gesture. Do not spring back on a hidden timer while the same thumb runs.
-    if (manual && (manualTouch || held || performance.now() < manualUntil || lastInput < .08)) return view;
+    if (allowManualLook && manual && (manualTouch || held || performance.now() < manualUntil || lastInput < .08)) return view;
     manual = false;
     let targetYaw = c.yaw;
     let targetPitch = c.state === 'ledge' ? -.24 : c.onGround ? -.09 : -.16;
@@ -197,13 +201,14 @@
   if (trial==='hybrid') NAMES.after = '区間カメラ（試作）';
   function syncUI() {
     document.body.dataset.skyCameraMode = mode;
+    document.body.dataset.skyCameraLook = mode === 'before' ? 'manual' : fixedTrial ? 'fixed' : allowManualLook ? 'mixed' : 'auto';
     for (const select of selectors) select.value = mode;
     for (const note of document.querySelectorAll('.follow-camera-help')) {
       note.textContent = trial==='hybrid'&&mode==='after' ? (new URLSearchParams(location.search).get('cameraControl')==='legacy'?'区間ごとに視点を切り替えます。押している間は以前の方向を保ち、離すと新しい画面の方向へ切り替わります。':'画面の方向へ移動します。移動中はカメラの方角を保ち、止まってから見通しを調整します。手前の壁や屋根は足元の周囲だけ切り欠いて見せます。') : fixedTrial && mode === 'after' ? '画面の方向へ移動します。カメラの回転操作はありません。壁は実体を残し、足元に合わせてカメラの距離・見下ろし角度を補助します。' : mode === 'before'
         ? (coarse() ? '左スティックで移動、右側のドラッグで視点を自分で回します。' : 'WASDで移動、マウスで視点を回します。')
         : coarse()
-          ? '左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。'
-          : 'W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。マウスで見回せます。';
+          ? allowManualLook ? '左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。' : '左側で移動し、右側のボタンでジャンプや技を出します。カメラは進む向きへ自動で追従します。'
+          : allowManualLook ? 'W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。マウスで見回せます。' : 'W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。視点は自動で追従します。';
     }
   }
   function setMode(next, persist = true) {
@@ -232,12 +237,13 @@
   }
   window.skyFollowCamera = {
     input, step, speed, move, look, frame, reset, setMode,
-    holdLook(held) { mouseHeld = held; },
+    holdLook(held) { mouseHeld = allowManualLook && held; },
     get active() { return enabled(); },
     get mode() { return mode; },
     get touchDevice() { return coarse(); },
+    get manualLook() { return !enabled() || allowManualLook && !window.skyFixedCamera?.active; },
     get view() { return window.skyFixedCamera?.active ? window.skyFixedCamera.view : enabled() ? view : c; },
-    get state() { return { mode, yaw: view.yaw, pitch: view.pitch, heading: c.yaw, manual, moving: lastInput, gesture }; },
+    get state() { return { mode, yaw: view.yaw, pitch: view.pitch, heading: c.yaw, manual, moving: lastInput, gesture, lookPolicy: document.body.dataset.skyCameraLook }; },
   };
   document.getElementById('humanStatus')?.after(control('cameraModeHome', true));
   document.getElementById('setGrid').prepend(control('cameraMode', false));

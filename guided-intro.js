@@ -1,4 +1,4 @@
-import { installGuidedChoice } from './guided-choice.js?v=20261106-paused-v1';
+import { installGuidedChoice } from './guided-choice.js?v=20261108-auto-follow-v1';
 import { installGuidedCoach } from './guided-coach.js?v=20261106-paused-v1';
 import { describeLesson } from './guided-prompts.js?v=20261106-parity-v1';
 import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
@@ -8,7 +8,8 @@ import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
  const en=()=>window.skyI18n?.lang==='en'||params.get('lang')==='en';
  const text=(ja,english)=>en()?english:ja;
  const storage={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
- const courseURL=()=>{const u=new URL('canyon.html',location.href);u.search=new URLSearchParams({learn:'1',cameraTrial:'fixed',camera:window.skyFollowCamera?.mode||'after',controlpick:'0',hookGuide:'0',guides:'0',lang:en()?'en':'ja',return:location.pathname.endsWith('canyon.html')?'canyon':'town'});return u.href;};
+ const carryTrial=u=>{const trial=params.get('cameraTrial');if(['fixed','hybrid','follow','follow-legacy'].includes(trial))u.searchParams.set('cameraTrial',trial);return u;};
+ const courseURL=()=>{const u=new URL('canyon.html',location.href);u.search=new URLSearchParams({learn:'1',camera:window.skyFollowCamera?.mode||'after',controlpick:'0',hookGuide:'0',guides:'0',lang:en()?'en':'ja',return:location.pathname.endsWith('canyon.html')?'canyon':'town'});return carryTrial(u).href;};
  if(!window.skyGuidedMode){
   if(window.skyPracticeMode||window.skyOwnerReplay||params.has('replay'))return;
   window.skyGuidedEntry=params.get('guidedEntry')==='1'||params.get('learned')==='1';
@@ -68,8 +69,8 @@ import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
    if (finished) return; finished=true;
    storage.set('gunrun-guided-intro-v1','complete'); storage.set('gunrun-onboarding-v1',JSON.stringify({phase:'complete',at:new Date().toISOString()}));
    const u = new URL(params.get('return') === 'canyon' ? 'canyon.html' : 'index.html',location.href);
-   u.search=new URLSearchParams({learned:'1',camera:window.skyFollowCamera.mode,cameraTrial:'fixed',controlpick:'0',lang:en()?'en':'ja',});
-   location.assign(u.href);
+   u.search=new URLSearchParams({learned:'1',camera:window.skyFollowCamera.mode,controlpick:'0',lang:en()?'en':'ja',});
+   location.assign(carryTrial(u).href);
  }
  const originalTick = practice.tick;
  practice.tick = function(dt) {
@@ -123,7 +124,7 @@ import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
    if(!trial)coach.beforeFrame();
    if(schedule)requestAnimationFrame(()=>render());
  }
- function startCourse(){if(!trial)return;clearInput();storage.set('gunrun-fixed-controls-v1','1');window.skyFollowCamera.setMode(window.skyFollowCamera.mode);trial=false;course.gates.forEach(b=>{b.off=true;b.mesh.visible=false;});enter(0);render(false);$('c').focus();}
+ function startCourse(){if(!trial)return;clearInput();window.skyFollowCamera.setMode(window.skyFollowCamera.mode);trial=false;course.gates.forEach(b=>{b.off=true;b.mesh.visible=false;});enter(0);render(false);$('c').focus();}
  choice=installGuidedChoice({game:g,sky,english:en,clearInput,adopt:startCourse,reset:()=>{practice.place(course.start);trialReached=false;},exit:()=>location.assign(new URL(params.get('return')==='canyon'?'canyon.html':'index.html',location.href).href)});
  coach=installGuidedCoach({game:g,sky,english:en,active:()=>!trial&&!finished,lesson:()=>lesson()?.id,cue:()=>coaching});
  go.onclick=()=>choice.confirm();$('learnBack').onclick=()=>{clearInput();practice.place(course.start);trialReached=false;choice.show();};

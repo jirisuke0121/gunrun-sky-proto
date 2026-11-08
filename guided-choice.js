@@ -13,11 +13,13 @@ export function installGuidedChoice({game,sky,english,clearInput,adopt,reset,exi
     root.querySelector('#learnChoiceExit').textContent=tr('ホーム','Home');
     for(const a of root.querySelectorAll('article')){
       const fixed=a.dataset.choice==='after';
-      const title=fixed?tr('視点操作なし','No camera input'):tr('自分で視点操作','Control the view');
+      const automaticOnly=['follow','fixed','hybrid'].includes(new URLSearchParams(location.search).get('cameraTrial'));
+      const title=fixed?(automaticOnly?tr('視点操作なし','No camera input'):tr('カメラに任せる','Automatic follow')):tr('自分で視点操作','Control the view');
       a.querySelector('h3').textContent=title;
       const preview=a.querySelector('.learn-preview');preview.setAttribute('aria-label',title+tr('を試す',' — try'));preview.querySelector('img').alt=title+tr('の実際のゲーム画面',' in the actual game');
       a.querySelector('.mini-jump').textContent=tr('ジャンプ','Jump');
-      a.querySelector('.mini-fixed').textContent=tr('視点は固定','View stays fixed');
+      const fixedView=['fixed','hybrid'].includes(new URLSearchParams(location.search).get('cameraTrial'));
+      a.querySelector('.mini-fixed').textContent=fixedView?tr('視点は固定','View stays fixed'):tr('視点は自動','Automatic view');
       a.querySelector('.mini-look small').textContent=tr(touch?'右で見回す':'マウスで見回す',touch?'Drag to look':'Mouse to look');
       a.querySelector('.mini-try').textContent=tr('画面をタップして試す','Tap the picture to try');
       a.querySelector('.learn-choice-fact').textContent=fixed?tr(touch?'左で移動・ボタンでジャンプ':'WASDで移動・Spaceでジャンプ',touch?'Left: move · Button: jump':'WASD: move · Space: jump'):tr(touch?'左で移動・右で視点・ボタンでジャンプ':'WASDで移動・マウスで視点・Spaceでジャンプ',touch?'Left: move · Right: look · Button: jump':'WASD: move · Mouse: look · Space: jump');

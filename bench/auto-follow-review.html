@@ -1,0 +1,34 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>追従カメラと操作の比較</title>
+<style>body{margin:0;background:#17232b;color:#edf1ef;font:15px system-ui}header{padding:10px 14px;display:flex;gap:7px;align-items:center;flex-wrap:wrap}h1{font-size:17px;margin:0 8px 0 0}button,select,a{font:inherit}button,select{color:inherit;background:#30434e;border:1px solid #8caaac;border-radius:6px;padding:8px 10px}button[aria-pressed=true]{background:#bce1cd;color:#132b21}p{margin:0;padding:0 14px 10px;color:#bdcccf}a{color:#bce1cd;margin-left:12px}iframe{display:block;width:100%;height:calc(100dvh - 120px);min-height:280px;border:0}@media(max-height:500px){header{padding:5px 10px;gap:5px}h1{font-size:13px}button,select{padding:5px;font-size:12px}p,a{font-size:12px}iframe{height:calc(100dvh - 85px)}}</style>
+<header><h1>追従カメラの比較</h1><button data-variant="follow-legacy" aria-pressed="false">以前の簡単操作</button><button data-variant="follow" aria-pressed="true">視点は自動</button><button data-variant="fps" aria-pressed="false">手動視点</button><select id="map" aria-label="マップ"><option value="index.html">旧市街</option><option value="canyon.html">渓谷</option></select><select id="scene" aria-label="場所"></select><button id="play" disabled>ここから遊ぶ</button></header><p><span id="status">読み込み中…</span><a id="normal" target="_blank" rel="noopener">通常の開始から遊ぶ</a></p><iframe id="game" title="追従カメラと移動の比較"></iframe>
+<script type="module">
+const scenes={
+ 'index.html':[{id:'west-door',label:'中央建物・西入口',at:[-15.5,.001,0],yaw:-Math.PI/2},{id:'north',label:'北側の上階通路',at:[-10.5,4.001,-12],yaw:-Math.PI/2},{id:'roof',label:'中央の屋上',at:[0,8.001,0],yaw:0}],
+ 'canyon.html':[{id:'crossing',label:'中央の地上通路',at:[3,.001,0],yaw:0},{id:'middle',label:'中央の中段',at:[0,4.001,0],yaw:0},{id:'upper',label:'中央の上段',at:[0,8.001,0],yaw:0}]
+};
+const frame=document.getElementById('game'),map=document.getElementById('map'),scene=document.getElementById('scene'),play=document.getElementById('play'),status=document.getElementById('status'),normal=document.getElementById('normal');
+let variant='follow',generation=0,active=null;
+function list(){scene.replaceChildren();for(const s of scenes[map.value]){const o=document.createElement('option');o.value=s.id;o.textContent=s.label;scene.append(o)}}
+const pause=()=>new Promise(r=>setTimeout(r,50));
+async function load(){
+ const gen=++generation;active=null;play.disabled=true;delete frame.dataset.readyVariant;delete frame.dataset.readyScene;
+ const camera=variant==='fps'?'before':'after',trial=variant==='fps'?'follow':variant;
+ const url='../'+map.value+'?camera='+camera+'&cameraTrial='+trial+'&onboarding=0&controlpick=0&hookGuide=0&dev=1&lang=ja';normal.href=url;
+ document.querySelectorAll('[data-variant]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.variant===variant)));status.textContent='比較画面を読み込み中…';
+ const loaded=new Promise(r=>frame.addEventListener('load',r,{once:true}));frame.src=url;await loaded;
+ const w=frame.contentWindow;w.__hold=true;
+ for(let i=0;i<2400&&!w.skyStartReadiness?.ready;i++){if(gen!==generation)return;await pause()}
+ if(gen!==generation)return;if(!w.skyStartReadiness?.ready)throw Error('読み込みを完了できませんでした。');
+ w.document.getElementById('c').requestPointerLock=()=>w.Promise.reject(new w.DOMException('Comparison keeps the pointer free','NotAllowedError'));
+ w.document.getElementById('bStart').click();const g=w.__game,c=g.P,s=w.__skyInternals,at=scenes[map.value].find(x=>x.id===scene.value);
+ g.S.sendLog=g.S.autoFire=false;c.invuln=Infinity;g.GAME.spawnT=g.GAME.surgeT=Infinity;g.SCR.off=g.PACE.off=g.MARK.off=true;
+ for(const z of g.zombies){s.ue.remove(z.m.root);if(z.pool)s.ue.remove(z.pool)}g.zombies.length=0;
+ w.skySwing.reset();c.pos.set(...at.at);c.lastGround.copy(c.pos);c.safe.copy(c.pos);c.vel.set(0,0,0);c.state='normal';c.onGround=true;c.h=1.75;c.eye=1.62;c.camY=c.pos.y+c.eye;c.yaw=at.yaw;c.pitch=-.12;c.shake=0;w.skyFollowCamera.reset();g.frameOnce(0);
+ active=w;frame.dataset.readyVariant=variant;frame.dataset.readyScene=scene.value;play.disabled=false;
+ status.textContent=variant==='follow'?'移動方向へ自動で追従。右側のドラッグでは視点を動かしません。':variant==='follow-legacy'?'以前の追従式。右側のドラッグでも視点を動かせます。':'手動視点。右側のドラッグで見回します。PCは右ドラッグを使えます。';
+}
+const reload=()=>load().catch(e=>status.textContent=e.message);
+document.querySelectorAll('[data-variant]').forEach(b=>b.onclick=()=>{variant=b.dataset.variant;reload()});map.onchange=()=>{list();reload()};scene.onchange=reload;
+play.onclick=()=>{if(!active)return;active.__hold=false;frame.focus();play.disabled=true;status.textContent='敵を止めた操作比較です。曲がる・戻る・ジャンプを続けて試せます。比較プレイは記録されません。'};
+list();reload();
+</script></html>

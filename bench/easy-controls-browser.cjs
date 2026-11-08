@@ -40,7 +40,7 @@ const difference = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
       const page = await context.newPage(), errors = [];
       page.on('pageerror', error => errors.push(error.message));
       page.setDefaultTimeout(90000);
-      await page.goto(base + map + `?lang=${lang}&controlpick=${picker ? 1 : 0}&hookGuide=0`, { waitUntil: 'domcontentloaded' });
+      await page.goto(base + map + `?cameraTrial=follow-legacy&lang=${lang}&controlpick=${picker ? 1 : 0}&hookGuide=0`, { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => window.skyStartReadiness?.ready, null, { timeout: 120000 });
       return { context, page, errors, posts: () => externalPosts };
     };

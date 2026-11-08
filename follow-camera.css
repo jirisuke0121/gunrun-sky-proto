@@ -6,3 +6,5 @@
 .follow-camera-settings select{display:block;width:100%;margin:6px 0}
 .follow-camera-settings .note{font-size:12px;line-height:1.55}
 @media(max-width:500px){.follow-camera-home{grid-template-columns:58px minmax(0,1fr)}}
+
+body[data-sky-camera-look="auto"] #lookNote{display:none!important}

@@ -95,7 +95,7 @@ for (const [x, fwd] of [[1, 0], [-1, 0], [.6, .8], [0, 1], [0, -1]]) {
 // Looking around with the right thumb neither steers the held left thumb nor
 // snaps back after an arbitrary timeout. A fresh move uses the new view.
 {
-  const f = fixture(), original = f.world(f.controls(0, 1));
+  const f = fixture({ search: '?cameraTrial=follow-legacy' }), original = f.world(f.controls(0, 1));
   f.inputState.lookId = 2;
   f.api.look(-Math.PI / 2, -.2);
   const looked = { ...f.api.view };
@@ -129,7 +129,7 @@ for (const [x, fwd] of [[1, 0], [-1, 0], [.6, .8], [0, 1], [0, -1]]) {
 // A pointer ID change, a paused run, or losing window focus must not carry a
 // previous gesture's world reference into the next input.
 for (const interrupt of ['pointer', 'pause', 'blur', 'hidden', 'reset']) {
-  const f = fixture(); f.controls(1, 0);
+  const f = fixture({ search: '?cameraTrial=follow-legacy' }); f.controls(1, 0);
   f.inputState.lookId = 2; f.api.look(-.7, 0); f.inputState.lookId = null;
   if (interrupt === 'pause') { f.setMode('pause'); f.api.frame(1 / 60); f.setMode('play'); }
   if (interrupt === 'blur') f.emitWindow('blur');
@@ -212,5 +212,21 @@ for (const [x, forward] of [[1, 0], [.8, -.6]]) {
   const raw = f.api.input({ strIn: 1, fwdIn: 1, tmag: 0 });
   f.api.step(.05, raw);
   assert.ok(f.c.yaw < 0, 'keyboard auto mode still steers');
+}
+// Automatic following has one camera owner. A second finger/mouse may not
+// rotate it or freeze following, including while the left thumb changes course.
+for (const touchDevice of [false, true]) {
+  const f = fixture({ touchDevice, search: '?camera=after&cameraTrial=follow' });
+  f.controls(0, 1); const start = { ...f.api.view };
+  f.inputState.lookId = 2; f.api.holdLook(true);
+  assert.equal(f.api.look(-.8, .4), true, 'auto consumes manual look');
+  near(f.api.view.yaw, start.yaw, 'manual yaw ignored'); near(f.api.view.pitch, start.pitch, 'manual pitch ignored');
+  assert.equal(f.api.state.manual, false); assert.equal(f.api.manualLook, false);
+  f.controls(1, 0);
+  for (let i = 0; i < 120; i++) f.api.frame(1 / 60);
+  near(angleError(f.api.view.yaw, f.c.yaw), 0, 'camera still follows with right pointer down', .001);
+  assert.equal(f.api.state.lookPolicy, 'auto');
+  f.api.setMode('before', false); assert.equal(f.api.look(.2, .1), false); assert.equal(f.api.manualLook, true);
+  f.api.setMode('after', false); assert.equal(f.api.look(.2, .1), true); assert.equal(f.api.state.manual, false);
 }
 console.log('PASS follow camera: direct touch movement, stable held heading, manual look, rebase/interruption, native traversal, FPS and PC isolation');
