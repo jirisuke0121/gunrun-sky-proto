@@ -63,6 +63,16 @@ try {
     localStorage.setItem(speedMigration, '1');
   }
 } catch {}
+// Sending run records is on by default and nobody has a reason to be silent by accident, so a saved "off" is
+// reset to on once per device. The setting still works afterwards: turning it off again is kept.
+try {
+  const sendMigration = 'gunrun-send-default-20261108';
+  const local = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+  if (!window.skyPracticeMode && !local && !localStorage.getItem(sendMigration)) {
+    localStorage.setItem(sendMigration, '1');
+    if (U.sendLog === false) { U.sendLog = true; game.Ua(); }
+  }
+} catch {}
 const { Box, Cylinder, Torus, Sphere, Mesh, Group, Standard, Basic, Vector3 } = Geom;
 window.skyGunRecoil = createGunRecoil(game);
 window.skyDash = createDash(game, window.__game);
