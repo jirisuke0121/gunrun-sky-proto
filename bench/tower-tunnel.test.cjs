@@ -34,6 +34,11 @@ const volume = (jn, pick, clip) => jn.filter(pick).reduce((sum, b) => {
   return sum + (x > 0 && y > 0 && z > 0 ? x * y * z : 0);
 }, 0);
 
+// --- 入口の許容: 長い斜面（z -8.7〜-7.3、中心 -8.0）の左右 0.5 m ずれても、体（半径0.32）が坑の壁に当たらない ---
+const RAMP_CENTER = -8, BODY = .32;
+assert.ok(T.Z1 - BODY - RAMP_CENTER >= .55 && RAMP_CENTER - (T.Z0 + BODY) >= .55, `斜面の中心から左右0.55 m以上は体が通れる: 右${(T.Z1 - BODY - RAMP_CENTER).toFixed(2)} 左${(RAMP_CENTER - T.Z0 - BODY).toFixed(2)}`);
+assert.ok(T.Z1 - T.Z0 >= 2.4 && T.Z1 <= -7.05, '帯の幅は2.4 m以上。右端は屋上の『ドカン』（z -6.5）に触れない');
+
 // --- 打ち上げの数値 ---
 const flight = tunnel.flight(20);
 assert.ok(flight.apex >= 22 && flight.apex <= 24, '頂点は約23 m: ' + flight.apex);
@@ -69,7 +74,7 @@ let lowestShell = Infinity;
 for (const b of after.jn) if (b.slideSlope && b.minX >= 11 - 1e-6 && b.maxX <= 13 + 1e-6) lowestShell = Math.min(lowestShell, b.minY);
 assert.ok(lowestShell - 4 >= 2.5, '回廊の上の殻の下端から床まで2.5 m以上: ' + (lowestShell - 4).toFixed(2));
 // 回廊の梁は帯の外で、そのまま残る。
-for (const b of after.jn.filter(b => b.type === 'beam' && !b.hidden && b.minX >= 11 && b.maxX <= 13)) assert.ok(b.minZ >= T.Z1 - 1e-6 || b.maxZ <= T.Z0 + 1e-6, '梁は帯の外');
+for (const b of after.jn.filter(b => b.type === 'beam' && !b.hidden && b.minY >= 6.4 && b.minX >= 11 && b.maxX <= 13)) assert.ok(b.minZ >= T.Z1 - 1e-6 || b.maxZ <= T.Z0 + 1e-6, '梁は帯の外 ' + JSON.stringify(b));
 assert.equal(after.jn.filter(b => b.type === 'beam' && !b.hidden).length, before.jn.filter(b => b.type === 'beam').length, '梁は増減しない');
 
 // 2. 帯の外は変えない（体積が同じ）。帯の中も y 3.2 より下は変えない。

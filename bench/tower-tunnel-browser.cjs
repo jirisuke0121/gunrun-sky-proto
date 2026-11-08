@@ -34,24 +34,29 @@ const { revealHomeControl } = require('./home-controls.cjs');
       out.corridor = { endZ: +c.pos.z.toFixed(2), minH, maxDy: +maxDy.toFixed(3), launches: launches() };
 
       // 斜面を滑る共通の手順。startX から滑り始め、発動したら着地まで追う。
-      const slideFrom = (startX, y, keepKeys = false) => {
+      const slideFrom = (startX, y, startZ = -8, steer = null) => {
         const n = launches(), tickets = g.stats.towerTickets || 0;
-        reset(); g.placeAt({ x: startX, y, z: -8, yaw: Math.PI / 2 }); settle();
-        g.keys.KeyW = true; c.crouchPressed = true;
+        reset(); c.crouchPressed = false; g.placeAt({ x: startX, y, z: startZ, yaw: Math.PI / 2 }); settle(); settle(); settle();
+        g.keys.KeyW = true; c.crouchPressed = true; if (steer) g.keys[steer] = true;
         let released = false, t0 = null, landed = null, apex = 0, over20 = 0, enterSpeed = 0, maxVx = 0;
         for (let i = 0; i < 120 * 14; i++) {
           g.advance(dt); const t = i * dt;
-          if (!released && !keepKeys && c.pos.x < Math.min(30, startX - 3)) { g.keys.KeyW = false; released = true; }
+          if (!released && c.pos.x < Math.min(30, startX - 3)) { g.keys.KeyW = false; released = true; }
+          if (steer && g.keys[steer] && c.pos.x < startX - 1) g.keys[steer] = false;
           if (c.pos.x < T.XB + 1 && c.pos.x > T.XB - .2 && !enterSpeed) enterSpeed = Math.hypot(c.vel.x, c.vel.z);
           if (launches() > n && t0 === null) t0 = t;
           if (t0 !== null) { apex = Math.max(apex, c.pos.y); maxVx = Math.min(maxVx, c.vel.x); if (c.pos.y >= 20) over20 += dt; }
           if (t0 !== null && landed === null && c.onGround && t > t0 + .5) { landed = [c.pos.x, c.pos.y, c.pos.z, t - t0]; break; }
           if (t0 === null && t > 7) break;
         }
+        for (const k of ['KeyW', 'KeyA', 'KeyD']) g.keys[k] = false; c.crouchPressed = false; for (let i = 0; i < 90; i++) g.advance(dt); // 次の試行に状態を持ち越さない
         return { launches: launches() - n, tickets: (g.stats.towerTickets || 0) - tickets, enterSpeed: +enterSpeed.toFixed(1), apex: +apex.toFixed(2), over20: +over20.toFixed(2), maxWestSpeed: +(-maxVx).toFixed(1), landed: landed && landed.map(v => +v.toFixed(2)), over: g.GAME.over, life: c.life };
       };
       // B. 長い斜面の上から滑る。途中でキーを離しても、打ち上がって広場の床に着地する。
       out.slide = slideFrom(37, 13.8);
+      // B1. 斜面の左右にずれて滑っても入れる（斜面は z -8.7〜-7.3。体は縁からはみ出して滑れる）。滑り出しの1 mで横キーを押して流れても入れる（押し続けて斜面から外れるのは対象外）。
+      out.offsets = [-8.6, -8.3, -7.8, -7.6, -7.4, -7.25].map(z => [z, slideFrom(37, 13.7, z).launches]);
+      out.steer = ['KeyA', 'KeyD'].map(k => [k, slideFrom(37, 13.7, -8, k).launches]);
       // B2. 斜面の上から4割あたり（x34、約2.3秒の滑走）から滑っても届く。
       out.slideMid = slideFrom(34, 13.0);
 
@@ -82,6 +87,8 @@ const { revealHomeControl } = require('./home-controls.cjs');
     });
     console.log(JSON.stringify(result));
     assert.ok(result.corridor.endZ > -5 && result.corridor.minH >= 1.75 && result.corridor.maxDy < .05 && result.corridor.launches === 0, '東の上段回廊を、しゃがまず同じ高さで通り抜けられる');
+    for (const [z, n] of result.offsets) assert.equal(n, 1, `斜面の z=${z} から滑っても入れる`);
+    for (const [k, n] of result.steer) assert.equal(n, 1, `滑り出しの1 mだけ ${k} を押して横へ流れても入れる`);
     const S = result.slide;
     assert.equal(S.launches, 1, '滑り降りると1回だけ打ち上がる');
     assert.ok(S.enterSpeed >= 14, '底には最高速近くで着く: ' + S.enterSpeed);
