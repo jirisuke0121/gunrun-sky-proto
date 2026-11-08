@@ -23,7 +23,7 @@ import { createWeaponDrops } from './weapon-drops.js?v=20261106-player-clarity-v
 import { createDash } from './dash-boost.js?v=20261101-run-feel-v1';
 import { mergeStaticMaterialGroups } from './world-batching.js?v=20261108-opaque-v1';
 import { installWallReadability } from './wall-readability.js?v=20261106-south-v1';
-import { installSurfaceReadability } from './surface-readability.js?v=20261108-opaque-v1';
+import { installSurfaceReadability } from './surface-readability.js?v=20261108-indoor-brown-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;

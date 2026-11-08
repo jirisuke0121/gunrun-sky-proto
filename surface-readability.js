@@ -22,9 +22,18 @@ export function installSurfaceReadability(game) {
     material.customProgramCacheKey=()=>original.customProgramCacheKey()+'|surface-roles-v1';
     copies.set(original,material);return material;
   }
-  let surfaces=0;
+  // Interiors keep their original warm brown. The grey/paving roles are for
+  // outdoor readability only. A box counts as indoor when it overlaps a room
+  // volume and is no bigger than that room plus its wall thickness, so the
+  // ground and other map-sized slabs stay outdoor.
+  const rooms=window.skyIndoorAccess?.snapshot?.()||[];
+  const overlap=(a0,a1,b0,b1)=>Math.min(a1,b1)-Math.max(a0,b0);
+  const indoor=box=>rooms.some(r=>overlap(box.minX,box.maxX,r.minX,r.maxX)>.1&&overlap(box.minY,box.maxY,r.minY,r.maxY)>.1&&
+    overlap(box.minZ,box.maxZ,r.minZ,r.maxZ)>.1&&box.maxX-box.minX<=r.maxX-r.minX+4&&box.maxZ-box.minZ<=r.maxZ-r.minZ+4);
+  let surfaces=0,indoorKept=0;
   for(const box of game.jn){
     if(box.hidden||box.tint!=null||box.shape||!box.mesh?.isMesh||!['mono','slab','beam'].includes(box.type))continue;
+    if(indoor(box)){indoorKept++;continue;}
     box.mesh.material=Array.isArray(box.mesh.material)?box.mesh.material.map(roleMaterial):roleMaterial(box.mesh.material);surfaces++;
   }
   // The pictured roof edges and the small houses share these existing bounds.
@@ -60,5 +69,5 @@ export function installSurfaceReadability(game) {
     geometry.computeBoundingSphere();const mesh=new Mesh(geometry,new Standard({color:0xe4d6b1,roughness:1,side:2}));
     mesh.name='Walkable roof and beam coping';mesh.receiveShadow=true;game.ue.add(mesh);
   }
-  window.skySurfaceReadability={revision:'opaque-surface-roles-v1',surfaces,roofRims:roofs.length+ (roofs.length?2:0)};
+  window.skySurfaceReadability={revision:'opaque-surface-roles-v2-indoor-original',surfaces,indoorKept,roofRims:roofs.length+ (roofs.length?2:0)};
 }
