@@ -37,7 +37,7 @@ export function installRanking(game) {
     const rows = data.top.slice(0, state.limit);
     const list = rows.map(row => `<li class="${row.me ? 'me' : ''}"><b class="rank-pos">${row.pos}位</b><span class="rank-name">${row.me ? 'あなた' : esc(row.name || row.tag)}</span><span class="rank-meta">${clearOf(row)}<time class="rank-time"${row.playedAt ? ` datetime="${esc(row.playedAt)}"` : ''}>${esc(shortTime(row.playedAt))}</time></span>${scoreOf(row)}${row.replayId ? `<button type="button" class="ghost-button" data-replay="${esc(row.replayId)}" data-difficulty="${esc(row.difficulty)}">ゴーストを見る</button>` : '<small class="rank-time rank-noghost" title="ゴースト記録なし" aria-label="ゴースト記録なし">—</small>'}</li>`).join('');
     const mine = data.me && !rows.some(row => row.me) ? `<div class="rank-mine">あなた：${data.me.pos}位 / ${data.total}人　${record(data.me)}</div>` : '';
-    body.innerHTML = `<div class="rank-columns"><span>順位 / プレイヤー</span><span>難易度 · 日時（日本時間）· スコア</span></div>${list ? `<ol>${list}</ol>` : '<p class="rank-empty">スコア記録はまだありません。最初の記録を目指そう。</p>'}${mine}<small class="rank-scope">記録送信がオンのプレイが対象です。</small>`;
+    body.innerHTML = `<div class="rank-columns"><span>順位 / プレイヤー</span><span>難易度 · 日時（日本時間）· スコア</span></div>${list ? `<ol>${list}</ol>` : '<p class="rank-empty">スコア記録はまだありません。最初の記録を目指そう。</p>'}${mine}<small class="rank-scope">練習・検証モード以外のプレイが対象です。</small>`;
   }
   async function refresh(state) {
     const token = ++state.token; controls(state);

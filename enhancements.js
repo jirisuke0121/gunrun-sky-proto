@@ -1,8 +1,8 @@
 import { installMinimap } from './minimap.js?v=20261108-hybrid-v1';
-import { installRunRecords } from './run-records.js?v=20261106-dev-entry-v1';
+import { installRunRecords } from './run-records.js?v=20261108-send-always-v1';
 import { createGunRecoil } from './gun-recoil.js?v=20261101-recoil-v1';
 import { createSwing } from './parkour-swing.js?v=20261104-branch-transfer';
-import { installRanking } from './ranking.js?v=20261105-lobby-v9';
+import { installRanking } from './ranking.js?v=20261108-send-always-v1';
 import { createFlashbang } from './flashbang.js?v=20261108-skill-tap-v1';
 import { installSkillDock } from './player-skills.js?v=20261108-skill-tap-v1';
 import { installPlayerClarity } from './player-clarity.js?v=20261106-player-clarity-v3';
@@ -53,6 +53,10 @@ if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
   U.sendLog = false;
   const recNote = document.getElementById('recNote');
   if (recNote) recNote.hidden = true;
+} else if (!window.skyPracticeMode && U.sendLog !== true) {
+  // Run records are always sent; there is no opt-out. A "off" saved by the former setting is dropped here.
+  U.sendLog = true;
+  try { game.Ua(); } catch {}
 }
 window.skyRunRecording = installRunRecords(game);
 // Apply the new run-speed default once for players who already saved the former default.
@@ -61,16 +65,6 @@ try {
   if (!window.skyPracticeMode && !localStorage.getItem(speedMigration)) {
     if (U.sprintSpeed === 8) { U.sprintSpeed = 6; game.Ua(); }
     localStorage.setItem(speedMigration, '1');
-  }
-} catch {}
-// Sending run records is on by default and nobody has a reason to be silent by accident, so a saved "off" is
-// reset to on once per device. The setting still works afterwards: turning it off again is kept.
-try {
-  const sendMigration = 'gunrun-send-default-20261108';
-  const local = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
-  if (!window.skyPracticeMode && !local && !localStorage.getItem(sendMigration)) {
-    localStorage.setItem(sendMigration, '1');
-    if (U.sendLog === false) { U.sendLog = true; game.Ua(); }
   }
 } catch {}
 const { Box, Cylinder, Torus, Sphere, Mesh, Group, Standard, Basic, Vector3 } = Geom;

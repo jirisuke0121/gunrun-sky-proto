@@ -323,7 +323,7 @@
     card.style.cssText='margin:0 0 16px;padding:12px;border:1px solid #ffb647;border-radius:10px;background:#2c3028;color:#fff4df';
     const title=document.createElement('strong');title.textContent=preview?'旧市街・スポット検証（ランキング対象外）':'スポットから本番をはじめる';
     const note=document.createElement('p');note.style.cssText='font-size:13px;line-height:1.6;margin:8px 0';
-    note.textContent=preview?'検証モードのためクリアしても記録は送信しません。ランキングに参加する場合は本番ホームへ戻ってください。':'選んだ場所から2分チャレンジを開始します。記録送信がオンならクリア・スコアがランキングに反映されます。①は撤去済みです。';
+    note.textContent=preview?'検証モードのためクリアしても記録は送信しません。ランキングに参加する場合は本番ホームへ戻ってください。':'選んだ場所から2分チャレンジを開始します。クリア・スコアがランキングに反映されます。①は撤去済みです。';
     card.append(title,note);
     const list=document.createElement('div');list.className='parkour-spot-list';
     list.setAttribute('role','group');list.setAttribute('aria-label','パルクールのスポット（番号順）');

@@ -70,14 +70,12 @@
     new MutationObserver(syncTrialControls).observe(document.body, { attributes: true, attributeFilter: ['data-sky-camera-mode'] });
     syncTrialControls();
   }
-  // What is sent is said on the home screen, and the way to stop it is one tap away (Settings).
+  // What is sent is said on the home screen. Sending cannot be turned off.
   const notice = make('p', { id: 'homeSendNotice' });
   const syncNotice = () => {
     if (trial) { notice.textContent = 'ローカル比較用の試作です。ランキング・プレイ記録は送信しません。'; return; }
-    const on = window.__game?.U?.sendLog !== false;
-    notice.textContent = on ? 'ランキングのため、ニックネーム・スコア・プレイ記録を送信します。設定で停止できます。' : '記録の送信は停止中です。ランキングには載りません。設定で変更できます。';
+    notice.textContent = 'ランキングのため、ニックネーム・スコア・プレイ記録（操作・国・端末環境）を匿名で送信します。';
   };
-  document.addEventListener('change', event => { if (event.target?.id === 't_sendLog') setTimeout(syncNotice, 0); });
   syncNotice(); addEventListener('load', syncNotice); document.addEventListener('sky-difficulty-change', syncNotice);
   hero.append(heading, scene, main, controls, notice); plate.prepend(hero);
   const rankSlot = make('section', { id: 'homeRanking', ariaLabel: 'ランキング' });
