@@ -41,10 +41,6 @@ jobs:
         run: node bench/wall-readability-browser.cjs
       - name: Opaque walls photo fixtures and native movement
         run: node bench/opaque-walls-browser.cjs
-      - name: Hybrid camera sections and held movement
-        run: |
-          node bench/hybrid-camera-browser.cjs
-          node bench/hybrid-camera-review-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -54,5 +50,31 @@ jobs:
             browser-evidence/start-readiness/
             browser-evidence/wall-readability/
             browser-evidence/opaque-walls/
-            browser-evidence/hybrid-camera/
+          retention-days: 7
+  hybrid-camera:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Hybrid camera sections and held movement
+        run: |
+          node bench/hybrid-camera.test.cjs
+          node bench/hybrid-camera-browser.cjs
+          node bench/hybrid-camera-review-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hybrid-camera-evidence
+          path: browser-evidence/hybrid-camera/
           retention-days: 7

@@ -6,7 +6,7 @@ browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIG
 for(const touch of[false,true]){
  const c=await browser.newContext({viewport:touch?{width:844,height:390}:{width:1280,height:720},isMobile:touch,hasTouch:touch,locale:'ja-JP'});await c.addInitScript(()=>window.__hold=true);let posts=0;const errors=[];
  await c.route('https://**/*',r=>{if(r.request().method()==='POST')posts++;return r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'});});
- const p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));await p.goto(base+'bench/hybrid-camera-review.html');
+ const p=await c.newPage();p.setDefaultTimeout(90000);p.on('pageerror',e=>errors.push(e.message));await p.goto(base+'bench/hybrid-camera-review.html');
  const ready=()=>p.waitForFunction(()=>!document.getElementById('play').disabled,null,{timeout:90000});await ready();
  for(const variant of['fixed','hybrid']){await p.locator(`[data-variant="${variant}"]`).click();await ready();assert.equal(await p.evaluate(()=>new URL(document.querySelector('iframe').contentWindow.location.href).searchParams.get('cameraTrial')),variant);}
  await p.locator('#scene').selectOption('street');await ready();await p.locator('#play').click();

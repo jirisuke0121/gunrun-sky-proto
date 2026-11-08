@@ -7,13 +7,17 @@ const server=http.createServer(async(req,res)=>{try{const file=path.resolve(root
 try{browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--enable-unsafe-swiftshader']});
 for(const touch of[false,true])for(const map of['index.html','canyon.html']){
  const ctx=await browser.newContext({viewport:touch?{width:844,height:390}:{width:1280,height:591},isMobile:touch,hasTouch:touch,locale:'ja-JP'});await ctx.addInitScript(()=>window.__hold=true);await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'}));
- const p=await ctx.newPage(),errors=[],warnings=[];p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')(m.text().startsWith('Ignored attempt to cancel a touchmove event')?warnings:errors).push(m.text())});
+ const p=await ctx.newPage(),errors=[],warnings=[];p.setDefaultTimeout(90000);p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')(m.text().startsWith('Ignored attempt to cancel a touchmove event')?warnings:errors).push(m.text())});
  await p.goto(`http://127.0.0.1:${server.address().port}/${map}?camera=after&cameraTrial=hybrid&onboarding=0&controlpick=0&hookGuide=0&dev=1&lang=ja`);
  await p.waitForFunction(map=>window.skyStartReadiness?.ready&&(map==='canyon.html'||window.skyLookInfo),map,{timeout:90000});await p.locator('#bStart').click();
  await p.evaluate(()=>{const g=__game;g.S.sendLog=g.S.autoFire=false;g.P.invuln=Infinity;g.GAME.spawnT=g.GAME.surgeT=Infinity;g.SCR.off=g.PACE.off=g.MARK.off=true;g.zombies.forEach(e=>{__skyInternals.ue.remove(e.m.root);if(e.pool)__skyInternals.ue.remove(e.pool)});g.zombies.length=0;
  window.placeHybrid=at=>{const c=g.P;skySwing.reset();c.pos.set(...at);c.lastGround.copy(c.pos);c.safe.copy(c.pos);c.vel.set(0,0,0);c.state='normal';c.onGround=true;c.h=1.75;c.yaw=c.pitch=c.shake=0;c.ledge=c.ladder=c.hook=c.zip=c.doorAction=null;c.jumpBuf=c.slideBuf=0;skyFollowCamera.reset();g.frameOnce(0)};
  window.snapHybrid=()=>{const c=g.P,cam=g.debug.camera;return{input:{...__skyInternals.inputState},pos:c.pos.toArray(),velocity:c.vel.toArray(),yaw:c.yaw,state:c.state,ground:c.onGround,camera:cam.position.toArray(),rotation:cam.rotation.toArray().slice(0,3),...skyFixedCamera.hybridState,safe:skyFixedCamera.cameraSafe(cam.position),hidden:document.body.dataset.skyOpaqueFootHidden,outline:document.body.dataset.skyHumanOccluded,gl:g.debug.renderer.getContext().getError()}};
- window.tickHybrid=n=>{const a=[];for(let i=0;i<n;i++){g.frameOnce(1/60);a.push(snapHybrid())}return a};
+ // Check real physics, input and camera at 60Hz; paint at 10Hz. Queueing
+ // hundreds of full renders without yielding can starve screenshots on the
+ // software GPU in CI. This changes the harness, not the shipped frame loop.
+ window.tickHybrid=n=>{const a=[];for(let i=0;i<n;i++){g.advance(1/60);g.cam(1/60);skyHumanView.update(1/60);
+   if(i%6===0||i===n-1){g.debug.renderer.clear();g.debug.renderer.render(__skyInternals.ue,g.debug.camera)}a.push(snapHybrid())}return a};
  });
  const label=`${touch?'touch':'desktop'}-${map.split('.')[0]}`,snapshots=[];
  const scenes=map==='index.html'?(await import('./hybrid-camera-scenes.js')).HYBRID_CAMERA_SCENES:[{id:'crossing',at:[2,.001,0]},{id:'middle',at:[0,4.001,0]},{id:'upper',at:[0,8.001,0]}];
