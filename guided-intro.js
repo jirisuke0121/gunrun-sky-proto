@@ -8,7 +8,7 @@ import { createLessons } from './guided-lessons.js?v=20261110-route-progress-v1'
  const en=()=>window.skyI18n?.lang==='en'||params.get('lang')==='en';
  const text=(ja,english)=>en()?english:ja;
  const storage={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
- const carryTrial=u=>{const trial=params.get('cameraTrial');if(['fixed','hybrid','follow','follow-legacy'].includes(trial))u.searchParams.set('cameraTrial',trial);return u;};
+ const carryTrial=u=>{const trial=params.get('cameraTrial');if(['fixed','hybrid','follow','follow-legacy','follow-turn'].includes(trial))u.searchParams.set('cameraTrial',trial);return u;};
  const courseURL=()=>{const u=new URL('canyon.html',location.href);u.search=new URLSearchParams({learn:'1',camera:window.skyFollowCamera?.mode||'after',controlpick:'0',hookGuide:'0',guides:'0',lang:en()?'en':'ja',return:location.pathname.endsWith('canyon.html')?'canyon':'town'});return carryTrial(u).href;};
  if(!window.skyGuidedMode){
   if(window.skyPracticeMode||window.skyOwnerReplay||params.has('replay'))return;

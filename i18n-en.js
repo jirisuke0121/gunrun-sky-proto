@@ -9,6 +9,7 @@
  "進む向きへ自動で追従します。視点操作はありません": "Follows your travel direction automatically. No camera controls.",
  "カメラは進む向きへ自動で追従します。視点操作はありません": "The camera follows your travel direction automatically. No camera controls.",
  "左側で移動し、右側のボタンでジャンプや技を出します。カメラは進む向きへ自動で追従します。": "Move on the left; use the buttons on the right to jump and perform moves. The camera follows your travel direction automatically.",
+ "左のスティックを、画面の中で行きたい方向へ倒すだけ。上は奥へ、左右は横へ、下は手前へ走ります。カメラは自動でついてきます。右側のボタンでジャンプや技を出します。": "Just push the left stick toward where you want to go on screen: up runs away from you, sideways runs sideways, down runs toward you. The camera follows by itself. Use the right buttons to jump and perform moves.",
  "左側で移動。左右へ倒して曲がり、上へ戻すと直進。下で後退。右側のボタンでジャンプや技を出します。カメラは自動で追従します。": "Move on the left. Push sideways to turn, return upward to keep going straight, and pull down to back away. Use the right buttons to jump and perform moves. The camera follows automatically.",
  "W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。視点は自動で追従します。": "W/S: forward/back. A/D: turn. Alt + A/D: strafe. The camera follows automatically.",
  "開発用": "Development",

@@ -6,6 +6,9 @@ const vm = require('node:vm');
 // copying its transformation formulas. Terrain and pointer delivery are covered
 // by the browser checks; this fixture isolates camera/input feedback.
 function fixture({ touchDevice = true, saved, search = '', yaw = 0 } = {}) {
+  // 2026-11-10: this file keeps covering the earlier turn-and-commit mapping, now reached
+  // with cameraTrial=follow-turn. The default mapping is covered by screen-stick.test.cjs.
+  if (!search) search = '?cameraTrial=follow-turn';
   let mode = 'play', demo = false, now = 0;
   const listeners = { window: new Map(), document: new Map() };
   const memory = new Map(Object.entries(saved || {}));
@@ -218,7 +221,7 @@ for (const [x, forward] of [[1, 0], [.8, -.6]]) {
 // Automatic following has one camera owner. A second finger/mouse may not
 // rotate it or freeze following, including while the left thumb changes course.
 for (const touchDevice of [false, true]) {
-  const f = fixture({ touchDevice, search: '?camera=after&cameraTrial=follow' });
+  const f = fixture({ touchDevice, search: '?camera=after&cameraTrial=follow-turn' });
   f.controls(0, 1); const start = { ...f.api.view };
   f.inputState.lookId = 2; f.api.holdLook(true);
   assert.equal(f.api.look(-.8, .4), true, 'auto consumes manual look');
@@ -235,7 +238,7 @@ for (const touchDevice of [false, true]) {
 // physical return as well as a one-event return, so fixing only the final
 // up sample cannot hide an unwanted turn during the thumb's return arc.
 for (const side of [-1, 1]) for (const returnFrames of [1, 30]) {
-  const f = fixture({ search: '?camera=after&cameraTrial=follow' });
+  const f = fixture({ search: '?camera=after&cameraTrial=follow-turn' });
   f.controls(0, 1);
   for (let i = 1; i <= 30; i++) {
     const a = side * Math.PI / 2 * i / 30;
@@ -261,7 +264,7 @@ for (const side of [-1, 1]) for (const returnFrames of [1, 30]) {
 // Holding an input with one-pixel angular jitter cannot accumulate camera
 // feedback or repeated tiny turn strokes. Radius-only changes are speed only.
 {
-  const f = fixture({ search: '?camera=after&cameraTrial=follow' });
+  const f = fixture({ search: '?camera=after&cameraTrial=follow-turn' });
   f.controls(.6, .8); const heading = f.c.yaw;
   for (let i = 0; i < 600; i++) {
     const a = Math.atan2(.6, .8) + (i % 2 ? 1 : -1) / 56;
@@ -272,4 +275,4 @@ for (const side of [-1, 1]) for (const returnFrames of [1, 30]) {
     f.controls(.6*r, .8*r); near(angleError(f.c.yaw, heading), 0, 'radius changes only speed');
   }
 }
-console.log('PASS follow camera: continuous corners/returns/reverse, jitter, stable held heading, manual legacy, native traversal, FPS and PC isolation');
+console.log('PASS follow camera (follow-turn comparison mapping): continuous corners/returns/reverse, jitter, stable held heading, manual legacy, native traversal, FPS and PC isolation');

@@ -12,6 +12,19 @@
   // Manual look remains available in the explicitly named old comparison.
   // Ordinary easy controls have a single camera owner: automatic following.
   const allowManualLook = new URLSearchParams(location.search).get('cameraTrial') === 'follow-legacy';
+  // 2026-11-10: ordinary easy controls map the stick to the picture on screen
+  // ("push toward where you want to go"). `cameraTrial=follow-turn` keeps the
+  // previous turn-and-commit mapping for side-by-side comparison.
+  const turnCommit = new URLSearchParams(location.search).get('cameraTrial') === 'follow-turn';
+  const screenRelative = !allowManualLook && !turnCommit;
+  // Near straight-up the thumb steers more gently (half the angle at 5 degrees, full from 16),
+  // so tremor on a straight run does not swing the runner; there is no flat dead zone, so
+  // a small correction still arrives.
+  const SOFT = Number(new URLSearchParams(location.search).get('followSoft') ?? .28);
+  const magnet = a => SOFT > 0 && Math.abs(a) < SOFT ? a * Math.pow(Math.abs(a) / SOFT, .6) : a;
+  let carry = 0, screenUsed = false, idle = 0;
+  const TURN_RATE = Number(new URLSearchParams(location.search).get('followRate')) || 1.7;
+  const SQUEEZE_RATE = Number(new URLSearchParams(location.search).get('followSqueeze') ?? 1.5);
   let savedMode;
   try { savedMode = localStorage.getItem(storageKey); } catch {}
   let mode = [queryMode, savedMode, defaultMode()].find(value => value === 'before' || value === 'after');
@@ -35,6 +48,7 @@
     gesture = 'idle'; gestureId = null; reverseTime = 0;
     direct = false; fromAction = false; basis = desiredYaw = c.yaw; directReverse = false;
     turnAngle = 0; reverseZone = forwardZone = false;
+    carry = 0; idle = 0;
   }
   function legacyInput(raw) {
     if (!playing()) return raw;
@@ -95,6 +109,7 @@
     if (!playing()) { direct = false; fromAction = false; gestureId = null; return raw; }
     if (!touch.on) {
       direct = false; fromAction = false; gestureId = null;
+      if (Math.abs(raw.fwdIn) + Math.abs(raw.strIn) > 0) screenUsed = false;
       return legacyInput(raw);
     }
     const magnitude = Math.min(1, raw.tmag);
@@ -114,6 +129,28 @@
     }
     const stickAngle = Math.atan2(raw.strIn, raw.fwdIn);
     const fresh = !direct || gestureId !== touch.id;
+    if (screenRelative) {
+      // The thumb always means a direction in the picture currently shown:
+      // up = into the screen, left = screen-left, down = toward the camera.
+      // No remembered basis, so no hidden state to get out of step with.
+      const aim = angle(view.yaw - magnet(stickAngle));
+      if (fromAction && gestureId === touch.id) {
+        // Leaving a ladder/zip/hook with the thumb still held: start from the
+        // exit path and ease to the thumb's screen direction (see step()).
+        const exitSpeed = Math.hypot(c.vel.x, c.vel.z);
+        carry = angle((exitSpeed > .1 ? Math.atan2(-c.vel.x, -c.vel.z) : c.yaw) - aim);
+      } else if (fresh) {
+        carry = 0;
+        if (!mouseHeld && touch.lookId === null) manual = manualTouch = false;
+      }
+      desiredYaw = angle(aim + carry);
+      directReverse = false; turnAngle = 0; reverseZone = forwardZone = false;
+      fromAction = false; direct = true; gestureId = touch.id; gesture = 'drive';
+      screenUsed = true; idle = 0;
+      return { ...raw, fwdIn: magnitude, strIn: 0,
+        motionScale: clamp((magnitude - .12) / .88, 0, 1),
+        precise: true, steer: 0, reversing: false, direct: true, screen: true };
+    }
     const nextReverseZone = raw.fwdIn < -Math.abs(raw.strIn);
     const nextForwardZone = raw.fwdIn > Math.abs(raw.strIn);
     if (fresh) directReverse = raw.fwdIn < -Math.abs(raw.strIn);
@@ -162,6 +199,13 @@
     if (!playing()) { direct = false; fromAction = false; gestureId = null; return; }
     if (!controls.direct) { legacyStep(dt, controls); return; }
     lastInput = Math.abs(controls.fwdIn);
+    if (controls.screen) {
+      const elapsed = Math.min(.05, Math.max(0, dt));
+      carry *= Math.exp(-5 * elapsed);
+      // A 45 ms ease absorbs thumb tremor without delaying a deliberate flick.
+      if (['normal', 'slide'].includes(c.state)) c.yaw = angle(c.yaw + angle(desiredYaw - c.yaw) * (1 - Math.exp(-22 * elapsed)));
+      return;
+    }
     if (['normal', 'slide'].includes(c.state)) c.yaw = desiredYaw;
   }
   function speed(base, controls) {
@@ -213,8 +257,27 @@
       else targetYaw = view.yaw;
       targetPitch = clamp(Math.atan2(c.hook[1] - c.pos.y - c.eye, horizontal), -.18, .42);
     }
-    const gain = c.state === 'wallrun' ? 4 : c.onGround ? 13 : 7;
     const elapsed = Math.min(.05, Math.max(0, dt));
+    if (screenRelative && screenUsed && ['normal', 'slide'].includes(c.state)) {
+      view.pitch += clamp((targetPitch - view.pitch) * (1 - Math.exp(-3 * elapsed)), -.65 * elapsed, .65 * elapsed);
+      const off = angle(c.yaw - view.yaw);
+      if (direct && lastInput > .08) {
+        // Swing behind sideways travel at a calm rate; running straight toward
+        // the camera does not spin the picture.
+        idle = 0;
+        // A wall between camera and runner pulls the camera in until the body is hidden
+        // (below ~46% of the chase distance). Come round behind faster while squeezed.
+        const squeeze = 1 - clamp(((window.skyCameraClearance ?? 1) - .5) / .35, 0, 1);
+        // Only for sideways travel: toward the camera the picture must stay still.
+        const rate = (c.onGround ? TURN_RATE : TURN_RATE * .55) + SQUEEZE_RATE * squeeze * clamp((1.9 - Math.abs(off)) / .4, 0, 1);
+        view.yaw = angle(view.yaw + rate * Math.sin(off) * clamp((2.7 - Math.abs(off)) / .4, 0, 1) * elapsed);
+      } else if ((idle += elapsed) > .25 && c.onGround) {
+        // Thumb lifted: settle behind the runner so the next push "up" continues ahead.
+        view.yaw = angle(view.yaw + clamp(off * (1 - Math.exp(-5 * elapsed)), -2.2 * elapsed, 2.2 * elapsed));
+      }
+      return view;
+    }
+    const gain = c.state === 'wallrun' ? 4 : c.onGround ? 13 : 7;
     view.yaw = angle(view.yaw + clamp(angle(targetYaw - view.yaw) * (1 - Math.exp(-gain * elapsed)), -2.8 * elapsed, 2.8 * elapsed));
     view.pitch += clamp((targetPitch - view.pitch) * (1 - Math.exp(-3 * elapsed)), -.65 * elapsed, .65 * elapsed);
     return view;
@@ -235,7 +298,7 @@
       note.textContent = trial==='hybrid'&&mode==='after' ? (new URLSearchParams(location.search).get('cameraControl')==='legacy'?'区間ごとに視点を切り替えます。押している間は以前の方向を保ち、離すと新しい画面の方向へ切り替わります。':'画面の方向へ移動します。移動中はカメラの方角を保ち、止まってから見通しを調整します。手前の壁や屋根は足元の周囲だけ切り欠いて見せます。') : fixedTrial && mode === 'after' ? '画面の方向へ移動します。カメラの回転操作はありません。壁は実体を残し、足元に合わせてカメラの距離・見下ろし角度を補助します。' : mode === 'before'
         ? (coarse() ? '左スティックで移動、右側のドラッグで視点を自分で回します。' : 'WASDで移動、マウスで視点を回します。')
         : coarse()
-          ? allowManualLook ? '左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。' : '左側で移動。左右へ倒して曲がり、上へ戻すと直進。下で後退。右側のボタンでジャンプや技を出します。カメラは自動で追従します。'
+          ? allowManualLook ? '左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。' : (turnCommit ? '左側で移動。左右へ倒して曲がり、上へ戻すと直進。下で後退。右側のボタンでジャンプや技を出します。カメラは自動で追従します。' : '左のスティックを、画面の中で行きたい方向へ倒すだけ。上は奥へ、左右は横へ、下は手前へ走ります。カメラは自動でついてきます。右側のボタンでジャンプや技を出します。')
           : allowManualLook ? 'W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。マウスで見回せます。' : 'W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。視点は自動で追従します。';
     }
   }

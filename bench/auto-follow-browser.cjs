@@ -6,7 +6,7 @@ const angle=n=>Math.atan2(Math.sin(n),Math.cos(n));
 (async()=>{fs.mkdirSync(out,{recursive:true});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}/`;let browser;const rows=[];
 try{
  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--enable-unsafe-swiftshader']});
- for(const variant of(process.env.AUTO_FOLLOW_VARIANT?[process.env.AUTO_FOLLOW_VARIANT]:['follow-legacy','follow']))for(const map of['index.html','canyon.html']){
+ for(const variant of(process.env.AUTO_FOLLOW_VARIANT?[process.env.AUTO_FOLLOW_VARIANT]:['follow-legacy','follow-turn']))for(const map of['index.html','canyon.html']){
   const ctx=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true,locale:'ja-JP'});
   await ctx.addInitScript(()=>{window.__hold=true;localStorage.setItem('gunrun-fixed-controls-v1','1')});let posts=0;const errors=[];
   await ctx.route('https://**/*',r=>{if(r.request().method()==='POST')posts++;return r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'})});
@@ -34,10 +34,10 @@ try{
   await touch('touchStart',[left,right]);await touch('touchMove',[left,looked]);await p.waitForFunction(()=>__skyInternals.inputState.lx===680);
   await tick(0);await p.evaluate(()=>{__game.cam(0);skyHumanView.update(0)});const afterLook=await snap();
   const lookDelta=angle(afterLook.follow.yaw-beforeLook.follow.yaw);
-  if(variant==='follow'){assert.ok(Math.abs(lookDelta)<1e-8,'manual yaw ignored');assert.equal(afterLook.follow.manual,false);}
+  if(variant==='follow-turn'){assert.ok(Math.abs(lookDelta)<1e-8,'manual yaw ignored');assert.equal(afterLook.follow.manual,false);}
   else assert.ok(Math.abs(lookDelta)>.05,'legacy comparison really allows manual look');
   await input(.6,.8);await tick(45);const followed=await snap();
-  if(variant==='follow')assert.ok(Math.abs(angle(followed.follow.yaw-followed.heading))<.04,'right pointer cannot stop following');
+  if(variant==='follow-turn')assert.ok(Math.abs(angle(followed.follow.yaw-followed.heading))<.04,'right pointer cannot stop following');
   await touch('touchEnd',[looked]);assert.equal(await p.evaluate(()=>__skyInternals.inputState.on),true);await release();
   await p.screenshot({path:path.join(out,label+'-right-drag.png')});
   // Real two-finger jump, with left-thumb corrections through the flight.
@@ -60,7 +60,7 @@ try{
     if(scene.id==='west-door-gradual'&&i===2){for(let j=1;j<=30;j++){const v=-Math.PI/2*(1-j/30);await input(Math.sin(v),Math.cos(v));a.push(...await tick(1))}a.push(...await tick(n-30));}
     else{await input(x,f);a=await tick(n);}
     samples.push(...a);segments.push({command:[x,f],start:a[0],end:a.at(-1)});await p.screenshot({path:path.join(out,label+'-'+scene.id+'-'+i+'.png')});}
-   if(variant==='follow'&&scene.id.startsWith('west-door')){
+   if(variant==='follow-turn'&&scene.id.startsWith('west-door')){
     const corner=segments[1].end,forward=segments[2].end,back=segments[3].end;
     assert.ok(Math.abs(angle(forward.heading-corner.heading))<.04,'returning up keeps the corner');
     assert.ok(forward.pos[2]<corner.pos[2]-2,'up advances through the real west hallway');
@@ -70,7 +70,7 @@ try{
    await release();const end=await snap();assert.ok(samples.every(s=>!s.fixed&&s.gl===0),'actual following, no fixed/cutaway substitute');routes.push({id:scene.id,start,end,segments,samples});
   }
   let pursuit=null;
-  if(variant==='follow'&&map==='index.html'){
+  if(variant==='follow-turn'&&map==='index.html'){
    await release();await p.evaluate(()=>{placeAuto([-15.5,.001,0],-Math.PI/2);const g=__game;g.P.invuln=0;for(const at of[[-21,.001,0],[-23,.001,1]]){const z=new g.Zombie(...at);z.spawnT=0;z.rise=z.fall=null;z.onGround=true;g.zombies.push(z)}});
    const before=await p.evaluate(()=>({life:__game.P.life,enemies:__game.zombies.map(z=>z.pos.toArray())})),samples=[];
    for(const[x,f,n]of[[0,1,45],[-1,0,40],[0,1,35],[0,-1,30]]){await input(x,f);samples.push(...await tick(n));}

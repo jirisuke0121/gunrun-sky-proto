@@ -1,7 +1,7 @@
 name: Easy touch controls
 on:
   pull_request:
-    paths: ['follow-camera.*', 'control-style.*', 'onboarding.*', 'i18n*.js', 'guided-*', 'index.html', 'canyon.html', 'bench/auto-follow*', 'bench/follow-camera.test.cjs', 'bench/easy-controls-browser.cjs', '.github/workflows/easy-controls.yml']
+    paths: ['follow-camera.*', 'control-style.*', 'onboarding.*', 'i18n*.js', 'guided-*', 'index.html', 'canyon.html', 'bench/auto-follow*', 'bench/screen-stick*', 'bench/follow-camera.test.cjs', 'bench/easy-controls-browser.cjs', '.github/workflows/easy-controls.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,6 +18,8 @@ jobs:
           node-version: '24'
       - name: Controller acceptance scenarios
         run: node bench/follow-camera.test.cjs
+      - name: Default screen-relative stick
+        run: node bench/screen-stick.test.cjs
       - name: Install browser
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
@@ -56,6 +58,8 @@ jobs:
       - run: python3 -m http.server 8895 --bind 127.0.0.1 > /tmp/auto-follow-server.log 2>&1 &
       - name: Continuous touch corners, returns, reverse, jump and native pursuers
         run: node bench/auto-follow-browser.cjs
+      - name: Real hallway with simulated thumbs, default vs follow-turn
+        run: node bench/screen-stick-browser.cjs
       - name: Normal entry, bilingual help, retry and tutorial return
         run: node bench/auto-follow-entry-browser.cjs
       - name: Comparison and actual desktop/touch play

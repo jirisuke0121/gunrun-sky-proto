@@ -2,7 +2,7 @@
 // URLs remain ordinary play; old saved fixed preferences migrate separately.
 const trialParam = new URLSearchParams(location.search).get('cameraTrial');
 const localHost = ['localhost', '127.0.0.1'].includes(location.hostname);
-if (['hybrid', 'follow', 'follow-legacy'].includes(trialParam) || (trialParam !== null && localHost)) {
+if (['hybrid', 'follow', 'follow-legacy', 'follow-turn'].includes(trialParam) || (trialParam !== null && localHost)) {
   const ordinaryFetch = window.fetch.bind(window);
   window.fetch = (input, options) => {
     if (String(input?.url || input).includes('gunrun-runs.jirisuke0121.workers.dev')) {

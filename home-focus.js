@@ -74,7 +74,7 @@
     syncTrialControls();
   }
   // Sending is always on and needs no notice. Only the comparison trials, which send nothing, say so.
-  const notSent = ['hybrid','follow','follow-legacy'].includes(trial) || (trial && ['localhost', '127.0.0.1'].includes(location.hostname));
+  const notSent = ['hybrid','follow','follow-legacy','follow-turn'].includes(trial) || (trial && ['localhost', '127.0.0.1'].includes(location.hostname));
   if (notSent) {
     const notice = make('p', { id: 'homeSendNotice' });
     notice.textContent = 'ローカル比較用の試作です。ランキング・プレイ記録は送信しません。';

@@ -644,6 +644,7 @@ function update(dt, preparingShot = false) {
   for (const arm of mr) arm.root.visible = close && !follow && !!sky.U.showBody;
   document.body.dataset.skyHumanView = close ? 'first-collision' : 'third';
   document.body.dataset.skyHumanCameraClearance = safe.toFixed(2);
+  window.skyCameraClearance = safe;
   // A squeezed follow view prioritizes the landing area over body/weapon overlays.
   window.skyFirstPersonView?.update(dt, !close || !!follow);
 }
