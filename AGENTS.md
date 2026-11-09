@@ -12,7 +12,7 @@ Claude Code・Codex など、どのAIでもこのファイルを最初に読む�
   `cd server && npx wrangler deploy` → `GET /` の `rankedRules` を確認 → そのあと Pages へ反映。
   D1 のスキーマ変更は、Worker 更新の前に適用する。手順は `server/README.md`。
 - 新しい公開先を足すときは、そのページのOriginを `server/wrangler.toml` の `ALLOWED_ORIGINS`（`https://*.example.com` 形式可、`server/origins.js`）に追加し、`npx wrangler deploy` する。足さないと記録・ランキングが403で入らない。
-- 初回プレイは onboarding.js の初回カード→入門。連続入門コース（canyon.html?learn=1）は開発者専用（`?dev=1`）。
+- 初回プレイは onboarding.js の初回カード→入門。連続入門コース（canyon.html?learn=1）はホーム左下の「開発用」タブ内。
 - プレイ記録のテストデータを本番ランキングに混ぜない（`channel:dev` を付ける）。
 - `README.md` は日付つきの更新履歴で非常に長い。全文は読まず、`grep` か先頭の該当節だけ読む。
   新しい変更は先頭に節を足す。古い記述と食い違ったら、コードを正として README 側を直す。

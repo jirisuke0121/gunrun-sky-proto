@@ -1,3 +1,8 @@
+## 2026-11-10 ホーム左下の「開発用」タブを復元
+
+- 通常URLでも「開発用」の折りたたみを表示し、中の「入門モードで遊ぶ」から連続入門コースへ入れる。初回カードからの入門は従来どおり。
+- 左下に単独で出ていた「クレジット」は「開発用」の中へ移動。出典一覧は引き続き開ける。
+
 ## 2026-11-09 Y8提出前の整備（記録の許可元・初回入門・クレジット・提出zip）
 
 - **記録の許可元**：`server/origins.js` を新設し、`ALLOWED_ORIGINS` で `https://*.y8.com` のようなサブドメイン指定を使えるようにした（`/runs`・`/telemetry`・CORS で共通）。`wrangler.toml` は `github.io` に加えて `https://y8.com` と `https://*.y8.com` を許可。**反映には `cd server && npx wrangler deploy` が必要**（GitHub Pagesへの反映だけでは変わらない）。Y8で実際に公開されたURLのOriginがこれ以外（例：別のCDNドメイン）なら、そのOriginを `ALLOWED_ORIGINS` に足して再デプロイする。テストは `node bench/origins.test.cjs`。
