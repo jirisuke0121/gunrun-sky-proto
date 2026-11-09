@@ -1,0 +1,43 @@
+const assert = require('node:assert/strict');
+(async () => {
+ const { createLessons } = await import('../guided-lessons.js');
+ global.location = { search: '?return=canyon' };
+ const bars = [{ at:[122.89,7,0] }, { at:[127.39,8.2,0] }];
+ const sections = ['move','vault','jump','mantle','wallrun','zip','walljump','swing','exit'].map(id => ({id}));
+ global.window = { skyPracticeCourse:{sections}, skySwing:{course:{bars},active:null} };
+ const c = {pos:{x:9,y:2,z:3},r:.28,onGround:true,state:'normal'};
+ const game = {P:c,stats:{jumps:0,barJumps:0}};
+ const progress = {stats:{...game.stats},path:0};
+ const sky = {jn:[{minX:-4,maxX:18,minZ:-3.5,maxZ:3.5,maxY:2},{minX:214,maxX:245,minZ:-3.5,maxZ:3.5,maxY:8},{minX:107,maxX:116,minZ:-4.1,maxZ:3.5,maxY:2.8},{swingCourse:'upper-landing',minX:132.99,maxX:142.59,minZ:-2.2,maxZ:2.2,maxY:6.8},{practice:'dash-roof',minX:140,maxX:153,minZ:-3.5,maxZ:3.5,maxY:6.8}]};
+ const flow = createLessons(sky,game,{},progress), lesson = id => flow.lessons.find(s=>s.id===id);
+ assert.equal(lesson('move').done(),true,'walking through the side of the starting roof counts');
+ c.pos.x=10.8; assert.equal(lesson('move').done(),true,'passing the target plane does not require turning back');
+ c.pos.z=4; assert.equal(lesson('move').done(),false,'unsupported positions beside a roof never count'); c.pos.z=3;
+ c.pos.y=-4; assert.equal(lesson('move').done(),false,'falling below the roof never counts');
+ Object.assign(c.pos,{x:244,y:8,z:-3.2}); assert.equal(lesson('exit').done(),true,'the full width of the exit roof counts');
+ c.pos.x=242; assert.equal(lesson('exit').done(),false,'the exit is not reached before its plane');
+ // An action just before a stage boundary must still count for its obstacle.
+ Object.assign(c.pos,{x:8.8,y:2,z:3}); flow.observe();
+ c.pos.x=11.5; game.stats.jumps++; flow.observe();
+ progress.stats=flow.baseline(lesson('vault'));
+ c.pos.x=15; assert.equal(lesson('vault').done(),true,'an early native jump over the wall is remembered');
+ flow.reset(lesson('vault')); progress.stats=flow.baseline(lesson('vault'));
+ assert.equal(lesson('vault').done(),false,'retry requires a fresh action');
+ Object.assign(c.pos,{x:115.6,y:2.8,z:0});
+ assert.equal(flow.reached([115,2.8,-3.2]),true,'passing a waypoint on another part of the same roof counts');
+ c.pos.z=-4.25; assert.equal(flow.reached([115,2.8,-3.2]),true,'the wider zipline roof uses its actual support bounds'); c.pos.z=0;
+ // Releasing the same bar repeatedly cannot stand in for reaching the next bar.
+ Object.assign(c.pos,{x:124.5,y:6,z:0}); c.onGround=false;
+ game.stats.barJumps=3; progress.stats={...game.stats,barJumps:1};
+ assert.deepEqual(flow.goal(lesson('swing')),bars[1].at,'flight from the first bar points at the next physical bar, independent of jump count');
+ window.skySwing.active={bar:bars[1]}; flow.observe();
+ assert.deepEqual(flow.goal(lesson('swing')),[140,6.8,0],'holding the final bar points at the landing');
+ window.skySwing.active=null; c.pos.x=130; flow.observe();
+ assert.deepEqual(flow.goal(lesson('swing')),[140,6.8,0],'flight after the final bar keeps the landing goal');
+ window.skySwing.active={bar:bars[0]}; flow.observe();
+ assert.deepEqual(flow.goal(lesson('swing')),bars[1].at,'returning to the first bar restores the next-bar goal');
+ window.skySwing.active=null;
+ Object.assign(c.pos,{x:119,y:4,z:0}); c.onGround=true;
+ assert.equal(lesson('swing').retryIf(),true,'landing back on the launch pad recovers instead of pointing into the air');
+ console.log('PASS broad route crossings, early native actions, retry reset, spatial bar progression and failed swing recovery');
+})().catch(e=>{console.error(e);process.exitCode=1});

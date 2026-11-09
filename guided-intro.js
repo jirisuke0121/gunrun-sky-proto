@@ -1,7 +1,7 @@
 import { installGuidedChoice } from './guided-choice.js?v=20261109-auto-follow-v3';
 import { installGuidedCoach } from './guided-coach.js?v=20261106-paused-v1';
-import { describeLesson } from './guided-prompts.js?v=20261106-parity-v1';
-import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
+import { describeLesson } from './guided-prompts.js?v=20261110-route-progress-v1';
+import { createLessons } from './guided-lessons.js?v=20261110-route-progress-v1';
 // A real input trial followed by a physical course. No action is fired on the player's behalf.
 (() => {
  const params=new URLSearchParams(location.search),$=id=>document.getElementById(id);
@@ -23,7 +23,7 @@ import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
  if (!practice) return;
  const course = window.skyPracticeCourse;
  const progress = { stats: {}, flash: 0, lured: false, path: 0, reloadSeen:false, kickReady:false };
- const { lessons, goal, near } = createLessons(sky, g, practice, progress);
+ const { lessons, goal, near, reached, observe, baseline, reset } = createLessons(sky, g, practice, progress);
  const chapters = [['はじめの一歩','First steps'],['屋上を渡る','Across the rooftops'],['追手をかわす','Shake off pursuers'],['本番へ','Ready to run']];
  let index = -1, trial = true, started = false, finished = false, trialReached = false, trialJumps = 0;
  let copyKey = '', lastStage = '', retryUntil = 0;
@@ -55,7 +55,7 @@ import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
    });
  }
  function enter(i) {
-   index = i; progress.stats = {...g.stats}; progress.path = 0; progress.lured = false;progress.reloadSeen=false;progress.kickReady=false;
+   index = i; progress.stats = baseline(lesson()); progress.path = 0; progress.lured = false;progress.reloadSeen=false;progress.kickReady=false;
    const current = lesson(); practice.checkpoint(current.checkpoint);
    targets(combat());
    if (defense()) {window.skyFlashbang.reset();window.skyDecoy.reset();progress.flash=window.skyFlashbang.stats.affected;}
@@ -82,11 +82,20 @@ import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
    if(current.id==='kick'&&!progress.kickReady&&c.onGround&&c.state==='normal'){progress.kickReady=true;const e=practice.targets[1];e.pos.set(c.pos.x+1.2,0,c.pos.z);e.vel.set(0,0,0);e.m.root.position.copy(e.pos);practice.targets[0].dead=practice.targets[0].remove=true;practice.targets[0].m.root.visible=false;}
    if(current.id==='decoy'){if(window.skyDecoy.lured.size>0)progress.lured=true;if(!window.skyDecoy.active&&window.skyDecoy.cooldown>0)window.skyDecoy.reset();}
    if(current.id==='flash'&&window.skyFlashbang.charges===0&&!window.skyFlashbang.grenades.length&&window.skyFlashbang.stats.affected<=progress.flash)window.skyFlashbang.reset();
-   if(current.path?.[progress.path]&&near(current.path[progress.path],1))progress.path++;
-   if(current.retryIf?.()){practice.retry();return;}
-   if(current.done()){if(index===lessons.length-1)finish();else enter(index+1);}
+   advanceLessons();
    render(false);
  };
+ function advanceLessons() {
+   if (trial || !started || finished || g.mode !== 'play') return;
+   observe();
+   for (let n=0;n<lessons.length;n++) {
+     const current=lesson();
+     while(current.path?.[progress.path]&&(near(current.path[progress.path],1)||reached(current.path[progress.path])))progress.path++;
+     if(current.done()) {if(index===lessons.length-1){finish();return;}enter(index+1);continue;}
+     if(current.retryIf?.())practice.retry();
+     return;
+   }
+ }
  function setText(node,value){if(node.textContent!==value)node.textContent=value;}
  function render(schedule=true) {
    if(!started&&g.mode==='play'){started=true;trialJumps=g.stats.jumps||0;targets(false);document.body.dataset.learnStage='controls';choice.start();}
@@ -132,8 +141,8 @@ import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
  $('bMenu').addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();location.assign(new URL(params.get('return')==='canyon'?'canyon.html':'index.html',location.href).href);},true);
  const skip=document.createElement('button');skip.id='learnSkip';skip.textContent=text('練習を終えて本番へ','Leave practice and play');skip.onclick=finish;$('bResume').after(skip);
  for(const node of [$('learnTrialBar')])for(const type of ['pointerdown','pointerup','touchstart','touchend'])node.addEventListener(type,e=>e.stopPropagation());
- window.skyGuidedIntro={beforeFrame(){if(!started&&g.mode==='play')render(false);if(trial)return choice.blocked;render(false);return coach.blocked;},get blocked(){return trial?choice.blocked:coach.blocked},get choice(){return choice.phase},get pausedTarget(){return coach.target},get pauseSequence(){return coach.sequence},get total(){return lessons.length},get finished(){return finished},get trial(){return trial},get stage(){return trial?'controls':lesson()?.id},get defense(){return defense()},get cue(){return coaching},get completed(){return lessons.slice(0,Math.max(0,index)).map(s=>s.id)},
-   retrying(){coach.reset();retryUntil=g.GAME.t+2;progress.lured=false;progress.reloadSeen=false;progress.kickReady=false;if(lesson()?.id==='flash')window.skyFlashbang.reset();if(lesson()?.id==='decoy')window.skyDecoy.reset();if(lesson()?.id==='walljump')progress.path=lesson().path.length;},
+ window.skyGuidedIntro={beforeFrame(){if(!started&&g.mode==='play')render(false);if(trial)return choice.blocked;advanceLessons();render(false);return coach.blocked;},get blocked(){return trial?choice.blocked:coach.blocked},get choice(){return choice.phase},get pausedTarget(){return coach.target},get pauseSequence(){return coach.sequence},get total(){return lessons.length},get finished(){return finished},get trial(){return trial},get stage(){return trial?'controls':lesson()?.id},get defense(){return defense()},get cue(){return coaching},get completed(){return lessons.slice(0,Math.max(0,index)).map(s=>s.id)},
+   retrying(){coach.reset();reset(lesson());retryUntil=g.GAME.t+2;progress.path=0;progress.lured=false;progress.reloadSeen=false;progress.kickReady=false;if(lesson()?.id==='flash')window.skyFlashbang.reset();if(lesson()?.id==='decoy')window.skyDecoy.reset();},
    restored(){progress.stats={...g.stats};targets(combat());if(lesson()?.id==='shoot'){g.G.ammo=1;g.G.reserve=24;} },finish};
  render();
 })();

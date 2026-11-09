@@ -42,7 +42,7 @@ export function describeLesson(lesson, {game, sky, practice, progress, goal, nea
   if(id==='swing') {
     const active=window.skySwing.active, ready=document.getElementById('tJump').dataset.swingReady==='true';
     if(active)tell(ready?['緑。今、ジャンプ！','Green. Jump now!']:['緑になるまで待つ','Wait for the green cue'],['本編と同じ「今！」と緑の合図','Use the native NOW and green cues'],ready?'tJump':'',ready?'swing-jump':'wait',ready?['今ジャンプ','Jump now']:'');
-    else if(changed('barJumps'))tell(['前入力で、次の鉄棒へ','Keep moving toward the next bar'],['空中で自動につかみます','The next bar is caught automatically']);
+    else if(changed('barJumps'))tell(prompt.at[0]>window.skySwing.course.bars.at(-1).at[0]?['前入力で、向こうの足場へ','Keep moving toward the landing']:['前入力で、次の鉄棒へ','Keep moving toward the next bar'],['空中で進み、足場へ着地する','Keep travelling forward and land on the roof']);
     else tell(['前へジャンプして、鉄棒へ','Jump forward toward the bar'],['前入力を続けると自動でつかみます','Keep moving forward to catch it'],'tJump','jump',['ジャンプ','Jump']);
   }
   if(id==='pausefire')tell(['自動射撃を、一度止める','Pause automatic fire'],['踏み台を練習するので「自動射撃を停止」','Use Stop auto fire before practising the springboard'],'tAutoFire','pause-fire',['停止する','Pause']);
@@ -66,7 +66,7 @@ export function describeLesson(lesson, {game, sky, practice, progress, goal, nea
   if(id==='walljump'&&(prompt.cue==='wait'||prompt.cue==='jump'||prompt.cue==='double-jump'||changed('walljumps')))prompt.motion=['jump','wait'].includes(prompt.cue)?'stop':'forward';
   if(id==='walljump'&&(prompt.cue==='jump'||prompt.cue==='double-jump'))prompt.at=[119,4,0];
   if(id==='zip'&&!changed('zips')&&prompt.cue==='move')prompt.motion='toward';
-  if(id==='swing'){prompt.motion='forward';if(!window.skySwing.active&&!ground){prompt.action='';prompt.cue='move';prompt.press='';prompt.title=text('前入力で、鉄棒・足場へ','Keep moving toward the bar or landing');}}
+  if(id==='swing'){prompt.motion='forward';if(!window.skySwing.active&&!ground){prompt.action='';prompt.cue='move';prompt.press='';prompt.title=prompt.at[0]>window.skySwing.course.bars.at(-1).at[0]?text('前入力で、向こうの足場へ','Keep moving toward the landing'):text('前入力で、次の鉄棒へ','Keep moving toward the next bar');}}
   if(id==='stomp'&&prompt.cue==='jump')prompt.motion='forward';
   if(id==='stomp'&&sky.U.autoFire)prompt.motion='stop';
   if(id==='flash'&&!ground){prompt.action='';prompt.press='';prompt.cue='wait';prompt.title=text('着地してから、閃光玉','Land before using Flash');}

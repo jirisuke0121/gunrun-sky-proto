@@ -29,6 +29,8 @@ jobs:
       - run: node bench/development-entry-browser.cjs
       - run: node bench/random-uuid.test.cjs
       - run: node bench/guided-swing-landing.test.cjs
+      - run: node bench/guided-route-progress.test.cjs
+      - run: node bench/guided-route-progress-browser.cjs
       - run: node bench/guided-swing-landing-browser.cjs
       - run: node bench/follow-camera.test.cjs && node bench/hook-touch-exits.test.cjs && node bench/stair-walk.test.cjs && node bench/player-skills.test.cjs && node bench/human-view-running.test.cjs
       - uses: actions/upload-artifact@v4
