@@ -49,14 +49,15 @@
   const intro = $('introEntry');
   const introButton = $('bIntro'), introStatus = $('introReadyStatus'), introRetries = [...intro.querySelectorAll('[data-retry-start]')];
   intro.replaceChildren(make('div', {}, '<b>はじめての方へ</b><small>ライフ無限で、操作を練習。</small>'), introButton, introStatus, ...introRetries);
-  // The unfinished guided course is available from the quiet development fold.
+  // The guided course (canyon.html?learn=1) is unfinished: its entry is shown only in developer mode (?dev=1) and on the white-box canyon page, which is not shipped.
+  // Players get the intro run from the first-visit card (onboarding.js) and from 遊び方.
   const development = make('details', { id:'homeDevelopment' });
   development.append(make('summary', {}, '開発用'));
   const developmentButton=make('button', { id:'bGuidedIntro', type:'button' }, '入門モードで遊ぶ');
   development.append(developmentButton);
   const syncDevelopment = () => { developmentButton.disabled = introButton.disabled; };
   new MutationObserver(syncDevelopment).observe(introButton,{attributes:true,attributeFilter:['disabled']});
-  syncDevelopment();intro.hidden=true;
+  syncDevelopment();development.hidden=!(window.skyDevMode||canyon);main.append(intro);
   const best = $('bestLine'); main.append(best);
   const controls = make('p', { className: 'home-controls' }, '<span class="home-controls-desktop"><kbd>W A S D</kbd> 移動　<kbd>マウス</kbd> 視点　<kbd>Space</kbd> ジャンプ</span><span class="home-controls-touch">左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ</span>');
   const trial = new URLSearchParams(location.search).get('cameraTrial');

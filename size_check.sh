@@ -4,9 +4,9 @@ from pathlib import Path
 import gzip
 
 root = Path(__file__).resolve().parent
-# Every game script/page at the top level ships; the editor-only files and the pool/ folder do not.
-EDITOR_ONLY = {"hook-editor.html", "hook-editor.js", "wall-jump-candidates.js"}
-files = [p for p in sorted(root.glob("*.html")) + sorted(root.glob("*.js")) if p.name not in EDITOR_ONLY]
+# Every game script/page/style at the top level ships (same set as tools/make_release_zip.py); the editor/admin files, the canyon white-box map and the pool/ folder do not.
+EDITOR_ONLY = {"hook-editor.html", "hook-editor.js", "wall-jump-candidates.js", "owner.html", "owner-token.html", "owner.js", "owner.css", "escape-replay-viewer.html", "camera-trial.html", "camera-comparison.html", "swing-plan.html", "canyon.html", "canyon-world.js"}
+files = [p for pattern in ("*.html", "*.js", "*.css", "*.svg") for p in sorted(root.glob(pattern)) if p.name not in EDITOR_ONLY]
 files += [p for p in (root / "assets").rglob("*") if p.is_file()]
 files = [p for p in files if p.is_file()]
 raw = sum(p.stat().st_size for p in files)

@@ -6,6 +6,7 @@ const sharedRules = rules => ['corridor-shared-score-v9', 'corridor-threat-score
 import {ownerRunStatement} from './player-facts.js';
 import {ownerPlayers,ownerReplay} from './players.js';
 import {validateEnvironment} from './telemetry.js';
+import { originAllowed, corsOrigin } from './origins.js';
 import { receiveTelemetry, telemetryOverview } from './telemetry.js';
 // GunRun 試作 — プレイ記録の受け口（Cloudflare Workers + D1）
 //   POST /runs            ゲームが1プレイ分のJSONを送る（誰でも）
@@ -24,7 +25,7 @@ export default {
     const origin = req.headers.get("Origin") || "";
     const allowed = (env.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
     const cors = {
-      "Access-Control-Allow-Origin": allowed.length ? (allowed.includes(origin) ? origin : allowed[0]) : "*",
+      "Access-Control-Allow-Origin": corsOrigin(origin, allowed),
       "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
       "Access-Control-Allow-Headers": "content-type, authorization",
       "Access-Control-Max-Age": "86400",
@@ -95,7 +96,7 @@ function validRankedScore(record) {
 }
 
 async function receive(req, env, cors, origin, allowed) {
-  if (allowed.length && origin && !allowed.includes(origin)) return json({ error: "origin" }, 403, cors);
+  if (!originAllowed(origin, allowed)) return json({ error: "origin" }, 403, cors);
   const text = await req.text();
   if (text.length > MAX_BYTES) return json({ error: "too_large" }, 413, cors);
   let a;

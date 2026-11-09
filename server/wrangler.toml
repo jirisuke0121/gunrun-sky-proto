@@ -4,7 +4,7 @@ compatibility_date = "2026-10-01"
 
 [vars]
 # 記録の送信を許可するページ（カンマ区切り）
-ALLOWED_ORIGINS = "https://jirisuke0121.github.io"
+ALLOWED_ORIGINS = "https://jirisuke0121.github.io,https://y8.com,https://*.y8.com"
 
 [[d1_databases]]
 binding = "DB"

@@ -11,6 +11,8 @@ Claude Code・Codex など、どのAIでもこのファイルを最初に読む�
 - ランキングの版（`ranked-rules.js` の `version`）を上げるときは **Worker を先に更新**する。
   `cd server && npx wrangler deploy` → `GET /` の `rankedRules` を確認 → そのあと Pages へ反映。
   D1 のスキーマ変更は、Worker 更新の前に適用する。手順は `server/README.md`。
+- 新しい公開先を足すときは、そのページのOriginを `server/wrangler.toml` の `ALLOWED_ORIGINS`（`https://*.example.com` 形式可、`server/origins.js`）に追加し、`npx wrangler deploy` する。足さないと記録・ランキングが403で入らない。
+- 初回プレイは onboarding.js の初回カード→入門。連続入門コース（canyon.html?learn=1）は開発者専用（`?dev=1`）。
 - プレイ記録のテストデータを本番ランキングに混ぜない（`channel:dev` を付ける）。
 - `README.md` は日付つきの更新履歴で非常に長い。全文は読まず、`grep` か先頭の該当節だけ読む。
   新しい変更は先頭に節を足す。古い記述と食い違ったら、コードを正として README 側を直す。
@@ -36,7 +38,7 @@ Claude Code・Codex など、どのAIでもこのファイルを最初に読む�
 
 ## 4. 素材・容量
 
-- 音・画像・モデルは **CC0** だけ使う（CC-BY-SA は条件がゲーム全体に及ぶので使わない）。出典は `CREDITS.md` に残す。
+- 音・画像・モデルは **CC0** だけ使う（CC-BY-SA は条件がゲーム全体に及ぶので使わない）。出典は `CREDITS.md` に残し、ゲーム内の「クレジット」（`credits.js`）も合わせる。
 - Unity の人間素材以外は、ビルドとホームの選択肢から外して `pool/` に置く。`pool/` は容量集計の対象外。戻し方は `pool/README.md`。
 - MG/SG/SMG の銃声WAV（`assets/sfx`）は `pool/` に移さない。HG以外の武器も拾って使う前提。
 - 公開先の目安：CrazyGames の初回ダウンロード 50MB 以内、スマホのトップ掲載 20MB 以内。Y8 の上限は提出画面で確認する。

@@ -12,6 +12,7 @@
  "左側で移動。左右へ倒して曲がり、上へ戻すと直進。下で後退。右側のボタンでジャンプや技を出します。カメラは自動で追従します。": "Move on the left. Push sideways to turn, return upward to keep going straight, and pull down to back away. Use the right buttons to jump and perform moves. The camera follows automatically.",
  "W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。視点は自動で追従します。": "W/S: forward/back. A/D: turn. Alt + A/D: strafe. The camera follows automatically.",
  "開発用": "Development",
+ "クレジット": "Credits",
  "入門モードで遊ぶ": "Play the guided tutorial",
  "自分：移動・逃げ道 銃：未装備": "You: move + choose route\nGun: not equipped",
  "自分：移動・逃げ道 自動：照準・射撃": "You: move + choose route\nAuto: aim + fire",

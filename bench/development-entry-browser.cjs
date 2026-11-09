@@ -6,8 +6,8 @@ for(const map of ['index.html','canyon.html'])for(const lang of ['ja','en'])for(
  // Reproduce the missing secure-context API on LAN HTTP without changing randomness.
  await p.addInitScript(()=>{window.__hold=true;Object.defineProperty(crypto,'randomUUID',{value:undefined});});
  await p.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'}));p.on('pageerror',e=>errors.push(e.message));
- await p.goto(base+map+`?lang=${lang}&controlpick=0&guides=0&hookGuide=0`);await p.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:90000});
- assert.ok(new URL(p.url()).pathname.endsWith(map));assert.equal(await p.locator('#onbSplash').isVisible(),false);assert.equal(await p.locator('#bStart').isVisible(),true);assert.equal(await p.locator('#introEntry').isVisible(),false);assert.equal(await p.locator('#bGuidedIntro').isVisible(),false);
+ await p.goto(base+map+`?lang=${lang}&controlpick=0&guides=0&hookGuide=0&dev=1`);await p.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:90000});
+ assert.ok(new URL(p.url()).pathname.endsWith(map));assert.equal(await p.locator('#onbSplash').isVisible(),false);assert.equal(await p.locator('#bStart').isVisible(),true);assert.equal(await p.locator('#introEntry').isVisible(),true);assert.equal(await p.locator('#bGuidedIntro').isVisible(),false);
  if(map==='index.html'&&lang==='ja'&&width===844)await p.screenshot({path:'browser-evidence/development-entry/home.png'});
  await p.locator('#homeDevelopment summary').click();assert.equal(await p.locator('#bGuidedIntro').isVisible(),true);
  assert.match(await p.locator('#bGuidedIntro').innerText(),lang==='ja'?/入門モードで遊ぶ/:/guided tutorial/);

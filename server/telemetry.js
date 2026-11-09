@@ -1,5 +1,6 @@
 import playerName from '../player-name.js';
 import { telemetryRange } from './telemetry-range.js';
+import { originAllowed } from './origins.js';
 const EVENTS = new Set(['boot', 'home', 'start', 'finish', 'retry', 'error']);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const QUALITIES = new Set(['auto', 'performance', 'balanced', 'high', 'minimum']);
@@ -57,7 +58,7 @@ export function validateTelemetry(a) {
 }
 
 export async function receiveTelemetry(req, env, cors, origin, allowed) {
-  if (allowed.length && origin && !allowed.includes(origin)) return response({ error: 'origin' }, 403, cors);
+  if (!originAllowed(origin, allowed)) return response({ error: 'origin' }, 403, cors);
   if (Number(req.headers.get('content-length')) > 16384) return response({ error: 'too_large' }, 413, cors);
   const text = await req.text();
   if (new TextEncoder().encode(text).length > 16384) return response({ error: 'too_large' }, 413, cors);

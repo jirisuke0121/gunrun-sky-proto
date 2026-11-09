@@ -20,10 +20,19 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   // Automated browsers are not interrupted by default.
   let ctx=await mk('ja',false),page=await open(ctx,map);
   assert.equal(await splash(page),false,'automation skips the first-visit card by default');
-  assert.equal(await page.locator('#introEntry').isVisible(),false,'the development tutorial is absent from the main start area');
+  assert.equal(await page.locator('#introEntry').isVisible(),true,'automated browsers keep the home intro block');
+  if(map==='index.html')assert.equal(await page.locator('#homeDevelopment').isVisible(),false,'the development fold is not shown to players (canyon.html is the developer page)');
   assert.equal(await page.locator('#homeGuide').isVisible(),true);
   await page.click('#bStart');await page.waitForFunction(()=>__game.mode==='play');await page.waitForTimeout(300);
   assert.equal(await page.locator('#introTutorial').count(),0,'there is no tutorial card');await ctx.close();
+
+  // A real (non-automated) browser gets the first-visit card with no URL flag; blocked storage never traps it in a loop.
+  ctx=await mk('ja',false,()=>Object.defineProperty(navigator,'webdriver',{get:()=>false}));page=await open(ctx,map);
+  assert.equal(await splash(page),true,'a real first visit gets the start card without any URL flag');
+  if(map==='index.html')assert.equal(await page.locator('#homeDevelopment').isVisible(),false);await ctx.close();
+  ctx=await mk('ja',false,()=>{Object.defineProperty(navigator,'webdriver',{get:()=>false});const f=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='__sky_probe')throw new DOMException('blocked','SecurityError');return f.call(this,k,v)}});
+  page=await open(ctx,map);assert.equal(await splash(page),false,'storage that cannot remember the visit skips the card');
+  assert.equal(await page.locator('#introEntry').isVisible(),true,'the home intro block stays available');await ctx.close();
 
   // First visit: the start card replaces the home screen, there is no form and no skip.
   ctx=await mk('ja',false);page=await open(ctx,map+'?onboarding=auto');

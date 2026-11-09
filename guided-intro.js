@@ -13,7 +13,7 @@ import { createLessons } from './guided-lessons.js?v=20261106-swing-landing-v1';
  if(!window.skyGuidedMode){
   if(window.skyPracticeMode||window.skyOwnerReplay||params.has('replay'))return;
   window.skyGuidedEntry=params.get('guidedEntry')==='1'||params.get('learned')==='1';
-  document.addEventListener('click',event=>{const b=event.target.closest?.('#bGuidedIntro,#bIntro');if(!b)return;if(b.id==='bIntro'&&navigator.webdriver&&params.get('guidedEntry')!=='1')return;if(b.disabled)return;event.preventDefault();event.stopImmediatePropagation();location.assign(courseURL());},true);
+  document.addEventListener('click',event=>{const b=event.target.closest?.('#bGuidedIntro,#bIntro');if(!b)return;if(b.id==='bIntro'&&params.get('guidedEntry')!=='1')return;if(b.disabled)return;event.preventDefault();event.stopImmediatePropagation();location.assign(courseURL());},true);
   if(params.get('learned')==='1'){
    const start=()=>{if(!window.skyStartReadiness?.ready){requestAnimationFrame(start);return;}const custom=$('challengeCustom');if(custom?.checked)custom.click();const choice=$('challengeDifficulty');choice.value='easy';choice.dispatchEvent(new Event('change'));$('bStart').click();};start();
   }

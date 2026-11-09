@@ -3,7 +3,7 @@
 
 Usage: python3 tools/make_release_zip.py [output.zip]
 Ships the top-level game pages/scripts/styles and assets/. Leaves out the editors, the
-white-box canyon map, benches, docs, server code and the pool/ folder.
+white-box canyon map, owner/admin pages, benches, docs, server code and the pool/ folder.
 """
 import sys, zipfile
 from pathlib import Path
@@ -16,9 +16,11 @@ EXCLUDE = {
     "hook-editor.html", "hook-editor.js", "wall-jump-candidates.js",  # editors
     "swing-plan.html", "camera-comparison.html", "swing-escape-evidence.json",
     "size_check.sh",
+    # owner / admin and review pages: never ship them to a portal
+    "owner.html", "owner-token.html", "owner.js", "owner.css", "escape-replay-viewer.html", "camera-trial.html",
 }
 files = []
-for pattern in ("*.html", "*.js", "*.css"):
+for pattern in ("*.html", "*.js", "*.css", "*.svg"):
     files += [p for p in sorted(root.glob(pattern)) if p.name not in EXCLUDE]
 files += [p for p in sorted((root / "assets").rglob("*")) if p.is_file()]
 

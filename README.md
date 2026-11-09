@@ -1,3 +1,13 @@
+## 2026-11-09 Y8提出前の整備（記録の許可元・初回入門・クレジット・提出zip）
+
+- **記録の許可元**：`server/origins.js` を新設し、`ALLOWED_ORIGINS` で `https://*.y8.com` のようなサブドメイン指定を使えるようにした（`/runs`・`/telemetry`・CORS で共通）。`wrangler.toml` は `github.io` に加えて `https://y8.com` と `https://*.y8.com` を許可。**反映には `cd server && npx wrangler deploy` が必要**（GitHub Pagesへの反映だけでは変わらない）。Y8で実際に公開されたURLのOriginがこれ以外（例：別のCDNドメイン）なら、そのOriginを `ALLOWED_ORIGINS` に足して再デプロイする。テストは `node bench/origins.test.cjs`。
+- **初回判定→入門**：11/06に止めた初回判定を戻した。実ブラウザで初めて開くと、ホームを出さずスタートカード→従来の入門（ライフ無限・コーチ表示、`index.html`内）→終了後に名前を1回だけ聞く（NIGHTLINE方式）。2回目以降はホームに入門ボタンを出さず、「遊び方」から入れる。保存領域が使えない環境（iframeで保存が塞がれる等）では、毎回カードが出ないよう初回カードを出さず、ホームの入門ブロックを残す。
+- **連続入門コース（canyon.html?learn=1）は開発者専用に変更**：ホームの「開発用」折りたたみは `?dev=1` と白箱の渓谷ページでのみ表示。`#bIntro` は `?guidedEntry=1` を付けたときだけコースへ転送する（以前は実ブラウザで常に転送されていた）。
+- **クレジット**：`CREDITS.md` を新設（出典・ライセンス・未確認事項）。ホーム下部の「クレジット／Credits」から出典一覧を開く（`credits.js`）。Meshyの表記は有料／無料どちらのプランでも正しい形で常に表示。
+- **提出zip**：`tools/make_release_zip.py` の除外に `owner.*`・`owner-token.html`・`escape-replay-viewer.html`・`camera-trial.html` を追加。`*.svg` を含める。`size_check.sh` もzipと同じ対象（canyon・管理系を除く、css・svgを含む）で数える。
+- 見た目：`favicon.svg` を追加。日本語タイトルから「試作」を外した。英語の説明文（meta description）を追加。
+- 未対応：Y8ロゴのゲーム内表示（公式ロゴ画像が手元にない）、Y8提出フォームの項目（サムネイル・説明文）。
+
 ## 2026-11-09 自動追従で曲がった後の上入力が元の向きへ戻る問題を修正
 
 - 通常のかんたん操作を「左で移動・視点は自動」に変更。左右へ倒して曲がった後、指を上へ戻すと新しい進行方向を保つ。指を離さず次の曲がりや後退・前進を続けられ、右ドラッグで視点を動かしたり追従を止めたりしない。PCの既定WASD＋マウスは維持する。
@@ -495,7 +505,7 @@ NIGHTLINEの初回走行に合わせ、初回はホームを出さずスター�
 ## 2026-11-01：ポータル提出用のzipを作る手順
 
 - `python3 tools/make_release_zip.py 出力.zip` で、`index.html` をzipの直下に置いた提出用ビルドを作る（エディター、白箱の渓谷マップ、bench、docs、server、pool は含めない）。現在138ファイル・展開後14.0 MB・zip 10.3 MB。展開して別ポートから起動し、ファイル欠落（404）とエラーが無く、開始ボタンからプレイ状態へ入れることを確認済み。
-- 記録の送信：Workerは `server/wrangler.toml` の `ALLOWED_ORIGINS`（現在は `https://jirisuke0121.github.io` のみ）以外の送信元を拒否する。Y8など別のドメインに置く場合は、そのページの送信元（Origin）を追加してWorkerを再デプロイしないと、記録とランキングが入らない。
+- 記録の送信：Workerは `server/wrangler.toml` の `ALLOWED_ORIGINS`（2026-11-09以降は github.io と y8.com 系。`*.` でサブドメイン指定可）以外の送信元を拒否する。Y8など別のドメインに置く場合は、そのページの送信元（Origin）を追加してWorkerを再デプロイしないと、記録とランキングが入らない。
 
 ## 2026-11-01：英語表示（ホーム・設定・プレイ中・結果）
 
