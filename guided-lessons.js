@@ -32,7 +32,6 @@ export function createLessons(sky, game, practice, progress) {
     make('dash', 1, ['加速して、跳ぶ', 'Speed up and jump'], ['青いDASHを取って、先の屋上へ', 'Collect DASH and jump to the next roof'], [163, 0, 0], () => changed('dashPickups') && c.pos.x > 154 && c.pos.y < .2 && landed(), { action: 'tJump' }),
     make('pausefire',2,['自動射撃を一度止める','Pause automatic fire'],['踏み台を試すため、射撃を停止する','Pause fire to practise the springboard'],[165.5,0,0],()=>!sky.U.autoFire,{action:'tAutoFire'}),
     make('stomp', 2, ['追手を、踏み台にしよう', 'Use a pursuer as a springboard'], ['近くまで走って、ジャンプ', 'Run close, then jump'], () => practice.targets[0].pos.toArray(), () => changed('stomps'), { action: 'tJump' }),
-    make('kick', 2, ['空中で、もう一度', 'Jump again in midair'], ['もう一度ジャンプで飛び蹴り', 'Jump again to kick'], () => practice.targets[1].pos.toArray(), () => changed('kicks'), { action: 'tJump' }),
     make('flash', 2, ['追手を止めよう', 'Stop the pursuers'], ['閃光玉を使う ／ 1', 'Use Flash / 1'], () => practice.targets[0].pos.toArray(), () => window.skyFlashbang.stats.affected > progress.flash, { action: 'tFlash' }),
     make('decoy', 2, ['分身に任せて、逃げる', 'Distract them and escape'], ['分身を出して、先のマークへ ／ 2', 'Use Decoy, then move to the marker / 2'], [181, 0, 0], () => progress.lured && c.pos.x > 180.3 && landed(), { action: 'tDecoy' }),
     make('blast', 3, ['赤い缶で、高く跳ぶ', 'Launch with the red barrel'], ['缶をタップ ／ B', 'Tap the barrel / B'], [198, 2, 0], () => changed('blastLaunches') && c.pos.x > 194 && c.pos.y > 1.9 && landed(), { action: 'barrel' }),
@@ -45,7 +44,7 @@ export function createLessons(sky, game, practice, progress) {
   );
   // If a required action was missed, return from the landing beyond it rather
   // than leave the next marker behind a camera that cannot turn around.
-  const missedAt = {vault:16.5,jump:26.4,mantle:36,wallrun:53,hook:68,ladder:95,zip:115,walljump:120.5,swing:153,dash:155,pausefire:169,stomp:174,kick:177,flash:184,decoy:184,blast:202,jumpgun:224,shoot:243};
+  const missedAt = {vault:16.5,jump:26.4,mantle:36,wallrun:53,hook:68,ladder:95,zip:115,walljump:120.5,swing:153,dash:155,pausefire:169,stomp:174,flash:184,decoy:184,blast:202,jumpgun:224,shoot:243};
   for(const lesson of lessons)if(missedAt[lesson.id]!==undefined){
     const retry=lesson.retryIf;
     lesson.retryIf=()=>retry?.()||(landed()&&c.pos.x>missedAt[lesson.id]&&!lesson.done());

@@ -1,7 +1,7 @@
 import { installGuidedChoice } from './guided-choice.js?v=20261109-auto-follow-v3';
 import { installGuidedCoach } from './guided-coach.js?v=20261106-paused-v1';
-import { describeLesson } from './guided-prompts.js?v=20261110-route-progress-v1';
-import { createLessons } from './guided-lessons.js?v=20261110-route-progress-v1';
+import { describeLesson } from './guided-prompts.js?v=20261110-tutorial-v2';
+import { createLessons } from './guided-lessons.js?v=20261110-tutorial-v2';
 // A real input trial followed by a physical course. No action is fired on the player's behalf.
 (() => {
  const params=new URLSearchParams(location.search),$=id=>document.getElementById(id);
@@ -22,21 +22,22 @@ import { createLessons } from './guided-lessons.js?v=20261110-route-progress-v1'
  const g = window.__game, sky = window.__skyInternals, practice = window.skyPractice, c = g.P;
  if (!practice) return;
  const course = window.skyPracticeCourse;
- const progress = { stats: {}, flash: 0, lured: false, path: 0, reloadSeen:false, kickReady:false };
+ const progress = { stats: {}, flash: 0, lured: false, path: 0, reloadSeen:false };
  const { lessons, goal, near, reached, observe, baseline, reset } = createLessons(sky, g, practice, progress);
  const chapters = [['はじめの一歩','First steps'],['屋上を渡る','Across the rooftops'],['追手をかわす','Shake off pursuers'],['本番へ','Ready to run']];
- let index = -1, trial = true, started = false, finished = false, trialReached = false, trialJumps = 0;
+ let index = -1, trial = true, started = false, finished = false, completing = false, trialReached = false, trialJumps = 0;
  let copyKey = '', lastStage = '', retryUntil = 0;
  const lesson = () => lessons[index];
  const defense = () => !trial && ['flash', 'decoy'].includes(lesson()?.id);
- const combat = () => !trial && ['stomp','kick','flash','decoy','shoot'].includes(lesson()?.id);
+ const combat = () => !trial && ['stomp','flash','decoy','shoot'].includes(lesson()?.id);
  let coaching=null;
  document.body.classList.add('guided-intro');
  document.title = text('屋上で操作を試す','Try your controls on the rooftops');
  const ui = document.createElement('section'); ui.id = 'learnUI'; ui.setAttribute('aria-label',text('操作を試して覚える','Try the controls'));
  ui.innerHTML = `<header id="learnHeader"><p id="learnChapter"></p><h2 id="learnTitle"></h2><p id="learnHint" role="status" aria-live="polite"></p><div id="learnProgress" aria-hidden="true"><i></i><i></i><i></i><i></i></div></header>
    <div id="learnTrialBar"><button id="learnBack" type="button"></button><button id="learnGo" type="button"></button></div><div id="learnTarget" hidden></div>
-   <div id="learnKeys" aria-hidden="true">W A S D</div><div id="learnMoveCue" aria-hidden="true"></div><div id="learnJumpCue" aria-hidden="true"></div><div id="learnPressCue" hidden></div><div id="learnLookCue" aria-hidden="true"><span>↔</span><small></small></div>`;
+   <div id="learnKeys" aria-hidden="true">W A S D</div><div id="learnMoveCue" aria-hidden="true"></div><div id="learnJumpCue" aria-hidden="true"></div><div id="learnPressCue" hidden></div><div id="learnLookCue" aria-hidden="true"><span>↔</span><small></small></div>
+   <div id="learnDone" role="dialog" aria-modal="true" aria-labelledby="learnDoneTitle" hidden><div class="card"><p class="mark" aria-hidden="true">✓</p><h2 id="learnDoneTitle"></h2><p id="learnDoneBody"></p><ul id="learnDoneChapters"></ul><button id="learnDoneGo" type="button"></button></div></div>`;
  $('app').append(ui);
  const go=$('learnGo'),target=$('learnTarget');
  let choice,coach;
@@ -55,7 +56,7 @@ import { createLessons } from './guided-lessons.js?v=20261110-route-progress-v1'
    });
  }
  function enter(i) {
-   index = i; progress.stats = baseline(lesson()); progress.path = 0; progress.lured = false;progress.reloadSeen=false;progress.kickReady=false;
+   index = i; progress.stats = baseline(lesson()); progress.path = 0; progress.lured = false;progress.reloadSeen=false;
    const current = lesson(); practice.checkpoint(current.checkpoint);
    targets(combat());
    if (defense()) {window.skyFlashbang.reset();window.skyDecoy.reset();progress.flash=window.skyFlashbang.stats.affected;}
@@ -72,26 +73,36 @@ import { createLessons } from './guided-lessons.js?v=20261110-route-progress-v1'
    u.search=new URLSearchParams({learned:'1',camera:window.skyFollowCamera.mode,controlpick:'0',lang:en()?'en':'ja',});
    location.assign(carryTrial(u).href);
  }
+ function complete() {
+   if (completing || finished) return; completing = true;
+   storage.set('gunrun-guided-intro-v1','complete'); storage.set('gunrun-onboarding-v1',JSON.stringify({phase:'complete',at:new Date().toISOString()}));
+   clearInput(); coach.reset(); document.body.dataset.learnStage = 'complete';
+   setText($('learnDoneTitle'),text('入門コース クリア！','Tutorial complete!'));
+   setText($('learnDoneBody'),text('全'+lessons.length+'ステップを通過しました。覚えた操作を、このあと本番（イージー）で使ってみましょう。','You passed all '+lessons.length+' steps. Next, try these moves in a real run on Easy.'));
+   const list=$('learnDoneChapters');list.replaceChildren();for(const name of chapters){const li=document.createElement('li');li.textContent='✓ '+name[en()?1:0];list.append(li);}
+   setText($('learnDoneGo'),text('本番へ進む →','Start the real run →'));
+   $('learnDone').hidden = false; $('learnDoneGo').focus?.();
+ }
  const originalTick = practice.tick;
  practice.tick = function(dt) {
+   if (completing) { render(false); return; }
    originalTick(dt); if (!started || g.mode !== 'play'){render(false);return;}
    sky.U.sendLog=false;g.RL.on=false;g.RL.sealed=true;
    if (trial) {if(near(course.trialGoal,1.4))trialReached=true;render(false);return;}
-   const current=lesson();if(!current||finished)return;
+   const current=lesson();if(!current||finished||completing)return;
    if(current.id==='shoot'&&g.G.reloadT>0)progress.reloadSeen=true;
-   if(current.id==='kick'&&!progress.kickReady&&c.onGround&&c.state==='normal'){progress.kickReady=true;const e=practice.targets[1];e.pos.set(c.pos.x+1.2,0,c.pos.z);e.vel.set(0,0,0);e.m.root.position.copy(e.pos);practice.targets[0].dead=practice.targets[0].remove=true;practice.targets[0].m.root.visible=false;}
    if(current.id==='decoy'){if(window.skyDecoy.lured.size>0)progress.lured=true;if(!window.skyDecoy.active&&window.skyDecoy.cooldown>0)window.skyDecoy.reset();}
    if(current.id==='flash'&&window.skyFlashbang.charges===0&&!window.skyFlashbang.grenades.length&&window.skyFlashbang.stats.affected<=progress.flash)window.skyFlashbang.reset();
    advanceLessons();
    render(false);
  };
  function advanceLessons() {
-   if (trial || !started || finished || g.mode !== 'play') return;
+   if (trial || !started || finished || completing || g.mode !== 'play') return;
    observe();
    for (let n=0;n<lessons.length;n++) {
      const current=lesson();
      while(current.path?.[progress.path]&&(near(current.path[progress.path],1)||reached(current.path[progress.path])))progress.path++;
-     if(current.done()) {if(index===lessons.length-1){finish();return;}enter(index+1);continue;}
+     if(current.done()) {if(index===lessons.length-1){complete();return;}enter(index+1);continue;}
      if(current.retryIf?.())practice.retry();
      return;
    }
@@ -100,6 +111,7 @@ import { createLessons } from './guided-lessons.js?v=20261110-route-progress-v1'
  function render(schedule=true) {
    if(!started&&g.mode==='play'){started=true;trialJumps=g.stats.jumps||0;targets(false);document.body.dataset.learnStage='controls';choice.start();}
    ui.hidden=!started||g.mode!=='play';
+   if(completing){if(ui.hidden)ui.hidden=false;if(schedule)requestAnimationFrame(()=>render());return;}
    if(ui.hidden){if(schedule)requestAnimationFrame(()=>render());return;}
    const touch=window.skyFollowCamera.touchDevice, english=en(), key=String(english)+touch;
    choice.sync();if(trial)coach.sync();$('learnTrialBar').hidden=!trial||choice.phase!=='try';
@@ -135,14 +147,14 @@ import { createLessons } from './guided-lessons.js?v=20261110-route-progress-v1'
  }
  function startCourse(){if(!trial)return;clearInput();window.skyFollowCamera.setMode(window.skyFollowCamera.mode);trial=false;course.gates.forEach(b=>{b.off=true;b.mesh.visible=false;});enter(0);render(false);$('c').focus();}
  choice=installGuidedChoice({game:g,sky,english:en,clearInput,adopt:startCourse,reset:()=>{practice.place(course.start);trialReached=false;},exit:()=>location.assign(new URL(params.get('return')==='canyon'?'canyon.html':'index.html',location.href).href)});
- coach=installGuidedCoach({game:g,sky,english:en,active:()=>!trial&&!finished,lesson:()=>lesson()?.id,cue:()=>coaching});
- go.onclick=()=>choice.confirm();$('learnBack').onclick=()=>{clearInput();practice.place(course.start);trialReached=false;choice.show();};
+ coach=installGuidedCoach({game:g,sky,english:en,active:()=>!trial&&!finished&&!completing,lesson:()=>lesson()?.id,cue:()=>coaching});
+ go.onclick=()=>choice.confirm();$('learnDoneGo').onclick=finish;$('learnBack').onclick=()=>{clearInput();practice.place(course.start);trialReached=false;choice.show();};
  addEventListener('keydown',e=>{if(trial&&['KeyQ','KeyB','KeyV','KeyZ','KeyC','Digit1','Digit2'].includes(e.code)){e.preventDefault();e.stopImmediatePropagation();}},true);
  $('bMenu').addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();location.assign(new URL(params.get('return')==='canyon'?'canyon.html':'index.html',location.href).href);},true);
  const skip=document.createElement('button');skip.id='learnSkip';skip.textContent=text('練習を終えて本番へ','Leave practice and play');skip.onclick=finish;$('bResume').after(skip);
- for(const node of [$('learnTrialBar')])for(const type of ['pointerdown','pointerup','touchstart','touchend'])node.addEventListener(type,e=>e.stopPropagation());
- window.skyGuidedIntro={beforeFrame(){if(!started&&g.mode==='play')render(false);if(trial)return choice.blocked;advanceLessons();render(false);return coach.blocked;},get blocked(){return trial?choice.blocked:coach.blocked},get choice(){return choice.phase},get pausedTarget(){return coach.target},get pauseSequence(){return coach.sequence},get total(){return lessons.length},get finished(){return finished},get trial(){return trial},get stage(){return trial?'controls':lesson()?.id},get defense(){return defense()},get cue(){return coaching},get completed(){return lessons.slice(0,Math.max(0,index)).map(s=>s.id)},
-   retrying(){coach.reset();reset(lesson());retryUntil=g.GAME.t+2;progress.path=0;progress.lured=false;progress.reloadSeen=false;progress.kickReady=false;if(lesson()?.id==='flash')window.skyFlashbang.reset();if(lesson()?.id==='decoy')window.skyDecoy.reset();},
-   restored(){progress.stats={...g.stats};targets(combat());if(lesson()?.id==='shoot'){g.G.ammo=1;g.G.reserve=24;} },finish};
+ for(const node of [$('learnTrialBar'),$('learnDone')])for(const type of ['pointerdown','pointerup','touchstart','touchend','touchmove'])node.addEventListener(type,e=>e.stopPropagation());
+ window.skyGuidedIntro={beforeFrame(){if(completing)return true;if(!started&&g.mode==='play')render(false);if(trial)return choice.blocked;advanceLessons();render(false);return coach.blocked;},get blocked(){return completing||(trial?choice.blocked:coach.blocked)},get completing(){return completing},get choice(){return choice.phase},get pausedTarget(){return coach.target},get pauseSequence(){return coach.sequence},get total(){return lessons.length},get finished(){return finished},get trial(){return trial},get stage(){return trial?'controls':lesson()?.id},get defense(){return defense()},get cue(){return coaching},get completed(){return lessons.slice(0,Math.max(0,index)).map(s=>s.id)},
+   retrying(){coach.reset();reset(lesson());retryUntil=g.GAME.t+2;progress.path=0;progress.lured=false;progress.reloadSeen=false;if(lesson()?.id==='flash')window.skyFlashbang.reset();if(lesson()?.id==='decoy')window.skyDecoy.reset();},
+   restored(){progress.stats={...g.stats};targets(combat());if(lesson()?.id==='shoot'){g.G.ammo=1;g.G.reserve=24;} },finish,complete};
  render();
 })();

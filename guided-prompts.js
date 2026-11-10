@@ -1,4 +1,5 @@
 // Extra coaching reads the same native state that drives the player's visible cues.
+const TAKEOFF_X = 119.8; // east edge of the launch pad is x=120.19
 export function describeLesson(lesson, {game, sky, practice, progress, goal, near, english}) {
   const c=game.P, id=lesson.id, ground=c.onGround&&c.state==='normal';
   const text=(ja,en)=>english?en:ja;
@@ -43,13 +44,15 @@ export function describeLesson(lesson, {game, sky, practice, progress, goal, nea
     const active=window.skySwing.active, ready=document.getElementById('tJump').dataset.swingReady==='true';
     if(active)tell(ready?['緑。今、ジャンプ！','Green. Jump now!']:['緑になるまで待つ','Wait for the green cue'],['本編と同じ「今！」と緑の合図','Use the native NOW and green cues'],ready?'tJump':'',ready?'swing-jump':'wait',ready?['今ジャンプ','Jump now']:'');
     else if(changed('barJumps'))tell(prompt.at[0]>window.skySwing.course.bars.at(-1).at[0]?['前入力で、向こうの足場へ','Keep moving toward the landing']:['前入力で、次の鉄棒へ','Keep moving toward the next bar'],['空中で進み、足場へ着地する','Keep travelling forward and land on the roof']);
+    // The first prompt freezes the game until Jump is pressed, so it must not appear at the
+    // spawn point: after a retry the player would be forced into a standing jump and never reach the bar.
+    else if(ground&&c.pos.x<TAKEOFF_X-.2){prompt.at=[TAKEOFF_X,4,0];tell(['踏切の線まで進む','Move to the take-off line'],['足場の端まで走って、そこでジャンプ','Run to the platform edge, then jump']);}
     else tell(['前へジャンプして、鉄棒へ','Jump forward toward the bar'],['前入力を続けると自動でつかみます','Keep moving forward to catch it'],'tJump','jump',['ジャンプ','Jump']);
   }
   if(id==='pausefire')tell(['自動射撃を、一度止める','Pause automatic fire'],['踏み台を練習するので「自動射撃を停止」','Use Stop auto fire before practising the springboard'],'tAutoFire','pause-fire',['停止する','Pause']);
-  if(id==='stomp'||id==='kick') {
+  if(id==='stomp') {
     if(sky.U.autoFire)tell(['まず、自動射撃を止める','Pause automatic fire first'],['「自動射撃を停止」を押す','Press Stop auto fire'],'tAutoFire','pause-fire',['停止する','Pause']);
-    else if(id==='stomp'&&ground){const d=practice.targets[0].pos.x-c.pos.x;if(d<1.85&&d>.3)tell(['近づいたら、ジャンプ','Jump when close'],['前入力を続けたまま押す','Keep moving forward as you press it'],'tJump','jump',['今ジャンプ','Jump now']);else tell(['追手の手前まで、走る','Run close to the pursuer'],['近づいたらジャンプで踏み台にする','Jump from close range to spring over it']);}
-    else if(id==='kick') {if(!progress.kickReady)tell(['いったん着地する','Land before the next move'],['次は、その場で二度ジャンプします','Next, jump twice while standing still']);else if(ground&&Math.hypot(c.vel.x,c.vel.z)>.4)tell(['移動を離して、止まる','Release movement to stop'],['止まったら、その場でジャンプ','Jump once you have stopped'],'','wait');else if(ground)tell(['その場で、ジャンプ','Jump without moving'],['移動を離し、空中でもう一度押す','Release movement, then press Jump again in midair'],'tJump','jump',['ジャンプ','Jump']);else if(Math.hypot(practice.targets[1].pos.x-c.pos.x,practice.targets[1].pos.z-c.pos.z)<sky.U.kickReach&&c.pos.y<practice.targets[1].pos.y+1.65)tell(['近い。もう一度ジャンプ','Close. Press Jump again'],['飛び蹴りで距離を取れます','The kick pushes you away'],'tJump','double-jump',['もう一度','Jump again']);}
+    else if(ground){const d=practice.targets[0].pos.x-c.pos.x;if(d<1.85&&d>.3)tell(['近づいたら、ジャンプ','Jump when close'],['前入力を続けたまま押す','Keep moving forward as you press it'],'tJump','jump',['今ジャンプ','Jump now']);else tell(['追手の手前まで、走る','Run close to the pursuer'],['近づいたらジャンプで踏み台にする','Jump from close range to spring over it']);}
   }
   if(id==='flash'||id==='decoy'||id==='jumpgun'||id==='rescue') {prompt.action=lesson.action;prompt.cue=id;prompt.press=text('使う','Use');}
   if(id==='dash') {if(!changed('dashPickups'))tell(['青いDASHを取る','Collect the blue DASH'],['触れると、しばらく速く走れます','Touch it for a temporary speed boost']);else if(ground&&c.pos.x>150)tell(['加速したまま、ジャンプ','Jump with the speed boost'],['向こうの低い屋上へ','Head to the lower roof ahead'],'tJump','jump',['ジャンプ','Jump']);}
@@ -58,7 +61,7 @@ export function describeLesson(lesson, {game, sky, practice, progress, goal, nea
     else if(!sky.U.autoFire)tell(['自動射撃を、再開する','Resume automatic fire'],['残り1発から、自動装填も体験します','Start with one round to experience automatic reload'],'tAutoFire','resume-fire',['再開する','Resume']);
     else tell(['銃に任せて、その場で待つ','Let the gun fire while you wait'],['自分は移動・逃げ道選び。照準・射撃は自動','You choose movement and escape routes. Aim and fire are automatic']);
   }
-  if(['hook','zip','pausefire','kick','flash','shoot','rescue'].includes(id))prompt.motion='stop';
+  if(['hook','zip','pausefire','flash','shoot','rescue'].includes(id))prompt.motion='stop';
   if(['jump','mantle','wallrun','downhill','ladder','swing','dash'].includes(id)&&prompt.cue!=='move')prompt.motion='forward';
   if(id==='jump'&&!ground)prompt.motion='forward';
   if(id==='wallrun'&&(c.state==='wallrun'||changed('wallruns')))prompt.motion='forward';
