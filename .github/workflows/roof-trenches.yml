@@ -1,7 +1,7 @@
 name: Roof trenches (jump across, climb out, rails)
 on:
   pull_request:
-    paths: ['index.html', 'tower-tunnel.js', 'roof-trenches.js', 'town-heights.js', 'bench/roof-trenches*', '.github/workflows/roof-trenches.yml']
+    paths: ['index.html', 'tower-tunnel.js', 'roof-trenches.js', 'town-heights.js', 'indoor-access.js', 'bench/roof-trenches*', '.github/workflows/roof-trenches.yml']
   workflow_dispatch:
 permissions:
   contents: read

@@ -27,7 +27,7 @@
     if (!tunnel) return null;
     const inside = (b, t, pad = 0) => b.maxX > t.minX + pad && b.minX < t.maxX - pad && b.maxZ > t.minZ + pad && b.minZ < t.maxZ - pad;
     const solidRoof = b => !b.hidden && !b.tunnel && (b.type === 'mono' || (b.type === 'slab' && b.minY >= 7.55 && b.maxY <= TOP + .05));
-    let cut = 0;
+    let cut = 0, removed = 0;
     for (const t of TRENCHES)
       cut += tunnel.cut(jn, { minX: t.minX, maxX: t.maxX, minY: FLOOR - .2, maxY: TOP + .5, minZ: t.minZ, maxZ: t.maxZ }, solidRoof);
     // 溝の底。塊（mono）の天面は経路の対象外なので、屋根と同じ種類の床を張る。重なる所は1枚にまとめる。
@@ -39,13 +39,15 @@
       const f = ne(x0, FLOOR - .2, z0, x1, FLOOR, z1, 'slab');
       f.tint = TINT.floor; f.roofTrench = id;
     }
-    // 屋上の小物: 溝に完全に入るものは底へ降ろす。縁にまたがるものは縁の外へ寄せる。
-    for (const b of jn) {
+    // 屋上の小物: 溝に完全に入るものは取り除く。縁にまたがるものは縁の外へ寄せる。
+    for (let i = jn.length - 1; i >= 0; i--) {
+      const b = jn[i];
       if (b.type !== 'prop' || b.minY < TOP - .05 || b.minY > TOP + 2) continue;
       for (const t of TRENCHES) {
         if (!inside(b, t)) continue;
         const within = b.minX >= t.minX && b.maxX <= t.maxX && b.minZ >= t.minZ && b.maxZ <= t.maxZ;
-        if (within) { b.minY -= TOP - FLOOR; b.maxY -= TOP - FLOOR; }
+        // 溝の中に小物を残すと、落ちたゾンビが小物の角に引っかかって動けなくなる（zombie-routing の実測）。底は空にする。
+        if (within) { jn.splice(i, 1); removed++; }
         else if (b.maxZ > t.maxZ && b.minZ < t.maxZ) { const d = t.maxZ + .1 - b.minZ; b.minZ += d; b.maxZ += d; }
         else if (b.minZ < t.minZ && b.maxZ > t.minZ) { const d = b.maxZ - (t.minZ - .1); b.minZ -= d; b.maxZ -= d; }
         else if (b.maxX > t.maxX && b.minX < t.maxX) { const d = t.maxX + .1 - b.minX; b.minX += d; b.maxX += d; }
@@ -57,9 +59,11 @@
       const [x0, z0, x1, z1] = r.box, rail = ne(x0, TOP, z0, x1, TOP + 1, z1, 'beam');
       rail.tint = TINT.rail; rail.roofRail = r.id;
     }
-    return { cut, floors: floors.length, rails: RAILS.length };
+    return { cut, floors: floors.length, rails: RAILS.length, removed };
   }
 
+  // 溝は屋外。建物の中（プレイヤーが入るまでゾンビが入れない範囲）として扱わせない（indoor-access.js）。
+  window.SKY_OPEN_PITS = TRENCHES.map(t => ({ minX: t.minX, maxX: t.maxX, minZ: t.minZ, maxZ: t.maxZ, minY: FLOOR - .2 }));
   window.SKY_ROOF_TRENCHES = { FLOOR, TOP, TRENCHES, RAILS };
   window.buildRoofTrenches = build;
 })();

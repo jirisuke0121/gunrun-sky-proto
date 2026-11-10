@@ -4,9 +4,19 @@ window.createSkyIndoorAccess = function (volumes) {
   const rooms = volumes.map((bounds, id) => ({ ...bounds, id, entered: false }));
   const edgeRooms = new WeakMap();
   let revision = 0;
-  const inside = (p, b, inset = 0) => p.x > b.minX + inset && p.x < b.maxX - inset &&
+  // Open-air pits cut into a roof (the central roof trenches) lie inside a building's
+  // box but are not indoors: enemies may drop in and climb out, and standing in one
+  // does not count as entering the building. Each pit is { minX, maxX, minZ, maxZ, minY }.
+  const pits = () => window.SKY_OPEN_PITS || [];
+  const inPit = p => pits().some(t => p.x > t.minX - .01 && p.x < t.maxX + .01 &&
+    p.z > t.minZ - .01 && p.z < t.maxZ + .01 && p.y >= t.minY - .01);
+  const boxed = (p, b, inset = 0) => p.x > b.minX + inset && p.x < b.maxX - inset &&
     p.z > b.minZ + inset && p.z < b.maxZ - inset && p.y >= b.minY && p.y < b.maxY - .05;
+  const inside = (p, b, inset = 0) => boxed(p, b, inset) && !inPit(p);
   function intersects(from, to, b, radius = 0) {
+    // A move that starts or ends in a pit, with both ends in the open air, stays outdoors
+    // even though the straight line between a pit floor and the roof passes through the box.
+    if ((inPit(from) || inPit(to)) && !inside(from, b) && !inside(to, b)) return false;
     let first = 0, last = 1;
     for (const axis of ['x', 'y', 'z']) {
       const padding = axis === 'y' ? 0 : radius;

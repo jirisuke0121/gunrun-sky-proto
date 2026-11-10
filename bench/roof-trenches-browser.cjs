@@ -73,6 +73,21 @@ const root = path.resolve(__dirname, '..'), PORT = 8796;
       res.props = g.solids.filter(b => b.type === 'prop' && b.minX > -14 && b.maxX < 14 && b.minZ > -14 && b.maxZ < 14 && b.minY >= 6 && b.minY < 10)
         .map(b => ({ at: [(b.minX + b.maxX) / 2, b.minY, (b.minZ + b.maxZ) / 2].map(v => +v.toFixed(2)),
           supported: g.solids.some(o => o !== b && o.solid !== false && Math.abs(o.maxY - b.minY) < .03 && o.minX <= b.minX + .05 && o.maxX >= b.maxX - .05 && o.minZ <= b.minZ + .05 && o.maxZ >= b.maxZ - .05) }));
+      // 追手: 屋上から溝に落ちて止まらない／溝の底から登って襲える／溝に立っても「建物に入った」扱いにならない。
+      const chase = (pp, ep) => {
+        g.startGame(); for (const e of g.zombies) s.ue.remove(e.m.root); g.zombies.length = 0;
+        g.GAME.spawnT = g.GAME.surgeT = 1e9; g.SCR.off = g.PACE.off = g.MARK.off = true; g.STALK.spawned = true;
+        Object.assign(g.S, { sendLog: false, autoFire: false, aimAuto: false, stalkerOn: false });
+        c.pos.set(pp[0], pp[1] + .003, pp[2]); c.vel.set(0, 0, 0);
+        Object.assign(c, { onGround: true, state: 'normal', h: 1.75, invuln: 0, ledge: null, ladder: null, hook: null, zip: null }); c.lastGround.copy(c.pos); c.safe.copy(c.pos);
+        c.node = g.nodeAt(c.pos.x, c.pos.y + .1, c.pos.z); g.updateField();
+        const e = new g.Zombie(ep[0], ep[1] + .003, ep[2]); Object.assign(e, { spawnT: 0, onGround: true, flank: false, dropper: false, stalker: false, pz: false, speedMul: 1 }); g.zombies.push(e);
+        const life = c.life; let hit = null;
+        for (let i = 0; i < 20 * 60 && !g.GAME.over; i++) { g.advance(1 / 60); if (c.life < life) { hit = +g.GAME.t.toFixed(1); break; } }
+        return { player: pp, zombie: ep, hit, end: e.pos.toArray().map(v => +v.toFixed(2)), entered: g.INDOOR_ACCESS.snapshot().filter(r => r.entered).length };
+      };
+      res.chase = [chase([0, 8, 11.6], [0, 8, 8]), chase([0, 8, 13], [0, T.FLOOR, 10]), chase([6, 8, 7], [6, T.FLOOR, 2.5])];
+      const pit = chase([0, T.FLOOR, 6], [6, 8, 6]); res.pit = { ...pit, ok: pit.hit !== null && pit.entered === 0 };
       return res;
     });
     const check = (name, ok, detail) => { if (!ok) failed++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${name} ${JSON.stringify(detail)}`); };
@@ -81,6 +96,8 @@ const root = path.resolve(__dirname, '..'), PORT = 8796;
     check('底からよじ登って出られる', out.climb.ok, out.climb);
     check('柵を乗り越えられる', out.rail.ok, out.rail);
     check('経路グラフ', out.nav.ok, out.nav);
+    for (const r of out.chase) check('追手が溝を越えて襲える（20秒以内）', r.hit !== null, r);
+    check('溝の中は建物の中として扱わない', out.pit.ok, out.pit);
     const floating = out.props.filter(p => !p.supported && p.at[1] < 9); // 箱の上に載った小物は対象外
     check('小物が浮いていない', floating.length === 0, floating);
     check('ページのエラーなし', errors.length === 0, errors.slice(0, 3));
