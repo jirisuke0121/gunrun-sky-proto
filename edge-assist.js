@@ -64,6 +64,8 @@
   function steer(dt, inputX, inputZ, magnitude, speedLimit, incomingSpeed) {
     last = null;
     if (!c.onGround || !eligible() || !(dt > 0)) return;
+    // A gap jump is lined up (flow-feel.js, trial): keep the run-up speed to the edge.
+    if (window.skyFlow?.armed) return;
     const speed = Math.hypot(c.vel.x, c.vel.z);
     if (speed < .1) return;
     const look = Math.max(.65, Math.min(3.2, speed * .30 + c.r));

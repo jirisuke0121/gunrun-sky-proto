@@ -4,7 +4,7 @@ on:
     paths: ['hook-landing.js', 'edge-assist.js', 'free-hook.js', 'index.html', 'canyon.html', 'bench/hook-landing*', '.github/workflows/hook-landing.yml']
   push:
     branches: [main]
-    paths: ['hook-landing.js', 'edge-assist.js', 'free-hook.js', 'bench/hook-landing*', '.github/workflows/hook-landing.yml']
+    paths: ['hook-landing.js', 'edge-assist.js', 'follow-camera.js', 'free-hook.js', 'bench/hook-landing*', '.github/workflows/hook-landing.yml']
 permissions:
   contents: read
 jobs:

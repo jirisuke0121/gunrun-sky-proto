@@ -1,0 +1,434 @@
+[
+  {
+    "map": "index.html",
+    "touch": false,
+    "start": {
+      "mode": "play",
+      "card": false,
+      "hint": false,
+      "toast": false
+    },
+    "indoor": {
+      "rooms": [
+        {
+          "minX": -59.6,
+          "maxX": -52.4,
+          "minY": -0.5,
+          "maxY": 3,
+          "minZ": -0.6,
+          "maxZ": 5.6,
+          "entryInset": 0,
+          "id": 0,
+          "entered": false
+        },
+        {
+          "minX": -48.6,
+          "maxX": -45.4,
+          "minY": -0.5,
+          "maxY": 5.8,
+          "minZ": 3.4,
+          "maxZ": 5.1,
+          "entryInset": 0,
+          "id": 1,
+          "entered": false
+        },
+        {
+          "minX": -13.95,
+          "maxX": 13.95,
+          "minY": -0.5,
+          "maxY": 7.7,
+          "minZ": -13.95,
+          "maxZ": 13.95,
+          "entryInset": 0.95,
+          "id": 2,
+          "entered": false
+        },
+        {
+          "minX": 34.4,
+          "maxX": 38.1,
+          "minY": -0.5,
+          "maxY": 2.2,
+          "minZ": 7.4,
+          "maxZ": 11.1,
+          "entryInset": 0,
+          "id": 3,
+          "entered": false
+        },
+        {
+          "minX": -64.5,
+          "maxX": -50,
+          "minY": -0.5,
+          "maxY": 2.9,
+          "minZ": 9,
+          "maxZ": 11,
+          "id": 4,
+          "entered": false
+        }
+      ],
+      "untouched": [
+        {
+          "hp": 5,
+          "phase": "closed"
+        },
+        {
+          "hp": 5,
+          "phase": "closed"
+        },
+        {
+          "hp": 5,
+          "phase": "closed"
+        },
+        {
+          "hp": 5,
+          "phase": "closed"
+        },
+        {
+          "hp": 5,
+          "phase": "closed"
+        }
+      ],
+      "roam": {
+        "intrusions": 0,
+        "alive": 4,
+        "entered": 0
+      },
+      "doorstepProtected": true,
+      "roofProtected": true,
+      "entryBlocked": true,
+      "crossed": {
+        "position": [
+          -11.3201,
+          0.0001,
+          -5.07973286896329e-16
+        ],
+        "rooms": [
+          {
+            "minX": -59.6,
+            "maxX": -52.4,
+            "minY": -0.5,
+            "maxY": 3,
+            "minZ": -0.6,
+            "maxZ": 5.6,
+            "entryInset": 0,
+            "id": 0,
+            "entered": false
+          },
+          {
+            "minX": -48.6,
+            "maxX": -45.4,
+            "minY": -0.5,
+            "maxY": 5.8,
+            "minZ": 3.4,
+            "maxZ": 5.1,
+            "entryInset": 0,
+            "id": 1,
+            "entered": false
+          },
+          {
+            "minX": -13.95,
+            "maxX": 13.95,
+            "minY": -0.5,
+            "maxY": 7.7,
+            "minZ": -13.95,
+            "maxZ": 13.95,
+            "entryInset": 0.95,
+            "id": 2,
+            "entered": true
+          },
+          {
+            "minX": 34.4,
+            "maxX": 38.1,
+            "minY": -0.5,
+            "maxY": 2.2,
+            "minZ": 7.4,
+            "maxZ": 11.1,
+            "entryInset": 0,
+            "id": 3,
+            "entered": false
+          },
+          {
+            "minX": -64.5,
+            "maxX": -50,
+            "minY": -0.5,
+            "maxY": 2.9,
+            "minZ": 9,
+            "maxZ": 11,
+            "id": 4,
+            "entered": false
+          }
+        ],
+        "phase": "closed"
+      },
+      "after": {
+        "broken": [
+          "broken",
+          "broken",
+          "broken",
+          "broken",
+          "broken"
+        ],
+        "independent": true,
+        "warehouseUnlocked": true,
+        "pursuitEntered": true
+      },
+      "retry": {
+        "mode": "play",
+        "rooms": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "doors": [
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "hint": false
+      }
+    },
+    "intro": {
+      "mode": "play",
+      "id": "intro",
+      "hint": false,
+      "toast": false
+    },
+    "errors": []
+  },
+  {
+    "map": "canyon.html",
+    "touch": false,
+    "start": {
+      "mode": "play",
+      "card": false,
+      "hint": false,
+      "toast": false
+    },
+    "intro": {
+      "mode": "play",
+      "id": "intro",
+      "hint": false,
+      "toast": false
+    },
+    "errors": []
+  },
+  {
+    "map": "index.html",
+    "touch": true,
+    "start": {
+      "mode": "play",
+      "card": false,
+      "hint": false,
+      "toast": false
+    },
+    "indoor": {
+      "rooms": [
+        {
+          "minX": -59.6,
+          "maxX": -52.4,
+          "minY": -0.5,
+          "maxY": 3,
+          "minZ": -0.6,
+          "maxZ": 5.6,
+          "entryInset": 0,
+          "id": 0,
+          "entered": false
+        },
+        {
+          "minX": -48.6,
+          "maxX": -45.4,
+          "minY": -0.5,
+          "maxY": 5.8,
+          "minZ": 3.4,
+          "maxZ": 5.1,
+          "entryInset": 0,
+          "id": 1,
+          "entered": false
+        },
+        {
+          "minX": -13.95,
+          "maxX": 13.95,
+          "minY": -0.5,
+          "maxY": 7.7,
+          "minZ": -13.95,
+          "maxZ": 13.95,
+          "entryInset": 0.95,
+          "id": 2,
+          "entered": false
+        },
+        {
+          "minX": 34.4,
+          "maxX": 38.1,
+          "minY": -0.5,
+          "maxY": 2.2,
+          "minZ": 7.4,
+          "maxZ": 11.1,
+          "entryInset": 0,
+          "id": 3,
+          "entered": false
+        },
+        {
+          "minX": -64.5,
+          "maxX": -50,
+          "minY": -0.5,
+          "maxY": 2.9,
+          "minZ": 9,
+          "maxZ": 11,
+          "id": 4,
+          "entered": false
+        }
+      ],
+      "untouched": [
+        {
+          "hp": 5,
+          "phase": "closed"
+        },
+        {
+          "hp": 5,
+          "phase": "closed"
+        },
+        {
+          "hp": 5,
+          "phase": "closed"
+        },
+        {
+          "hp": 5,
+          "phase": "closed"
+        },
+        {
+          "hp": 5,
+          "phase": "closed"
+        }
+      ],
+      "roam": {
+        "intrusions": 0,
+        "alive": 4,
+        "entered": 0
+      },
+      "doorstepProtected": true,
+      "roofProtected": true,
+      "entryBlocked": true,
+      "crossed": {
+        "position": [
+          -11.3201,
+          0.0001,
+          -5.07973286896329e-16
+        ],
+        "rooms": [
+          {
+            "minX": -59.6,
+            "maxX": -52.4,
+            "minY": -0.5,
+            "maxY": 3,
+            "minZ": -0.6,
+            "maxZ": 5.6,
+            "entryInset": 0,
+            "id": 0,
+            "entered": false
+          },
+          {
+            "minX": -48.6,
+            "maxX": -45.4,
+            "minY": -0.5,
+            "maxY": 5.8,
+            "minZ": 3.4,
+            "maxZ": 5.1,
+            "entryInset": 0,
+            "id": 1,
+            "entered": false
+          },
+          {
+            "minX": -13.95,
+            "maxX": 13.95,
+            "minY": -0.5,
+            "maxY": 7.7,
+            "minZ": -13.95,
+            "maxZ": 13.95,
+            "entryInset": 0.95,
+            "id": 2,
+            "entered": true
+          },
+          {
+            "minX": 34.4,
+            "maxX": 38.1,
+            "minY": -0.5,
+            "maxY": 2.2,
+            "minZ": 7.4,
+            "maxZ": 11.1,
+            "entryInset": 0,
+            "id": 3,
+            "entered": false
+          },
+          {
+            "minX": -64.5,
+            "maxX": -50,
+            "minY": -0.5,
+            "maxY": 2.9,
+            "minZ": 9,
+            "maxZ": 11,
+            "id": 4,
+            "entered": false
+          }
+        ],
+        "phase": "closed"
+      },
+      "after": {
+        "broken": [
+          "broken",
+          "broken",
+          "broken",
+          "broken",
+          "broken"
+        ],
+        "independent": true,
+        "warehouseUnlocked": true,
+        "pursuitEntered": true
+      },
+      "retry": {
+        "mode": "play",
+        "rooms": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "doors": [
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "hint": false
+      }
+    },
+    "intro": {
+      "mode": "play",
+      "id": "intro",
+      "hint": false,
+      "toast": false
+    },
+    "errors": []
+  },
+  {
+    "map": "canyon.html",
+    "touch": true,
+    "start": {
+      "mode": "play",
+      "card": false,
+      "hint": false,
+      "toast": false
+    },
+    "intro": {
+      "mode": "play",
+      "id": "intro",
+      "hint": false,
+      "toast": false
+    },
+    "errors": []
+  }
+]

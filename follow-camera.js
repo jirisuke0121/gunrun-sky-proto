@@ -22,7 +22,7 @@
   // a small correction still arrives.
   const SOFT = Number(new URLSearchParams(location.search).get('followSoft') ?? .28);
   const magnet = a => SOFT > 0 && Math.abs(a) < SOFT ? a * Math.pow(Math.abs(a) / SOFT, .6) : a;
-  let carry = 0, screenUsed = false, idle = 0;
+  let carry = 0, screenUsed = false, idle = 0, exitHold = false, exitYaw = 0, exitStick = 0;
   const TURN_RATE = Number(new URLSearchParams(location.search).get('followRate')) || 1.7;
   const SQUEEZE_RATE = Number(new URLSearchParams(location.search).get('followSqueeze') ?? 1.5);
   let savedMode;
@@ -48,7 +48,7 @@
     gesture = 'idle'; gestureId = null; reverseTime = 0;
     direct = false; fromAction = false; basis = desiredYaw = c.yaw; directReverse = false;
     turnAngle = 0; reverseZone = forwardZone = false;
-    carry = 0; idle = 0;
+    carry = 0; idle = 0; exitHold = false;
   }
   function legacyInput(raw) {
     if (!playing()) return raw;
@@ -124,7 +124,7 @@
     }
     if (magnitude <= .18) {
       direct = false; fromAction = false; gestureId = null; gesture = 'idle';
-      turnAngle = 0; reverseZone = forwardZone = false;
+      turnAngle = 0; reverseZone = forwardZone = false; exitHold = false;
       return { ...raw, fwdIn: 0, strIn: 0, motionScale: 0, precise: true, steer: 0 };
     }
     const stickAngle = Math.atan2(raw.strIn, raw.fwdIn);
@@ -138,11 +138,14 @@
         // Leaving a ladder/zip/hook with the thumb still held: start from the
         // exit path and ease to the thumb's screen direction (see step()).
         const exitSpeed = Math.hypot(c.vel.x, c.vel.z);
-        carry = angle((exitSpeed > .1 ? Math.atan2(-c.vel.x, -c.vel.z) : c.yaw) - aim);
+        exitYaw = exitSpeed > .1 ? Math.atan2(-c.vel.x, -c.vel.z) : c.yaw; exitStick = stickAngle; exitHold = true;
       } else if (fresh) {
-        carry = 0;
+        carry = 0; exitHold = false;
         if (!mouseHeld && touch.lookId === null) manual = manualTouch = false;
       }
+      // A thumb left where it was during the action was aimed at the old picture: keep the
+      // exit path until it is moved on purpose (15 degrees) or returned to neutral.
+      if (exitHold && Math.abs(angle(stickAngle - exitStick)) < .26) carry = angle(exitYaw - aim); else exitHold = false;
       desiredYaw = angle(aim + carry);
       directReverse = false; turnAngle = 0; reverseZone = forwardZone = false;
       fromAction = false; direct = true; gestureId = touch.id; gesture = 'drive';
@@ -201,7 +204,7 @@
     lastInput = Math.abs(controls.fwdIn);
     if (controls.screen) {
       const elapsed = Math.min(.05, Math.max(0, dt));
-      carry *= Math.exp(-5 * elapsed);
+      if (!exitHold) carry *= Math.exp(-5 * elapsed);
       // A 45 ms ease absorbs thumb tremor without delaying a deliberate flick.
       if (['normal', 'slide'].includes(c.state)) c.yaw = angle(c.yaw + angle(desiredYaw - c.yaw) * (1 - Math.exp(-22 * elapsed)));
       return;

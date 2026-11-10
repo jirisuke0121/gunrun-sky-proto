@@ -130,11 +130,14 @@ for (const state of ['ladder', 'zip', 'hook', 'swing', 'wallrun', 'ledge']) {
   assert.equal(f.api.input(raw), raw, state + ' keeps native input');
   const g = fixture(); g.hold(.9, .2); g.c.state = state; g.frame(.9);
   g.c.vel.x = 4; g.c.vel.z = -3; g.c.state = 'normal';
-  const exit = Math.atan2(-4, 3); let previous = exit, jump = 0;
-  g.c.yaw = exit;
-  for (let i = 0; i < 90; i++) { g.frame(.9); jump = Math.max(jump, Math.abs(wrap(g.c.yaw - previous))); previous = g.c.yaw; }
-  assert.ok(deg(jump) < 6, `${state} exit eases (largest step ${deg(jump).toFixed(1)}°/frame)`);
-  assert.ok(Math.abs(deg(wrap(g.shown() - .9))) < 8, state + ' exit ends on the thumb\'s screen direction');
+  const exit = Math.atan2(-4, 3); g.c.yaw = exit;
+  // The thumb has not moved since before the action: stay on the exit path, however the view turns.
+  for (let i = 0; i < 120; i++) { g.frame(.9); assert.ok(Math.abs(deg(wrap(g.c.yaw - exit))) < 1, state + ' exit path is kept while the thumb is unmoved'); }
+  // Moving it on purpose hands over to the screen direction, without a jump in heading.
+  let previous = g.c.yaw, jump = 0;
+  for (let i = 0; i < 90; i++) { g.frame(.9 - .5); jump = Math.max(jump, Math.abs(wrap(g.c.yaw - previous))); previous = g.c.yaw; }
+  assert.ok(deg(jump) < 12, `${state} hand-over eases (largest step ${deg(jump).toFixed(1)}°/frame)`);
+  assert.ok(Math.abs(deg(wrap(g.shown() - .4))) < 8, state + ' then follows the thumb\'s screen direction');
 }
 {
   const f = fixture(); f.hold(Math.PI / 2, .1); f.c.state = 'ladder';
