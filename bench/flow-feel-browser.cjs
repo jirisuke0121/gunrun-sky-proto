@@ -3,6 +3,9 @@
 //     (kind 6, up to 7.2 m), run straight at the gap holding only "forward" – never pressing jump.
 //     Compared with the trial off (edge assist stops the runner at the lip).
 //  B. FLOW chain: a slide followed by a cleared gap makes a chain of 2, shows the tag, and a hit ends it.
+//  D. What does NOT make a link: plain jumps and hops, flying across a gap without jumping,
+//     crawling, the edge-catch, a vault or mantle from a standstill. What does: a jump across 3 m or more of
+//     open air, and a vault while running. Landing ring and the trail from the 3rd link.
 //  C. With ?flowFeel=0 nothing is shown and the view is untouched.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium}=require('playwright');
@@ -50,7 +53,7 @@ try{
    // ---- B ---- on the first link the trial clears
    console.log(JSON.stringify(summary));const L=links.filter((_,i)=>rows[i].landed).sort((a,b)=>b.d-a.d)[0];assert.ok(L,'at least one gap is cleared automatically');
    const state=await p.evaluate(L=>{const g=__game,s=__skyInternals;place([L.from[0]-L.ux*3,L.from[1]+.001,L.from[2]-L.uz*3],Math.atan2(-L.ux,-L.uz));
-     tick(8);g.stats.vaults=(g.stats.vaults||0)+1;                      // stand-in for the vault that precedes the gap on a real line
+     tick(8);g.stats.slides=(g.stats.slides||0)+1;                      // stand-in for the move that precedes the gap on a real line
      const shots=[];for(let i=0;i<150;i++){tick(1);if(skyFlow.state.chain>=2&&!shots.length){shots.push({...skyFlow.state,tag:getComputedStyle(document.getElementById('flowTag')).opacity,text:document.getElementById('flowTag').textContent});break}}
      return shots[0]||{...skyFlow.state,missing:true}},L);
    assert.ok(state.chain>=2&&!state.missing,'a move followed by a cleared gap is a chain of 2: '+JSON.stringify(state));assert.match(state.text,/FLOW×2/);
@@ -59,9 +62,9 @@ try{
    await p.screenshot({path:path.join(out,'flow-chain-page.png'),timeout:12000}).catch(()=>{});
    const air=await p.evaluate(L=>{place([L.from[0]-L.ux*3,L.from[1]+.001,L.from[2]-L.uz*3],Math.atan2(-L.ux,-L.uz));let peak=0;for(let i=0;i<120;i++){tick(1);peak=Math.max(peak,skyFlow.state.airView)}tick(40);return{peak,after:skyFlow.state.airView}},L);
    assert.ok(air.peak>.5&&air.after<.05,'air view opens in flight and closes on landing: '+JSON.stringify(air));
-   const ended=await p.evaluate(()=>{const g=__game;g.stats.vaults++;g.stats.slides=(g.stats.slides||0)+1;tick(2);const before=skyFlow.state.chain;g.P.life-=1;tick(2);return{before,after:skyFlow.state.chain}});
+   const ended=await p.evaluate(()=>{const g=__game;g.stats.hooks=(g.stats.hooks||0)+1;g.stats.slides=(g.stats.slides||0)+1;tick(2);const before=skyFlow.state.chain;g.P.life-=1;tick(2);return{before,after:skyFlow.state.chain}});
    assert.ok(ended.before>=2&&ended.after===0,'a hit ends the chain');
-   const timed=await p.evaluate(()=>{const g=__game;g.stats.vaults++;g.stats.slides++;tick(2);const before=skyFlow.state.chain;tick(60*4);return{before,after:skyFlow.state.chain}});
+   const timed=await p.evaluate(()=>{const g=__game;g.stats.hooks=(g.stats.hooks||0)+1;g.stats.slides++;tick(2);const before=skyFlow.state.chain;tick(60*4);return{before,after:skyFlow.state.chain}});
    assert.ok(timed.before>=2&&timed.after===0,'the chain runs out after 3.2 s of plain running');
   }
   await ctx.close();
@@ -69,8 +72,39 @@ try{
  console.log(JSON.stringify(summary));
  assert.ok(summary.on.landed>summary.off.landed&&summary.on.jumped>0,'trial crosses gaps that plain running does not: '+JSON.stringify(summary));
  assert.equal(summary.on.fell,0,'trial never jumps into a gap it cannot clear');
+ // ---- D ----
+ {const {ctx,p,errors}=await open('index.html','');
+  const all=await p.evaluate(()=>gapLinks());const L=all.filter(l=>l.d>=3.2&&l.d<=4.2).sort((a,b)=>a.from[0]-b.from[0]||a.from[2]-b.from[2])[0];assert.ok(L,'a 3.2-4.2 m jump link exists');
+  const r=await p.evaluate(L=>{const g=__game,c=g.P,s=__skyInternals,out={};const chain=()=>skyFlow.state.chain,best=()=>skyFlow.state.best;
+   const start=()=>place([L.from[0]-L.ux*3,L.from[1]+.001,L.from[2]-L.uz*3],Math.atan2(-L.ux,-L.uz));
+   // 1. a hop on the spot: jumped, landed where it started
+   start();tick(2,false);c.jumpBuf=s.U.jumpBuffer;for(let i=0;i<50&&(i<4||!c.onGround);i++)tick(1,false);tick(3,false);out.hop=best();out.hopJumped=(g.stats.jumps||0)>0;
+   // 2. flying across the gap without a jump (thrown, not jumped): no link
+   start();c.onGround=false;c.pos.set(L.from[0]+L.ux*.2,L.from[1]+.3,L.from[2]+L.uz*.2);c.vel.set(L.ux*6,s.U.jumpVel,L.uz*6);for(let i=0;i<150;i++){tick(1,false);if(c.onGround&&i>10)break}tick(3,false);out.thrown=best();out.thrownLanded=c.pos.y>L.to[1]-.6;
+   // 3. the same flight with a jump counted: a link of kind gap
+   start();c.onGround=false;c.pos.set(L.from[0]+L.ux*.2,L.from[1]+.3,L.from[2]+L.uz*.2);c.vel.set(L.ux*6,s.U.jumpVel,L.uz*6);g.stats.jumps=(g.stats.jumps||0)+1;for(let i=0;i<150;i++){tick(1,false);if(c.onGround&&i>10)break}tick(3,false);out.jumpedLanded=c.pos.y>L.to[1]-.6;out.jumped=best();out.jumpedKind=JSON.parse(document.body.dataset.skyFlow||'{}').last;
+   // 4. crawl and edge-catch are not links
+   start();tick(2);g.stats.crawls=(g.stats.crawls||0)+1;g.stats.catches=(g.stats.catches||0)+1;tick(2);out.crawlCatch=best();
+   // 5. a mantle from a standstill is not; a vault at running pace is
+   start();tick(2,false);g.stats.mantles=(g.stats.mantles||0)+1;tick(2,false);out.standing=best();
+   start();c.vel.set(L.ux*6,0,L.uz*6);tick(2);g.stats.vaults=(g.stats.vaults||0)+1;tick(1);out.runVault=best();
+   // 6. two real moves in a row make a chain of 2; the trail starts at 3
+   start();g.stats.slides=(g.stats.slides||0)+1;tick(1);g.stats.hooks=(g.stats.hooks||0)+1;tick(1);out.two=chain();
+   g.stats.zips=(g.stats.zips||0)+1;c.vel.set(L.ux*6,0,L.uz*6);tick(8);out.three=chain();out.streaks=[...s.ue.children].filter(o=>o.visible&&o.geometry?.type==='BoxGeometry'&&o.geometry.parameters.width===.055).length;
+   return out},L);
+  summary.linkRules=r;console.log(JSON.stringify(r));
+  assert.ok(r.thrownLanded&&r.jumpedLanded,'both flights reach the far side: '+JSON.stringify(r));assert.ok(r.hopJumped,'the hop really jumped');assert.equal(r.hop,0,'a plain hop is not a link');assert.equal(r.thrown,0,'crossing a gap without a jump is not a link');
+  assert.ok(r.jumped>=1&&r.jumpedKind==='gap','a jump across the gap is a link: '+JSON.stringify(r));
+  assert.equal(r.crawlCatch,0,'crawling and the edge-catch are not links');assert.equal(r.standing,0,'a mantle from a standstill is not a link');
+  assert.ok(r.runVault>=1,'a vault at running pace is a link');assert.equal(r.two,2);assert.equal(r.three,3);assert.ok(r.streaks>=2,'the trail shows from the 3rd link: '+JSON.stringify(r));
+  // landing ring and dust
+  const fx=await p.evaluate(L=>{const g=__game,c=g.P,s=__skyInternals;place([L.from[0]-L.ux*3,L.from[1]+.001,L.from[2]-L.uz*3],Math.atan2(-L.ux,-L.uz));
+   const visible=()=>[...s.ue.children].filter(o=>o.visible&&o.geometry&&(o.geometry.type==='TorusGeometry')).length;
+   c.onGround=false;c.pos.y+=1.5;c.vel.set(L.ux*5,-5,L.uz*5);let seen=0;for(let i=0;i<90;i++){tick(1);seen=Math.max(seen,visible())}return{rings:seen}},L);
+  assert.ok(fx.rings>=1,'a landing throws a ring: '+JSON.stringify(fx));
+  assert.deepEqual(errors,[]);await ctx.close();}
  // ---- C ----
- {const {ctx,p}=await open('index.html','&flowFeel=0');const off=await p.evaluate(()=>{const g=__game;place([0,8.001,0],0);g.stats.vaults=(g.stats.vaults||0)+1;g.stats.slides=(g.stats.slides||0)+1;tick(3);return{chain:skyFlow.state.chain,tag:getComputedStyle(document.getElementById('flowTag')).opacity,level:skyFlow.state.level}});
+ {const {ctx,p}=await open('index.html','&flowFeel=0');const off=await p.evaluate(()=>{const g=__game;place([0,8.001,0],0);g.stats.hooks=(g.stats.hooks||0)+1;g.stats.slides=(g.stats.slides||0)+1;tick(3);return{chain:skyFlow.state.chain,tag:getComputedStyle(document.getElementById('flowTag')).opacity,level:skyFlow.state.level}});
   assert.equal(off.tag,'0');assert.equal(off.level,0);await ctx.close();}
  console.log(JSON.stringify(summary,null,1));fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(summary,null,1));
  console.log('PASS flow feel: gap auto-jump trial on the map\'s own jump links, chain tag/notes, air view, hit and timeout, off switch');
