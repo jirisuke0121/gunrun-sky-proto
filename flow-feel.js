@@ -23,7 +23,7 @@
   // docs/FLOW_FEEL_2026-11-10.md): crawling under something low and the edge-catch both happen just by
   // running or jumping at a wall. A jump only counts when it crosses 3 m or more of open air (below).
   const MOVES = ['vaults', 'mantles', 'slides', 'wallruns', 'walljumps', 'hooks', 'zips', 'zipjumps',
-    'stomps', 'slips', 'padJumps', 'blastLaunches', 'jumpGunLaunches', 'towerTunnel'];
+    'stomps', 'slips', 'padJumps', 'blastLaunches', 'jumpGunLaunches', 'towerTunnel', 'ropeSwings', 'windowDives'];
   const GAP_MIN = 3, GAP_MAX_DROP = 3.5;
   // A vault or mantle counts only when the player was moving (a climb from a standstill is not flow);
   // measured: standing mantles start at speed 0, running ones at 4.3 or more.
