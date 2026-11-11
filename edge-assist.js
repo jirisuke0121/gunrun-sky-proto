@@ -125,5 +125,67 @@
     return { x: dx * safe, z: dz * safe };
   }
 
-  window.skyEdgeAssist = { steer, guardMove, get last() { return last; } };
+  // ---- Landing assist: a jump does not sail over the roof it was meant for ----
+  // A running jump covers 4.3 m or more, and most roof-to-roof gaps here are 1-2 m wide with a
+  // landing 1-2 m deep. Pressed close to the lip (the natural timing) such a jump clears the gap,
+  // flies over the landing and drops to the next level down. While the jump is in the air, if its
+  // arc passes over a roof near take-off height and would come down clearly below it, the forward
+  // speed is cut just enough to come down on that roof. Jumps that already land at roof level,
+  // steered jumps and launches (pads, blasts, dash) are left alone. `?landAssist=0` turns it off.
+  const landingAssist = !!(game.U && game.oe) && !/[?&]landAssist=0(&|$)/.test(typeof location === 'object' && location ? String(location.search || '') : '');
+  const LEVEL_DOWN = 1.5, LEVEL_UP = .5, LOWER = 1.2, INSET = .3, HORIZON = 1.6, STEP = 1 / 45;
+  let air = null, trims = 0;
+  function arc(ux, uz, speed) {
+    const U = game.U, reach = speed * HORIZON + 1, x0 = c.pos.x, y0 = c.pos.y, z0 = c.pos.z, vy = c.vel.y;
+    const floors = game.near(Math.min(x0, x0 + ux * reach) - 1, Math.min(z0, z0 + uz * reach) - 1,
+      Math.max(x0, x0 + ux * reach) + 1, Math.max(z0, z0 + uz * reach) + 1)
+      .filter(floor => !floor.off && floor.solid !== false && floor.type !== 'mono');
+    const under = (x, z) => floor => x > floor.minX && x < floor.maxX && z > floor.minZ && z < floor.maxZ;
+    const low = air.y - LEVEL_DOWN, high = air.y + LEVEL_UP;
+    let before = y0, gap = air.gap, roof = null, landing = null;
+    for (let t = 0; t <= HORIZON; t += STEP) {
+      const x = x0 + ux * speed * t, z = z0 + uz * speed * t, y = y0 + vy * t - .5 * U.gravity * t * t, here = floors.filter(under(x, z));
+      const hit = t > 0 && here.filter(floor => floor.maxY <= before + .05 && floor.maxY >= y - .05).sort((a, b) => b.maxY - a.maxY)[0];
+      if (hit) { landing = hit; break; }
+      if (t > 0 && !game.oe(x, y + .05, z, c.r, c.h - .1)) return null;      // a wall or an overhang: not a plain jump
+      const level = here.filter(floor => floor.maxY >= low && floor.maxY <= high && floor.maxY <= y + .05).sort((a, b) => b.maxY - a.maxY)[0];
+      if (t === 0) { if (!level) air.gap = gap = true; }                       // the take-off roof is behind us from here on
+      if (!roof) { if (!level) gap = true; else if (gap) roof = { top: level.maxY, enter: speed * t, leave: speed * t }; }
+      else if (!roof.closed) { if (level && Math.abs(level.maxY - roof.top) < .45) roof.leave = speed * t; else roof.closed = true; }
+      before = y;
+    }
+    if (!roof || (landing && landing.maxY > roof.top - LOWER)) return null;   // nothing passed over, or it comes down at roof level anyway
+    const depth = roof.leave - roof.enter, target = depth > INSET * 2 ? roof.leave - INSET : (roof.enter + roof.leave) / 2;
+    return { top: roof.top, x: x0 + ux * target, z: z0 + uz * target };
+  }
+  function airborne(inputX, inputZ, magnitude) {
+    if (!landingAssist) return;
+    if (c.onGround || c.state !== 'normal' || !c.edgeJump) { air = null; return; }
+    if (!air) air = { y: c.lastGround.y, gap: false, plan: null, trimmed: false };
+    const speed = Math.hypot(c.vel.x, c.vel.z), U = game.U;
+    if (speed < .3) return;
+    const ux = c.vel.x / speed, uz = c.vel.z / speed;
+    if (magnitude > 0 && inputX * ux + inputZ * uz < .5) { air.plan = null; return; }   // steering away: the player is aiming elsewhere
+    if (!air.plan) {
+      if (speed < 1.5 || speed > U.sprintSpeed + 1.6 || c.vel.y > U.jumpVel + .2) return; // launches (pads, blasts, dash) are left alone
+      air.plan = arc(ux, uz, speed);
+      if (!air.plan) return;
+    }
+    // Hold the speed that brings the feet down on the chosen spot of that roof.
+    const plan = air.plan, ahead = (plan.x - c.pos.x) * ux + (plan.z - c.pos.z) * uz, root = c.vel.y * c.vel.y + 2 * U.gravity * (c.pos.y - plan.top);
+    if (ahead <= .02 || root < 0) { air.plan = null; return; }
+    const time = (c.vel.y + Math.sqrt(root)) / U.gravity, wanted = time > .02 ? ahead / time : 0;
+    if (!(wanted < speed - .02)) return;
+    const next = Math.max(.4, wanted);
+    c.vel.x = ux * next; c.vel.z = uz * next;
+    if (!air.trimmed) { air.trimmed = true; trims++; }
+    last = { kind: 'landing', before: speed, after: next, top: plan.top };
+  }
+  const groundSteer = steer;
+  function steerAll(dt, inputX, inputZ, magnitude, speedLimit, incomingSpeed) {
+    groundSteer(dt, inputX, inputZ, magnitude, speedLimit, incomingSpeed);
+    if (dt > 0) airborne(inputX, inputZ, magnitude);
+  }
+
+  window.skyEdgeAssist = { steer: steerAll, guardMove, get last() { return last; }, get landingTrims() { return trims; }, landingAssist };
 })();

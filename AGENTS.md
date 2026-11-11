@@ -59,6 +59,7 @@ Claude Code・Codex など、どのAIでもこのファイルを最初に読む�
 - 挙動を変えたら関連テストを回し、結果を報告する。確認できなかったことは、確認済みと分けて書く。
 - 数値を変えるときは、プレイ記録・計測など根拠を示す。
 - 技をつなぐ演出は `flow-feel.js`（見た目と音だけ。速さ・スコアは変えない。連続に数えるのは意図した技だけ。数え方は `docs/FLOW_FEEL_2026-11-10.md`）。ギャップ自動ジャンプは試作で既定は無効（`?autoJump=1`、`docs/FLOW_FEEL_2026-11-10.md`）。
+- ジャンプの失敗の大半は「届かない」ではなく「跳び越え」。着地の補助（`edge-assist.js`、`?landAssist=0` で無効）とはしごの上の扱い、追跡の猶予の数字は `docs/FALLS_AND_CHASE_2026-11-11.md`。足場や仕掛けを足したら `bench/landing-assist-browser.cjs` と `tools/chase-respite.cjs` で測り直す。
 - スマホの既定操作は「画面の向きへ倒す」（`docs/SCREEN_STICK_2026-11-10.md`）。操作方式を変えるときは、決め打ちの入力列だけで合否を決めず、親指の模型（`bench/control-model.cjs`・`bench/screen-stick-browser.cjs`）で前後を比べる。
 
 ## 7. テスト

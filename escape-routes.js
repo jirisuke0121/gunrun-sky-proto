@@ -54,9 +54,10 @@ function requestClimb(){
 addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat)requestClimb();});
 document.getElementById('tJump')?.addEventListener('pointerdown',requestClimb);
 function wantsLadder(L){return climbRequest?.L===L&&game.time<=climbRequest.until;}
-function reset(){transition=null;climbRequest=null;c.ladderEntry=null;c.ladderDescending=false;}
+function reset(){topHold=0;transition=null;climbRequest=null;c.ladderEntry=null;c.ladderDescending=false;}
 
 function clearPath(from,to){for(let i=1;i<=8;i++){const f=i/8;if(!sky.oe(from.x+(to.x-from.x)*f,from.y+(to.y-from.y)*f+.015,from.z+(to.z-from.z)*f,c.r,1.75))return false;}return true;}
+const TOP_HOLD=.2,TOP_HOLD_SPEED=2.5;let topHold=0;
 function topCandidate(){
  if(c.state!=='normal'||!c.onGround||c.h<1.5)return null;
  for(const L of game.LADDERS){
@@ -110,7 +111,12 @@ function step(dt,input){
   if(a.age>=.32){transition=null;c.ladderEntry=null;}
   update();return true;
  }
- if(input.fwdIn>.55&&!c.jumpBuf){const top=topCandidate();if(top&&zipOptions().length<2&&dot(top.L.nx,top.L.nz)>.7){beginDescent(top);update();return true;}}
+ // Stepping onto a ladder from its top: only after the runner has been held at the lip for a moment while
+ // still pushing outward. It used to start 1.3 m before the lip at full run, which took people who were
+ // running up to jump from that edge down the ladder to the street instead.
+ {const top=input.fwdIn>.55&&!c.jumpBuf?topCandidate():null;
+  if(top&&zipOptions().length<2&&dot(top.L.nx,top.L.nz)>.7&&Math.hypot(c.vel.x,c.vel.z)<TOP_HOLD_SPEED){topHold+=dt;if(topHold>=TOP_HOLD){topHold=0;beginDescent(top);update();return true;}}
+  else topHold=0;}
  update();return false;
 }
 window.skyEscapeRoutes={step,update,topCandidate,zipOptions,ride,root,reset,wantsLadder,clearClimbRequest:()=>{climbRequest=null}};
