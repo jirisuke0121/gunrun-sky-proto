@@ -132,7 +132,8 @@ export function createDash(sky, game) {
       item.cooldown = Math.max(0, item.cooldown - dt);
       if (!item.node || item.cooldown > 0 || z.mission) continue;
       const p = [item.node.x, item.node.y + 1.05, item.node.z], a = (teleported ? to : from).map((v, k) => v + (k === 1 ? .9 : 0)), b = to.map((v, k) => v + (k === 1 ? .9 : 0));
-      if (segmentDistance(p, a, b) < .72) collect(item);
+      // The tutorial roof is 7 m wide and the player may land off-centre after the bars, so a narrow pickup there sent people back to the start of this step.
+      if (segmentDistance(p, a, b) < (window.skyGuidedMode ? 3.2 : .72)) collect(item);
     }
     previous = to;
     const speedFactor = factor(), speed = Math.hypot(c.vel.x, c.vel.z);

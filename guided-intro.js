@@ -1,7 +1,7 @@
 import { installGuidedChoice } from './guided-choice.js?v=20261109-auto-follow-v3';
 import { installGuidedCoach } from './guided-coach.js?v=20261106-paused-v1';
-import { describeLesson } from './guided-prompts.js?v=20261110-tutorial-v2';
-import { createLessons } from './guided-lessons.js?v=20261110-tutorial-v2';
+import { describeLesson } from './guided-prompts.js?v=20261111-tutorial-v3';
+import { createLessons } from './guided-lessons.js?v=20261111-tutorial-v3';
 // A real input trial followed by a physical course. No action is fired on the player's behalf.
 (() => {
  const params=new URLSearchParams(location.search),$=id=>document.getElementById(id);
@@ -29,7 +29,7 @@ import { createLessons } from './guided-lessons.js?v=20261110-tutorial-v2';
  let copyKey = '', lastStage = '', retryUntil = 0;
  const lesson = () => lessons[index];
  const defense = () => !trial && ['flash', 'decoy'].includes(lesson()?.id);
- const combat = () => !trial && ['stomp','flash','decoy','shoot'].includes(lesson()?.id);
+ const combat = () => !trial && ['flash','decoy','shoot'].includes(lesson()?.id);
  let coaching=null;
  document.body.classList.add('guided-intro');
  document.title = text('屋上で操作を試す','Try your controls on the rooftops');
@@ -60,6 +60,7 @@ import { createLessons } from './guided-lessons.js?v=20261110-tutorial-v2';
    const current = lesson(); practice.checkpoint(current.checkpoint);
    targets(combat());
    if (defense()) {window.skyFlashbang.reset();window.skyDecoy.reset();progress.flash=window.skyFlashbang.stats.affected;}
+   if(current.id==='flash'&&sky.U.autoFire){sky.U.autoFire=false;sky.nl();}
    if(current.id==='shoot'){sky.U.gunOn=true;sky.U.weapon=0;g.G.ammo=1;g.G.reserve=24;sky.nl();}
    if (current.id === 'rescue') window.skyRescue?.reset();
    if (current.id === 'blast') {sky.U.gunOn=true;sky.U.weapon=0;sky.nl();}

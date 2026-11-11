@@ -49,11 +49,6 @@ export function describeLesson(lesson, {game, sky, practice, progress, goal, nea
     else if(ground&&c.pos.x<TAKEOFF_X-.2){prompt.at=[TAKEOFF_X,4,0];tell(['踏切の線まで進む','Move to the take-off line'],['足場の端まで走って、そこでジャンプ','Run to the platform edge, then jump']);}
     else tell(['前へジャンプして、鉄棒へ','Jump forward toward the bar'],['前入力を続けると自動でつかみます','Keep moving forward to catch it'],'tJump','jump',['ジャンプ','Jump']);
   }
-  if(id==='pausefire')tell(['自動射撃を、一度止める','Pause automatic fire'],['踏み台を練習するので「自動射撃を停止」','Use Stop auto fire before practising the springboard'],'tAutoFire','pause-fire',['停止する','Pause']);
-  if(id==='stomp') {
-    if(sky.U.autoFire)tell(['まず、自動射撃を止める','Pause automatic fire first'],['「自動射撃を停止」を押す','Press Stop auto fire'],'tAutoFire','pause-fire',['停止する','Pause']);
-    else if(ground){const d=practice.targets[0].pos.x-c.pos.x;if(d<1.85&&d>.3)tell(['近づいたら、ジャンプ','Jump when close'],['前入力を続けたまま押す','Keep moving forward as you press it'],'tJump','jump',['今ジャンプ','Jump now']);else tell(['追手の手前まで、走る','Run close to the pursuer'],['近づいたらジャンプで踏み台にする','Jump from close range to spring over it']);}
-  }
   if(id==='flash'||id==='decoy'||id==='jumpgun'||id==='rescue') {prompt.action=lesson.action;prompt.cue=id;prompt.press=text('使う','Use');}
   if(id==='dash') {if(!changed('dashPickups'))tell(['青いDASHを取る','Collect the blue DASH'],['触れると、しばらく速く走れます','Touch it for a temporary speed boost']);else if(ground&&c.pos.x>150)tell(['加速したまま、ジャンプ','Jump with the speed boost'],['向こうの低い屋上へ','Head to the lower roof ahead'],'tJump','jump',['ジャンプ','Jump']);}
   if(id==='shoot') {
@@ -61,7 +56,7 @@ export function describeLesson(lesson, {game, sky, practice, progress, goal, nea
     else if(!sky.U.autoFire)tell(['自動射撃を、再開する','Resume automatic fire'],['残り1発から、自動装填も体験します','Start with one round to experience automatic reload'],'tAutoFire','resume-fire',['再開する','Resume']);
     else tell(['銃に任せて、その場で待つ','Let the gun fire while you wait'],['自分は移動・逃げ道選び。照準・射撃は自動','You choose movement and escape routes. Aim and fire are automatic']);
   }
-  if(['hook','zip','pausefire','flash','shoot','rescue'].includes(id))prompt.motion='stop';
+  if(['hook','zip','flash','shoot','rescue'].includes(id))prompt.motion='stop';
   if(['jump','mantle','wallrun','downhill','ladder','swing','dash'].includes(id)&&prompt.cue!=='move')prompt.motion='forward';
   if(id==='jump'&&!ground)prompt.motion='forward';
   if(id==='wallrun'&&(c.state==='wallrun'||changed('wallruns')))prompt.motion='forward';
@@ -70,8 +65,6 @@ export function describeLesson(lesson, {game, sky, practice, progress, goal, nea
   if(id==='walljump'&&(prompt.cue==='jump'||prompt.cue==='double-jump'))prompt.at=[119,4,0];
   if(id==='zip'&&!changed('zips')&&prompt.cue==='move')prompt.motion='toward';
   if(id==='swing'){prompt.motion='forward';if(!window.skySwing.active&&!ground){prompt.action='';prompt.cue='move';prompt.press='';prompt.title=prompt.at[0]>window.skySwing.course.bars.at(-1).at[0]?text('前入力で、向こうの足場へ','Keep moving toward the landing'):text('前入力で、次の鉄棒へ','Keep moving toward the next bar');}}
-  if(id==='stomp'&&prompt.cue==='jump')prompt.motion='forward';
-  if(id==='stomp'&&sky.U.autoFire)prompt.motion='stop';
   if(id==='flash'&&!ground){prompt.action='';prompt.press='';prompt.cue='wait';prompt.title=text('着地してから、閃光玉','Land before using Flash');}
   if(id==='flash'&&window.skyFlashbang.grenades.length){prompt.action='';prompt.press='';prompt.cue='wait';prompt.title=text('閃光玉が届くのを待つ','Wait for the flash to reach them');}
   if(id==='decoy'&&window.skyDecoy.active){prompt.motion='toward';prompt.action='';prompt.press='';prompt.cue='move';prompt.title=text('分身に任せて、マークへ逃げる','Leave the decoy and escape to the marker');}else if(id==='decoy')prompt.motion='stop';
