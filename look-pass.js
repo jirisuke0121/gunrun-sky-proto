@@ -21,7 +21,8 @@
   if (mode === 'classic') { window.skyLook = 'classic'; return; }
   window.skyLook = mode === 'sky' ? 'sky' : mode === 'district' ? 'district' : mode === 'townDebug' ? 'townDebug' : 'town';
 
-  const HAZE = 0xbcd2e4, SKY_TOP = 0x6f9fd6, SKY_LOW = 0xa9bccb;
+  const MOOD = window.skyMood; // set by mood.js (?mood=dusk|dawn); null = the noon look
+  const HAZE = MOOD?.haze ?? 0xbcd2e4, SKY_TOP = MOOD?.skyTop ?? 0x6f9fd6, SKY_LOW = MOOD?.skyLow ?? 0xa9bccb;
   const NAMES = new Set(['Merged static world', 'Merged static material groups']);
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 
@@ -34,11 +35,14 @@
       const geometry = child.geometry, color = geometry?.attributes?.color, position = geometry?.attributes?.position;
       if (!color || !position) continue;
       const horizon = child.material.color.clone().set(HAZE), top = horizon.clone().set(SKY_TOP), low = horizon.clone().set(SKY_LOW);
-      const mix = horizon.clone();
+      const mix = horizon.clone(), mid = horizon.clone().set(MOOD?.skyMid ?? HAZE);
       for (let i = 0; i < position.count; i++) {
         const y = position.getY(i) / 500;
         mix.copy(horizon);
-        if (y > 0) mix.lerp(top, Math.pow(y, 0.6)); else mix.lerp(low, Math.min(1, -y * 2));
+        if (y > 0 && MOOD?.skyMid) { // three stops: warm horizon glow -> mid band -> deep top
+          const t = Math.pow(y, 0.5);
+          if (t < 0.5) mix.lerp(mid, t * 2); else { mix.copy(mid); mix.lerp(top, (t - 0.5) * 2); }
+        } else if (y > 0) mix.lerp(top, Math.pow(y, 0.6)); else mix.lerp(low, Math.min(1, -y * 2));
         color.setXYZ(i, mix.r, mix.g, mix.b);
       }
       color.needsUpdate = true;

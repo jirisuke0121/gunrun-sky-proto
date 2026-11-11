@@ -48,6 +48,7 @@ Claude Code・Codex など、どのAIでもこのファイルを最初に読む�
 - 先に PlaytestCloud（無料トライアル2人分）でテストし、そのあと Y8 に出す。その前に画面の英語対応を入れる。
 - 英語タイトルは「Zombie Parkour Escape」。日本語表記は「空中回廊 追跡」。
 - 外観の色（壁の建物別の色・スレート屋根・輪郭線・塗りだけの帯）は入れてよい（`docs/TOWN_LOOK_2026-11-11.md`）。ジオメトリを足す装飾（低ポリの屋上の小物など）は PlaytestCloud の結果を見てから。庇・バルコニー・煙突・ランタンは足場や目印と紛らわしいので入れない。
+- 時間帯（`?mood=dusk|dawn`、`mood.js`、`docs/MOOD_2026-11-12.md`）は数値と3つの小さなメッシュだけ。既定は従来の `noon`。黄・橙は目印色なので、光や粒には使わない。夕方は影側の暗さが検査（`bench/mood-browser.cjs`）の上限を超えないようにする。
 
 ## 6. 進め方
 
@@ -71,7 +72,7 @@ Claude Code・Codex など、どのAIでもこのファイルを最初に読む�
 
 ## 8. 主なファイルと詳細
 
-- `index.html`（旧市街）、`canyon.html`（渓谷）がゲーム本体。機能ごとに直下の `*.js` に分割。見た目は `look-pass.js`（空・霧・壁の色・屋根）と `ink-outline.js`（輪郭線）。
+- `index.html`（旧市街）、`canyon.html`（渓谷）がゲーム本体。機能ごとに直下の `*.js` に分割。見た目は `look-pass.js`（空・霧・壁の色・屋根）、`ink-outline.js`（輪郭線）、`mood.js`（時間帯の光）。
 - `server/` … Worker・D1（`server/README.md`）。`ranked-rules.js` … 順位の対象条件と版。
 - `hook-editor.html` … フック・壁ジャンプ候補のエディター（公開版には含めない）。
 - `tools/admin/` … 管理画面（地図・詰まり・プレイヤー）。`ADMIN_TOKEN` で既存のWorker APIを読む。`tools/heatmap/` はここへの転送。
