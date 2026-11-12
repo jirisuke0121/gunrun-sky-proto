@@ -159,15 +159,15 @@ export function createDash(sky, game) {
     // run feel through it so the FOV does not dip and re-widen on every obstacle.
     const strength = c.state === 'ledge' ? run : free ? smooth(U.walkSpeed + .12, U.sprintSpeed - .05, Math.max(speed,window.skySwing?.cameraSpeed||0)) * (aiming ? .22 : 1) : 0;
     run = ease(run, strength, dt, 7); boost = ease(boost, remaining > 0 ? boostEnvelope(remaining, age) : 0, dt, 12);
-    const swingTarget=window.skySwing?.active ? 1 : c.swingFlight ? Math.exp(-c.swingFlight.age*2.5) : 0;
+    const swingTarget=window.skySwing?.active || window.skyRopeSwing?.active?.() ? 1 : c.swingFlight ? Math.exp(-c.swingFlight.age*2.5) : 0;
     swingView = ease(swingView, swingTarget, dt, reduced ? 5 : 9);
     camera.distance = 3.6 + run * .25 + boost * run * .3 + .25 * swingView;
     camera.shoulder = .62 - run * .28 - boost * run * .1 + 1.4 * swingView;
     camera.height = .18 - run * .3 - boost * run * .07 + .28 * swingView;
     const moving = smooth(.7, U.sprintSpeed, speed), ringsOn = boost * moving;
     // Normal sprint draws thin side streaks too; the DASH ring still adds the full trail and echo rings.
-    const trailOn = Math.max(boost, reduced ? 0 : .55 * run) * moving;
-    lines.style.opacity = String((reduced ? .16 : .38) * run * (.62 + .38 * boost));
+    const trailOn = Math.max(boost, reduced ? 0 : (window.skyWind?.cssScale ? .25 : .55) * run) * moving; // 走るだけのときの帯は、世界側の風（wind-fx.js）があるので控えめ
+    lines.style.opacity = String((reduced ? .16 : .38) * run * (.62 + .38 * boost)); // 走りの縞は元の強さのまま（run-feel の検査対象）。空中の縞だけ wind-fx 側で弱める
     flash.style.opacity = String(reduced ? 0 : .13 * pulse / .42);
     if (window.skyPracticeMode) {
       const practiceSpeed = document.getElementById('practiceSpeed');

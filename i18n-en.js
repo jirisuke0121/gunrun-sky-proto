@@ -41,6 +41,7 @@
  "移動技の終了後に射撃再開": "Firing resumes after this move",
  "はしご中は撃てません": "Cannot fire while climbing a ladder",
  "鉄棒を離すと射撃再開": "Release the bar to resume firing",
+ "ジャンプで離す（緑のとき着地）": "Jump to let go (green = you will land)",
  "縁を登り終えると射撃再開": "Finish climbing the ledge to resume firing",
  "弾切れ · 自動装填を待とう": "Magazine empty · Waiting for auto-reload",
  "弾切れ · 光る武器箱に触れて補給": "Out of ammo · Touch a glowing weapon crate to refill",

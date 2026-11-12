@@ -1,39 +1,64 @@
-// 大スイング（旧市街、2026-11-11）。東塔の屋上（14.4 m）の南の縁から、ロープで南の屋根（4.4 m）へ振り下りる。
-//   * 屋上の印（x 42 の帯）を南へ走り、縁で跳ぶと、縁の先に下がっている取っ手をつかむ。
-//   * 半径 10 m の弧を約2秒で振り、弧の上がり際で手を離して南の屋根に降りる。高低差は約10 m。
-//   * 動きは決まった弧（塔のトンネルと同じ「見える仕掛け」）。操作は効かない。技や被弾による加速ではない。
-//   * 片道（屋根から塔へは戻れない）。使うとロープは約2.6秒で塔へ戻る。ゾンビは使えない。
-// 座標は x 東・y 上・z 南。
+// 大スイング（旧市街、2026-11-13 作り直し）。西の台（6.4 m）と中央ブロックの屋上（8.0 m）の間の路地（10 m）に、ロープを2本かける。
+//   * 東西どちらの縁からでも、跳んで取っ手をつかむ。つかんだら本物の振り子（半径 8.5 m）で振れる。
+//   * ジャンプで手を離す。離したときの振りの速さがそのまま飛ぶ勢いになる（鉄棒と同じ考え方。早く離せば低く速く、上がり際なら高く遠くへ）。
+//   * 移動入力を押していると、ゆるく漕げる（振りを少しずつ大きくする。速さの上限あり）。何も押さなければ素の振り子。
+//   * 緑の取っ手 = いま離せば向こうの縁に着く。橙の取っ手 = まだ（または過ぎた）。
+//   * 往復できる。ロープは両側の縁に1本ずつ下がっていて、使ったロープは約1.2秒で元の位置へ戻る。ゾンビは使えない。
+//   * 決まった弧ではなく通常の物理（重力と振り子）。技や被弾による加速ではない。
+// 座標は x 東・y 上・z 南。旧版（東塔→南屋根の自動の弧）の経緯は README の 2026-11-11 と 2026-11-13 の節。
 (() => {
-  const X = 42, PIVOT_Y = 16.9, PIVOT_Z = 4.5, L = 10, HANDS = 1.9; // 足から手までの高さ
-  const TH_START = -86 * Math.PI / 180, TH_END = 24 * Math.PI / 180;
-  const V_MIN = 6, V_MAX = 14, V_RELEASE = 4, RETURN_SECONDS = 2.6;
-  // つかめる範囲（足の位置）。塔の縁は z = -6。南向きに、空中で入ったときだけ。
-  const GRAB = { minX: X - .85, maxX: X + .85, minZ: -5.95, maxZ: -4.3, minY: 13.3, maxY: 16.2, minSpeedZ: 2 };
-  const MAST = { x: 40.69, z: 5.12, w: .14, base: 4.4, top: PIVOT_Y + .25 }; // 南の屋根の北の縁に立つ柱
+  const L = 8.5, HANDS = 1.9, Z = 0.1, RETURN_SECONDS = 1.2;
+  // 両端の足場。edge は縁の x、floor は床の高さ、park は足の駐車位置（跳んだ頂点あたりでつかめる高さ）、dir は向こう側へ向かう x の向き。
+  const SIDES = {
+    A: { dir: 1, edge: -24, floor: 6.4, parkX: -23.1, parkY: 7.9, far: 'B' },
+    B: { dir: -1, edge: -14, floor: 8.0, parkX: -14.9, parkY: 8.5, far: 'A' },
+  };
+  // 駐車位置の手が半径 L の円に載るように支点を決める（2点の垂直二等分線上）。
+  function solvePivot() {
+    const ha = [SIDES.A.parkX, SIDES.A.parkY + HANDS], hb = [SIDES.B.parkX, SIDES.B.parkY + HANDS];
+    const mx = (ha[0] + hb[0]) / 2, my = (ha[1] + hb[1]) / 2, dx = hb[0] - ha[0], dy = hb[1] - ha[1], d = Math.hypot(dx, dy);
+    const h = Math.sqrt(L * L - d * d / 4), nx = -dy / d, ny = dx / d, s = ny > 0 ? 1 : -1;
+    return { x: mx + s * nx * h, y: my + s * ny * h, z: Z };
+  }
+  const PIVOT = solvePivot();
+  const MAST = { x: -13.4, z: -1.5, w: .22, base: 8, top: PIVOT.y + .25 }; // 中央屋上の西の縁の柱（走路から1.6 m 北）
+  const GRAB = { dx: 1.6, dyLow: 1, dyHigh: 1, dz: .9, minSpeed: 2.5 }; // 駐車位置を中心に、足の位置でつかめる範囲
+  const V_ENTRY_MIN = 4, V_MAX = 11.5, PUMP = .35, MAX_ANGLE = 75 * Math.PI / 180, MAX_SECONDS = 9;
+  const KICK = { x: 2, y: 2.2 }; // ジャンプで離すときの上乗せ（鉄棒の「速さ＋ジャンプの一押し」と同じ作り）
+  const LAND_MARGIN = .6;
   const TINT = { mast: 0x243c52 };
-  const hand = th => ({ y: PIVOT_Y - L * Math.cos(th), z: PIVOT_Z + L * Math.sin(th) });
-  const feet = th => { const h = hand(th); return { x: X, y: h.y - HANDS, z: h.z }; };
-  const arcLength = L * (TH_END - TH_START);
-  // 弧の上での速さ: 下りは落差ぶん速くなり（上限あり）、上がりは離す速さまで落とす。
-  function speedAt(th, gravity = 20) {
-    const drop = hand(TH_START).y - hand(Math.min(th, 0)).y, down = Math.min(V_MAX, Math.sqrt(V_MIN * V_MIN + 2 * gravity * drop));
-    if (th <= 0) return down;
-    const f = th / TH_END; return down + (V_RELEASE - down) * f * f;
+  const angleOf = (side) => { const s = SIDES[side]; return Math.atan2(s.parkX - PIVOT.x, PIVOT.y - (s.parkY + HANDS)); };
+  const hand = th => ({ x: PIVOT.x + L * Math.sin(th), y: PIVOT.y - L * Math.cos(th) });
+  const feet = th => { const h = hand(th); return { x: h.x, y: h.y - HANDS, z: Z }; };
+  // 手を離したときの速度。w は角速度（東向きが正）。
+  function releaseVelocity(th, w) {
+    const sign = w >= 0 ? 1 : -1, v = w * L;
+    return { x: v * Math.cos(th) + sign * KICK.x, y: v * Math.sin(th) + KICK.y };
   }
-  function releaseVelocity() { return { x: 0, y: Math.sin(TH_END) * V_RELEASE, z: Math.cos(TH_END) * V_RELEASE }; }
-  // 離してから屋根（y = roof）に着くまで。
-  function flight(roof = 4.4, gravity = 20) {
-    const p = feet(TH_END), v = releaseVelocity(), t = (v.y + Math.sqrt(v.y * v.y + 2 * gravity * (p.y - roof))) / gravity;
-    return { from: p, seconds: t, landZ: p.z + v.z * t, apex: p.y + v.y * v.y / (2 * gravity) };
+  // 手を離したあとの落下先（通常の重力だけの予測）。side が 'A' なら B へ、'B' なら A へ向かう飛び。
+  // ok = 向こうの縁を越えて床に着く（縁から LAND_MARGIN 以上奥、床の奥行きの内側）。壁に当たる・届かない・戻る飛びは false。
+  function landing(side, th, w, gravity = 20) {
+    const s = SIDES[side], far = SIDES[s.far], p = feet(th), v = releaseVelocity(th, w), dt = 1 / 120, depth = s.far === 'A' ? 4.6 : 10;
+    let x = p.x, y = p.y, vx = v.x, vy = v.y;
+    if (vx * s.dir <= 0) return { ok: false, why: 'back' };
+    for (let t = 0; t < 4; t += dt) {
+      vy -= gravity * dt; x += vx * dt; y += vy * dt;
+      const inside = (x - far.edge) * s.dir; // 向こうの縁から奥へ入った距離（手前は負）
+      if (inside > -.4 && inside < 0 && y < far.floor - .01) return { ok: false, why: 'wall', x, y };
+      if (y <= far.floor && vy < 0) return { ok: inside >= LAND_MARGIN && inside <= depth, why: inside < LAND_MARGIN ? 'short' : inside > depth ? 'long' : 'ok', x, y, inside };
+      if (y < 0) break;
+    }
+    return { ok: false, why: 'fall' };
   }
+  // 素の振り子（漕ぎなし）を進める。テストと予測の共通部品。
+  function swingStep(th, w, dt, gravity = 20) { w += -(gravity / L) * Math.sin(th) * dt; return { th: th + w * dt, w }; }
   function build({ ne }) {
     const mast = ne(MAST.x - MAST.w / 2, MAST.base, MAST.z - MAST.w / 2, MAST.x + MAST.w / 2, MAST.top, MAST.z + MAST.w / 2, 'beam');
     mast.tint = TINT.mast; mast.ropeSwing = 'mast';
     return { mast };
   }
-  window.SKY_ROPE_SWING = { X, PIVOT_Y, PIVOT_Z, L, HANDS, TH_START, TH_END, V_MAX, V_RELEASE, RETURN_SECONDS, GRAB, MAST, arcLength };
-  window.skyRopeSwing = { hand, feet, speedAt, releaseVelocity, flight };
+  window.SKY_ROPE_SWING = { L, HANDS, Z, SIDES, PIVOT, MAST, GRAB, V_MAX, PUMP, KICK, RETURN_SECONDS, LAND_MARGIN, MAX_SECONDS };
+  window.skyRopeSwing = { hand, feet, releaseVelocity, landing, swingStep, angleOf };
   window.buildRopeSwing = build;
 
   addEventListener('load', () => {
@@ -44,62 +69,110 @@
     const group = new Group(); group.name = 'Rope swing';
     const steel = new Standard({ color: 0x243c52, metalness: .6, roughness: .45 });
     const orange = new Basic({ color: 0xffa21f }), ropeMat = new Basic({ color: 0xe8dcc0 });
-    // 柱の腕（当たり判定なし）とロープ・取っ手。
-    const armLen = Math.hypot(X - MAST.x, PIVOT_Z - MAST.z), arm = new Mesh(new Box(armLen + .3, .14, .14), steel);
-    arm.position.set((X + MAST.x) / 2, PIVOT_Y + .12, (PIVOT_Z + MAST.z) / 2); arm.rotation.y = -Math.atan2(PIVOT_Z - MAST.z, X - MAST.x); group.add(arm);
-    const rope = new Mesh(new Box(.05, 1, .05), ropeMat); group.add(rope);
-    const handle = new Mesh(new Torus(.27, .055, 8, 20), orange); handle.rotation.y = Math.PI / 2; group.add(handle);
-    // 屋上の印: 帯の両脇の線と、縁へ向かう矢印（南向き）。
-    const mark = (w, d, x, z) => { const m = new Mesh(new Box(w, .03, d), orange); m.position.set(x, 14.42, z); group.add(m); return m; };
-    mark(.1, 4.6, X - .85, -8.4); mark(.1, 4.6, X + .85, -8.4); mark(1.8, .14, X, -6.1);
-    for (const z of [-10.2, -8.9, -7.6]) for (const side of [-1, 1]) { const s = mark(.1, .7, X + side * .22, z); s.rotation.y = -side * .6; }
-    game.ue.add(group);
-    function drawRope(th) {
-      const h = hand(th), dy = h.y - PIVOT_Y, dz = h.z - PIVOT_Z, len = Math.hypot(dy, dz);
-      rope.scale.y = len; rope.position.set(X, (h.y + PIVOT_Y) / 2, (h.z + PIVOT_Z) / 2); rope.rotation.x = Math.atan2(dz, dy);
-      handle.position.set(X, h.y - .27, h.z);
+    const handleMats = { A: new Basic({ color: 0xffa21f }), B: new Basic({ color: 0xffa21f }) };
+    // 柱の腕（当たり判定なし）。
+    const armLen = Math.hypot(PIVOT.x - MAST.x, PIVOT.z - MAST.z), arm = new Mesh(new Box(armLen + .3, .16, .16), steel);
+    arm.position.set((PIVOT.x + MAST.x) / 2, PIVOT.y + .12, (PIVOT.z + MAST.z) / 2); arm.rotation.y = -Math.atan2(PIVOT.z - MAST.z, PIVOT.x - MAST.x); group.add(arm);
+    // ロープと取っ手（両側）。
+    const ropes = {};
+    for (const side of ['A', 'B']) {
+      const rope = new Mesh(new Box(.05, 1, .05), ropeMat), handle = new Mesh(new Torus(.27, .055, 8, 20), handleMats[side]);
+      group.add(rope); group.add(handle); ropes[side] = { rope, handle, th: angleOf(side) };
     }
-    drawRope(TH_START);
+    function drawRope(side, th) {
+      const r = ropes[side], h = hand(th), dx = h.x - PIVOT.x, dy = h.y - PIVOT.y, len = Math.hypot(dx, dy);
+      r.th = th; r.rope.scale.y = len; r.rope.position.set((h.x + PIVOT.x) / 2, (h.y + PIVOT.y) / 2, Z); r.rope.rotation.z = th; r.handle.position.set(h.x, h.y - .27, Z);
+    }
+    drawRope('A', angleOf('A')); drawRope('B', angleOf('B'));
+    // 縁の印（橙）。跳ぶ位置の目安。
+    const mark = (w, d, x, y, z) => { const m = new Mesh(new Box(w, .03, d), orange); m.position.set(x, y, z); group.add(m); return m; };
+    for (const side of ['A', 'B']) {
+      const s = SIDES[side], y = s.floor + .03, back = -s.dir; // 縁から奥へ
+      mark(.14, 1.8, s.edge + back * .18, y, Z);
+      mark(4.4, .1, s.edge + back * 2.4, y, Z - .85); mark(4.4, .1, s.edge + back * 2.4, y, Z + .85);
+      for (const x of [2.2, 3.4, 4.6]) for (const sd of [-1, 1]) { const m = mark(.7, .1, s.edge + back * x, y, Z + sd * .22); m.rotation.y = sd * s.dir * .6; }
+    }
+    game.ue.add(group);
 
-    let riding = null, back = 0, shown = TH_START;
+    // 操作の表示（離すときの合図）。
+    const hint = document.createElement('div');
+    hint.style.cssText = 'position:fixed;left:50%;bottom:22%;transform:translateX(-50%);padding:6px 14px;border-radius:14px;background:#23364de6;border:2px solid #ffb647;color:#fff1cd;font:700 15px/1.2 var(--font,sans-serif);pointer-events:none;opacity:0;transition:opacity .15s;z-index:12';
+    hint.textContent = 'ジャンプで離す（緑のとき着地）'; document.body.appendChild(hint);
+    const tr = window.skyI18n?.tr; if (tr) hint.textContent = tr(hint.textContent);
+
+    let riding = null, pressed = false, jumpHeld = false, touchHeld = false;
+    const lock = { A: 0, B: 0 }, from = { A: angleOf('A'), B: angleOf('B') };
     const playing = () => game.modeRef() === 'play' && !game.z.over;
-    const ready = () => !riding && back <= 0;
-    function begin() {
-      riding = { th: TH_START, t0: game.z.t, last: null };
+    addEventListener('keydown', e => { if (e.code !== 'Space' || e.repeat || jumpHeld) return; jumpHeld = true; if (riding) pressed = true; });
+    addEventListener('keyup', e => { if (e.code === 'Space') jumpHeld = false; });
+    const jumpButton = document.getElementById('tJump');
+    jumpButton?.addEventListener('pointerdown', () => { if (!touchHeld && riding) pressed = true; touchHeld = true; });
+    for (const name of ['pointerup', 'pointercancel', 'pointerleave']) jumpButton?.addEventListener(name, () => { touchHeld = false; });
+    addEventListener('blur', () => { jumpHeld = touchHeld = pressed = false; });
+
+    function begin(side) {
+      const s = SIDES[side], p = c.pos;
+      // 実際の手の位置から円へ寄せる。速さは円の接線方向の成分（向こうへ向かうぶんだけ。最低 V_ENTRY_MIN）。
+      const th = Math.max(-MAX_ANGLE, Math.min(MAX_ANGLE, Math.atan2(p.x - PIVOT.x, PIVOT.y - (p.y + HANDS))));
+      const vt = c.vel.x * Math.cos(th) + c.vel.y * Math.sin(th);
+      const speed = Math.min(V_MAX, Math.max(V_ENTRY_MIN, vt * s.dir)) * s.dir;
+      riding = { side, th, w: speed / L, t0: game.z.t, last: null, age: 0 };
+      pressed = false;
       if (['slide', 'ledge', 'ladder'].includes(c.state)) c.state = 'normal';
       c.onGround = false; c.coyote = 0; c.jumpBuf = 0; c.edgeJump = false; c.slideT = 0; c.h = 1.75; c.crouchPressed = false;
       window.skyLandingRoll?.cancel?.();
       stats.ropeSwings = (stats.ropeSwings || 0) + 1;
     }
-    function release() {
-      const p = feet(TH_END), v = releaseVelocity();
-      c.pos.set(p.x, p.y, p.z); c.vel.set(v.x, v.y, v.z);
+    function release(why) {
+      const r = riding, p = feet(r.th), v = releaseVelocity(r.th, r.w), sign = r.w >= 0 ? 1 : -1;
+      c.pos.set(p.x, p.y, Z); c.vel.set(v.x, v.y, 0);
       c.state = 'normal'; c.onGround = false; c.coyote = 0; c.airT = 0; c.edgeJump = false; c.jumpBuf = 0; c.h = 1.75;
-      c.yaw = Math.PI; riding = null; back = RETURN_SECONDS;
+      c.yaw = Math.atan2(-sign, 0);
+      from[r.side] = r.th; lock[r.side] = RETURN_SECONDS; handleMats[r.side].color.setHex(0xffa21f);
+      stats.ropeReleases = (stats.ropeReleases || 0) + 1;
+      riding = null; pressed = false; hint.style.opacity = '0';
     }
-    function step(dt) {
-      if (riding && (!playing() || game.z.t < riding.t0 || (riding.last && c.pos.distanceTo(riding.last) > 1))) { riding = null; back = 0; shown = TH_START; drawRope(shown); }
+    function cancel() { // やり直し・停止など。ロープをすぐ元へ戻す。
+      riding = null; pressed = false; hint.style.opacity = '0';
+      for (const side of ['A', 'B']) { lock[side] = 0; drawRope(side, angleOf(side)); handleMats[side].color.setHex(0xffa21f); }
+    }
+    const inGrab = (side, p) => { const s = SIDES[side]; return Math.abs(p.x - s.parkX) <= GRAB.dx && p.y >= s.parkY - GRAB.dyLow && p.y <= s.parkY + GRAB.dyHigh && Math.abs(p.z - Z) <= GRAB.dz; };
+    function step(dt, input) {
+      if (riding && (!playing() || game.z.t < riding.t0 || (riding.last && c.pos.distanceTo(riding.last) > 1))) cancel();
       if (!riding) {
-        if (back > 0) { // 空のロープが塔へ戻る
-          back = Math.max(0, back - dt); const f = 1 - back / RETURN_SECONDS;
-          shown = TH_END + (TH_START - TH_END) * f * f * (3 - 2 * f); drawRope(shown);
+        for (const side of ['A', 'B']) if (lock[side] > 0) { // 空のロープが元の位置へ戻る
+          lock[side] = Math.max(0, lock[side] - dt); const f = 1 - lock[side] / RETURN_SECONDS, e = f * f * (3 - 2 * f), home = angleOf(side);
+          drawRope(side, from[side] + (home - from[side]) * e);
         }
-        if (!playing() || !ready() || c.state !== 'normal' || c.onGround || window.skyBite?.locked) return false;
-        const p = c.pos;
-        if (p.x < GRAB.minX || p.x > GRAB.maxX || p.z < GRAB.minZ || p.z > GRAB.maxZ || p.y < GRAB.minY || p.y > GRAB.maxY || c.vel.z < GRAB.minSpeedZ) return false;
-        begin();
+        if (!playing() || c.state !== 'normal' || c.onGround || window.skyBite?.locked) return false;
+        for (const side of ['A', 'B']) {
+          if (lock[side] > 0 || !inGrab(side, c.pos) || c.vel.x * SIDES[side].dir < GRAB.minSpeed) continue;
+          begin(side); break;
+        }
+        if (!riding) return false;
       }
-      riding.th += speedAt(riding.th, U.gravity) * dt / L;
-      if (riding.th >= TH_END) { drawRope(TH_END); shown = TH_END; release(); return false; }
-      const th = riding.th, p = feet(th), v = speedAt(th, U.gravity);
-      // つかんだ直後は、跳んだ位置から弧へなめらかに寄せる。
-      const blend = Math.min(1, (game.z.t - riding.t0) / .18);
-      c.pos.set(c.pos.x + (p.x - c.pos.x) * blend, c.pos.y + (p.y - c.pos.y) * blend, c.pos.z + (p.z - c.pos.z) * blend);
-      c.vel.set(0, Math.sin(th) * v, Math.cos(th) * v);
-      c.yaw = Math.PI; c.onGround = false; c.h = 1.75;
-      riding.last = c.pos.clone(); shown = th; drawRope(th);
+      const r = riding, s = SIDES[r.side], gravity = U.gravity;
+      r.age += dt;
+      // 振る（細かく刻んで安定させる）。移動入力を押していると、振りの向きにゆるく漕げる。
+      const pumping = input && Math.hypot(input.fwdIn || 0, input.strIn || 0) > .25 && Math.abs(r.w) > .15;
+      for (let left = dt; left > 0; left -= 1 / 120) {
+        const h = Math.min(left, 1 / 120); const n = swingStep(r.th, r.w, h, gravity); r.th = n.th; r.w = n.w;
+        if (pumping) r.w += Math.sign(r.w) * PUMP * h;
+        const cap = V_MAX / L; if (Math.abs(r.w) > cap) r.w = Math.sign(r.w) * cap;
+      }
+      const cue = landing(r.side, r.th, r.w, gravity);
+      handleMats[r.side].color.setHex(cue.ok ? 0x7ef0aa : 0xffa21f);
+      hint.style.opacity = '1';
+      c.jumpBuf = 0;
+      if (pressed || Math.abs(r.th) > MAX_ANGLE || r.age > MAX_SECONDS || window.skyBite?.locked) { drawRope(r.side, r.th); release(); return false; }
+      const p = feet(r.th), blend = Math.min(1, (game.z.t - r.t0) / .18); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる
+      c.pos.set(c.pos.x + (p.x - c.pos.x) * blend, c.pos.y + (p.y - c.pos.y) * blend, c.pos.z + (Z - c.pos.z) * blend);
+      c.vel.set(r.w * L * Math.cos(r.th), r.w * L * Math.sin(r.th), 0);
+      c.yaw = Math.atan2(-Math.sign(s.dir), 0); c.onGround = false; c.h = 1.75;
+      riding.last = c.pos.clone(); drawRope(r.side, r.th);
       return true;
     }
-    Object.assign(window.skyRopeSwing, { step, active: () => !!riding, ready, angle: () => shown, group });
+    Object.assign(window.skyRopeSwing, { step, cancel, active: () => !!riding, side: () => riding?.side || null, state: () => riding && { th: riding.th, w: riding.w, side: riding.side },
+      ready: side => lock[side] <= 0, angle: side => ropes[side].th, group, ropes });
   });
 })();

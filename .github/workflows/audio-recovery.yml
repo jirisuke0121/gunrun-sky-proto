@@ -1,7 +1,7 @@
 name: Audio interruption recovery
 on:
   pull_request:
-    paths: ['audio-recovery.js', 'enhancements.js', 'index.html', 'canyon.html', 'bench/audio-recovery*', 'bench/ambient-wind*', '.github/workflows/audio-recovery.yml']
+    paths: ['audio-recovery.js', 'enhancements.js', 'index.html', 'canyon.html', 'bench/audio-recovery*', 'bench/ambient-wind*', 'wind-fx.js', '.github/workflows/audio-recovery.yml']
   workflow_dispatch:
 permissions:
   contents: read
