@@ -49,7 +49,7 @@ export function describeLesson(lesson, {game, sky, practice, progress, goal, nea
     else if(ground&&c.pos.x<TAKEOFF_X-.2){prompt.at=[TAKEOFF_X,4,0];tell(['踏切の線まで進む','Move to the take-off line'],['足場の端まで走って、そこでジャンプ','Run to the platform edge, then jump']);}
     else tell(['前へジャンプして、鉄棒へ','Jump forward toward the bar'],['前入力を続けると自動でつかみます','Keep moving forward to catch it'],'tJump','jump',['ジャンプ','Jump']);
   }
-  if(id==='flash'||id==='decoy'||id==='jumpgun'||id==='rescue') {prompt.action=lesson.action;prompt.cue=id;prompt.press=text('使う','Use');}
+  if(id==='flash'||id==='jumpgun'||id==='rescue') {prompt.action=lesson.action;prompt.cue=id;prompt.press=text('使う','Use');}
   if(id==='dash') {if(!changed('dashPickups'))tell(['青いDASHを取る','Collect the blue DASH'],['触れると、しばらく速く走れます','Touch it for a temporary speed boost']);else if(ground&&c.pos.x>150)tell(['加速したまま、ジャンプ','Jump with the speed boost'],['向こうの低い屋上へ','Head to the lower roof ahead'],'tJump','jump',['ジャンプ','Jump']);}
   if(id==='shoot') {
     if(game.G.reloadT>0)tell(['装填中。少し待つ','Reloading. Wait a moment'],['弾切れで自動装填。終わると射撃再開','Empty magazines reload automatically; fire then resumes']);
@@ -65,9 +65,23 @@ export function describeLesson(lesson, {game, sky, practice, progress, goal, nea
   if(id==='walljump'&&(prompt.cue==='jump'||prompt.cue==='double-jump'))prompt.at=[119,4,0];
   if(id==='zip'&&!changed('zips')&&prompt.cue==='move')prompt.motion='toward';
   if(id==='swing'){prompt.motion='forward';if(!window.skySwing.active&&!ground){prompt.action='';prompt.cue='move';prompt.press='';prompt.title=prompt.at[0]>window.skySwing.course.bars.at(-1).at[0]?text('前入力で、向こうの足場へ','Keep moving toward the landing'):text('前入力で、次の鉄棒へ','Keep moving toward the next bar');}}
-  if(id==='flash'&&!ground){prompt.action='';prompt.press='';prompt.cue='wait';prompt.title=text('着地してから、閃光玉','Land before using Flash');}
-  if(id==='flash'&&window.skyFlashbang.grenades.length){prompt.action='';prompt.press='';prompt.cue='wait';prompt.title=text('閃光玉が届くのを待つ','Wait for the flash to reach them');}
-  if(id==='decoy'&&window.skyDecoy.active){prompt.motion='toward';prompt.action='';prompt.press='';prompt.cue='move';prompt.title=text('分身に任せて、マークへ逃げる','Leave the decoy and escape to the marker');}else if(id==='decoy')prompt.motion='stop';
+  if(id==='flash') {
+    const stopped = window.skyFlashbang.stats.affected > progress.flash;
+    if(stopped) {
+      prompt.at=[181,0,0];prompt.motion='toward';prompt.action='';prompt.press='';prompt.cue='escape';
+      prompt.title=text('追手が止まった。今のうちに逃げよう','They are stunned. Escape now');
+      prompt.hint=text('先のマークへ進む','Move to the marker ahead');
+    } else if(window.skyFlashbang.grenades.length) {
+      prompt.action='';prompt.press='';prompt.cue='wait';prompt.title=text('閃光玉が届くのを待つ','Wait for the flash to reach them');
+    } else if(!ground || !progress.flashPursued) {
+      prompt.action='';prompt.press='';prompt.cue='pursuit';prompt.motion='toward';
+      prompt.title=text('後ろから追手！ 先のマークへ逃げよう','Pursuers behind you! Run to the marker');
+      prompt.hint=text('ゾンビが追いかけてきます。近づいたら閃光玉','They are chasing you. Use Flash when they get close');
+    } else {
+      prompt.title=text('追手が近い！ 閃光玉で止めよう','They are close! Stop them with Flash');
+      prompt.hint=text('閃光玉で周囲のゾンビを止め、逃げる時間を作ります','Flash stops nearby zombies and gives you time to escape');
+    }
+  }
   if(id==='blast'){
     if(changed('blastLaunches')){prompt.motion='stop';prompt.cue='wait';prompt.title=text('上の足場へ、着地を待つ','Wait to land on the upper roof');}
     else if(window.skyBlastBarrels.sequence){prompt.motion='stop';prompt.cue='wait';prompt.title=text('爆破ジャンプ中','Launching from the barrel');}

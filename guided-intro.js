@@ -1,7 +1,8 @@
 import { installGuidedChoice } from './guided-choice.js?v=20261109-auto-follow-v3';
 import { installGuidedCoach } from './guided-coach.js?v=20261106-paused-v1';
-import { describeLesson } from './guided-prompts.js?v=20261111-tutorial-v3';
-import { createLessons } from './guided-lessons.js?v=20261111-tutorial-v3';
+import { describeLesson } from './guided-prompts.js?v=20261112-pursuit-v1';
+import { createLessons } from './guided-lessons.js?v=20261112-pursuit-v1';
+import { createPursuit, approachingPursuer } from './guided-defense.js?v=20261112-pursuit-v1';
 // A real input trial followed by a physical course. No action is fired on the player's behalf.
 (() => {
  const params=new URLSearchParams(location.search),$=id=>document.getElementById(id);
@@ -28,8 +29,8 @@ import { createLessons } from './guided-lessons.js?v=20261111-tutorial-v3';
  let index = -1, trial = true, started = false, finished = false, completing = false, trialReached = false, trialJumps = 0;
  let copyKey = '', lastStage = '', retryUntil = 0;
  const lesson = () => lessons[index];
- const defense = () => !trial && ['flash', 'decoy'].includes(lesson()?.id);
- const combat = () => !trial && ['flash','decoy','shoot'].includes(lesson()?.id);
+ const defense = () => !trial && lesson()?.id === 'flash';
+ const combat = () => !trial && ['flash','shoot'].includes(lesson()?.id);
  let coaching=null;
  document.body.classList.add('guided-intro');
  document.title = text('屋上で操作を試す','Try your controls on the rooftops');
@@ -50,10 +51,11 @@ import { createLessons } from './guided-lessons.js?v=20261111-tutorial-v3';
    practice.targets.forEach((e,j) => {
      e.dead = e.remove = !active; e.m.root.visible = active;
      if (!active) return;
-     const at = lesson()?.id==='shoot'?course.shootPositions[j]:defense() ? [Math.min(180,c.pos.x+3+j*2),0,(j-.5)*.8] : course.targetPositions[j];
+     const at = lesson()?.id==='shoot'?course.shootPositions[j]:defense() ? [Math.max(154,c.pos.x-5-j*2),0,(j-.5)*.8] : course.targetPositions[j];
      e.pos.fromArray(at);e.m.root.position.copy(e.pos);e.vel.set(0,0,0);e.hp=lesson()?.id==='shoot'?4:1e6;e.practiceFloor=at[1];e.spawnT=0;e.rise=e.act=e.fall=null;e.stun=0;
      e.flank=e.dropper=e.stalker=false;e.speedMul=1;e.sideT=0;e.guard=0;e.navT=0;e.onGround=true;
    });
+   if (defense()) { progress.flashOrigins = createPursuit(practice.targets); progress.flashPursued = false; }
  }
  function enter(i) {
    index = i; progress.stats = baseline(lesson()); progress.path = 0; progress.lured = false;progress.reloadSeen=false;
@@ -92,7 +94,7 @@ import { createLessons } from './guided-lessons.js?v=20261111-tutorial-v3';
    if (trial) {if(near(course.trialGoal,1.4))trialReached=true;render(false);return;}
    const current=lesson();if(!current||finished||completing)return;
    if(current.id==='shoot'&&g.G.reloadT>0)progress.reloadSeen=true;
-   if(current.id==='decoy'){if(window.skyDecoy.lured.size>0)progress.lured=true;if(!window.skyDecoy.active&&window.skyDecoy.cooldown>0)window.skyDecoy.reset();}
+   if(current.id==='flash'&&!progress.flashPursued)progress.flash=window.skyFlashbang.stats.affected;
    if(current.id==='flash'&&window.skyFlashbang.charges===0&&!window.skyFlashbang.grenades.length&&window.skyFlashbang.stats.affected<=progress.flash)window.skyFlashbang.reset();
    advanceLessons();
    render(false);
@@ -100,6 +102,7 @@ import { createLessons } from './guided-lessons.js?v=20261111-tutorial-v3';
  function advanceLessons() {
    if (trial || !started || finished || completing || g.mode !== 'play') return;
    observe();
+   if (lesson()?.id === 'flash' && approachingPursuer(sky, practice.targets, progress.flashOrigins)) progress.flashPursued = true;
    for (let n=0;n<lessons.length;n++) {
      const current=lesson();
      while(current.path?.[progress.path]&&(near(current.path[progress.path],1)||reached(current.path[progress.path])))progress.path++;
@@ -155,7 +158,7 @@ import { createLessons } from './guided-lessons.js?v=20261111-tutorial-v3';
  const skip=document.createElement('button');skip.id='learnSkip';skip.textContent=text('練習を終えて本番へ','Leave practice and play');skip.onclick=finish;$('bResume').after(skip);
  for(const node of [$('learnTrialBar'),$('learnDone')])for(const type of ['pointerdown','pointerup','touchstart','touchend','touchmove'])node.addEventListener(type,e=>e.stopPropagation());
  window.skyGuidedIntro={beforeFrame(){if(completing)return true;if(!started&&g.mode==='play')render(false);if(trial)return choice.blocked;advanceLessons();render(false);return coach.blocked;},get blocked(){return completing||(trial?choice.blocked:coach.blocked)},get completing(){return completing},get choice(){return choice.phase},get pausedTarget(){return coach.target},get pauseSequence(){return coach.sequence},get total(){return lessons.length},get finished(){return finished},get trial(){return trial},get stage(){return trial?'controls':lesson()?.id},get defense(){return defense()},get cue(){return coaching},get completed(){return lessons.slice(0,Math.max(0,index)).map(s=>s.id)},
-   retrying(){coach.reset();reset(lesson());retryUntil=g.GAME.t+2;progress.path=0;progress.lured=false;progress.reloadSeen=false;if(lesson()?.id==='flash')window.skyFlashbang.reset();if(lesson()?.id==='decoy')window.skyDecoy.reset();},
+   retrying(){coach.reset();reset(lesson());retryUntil=g.GAME.t+2;progress.path=0;progress.reloadSeen=false;if(lesson()?.id==='flash')window.skyFlashbang.reset();},
    restored(){progress.stats={...g.stats};targets(combat());if(lesson()?.id==='shoot'){g.G.ammo=1;g.G.reserve=24;} },finish,complete};
  render();
 })();

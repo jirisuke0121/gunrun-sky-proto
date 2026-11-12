@@ -13,7 +13,7 @@
     section('downhill', [70.3, 5.07, 0], 0), section('ladder', [87.5, 0, 0]),
     section('zip', [93, 4, 0], 2.8), section('walljump', [115, 2.8, 0]),
     section('swing', [119, 4, 0]), section('dash', [142, 6.8, 0], 0),
-    section('flash', [169, 0, 0]), section('decoy', [171, 0, 0]),
+    section('flash', [169, 0, 0]),
     section('blast', [183, 0, 0]), section('jumpgun', [199, 2, 0]),
     section('shoot', [222, 8, 0]), section('exit', [220, 8, 0]), section('rescue', [243, 8, 0]),
   ];

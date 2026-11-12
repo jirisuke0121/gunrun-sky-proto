@@ -30,8 +30,7 @@ export function createLessons(sky, game, practice, progress) {
     make('walljump', 1, ['壁を蹴って、上へ', 'Kick off the wall'], ['ジャンプ → 空中でもう一度', 'Jump, then jump again in midair'], [119, 4, 0], () => changed('walljumps') && c.pos.x > 117.7 && c.pos.y > 3.9 && landed(), { path: [[115, 2.8, -3.2]], action: 'tJump' }),
     make('swing', 1, ['鉄棒で、向こうの足場へ', 'Swing onto the next roof'], ['前へ振れたらジャンプ', 'Jump as you swing forward'], [140, 6.8, 0], landedAfterSwing, { action: 'tJump', retryIf: () => changed('barJumps') && landed() && !landedAfterSwing() }),
     make('dash', 1, ['加速して、跳ぶ', 'Speed up and jump'], ['青いDASHを取って、先の屋上へ', 'Collect DASH and jump to the next roof'], [163, 0, 0], () => changed('dashPickups') && c.pos.x > 154 && c.pos.y < .2 && landed(), { action: 'tJump' }),
-    make('flash', 2, ['追手を止めよう', 'Stop the pursuers'], ['閃光玉を使う ／ 1', 'Use Flash / 1'], () => practice.targets[0].pos.toArray(), () => window.skyFlashbang.stats.affected > progress.flash, { action: 'tFlash' }),
-    make('decoy', 2, ['分身に任せて、逃げる', 'Distract them and escape'], ['分身を出して、先のマークへ ／ 2', 'Use Decoy, then move to the marker / 2'], [181, 0, 0], () => progress.lured && c.pos.x > 180.3 && landed(), { action: 'tDecoy' }),
+    make('flash', 2, ['追手を止めて、逃げよう', 'Stop the pursuers and escape'], ['追手が近づいたら、閃光玉を使う ／ 1', 'Use Flash when the pursuers get close / 1'], [176, 0, 0], () => progress.flashPursued && window.skyFlashbang.stats.affected > progress.flash && c.pos.x > 180.3 && landed(), { action: 'tFlash' }),
     make('blast', 3, ['赤い缶で、高く跳ぶ', 'Launch with the red barrel'], ['缶をタップ ／ B', 'Tap the barrel / B'], [198, 2, 0], () => changed('blastLaunches') && c.pos.x > 194 && c.pos.y > 1.9 && landed(), { action: 'barrel' }),
     make('jumpgun', 3, ['ジャンプ弾で、もう一つ上へ', 'Use the jump charge'], ['金色の弾を拾い、ジャンプ弾 ／ Z', 'Collect gold, then Launch / Z'], [220, 8, 0], () => changed('jumpGunLaunches') && c.pos.x > 214 && c.pos.y > 7.9 && landed(), { action: 'tJumpGun' }),
     make('shoot',3,['銃の自動操作を試そう','Try automatic aim and fire'],['自動射撃を再開し、その場で待つ','Resume automatic fire and wait'],[222,8,0],()=>game.G.reloadT<=0&&game.G.ammo>0&&progress.reloadSeen&&practice.targets.every(e=>e.dead)&&(game.stats.shots||0)>progress.stats.shots,{action:'tAutoFire'}),
@@ -42,7 +41,7 @@ export function createLessons(sky, game, practice, progress) {
   );
   // If a required action was missed, return from the landing beyond it rather
   // than leave the next marker behind a camera that cannot turn around.
-  const missedAt = {vault:16.5,jump:26.4,mantle:36,wallrun:53,hook:68,ladder:95,zip:115,walljump:120.5,swing:153,dash:155,flash:184,decoy:184,blast:202,jumpgun:224,shoot:243};
+  const missedAt = {vault:16.5,jump:26.4,mantle:36,wallrun:53,hook:68,ladder:95,zip:115,walljump:120.5,swing:153,dash:155,flash:184,blast:202,jumpgun:224,shoot:243};
   for(const lesson of lessons)if(missedAt[lesson.id]!==undefined){
     const retry=lesson.retryIf;
     lesson.retryIf=()=>retry?.()||(landed()&&c.pos.x>missedAt[lesson.id]&&!lesson.done());
