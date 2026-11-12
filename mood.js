@@ -1,4 +1,4 @@
-// Mood: the time of day of the old town. ONE switch, ?mood=noon|dusk|dawn (default noon = the look
+// Mood: the time of day of the old town. ONE switch, ?mood=noon|dusk|dawn (default dawn; noon = the look
 // before this file existed). Only numbers change: sun direction / colour / strength, sky and ground
 // ambient colour, fog and sky-gradient colours. No new meshes, lights, textures or draw calls.
 //
@@ -11,7 +11,7 @@
 // look-pass.js reads window.skyMood for the sky gradient and fog colour.
 (() => {
   const params = new URLSearchParams(location.search);
-  const name = params.get('mood') || 'noon';
+  const name = params.get('mood') || 'dawn'; // ?mood=noon is the previous look
   const mode = params.get('look');
   // Horizontal heading of the original sun (-.45, .35); the mood only lowers it (elevation) or swings it (azimuth).
   const HEAD = Math.atan2(.35, -.45);

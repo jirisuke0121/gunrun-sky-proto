@@ -262,15 +262,23 @@
   // Applies the palette inside the material's own shader, after any custom hooks it already has. The
   // surface's own brightness variation (texture detail) is kept, scaled against what that material
   // normally looks like (colour x texture average), so a recoloured wall still shows its texture.
+  // Cheap value noise for the plaster (a hash of four lattice corners, no texture).
+  const PLASTER_GLSL = `
+    float plasterHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float plasterNoise(vec2 p) {
+      vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+      return mix(mix(plasterHash(i), plasterHash(i + vec2(1., 0.)), f.x), mix(plasterHash(i + vec2(0., 1.)), plasterHash(i + vec2(1., 1.)), f.x), f.y);
+    }
+  `;
   function paletteMaterial(material, clone) {
     const previous = material.onBeforeCompile, average = textureAverage(material.map);
     const reference = Math.max(.02, linearLuma(material.color.r, material.color.g, material.color.b) * (average ? linearLuma(...average) : 1));
     clone.onBeforeCompile = function (shader, renderer) {
       previous?.call(this, shader, renderer);
       shader.uniforms.townLumaRef = { value: reference };
-      shader.vertexShader = 'attribute vec4 aTownPalette;\nattribute vec2 aTownBand;\nvarying vec4 vTownPalette;\nvarying vec2 vTownBand;\nvarying float vTownY;\n' +
-        shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvTownPalette = aTownPalette; vTownBand = aTownBand; vTownY = (modelMatrix * vec4(transformed, 1.0)).y;');
-      shader.fragmentShader = 'varying vec4 vTownPalette;\nvarying vec2 vTownBand;\nvarying float vTownY;\nuniform float townLumaRef;\n' + shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+      shader.vertexShader = 'attribute vec4 aTownPalette;\nattribute vec2 aTownBand;\nvarying vec4 vTownPalette;\nvarying vec2 vTownBand;\nvarying float vTownY;\nvarying vec3 vTownPos;\n' +
+        shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvTownPalette = aTownPalette; vTownBand = aTownBand; vTownPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vTownY = vTownPos.y;');
+      shader.fragmentShader = 'varying vec4 vTownPalette;\nvarying vec2 vTownBand;\nvarying float vTownY;\nvarying vec3 vTownPos;\nuniform float townLumaRef;\n' + PLASTER_GLSL + shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
         if (vTownPalette.a > .0) {
           float townLuma = dot(diffuseColor.rgb, vec3(.2126, .7152, .0722));
           vec3 townColour = vTownPalette.rgb * mix(1.0, clamp(townLuma / townLumaRef, .72, 1.28), .45);
@@ -279,12 +287,23 @@
             float cornice = smoothstep(vTownBand.y - .36, vTownBand.y - .32, vTownY);
             float shadow = smoothstep(vTownBand.y - .46, vTownBand.y - .42, vTownY) * (1.0 - cornice);
             townColour *= (1.0 - .24 * plinth) * (1.0 + .16 * cornice) * (1.0 - .16 * shadow);
+            // Plaster that is not one flat colour: patchy mottling, drip streaks, soft shade towards the ground
+            // and a little damp near the foot. A wall's two horizontal axes are folded into one (x + z; the
+            // other is constant along any wall), so every wall gets its own pattern.
+            vec2 wall = vec2(vTownPos.x + vTownPos.z, vTownPos.y);
+            float blotch = plasterNoise(wall * .42) - .5, grain = plasterNoise(wall * 1.9) - .5;
+            float streak = plasterNoise(vec2(wall.x * 2.3, wall.y * .16)) - .5;
+            float rise = clamp((vTownY - vTownBand.x) / 1.7, 0., 1.);
+            float foot = 1.0 - smoothstep(.0, 1.7, vTownY - vTownBand.x);
+            townColour *= 1.0 + .34 * blotch + .12 * grain - .24 * streak * (1.0 - .5 * cornice);
+            townColour = mix(townColour, townColour * vec3(.78, .72, .66), foot * .6);
+            townColour *= mix(.78, 1.0, rise);
           }
           diffuseColor.rgb = mix(diffuseColor.rgb, townColour, vTownPalette.a);
         }`);
     };
     const keyBefore = material.customProgramCacheKey.bind(material);
-    clone.customProgramCacheKey = () => keyBefore() + '|town-palette-v3';
+    clone.customProgramCacheKey = () => keyBefore() + '|town-palette-v5';
   }
 
   // Colour is stored per vertex (the world is merged into a few big meshes), so the draw call

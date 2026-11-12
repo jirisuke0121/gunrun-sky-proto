@@ -1,5 +1,5 @@
 // Mood (mood.js): ?mood=dusk|dawn changes the light and sky only, and adds three small meshes.
-//  1. default (noon) is unchanged: no mood meshes, the original high sun
+//  1. ?mood=noon is the look before mood.js existed: no mood meshes, the original high sun. The default (no parameter) is dawn.
 //  2. dusk: low warm sun, sun glow + far skyline + dust motes, each costs at most one draw call; skyline stays under 2000 triangles
 //  3. ?look=classic ignores the mood; the lowest render quality hides the motes
 //  4. the fixed views do not become dark enough to hide the player: near-black share stays small
@@ -35,7 +35,7 @@ async function dark(p,view){
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}/`;
  const launch=()=>chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});let browser;
  try{browser=await launch();const summary={};
-  const noon=await open(browser,base,''),dusk=await open(browser,base,'&mood=dusk'),dawn=await open(browser,base,'&mood=dawn'),classic=await open(browser,base,'&mood=dusk&look=classic');
+  const noon=await open(browser,base,'&mood=noon'),dusk=await open(browser,base,'&mood=dusk'),dawn=await open(browser,base,'') /* the default is dawn */,classic=await open(browser,base,'&mood=dusk&look=classic');
   const has=p=>p.evaluate(names=>names.map(n=>window.__skyInternals.ue.children.some(c=>c.name===n)),MOOD_MESHES);
   // 1. noon is unchanged
   assert.deepEqual(await has(noon.p),[false,false,false],'noon adds no mood meshes');
