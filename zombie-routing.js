@@ -23,12 +23,18 @@ export function createZombieRouting(game, runtime, climb, flashbang) {
   const stats = { checked: 0, shortcuts: 0, boundedFlanks: 0, jumps: 0, drops: 0, blocked: 0, interrupted: 0, maxValidationMs: 0, slowedLeaps: 0, fellShort: 0 };
   const { nodes, E: edges, out } = runtime.NAV;
   const plans = new WeakMap(), direct = new WeakMap();
-  let validated = new WeakMap(), doorKey = '', nextDoors = -Infinity, doorAt = -Infinity;
+  // Swept-body validity per edge (2026-11-12). Until now one door opening or closing threw away every
+  // result, and the next path search re-swept all ~3,400 leap/drop edges in a single frame (110-210 ms on an
+  // iPhone, see docs/HITCHES_2026-11-12.md). A sweep only depends on the boxes under its own footprint and on
+  // the rooms that footprint touches, so each edge remembers those and is re-swept only when one of them changes.
+  const cache = new WeakMap(), body = { r: .3, h: 1.8 };
+  let worldStamp = 0, worldKey = null, nextWorld = -Infinity, worldAt = -Infinity, solidCount = -1, cacheEpoch = 0;
+  let roomBoxes = null, roomEntered = [];
   const active = () => !game.z.mission;
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
   const standing = { r: .3, h: 1.8 };
   function owns(edge) {
-    if (!active() || !edge || ![6, 7].includes(edge.kind)) return false;
+    if (!active() || !edge || (edge.kind !== 6 && edge.kind !== 7)) return false;
     // Preserve the west district's authored long leaps and descents.
     return !window.skyLeapOK?.(edge);
   }
@@ -55,34 +61,84 @@ export function createZombieRouting(game, runtime, climb, flashbang) {
     }
     return true;
   }
-  function usable(edge) {
-    const now = game.ceRef();
-    if (now < doorAt || now >= nextDoors) {
-      nextDoors = now + .25;
-      const key = (runtime.DOORS || []).map(d => d.b.off ? 'o' : 'c').join('');
-      if (key !== doorKey) { doorKey = key; validated = new WeakMap(); }
+  // At most every 0.25 s (and after the clock steps back): has any box been switched or any room entered?
+  function worldSync(now) {
+    if (now >= worldAt && now < nextWorld) { worldAt = now; return; }
+    worldAt = now; nextWorld = now + .25;
+    const solids = game.jn || [], access = runtime.INDOOR_ACCESS;
+    let key = (access?.revision | 0) + ':' + solids.length + ':';
+    for (let i = 0; i < solids.length; i++) if (solids[i].off) key += i + ',';
+    // A box was added or removed: the remembered footprints may miss it, so start over (rare).
+    if (solids.length !== solidCount) { solidCount = solids.length; cacheEpoch++; }
+    if (key === worldKey) return;
+    worldKey = key; worldStamp++;
+    if (access?.snapshot) {
+      const rooms = access.snapshot();
+      if (!roomBoxes) roomBoxes = rooms;
+      roomEntered = rooms.map(room => !!room.entered);
     }
-    doorAt = now;
-    if (validated.has(edge)) return validated.get(edge);
+  }
+  // The boxes and rooms an edge's flight can touch: its footprint, padded by the body and a small margin.
+  function footprint(edge) {
+    const from = nodes[edge.from], to = nodes[edge.to], pad = body.r + .5;
+    const minX = Math.min(from.x, to.x) - pad, maxX = Math.max(from.x, to.x) + pad;
+    const minZ = Math.min(from.z, to.z) - pad, maxZ = Math.max(from.z, to.z) + pad;
+    // Room rules test the flight's centre line only (no body radius), so use its exact extent: a jump along a
+    // roof edge does not depend on the room below it.
+    const rise = edge.kind === 6 ? 1.3 + Math.max(0, to.y - from.y) * .5 : .5, slack = .05;
+    const lowY = Math.min(from.y, to.y) - slack, highY = Math.max(from.y, to.y) + rise + slack;
+    const x0 = Math.min(from.x, to.x) - slack, x1 = Math.max(from.x, to.x) + slack;
+    const z0 = Math.min(from.z, to.z) - slack, z1 = Math.max(from.z, to.z) + slack;
+    const rooms = [];
+    if (roomBoxes) for (let i = 0; i < roomBoxes.length; i++) {
+      const b = roomBoxes[i];
+      if (x1 > b.minX && x0 < b.maxX && z1 > b.minZ && z0 < b.maxZ && highY >= b.minY && lowY < b.maxY) rooms.push(i);
+    }
+    return { epoch: cacheEpoch, stamp: -1, sig: null, valid: false, boxes: [...runtime.near(minX, minZ, maxX, maxZ)], rooms,
+      cost: 0, costLoad: undefined, costGravity: NaN };
+  }
+  function signature(entry) {
+    let sig = '';
+    const boxes = entry.boxes;
+    for (let i = 0; i < boxes.length; i++) if (boxes[i].off) sig += i + ',';
+    for (const id of entry.rooms) sig += roomEntered[id] ? 'e' : 'c';
+    return sig;
+  }
+  function validate(edge) {
     const begin = performance.now(), from = nodes[edge.from], to = nodes[edge.to];
     let valid = !!from && !!to && (edge.kind === 6 ? edge.len <= config.jump && Math.abs(to.y - from.y) <= config.rise
       : edge.len <= config.dropAcross && from.y - to.y > .1 && from.y - to.y <= config.drop);
     if (valid) valid = landing(from) && sweep(standing, action({ ...from, y: from.y + .003 }, to, edge.kind));
     stats.checked++; stats.maxValidationMs = Math.max(stats.maxValidationMs, performance.now() - begin);
-    validated.set(edge, valid); return valid;
+    return valid;
   }
+  function entryFor(edge) {
+    worldSync(game.ceRef());
+    let entry = cache.get(edge);
+    if (entry && entry.epoch === cacheEpoch && entry.stamp === worldStamp) return entry;
+    if (!entry || entry.epoch !== cacheEpoch) { entry = footprint(edge); cache.set(edge, entry); }
+    const sig = signature(entry);
+    if (sig !== entry.sig) { entry.sig = sig; entry.valid = validate(edge); }
+    entry.stamp = worldStamp;
+    return entry;
+  }
+  const usable = edge => entryFor(edge).valid;
   function edgeCost(edge) {
     if (edge?.kind === 5) return window.skyZombieLadders?.edgeCost(edge) ?? null;
     if (!owns(edge)) return null;
     if (runtime.INDOOR_ACCESS?.edgeAllowed && !runtime.INDOOR_ACCESS.edgeAllowed(edge, runtime.NAV)) return Infinity;
-    if (!usable(edge)) return Infinity;
-    const a = action(nodes[edge.from], nodes[edge.to], edge.kind);
+    const entry = entryFor(edge);
+    if (!entry.valid) return Infinity;
     // Match movement time in the metre-scaled walking field, including the
     // take-off cue and the existing recovery after a higher drop.
-    const load = edge.kind === 6 ? leapLoad() : null;
-    // A failed leap costs about ten seconds of climbing back (60 in walking-field units).
-    return (a.wait + a.dur * (load?.slow || 1) + (edge.kind === 7 ? .55 : 0)) * 6 + (load ? load.fail * 60 : 0) +
-      (edge.jamT > game.ceRef() ? 80 : 0);
+    const load = edge.kind === 6 ? leapLoad() : null, gravity = game.U.gravity;
+    if (entry.costLoad !== load || entry.costGravity !== gravity) {
+      const a = action(nodes[edge.from], nodes[edge.to], edge.kind);
+      // A failed leap costs about ten seconds of climbing back (60 in walking-field units).
+      entry.cost = (a.wait + a.dur * (load?.slow || 1) + (edge.kind === 7 ? .55 : 0)) * 6 + (load ? load.fail * 60 : 0);
+      entry.costLoad = load; entry.costGravity = gravity;
+    }
+    return entry.cost + (edge.jamT > game.ceRef() ? 80 : 0);
   }
   function bestEdge(source, field, cost) {
     let best = field[source] + .05, result = -1;
@@ -189,5 +245,20 @@ export function createZombieRouting(game, runtime, climb, flashbang) {
     }
     return 0;
   }
-  return { config, stats, owns, edgeCost, afterPick, waypoint, directChase, startTraversal, beforeStep, sweep, queueDelay };
+  // Spread the first sweep of every leap/drop edge over idle time (the home screen, the first seconds of a run),
+  // so the first path search of a run does not do all of them in one frame.
+  let warmAt = 0, warmEpoch = -1;
+  function warm(budgetMs = 3) {
+    if (!active()) return true;
+    if (warmEpoch !== cacheEpoch) { warmEpoch = cacheEpoch; warmAt = 0; }
+    const begin = performance.now();
+    while (warmAt < edges.length) {
+      const edge = edges[warmAt++];
+      if (edge.kind !== 6 && edge.kind !== 7) continue;
+      if (owns(edge)) entryFor(edge);
+      if ((warmAt & 15) === 0 && performance.now() - begin >= budgetMs) return false;
+    }
+    return true;
+  }
+  return { config, stats, owns, edgeCost, validateFresh: validate, warm, afterPick, waypoint, directChase, startTraversal, beforeStep, sweep, queueDelay };
 }

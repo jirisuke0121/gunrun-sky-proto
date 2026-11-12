@@ -41,6 +41,16 @@ function policyFixture(practice = false) {
   const normalKey=f.policy.key('best');f.home();f.get('challengeDifficulty').value='hard';f.get('challengeDifficulty').change();
   assert.equal(f.policy.key('best'),normalKey,'personal best spans all standard difficulties');
   f.get('bReset').click();assert.equal(f.saved().jumpVel,7.2);
+  // Trial tier above Hard: same fixed settings and body budget, its own local best, and no board of its own.
+  f.home();f.get('challengeDifficulty').value='extreme';f.get('challengeDifficulty').change();
+  assert.equal(f.policy.id,'extreme');assert.notEqual(f.policy.key('best'),normalKey,'the trial tier keeps its own personal best');
+  assert.equal(f.policy.rankingDifficulty('extreme'),'all','its screens show the shared board');
+  assert.equal(f.policy.hardLike,true);assert.equal(f.policy.maxAlive,8);assert.equal(f.policy.profile().types,true);
+  assert.equal(f.policy.value('zombieHealth',0),12);assert.equal(f.policy.value('zombieSpeed',0),8);
+  assert.equal(f.policy.events([]).map(e=>e.do).join(),'squeeze,surge,boss,squeeze,surge,squeeze','Hard\'s scripted events');
+  assert.equal(rules.eligible({challenge:{id:'extreme',fixedSettings:{...rules.settings}}}),false,'never ranking-eligible');
+  f.get('challengeDifficulty').value='hard';f.get('challengeDifficulty').change();
+  assert.equal(f.policy.key('best'),normalKey);assert.equal(f.policy.profile().types,undefined,'ranked tiers have no kinds');
   const practice=policyFixture(true);assert.equal(practice.U.jumpVel,10);assert.equal(practice.get('s_jumpVel').disabled,false);
 
   const scoreEnv={window:{skySurvivalScore:require('../survival-score.js')},document:{},Math};
@@ -96,6 +106,10 @@ function policyFixture(practice = false) {
   assert.equal((await get('/ranking?'+scope)).top[0].score,2400);
   assert.equal((await get('/ranking?map=old-town&rules=corridor-parkour-v8&difficulty=normal')).top[0].score,99999);
 
+  // A trial-tier run is stored but never ranked, whatever it claims.
+  const trial=make('trial','hard',99999,{rankingEligible:true});trial.challenge.id='extreme';
+  assert.equal((await post(trial)).receipt.ranked,false,'the trial tier stays outside the ranking');
+  assert.equal((await get('/ranking?'+scope)).top[0].score,2400);
   const forged=make('forged','normal',99999);forged.score.total++;
   assert.equal((await post(forged)).receipt.ranked,false,'inconsistent score arithmetic is saved outside ranking');
   const alteredDifficulty=make('bad-multiplier','normal',99999);alteredDifficulty.score.difficulty=99;

@@ -35,7 +35,10 @@
   const choices = make('div', { className: 'home-difficulty-choices', role: 'group', ariaLabel: '難易度' });
   const levels = window.skyChallenge.levels.filter(p => p.id !== 'legacy');
   for (const [index, p] of levels.entries()) {
-    const button = make('button', { type: 'button' }, `<span>${p.name}</span><strong><em>スコア</em><b>×${(1 + .1 * index).toFixed(1)}</b></strong><small><span>追手 最大${Math.max(...p.counts)}体</span><span>ライフ${p.lives}</span></small>`);
+    // The trial tier is a slim row under the three ranked choices: it is not part of the shared ranking.
+    const button = p.trial
+      ? make('button', { type: 'button', className: 'home-difficulty-trial' }, `<span>${p.name}</span><small><span>試作</span><span>俊足と重装が混ざる</span><span>ランキング対象外</span></small>`)
+      : make('button', { type: 'button' }, `<span>${p.name}</span><strong><em>スコア</em><b>×${(1 + .1 * index).toFixed(1)}</b></strong><small><span>追手 最大${Math.max(...p.counts)}体</span><span>ライフ${p.lives}</span></small>`);
     button.dataset.difficulty = p.id;
     button.addEventListener('click', () => {
       if (selector.disabled || window.__game.mode !== 'menu') return;

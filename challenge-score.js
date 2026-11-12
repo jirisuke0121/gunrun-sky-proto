@@ -8,7 +8,8 @@
   let previousTick = 0, shown = 0, roll = null, barKey = -1, tickAnimation;
   const $ = id => document.getElementById(id);
   const enabled = () => !!window.skyChallenge?.profile();
-  const level = () => Math.max(0, ids.indexOf(window.skyChallenge.id));
+  // The trial tier above Hard scores like Hard (the shared score formula has three steps).
+  const level = () => window.skyChallenge.id === 'extreme' ? 2 : Math.max(0, ids.indexOf(window.skyChallenge.id));
   const evaluate = (...args) => window.skySurvivalScore.evaluate(...args);
   const playing = () => game && enabled() && !game.z.over && !game.z.mission &&
     !window.skyPracticeMode && !game.demoActive?.() && game.modeRef() === 'play';

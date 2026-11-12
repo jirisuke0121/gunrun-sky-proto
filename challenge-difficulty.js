@@ -10,16 +10,22 @@
     { id: 'easy', lives: 8, spacing: 1, health: 4, name: 'イージー', note: '基本のジャンプや段差移動を使い、余裕をもって逃げる', startSpeed: 4.3, maxSpeed: 5.4, counts: [3, 4, 5], initial: 3, interval: 2.2, flank: .05, ahead: .1, drop: 0, lull: 5, quiet: 0, lead: 6, warn: 2.5 },
     { id: 'normal', lives: 5, spacing: 4, health: 8, name: 'ノーマル', note: '段差・隙間・壁走りで繰り返し追跡を引き離す。銃で逃げる時間を作る', startSpeed: 6, maxSpeed: 6.8, counts: [4, 5, 6], initial: 4, interval: 1.6, flank: .3, ahead: .35, drop: .15, lull: 4, quiet: 18, lead: 5, warn: 2.5 },
     { id: 'hard', lives: 3, spacing: 4, health: 12, name: 'ハード', note: '技を連続させ、敵の配置から着地点と逃走路を選ぶ。銃は押し落としと足止めに使う', startSpeed: 6.8, maxSpeed: 8, counts: [8, 8, 8], initial: 8, interval: .25, flank: .5, ahead: .5, drop: .25, lull: 0, quiet: 12, lead: 4, warn: 2.2 },
+    // Trial tier (2026-11-12): Hard's bodies, speed, health and routing, plus zombie kinds (zombie-types.js): a fast
+    // fragile runner and a slow tough brute among the ordinary ones. It is not part of the shared ranking: the Worker
+    // scores only easy/normal/hard, so these runs are stored but never ranked.
+    { id: 'extreme', lives: 3, spacing: 4, health: 12, name: '超ベリーハード', note: 'ハードの追跡に、足の速い個体（体力半分）と倒れにくい個体（体力2倍・押しても動きにくい）が混ざる', startSpeed: 6.8, maxSpeed: 8, counts: [8, 8, 8], initial: 8, interval: .25, flank: .5, ahead: .5, drop: .25, lull: 0, quiet: 12, lead: 4, warn: 2.2, trial: true, types: true },
     { id: 'legacy', name: '自由調整', note: '従来の設定・追跡者・ランキング', counts: [] },
   ];
   const intro = { id: 'intro', name: '入門モード', lives: 3, unlimited: true, spacing: 0,
     health: 2, note: 'ライフ無限で、移動・ジャンプ・パルクールを試す', startSpeed: 3.5, maxSpeed: 4.5,
     counts: [3, 4, 5], initial: 3, interval: 3, flank: 0, ahead: 0, drop: 0, lull: 6, quiet: 0, lead: 6, warn: 3 };
   const presets = [intro, ...levels.filter(p => p.id !== 'legacy')];
+  // Hard and the trial tier above it share the eight-body budget and the scripted events.
+  const hardLike = p => p?.id === 'hard' || p?.id === 'extreme';
   for (const p of presets) p.ramp = 90;
   const byId = Object.fromEntries([intro, ...levels].map(p => [p.id, p]));
   for (const p of presets) p.values = {
-    zombieSpeed: p.maxSpeed, zombieHealth: p.health, maxZombies: Math.min(p.id === 'hard' ? 8 : maxAlive, p.counts.at(-1)), flankShare: p.flank, aheadShare: p.ahead,
+    zombieSpeed: p.maxSpeed, zombieHealth: p.health, maxZombies: Math.min(hardLike(p) ? 8 : maxAlive, p.counts.at(-1)), flankShare: p.flank, aheadShare: p.ahead,
     dropperShare: p.drop, dropShare: p.drop, killLull: p.lull, paceGap: p.quiet,
     stalkerOn: false, stalker2: false, stalkerAt: 120, stalkerSpeed: 0, loseSight: 0,
   };
@@ -38,6 +44,46 @@
   const profile = () => window.skyPracticeMode || game?.z.mission || active === 'legacy' ? null : level(active);
   const speedScale = () => (game?.U.sprintSpeed || 6) / 6;
   const range = p => ({ start: (p.startSpeed ?? p.maxSpeed - 2) * speedScale(), end: p.maxSpeed * speedScale() });
+  // Reused buffers and a binary heap on typed arrays for escapeLead (no allocation per ask).
+  let leadState = null;
+  function leadBuffers(nav) {
+    if (leadState?.nav === nav && leadState.base.length === nav.nodes.length && leadState.enemy.length === nav.E.length) return leadState;
+    const n = nav.nodes.length, e = nav.E.length, room = e + 2 * n + 64;
+    return leadState = { nav, base: new Float64Array(n), arrival: new Float64Array(n), reached: new Float64Array(n * 2),
+      enemy: new Float64Array(e), player: new Float64Array(e), keys: new Float64Array(room), values: new Int32Array(room),
+      size: 0, key: 0, value: 0, frame: null, baseKey: null, enemyCost: null, playerCost: null };
+  }
+  function heapPush(h, key, value) {
+    if (h.size === h.keys.length) {
+      const keys = new Float64Array(h.size * 2), values = new Int32Array(h.size * 2);
+      keys.set(h.keys); values.set(h.values); h.keys = keys; h.values = values;
+    }
+    const keys = h.keys, values = h.values;
+    let i = h.size++;
+    while (i > 0) {
+      const parent = (i - 1) >> 1;
+      if (keys[parent] <= key) break;
+      keys[i] = keys[parent]; values[i] = values[parent]; i = parent;
+    }
+    keys[i] = key; values[i] = value;
+  }
+  // Removes the smallest entry into h.key / h.value.
+  function heapPop(h) {
+    const keys = h.keys, values = h.values;
+    h.key = keys[0]; h.value = values[0];
+    const size = --h.size;
+    if (!size) return;
+    const key = keys[size], value = values[size];
+    let i = 0;
+    for (;;) {
+      let child = i * 2 + 1;
+      if (child >= size) break;
+      if (child + 1 < size && keys[child + 1] < keys[child]) child++;
+      if (keys[child] >= key) break;
+      keys[i] = keys[child]; values[i] = values[child]; i = child;
+    }
+    keys[i] = key; values[i] = value;
+  }
   const ladderExits = new WeakMap();
   function usableLadder(edge) {
     if (!edge.ladder) return false;
@@ -45,11 +91,14 @@
     return ladderExits.get(edge.ladder);
   }
   const currentSpeed = p => { const r = range(p); return r.start + (r.end - r.start) * Math.min(1, Math.max(0, game?.z.t || 0) / (p.ramp || 80)); };
-  const rankingDifficulty = id => ['easy', 'normal', 'hard'].includes(id) ? 'all' : id;
-  const key = base => (active === 'legacy' ? base : `${base}-${version}-${rankingDifficulty(active)}`) + (oldTownSwingPreview ? '-oldtown-swing-preview' : debug ? '-debug' : '');
+  // The server's board for a difficulty. The trial tier has no board of its own; its screens show the shared one.
+  const rankingDifficulty = id => ['easy', 'normal', 'hard', 'extreme'].includes(id) ? 'all' : id;
+  // Local best and ghost: the trial tier keeps its own, so it never overwrites the shared-board best.
+  const localScope = id => id === 'extreme' ? 'extreme' : rankingDifficulty(id);
+  const key = base => (active === 'legacy' ? base : `${base}-${version}-${localScope(active)}`) + (oldTownSwingPreview ? '-oldtown-swing-preview' : debug ? '-debug' : '');
   function limit(time, fallback) {
     const p = profile();
-    return p ? Math.min(p.id === 'hard' ? 8 : maxAlive, p.counts[Math.min(p.counts.length - 1, Math.floor(Math.max(0, time) / (p.counts.length === 3 ? 40 : 20)))]) : fallback;
+    return p ? Math.min(hardLike(p) ? 8 : maxAlive, p.counts[Math.min(p.counts.length - 1, Math.floor(Math.max(0, time) / (p.counts.length === 3 ? 40 : 20)))]) : fallback;
   }
   function value(name, fallback) {
     const p = profile();
@@ -62,7 +111,7 @@
   const ordinary = list => list.filter(e => !e.boss);
   function room(fallback) {
     if (!profile() || !game) return fallback;
-    const budget = profile().id === 'hard' ? 8 : maxAlive;
+    const budget = hardLike(profile()) ? 8 : maxAlive;
     const bodies = ordinary(game.Jt);
     const alive = bodies.filter(e => !e.dead).length;
     const protectedCorpses = bodies.filter(e => e.dead && !e.remove && e.deadT < corpseMinimum).length;
@@ -74,7 +123,7 @@
     if (room(0) <= 0) return false;
     // Preserve the initial death feedback. Reclaim the oldest eligible corpse
     // only when a live spawn needs its slot; never cull a living enemy.
-    const budget = profile().id === 'hard' ? 8 : maxAlive;
+    const budget = hardLike(profile()) ? 8 : maxAlive;
     const corpses = ordinary(game.Jt).filter(e => e.dead && (e.remove || e.deadT >= corpseMinimum)).sort((a,b) => b.deadT - a.deadT);
     while (ordinary(game.Jt).length >= budget && corpses.length) {
       const e = corpses.shift(), index = game.Jt.indexOf(e);
@@ -86,7 +135,7 @@
   function events(fallback) {
     if (active === 'legacy') return fallback;
     if (active === 'normal') return [{ t: 60, do: 'surge', n: 1 }, { t: 90, do: 'squeeze', front: 1, back: 1 }];
-    if (active !== 'hard') return [];
+    if (active !== 'hard' && active !== 'extreme') return [];
     return [
       { t: 30, do: 'squeeze', front: 1, back: 1 },
       { t: 40, do: 'surge', n: 2 },
@@ -116,12 +165,12 @@
     selector.disabled = selected === 'legacy';
     const scoreBonus = document.getElementById('challengeScoreBonus');
     scoreBonus.hidden = !preset || active === 'intro';
-    scoreBonus.textContent = `スコアボーナス ×${(1 + .1 * levels.indexOf(level(selected))).toFixed(1)} ｜ 生存・撃破の両方に適用`;
+    scoreBonus.textContent = level(selected).trial ? '試作：スコアはハードと同じ ×1.2 ｜ ランキング対象外' : `スコアボーナス ×${(1 + .1 * levels.indexOf(level(selected))).toFixed(1)} ｜ 生存・撃破の両方に適用`;
     const custom = document.getElementById('challengeCustom');
     custom.checked = selected === 'legacy';
     custom.disabled = game.modeRef() !== 'menu';
     document.getElementById('challengeDescription').textContent = preset
-      ? `${p.note}。ライフ${p.unlimited ? '無限（ランキング対象外）' : p.lives}。群れの上限 ${p.counts.join(' → ')}体、体力 ${p.health}（HGで${p.health}発）、通常追跡 ${range(p).start.toFixed(1)} → ${range(p).end.toFixed(1)}m/s。死体を含め通常ゾンビの表示は最大${p.id === 'hard' ? 8 : maxAlive}体。引き離しても追跡は続きます。`
+      ? `${p.note}。ライフ${p.unlimited ? '無限（ランキング対象外）' : p.lives}。群れの上限 ${p.counts.join(' → ')}体、体力 ${p.health}（HGで${p.health}発）、通常追跡 ${range(p).start.toFixed(1)} → ${range(p).end.toFixed(1)}m/s。死体を含め通常ゾンビの表示は最大${hardLike(p) ? 8 : maxAlive}体。引き離しても追跡は続きます。${p.trial ? '試作のためランキング対象外（記録は保存されます）。' : ''}`
       : 'メニューのゾンビ調整値を使います。6体の表示制限は対象外で、数を増やすほど負荷も増えます。これまでの記録はこちら。';
     document.getElementById('challengeSettingsNote').textContent = preset
       ? `${p.name}：移動・戦闘の条件は固定です。得点倍率はイージー×1.0・ノーマル×1.1・ハード×1.2。全難易度のスコアを同じランキングで競います。カメラ・感度・音量・画質は変更できます。${window.skyDevMode ? '個別に調整する場合はホームの詳細設定で「自由調整」を有効にします。' : ''}`
@@ -167,8 +216,8 @@
     document.dispatchEvent(new CustomEvent('sky-difficulty-change'));
   }
   window.skyChallenge = {
-    version, debug, get maxAlive() { return profile()?.id === 'hard' ? 8 : maxAlive; },
-    get maxRendered() { return profile()?.id === 'hard' ? 8 : maxAlive; }, corpseMinimum, levels, key, profile, limit, value, room, reserve, events, begin, rankingDifficulty,
+    version, debug, get maxAlive() { return hardLike(profile()) ? 8 : maxAlive; },
+    get maxRendered() { return hardLike(profile()) ? 8 : maxAlive; }, get hardLike() { return hardLike(profile()); }, corpseMinimum, levels, key, profile, limit, value, room, reserve, events, begin, rankingDifficulty,
     settingsForStorage() { return game ? (fixedApplied ? { ...game.U, ...customSettings } : game.U) : undefined; },
     get id() { return active; }, get selected() { return selected; },
     get name() { return level(active).name; },
@@ -199,40 +248,62 @@
     },
     warning(fallback) { return profile()?.warn ?? fallback; },
     minimumLead(fallback) { return profile()?.lead ?? fallback; },
-    escapeLead(start, enemies, { nav, enemyCost, playerCost, hooks, margin, Queue }) {
-      const count = nav.nodes.length, arrival = new Float64Array(count).fill(Infinity);
-      let queue = new Queue();
-      const threats = [...enemies, ...game.Jt.filter(e => !e.dead && e.node >= 0).map(e => [e.node, 0])];
-      for (const [node, time] of threats) if (time < arrival[node]) { arrival[node] = time; queue.push(time, node); }
-      while (queue.size) {
-        const [time, node] = queue.pop();
-        if (time > arrival[node]) continue;
-        if (time > 20) break;
-        for (const id of nav.out[node]) {
-          const edge = nav.E[id], next = time + enemyCost(edge);
-          if (next < arrival[edge.to]) { arrival[edge.to] = next; queue.push(next, edge.to); }
-        }
+    // Squeeze forecast. Same answer as before (bench/escape-lead.test.cjs keeps the previous version and compares),
+    // but one squeeze attempt asks up to six times in a single frame, and each ask used to run two whole-map searches
+    // with a fresh queue and fresh arrays (70-250 ms frames on an iPhone, docs/HITCHES_2026-11-12.md). Now the
+    // zombies already on the map are spread once per frame, each candidate pair only adds itself to that result,
+    // and per-edge costs are computed once per frame.
+    escapeLead(start, enemies, { nav, enemyCost, playerCost, hooks, margin }) {
+      const count = nav.nodes.length, B = leadBuffers(nav), out = nav.out, E = nav.E;
+      const alive = game.Jt.filter(e => !e.dead && e.node >= 0);
+      const frame = game.z.t + ':' + (window.skyIndoorAccess?.revision ?? 0) + ':' + active + ':' + game.U.sprintSpeed + ':' + game.U.gravity;
+      if (B.frame !== frame || B.enemyCost !== enemyCost || B.playerCost !== playerCost) {
+        B.enemy.fill(NaN); B.player.fill(NaN); B.baseKey = null;
+        B.frame = frame; B.enemyCost = enemyCost; B.playerCost = playerCost;
       }
-      // Track whether this route has already used its hook. A second hook is
-      // deliberately excluded from this short forecast, rather than ignoring CD.
-      const reached = new Float64Array(count * 2).fill(Infinity);
-      queue = new Queue(); reached[start] = 0; queue.push(0, start);
-      let lead = -1;
-      const visit = (node, time, used) => {
-        const state = node + (used ? count : 0);
-        if (time < reached[state] && time < arrival[node] - margin) {
-          reached[state] = time; queue.push(time, state);
+      const spread = (arrival, sources) => {
+        B.size = 0;
+        for (const [node, time] of sources) if (time < arrival[node]) { arrival[node] = time; heapPush(B, time, node); }
+        while (B.size) {
+          heapPop(B);
+          const time = B.key, node = B.value;
+          if (time > arrival[node]) continue;
+          if (time > 20) break;
+          for (const id of out[node]) {
+            let cost = B.enemy[id];
+            if (cost !== cost) cost = B.enemy[id] = enemyCost(E[id]);
+            const to = E[id].to, next = time + cost;
+            if (next < arrival[to]) { arrival[to] = next; heapPush(B, next, to); }
+          }
         }
       };
-      while (queue.size) {
-        const [time, state] = queue.pop(), used = state >= count, node = state % count;
+      const baseKey = alive.map(e => e.node).join(',');
+      if (B.baseKey !== baseKey) { B.base.fill(Infinity); spread(B.base, alive.map(e => [e.node, 0])); B.baseKey = baseKey; }
+      const arrival = B.arrival; arrival.set(B.base);
+      spread(arrival, enemies);
+      // Track whether this route has already used its hook. A second hook is
+      // deliberately excluded from this short forecast, rather than ignoring CD.
+      const reached = B.reached; reached.fill(Infinity);
+      B.size = 0; reached[start] = 0; heapPush(B, 0, start);
+      let lead = -1;
+      const hookCD = game.c.hookCD;
+      while (B.size) {
+        heapPop(B);
+        const time = B.key, state = B.value, used = state >= count, node = used ? state - count : state;
         if (time > reached[state]) continue;
         lead = Math.max(lead, Math.min(arrival[node], 30) - time);
         if (time > 8) continue;
-        for (const id of nav.out[node]) {
-          const edge = nav.E[id]; visit(edge.to, time + playerCost(edge), used);
+        const offset = used ? count : 0;
+        for (const id of out[node]) {
+          let cost = B.player[id];
+          if (cost !== cost) cost = B.player[id] = playerCost(E[id]);
+          const to = E[id].to, next = time + cost, target = to + offset;
+          if (next < reached[target] && next < arrival[to] - margin) { reached[target] = next; heapPush(B, next, target); }
         }
-        if (!used && time >= game.c.hookCD) for (const hook of hooks[node] || []) visit(hook.to, time + hook.t + .8, true);
+        if (!used && time >= hookCD) for (const hook of hooks[node] || []) {
+          const next = time + hook.t + .8, target = hook.to + count;
+          if (next < reached[target] && next < arrival[hook.to] - margin) { reached[target] = next; heapPush(B, next, target); }
+        }
       }
       return lead;
     },
@@ -298,7 +369,7 @@
       const introEntry = document.getElementById('introEntry');
       introEntry.parentElement.prepend(introEntry);
       const selector = document.getElementById('challengeDifficulty');
-      for (const p of levels) if (p.id !== 'legacy') selector.add(new Option(`${p.name}（スコア ×${(1 + .1 * levels.indexOf(p)).toFixed(1)}）`, p.id));
+      for (const p of levels) if (p.id !== 'legacy') selector.add(new Option(p.trial ? `${p.name}（試作・ランキング対象外）` : `${p.name}（スコア ×${(1 + .1 * levels.indexOf(p)).toFixed(1)}）`, p.id));
       selector.addEventListener('change', () => select(selector.value));
       document.getElementById('challengeCustom').addEventListener('change', event => {
         select(event.target.checked ? 'legacy' : lastPreset);

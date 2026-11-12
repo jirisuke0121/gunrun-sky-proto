@@ -8,7 +8,8 @@ import { installSkillDock } from './player-skills.js?v=20261108-skill-tap-v1';
 import { installPlayerClarity } from './player-clarity.js?v=20261106-player-clarity-v3';
 import { createDecoy } from './skill-decoy.js?v=20261108-skill-tap-v1';
 import { createZombieClimb } from './zombie-climb.js?v=20261108-line-memo-v1';
-import { createZombieRouting } from './zombie-routing.js?v=20261106-ascent-v1';
+import { createZombieRouting } from './zombie-routing.js?v=20261112-validity-v1';
+import { createZombieTypes } from './zombie-types.js?v=20261112-types-v1';
 import { createZombieLadders } from './zombie-ladders.js?v=20261106-ascent-v1';
 import { createZombieDescent } from './zombie-descent.js?v=20261106-ascent-v1';
 import { createZombieFall } from './zombie-fall.js?v=20261102-fall-v1';
@@ -471,10 +472,18 @@ installPlayerClarity(game, window.__game);
 window.skyZombieSearch = createZombiePursuit(game, window.__game);
 window.skyZombieClimb = createZombieClimb(game, window.__game, flashbang);
 window.skyZombieRouting = createZombieRouting(game, window.__game, window.skyZombieClimb, flashbang);
+// First sweeps of the jump/drop edges, a few milliseconds at a time while the page is idle.
+{
+  const idle = window.requestIdleCallback ? fn => window.requestIdleCallback(fn, { timeout: 500 }) : fn => setTimeout(fn, 60);
+  const warmRouting = () => { let done = false; try { done = window.skyZombieRouting.warm(3); } catch { done = true; } if (!done) idle(warmRouting); else setTimeout(() => idle(warmRouting), 4000); };
+  idle(warmRouting);
+}
 window.skyZombieLadders = createZombieLadders(game, window.__game, window.skyZombieClimb, flashbang);
 window.skyZombieDescent = createZombieDescent(game, window.__game, window.skyZombieClimb, flashbang, window.skyZombieRouting);
 window.skyZombieFall = createZombieFall(game);
 window.skyNavWatch = createNavWatch(game, window.__game);
+// Trial tier above Hard: zombie kinds (inert on the ranked tiers).
+window.skyZombieTypes = createZombieTypes(game, window.__game);
 knifeRule?.insertAdjacentHTML('afterend', '<li>ゾンビは近道になる柱も登ってくる。登っている間に撃って落とせる。</li>');
 
 // Knife readability: a white slash streak across the view during the swing,
