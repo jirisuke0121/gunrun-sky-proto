@@ -296,14 +296,24 @@
             float rise = clamp((vTownY - vTownBand.x) / 1.7, 0., 1.);
             float foot = 1.0 - smoothstep(.0, 1.7, vTownY - vTownBand.x);
             townColour *= 1.0 + .34 * blotch + .12 * grain - .24 * streak * (1.0 - .5 * cornice);
-            townColour = mix(townColour, townColour * vec3(.78, .72, .66), foot * .6);
-            townColour *= mix(.78, 1.0, rise);
+            townColour = mix(townColour, townColour * vec3(.80, .75, .70), foot * .45);
+            townColour *= mix(.84, 1.0, rise);
           }
           diffuseColor.rgb = mix(diffuseColor.rgb, townColour, vTownPalette.a);
+        } else {
+          // Paving that is not one flat colour: only brightness (no hue), so route cues keep standing out.
+          vec3 floorNormal = normalize(cross(dFdx(vTownPos), dFdy(vTownPos)));
+          if (abs(floorNormal.y) > .85) {
+            vec2 ground = vTownPos.xz;
+            float broad = plasterNoise(ground * .30), fine = plasterNoise(ground * 1.7 + vTownPos.y) - .5;
+            // The paving is close to white, so the variation only darkens (patches of worn, dirty stone).
+            float paving = smoothstep(.06, .32, dot(diffuseColor.rgb, vec3(.2126, .7152, .0722))); // dark floors (shade, wood) are left alone
+            diffuseColor.rgb *= mix(1.0, mix(.76, 1.0, smoothstep(.28, .72, broad)) * (1.0 + .10 * fine), paving);
+          }
         }`);
     };
     const keyBefore = material.customProgramCacheKey.bind(material);
-    clone.customProgramCacheKey = () => keyBefore() + '|town-palette-v5';
+    clone.customProgramCacheKey = () => keyBefore() + '|town-palette-v8';
   }
 
   // Colour is stored per vertex (the world is merged into a few big meshes), so the draw call

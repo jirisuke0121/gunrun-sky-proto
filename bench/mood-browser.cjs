@@ -2,6 +2,7 @@
 //  1. ?mood=noon is the look before mood.js existed: no mood meshes, the original high sun. The default (no parameter) is dawn.
 //  2. dusk: low warm sun, sun glow + far skyline + dust motes, each costs at most one draw call; skyline stays under 2000 triangles
 //  3. ?look=classic ignores the mood; the lowest render quality hides the motes
+//  3b. contact shadow: one cheap mesh, off with ?contact=0, ?look=classic and the lowest quality
 //  4. the fixed views do not become dark enough to hide the player: near-black share stays small
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium}=require('playwright');
@@ -35,7 +36,7 @@ async function dark(p,view){
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}/`;
  const launch=()=>chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});let browser;
  try{browser=await launch();const summary={};
-  const noon=await open(browser,base,'&mood=noon'),dusk=await open(browser,base,'&mood=dusk'),dawn=await open(browser,base,'') /* the default is dawn */,classic=await open(browser,base,'&mood=dusk&look=classic');
+  const noon=await open(browser,base,'&mood=noon'),dusk=await open(browser,base,'&mood=dusk'),dawn=await open(browser,base,'') /* the default is dawn */;
   const has=p=>p.evaluate(names=>names.map(n=>window.__skyInternals.ue.children.some(c=>c.name===n)),MOOD_MESHES);
   // 1. noon is unchanged
   assert.deepEqual(await has(noon.p),[false,false,false],'noon adds no mood meshes');
@@ -58,15 +59,33 @@ async function dark(p,view){
   for(const n of MOOD_MESHES)assert.ok(cost.out[n][0]>=0&&cost.out[n][0]<=1.01,n+' costs at most one draw call: '+cost.out[n][0]);
   assert.ok(cost.sum[0]<=3.05&&cost.sum[1]<=3000,'mood costs 3 draw calls and under 3000 triangles: '+JSON.stringify(cost.sum));
   // 3. classic ignores the mood; the lowest quality hides the motes
-  assert.deepEqual(await has(classic.p),[false,false,false],'?look=classic ignores the mood');
   const quality=await dusk.p.evaluate(()=>new Promise(resolve=>{const m=window.__skyInternals.ue.children.find(c=>c.name==='Dust motes'),a=m.visible;window.skyRenderQuality.select('minimum');setTimeout(()=>{const b=m.visible;window.skyRenderQuality.select('high');setTimeout(()=>resolve([a,b,m.visible]),50)},50)}));
   assert.deepEqual(quality,[true,false,true],'motes are hidden in the lowest render quality: '+JSON.stringify(quality));
+  // 3b. contact shadow (contact-shadow.js): one cheap transparent mesh at the foot of walls
+  const contact=await dawn.p.evaluate(()=>new Promise(resolve=>{const g=window.__game,R=g.debug.renderer,S=window.__skyInternals,m=S.ue.children.find(c=>c.name==='Contact shadow');
+   if(!m)return resolve(null);const meas=()=>{let c=0;for(let i=0;i<4;i++){R.info.reset();R.render(S.ue,g.debug.camera);c+=R.info.render.calls}return c/4};
+   const a=meas();m.visible=false;const b=meas();m.visible=true;
+   window.skyRenderQuality.select('minimum');setTimeout(()=>{const lo=m.visible;window.skyRenderQuality.select('high');setTimeout(()=>resolve({delta:a-b,tris:window.skyContactShadow.triangles,runs:window.skyContactShadow.runs,hiddenLowest:!lo,backOn:m.visible}),50)},50)}));
+  summary.contact=contact;
+  assert.ok(contact,'contact shadow mesh exists');
+  assert.ok(contact.delta>=0&&contact.delta<=1.01,'contact shadow costs at most one draw call: '+contact.delta);
+  assert.ok(contact.tris>100&&contact.tris<=3000,'contact shadow triangles: '+contact.tris);
+  assert.equal(contact.hiddenLowest,true,'contact shadow is hidden in the lowest render quality');assert.equal(contact.backOn,true);
   // 4. darkness: the fixed views stay readable
   summary.dark=[];
   for(const view of VIEWS){const a=await dark(noon.p,view),b=await dark(dusk.p,view),c=await dark(dawn.p,view);summary.dark.push([+a.toFixed(3),+b.toFixed(3),+c.toFixed(3)]);
    assert.ok(b<=.2&&b-a<.12,`dusk is too dark in a fixed view (${JSON.stringify(view)}): noon ${a} -> dusk ${b}`);
    assert.ok(c<=.2&&c-a<.12,`dawn is too dark in a fixed view (${JSON.stringify(view)}): noon ${a} -> dawn ${c}`);}
-  for(const o of [noon,dusk,dawn,classic])assert.deepEqual(o.errors,[],'no page errors');
+  for(const o of [noon,dusk,dawn])assert.deepEqual(o.errors,[],'no page errors');
+  // switches that remove things, checked one page at a time at the end (five live pages at once starve the software GPU)
+  for(const o of [noon,dusk,dawn])await o.ctx.close();
+  const classic=await open(browser,base,'&mood=dusk&look=classic');
+  assert.deepEqual(await has(classic.p),[false,false,false],'?look=classic ignores the mood');
+  assert.equal(await classic.p.evaluate(()=>window.__skyInternals.ue.children.some(c=>c.name==='Contact shadow')),false,'?look=classic has no contact shadow');
+  assert.deepEqual(classic.errors,[],'no page errors (classic)');await classic.ctx.close();
+  const nocontact=await open(browser,base,'&contact=0');
+  assert.equal(await nocontact.p.evaluate(()=>window.__skyInternals.ue.children.some(c=>c.name==='Contact shadow')),false,'?contact=0 removes the contact shadow');
+  assert.deepEqual(nocontact.errors,[],'no page errors (contact=0)');await nocontact.ctx.close();
   console.log(JSON.stringify(summary));console.log('PASS mood: noon unchanged, dusk/dawn light, three cheap meshes, switches, readable darkness');
  }finally{await browser?.close();server.close();}
 })().catch(e=>{console.error(e);process.exit(1)});

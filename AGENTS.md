@@ -73,7 +73,7 @@ Claude Code・Codex など、どのAIでもこのファイルを最初に読む�
 
 ## 8. 主なファイルと詳細
 
-- `index.html`（旧市街）、`canyon.html`（渓谷）がゲーム本体。機能ごとに直下の `*.js` に分割。見た目は `look-pass.js`（空・霧・壁の色・屋根）、`ink-outline.js`（輪郭線）、`mood.js`（時間帯の光）。
+- `index.html`（旧市街）、`canyon.html`（渓谷）がゲーム本体。機能ごとに直下の `*.js` に分割。見た目は `look-pass.js`（空・霧・壁の色・屋根）、`ink-outline.js`（輪郭線）、`mood.js`（時間帯の光）、`contact-shadow.js`（壁の足元の接地影）。
 - `server/` … Worker・D1（`server/README.md`）。`ranked-rules.js` … 順位の対象条件と版。
 - `hook-editor.html` … フック・壁ジャンプ候補のエディター（公開版には含めない）。
 - `tools/admin/` … 管理画面（地図・詰まり・プレイヤー）。`ADMIN_TOKEN` で既存のWorker APIを読む。`tools/heatmap/` はここへの転送。
