@@ -14,7 +14,7 @@
       const decoder = new Offline(1, 1, 44100);
       await Promise.all([
         ...Object.entries(sounds).map(async ([key, [name]]) => {
-          const response = await fetch(base + name + '.wav');
+          const response = await fetch(base + name + '.flac');
           if (!response.ok) throw Error(name + ': HTTP ' + response.status);
           assets.buffers[key] = await decoder.decodeAudioData(await response.arrayBuffer());
         }),

@@ -1,7 +1,7 @@
 import { renderGearSound } from './gear-audio.js?v=20261026-gear-polish-v1';
 // Reuse shipped weapon samples. A separate bus keeps live wind/enemy sounds
 // muted and lets pause/seek/close stop every replay voice immediately.
-const FILES = ['hg1.wav', 'sg1.wav', 'smgh1.wav', 'mgh1.wav'];
+const FILES = ['hg1.flac', 'sg1.flac', 'smgh1.flac', 'mgh1.flac'];
 export function createReplayAudio(game) {
   const buffers = new Map(), nodes = new Set();
   let output = null, volume = 0, muted = false, cursor = 0, played = 0, generation = 0;
@@ -24,7 +24,7 @@ export function createReplayAudio(game) {
           const pcm = renderGearSound('jump', ctx.sampleRate), buffer = ctx.createBuffer(1, pcm.length, ctx.sampleRate);
           buffer.copyToChannel(pcm, 0); buffers.set(index, buffer); return;
         }
-        const response = await fetch('./assets/sfx/' + FILES[index] + '?v=20261024-12', { signal: AbortSignal.timeout(8000) });
+        const response = await fetch('./assets/sfx/' + FILES[index] + '?v=20261113-flac-v1', { signal: AbortSignal.timeout(8000) });
         if (!response.ok) return;
         const buffer = await ctx.decodeAudioData(await response.arrayBuffer());
         if (token === generation) buffers.set(index, buffer);

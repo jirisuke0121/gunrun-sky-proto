@@ -1443,7 +1443,7 @@ window.__skyGhost = window.skyReplay;
   let sampleCtx = null;
   // The files are fetched as soon as this module loads (no audio context needed), so decoding is all that is
   // left once the context exists; otherwise the first shots after starting could fall back to the synthetic sound.
-  const SFX_VER = '20261024-12';
+  const SFX_VER = '20261113-flac-v1';
   const sfxBytes = {};
   const EASY_FIRE = {}; // Easy Weapons shot sounds are kept in pool/.
 
@@ -1485,7 +1485,7 @@ window.__skyGhost = window.skyReplay;
   // selected. The shared synthesized bang remains the fallback while it loads.
   let explosionBytes = null, explosionBuffer = null, explosionCtx = null;
   const warmExplosionSound = () => {
-    if (!explosionBytes) explosionBytes = fetch('./assets/sfx/easy-weapons/explosion_4.wav?v=20261025-unity-blast-v1')
+    if (!explosionBytes) explosionBytes = fetch('./assets/sfx/easy-weapons/explosion_4.flac?v=20261113-flac-v1')
       .then((r) => r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status))))
       .catch(() => null);
     if (!Ut.ctx || explosionCtx === Ut.ctx) return;
@@ -1503,7 +1503,7 @@ window.__skyGhost = window.skyReplay;
     source.buffer = explosionBuffer;
     gain.gain.value = 0.62;
     source.connect(gain); gain.connect(Ut.master); source.start();
-    document.body.dataset.skyExplosionSound = 'explosion_4.wav';
+    document.body.dataset.skyExplosionSound = 'explosion_4.flac';
     return true;
   };
   let beamSource = null, beamGain = null;
@@ -1532,7 +1532,7 @@ window.__skyGhost = window.skyReplay;
   requestAnimationFrame(syncBeamSound);
   for (const ids of Object.values(SAMPLES)) {
     for (const id of ids) {
-      sfxBytes[id] = fetch(`./assets/sfx/${id}.wav?v=${SFX_VER}`)
+      sfxBytes[id] = fetch(`./assets/sfx/${id}.flac?v=${SFX_VER}`)
         .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
         .catch(() => null);
     }

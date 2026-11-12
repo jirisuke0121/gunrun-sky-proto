@@ -19,11 +19,11 @@ Made by jirisuke0121. The in-game list (home screen → クレジット / Credit
 
 | What | Source | License |
 |---|---|---|
-| `assets/sfx/hg*.wav`, `mg*.wav`, `sg*.wav`, `smg*.wav` (gunshots) | The Free Firearm Sound Library (Ben Jaszczak and others), OpenGameArt.org, unprocessed (`tools/build_sfx_takes.py`) | CC0 |
+| `assets/sfx/hg*.flac`, `mg*.flac`, `sg*.flac`, `smg*.flac` (gunshots) | The Free Firearm Sound Library (Ben Jaszczak and others), OpenGameArt.org, unprocessed (`tools/build_sfx_takes.py`) | CC0 |
 | `assets/sfx/bite/*` | See `assets/sfx/bite/CREDITS.md` (RPG / Zombies / Swishes Sound Packs by artisticdude, Squish Sounds by EZduzziteh, 80 CC0 creature SFX by rubberduck, Punch and vocal sounds by qubodup) | CC0 |
 | `assets/sfx/voice/*` | See `assets/sfx/voice/CREDITS.md` (adds Breathing Tired by mikeask, Fantozzi's Footsteps, 100 CC0 metal and wood SFX by rubberduck, 50 RPG sound effects by Kenney, and other CC0 uploads) | CC0 |
-| `assets/sfx/easy-weapons/explosion_4.wav` | Easy Weapons, Unity Asset Store | Unity Asset Store license — see "Open checks" |
-| `assets/sfx/gunrun-headshot.mp3`, `assets/combat-feedback/*.wav` | From the author's Unity project GunRun (`Resources/GunRunAudio`) | Origin to be confirmed — see "Open checks" |
+| `assets/sfx/easy-weapons/explosion_4.flac` | Easy Weapons, Unity Asset Store | Unity Asset Store license — see "Open checks" |
+| `assets/sfx/gunrun-headshot.mp3`, `assets/combat-feedback/*.flac` | From the author's Unity project GunRun (`Resources/GunRunAudio`) | Origin to be confirmed — see "Open checks" |
 
 ## Images and font
 

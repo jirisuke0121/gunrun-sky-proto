@@ -13,7 +13,7 @@ const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{p
   await ctx.route('**/*',async route=>{const u=new URL(route.request().url());if(u.origin!==new URL(base).origin){if(route.request().method()==='POST')posts++;return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true,"service":"gunrun-runs","recordProtocol":2,"top":[],"total":0,"me":null}'});}
    if(u.pathname.endsWith('human-gunrun-animated.glb.gz')||u.pathname.endsWith('human-gunrun.glb'))await human.promise;
    if(u.pathname.endsWith('hg-meshy-low.glb'))await gun.promise;
-   if(u.pathname.endsWith('/combat-feedback/Kill.wav'))await feedback.promise;
+   if(u.pathname.endsWith('/combat-feedback/Kill.flac'))await feedback.promise;
    return route.continue();});
   const page=await ctx.newPage();page.setDefaultTimeout(90000);page.on('pageerror',e=>errors.push(e.message));
   // Asset requests are deliberately pending; waiting for window.load is unnecessary.
@@ -61,7 +61,7 @@ const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{p
  }
  // A failed gun request must offer recovery instead of a dead-looking Start button.
  const ctx=await browser.newContext({locale:'ja-JP'}),page=await ctx.newPage();await ctx.addInitScript(()=>window.__hold=true);let fail='gun';
- await ctx.route('**/*',route=>{const u=new URL(route.request().url());if(u.origin!==new URL(base).origin)return route.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'});if((fail==='gun'&&u.pathname.endsWith('hg-meshy-low.glb'))||(fail==='feedback'&&u.pathname.endsWith('/combat-feedback/Kill.wav')))return route.fulfill({status:404,body:'missing'});return route.continue()});
+ await ctx.route('**/*',route=>{const u=new URL(route.request().url());if(u.origin!==new URL(base).origin)return route.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'});if((fail==='gun'&&u.pathname.endsWith('hg-meshy-low.glb'))||(fail==='feedback'&&u.pathname.endsWith('/combat-feedback/Kill.flac')))return route.fulfill({status:404,body:'missing'});return route.continue()});
  await page.goto(base+'index.html');await page.waitForFunction(()=>window.skyStartReadiness?.state.phase==='error');assert.equal(await page.locator('#bStart').isDisabled(),true);assert.match(await page.locator('#startReadyStatus').innerText(),/銃/);fail=false;await page.locator('[data-retry-start]').first().click();await page.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:90000});await page.locator('#bStart').click();assert.equal(await page.evaluate(()=>__game.mode),'play');results.push({failure:'HG 404',reloadRecovered:true});
  fail='feedback';await page.reload();await page.waitForFunction(()=>window.skyStartReadiness?.state.phase==='error');assert.match(await page.locator('#startReadyStatus').innerText(),/演出/);assert.equal(await page.locator('#bIntro').isDisabled(),true);
  fail=false;await page.locator('[data-retry-start]').first().click();await page.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:90000});await page.locator('#bStart').click();assert.equal(await page.evaluate(()=>__game.mode),'play');results.push({failure:'feedback sample 404',reloadRecovered:true});await ctx.close();

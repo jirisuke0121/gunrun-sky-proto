@@ -1,11 +1,13 @@
 # Checks every take in assets/sfx before it ships: first/last sample (clicks), late pulses and high-frequency clacks, L/R balance and correlation, peak.
 # Usage: python3 tools/audit_sfx.py [dir]   (needs numpy, scipy). Run it after every change to the sound files.
-import sys,wave,numpy as np,glob,os
+import sys,wave,numpy as np,glob,os,subprocess
 from scipy.signal import find_peaks, butter, sosfilt
 d=sys.argv[1] if len(sys.argv)>1 else 'assets/sfx'; sr=44100; bad=0
-for f in sorted(glob.glob(d+'/*.wav')):
-    w=wave.open(f); assert w.getframerate()==sr and w.getnchannels()==2
-    x=np.frombuffer(w.readframes(w.getnframes()),'<i2').astype(np.float32).reshape(-1,2)/32768; m=x.mean(1)
+def read(f): # the shipped takes are FLAC (lossless, tools/wav_to_flac.py); raw WAV from build_sfx_takes.py is read too
+    if f.endswith('.flac'): return np.frombuffer(subprocess.run(['ffmpeg','-v','error','-i',f,'-f','s16le','-ac','2','-'],capture_output=True,check=True).stdout,'<i2')
+    w=wave.open(f); assert w.getframerate()==sr and w.getnchannels()==2; return np.frombuffer(w.readframes(w.getnframes()),'<i2')
+for f in sorted(glob.glob(d+'/*.wav')+glob.glob(d+'/*.flac')):
+    x=read(f).astype(np.float32).reshape(-1,2)/32768; m=x.mean(1)
     h=int(sr*0.004); e=np.sqrt(np.convolve(m**2,np.ones(h)/h,'same')); pk=e.max()
     p,_=find_peaks(e,height=0.07*pk,distance=int(sr*0.015),prominence=0.04*pk); late=[(round(i/sr*1000),round(100*e[i]/pk)) for i in p if i/sr>0.05]
     hp=sosfilt(butter(4,2500,'hp',fs=sr,output='sos'),m); k=int(sr*.002); eh=np.sqrt(np.convolve(hp**2,np.ones(k)/k,'same')); ph=eh[:int(.06*sr)].max()
@@ -19,5 +21,5 @@ for f in sorted(glob.glob(d+'/*.wav')):
     # Faithful takes keep the recording's own echoes, clacks and stereo image, so these are notes, not errors.
     notes=[n for n,c in (('late-pulse',late),('late-hf',hf),('lr-imbalance',abs(db)>1.5),('low-corr',corr<0.3)) if c]
     bad+=bool(flags)
-    print(f'{os.path.basename(f)[:-4]:5s} {len(m)/sr*1000:4.0f}ms peak@{pkidx:4.1f}ms first {first:.4f} last {last:.4f} L/R {db:+.1f} corr {corr:.2f} late {late} hf {hf}',flags,('notes:'+','.join(notes)) if notes else '')
+    print(f'{os.path.splitext(os.path.basename(f))[0]:5s} {len(m)/sr*1000:4.0f}ms peak@{pkidx:4.1f}ms first {first:.4f} last {last:.4f} L/R {db:+.1f} corr {corr:.2f} late {late} hf {hf}',flags,('notes:'+','.join(notes)) if notes else '')
 print('takes with flags:',bad)
