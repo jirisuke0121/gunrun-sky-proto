@@ -3,7 +3,7 @@
   if(!window.skyPracticeMode)return;
   const guided=!!window.skyGuidedMode;
   const sky=window.__skyInternals,g=window.__game,{c,U,z,Geom:T}=sky,course=window.skyPracticeCourse;
-  if(!guided)document.body.classList.add('practice-mode');document.title='パルクール練習場 | 空中回廊';
+  if(!guided)document.body.classList.add('practice-mode');document.title=window.skyI18n&&window.skyI18n.lang!=='ja'?'Parkour Practice | Zombie Parkour Escape':'パルクール練習場 | 空中回廊';
   const style=document.createElement('link');style.rel='stylesheet';style.href='./practice.css?v=20261028-practice-controls-v2';document.head.append(style);
   document.querySelector('#ovStart h1').textContent='パルクール練習場';
   document.querySelector('#ovStart h1 + p').textContent='追手・制限時間なし。技を繋げて一周したり、好きな技からすぐ試せます。落ちたら直前の地点に戻ります。';

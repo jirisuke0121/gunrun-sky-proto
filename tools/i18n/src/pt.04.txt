@@ -1,0 +1,160 @@
+441 Fechar configurações
+442 Pego
+443 Você caiu
+444 Queda — fim da partida
+445 Escapou!
+446 Fim de jogo
+447 Modo iniciante de novo
+448 Compita com jogadores de todas as dificuldades em pontos de sobrevivência e abates.
+449 Compita com jogadores de todas as dificuldades com sua pontuação de 2 minutos.
+450 Nova melhor pontuação
+451 Pontuação desta partida
+452 Modo iniciante concluído — bom trabalho!
+453 Agora tente Fácil, Normal ou Difícil.
+454 Partida de iniciante com vida ilimitada · fora do ranking
+455 Esta partida de iniciante não é salva nem enviada
+456 Não concluída
+457 Concluída
+458 Você
+459 Sem fantasma
+460 Ver fantasma
+461 (JST)
+462 Posição / Jogador
+463 Dificuldade / Pontos
+464 Ainda não há pontuações. Seja o primeiro!
+465 Contam partidas fora do modo treino e teste.
+466 Carregando registros…
+467 O resultado do envio é desconhecido. O reenvio está suspenso para evitar duplicatas
+468 Erro de rede
+469 Não enviado: modo treino ou teste
+470 Modo iniciante: fora do ranking, nada é enviado
+471 Área de treino: fora do ranking
+472 Modo de teste: fora do ranking
+473 Os registros de jogo são enviados
+474 Resultado salvo neste dispositivo (não enviado)
+475 Salvo neste dispositivo · enviando ao servidor…
+476 Não foi possível salvar neste dispositivo · não feche esta tela.
+477 Salvo neste dispositivo · não enviado.
+478 Salvo no servidor · ranking confirmado
+479 Salvo no servidor · o ranking mostra sua melhor marca
+480 Salvo no servidor (fora do ranking)
+481 Salvo no servidor · atualização do ranking ainda não confirmada
+482 Resultado salvo neste dispositivo
+483 Último resultado:
+484 Use pulos básicos e degraus para escapar com tranquilidade
+485 Ganhe distância repetidamente com degraus, vãos e corridas na parede. Compre tempo de fuga com a arma
+486 Encadeie manobras e escolha onde pousar e que rota seguir conforme a posição dos inimigos. Use a arma para derrubá-los e contê-los
+487 Configurações clássicas, perseguidor e ranking
+488 Modo iniciante
+489 Vida ilimitada — experimente mover-se, pular e fazer parkour
+490 Treino de movimento
+491 Experimente se mover. A vida é ilimitada e você recomeça por perto se cair.
+492 Pule os degraus e use paredes e escadas para chegar à passarela superior.
+493 A arma também empurra os inimigos. Tente derrubar um zumbi da beirada.
+494 Use desníveis e vãos para ganhar distância. Os zumbis continuam perseguindo mesmo que você se afaste.
+495 Mostrar fantasma
+496 Carregando fantasma…
+497 Sem tiros
+498 Sem registro de tiros
+499 Tiros desligados
+500 Jogar
+501 Não foi possível carregar o fantasma deste registro. Volte ao ranking e escolha de novo.
+502 Só faca no início
+503 Comece com a HG. SG, SMG e MG vêm de caixas de suprimentos no cenário
+504 Resfriando
+505 Sombras
+506 Arma em primeiro plano
+507 Fumaça e luz
+508 Baixa resolução
+509 Carregando o personagem e as animações…
+510 Não foi possível carregar o modelo do personagem. Usando a exibição clássica.
+511 O modelo do personagem ainda está carregando. Aguarde um momento antes de começar.
+512 Incline um pouco para ir devagar. De lado ou na diagonal para baixo reduz e vira. Para ir para trás, volte ao neutro e depois puxe direto para baixo. Deslize à direita para olhar.
+513 W/S: frente/trás, A/D: reduzir e virar, Alt+A/D: deslocar de lado. Olhe ao redor com o mouse.
+514 Reduz o detalhe 3D e mostra sombras.
+515 Usa o detalhe e as sombras clássicos. Escolha Leve se estiver lento.
+516 Retomar tiro automático
+517 Pausado · economizando munição
+518 Toque na plataforma para pular para o alto!
+519 Clique na plataforma ou pressione B para pular para o alto!
+520 Pular
+521 Toque na marca verde para se enganchar nessa borda!
+522 Clique na marca verde ou pressione V para se enganchar nessa borda!
+523 Resgate
+524 Não há terreno alto por perto para subir
+525 Toque no barril para saltar com a explosão!
+526 Clique no barril ou pressione B para saltar com a explosão!
+527 Toque no barril para detoná-lo
+528 Salto explosivo! Direcione-se no ar
+529 Lançado pela explosão! Direcione-se no ar
+530 O barril explodiu! Inimigos próximos foram arremessados
+531 O barril explodiu!
+532 Vão leste
+533 Viga norte
+534 Muro leste do anel
+535 Muro oeste do anel
+536 Beco oeste · atalho para o sul
+537 A porta foi arrombada!
+538 Deslizando
+539 Deslize pela rampa
+540 Tirolesa para o sul
+541 Tirolesa: botão de destino (PC: 1 / 2). Descida de escada: 3. Você também pode embarcar olhando para ela e pulando.
+542 Descer a escada: frente para descer / trás para voltar / pulo para sair
+543 Escada: mova-se para fora para descer
+544 Atravessar: frente / subir a escada: pulo + frente
+545 Volte pela seta azul-petróleo do lado sul → suba os degraus até a rua
+546 Bifurcação na próxima barra: em frente é um triplo / à esquerda vai à borda do pilar
+547 Pule a partir da seta dourada. Se errar, use as escadas azul-petróleo abaixo
+548 O nível superior azul vai da frente para trás. O caminho lateral amarelo fica 4 m abaixo
+549 Use perto de um local onde a isca possa ficar
+550 Isca lançada — afaste os perseguidores e escape
+551 Não foi possível carregar o jogo. Recarregue.
+552 Não foi possível carregar o personagem. Recarregue.
+553 Não foi possível carregar a arma. Recarregue.
+554 Carregando personagem…
+555 Carregando arma…
+556 Preparando o jogo…
+557 Carregando zumbis…
+558 Começar treino
+559 Preparando o personagem e a arma.
+560 Pulo de parede aqui
+561 Pule agora! Atalho
+562 Pule agora!
+563 Corrida na parede
+564 Siga as setas → pule no dourado
+565 Toque em Pular
+566 Espaço para o pulo de parede
+567 Corra pela parede seguindo a seta azul-petróleo → pule na moldura dourada JUMP
+568 Você foi visto — a perseguição recomeça
+569 Você os despistou
+570 Você os despistou — eles estão procurando por perto
+571 Pule para soltar no meio do trajeto — você se direciona no ar
+572 Uma horda está vindo
+573 Você derrubou o perseguidor
+574 Você derrubou o perseguidor — ele volta logo
+575 Mais um perseguidor
+576 Um chefe aparece
+577 Um perseguidor
+578 Golpe pelas costas
+579 Encurralado — pela frente e por trás
+580 Vindo por trás
+581 Faca: empurra e atordoa o zumbi à frente (também interrompe um agarrão). Um golpe pelas costas. Você começa com a HG; SG, SMG e MG são obtidas em caixas de suprimentos no cenário
+582 A partir de uma barra laranja, pegue uma bifurcação de fuga. ② bifurcação aérea sul, ③ corredor superior do armazém. ④ em frente a partir da primeira barra é um triplo, à esquerda vai à borda do pilar. ⑤ a pista de dança sul tem uma barra, ⑥ a sacada norte cruza duas barras até a borda do canto oeste, depois à rua oeste ou ao gancho do telhado existente. ⑦ da base da torre leste, o gancho oeste até a viga existente; ⑧ do nível inferior norte, uma barra até o corredor leste
+583 Tipo de controle
+584 Controles FPS
+585 Câmera manual
+586 Câmera automática
+587 Segure para mover
+588 Deslize para olhar
+589 Câmera auto
+590 Coloque o polegar à direita e mova-o para olhar ao redor
+591 Acompanha seu movimento. Você também pode olhar ao redor à direita
+592 Polegar esquerdo
+593 Coloque o polegar à esquerda → deslize PARA CIMA e segure para ir em frente. Solte para parar.
+594 Clássico
+595 Selecionado
+596 Auto
+597 Arraste o lado direito para girar a câmera você mesmo
+598 Ideal para
+599 Jogadores acostumados com jogos FPS / 3D
+600 Controles fáceis

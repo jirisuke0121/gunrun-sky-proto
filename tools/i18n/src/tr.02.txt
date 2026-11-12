@@ -1,0 +1,150 @@
+141 Geri bildirim yüklenemedi. Lütfen yeniden yükle.
+142 Hayatta kalma
+143 Hayatta kalma süresi, etkili hasar ve öldürmelerden puan kazan. Zorluk bonusu dahildir.
+144 Zorluk, hayatta kalma ve savaş puanlarına dahildir. Her bileşen aşağı yuvarlanır; gösterilen süre yaklaşıktır.
+145 Hayatta kaldığın her 30 saniye için 450 puan kazanırsın (geçen süreye göre orantılı; kısmi aralık koşu bitince eklenir), etkili hasarın her birimi için 2, her öldürme için 30. Her bileşen zorluk çarpanını alır: Kolay ×1.0, Normal ×1.1 veya Zor ×1.2. Hayatta kalma puanı, düşmanların uzaklığına, sayısına ya da hareket edip etmemene bakılmaksızın artar. Turlar iki dakika sürer. Silahı hiç ateşlemeden ve tek bir öldürme yapmadan bitirmek "Parkur temiz" sayılır ve toplamı 1.3 ile çarpar. Aynı zorlukta bitirenler hasar ve öldürme puanlarıyla ayrılır. Tüm zorluklar puan üzerinden yarışır.
+146 Toplam puan
+147 Döküm toplamı
+148 Hayatta kalma
+149 Hasar
+150 Öldürme
+151 Hayatta kalma + hasar + öldürme
+152 Zorluk bonusu her puana dahildir
+153 Hayatta kalma:
+154 Hasar:
+155 Hayatta kalma
+156 Hasar
+157 Hayatta kalma süresi, hasar ve öldürmelerden puan kazan.
+158 KAÇTIN · Uzaklaştın
+159 Hayatta kalma ve savaş puanlarıyla tüm zorluklarda yarış.
+160 Sürekli ateş mermi dağılımını artırır. HG, SMG ve MG yakında sürekli, orta mesafede kısa seri, uzakta tek atış yapar. Doğruluğu geri kazanmak için kısa bir ara ver.
+161 Zorluk seç
+162 Puan bonusu
+163 Süre sınırı
+164 İlk kez mi?
+165 Sınırsız canla pratik yap.
+166 Ayarlar
+167 Eski Şehir oyunu
+168 Kayalık Kanyon oyunu
+169 Kaçışa hazırlan
+170 Zorluk
+171 İKİ DAKİKA.
+172 HAREKET ETMEYE DEVAM ET.
+173 Zıpla. Duvarda koş. Takibi atlat.
+174 hareket
+175 Bak
+176 Zıpla
+177 Pratik · Noktalar · Sıralama · Kurallar
+178 Hareket için solda basılı tutup kaydır · Bakmak için sağda kaydır · Zıpla'ya dokun
+179 İki dakikayı tamamen atlattın
+180 Yeni rekor
+181 Hayatta kalma + öldürme
+182 Puan dökümü
+183 Hayatta kalma süresi
+184 Bonuslar her iki puana da dahildir
+185 Puanın nasıl hesaplanır
+186 Ana sayfa
+187 Öldürme:
+188 Hayatta kalma bonusu = 1 + hayatta kalınan saniye / 60. Hayatta kalmak, önceki öldürmelerin puanını da artırır. Gösterilen süre ve çarpanlar yuvarlanmıştır; her puan aşağı yuvarlanır.
+189 Lütfen cihazını yatay çevir
+190 Normal
+191 puan
+192 Can
+193 Flaş bombaları
+194 Öldürme
+195 (düşürme
+196 )
+197 Zombiler
+198 Tıkla
+199 Bıçak
+200 Kanca
+201 Duraklat ve Ayarlar
+202 Otomatik ateşi durdur
+203 Otomatik ateş açık
+204 ⚠ Hem önden hem arkadan geliyorlar
+205 Çıkıntıya tutunma
+206 Kay
+207 Fare yakalanmazsa, etrafa bakmak için oyun ekranında sağ tuşla sürükle
+208 sn
+209 Süre ×
+210 Öldürme ×
+211 Flaş
+212 Beceriler 0/3
+213 Yem
+214 2 dakika hayatta kal. Zombilerden kaç
+215 ileri/geri
+216 dön
+217 Fare
+218 etrafa bak
+219 Sol taraf: hareket için basılı tutup kaydır · Sağ taraf: bakmak için kaydır · Zıpla'ya dokun
+220 Zombileri atlatmak için boşluklardan ve çıkıntılardan zıpla
+221 Yokuş kayması
+222 Zıplama silahı
+223 Dur
+224 GunRun · Gökyüzü Koridoru
+225 Zombie Parkour
+226 Kaç
+227 2 dakika hayatta kal. Zombilerden kaç.
+228 Kazan
+229 Yakalanmadan 2 dakika hayatta kal
+230 Kaybet
+231 Yakalanmak ya da uçuruma düşmek koşuyu bitirir
+232 Puan
+233 Hayatta kalma süresi ve öldürmeler. Mesafe açmak için parkuru kullan
+234 Duraklat
+235 Sol yarı: hareket için sürükle. Sağ yarı: bakmak için sürükle. Zıplamak için Zıpla'ya dokun. Alçak bir geçide girersen otomatik altından kayarsın.
+236 Başla (2 dk)
+237 Şarjör doldur
+238 İlk kez mi? Acemi modu
+239 Sınırsız can. Saldırılar ve düşmeler için endişelenmeden 2 dakika boyunca hareket etmeyi, zıplamayı ve parkuru dene. Sıralamaya girmez.
+240 Acemi modunu dene (sınırsız can)
+241 Rahatladığında yukarıdaki Başla'ya bas. Zorluğu aşağıdaki katlanmış Ayarlar'dan değiştirebilirsin.
+242 ⚙ Ayarlar (kontroller · hassasiyet · ses · grafik)
+243 Tüm zorluklar En iyi —
+244 Sıralama
+245 Takma ad
+246 Bir takma ad seç
+247 Sıralamayı kapat
+248 Geliştirici araçları (?dev=1)
+249 Takma adın, puanın ve oyun kayıtların (girdiler, ülke, cihaz) sıralama için gönderilir.
+250 Gönderim kapalı, bu yüzden sıralamada görünmezsin. Bunu Ayarlar'dan değiştirebilirsin.
+251 Takma adın, puanın ve oyun kayıtların sıralama için gönderilir.
+252 Sayı = puan çarpanı
+253 Daha zor = bonus puan
+254 Puan
+255 Pratik · Noktalar · Kurallar
+256 Tüm zorluklardaki en iyi puan (zorluk çarpanı dahil).
+257 Zorluk · Tarih (JST) · Puan
+258 En iyi puan — henüz yok
+259 Pratik · Noktalar · Ayarlar · Sıralama · Tüm kurallar
+260 Yüzen kirişler ve taş sütunlardan oluşan bir koridorda 2 dakika zombilerden kaç. Zombiler zıplayamaz ve yavaş tırmanır. Mesafe açmak için boşluklardan zıpla ve duvarlarda koş. Onları bıçakla geri it; dar bir kirişte aşağı düşürebilirsin.
+261 Parkur pratik alanı
+262 Takipçi yok, süre sınırı yok. Hareketleri serbestçe art arda yap ya da belirli bir hareketi dene
+263 Tüm parkuru oyna
+264 Barlardan başla
+265 HG ile başlarsın. SG, SMG ve MG her 10 sn'de çatılara ve üst katlara düşer. Kuşanmak ve mermi doldurmak için parlayan bir silah sandığına dokun. Onlara ulaşmak için zıpla ya da kancayı kullan.
+266 Zombi seç
+267 Standart
+268 Gelişmiş
+269 Karışık (standart + gelişmiş)
+270 Yalnızca standart zombiler çıkar.
+271 Üçüncü şahıs görünümü. Oyun sırasında görünümü değiştirmek için V'ye bas
+272 Kamera
+273 Hareketi takip et
+274 Manuel (klasik)
+275 Klasik kontrollerdeki gibi hareketi ve bakışı ayrı yap.
+276 Grafik kalitesi
+277 Hafif (önerilen)
+278 Standart
+279 Yüksek
+280 Orijinal ayrıntı
+281 Standart (1.0×)
+282 Hafif (0.75×)
+283 Minimum (0.5×)
+284 Grafik kalitesi (ayarlar)
+285 Cihazı ve mevcut render ayarlarını kullanarak orijinal ayrıntıyı ve gölgeleri korur.
+286 3B'yi ekran pikseli başına bir piksel olarak, gölgelerle çizer.
+287 3B'yi 0.75× ve gölgesiz çizer. Metin ve kontroller aynı kalır.
+288 3B'yi 0.5× ve gölgesiz çizer. Metin ve kontroller aynı kalır.
+289 Gölgeleri atlar ve 3B ayrıntıyı düşürerek daha hafif çalışır. Metin ve kontroller aynı kalır.
+290 Meydan okuma zorluğu

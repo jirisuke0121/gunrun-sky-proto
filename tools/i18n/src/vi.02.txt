@@ -1,0 +1,150 @@
+141 Không thể tải phản hồi. Vui lòng tải lại.
+142 Sống sót
+143 Nhận điểm từ thời gian sống sót, sát thương hiệu quả và số lần hạ gục. Đã bao gồm điểm thưởng độ khó.
+144 Độ khó đã được tính vào điểm sống sót và chiến đấu. Mỗi thành phần được làm tròn xuống; thời gian hiển thị là gần đúng.
+145 Nhận 450 điểm cho mỗi 30 giây sống sót (tính theo tỷ lệ thời gian đã trôi qua; phần lẻ được cộng khi lượt chơi kết thúc), 2 điểm cho mỗi đơn vị sát thương hiệu quả và 30 điểm cho mỗi lần hạ gục. Mỗi thành phần được nhân với hệ số độ khó: Dễ ×1.0, Thường ×1.1 hoặc Khó ×1.2. Điểm sống sót tăng bất kể khoảng cách hay số lượng kẻ địch, và bất kể bạn có di chuyển hay không. Mỗi lượt kéo dài hai phút. Hoàn thành mà không bắn súng và không hạ gục ai là "Parkour sạch" và nhân tổng điểm với 1.3. Những người hoàn thành cùng độ khó được phân hạng bằng điểm sát thương và hạ gục. Mọi độ khó cạnh tranh theo điểm số.
+146 Tổng điểm
+147 Tổng chi tiết
+148 Sống sót
+149 Sát thương
+150 Hạ gục
+151 Sống sót + sát thương + hạ gục
+152 Điểm thưởng độ khó đã có trong mọi điểm số
+153 Sống sót:
+154 Sát thương:
+155 Sống sót
+156 Sát thương
+157 Nhận điểm từ thời gian sống sót, sát thương và hạ gục.
+158 ĐÃ THOÁT · Bạn đã cắt đuôi được chúng
+159 Cạnh tranh trên mọi độ khó bằng điểm sống sót và chiến đấu.
+160 Bắn liên tục làm tăng độ tản đạn. HG, SMG và MG bắn liên tục khi ở gần, bắn loạt ngắn ở tầm trung và bắn phát một ở xa. Hãy ngừng bắn một chút để lấy lại độ chính xác.
+161 Chọn độ khó
+162 Điểm thưởng
+163 Giới hạn thời gian
+164 Lần đầu chơi?
+165 Luyện tập với mạng không giới hạn.
+166 Cài đặt
+167 Chơi ở Phố Cổ
+168 Chơi ở Hẻm Núi Đá
+169 Chuẩn bị chạy thoát
+170 Độ khó
+171 HAI PHÚT.
+172 ĐỪNG DỪNG LẠI.
+173 Nhảy. Chạy tường. Cắt đuôi truy đuổi.
+174 di chuyển
+175 Nhìn
+176 Nhảy
+177 Luyện tập · Địa điểm · Xếp hạng · Luật
+178 Giữ và trượt bên trái để di chuyển · Vuốt bên phải để nhìn · Chạm Nhảy
+179 Đã sống sót trọn hai phút
+180 Kỷ lục mới
+181 Sống sót + hạ gục
+182 Chi tiết điểm số
+183 Thời gian sống sót
+184 Điểm thưởng đã có trong cả hai điểm số
+185 Cách tính điểm của bạn
+186 Trang chủ
+187 Hạ gục:
+188 Điểm thưởng sống sót = 1 + số giây sống sót / 60. Còn sống cũng làm tăng điểm từ các lần hạ gục trước đó. Thời gian và hệ số hiển thị đã được làm tròn; mỗi điểm số được làm tròn xuống.
+189 Vui lòng xoay thiết bị sang chế độ ngang
+190 Thường
+191 điểm
+192 Mạng
+193 Lựu đạn chớp sáng
+194 Hạ gục
+195 (ngã
+196 )
+197 Zombie
+198 Nhấp
+199 Dao
+200 Móc
+201 Tạm dừng & Cài đặt
+202 Dừng tự động bắn
+203 Tự động bắn bật
+204 ⚠ Đến từ cả phía trước và phía sau
+205 Bám mép
+206 Trượt
+207 Nếu chuột không được giữ lại, hãy kéo chuột phải trên màn hình game để nhìn xung quanh
+208 s
+209 Thời gian ×
+210 Hạ gục ×
+211 Chớp sáng
+212 Kỹ năng 0/3
+213 Mồi nhử
+214 Sống sót 2 phút. Chạy thoát khỏi zombie
+215 tiến/lùi
+216 xoay
+217 Chuột
+218 nhìn xung quanh
+219 Bên trái: giữ và trượt để di chuyển · Bên phải: vuốt để nhìn · Chạm Nhảy
+220 Nhảy qua khe hở và mép tường để cắt đuôi zombie
+221 Trượt dốc
+222 Súng nhảy
+223 Dừng
+224 GunRun · Hành Lang Trên Không
+225 Zombie Parkour
+226 Chạy thoát
+227 Sống sót 2 phút. Chạy thoát khỏi zombie.
+228 Thắng
+229 Sống sót 2 phút mà không bị bắt
+230 Thua
+231 Bị bắt hoặc rơi xuống vực sẽ kết thúc lượt chơi
+232 Điểm
+233 Thời gian sống sót và số lần hạ gục. Dùng parkour để kéo giãn khoảng cách
+234 Tạm dừng
+235 Nửa trái: kéo để di chuyển. Nửa phải: kéo để nhìn. Chạm Nhảy để nhảy. Chạy vào lối đi thấp sẽ tự động trượt qua bên dưới.
+236 Bắt đầu (2 phút)
+237 Nạp đạn
+238 Lần đầu chơi? Chế độ người mới
+239 Mạng không giới hạn. Thử di chuyển, nhảy và parkour trong 2 phút mà không lo bị tấn công hay rơi. Không tính xếp hạng.
+240 Thử chế độ người mới (mạng không giới hạn)
+241 Khi đã quen, hãy nhấn Bắt đầu ở trên. Bạn có thể đổi độ khó trong mục Cài đặt thu gọn bên dưới.
+242 ⚙ Cài đặt (điều khiển · độ nhạy · âm lượng · đồ họa)
+243 Tốt nhất mọi độ khó —
+244 Xếp hạng
+245 Biệt danh
+246 Chọn biệt danh
+247 Đóng bảng xếp hạng
+248 Công cụ phát triển (?dev=1)
+249 Biệt danh, điểm số và dữ liệu chơi (thao tác, quốc gia, thiết bị) của bạn được gửi lên bảng xếp hạng.
+250 Việc gửi đã tắt, nên bạn sẽ không xuất hiện trên bảng xếp hạng. Bạn có thể đổi điều này trong Cài đặt.
+251 Biệt danh, điểm số và dữ liệu chơi của bạn được gửi lên bảng xếp hạng.
+252 Con số = hệ số điểm
+253 Khó hơn = điểm thưởng
+254 Điểm
+255 Luyện tập · Địa điểm · Luật
+256 Điểm cao nhất trên mọi độ khó (đã gồm hệ số độ khó).
+257 Độ khó · Ngày (JST) · Điểm
+258 Điểm cao nhất — chưa có
+259 Luyện tập · Địa điểm · Cài đặt · Xếp hạng · Luật đầy đủ
+260 Trong hành lang gồm những thanh dầm lơ lửng và cột đá, hãy chạy thoát khỏi zombie trong 2 phút. Zombie không nhảy được và leo chậm. Nhảy qua khe hở và chạy dọc tường để kéo giãn khoảng cách. Đẩy chúng lùi bằng dao; trên dầm hẹp bạn có thể hất chúng rơi xuống.
+261 Khu luyện tập parkour
+262 Không có kẻ truy đuổi, không giới hạn thời gian. Nối các động tác tự do hoặc thử một động tác cụ thể
+263 Chơi toàn bộ chặng
+264 Bắt đầu từ các thanh xà
+265 Bạn bắt đầu với HG. SG, SMG và MG rơi xuống mái nhà và các tầng cao mỗi 10 giây. Chạm vào hộp vũ khí phát sáng để trang bị và nạp đạn. Nhảy qua hoặc dùng móc để tới đó.
+266 Chọn zombie
+267 Thường
+268 Tiến hóa
+269 Hỗn hợp (thường + tiến hóa)
+270 Chỉ xuất hiện zombie thường.
+271 Góc nhìn thứ ba. Nhấn V để đổi góc nhìn khi chơi
+272 Camera
+273 Bám theo chuyển động
+274 Thủ công (cổ điển)
+275 Di chuyển và nhìn riêng biệt, như điều khiển cổ điển.
+276 Chất lượng đồ họa
+277 Nhẹ (khuyên dùng)
+278 Chuẩn
+279 Cao
+280 Chi tiết gốc
+281 Chuẩn (1.0×)
+282 Nhẹ (0.75×)
+283 Tối thiểu (0.5×)
+284 Chất lượng đồ họa (cài đặt)
+285 Giữ nguyên chi tiết và bóng đổ gốc, dùng thiết bị và cài đặt kết xuất hiện có.
+286 Kết xuất 3D ở một điểm ảnh trên mỗi điểm ảnh màn hình, có bóng đổ.
+287 Kết xuất 3D ở 0.75× không có bóng đổ. Chữ và nút điều khiển giữ nguyên.
+288 Kết xuất 3D ở 0.5× không có bóng đổ. Chữ và nút điều khiển giữ nguyên.
+289 Bỏ bóng đổ và giảm chi tiết 3D để chạy nhẹ hơn. Chữ và nút điều khiển giữ nguyên.
+290 Độ khó thử thách

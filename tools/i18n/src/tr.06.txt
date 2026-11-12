@@ -1,0 +1,96 @@
+731 Zıplayarak karşıya geç
+732 Kenarda zıpla
+733 Kapının altından ilerlemeye devam et
+734 Otomatik eğilirsin
+735 Kenarı yakala ve tırman
+736 Duvarda koş
+737 Duvar boyunca ilerle ve zıpla
+738 Elmas işarete kancala
+739 İşarete dokun / Q
+740 Aşağı kay
+741 Yokuşta Kay'ı kullan / C
+742 Merdivene tırman
+743 İçine gir ve ileri gitmeye devam et
+744 Zip hattına zıpla
+745 Tutunduktan sonra yolculuk otomatiktir
+746 Duvardan tepinerek yüksel
+747 Zıpla, sonra havada tekrar zıpla
+748 Sonraki çatıya sallan
+749 İleri sallanırken zıpla
+750 Hızlan ve zıpla
+751 DASH'i topla ve sonraki çatıya zıpla
+752 Takipçileri durdur ve kaç
+753 Takipçiler yaklaşınca Flaş kullan / 1
+754 Kırmızı varille fırla
+755 Variline dokun / B
+756 Zıplama şarjını kullan
+757 Altını topla, sonra fırla / Z
+758 Otomatik nişan ve ateşi dene
+759 Otomatik ateşi sürdür ve bekle
+760 Çıkışa ilerle
+761 Bu kontrolleri gerçek bir koşuya taşı
+762 Yukarı doğru son bir kaçış
+763 Kurtarma'yı kullan / V
+764 Sol çubuğu hareket ettir
+765 Dokun, sonra gitmek istediğin yöne sürükle
+766 Gitmek istediğin yönün tuşuna bas
+767 Kancalanmak için elmasa dokun
+768 Gitmek için vurgulanan işarete dokun
+769 Varilden fırlamak için dokun
+770 Duraklatıldı · Devam için vurgulanan kontrolü kullan
+771 W A S D ile hareket et
+772 Kontrollerini seç
+773 Şimdi seç ya da denemek için bir resme dokun.
+774 Ana sayfa
+775 Kamera girdisi yok
+776 Otomatik takip
+777 Görünümü kontrol et
+778 Görünüm sabit kalır
+779 Otomatik görünüm
+780 Denemek için resme dokun
+781 Yukarı çıkmak için bu noktaya kancalan.
+782 Kancayı takıp otomatik gitmek için vurgulanan halkaya dokun.
+783 Vurgulanan halkaya dön ve Q'ya bas. Kancan seni otomatik yukarı çeker.
+784 KANCA BAĞLANDI!
+785 Kancan seni otomatik yukarı çeker. Diğer halkalar da aynı şekilde çalışır.
+786 Ⅱ DÜNYA DURDU
+787 KANCA NOKTASI
+788 Rehberi kapat
+789 ENGEL AŞILDI!
+790 TIRMANDIN!
+791 DUVAR KOŞUSU!
+792 Yakın radar: 20 m yarıçap, ileri yukarıda. Tam harita: menü veya M tuşu
+793 Tam harita
+794 Haritayı kapat
+795 Yükseklik
+796 Mevcut yükseklik
+797 ▲ Sen / yön · ● Tüm zombiler · △ Senin üstünde · ▽ Senin altında
+798 Kuzey yukarıda. Parlak yüzeyler seçilen yüksekliktedir; soluk hatlar üstteki yapılardır. Turuncu çizgiler yükseklikleri bağlar. Tüm düşmanlar, mesafeden ve duvarlardan bağımsız gösterilir.
+799 Tam haritayı gör
+800 Mini haritayı göster
+801 Yakın radar: oyun kamerasıyla aynı yön. Tam harita: menü veya M tuşu
+802 YAKIN
+803 Bu duvarda koş.
+804 Duvar boyunca ilerle ve zıpla.
+805 Bu duvardan tepin.
+806 Duvardan itilmek için zıpla.
+807 DUVAR ZIPLAMASI!
+808 Bu zip hattıyla karşıya geç.
+809 Tutunmak için zıpla. Yolculuk otomatiktir.
+810 ZİP HATTI BAĞLANDI!
+811 Bu yokuştan aşağı kay.
+812 Yokuş aşağı kaymak için Kay / C kullan.
+813 KAYIYORSUN!
+814 Bu varille yukarı fırla.
+815 İşaretli variline dokun / B'ye bas. Fırlatma sırası otomatiktir.
+816 VARİL FIRLATMASI BAŞLADI!
+817 Yakındaki takipçileri durdur.
+818 Flaş / 1 kullan, sonra sersemlemişken kaç.
+819 FLAŞ ATILDI!
+820 Takipçileri bir yemle oyala.
+821 Onları uzaklaştırmak için Yem / 2 kullan.
+822 YEM ETKİN!
+823 Daha yükseğe kaç.
+824 Kurtarma / V kullan. Kanca güvenli bir platform seçer.
+825 KURTARMA ETKİN!
+826 Devam et!

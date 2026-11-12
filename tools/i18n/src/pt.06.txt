@@ -1,0 +1,96 @@
+731 Atravesse pulando
+732 Pule na borda
+733 Continue avançando sob o portão
+734 Você se agacha automaticamente
+735 Agarre a borda e suba
+736 Corra pela parede
+737 Avance junto à parede e pule
+738 Gancho até a marca em losango
+739 Toque na marca / Q
+740 Deslize para baixo
+741 Use Deslizar na rampa / C
+742 Suba a escada
+743 Entre nela e continue avançando
+744 Pule até a tirolesa
+745 O trajeto é automático depois de engatar
+746 Impulsione-se na parede
+747 Pule e pule de novo no ar
+748 Balance até o próximo telhado
+749 Pule ao balançar para a frente
+750 Acelere e pule
+751 Pegue o DASH e pule para o próximo telhado
+752 Pare os perseguidores e escape
+753 Use Luz quando os perseguidores chegarem perto / 1
+754 Lance-se com o barril vermelho
+755 Toque no barril / B
+756 Use a carga de pulo
+757 Pegue o dourado e lance-se / Z
+758 Experimente a mira e o tiro automáticos
+759 Retome o tiro automático e espere
+760 Vá até a saída
+761 Leve estes controles para uma partida real
+762 Uma última fuga para cima
+763 Use Resgate / V
+764 Mova o direcional esquerdo
+765 Toque e arraste para onde quer ir
+766 Pressione a tecla da direção em que quer ir
+767 Toque no losango para se enganchar
+768 Toque na marca destacada para se deslocar
+769 Toque para ser lançado pelo barril
+770 Pausado · Use o controle destacado para retomar
+771 Mova-se com W A S D
+772 Escolha seus controles
+773 Escolha agora ou toque em uma imagem para experimentar.
+774 Início
+775 Sem controle de câmera
+776 Acompanhamento automático
+777 Controlar a visão
+778 A visão permanece fixa
+779 Visão automática
+780 Toque na imagem para experimentar
+781 Enganche-se neste ponto para subir.
+782 Toque no anel destacado para engatar o gancho e se deslocar automaticamente.
+783 Olhe para o anel destacado e pressione Q. O gancho vai puxar você para cima automaticamente.
+784 GANCHO CONECTADO!
+785 O gancho puxa você para cima automaticamente. Os outros anéis funcionam do mesmo jeito.
+786 Ⅱ MUNDO PAUSADO
+787 PONTO DE GANCHO
+788 Fechar guia
+789 OBSTÁCULO PULADO!
+790 VOCÊ SUBIU!
+791 CORRIDA NA PAREDE!
+792 Radar próximo: raio de 20 m, frente para cima. Mapa completo: menu ou tecla M
+793 Mapa completo
+794 Fechar mapa
+795 Altura
+796 Altura atual
+797 ▲ Você / direção · ● Todos os zumbis · △ Acima de você · ▽ Abaixo de você
+798 Norte para cima. Superfícies claras estão na altura escolhida; contornos tênues são estruturas acima. Linhas laranja ligam alturas. Todos os inimigos são mostrados através das paredes a qualquer distância.
+799 Ver mapa completo
+800 Mostrar minimapa
+801 Radar próximo: mesma orientação da câmera do jogo. Mapa completo: menu ou tecla M
+802 PERTO
+803 Corra por esta parede.
+804 Avance junto à parede e pule.
+805 Impulsione-se nesta parede.
+806 Pule para se impulsionar a partir da parede.
+807 PULO DE PAREDE!
+808 Atravesse nesta tirolesa.
+809 Pule para engatar. O trajeto é automático.
+810 TIROLESA CONECTADA!
+811 Deslize por esta rampa.
+812 Use Deslizar / C para descer deslizando.
+813 DESLIZANDO!
+814 Lance-se para cima com este barril.
+815 Toque no barril marcado / pressione B. A sequência de lançamento é automática.
+816 LANÇAMENTO DO BARRIL INICIADO!
+817 Pare os perseguidores próximos.
+818 Use Luz / 1 e escape enquanto eles estão atordoados.
+819 LUZ LANÇADA!
+820 Distraia os perseguidores com uma isca.
+821 Use Isca / 2 para afastá-los.
+822 ISCA ATIVA!
+823 Fuja para um lugar mais alto.
+824 Use Resgate / V. O gancho escolhe uma plataforma segura.
+825 RESGATE ATIVO!
+826 Continue assim!

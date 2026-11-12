@@ -1,0 +1,150 @@
+141 Não foi possível carregar o feedback. Recarregue.
+142 Sobrevivência
+143 Ganhe pontos por tempo de sobrevivência, dano efetivo e abates. O bônus de dificuldade está incluído.
+144 A dificuldade está incluída nos pontos de sobrevivência e combate. Cada componente é arredondado para baixo; o tempo exibido é aproximado.
+145 Você ganha 450 pontos a cada 30 segundos sobrevividos (proporcional ao tempo decorrido; qualquer intervalo parcial é somado ao fim da partida), 2 por unidade de dano efetivo e 30 por abate. Cada componente recebe o multiplicador de dificuldade: Fácil ×1.0, Normal ×1.1 ou Difícil ×1.2. Os pontos de sobrevivência crescem independentemente da distância ou do número de inimigos e de você se mover ou não. As partidas duram dois minutos. Terminar sem disparar a arma e sem nenhum abate é um "Parkour limpo" e multiplica o total por 1.3. Quem termina na mesma dificuldade é desempatado por dano e abates. Todas as dificuldades competem por pontuação.
+146 Pontuação total
+147 Total detalhado
+148 Sobrevivência
+149 Dano
+150 Abates
+151 Sobrevivência + dano + abates
+152 O bônus de dificuldade está incluído em todas as pontuações
+153 Sobrevivência:
+154 Dano:
+155 Sobrevivência
+156 Dano
+157 Ganhe pontos por tempo de sobrevivência, dano e abates.
+158 ESCAPOU · Você se afastou
+159 Compita em todas as dificuldades com pontos de sobrevivência e combate.
+160 Tiro contínuo aumenta a dispersão. A HG, a SMG e a MG atiram continuamente de perto, em rajadas curtas a média distância e tiros únicos de longe. Faça uma breve pausa para recuperar a precisão.
+161 Escolher dificuldade
+162 Bônus de pontos
+163 Limite de tempo
+164 Primeira vez?
+165 Pratique com vidas ilimitadas.
+166 Configurações
+167 Jogo na Cidade Velha
+168 Jogo no Cânion Rochoso
+169 Prepare-se para fugir
+170 Dificuldade
+171 DOIS MINUTOS.
+172 NÃO PARE.
+173 Pule. Corra na parede. Despiste a perseguição.
+174 mover
+175 Olhar
+176 Pular
+177 Treino · Locais · Ranking · Regras
+178 Segure e deslize à esquerda para mover · Deslize à direita para olhar · Toque em Pular
+179 Sobreviveu aos dois minutos completos
+180 Novo recorde
+181 Sobrevivência + abates
+182 Detalhamento da pontuação
+183 Tempo de sobrevivência
+184 Os bônus estão incluídos nas duas pontuações
+185 Como sua pontuação é calculada
+186 Início
+187 Abates:
+188 Bônus de sobrevivência = 1 + segundos sobrevividos / 60. Continuar vivo também aumenta a pontuação de abates anteriores. O tempo e os multiplicadores exibidos são arredondados; cada pontuação é arredondada para baixo.
+189 Gire o dispositivo para a horizontal
+190 Normal
+191 pts
+192 Vida
+193 Granadas de luz
+194 Abates
+195 (quedas
+196 )
+197 Zumbis
+198 Clique
+199 Faca
+200 Gancho
+201 Pausa e configurações
+202 Parar tiro automático
+203 Tiro automático ligado
+204 ⚠ Vindo pela frente e por trás
+205 Agarrar a borda
+206 Deslizar
+207 Se o mouse não for capturado, arraste com o botão direito na tela do jogo para olhar ao redor
+208 s
+209 Tempo ×
+210 Abates ×
+211 Luz
+212 Habilidades 0/3
+213 Isca
+214 Sobreviva 2 minutos. Escape dos zumbis
+215 frente/trás
+216 girar
+217 Mouse
+218 olhar ao redor
+219 Lado esquerdo: segure e deslize para mover · Lado direito: deslize para olhar · Toque em Pular
+220 Pule vãos e bordas para despistar os zumbis
+221 Deslize em rampa
+222 Arma de pulo
+223 Parar
+224 GunRun · Corredor do Céu
+225 Zombie Parkour
+226 Escapar
+227 Sobreviva 2 minutos. Escape dos zumbis.
+228 Vitória
+229 Sobreviva 2 minutos sem ser pego
+230 Derrota
+231 Ser pego ou cair no abismo encerra a partida
+232 Pontuação
+233 Tempo de sobrevivência e abates. Use o parkour para ganhar distância
+234 Pausa
+235 Metade esquerda: arraste para mover. Metade direita: arraste para olhar. Toque em Pular para pular. Ao entrar em uma passagem baixa, você desliza por baixo automaticamente.
+236 Começar (2 min)
+237 Recarregar
+238 Primeira vez? Modo iniciante
+239 Vida ilimitada. Experimente mover-se, pular e fazer parkour por 2 minutos sem se preocupar com ataques ou quedas. Fora do ranking.
+240 Experimentar o modo iniciante (vida ilimitada)
+241 Quando se sentir à vontade, pressione Começar acima. Você pode mudar a dificuldade nas Configurações recolhidas abaixo.
+242 ⚙ Configurações (controles · sensibilidade · volume · gráficos)
+243 Melhor em todas as dificuldades —
+244 Ranking
+245 Apelido
+246 Escolha um apelido
+247 Fechar ranking
+248 Ferramentas de desenvolvimento (?dev=1)
+249 Seu apelido, pontuação e registros de jogo (entradas, país, dispositivo) são enviados para o ranking.
+250 O envio está desativado, então você não aparecerá no ranking. Você pode mudar isso em Configurações.
+251 Seu apelido, pontuação e registros de jogo são enviados para o ranking.
+252 Número = multiplicador de pontos
+253 Mais difícil = pontos extras
+254 Pontos
+255 Treino · Locais · Regras
+256 Melhor pontuação entre todas as dificuldades (multiplicador de dificuldade incluído).
+257 Dificuldade · Data (JST) · Pontos
+258 Melhor pontuação — ainda nenhuma
+259 Treino · Locais · Configurações · Ranking · Regras completas
+260 Em um corredor de vigas flutuantes e pilares de pedra, escape dos zumbis por 2 minutos. Zumbis não pulam e sobem devagar. Pule os vãos e corra pelas paredes para ganhar distância. Empurre-os com a faca; em uma viga estreita você pode derrubá-los.
+261 Área de treino de parkour
+262 Sem perseguidores nem limite de tempo. Encadeie manobras livremente ou pratique uma específica
+263 Jogar o percurso completo
+264 Começar pelas barras
+265 Você começa com a HG. SG, SMG e MG caem em telhados e níveis altos a cada 10 s. Toque em uma caixa de arma brilhante para equipá-la e reabastecer a munição. Pule ou use o gancho para chegar até elas.
+266 Escolher zumbi
+267 Padrão
+268 Evoluído
+269 Misto (padrão + evoluído)
+270 Só aparecem zumbis padrão.
+271 Visão em terceira pessoa. Pressione V para trocar a visão durante o jogo
+272 Câmera
+273 Seguir movimento
+274 Manual (clássico)
+275 Mova e olhe separadamente, como nos controles clássicos.
+276 Qualidade gráfica
+277 Leve (recomendado)
+278 Padrão
+279 Alta
+280 Detalhe original
+281 Padrão (1.0×)
+282 Leve (0.75×)
+283 Mínima (0.5×)
+284 Qualidade gráfica (configurações)
+285 Mantém o detalhe e as sombras originais, usando o dispositivo e as configurações de renderização existentes.
+286 Renderiza o 3D em um pixel por pixel de tela, com sombras.
+287 Renderiza o 3D a 0.75× sem sombras. Texto e controles não mudam.
+288 Renderiza o 3D a 0.5× sem sombras. Texto e controles não mudam.
+289 Dispensa as sombras e reduz o detalhe 3D para rodar mais leve. Texto e controles não mudam.
+290 Dificuldade do desafio

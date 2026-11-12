@@ -1,0 +1,935 @@
+# id<TAB>Japanese key<TAB>English. Append-only: never renumber. Patterns (p<index>) are regenerated.
+1	W/S：前後、A/D：旋回、Space：ジャンプ。カメラは自動。	W/S: forward/back, A/D: turn, Space: jump. Automatic camera.
+2	左側で移動 · ボタンでジャンプ · 視点は自動	Move on the left · Buttons: jump · Automatic view
+3	カメラは自動	Automatic camera
+4	進む向きへ自動で追従します。視点操作はありません	Follows your travel direction automatically. No camera controls.
+5	カメラは進む向きへ自動で追従します。視点操作はありません	The camera follows your travel direction automatically. No camera controls.
+6	左側で移動し、右側のボタンでジャンプや技を出します。カメラは進む向きへ自動で追従します。	Move on the left; use the buttons on the right to jump and perform moves. The camera follows your travel direction automatically.
+7	左のスティックを、画面の中で行きたい方向へ倒すだけ。上は奥へ、左右は横へ、下は手前へ走ります。カメラは自動でついてきます。右側のボタンでジャンプや技を出します。	Just push the left stick toward where you want to go on screen: up runs away from you, sideways runs sideways, down runs toward you. The camera follows by itself. Use the right buttons to jump and perform moves.
+8	左側で移動。左右へ倒して曲がり、上へ戻すと直進。下で後退。右側のボタンでジャンプや技を出します。カメラは自動で追従します。	Move on the left. Push sideways to turn, return upward to keep going straight, and pull down to back away. Use the right buttons to jump and perform moves. The camera follows automatically.
+9	W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。視点は自動で追従します。	W/S: forward/back. A/D: turn. Alt + A/D: strafe. The camera follows automatically.
+10	開発用	Development
+11	クレジット	Credits
+12	入門モードで遊ぶ	Play the guided tutorial
+13	自分：移動・逃げ道 銃：未装備	You: move + choose route\nGun: not equipped
+14	自分：移動・逃げ道 自動：照準・射撃	You: move + choose route\nAuto: aim + fire
+15	自分：移動・逃げ道・照準 自動：射撃	You: move + route + aim\nAuto: fire
+16	自分：移動・逃げ道 自動射撃：停止中	You: move + choose route\nAuto-fire: stopped
+17	待機	Wait
+18	おとり	Lure
+19	移動中	Moving
+20	退避	Escape
+21	停止中 · Xキーで再開	Stopped · Press X to resume
+22	高台へ自動移動中 · 到着後は自分で逃げよう	Auto-moving to higher ground · Choose your route after landing
+23	高台へ自動退避	Auto-escape upward
+24	分身発動 · 追手を引きつけている間に逃げよう	Decoy deployed · Move away while it draws the pursuers
+25	弾切れ · 光る武器箱で補給	Out of ammo · Touch a glowing crate to refill
+26	停止中 · 押すと再開	Stopped · Press to resume
+27	自動照準・射撃ON	Auto aim + fire ON
+28	撃てる敵を待機中	Waiting for a valid target
+29	移動・逃げ道選びは自分で。銃は装備していません。	You move and choose the escape route. No gun equipped.
+30	移動・逃げ道選びは自分で。銃は自動で狙い撃ちます。	You move and choose the escape route. The gun aims and fires automatically.
+31	移動・逃げ道選びと照準は自分で。敵に向けると自動射撃。	You move, choose the route and aim. The gun fires when aimed at an enemy.
+32	移動・逃げ道選びは自分で。自動射撃は停止中です。	You move and choose the escape route. Auto-fire is stopped.
+33	ドアを開けている間は撃てません	Cannot fire while opening a door
+34	つかまれ中 · 振りほどくと射撃再開	Grabbed · Break free to resume firing
+35	移動技の終了後に射撃再開	Firing resumes after this move
+36	はしご中は撃てません	Cannot fire while climbing a ladder
+37	鉄棒を離すと射撃再開	Release the bar to resume firing
+38	ジャンプで離す（緑のとき着地）	Jump to let go (green = you will land)
+39	縁を登り終えると射撃再開	Finish climbing the ledge to resume firing
+40	弾切れ · 自動装填を待とう	Magazine empty · Waiting for auto-reload
+41	弾切れ · 光る武器箱に触れて補給	Out of ammo · Touch a glowing weapon crate to refill
+42	停止中 · 「自動射撃を再開」で撃つ	Stopped · Press Resume auto-fire to shoot
+43	照準は自分で · 敵に向けると射撃	Aim at an enemy to fire automatically
+44	照準・射撃は自動 · 撃てる敵を待機	Auto aim + fire · Waiting for a valid target
+45	照準・射撃は自動	Aim and fire are automatic
+46	照準は手動・射撃は自動	Manual aim, automatic fire
+47	発動中	Active
+48	再使用待ち	Recharging
+49	追手を引きつける	Lure pursuers
+50	残り0回	No uses left
+51	移動終了を待つ	Wait for the move to finish
+52	高台へ退避	Escape to higher ground
+53	逃げ道の候補 · 光の輪に近づくだけ	Suggested escape route · Move into the glowing ring
+54	目印に到着 · 別の足場へ進んで追手を離そう	Route marker reached · Keep moving to another platform
+55	プレイ中に使えます	Use this during a run
+56	分身を出せる足場がありません · 足場に戻って使おう	No footing for a decoy · Return to a platform to use it
+57	救済は残り0回 · このランでは使い切りました	No Rescue uses left in this run
+58	つかまれ中は救済を使えません	Cannot use Rescue while grabbed
+59	移動技の終了後に救済を使えます	Use Rescue after this move finishes
+60	安全に登れる高台がありません · 別の足場で使おう	No safe higher platform · Try from another platform
+61	本番イージーを始める	Start a real run on Easy
+62	2分間逃げ切れました。「本番イージーを始める」で、ライフ8の本番へ進めます。	You survived 2 minutes. Select Start a real run on Easy to play with 8 lives.
+63	追いつかれました。移動・逃げ道選びは自分で。もう一度入門で、段差や別の足場へ逃げてみよう。	You were caught. You choose where to move and escape. Try the intro again and head for a ledge or another platform.
+64	2分間、ゾンビから逃げ切ろう。自分で移動して逃げ道を選び、銃の自動照準・射撃で逃げる時間を作ります。	Outrun the zombies for 2 minutes. You move and choose the route; automatic aiming and firing buy you time to escape.
+65	近い敵を自動で狙って撃ちます。	The nearest enemy is targeted and shot automatically.
+66	の閃光弾で周りのゾンビを止め、	flashbang stops nearby zombies,
+67	の分身でおびき寄せます	decoy lures them
+68	タップ	Tap
+69	塔の上	Top of the tower
+70	屋上	Rooftop
+71	東の隙間の先	Past the east gap
+72	北の梁の中央	Middle of the north beam
+73	南の橋	South bridge
+74	空中の梁	Aerial beam
+75	非常階段の踊り場	Fire-escape landing
+76	北西の角	Northwest corner
+77	東の足場	East scaffold
+78	西の広場	West plaza
+79	入門クリア！	Intro cleared!
+80	2分間逃げ切れました。次はイージーで本番に挑戦できます。	You escaped for 2 minutes. Next, try the real run on Easy.
+81	落下しました。縁・壁へ跳ぶとつかんで越えられます。もう一度入門で試そう。	You fell. Jump onto ledges and walls to grab them. Try the intro run again.
+82	追いつかれました。壁走り・フック・はしごで距離をとると逃げやすくなります。もう一度入門で試そう。	They caught you. Wall runs, hooks and ladders help you gain distance. Try the intro run again.
+83	動作が重いようです。描画を軽くしますか？	The game seems to be running slowly. Lighten the graphics?
+84	軽量にする	Use light graphics
+85	そのままにする	Keep as is
+86	動作の案内	Performance tip
+87	2分間、ゾンビから逃げ切るゲームです。30秒ごとにボーナス点が入ります。	Outrun the zombies for 2 minutes. You earn bonus points every 30 seconds.
+88	ランキングに表示される名前です。あとからでも決められます。	This is the name shown in the ranking. You can also set it later.
+89	ニックネームを決めよう	Choose a nickname
+90	保存する	Save
+91	あとで	Later
+92	名前を入力してください	Enter a name
+93	ゾンビから2分間逃げろ。	Outrun the zombies for two minutes.
+94	銃・アイテム・地形を駆使して、とにかく逃げ切れ。	Use your gun, items and the terrain. Just get away.
+95	で移動	to move
+96	でジャンプ	to jump
+97	左ドラッグで移動 · 右ドラッグで視点 · 「ジャンプ」ボタンで跳ぶ	Hold and slide on the left to move · Swipe on the right to look · Tap Jump
+98	入門は記録・ランキングに反映されません。	The intro run does not count toward records or the ranking.
+99	タップしてスタート	Tap to start
+100	入門の操作ガイド	Intro controls guide
+101	W A S D で移動 · Space でジャンプ	W A S D to move · Space to jump
+102	左ドラッグで移動 · ボタンでジャンプ	Hold and slide on the left to move · Tap Jump
+103	マウスで視点を回そう	Move the mouse to look around
+104	右ドラッグで視点を回そう	Swipe on the right side to look around
+105	壁・縁・はしごへ跳ぼう · Q でフック	Jump onto walls, ledges and ladders · Q to hook
+106	壁・縁・はしごへ跳ぼう · 画面の輪をタップでフック	Jump onto walls, ledges and ladders · Tap the on-screen ring to hook
+107	銃は自動 · 1 の閃光弾で止める · 2 の分身でおびき寄せる	Auto-fire · 1 flashbang stops them · 2 decoy lures them
+108	銃は自動 · 「閃光弾」ボタンでゾンビを止める	Auto-fire · Flashbang button stops zombies
+109	はじめに	Welcome
+110	遊び方	How to play
+111	走る・跳ぶ	Run & jump
+112	視点を回す	Look around
+113	技で引き離す	Shake them off
+114	銃は自動	Auto-fire
+115	左ドラッグで移動、「ジャンプ」ボタンで跳ぶ。低い通路は自動でスライド	Drag on the left to move and jump with the Jump button. Low passages slide automatically.
+116	で視点を動かす	to look around
+117	画面の右側をドラッグ	Drag the right side of the screen
+118	左側に指を置き、上へずらして押したまま前進。離すと停止。「ジャンプ」で跳ぶ	Place your thumb on the left. Slide UP and keep holding to move forward. Release to stop. Tap Jump to jump.
+119	カメラは進む向きへ自動で回ります。右側で見回した後は、左の指を離して進む向きを選び直せます	The camera follows your movement. You can swipe on the right to look around. Release your left thumb, then move again to choose a direction from that view.
+120	画面の右側に指を置き、横へ動かして見回します。左側の移動と一緒に使えます	Place your thumb on the right and move it sideways to look around. You can do this while moving with your left thumb.
+121	壁走り・縁つかみ・はしご・ジップラインに加えて、	Use wall runs, ledge grabs, ladders and ziplines, plus
+122	でフック	for the hook
+123	壁走り・縁つかみ・はしご・ジップラインに加えて、画面の輪をタップでフック	Use wall runs, ledge grabs, ladders and ziplines, plus tap the on-screen ring to hook
+124	近い敵を自動で狙って撃ちます。「閃光弾」ボタンで周りのゾンビを数秒止められます	The nearest enemy is targeted and shot automatically. The Flashbang button freezes nearby zombies for a few seconds.
+125	ニックネーム（ランキングに表示されます）	Nickname (shown in the ranking)
+126	例：RUNNER	e.g. RUNNER
+127	2〜14文字の文字・数字・_・-。空欄のままでも遊べます。あとから「遊び方」で変えられます。	2-14 letters, digits, _ or -. You can leave it blank and change it later from How to play.
+128	2〜14文字の文字・数字・_・-で入力してください	Use 2-14 letters, digits, _ or -
+129	入門モードで練習する	Practice in the intro run
+130	操作設定を開く	Open control settings
+131	読み込み中…	Loading…
+132	閉じる	Close
+133	ジャンプ弾	Jump shot
+134	ジャンプ弾を使う	Use jump shot
+135	ジャンプ弾取得！ Zキー・専用ボタンで使う	Jump shot ready! Press Z or its button to use it
+136	金色のJUMPはジャンプ弾を1発補給。通常武器を持ったまま、Zキー・ジャンプ弾ボタンで足元に発射して跳ぶ	Gold JUMP pickups store one jump shot. Keep your usual weapon; press Z or the Jump shot button to fire at your feet and launch
+137	追手を撒いた	You lost the chasers
+138	ゾンビ撃破	Zombie eliminated
+139	ダメージ達成	Damage milestone
+140	演出を読み込み中…	Loading feedback…
+141	演出を読み込めませんでした。再読み込みしてください。	Feedback could not load. Please reload.
+142	生存	Survival
+143	生き残った時間と、有効ダメージ・撃破で得点。難易度ボーナスは反映済み。	Earn points for survival time, effective damage and kills. The difficulty bonus is included.
+144	生存時間と戦闘の得点に難易度倍率を反映済み。各得点の端数は切り捨て。表示秒数は概数。	Difficulty is included in survival and combat points. Each component rounds down; displayed time is approximate.
+145	生き残った時間に30秒ごとに450点（秒数に応じて計算。途中で終わった場合も端数は加算）、有効ダメージ1につき2点、撃破1体につき30点。各得点にイージー×1.0・ノーマル×1.1・ハード×1.2の難易度倍率がかかります。敵との距離や人数、移動・静止に関係なく生存点が加算されます。制限時間は2分。銃を撃たず、1体も倒さずに完走すると「パルクールクリア」として合計が1.3倍になります。同じ難易度で完走した場合は、ダメージ・撃破による得点で差がつきます。全難易度でスコアを競います。	Earn 450 points every 30 seconds survived (prorated by elapsed time; any partial interval is added when the run ends), 2 per unit of effective damage and 30 per kill. Each component receives the difficulty multiplier: Easy ×1.0, Normal ×1.1 or Hard ×1.2. Survival points grow regardless of enemy distance, count or whether you move. Rounds last two minutes. Finishing without firing the gun and without a single kill is a "Parkour clear" and multiplies the total by 1.3. Finishers on the same difficulty are separated by damage and kill points. All difficulties compete on score.
+146	合計スコア	Total score
+147	内訳の合計	Breakdown total
+148	生存点	Survival
+149	ダメージ点	Damage
+150	撃破点	Kills
+151	生存点 ＋ ダメージ点 ＋ 撃破点	Survival + damage + kills
+152	難易度ボーナスは各得点に反映済み	The difficulty bonus is included in every score
+153	生存点：	Survival:
+154	ダメージ点：	Damage:
+155	逃走	Survival
+156	ダメージ	Damage
+157	生存時間とダメージ・撃破で得点	Earn points for survival time, damage and kills.
+158	ESCAPED · 追手を引き離した	ESCAPED · You pulled away
+159	生存時間と戦闘の得点で、全難易度のプレイヤーと競おう。	Compete across all difficulties with survival and combat points.
+160	連射すると弾がブレる。HG・SMG・MGの自動射撃は近距離で連射、中距離で短い連射、遠距離で単発に切り替わる。少し休むと精度が戻る。	Sustained fire increases bullet spread. The HG, SMG and MG fire continuously up close, in short bursts at medium range, and single shots at long range. Pause briefly to recover accuracy.
+161	難易度を選ぶ	Choose difficulty
+162	スコアボーナス	Score bonus
+163	制限時間	Time limit
+164	はじめての方へ	First time?
+165	ライフ無限で、操作を練習。	Practice with unlimited lives.
+166	設定	Settings
+167	旧市街のゲーム風景	Old Town gameplay
+168	岩壁渓谷のゲーム風景	Rock Canyon gameplay
+169	逃走の準備	Prepare to escape
+170	難易度	Difficulty
+171	2分間、	TWO MINUTES.
+172	逃げ切れ。	KEEP MOVING.
+173	跳ぶ。壁を走る。追跡を引き離す。	Jump. Wall-run. Lose the chase.
+174	移動	move
+175	視点	Look
+176	ジャンプ	Jump
+177	練習・スポット・ランキング・ルール	Practice · Spots · Ranking · Rules
+178	左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ	Hold and slide on the left to move · Swipe on the right to look · Tap Jump
+179	2分間の逃走をクリア	Survived the full two minutes
+180	自己ベスト更新	New best
+181	生存点 ＋ 撃破点	Survival + kills
+182	スコア内訳	Score breakdown
+183	生存時間	Survival time
+184	ボーナスは生存点・撃破点に反映済み	Bonuses are included in both scores
+185	スコアの計算を見る	How your score is calculated
+186	ホームへ	Home
+187	撃破点：	Kills:
+188	生存時間ボーナス ＝ 1 ＋ 生存秒数 ÷ 60。長く生存すると、これまでの撃破点も増えます。式の秒数・倍率は概数、各得点は小数点以下切り捨て。	Survival bonus = 1 + seconds survived / 60. Staying alive also increases the score from earlier kills. Displayed time and multipliers are rounded; each score is rounded down.
+189	横向きにして遊んでください	Please rotate your device to landscape
+190	ノーマル	Normal
+191	点	pts
+192	ライフ	Life
+193	閃光弾	Flashbangs
+194	撃破	Kills
+195	（落下	(drops
+196	）	)
+197	ゾンビ	Zombies
+198	クリック	Click
+199	ナイフ	Knife
+200	フック	Hook
+201	一時停止・調整	Pause & Settings
+202	自動射撃を停止	Stop auto-fire
+203	自動射撃中	Auto-fire on
+204	⚠ 前と後ろから来る	⚠ Coming from front and back
+205	縁つかみ	Ledge grab
+206	スライド	Slide
+207	マウスが固定されない場合は、ゲーム画面を右ドラッグして視点操作	If the mouse isn't captured, right-drag on the game screen to look around
+208	秒	s
+209	時間倍率	Time ×
+210	撃破倍率	Kill ×
+211	閃光玉	Flashbang
+212	技 0/3	Skills 0/3
+213	分身	Decoy
+214	2分間、ゾンビから逃げ切れ	Survive 2 minutes. Escape the zombies
+215	前後	forward/back
+216	曲がる	turn
+217	マウス	Mouse
+218	見回す	look around
+219	左ドラッグ 移動 右ドラッグ 視点 「ジャンプ」で跳ぶ	Left side: hold and slide to move · Right side: swipe to look · Tap Jump
+220	隙間や段差を跳んで、ゾンビを引き離そう	Jump gaps and ledges to shake the zombies off
+221	斜面滑り	Slope slide
+222	ジャンプガン	Jump Gun
+223	停止	Stop
+224	GunRun 追跡の試作	GunRun · Sky Corridor
+225	空中回廊	Zombie Parkour
+226	追跡	Escape
+227	2分間、ゾンビから逃げ切れ。	Survive 2 minutes. Escape the zombies.
+228	勝ち	Win
+229	2分間つかまらずに生き残る	Survive 2 minutes without being caught
+230	負け	Lose
+231	ゾンビにつかまる／奈落に落ちると終了	Getting caught or falling into the abyss ends the run
+232	得点	Score
+233	生き残った時間と撃破数。パルクールで引き離そう	Survival time and kills. Use parkour to pull away
+234	一時停止	Pause
+235	左半分ドラッグで移動、右半分ドラッグで視点。「ジャンプ」で跳ぶ。低い通路へ走ると自動でスライドしてくぐる	Left half: drag to move. Right half: drag to look. Tap Jump to jump. Run into a low passage to slide under it automatically.
+236	本番をはじめる（2分）	Start (2 min)
+237	再読み込み	Reload
+238	はじめての方へ：入門モード	First time? Beginner mode
+239	ライフ無限。攻撃や落下を気にせず、移動・ジャンプ・パルクールを2分間試せます。ランキングには参加しません。	Unlimited life. Try moving, jumping and parkour for 2 minutes without worrying about attacks or falls. Not ranked.
+240	入門モードで試す（ライフ無限）	Try Beginner mode (unlimited life)
+241	慣れたら上の「本番」へ。難易度は下の折りたたみ（設定）から変えられます。	Once you're comfortable, press Start above. You can change the difficulty in the folded Settings below.
+242	⚙ 設定（操作・感度・音量・画質）	⚙ Settings (controls · sensitivity · volume · graphics)
+243	全難易度 ベスト —	All difficulties Best —
+244	ランキング	Ranking
+245	ニックネーム	Nickname
+246	ニックネームを決める	Choose a nickname
+247	ランキングを閉じる	Close ranking
+248	開発者向け（?dev=1）	Developer tools (?dev=1)
+249	ランキングのため、ニックネーム・スコア・プレイ記録（操作・国・端末環境）を送信します。	Your nickname, score and play records (inputs, country, device) are sent for the ranking.
+250	記録の送信は停止中です。ランキングには載りません。設定で変更できます。	Sending is turned off, so you will not appear in the ranking. You can change this in Settings.
+251	ニックネーム・スコア・プレイ記録は、ランキングのために送信されます。	Your nickname, score and play records are sent for the ranking.
+252	数字は得点の倍率	Number = score multiplier
+253	難しいほど得点にボーナス	Harder = bonus points
+254	スコア	Score
+255	練習・スポット・ルール	Practice · Spots · Rules
+256	全難易度の最高スコア順（難易度の倍率を反映）。	Best score across all difficulties (difficulty multiplier included).
+257	難易度 · 日時（日本時間）· スコア	Difficulty · Date (JST) · Score
+258	ベスト得点 未記録	Best score — none yet
+259	練習・スポット選択・設定・ランキング・くわしいルール	Practice · Spots · Settings · Ranking · Full rules
+260	浮かぶ梁と石柱の回廊で、2分間ゾンビから逃げ切る。ゾンビは跳べず、登るのも遅い。隙間を跳び、壁を走って引き離せ。ナイフで押し返せる。細い梁の上なら、落とせる。	In a corridor of floating beams and stone pillars, escape the zombies for 2 minutes. Zombies can't jump and climb slowly. Jump the gaps and run along walls to pull away. Push them back with the knife; on a narrow beam you can knock them off.
+261	パルクール練習場	Parkour practice area
+262	追手・制限時間なし。技を繋げて遊ぶ／好きな技から試す	No pursuers, no time limit. Chain moves freely or try a specific move
+263	連続コースで遊ぶ	Play the full course
+264	鉄棒から試す	Start from the bars
+265	HGでスタート。SG・SMG・MGは10秒ごとに屋根・上層へ落下。光る武器箱に触れると装備・弾薬補充。跳び移りやフックで取りに行こう。	You start with the HG. SG, SMG and MG drop onto rooftops and upper levels every 10 s. Touch a glowing weapon crate to equip it and refill ammo. Jump across or use the hook to get to them.
+266	ゾンビを選ぶ	Choose zombie
+267	Unity標準	Standard
+268	Unity進化	Evolved
+269	混合（標準＋進化）	Mixed (standard + evolved)
+270	Unity標準ゾンビだけ出現します。	Only standard zombies appear.
+271	三人称で表示中（Unityアニメーション）。プレイ中は V で視点切替	Third-person view. Press V to switch view during play
+272	カメラ	Camera
+273	移動に追従	Follow movement
+274	手動（従来）	Manual (classic)
+275	従来どおり、移動と視点を別々に操作します。	Move and look separately, as in the classic controls.
+276	描画品質	Graphics quality
+277	軽量（推奨）	Light (recommended)
+278	標準	Standard
+279	高画質	High
+280	高精細（従来）	Original detail
+281	標準（1.0倍）	Standard (1.0×)
+282	軽量（0.75倍）	Light (0.75×)
+283	最軽量（0.5倍）	Minimum (0.5×)
+284	描画品質（設定）	Graphics quality (settings)
+285	従来の高精細表示と影を使います。端末と従来の描画設定に応じた倍率です。	Keeps the original detail and shadows, using the device and existing render settings.
+286	表示上の1ピクセルを3D描画の1ピクセルとして描き、影を表示します。	Renders 3D at one pixel per display pixel, with shadows.
+287	3D描画を0.75倍にし、影を省きます。文字と操作はそのままです。	Renders 3D at 0.75× without shadows. Text and controls stay the same.
+288	3D描画を0.5倍にし、影を省きます。文字と操作はそのままです。	Renders 3D at 0.5× without shadows. Text and controls stay the same.
+289	影を省き、3D描画の細かさを抑えて軽くします。文字と操作はそのままです。	Skips shadows and lowers 3D detail so it runs lighter. Text and controls stay the same.
+290	チャレンジ難易度	Challenge difficulty
+291	イージー	Easy
+292	ハード	Hard
+293	超ベリーハード	Extreme
+294	試作	Trial
+295	俊足と重装が混ざる	Runners and brutes join the chase
+296	ランキング対象外	Not ranked
+297	超ベリーハード（試作・ランキング対象外）	Extreme (trial, not ranked)
+298	試作：スコアはハードと同じ ×1.2 ｜ ランキング対象外	Trial: scores like Hard (×1.2) | not ranked
+299	パルクールクリア	Parkour clear
+300	スコアランキング	Score ranking
+301	旧市街	Old Town
+302	ランキングの区分	Ranking category
+303	全難易度共通	All difficulties
+304	自由調整	Custom
+305	イージー×1.0・ノーマル×1.1・ハード×1.2を反映した得点順。全難易度を通じた各プレイヤーの最高スコアで競います。	Ranked by score with the difficulty bonus (Easy ×1.0 · Normal ×1.1 · Hard ×1.2). Each player's best score across all difficulties counts.
+306	ランキングを読み込めませんでした。	Couldn't load the ranking.
+307	ミッション（技の練習）	Missions (move practice)
+308	まずお手本を見てから挑戦する。本番で使う技を1つずつ	Watch the demo first, then try it. One move at a time.
+309	隙間を跳ぶ	Jump the gap
+310	未達成	Not cleared
+311	プレイ記録	Play records
+312	送信なし：結果はこの端末だけに保存	Not sent: results are saved on this device only
+313	ランキングのため、ニックネーム・スコア・操作・国・端末環境を送信します。	Your nickname, score, inputs, country and device are sent for the ranking.
+314	未送信の記録を再送	Resend unsent records
+315	この端末の最近の記録	Recent records on this device
+316	操作と得点のルール	Controls and scoring rules
+317	得点は生存時間と撃破数から計算。時間倍率 = (1 + 難易度×0.1) × (1 + 生存秒数÷60)、撃破倍率はその2倍。生存・撃破を別々に整数へ切り捨てて合計します。落下撃破も1体として数え、技そのものには加点しません。イージー×1.0・ノーマル×1.1・ハード×1.2を反映した得点で、全難易度のプレイヤーと競います。つかまった場合も、その時点の得点がランキング対象です。	Score is calculated from survival time and kills. Time multiplier = (1 + difficulty × 0.1) × (1 + seconds survived ÷ 60); the kill multiplier is double that. Survival and kills are rounded down separately, then added. Knocking a zombie off counts as one kill, and moves themselves give no points. The score includes the difficulty bonus (Easy ×1.0, Normal ×1.1, Hard ×1.2) and competes with all difficulties. Your score at the moment you're caught also counts for the ranking.
+318	走る マウスで視点	Run · Mouse to look
+319	壁走り：青緑の矢印がある壁だけ使える。矢印に沿って跳び、空中でも移動入力を続ける。金枠の JUMP で	Wall run: only walls with a teal arrow work. Jump along the arrow and keep holding a direction in the air. Press
+320	（タッチはジャンプ）を押すとショートカット	(Jump on touch) at the gold JUMP frame for a shortcut
+321	右クリック	Right-click
+322	ナイフ（銃オフのときはクリックも）：前のゾンビを押し返してよろけさせる（つかみも止まる）。背後からなら一撃。HGで開始。SG・SMG・MGはステージ内の補給箱で取得する	Knife (also Click when the gun is off): pushes back and staggers the zombie in front (also stops a grab). One hit from behind. You start with the HG; SG, SMG and MG are picked up from supply crates in the stage
+323	ゾンビは近道になる柱も登ってくる。登っている間に撃って落とせる。	Zombies also climb pillars that offer a shortcut. Shoot them off while they climb.
+324	浮かぶ梁と石柱の回廊で、2分間ゾンビから逃げ切る。ゾンビも短い隙間を跳び、柱を登ってくる。大きな隙間や壁走りで引き離せ。ナイフで押し返せる。細い梁の上なら、落とせる。	Escape zombies for two minutes among floating beams and stone pillars. Zombies also jump short gaps and climb pillars. Use wider gaps and wall runs to pull away. Push them back with your knife or knock them off narrow beams.
+325	3層の橋と谷底を使い、2分間ゾンビから逃げ切る。ゾンビも短い隙間を跳び、柱を登ってくる。大きな隙間や壁走りで引き離せ。ナイフで押し返せる。細い梁の上なら、落とせる。	Escape zombies for two minutes across three bridge levels and the canyon floor. Zombies also jump short gaps and climb pillars. Use wider gaps and wall runs to pull away. Push them back with your knife or knock them off narrow beams.
+326	高台で追いつけずにいるゾンビは、柱をゆっくり登ってくる。登っている間に撃って落とせる。	Zombies that can't reach a high spot slowly climb the pillars. You can shoot them off while they climb.
+327	銃は射線が通る近い敵を自動で狙って撃ち、弾切れ時は自動装填。「自動射撃を停止／再開」または	The gun automatically aims at and shoots close enemies in line of sight, and reloads when empty. Use "Stop/Resume auto-fire" or
+328	で弾を温存。HGで開始。SG・SMG・MGは10秒ごとに屋根・上層へ補給される（最大5個）	to save ammo. You start with the HG. SG, SMG and MG are supplied to rooftops and upper levels every 10 s (max 5).
+329	技（スライド・壁走り・縁つかみ・はしご・ジップライン・フック）を3回決めると閃光弾+1（最大2個）	Landing 3 moves (slide, wall run, ledge grab, ladder, zipline, hook) gives +1 flashbang (max 2)
+330	少し高い壁に走って跳ぶと、壁を蹴って駆け上がる。日よけ布に落ちると大きく跳ねる	Run and jump at a slightly high wall to kick off it and climb up. Falling onto an awning makes you bounce high
+331	自己ベストのときの走りを青い人影（ゴースト）で表示・非表示	Show or hide your best run as a blue ghost figure
+332	走ってゾンビにスライディング → 足元をすり抜ける。	Run and slide into a zombie → slip through under its feet.
+333	走ってゾンビの目の前でジャンプ → 頭を踏んで高く跳び越える	Run and jump right in front of a zombie → stomp its head and leap over
+334	光る輪が見えたら	When you see a glowing ring, press
+335	→ フックで一気に飛び移る（ゾンビは使えない）	→ hook yourself across in one go (zombies can't use it)
+336	ジップラインは上端・下端の近くで	Near the top or bottom of a zipline, press
+337	→ 反対側へ移動。分岐では行きたいロープを向く。途中で再び	→ ride to the other side. At a fork, face the rope you want. Press again mid-ride
+338	→ 飛び上がって離脱。勢いを保ったまま空中で自分で操作できる	→ to jump off. You keep your momentum and steer yourself in the air
+339	分身：6秒間、全ゾンビが分身を本物と思い込み追跡。再使用まで18秒。画面下の丸いボタンでも使用可能。	Decoy: for 6 s all zombies believe the decoy is you and chase it. 18 s before reuse. Also usable with the round button at the bottom of the screen.
+340	閃光弾（最初1個）：正面に投げ、周囲8mのゾンビを4秒停止。壁越しには効かない。技を3回決めるごとに+1（最大2個）	Flashbang (1 at the start): thrown ahead, stuns zombies within 8 m for 4 s. Doesn't work through walls. +1 for every 3 moves you land (max 2)
+341	空中でゾンビの近くで	In the air near a zombie, press
+342	→ 飛び蹴り。ゾンビは吹き飛び、自分は跳ね返る。続けて次のゾンビも蹴れる	→ flying kick. The zombie is blown away and you bounce back. You can chain into the next zombie
+343	得点 = 生き延びた時間 ＋ 撃破 ＋ 節目（30・60・90・120秒）。時間が進むほど1秒も1体も価値が上がる。奈落に落とした撃破は2倍。技を出しても点にはならない：その場に合う技で逃げ切った人が、結果として高得点になる	Score = time survived + kills + milestones (30/60/90/120 s). The later it gets, the more each second and each kill is worth. Knocking a zombie into the abyss counts double. Moves themselves give no points: whoever escapes with the right move for the moment ends up with the high score
+344	光の柱が「道しるべ」。たどり着くと次の場所が光る（点は付かない）。そこにはゾンビが待っている	Pillars of light are your waypoints. Reaching one lights up the next place (no points). Zombies are waiting there
+345	青いDASHリングを取ると5秒間、速度が1.3倍。再出現は36秒後	Taking a blue DASH ring gives ×1.3 speed for 5 s. It respawns after 36 s
+346	金色のJUMPは定期補給。拾うと1発装備し、発射で足元を自動撃ちして跳ぶ。使用後は元の武器に戻る	The gold JUMP pickup resupplies periodically. Pick it up to equip one shot; firing auto-shoots at your feet to launch you. Afterwards you return to your usual weapon
+347	スポットから本番をはじめる	Start from a spot
+348	選んだ場所から2分チャレンジを開始します。クリア・スコアがランキングに反映されます。①は撤去済みです。	Starts a 2-minute challenge from the chosen place. Clears and scores count for the ranking. ① has been removed.
+349	② 北柱→南の空中分岐	② North pillar → south air branch
+350	③ 低い屋根→倉庫の上階通路	③ Low roof → warehouse upper corridor
+351	④ 直進：斜め梁→外側回廊→南屋根／屋上	④ Straight: diagonal beam → outer corridor → south roof / rooftop
+352	④ 分岐：柱の縁→鉄棒→次の縁	④ Branch: pillar edge → bar → next edge
+353	⑤ 南の踊り場→鉄棒→西の角	⑤ South dance floor → bar → west corner
+354	⑥ 北バルコニー→鉄棒2本→北西の角	⑥ North balcony → 2 bars → northwest corner
+355	⑦ 東塔の足元→西のフック→既存の梁	⑦ East tower base → west hook → existing beam
+356	⑧ 北の下段→鉄棒→東側通路	⑧ North lower tier → bar → east corridor
+357	画面の向きが逆なら押す（左右反転）	Press if the screen orientation is reversed (flip left/right)
+358	お手本（自動で操作しています）	Demo (auto-played)
+359	ミッション	Mission
+360	やってみる	Try it
+361	お手本をもう一度	Watch the demo again
+362	戻る	Back
+363	逃げ切った	Escaped!
+364	次のミッション	Next mission
+365	もう一度（R）	Try again (R)
+366	お手本を見る	Watch the demo
+367	タイトルへ	Back to title
+368	空中回廊 / 逃走の記録	Zombie Parkour Escape / Run record
+369	イージーから挑戦する	Start from Easy
+370	もう一度逃げる	Run again
+371	ランキング・記録	Ranking · Records
+372	メニュー	Menu
+373	ランキング・プレイの記録	Ranking · Play records
+374	リザルトに戻る	Back to results
+375	梯子で降りる [3]	Climb down the ladder [3]
+376	東へジップ [1]	Zip east [1]
+377	西へジップ [2]	Zip west [2]
+378	北へジップ [3]	Zip north [3]
+379	握力	Grip
+380	ナイフ範囲：F / 右クリック	Knife range: F / right-click
+381	ゴースト	Ghost
+382	ランキングに戻る	Back to ranking
+383	最初から	Restart
+384	0.5倍速	0.5× speed
+385	1倍速	1× speed
+386	2倍速	2× speed
+387	追従視点	Follow view
+388	本人視点	Own view
+389	銃声オン	Gunshots on
+390	☰ メニュー	☰ Menu
+391	つづける	Resume
+392	目的	Goal
+393	2分間ゾンビから逃げ切る	Survive 2 minutes and escape the zombies
+394	操作	Controls
+395	2分間ゾンビから逃げ切る 左ドラッグで移動、右ドラッグで視点、「ジャンプ」で跳ぶ	Survive 2 minutes and escape the zombies. Hold and slide on the left to move, swipe on the right to look, and tap Jump to jump
+396	ゴースト ベスト 0点	Ghost best 0 pts
+397	ゴーストを隠す	Hide ghost
+398	ノーマル：移動・戦闘の条件は固定です。得点倍率はイージー×1.0・ノーマル×1.1・ハード×1.2。全難易度のスコアを同じランキングで競います。カメラ・感度・音量・画質は変更できます。	Normal: movement and combat conditions are fixed. Score multipliers are Easy ×1.0, Normal ×1.1, Hard ×1.2, and all difficulties compete on the same ranking. Camera, sensitivity, volume and graphics can be changed.
+399	かんたん設定	Quick settings
+400	カメラ操作	Camera controls
+401	操作方式	Camera mode
+402	視点の感度（タッチ・マウス）	Look sensitivity (touch / mouse)
+403	1.00 倍	1.00×
+404	音量	Volume
+405	視野角	Field of view
+406	描画解像度	Render resolution
+407	上下の視点操作を反転	Invert vertical look
+408	オートエイム（近い敵に照準・三人称では後ろにも振り向く／オフ＝中央照準、頭なら一撃）	Auto-aim (aims at close enemies; in third person also turns behind you / off = center aim, one-hit on headshots)
+409	自動射撃（近い敵を狙う／プレイ中のボタン・Xで停止と再開）	Auto-fire (targets close enemies / stop and resume with the in-game button or X)
+410	プレイ記録を匿名で送信する（操作・結果・画面サイズ。開発の改善に使います）	Send play records anonymously (inputs, results, screen size — used to improve the game)
+411	プレイ記録と動作情報を匿名で送信する（操作・結果・国・端末環境。開発の改善に使います）	Send play and performance records anonymously (inputs, results, country, device environment — used to improve the game)
+412	初期値に戻す	Reset to defaults
+413	得点の内訳	Score breakdown
+414	長く生存するほど得点アップ。難易度ボーナスは各得点に反映済み。	The longer you survive, the higher your score. The difficulty bonus is already included in each score.
+415	ゲーム画面	Game screen
+416	起爆	Detonate
+417	プレイ前の調整	Settings before play
+418	ホームに戻る	Back to home
+419	ノーマル ボーナス +10%（×1.1）	Normal bonus +10% (×1.1)
+420	速度 +0%	Speed +0%
+421	自動射撃	Auto-fire
+422	停止／再開	Stop / Resume
+423	ゾンビは跳べない（西側の高所だけ跳ぶ）。隙間・段差で引き離せ	Zombies can't jump (only on the west-side high ground). Pull away with gaps and ledges
+424	プレイヤースキル	Player skills
+425	閃光弾 残り1個 周囲8mのゾンビを4秒停止。離すと使用、外へずらすと取消	Flashbang ×1 — stuns zombies within 8 m for 4 s. Release to throw, slide outside to cancel
+426	分身 2キー 6秒間ゾンビを撹乱	Decoy (key 2) — confuses zombies for 6 s
+427	下り斜面で使用できます	Usable on a downhill slope
+428	ゾンビの見た目を選ぶ	Choose zombie
+429	プレイ前のカメラ操作	Camera controls before play
+430	パルクールのスポット（番号順）	Parkour spots (in order)
+431	梯子で降りる	Climb down the ladder
+432	東へジップ	Zip east
+433	西へジップ	Zip west
+434	北へジップ	Zip north
+435	鉄棒の握力	Bar grip
+436	ゴースト閲覧	Ghost viewer
+437	再生位置	Playback position
+438	再生速度	Playback speed
+439	再生視点	Playback view
+440	メニュー・調整を開く	Open menu and settings
+441	調整を閉じる	Close settings
+442	つかまった	Caught
+443	落ちてしまった	You fell
+444	落ちて終了	Fell — run over
+445	逃げ切った！	Escaped!
+446	ゲームオーバー	Game over
+447	入門をもう一度	Beginner mode again
+448	生存と撃破のスコアで、全難易度のプレイヤーと競おう。	Compete with players of every difficulty on survival and kill score.
+449	2分間のスコアで、全難易度のプレイヤーと競おう。	Compete with players of every difficulty on your 2-minute score.
+450	スコアベスト更新	New best score
+451	今回のスコア	This run's score
+452	入門モード、おつかれさま！	Beginner mode complete — nice work!
+453	次はイージー・ノーマル・ハードから選んで挑戦できます。	Next, try Easy, Normal or Hard.
+454	ライフ無限の入門体験 · ランキング対象外	Unlimited-life beginner run · not ranked
+455	この入門の記録は保存・送信しません	This beginner run isn't saved or sent
+456	未クリア	Not cleared
+457	クリア	Cleared
+458	あなた	You
+459	ゴースト記録なし	No ghost
+460	ゴーストを見る	View ghost
+461	（日本時間）	(JST)
+462	順位 / プレイヤー	Rank / Player
+463	難易度 / スコア	Difficulty / Score
+464	スコア記録はまだありません。最初の記録を目指そう。	No scores yet. Be the first!
+465	練習・検証モード以外のプレイが対象です。	Runs outside practice and test mode count.
+466	記録を読み込み中…	Loading records…
+467	送信結果が不明です。二重登録を防ぐため再送を保留しています	The send result is unknown. Resending is on hold to avoid duplicates
+468	通信エラー	Network error
+469	練習・検証モードのため送信しません	Not sent: practice or test mode
+470	入門モード：ランキング対象外・記録送信なし	Beginner mode: not ranked, nothing sent
+471	練習場：ランキング対象外	Practice area: not ranked
+472	検証モード：ランキング対象外	Test mode: not ranked
+473	記録を送信します	Play records are sent
+474	この端末に結果を保存（送信なし）	Result saved on this device (not sent)
+475	端末保存済み・サーバーへ送信中…	Saved on this device · sending to server…
+476	端末への保存に失敗・画面を閉じないでください。	Couldn't save on this device · don't close this screen.
+477	端末保存済み・未送信。	Saved on this device · not sent.
+478	サーバー保存済み・ランキング確認済み	Saved on server · ranking confirmed
+479	サーバー保存済み・ランキングは自己ベストを表示	Saved on server · ranking shows your best
+480	サーバー保存済み（ランキング対象外のプレイ）	Saved on server (not ranked)
+481	サーバー保存済み・ランキングの反映は未確認	Saved on server · ranking update not confirmed yet
+482	端末に結果を保存しました	Result saved on this device
+483	直近の結果：	Latest result: 
+484	基本のジャンプや段差移動を使い、余裕をもって逃げる	Use basic jumps and steps to escape comfortably
+485	段差・隙間・壁走りで繰り返し追跡を引き離す。銃で逃げる時間を作る	Repeatedly pull away with steps, gaps and wall runs. Buy escape time with the gun
+486	技を連続させ、敵の配置から着地点と逃走路を選ぶ。銃は押し落としと足止めに使う	Chain moves and pick landing spots and escape routes from where the enemies are. Use the gun to knock them off and hold them back
+487	従来の設定・追跡者・ランキング	Classic settings, stalker and ranking
+488	入門モード	Beginner mode
+489	ライフ無限で、移動・ジャンプ・パルクールを試す	Unlimited life — try moving, jumping and parkour
+490	技の練習	Move practice
+491	移動してみよう。ライフは無限。落ちても近くから再開できます。	Try moving around. Life is unlimited, and you restart nearby if you fall.
+492	段差を跳び、壁やはしごを使って上の通路へ移動してみよう。	Jump the steps and use walls and ladders to reach the upper walkway.
+493	銃は押し返す道具にもなります。縁にいるゾンビを落としてみよう。	The gun also pushes enemies back. Try knocking a zombie off the edge.
+494	高低差や隙間で距離を作ろう。引き離してもゾンビの追跡は続きます。	Use height differences and gaps to build distance. Zombies keep chasing even when you pull away.
+495	ゴーストを表示	Show ghost
+496	ゴーストを読み込み中…	Loading ghost…
+497	発砲なし	No shots
+498	銃声の記録なし	No gunshot record
+499	銃声オフ	Gunshots off
+500	再生	Play
+501	この記録のゴーストを読み込めませんでした。ランキングに戻って選び直してください。	Couldn't load this record's ghost. Go back to the ranking and pick again.
+502	最初はナイフだけ	Knife only at first
+503	HGで開始。SG・SMG・MGはステージ内の補給箱で取得する	Start with the HG. SG, SMG and MG come from supply crates in the stage
+504	冷却	Cooling
+505	影	Shadows
+506	手前の銃	Foreground gun
+507	煙・光	Smoke & light
+508	低解像度	Low resolution
+509	Unity人間とアニメーションを読み込み中…	Loading the character and animations…
+510	Unity人間モデルを読み込めませんでした。従来表示を使います。	Couldn't load the character model. Using the classic display.
+511	Unity人間モデルを読み込み中です。少し待ってから開始してください。	The character model is still loading. Please wait a moment before starting.
+512	浅く倒すとゆっくり。横〜斜め下で減速して旋回。後退は一度戻して真下へ。右スワイプで見回せます。	Tilt slightly to go slow. Sideways or down-diagonal slows and turns. To go backward, return to neutral then straight down. Swipe right to look around.
+513	W/S：前後、A/D：減速して曲がる、Alt＋A/D：横移動。マウスで見回せます。	W/S: forward/back, A/D: slow down and turn, Alt+A/D: strafe. Look around with the mouse.
+514	3D描画の細かさを抑え、影を表示します。	Lowers 3D detail and shows shadows.
+515	従来の細かさと影を使います。動作が重いときは軽量を選んでください。	Uses the classic detail and shadows. Choose Light if it runs slowly.
+516	自動射撃を再開	Resume auto-fire
+517	停止中・弾を温存	Paused · saving ammo
+518	ジャンプ台をタップで高台へ！	Tap the pad to jump up to the high ground!
+519	ジャンプ台をクリック／Bキーで高台へ！	Click the pad or press B to jump up to the high ground!
+520	跳ぶ	Jump
+521	緑の印をタップで、あの足場へフック！	Tap the green mark to hook onto that ledge!
+522	緑の印をクリック／Vキーで、あの足場へフック！	Click the green mark or press V to hook onto that ledge!
+523	救済	Rescue
+524	近くに登れる高台がありません	No high ground to climb nearby
+525	ドラム缶をタップで爆破ジャンプ！	Tap the barrel to blast-jump!
+526	ドラム缶をクリック／Bキーで爆破ジャンプ！	Click the barrel or press B to blast-jump!
+527	ドラム缶をタップで爆破	Tap the barrel to detonate
+528	爆破ジャンプ！ 空中で進路を調整	Blast jump! Steer in the air
+529	爆風で上昇！ 空中で進路を調整	Lifted by the blast! Steer in the air
+530	ドラム缶爆発！ 近くの敵を吹き飛ばした	Barrel exploded! Nearby enemies blown away
+531	ドラム缶爆発！	Barrel exploded!
+532	東の隙間	East gap
+533	北の梁	North beam
+534	リング東壁	Ring east wall
+535	リング西壁	Ring west wall
+536	西の路地・南への近道	West alley · shortcut south
+537	ドアが壊された！	The door was broken!
+538	滑走中	Sliding
+539	斜面を滑り降りる	Slide down the slope
+540	南へジップ	Zip south
+541	ジップは行き先ボタン／PCは1・2。梯子下降は3。向き＋ジャンプでも乗れます。	Zip: destination button (PC: 1 / 2). Ladder descent: 3. You can also board by facing it and jumping.
+542	はしご下降：前進で降りる／後ろで戻る／ジャンプで離脱	Ladder down: forward to descend / back to return / jump to leave
+543	はしご：外側へ前進すると降りる	Ladder: move outward to climb down
+544	通り抜け：前進／はしごを登る：ジャンプ＋前進	Pass through: forward / climb the ladder: jump + forward
+545	復帰は南側の青緑の矢印へ → 段を上がって街路へ	Return via the teal arrow on the south side → up the steps to the street
+546	次の鉄棒で分岐：直進は3連／左は柱の縁へ	Branch at the next bar: straight is a triple / left goes to the pillar edge
+547	金色の矢印からジャンプ。失敗時は下の青緑の階段へ	Jump from the gold arrow. If you miss, use the teal stairs below
+548	青い上層は前後へ。黄色い横道は4m下	The blue upper level runs front to back. The yellow side path is 4 m below
+549	分身を出せる足場の近くで使おう	Use it near a spot where the decoy can stand
+550	分身発動 — 追手を引きつけて逃げよう	Decoy deployed — draw the chasers away and escape
+551	ゲームを読み込めませんでした。再読み込みしてください。	Couldn't load the game. Please reload.
+552	人物を読み込めませんでした。再読み込みしてください。	Couldn't load the character. Please reload.
+553	銃を読み込めませんでした。再読み込みしてください。	Couldn't load the gun. Please reload.
+554	人物を読み込み中…	Loading character…
+555	銃を読み込み中…	Loading gun…
+556	ゲームを準備中…	Getting the game ready…
+557	ゾンビを読み込み中…	Loading zombies…
+558	練習をはじめる	Start practice
+559	人物と銃を準備しています。	Getting the character and gun ready.
+560	ここで壁ジャンプ	Wall jump here
+561	今ジャンプ！ ショートカット	Jump now! Shortcut
+562	今ジャンプ！	Jump now!
+563	壁走り	Wall run
+564	矢印に沿う → 金枠でジャンプ	Follow arrows → jump at gold
+565	「ジャンプ」をタップ	Tap Jump
+566	Space で壁ジャンプ	Space to wall-jump
+567	青緑の矢印に沿って壁走り → 金枠の JUMP で跳ぶ	Wall-run along the teal arrow → jump at the gold JUMP frame
+568	見つかった — 追跡再開	Spotted — the chase resumes
+569	追跡を振り切った	You shook them off
+570	追跡を振り切った — 周辺を捜索している	You shook them off — they're searching nearby
+571	ジャンプで途中離脱 — 空中は自分で操作	Jump to leave mid-ride — you steer in the air
+572	群れが来る	A horde is coming
+573	追跡者を落とした	Knocked the stalker off
+574	追跡者を落とした — すぐ戻ってくる	Knocked the stalker off — it'll be back soon
+575	追跡者がもう1体	One more stalker
+576	ボスが現れた	A boss appears
+577	追跡者が	A stalker
+578	背後から一撃	Backstab
+579	挟まれた — 前と後ろから	Sandwiched — from front and back
+580	後ろから来る	Coming from behind
+581	ナイフ：前のゾンビを押し返してよろけさせる（つかみも止まる）。背後からなら一撃。HGで開始。SG・SMG・MGはステージ内の補給箱で取得する	Knife: pushes back and staggers the zombie in front (also stops a grab). One hit from behind. You start with the HG; SG, SMG and MG are picked up from supply crates in the stage
+582	橙色の鉄棒から逃走分岐へ。②南の空中分岐、③倉庫の上階通路。④は最初の鉄棒から直進すると3連、左は柱の縁へ。⑤南の踊り場は鉄棒1本、⑥北バルコニーは鉄棒2本で西の角の縁へ渡り、西の通りや既存の屋根フックへ。⑦は東塔の足元から西のフックで既存の梁へ、⑧は北の下段から鉄棒で東側通路へ	From an orange bar, take an escape branch. ② south air branch, ③ warehouse upper corridor. ④ straight from the first bar is a triple, left goes to the pillar edge. ⑤ south dance floor has one bar, ⑥ north balcony crosses two bars to the west corner edge, then to the west street or the existing roof hook. ⑦ from the east tower base, the west hook to the existing beam; ⑧ from the north lower tier, a bar to the east corridor
+583	操作タイプ	Control type
+584	FPS操作	FPS controls
+585	カメラを自分で操作	Manual camera
+586	カメラおまかせ	Automatic camera
+587	押したまま移動	Hold to move
+588	指で見回す	Swipe to look
+589	カメラ自動	Auto camera
+590	右側に指を置き、動かして見回す	Place your thumb on the right and move it to look around
+591	進む向きへ自動で回る。右側で見回しもできる	Follows your movement. You can also look around on the right
+592	左手	Left thumb
+593	左側に指を置く → 上へずらして押したまま前進。離すと止まります。	Place your thumb on the left → slide UP and keep holding to move forward. Release to stop.
+594	従来どおり	Classic
+595	選択中	Selected
+596	自動	Auto
+597	右側をドラッグして自分で回す	Drag the right side to turn the camera yourself
+598	向いている人	Best for
+599	FPS・3Dゲームに慣れている人	Players used to FPS / 3D games
+600	かんたん操作	Easy controls
+601	FPS未経験の方に	For FPS beginners
+602	進む向きにカメラが自動でついてくる	The camera follows your running direction automatically
+603	はじめて・視点操作が苦手な人	First-timers, or anyone who struggles with camera control
+604	マウス視点	Mouse look
+605	マウスを動かして自分で回す	Move the mouse to turn the camera yourself
+606	自動カメラ	Auto camera
+607	A/Dで曲がると、カメラが自動でついてくる	Turn with A/D and the camera follows automatically
+608	旋回	turn
+609	操作のタイプを選ぼう	Choose your control type
+610	入門でも本番でも、ここで選んだ操作になります。	This applies to the intro run and to real runs.
+611	かんたん操作で入門を始める	Start the intro with Easy controls
+612	FPS操作で入門を始める	Start the intro with FPS controls
+613	やめる	Cancel
+614	あとからメニューの「操作」でいつでも変えられます。	You can change this any time under Controls in the menu.
+615	設定の分類	Settings categories
+616	画面・音	Display & sound
+617	ルール・記録	Rules & records
+618	くわしい調整	Detailed tuning
+619	左スティックで移動（視点は自動）、	Left stick to move (the camera is automatic), 
+620	左ドラッグで移動、右ドラッグで視点、	Hold and slide on the left to move, swipe on the right to look, 
+621	「ジャンプ」で跳ぶ	Jump button to jump
+622	FPS操作（右側をドラッグして視点を回す）	FPS controls (drag the right side to look)
+623	かんたん操作（スティックだけ・カメラ自動）	Easy controls (stick only, automatic camera)
+624	かんたん操作（左で移動・カメラおまかせ）	Easy controls (left side moves, automatic camera)
+625	マウス視点（WASD＋マウス・従来）	Mouse look (WASD + mouse, classic)
+626	自動カメラ（W/S 前後・A/D 旋回）	Auto camera (W/S forward/back, A/D turn)
+627	左スティックで移動、右側のドラッグで視点を自分で回します。	Move with the left stick and drag the right side to turn the camera yourself.
+628	WASDで移動、マウスで視点を回します。	Move with WASD and look around with the mouse.
+629	スティックだけで走れます。カメラは進む向きに自動で追従します。右側をドラッグすると一時的に見回せます。	You can run with the stick alone. The camera follows your direction automatically; drag the right side to look around briefly.
+630	左側に指を置き、進みたい方向へずらして押したまま。離すと止まります。カメラは進む向きへ追従。右側で見回した後は、左の指を離して進む向きを選び直せます。	Place your thumb on the left. Slide toward your destination and keep holding. Release to stop. The camera follows your movement. After looking around on the right, release your left thumb and move again to choose a direction from that view.
+631	はじめの一歩	First steps
+632	屋上を渡る	Across the rooftops
+633	追手をかわす	Shake off pursuers
+634	本番へ	Ready to run
+635	屋上で操作を試す	Try your controls on the rooftops
+636	操作を試して覚える	Try the controls
+637	入門コース クリア！	Tutorial complete!
+638	本番へ進む →	Start the real run →
+639	この操作にする	Use these controls
+640	選択画面に戻る	Back to choices
+641	右で見回す	Drag here to look
+642	もう一度。	Try again.
+643	操作を試す	Try the controls
+644	ここまで	This way
+645	練習を終えて本番へ	Leave practice and play
+646	踏切の線まで進む	Move to the take-off line
+647	前入力を続ける	Keep moving forward
+648	ここで、ジャンプ	Jump here
+649	前へ進みながらジャンプを押す	Keep moving forward and press Jump
+650	今ジャンプ	Jump now
+651	そのまま、向こうへ	Keep going across
+652	前入力を続けて着地する	Keep moving forward to land
+653	そのまま、登り切る	Keep climbing
+654	縁をつかむと自動で登ります	Catching the edge starts the climb
+655	段差へ、ジャンプ	Jump at the ledge
+656	壁沿いに、そのまま前へ	Keep moving along the wall
+657	前入力を続けて向こうの足場へ	Keep moving forward to the landing
+658	壁ぎわで、前へ＋ジャンプ	Move along the wall and jump
+659	壁を横に置いて、前入力を続ける	Keep the wall beside you and move forward
+660	壁の横のマークへ	Move beside the wall
+661	床の矢印に沿って近づく	Follow the floor arrows
+662	フックで移動中	Travelling by hook
+663	着いたら、そのまま前へ	Continue forward after landing
+664	ひし形のマークをタップ	Tap the diamond marker
+665	本編と同じフック。PCはQ	The same hook as the main game. Q on PC
+666	滑りながら、下の足場へ	Slide to the lower landing
+667	斜面にいる間だけ使えます	Available while standing on this slope
+668	斜面の上まで進む	Move onto the slope
+669	ボタンが光ったら「斜面滑り」	Press Slide when its button lights up
+670	前入力を続けると自動で登ります	Keep moving forward to climb automatically
+671	ロープで移動中	Riding the zipline
+672	着地したら、床の矢印へ	Follow the floor arrows after landing
+673	ロープの真下で、ジャンプ	Jump beneath the zipline
+674	つかんだ後は自動で渡ります	The ride is automatic once attached
+675	ロープの下のマークへ	Move beneath the zipline
+676	マークの上でジャンプする	Jump from the floor marker
+677	前入力で、小さな足場へ	Move forward onto the small pad
+678	着地まで前入力を続ける	Keep moving forward until you land
+679	壁の横を回って、マークへ	Go around the wall to the marker
+680	矢印に沿って壁の反対側へ	Follow the arrows around the wall
+681	壁のそばのマークへ	Move close to the wall
+682	壁のそばで二度ジャンプします	Jump twice while close to the wall
+683	移動を離して、止まる	Release movement to stop
+684	止まったら、ジャンプを一回	Press Jump once after stopping
+685	まず、その場でジャンプ	First, jump beside the wall
+686	移動を離して、ジャンプを一回	Release movement and press Jump once
+687	一回目	First jump
+688	もう一度、ジャンプ	Press Jump again
+689	押したら前入力で、壁から離れる	Then move forward, away from the wall
+690	もう一度	Jump again
+691	緑。今、ジャンプ！	Green. Jump now!
+692	緑になるまで待つ	Wait for the green cue
+693	本編と同じ「今！」と緑の合図	Use the native NOW and green cues
+694	前入力で、向こうの足場へ	Keep moving toward the landing
+695	前入力で、次の鉄棒へ	Keep moving toward the next bar
+696	空中で進み、足場へ着地する	Keep travelling forward and land on the roof
+697	足場の端まで走って、そこでジャンプ	Run to the platform edge, then jump
+698	前へジャンプして、鉄棒へ	Jump forward toward the bar
+699	前入力を押したまま、ジャンプ	Keep moving forward while pressing Jump
+700	使う	Use
+701	青いDASHを取る	Collect the blue DASH
+702	触れると、しばらく速く走れます	Touch it for a temporary speed boost
+703	加速したまま、ジャンプ	Jump with the speed boost
+704	向こうの低い屋上へ	Head to the lower roof ahead
+705	装填中。少し待つ	Reloading. Wait a moment
+706	弾切れで自動装填。終わると射撃再開	Empty magazines reload automatically; fire then resumes
+707	自動射撃を、再開する	Resume automatic fire
+708	残り1発から、自動装填も体験します	Start with one round to experience automatic reload
+709	再開する	Resume
+710	銃に任せて、その場で待つ	Let the gun fire while you wait
+711	自分は移動・逃げ道選び。照準・射撃は自動	You choose movement and escape routes. Aim and fire are automatic
+712	追手が止まった。今のうちに逃げよう	They are stunned. Escape now
+713	先のマークへ進む	Move to the marker ahead
+714	閃光玉が届くのを待つ	Wait for the flash to reach them
+715	後ろから追手！ 先のマークへ逃げよう	Pursuers behind you! Run to the marker
+716	ゾンビが追いかけてきます。近づいたら閃光玉	They are chasing you. Use Flash when they get close
+717	追手が近い！ 閃光玉で止めよう	They are close! Stop them with Flash
+718	閃光玉で周囲のゾンビを止め、逃げる時間を作ります	Flash stops nearby zombies and gives you time to escape
+719	上の足場へ、着地を待つ	Wait to land on the upper roof
+720	爆破ジャンプ中	Launching from the barrel
+721	赤い爆破マークをタップ	Tap the red blast marker
+722	赤い缶の近くへ	Move closer to the red barrel
+723	赤い爆破マークが出たらタップ	Tap the red blast marker when it appears
+724	前入力で、上の屋上へ	Keep moving toward the upper roof
+725	金色のJUMPを拾う	Collect the gold JUMP
+726	退避中。着地を待つ	Escaping. Wait to land
+727	道に沿って進もう	Follow the path
+728	離すと、その場で止まります	Release to stop
+729	低い壁は、そのまま越える	Keep moving over low walls
+730	前へ進むだけで乗り越えます	Move forward to vault automatically
+731	ジャンプで渡ろう	Jump across
+732	端でジャンプ	Jump at the edge
+733	低い所も、そのまま進む	Keep moving under the gate
+734	自動でかがみます	You crouch automatically
+735	縁をつかんで登れます	Catch the edge and climb up
+736	壁を走って渡ろう	Run along the wall
+737	壁ぎわで前へ進みながらジャンプ	Move along the wall and jump
+738	ひし形のマークへ、フック	Hook to the diamond marker
+739	マークをタップ ／ Q	Tap the marker / Q
+740	斜面を滑ろう	Slide down
+741	斜面で「斜面滑り」 ／ C	Use Slide on the slope / C
+742	はしごを登ろう	Climb the ladder
+743	はしごへ、そのまま前入力	Move into it and keep moving forward
+744	ロープへ、ジャンプ	Jump to the zipline
+745	つかまれば自動で渡ります	Travel is automatic once attached
+746	壁を蹴って、上へ	Kick off the wall
+747	ジャンプ → 空中でもう一度	Jump, then jump again in midair
+748	鉄棒で、向こうの足場へ	Swing onto the next roof
+749	前へ振れたらジャンプ	Jump as you swing forward
+750	加速して、跳ぶ	Speed up and jump
+751	青いDASHを取って、先の屋上へ	Collect DASH and jump to the next roof
+752	追手を止めて、逃げよう	Stop the pursuers and escape
+753	追手が近づいたら、閃光玉を使う ／ 1	Use Flash when the pursuers get close / 1
+754	赤い缶で、高く跳ぶ	Launch with the red barrel
+755	缶をタップ ／ B	Tap the barrel / B
+756	ジャンプ弾で、もう一つ上へ	Use the jump charge
+757	金色の弾を拾い、ジャンプ弾 ／ Z	Collect gold, then Launch / Z
+758	銃の自動操作を試そう	Try automatic aim and fire
+759	自動射撃を再開し、その場で待つ	Resume automatic fire and wait
+760	出口へ進もう	Head to the exit
+761	覚えた操作で、本番へ	Take these controls into a real run
+762	最後は、自動で退避	One last escape upward
+763	救済を使う ／ V	Use Rescue / V
+764	左のスティックを動かす	Move the left stick
+765	指を置き、進みたい方向へずらす	Touch, then drag toward where you want to move
+766	進みたい方向のキーを押す	Press the key for the direction you want to move
+767	ひし形をタップして、フック	Tap the diamond to hook
+768	光るマークをタップすると移動します	Tap the highlighted marker to travel
+769	タップすると、爆破ジャンプします	Tap to launch from the barrel
+770	一時停止 · 光る場所を操作すると再開	Paused · Use the highlighted control to resume
+771	W A S D で移動する	Move with W A S D
+772	操作を選ぶ	Choose your controls
+773	そのまま選べます。画面をタップすると試せます。	Choose now, or tap a picture to try it.
+774	ホーム	Home
+775	視点操作なし	No camera input
+776	カメラに任せる	Automatic follow
+777	自分で視点操作	Control the view
+778	視点は固定	View stays fixed
+779	視点は自動	Automatic view
+780	画面をタップして試す	Tap the picture to try
+781	フックで、ここへ移動できる。	Hook onto this point to move up.
+782	光る輪をタップするとフックが掛かり、自動で移動します。	Tap the highlighted ring to attach your hook and move automatically.
+783	光る輪へ視点を向けて Q キー。フックが掛かると、自動で移動します。	Face the highlighted ring and press Q. Your hook will pull you up automatically.
+784	フック成功！	HOOK CONNECTED!
+785	そのまま自動で移動。ほかの輪も同じ操作で使えます。	Your hook pulls you up automatically. Other rings work the same way.
+786	Ⅱ 敵・時間を停止中	Ⅱ WORLD PAUSED
+787	ここにフックを掛けられる	HOOK POINT
+788	案内を閉じる	Close guide
+789	障害物を自動で乗り越えた！	VAULTED!
+790	縁をつかんで登れた！	CLIMBED UP!
+791	壁走り成功！	WALL RUN!
+792	周辺20mのレーダー。上が前方。全体地図はメニューまたはMキーから	Nearby radar: 20m radius, forward up. Full map: menu or M key
+793	全体地図	Full map
+794	地図を閉じる	Close map
+795	高さ	Height
+796	現在の高さ	Current height
+797	▲ 自分・向き ● 全ゾンビ △ 自分より上 ▽ 自分より下	▲ You / heading · ● All zombies · △ Above you · ▽ Below you
+798	北が上。明るい面は選択した高さの足場、薄い輪郭は上の構造物。オレンジの線は上下移動の接続。敵は距離や壁に関係なく全体表示。	North up. Bright surfaces are at the selected height; faint outlines are overhead structures. Orange lines connect heights. All enemies are shown through walls at any distance.
+799	全体地図を見る	View full map
+800	ミニマップを表示	Show minimap
+801	周辺20mのレーダー。ゲーム画面と同じ向き。全体地図はメニューまたはMキーから	Nearby radar: same orientation as the game camera. Full map: menu or M key
+802	周辺	NEARBY
+803	この壁を走って渡れる。	Run along this wall.
+804	壁に沿って前へ進みながらジャンプします。	Move along the wall and jump.
+805	壁を蹴って、別の足場へ。	Kick off this wall.
+806	ジャンプで壁を蹴れます。	Jump to push off the wall.
+807	壁ジャンプ成功！	WALL JUMP!
+808	このロープで向こうへ渡れる。	Ride this zipline.
+809	ジャンプでロープにつかまります。その後は自動で移動します。	Jump to attach. Travel is automatic.
+810	ジップライン成功！	ZIPLINE CONNECTED!
+811	この斜面を滑って下れる。	Slide down this slope.
+812	斜面滑りボタン／Cキーで滑れます。	Use Slide / C to slide downhill.
+813	斜面滑り成功！	SLIDING!
+814	ドラム缶で高い場所へ跳べる。	Launch upward with this barrel.
+815	表示されたドラム缶をタップ／Bキー。接近・爆破ジャンプは自動です。	Tap the marked barrel / press B. The launch sequence is automatic.
+816	爆破ジャンプ開始！	BARREL LAUNCH STARTED!
+817	追手を閃光玉で止められる。	Stop nearby pursuers.
+818	閃光玉ボタン／1キーで使用。止まっている間に逃げよう。	Use Flash / 1, then escape while they are stunned.
+819	閃光玉を投げた！	FLASH THROWN!
+820	分身に追手を引きつけられる。	Distract pursuers with a decoy.
+821	分身ボタン／2キーで使用。追手の注意をそらして逃げよう。	Use Decoy / 2 to draw them away.
+822	分身発動！	DECOY ACTIVE!
+823	救済フックで高台へ逃げられる。	Escape to higher ground.
+824	救済ボタン／Vキー。安全な高台への移動は自動です。	Use Rescue / V. The hook chooses a safe platform.
+825	救済フック発動！	RESCUE ACTIVE!
+826	そのまま進もう！	Keep going!
+827	WASDで移動。Spaceでジャンプ。	WASD to move. Space to jump.
+828	W A S D で移動	W A S D to move
+829	Spaceでジャンプ	Space to jump
+830	マウスで見回す	Look around with the mouse
+831	WASDで移動・Spaceでジャンプ	WASD: move · Space: jump
+832	WASDで移動・マウスで視点・Spaceでジャンプ	WASD: move · Mouse: look · Space: jump
+p0	^(\\d+)秒停止$	Stun $1s
+p1	^技あと(\\d+)$	$1 moves
+p2	^装填中 · あと([\\d.]+)秒$	Reloading · $1 s left
+p3	^分身発動中 · あと(\\d+)秒$	Decoy active · $1 s left
+p4	^分身は再使用待ち · あと(\\d+)秒$	Decoy recharging · $1 s left
+p5	^閃光玉は残り0個 · あと技(\\d+)回で1個補充$	No flashbangs · Complete $1 more parkour moves to refill one
+p6	^あと技(\\d+)回で補充$	$1 parkour moves to refill
+p7	^周囲を(\\d+)秒停止$	Stun $1 s
+p8	^([A-Z0-9]+)の武器箱が出現 · 光る箱に触れると装備・弾を補充$	$1 crate arrived · Touch it to equip and refill
+p9	^([A-Z0-9]+)を装備 · 装填(\\d+)発／予備([\\d∞]+)発( · 次の足場へ逃げよう)?$	FN
+p10	^([↑↗→↘↓↙←↖]) ([A-Z0-9]+)の箱 (\\d+)m(?: ([上下])(\\d+)m)? · (落下中 · 着地を待つ|触れて武器・弾を補充)$	FN
+p11	^(\\d+)秒生き残りました。「本番イージーを始める」で、ライフ8の本番へ進めます。$	You survived $1 seconds. Select Start a real run on Easy to play with 8 lives.
+p12	^ニックネーム (.+)（変更する）$	FN
+p13	^(イージー|ノーマル|ハード|超ベリーハード|自由調整) · クリア$	FN
+p14	^(イージー|ノーマル|ハード|超ベリーハード|自由調整) · (\\d+)秒$	FN
+p15	^(.+?) 現在は([\\d.]+)倍。(?: (変更は次のプレイから適用します。))?$	FN
+p16	^生存 ([\\d.]+)秒 → (\\d+)点$	Survived $1 s → $2 pts
+p17	^([\\d.]+)秒 × 120点 × ([\\d.]+)$	$1 s × 120 pts × $2
+p18	^追跡 ([\\d.]+)秒$	Chased $1 s
+p19	^有効ダメージ ([\\d.]+) × 2点 × ([\\d.]+)$	Effective damage $1 × 2 pts × $2
+p20	^(\\d+)体 × 30点 × ([\\d.]+)$	$1 kills × 30 pts × $2
+p21	^銃撃・撃破なしで完走 小計 × ([\\d.]+)$	Finished with no shots and no kills: subtotal × $1
+p22	^(イージー|ノーマル|ハード|超ベリーハード|入門モード) パルクール ×([\\d.]+)$	FN
+p23	^(イージー|ノーマル|ハード|超ベリーハード) 難易度ボーナス ×([\\d.]+)（\\+(\\d+)%）$	FN
+p24	^\\+(\\d+)点\\/秒$	+$1 pts/s
+p25	^\\+(\\d+)\\/(\\d+)秒$	+$1 / $2 s
+p26	^(\\d+)秒生き残りました。次はイージーで本番に挑戦できます。$	You survived $1 s. Next, try the real run on Easy.
+p27	^(\\d+)秒生存$	$1 s survived
+p28	^(\\d+)秒ごと (\\d+)回 × (\\d+)点 ＋ 端数 (\\d+)点$	Every $1 s: $2 × $3 pts + partial $4 pts
+p29	^(\\d+)点\\/体$	$1 pts/kill
+p30	^撃破 (\\d+)体 → (\\d+)点 ／ ダメージ ([\\d.]+) → (\\d+)点$	Kills $1 → $2 pts / Damage $3 → $4 pts
+p31	^有効ダメージ ([\\d.]+) ×([\\d.]+)$	Effective damage $1 ×$2
+p32	^(\\d+) \\+ (\\d+) \\+ (\\d+) = (\\d+)点$	$1 + $2 + $3 = $4 pts
+p33	^難易度 (.+)$	FN
+p34	^あと([\\d.]+)秒で逃げ切り$	$1 s from escaping
+p35	^生存 ([\\d.]+)秒 ／ 撃破 (\\d+)体$	Survived $1 s / $2 kills
+p36	^難易度ボーナス ×([\\d.]+)（\\+(\\d+)%）$	Difficulty bonus ×$1 (+$2%)
+p37	^生存時間ボーナス ×([\\d.]+)$	Survival bonus ×$1
+p38	^スコアボーナス ×([\\d.]+).*$	Score bonus ×$1
+p39	^(イージー|ノーマル|ハード)（スコア ×([\\d.]+)）$	FN
+p40	^([\\d.]+)秒 × 1点 × ([\\d.]+) × ([\\d.]+)$	$1 s × 1 pt × $2 × $3
+p41	^(\\d+)体 × 2点 × ([\\d.]+) × ([\\d.]+)$	$1 kills × 2 pts × $2 × $3
+p42	^生存 (\\d+) ＋ 撃破 (\\d+) ＝ (\\d+)点$	Survival $1 + Kills $2 = $3 pts
+p43	^技 (\\d+)\\/3$	Skills $1/3
+p44	^([\\d.]+) ?倍$	$1×
+p45	^([\\d.]+) ?秒$	$1 s
+p46	^(\\d+)体$	$1
+p47	^([\\d,]+) ?点$	$1 pts
+p48	^(\\d+)位$	#$1
+p49	^速度 ([+-]?\\d+)%( ↑)?$	Speed $1%$2
+p50	^全難易度 ベスト ([\\d,]+)点$	All difficulties Best $1 pts
+p51	^ベスト得点 ([\\d,]+) ?点$	Best score $1 pts
+p52	^追手 最大(\\d+)体$	Up to $1 chasers
+p53	^ライフ(\\d+)$	$1 lives
+p54	^ゴースト ベスト ([\\d,]+)点$	Ghost best $1 pts
+p55	^閃光弾 残り(\\d+)個 周囲(\\d+)mのゾンビを(\\d+)秒停止。離すと使用、外へずらすと取消$	Flashbang ×$1 — stuns zombies within $2 m for $3 s. Release to throw, slide outside to cancel
+p56	^閃光！ (\\d+)体が(\\d+)秒停止$	Flash! $1 zombies stunned for $2 s
+p57	^停止 ([\\d.]+)秒$	Stunned $1 s
+p58	^閃光！ 命中なし$	Flash! No hits
+p59	^技で閃光弾\\+1$	Flashbang +1 for the move
+p60	^(.+)補給！ 屋根・上層の光る武器箱へ$	$1 resupplied! Head to the glowing crate on the roof or upper level
+p61	^(.+)取得！ (\\d+)発装填・移動しながら撃てる$	$1 acquired! $2 rounds loaded — you can shoot while moving
+p62	^つかまれた — ライフ (\\d+)$	Caught — life $1
+p63	^落ちた — ライフ (\\d+)$	Fell — life $1
+p64	^やり直し — ライフ (\\d+)$	Retry — life $1
+p65	^分身発動中 残り(.+)$	Decoy active — $1 left
+p66	^分身 再使用まで(.+)秒$	Decoy ready in $1 s
+p67	^ゾンビが周辺を捜索中 · (\\d+)秒$	Zombies searching nearby · $1 s
+p68	^ライフ (.+) 閃光弾 (.+) 撃破 (.+)（落下 (.+)） ゾンビ (.+)$	Life $1 · Flashbangs $2 · Kills $3 (drops $4) · Zombies $5
+p69	^(塔の上|屋上|東の隙間の先|北の梁の中央|南の橋|空中の梁|非常階段の踊り場|北西の角|東の足場|西の広場) (\\d+) ?m$	FN
+p70	^(イージー|ノーマル|ハード) ボーナス \\+(\\d+)%（×([\\d.]+)）$	FN
+p71	^ボーナス \\+(\\d+)%（×([\\d.]+)）$	Bonus +$1% (×$2)
+p72	^生存 ([\\d.]+)秒 ×([\\d.]+) → (\\d+)点$	Survival $1 s ×$2 → $3 pts
+p73	^撃破 (\\d+)体 ×([\\d.]+) → (\\d+)点$	Kills $1 ×$2 → $3 pts
+p74	^合計 (\\d+)点$	Total $1 pts
+p75	^([\\d.]+) \\/ (\\d+)秒 ・ (.+)$	FN
+p76	^(.+) クリア$	FN
+p77	^フック (\\d+) 壁走り (\\d+) 乗り越え (\\d+) 落下 (\\d+)$	Hooks $1 · Wall runs $2 · Vaults $3 · Falls $4
+p78	^難易度 (.+)$	FN
+p79	^([\\d.]+)秒 ×([\\d.]+)$	$1 s ×$2
+p80	^(\\d+)体 ×([\\d.]+)$	$1 kills ×$2
+p81	^(\\d+) \\+ (\\d+) = (\\d+)点$	$1 + $2 = $3 pts
+p82	^生存 ([\\d.]+)秒 \\/ 撃破 (\\d+)体（落下撃破 (\\d+)体）$	Survived $1 s / Kills $2 (knocked off: $3)
+p83	^あなた：(\\d+)位 \\/ (\\d+)人 (.+)$	FN
+p84	^(.+) · (クリア|未クリア)$	FN
+p85	^現在の設定：(.+)$	FN
+p86	^未送信 (\\d+)件$	Unsent: $1
+p87	^(.+?)。ライフ(.+?)。群れの上限 (.+?)体、体力 (\\d+)（HGで\\d+発）、通常追跡 ([\\d.]+) → ([\\d.]+)m\\/s。死体を含め表示は最大(\\d+)体。引き離しても追跡は続きます。$	FN
+p88	^残り(\\d+)$	Left $1
+p89	^(\\d+)$	NULL
+p90	^(\\d+) 体（終盤）$	$1 (late game)
+p91	^([\\d.]+) m\\/s（終盤）$	$1 m/s (late game)
+p92	^(\\d+)（HGで(\\d+)発）$	$1 ($2 HG shots)
+p93	^ライフ無限（ランキング対象外）$	Unlimited (not ranked)
+p94	^(\\d+)$	NULL
+p95	^(.+)を試す$	$1 — try
+p96	^(.+)の実際のゲーム画面$	$1 in the actual game
+p97	^「(.+)」を押す$	Press $1
+p98	^全(\\d+)ステップを通過しました。覚えた操作を、このあと本番（イージー）で使ってみましょう。$	You passed all $1 steps. Next, try these moves in a real run on Easy.
+p99	^お試し：(.+)$	Try: $1
+p100	^ゾンビ (\\d+) · (\\d+)m四方$	Zombies $1 · $2m square
+p101	^全ゾンビ (\\d+)体$	All zombies: $1

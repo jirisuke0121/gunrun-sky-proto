@@ -1,0 +1,140 @@
+1 W/S: adelante/atrás, A/D: girar, Espacio: saltar. Cámara automática.
+2 Mover a la izquierda · Botones: saltar · Vista automática
+3 Cámara automática
+4 Sigue tu dirección de avance automáticamente. Sin control de cámara.
+5 La cámara sigue tu dirección de avance automáticamente. Sin control de cámara.
+6 Muévete a la izquierda; usa los botones de la derecha para saltar y hacer acrobacias. La cámara sigue tu dirección de avance automáticamente.
+7 Empuja el stick izquierdo hacia donde quieras ir en la pantalla: arriba corre alejándote, a los lados corre de lado, abajo corre hacia ti. La cámara sigue sola. Usa los botones de la derecha para saltar y hacer acrobacias.
+8 Muévete a la izquierda. Empuja hacia un lado para girar, vuelve arriba para seguir recto y tira hacia abajo para retroceder. Usa los botones de la derecha para saltar y hacer acrobacias. La cámara sigue automáticamente.
+9 W/S: adelante/atrás. A/D: girar. Alt + A/D: desplazarse de lado. La cámara sigue automáticamente.
+10 Desarrollo
+11 Créditos
+12 Jugar el tutorial guiado
+13 Tú: moverte + elegir ruta\nArma: no equipada
+14 Tú: moverte + elegir ruta\nAuto: apuntar + disparar
+15 Tú: moverte + ruta + apuntar\nAuto: disparar
+16 Tú: moverte + elegir ruta\nAutodisparo: detenido
+17 Esperar
+18 Atraer
+19 En movimiento
+20 Huir
+21 Detenido · Pulsa X para reanudar
+22 Movimiento automático a lo alto · Elige tu ruta al aterrizar
+23 Huida automática hacia arriba
+24 Señuelo desplegado · Aléjate mientras atrae a los perseguidores
+25 Sin munición · Toca una caja brillante para recargar
+26 Detenido · Pulsa para reanudar
+27 Apuntado + disparo auto ACTIVADO
+28 Esperando un objetivo válido
+29 Tú te mueves y eliges la ruta de escape. Sin arma equipada.
+30 Tú te mueves y eliges la ruta de escape. El arma apunta y dispara sola.
+31 Tú te mueves, eliges la ruta y apuntas. El arma dispara al apuntar a un enemigo.
+32 Tú te mueves y eliges la ruta de escape. El autodisparo está detenido.
+33 No se puede disparar al abrir una puerta
+34 Agarrado · Libérate para volver a disparar
+35 Se reanuda el disparo tras este movimiento
+36 No se puede disparar al subir una escalera
+37 Suelta la barra para reanudar el disparo
+38 Salta para soltarte (verde = aterrizarás)
+39 Termina de subir el saliente para reanudar el disparo
+40 Cargador vacío · Esperando la recarga automática
+41 Sin munición · Toca una caja de armas brillante para recargar
+42 Detenido · Pulsa Reanudar autodisparo para disparar
+43 Apunta a un enemigo para disparar automáticamente
+44 Apuntado + disparo auto · Esperando un objetivo válido
+45 Apuntado y disparo son automáticos
+46 Apuntado manual, disparo automático
+47 Activo
+48 Recargando
+49 Atraer perseguidores
+50 Sin usos restantes
+51 Espera a que termine el movimiento
+52 Huir a un lugar más alto
+53 Ruta de escape sugerida · Entra en el aro brillante
+54 Marcador de ruta alcanzado · Sigue hacia otra plataforma
+55 Úsalo durante una partida
+56 No hay suelo para un señuelo · Vuelve a una plataforma para usarlo
+57 No quedan usos de Rescate en esta partida
+58 No puedes usar Rescate mientras te agarran
+59 Usa Rescate cuando termine este movimiento
+60 No hay plataforma alta segura · Prueba desde otra plataforma
+61 Empezar una partida real en Fácil
+62 Sobreviviste 2 minutos. Elige Empezar una partida real en Fácil para jugar con 8 vidas.
+63 Te atraparon. Tú decides adónde moverte y escapar. Repite la introducción y dirígete a un saliente u otra plataforma.
+64 Escapa de los zombis durante 2 minutos. Tú te mueves y eliges la ruta; el apuntado y disparo automáticos te dan tiempo para huir.
+65 El enemigo más cercano es el objetivo y se le dispara automáticamente.
+66 la granada de destello detiene a los zombis cercanos,
+67 el señuelo los atrae
+68 Toca
+69 Cima de la torre
+70 Azotea
+71 Más allá del hueco este
+72 Centro de la viga norte
+73 Puente sur
+74 Viga aérea
+75 Rellano de la escalera de incendios
+76 Esquina noroeste
+77 Andamio este
+78 Plaza oeste
+79 ¡Introducción superada!
+80 Escapaste durante 2 minutos. Ahora prueba la partida real en Fácil.
+81 Te caíste. Salta a salientes y paredes para agarrarte. Repite la introducción.
+82 Te atraparon. Las carreras por pared, los ganchos y las escaleras te ayudan a ganar distancia. Repite la introducción.
+83 El juego parece ir lento. ¿Aligerar los gráficos?
+84 Usar gráficos ligeros
+85 Dejar como está
+86 Consejo de rendimiento
+87 Escapa de los zombis durante 2 minutos. Ganas puntos extra cada 30 segundos.
+88 Este es el nombre que se muestra en la clasificación. También puedes ponerlo más tarde.
+89 Elige un apodo
+90 Guardar
+91 Más tarde
+92 Escribe un nombre
+93 Escapa de los zombis durante dos minutos.
+94 Usa tu arma, objetos y el terreno. Solo huye.
+95 para moverte
+96 para saltar
+97 Mantén y desliza a la izquierda para moverte · Desliza a la derecha para mirar · Toca Saltar
+98 La introducción no cuenta para los récords ni la clasificación.
+99 Toca para empezar
+100 Guía de controles de la introducción
+101 W A S D para moverte · Espacio para saltar
+102 Mantén y desliza a la izquierda para moverte · Toca Saltar
+103 Mueve el ratón para mirar alrededor
+104 Desliza en el lado derecho para mirar alrededor
+105 Salta a paredes, salientes y escaleras · Q para el gancho
+106 Salta a paredes, salientes y escaleras · Toca el aro en pantalla para el gancho
+107 Autodisparo · 1 la granada de destello los detiene · 2 el señuelo los atrae
+108 Autodisparo · El botón de destello detiene a los zombis
+109 Bienvenido
+110 Cómo jugar
+111 Corre y salta
+112 Mira alrededor
+113 Quítatelos de encima
+114 Autodisparo
+115 Arrastra a la izquierda para moverte y salta con el botón Saltar. Los pasajes bajos se deslizan automáticamente.
+116 para mirar alrededor
+117 Arrastra el lado derecho de la pantalla
+118 Pon el pulgar a la izquierda. Desliza HACIA ARRIBA y mantén para avanzar. Suelta para parar. Toca Saltar para saltar.
+119 La cámara sigue tu movimiento. Puedes deslizar a la derecha para mirar alrededor. Suelta el pulgar izquierdo y vuelve a moverte para elegir una dirección desde esa vista.
+120 Pon el pulgar a la derecha y muévelo de lado para mirar alrededor. Puedes hacerlo mientras te mueves con el pulgar izquierdo.
+121 Usa carreras por pared, agarres de salientes, escaleras y tirolesas, además de
+122 para el gancho
+123 Usa carreras por pared, agarres de salientes, escaleras y tirolesas, y toca el aro en pantalla para el gancho
+124 El enemigo más cercano es el objetivo y se le dispara automáticamente. El botón Destello congela a los zombis cercanos unos segundos.
+125 Apodo (se muestra en la clasificación)
+126 p. ej. RUNNER
+127 2-14 letras, dígitos, _ o -. Puedes dejarlo en blanco y cambiarlo después desde Cómo jugar.
+128 Usa 2-14 letras, dígitos, _ o -
+129 Practicar en la introducción
+130 Abrir ajustes de controles
+131 Cargando…
+132 Cerrar
+133 Disparo de salto
+134 Usar disparo de salto
+135 ¡Disparo de salto listo! Pulsa Z o su botón para usarlo
+136 Los JUMP dorados guardan un disparo de salto. Conserva tu arma habitual; pulsa Z o el botón de disparo de salto para disparar a tus pies e impulsarte
+137 Despistaste a los perseguidores
+138 Zombi eliminado
+139 Hito de daño
+140 Cargando comentarios…

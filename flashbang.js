@@ -129,7 +129,7 @@ export function createFlashbang(game) {
       ctx.fillStyle = '#142936'; ctx.fillRect(0, 0, 256, 80);
       ctx.strokeStyle = '#91eaff'; ctx.lineWidth = 5; ctx.strokeRect(3, 3, 250, 74);
       ctx.fillStyle = '#ffe080'; ctx.font = 'bold 37px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(`停止 ${(tenth / 10).toFixed(1)}秒`, 128, 40); state.texture.needsUpdate = true;
+      const label = `停止 ${(tenth / 10).toFixed(1)}秒`; ctx.fillText(window.skyI18n?.tr(label) || label, 128, 40, 240); state.texture.needsUpdate = true;
     }
   }
   function detonate(grenade) {

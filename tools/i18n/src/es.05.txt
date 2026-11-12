@@ -1,0 +1,130 @@
+601 Para principiantes en FPS
+602 La cámara sigue automáticamente tu dirección de carrera
+603 Para quien juega por primera vez o le cuesta controlar la cámara
+604 Mirar con ratón
+605 Mueve el ratón para girar la cámara tú mismo
+606 Cámara auto
+607 Gira con A/D y la cámara te sigue automáticamente
+608 girar
+609 Elige tu tipo de control
+610 Se aplica a la introducción y a las partidas reales.
+611 Empezar la introducción con controles fáciles
+612 Empezar la introducción con controles FPS
+613 Cancelar
+614 Puedes cambiarlo cuando quieras en Controles, dentro del menú.
+615 Categorías de ajustes
+616 Pantalla y sonido
+617 Reglas y registros
+618 Ajuste detallado
+619 Stick izquierdo para moverte (cámara automática),
+620 Mantén y desliza a la izquierda para moverte, desliza a la derecha para mirar,
+621 botón Saltar para saltar
+622 Controles FPS (arrastra el lado derecho para mirar)
+623 Controles fáciles (solo stick, cámara automática)
+624 Controles fáciles (el lado izquierdo mueve, cámara automática)
+625 Mirar con ratón (WASD + ratón, clásico)
+626 Cámara auto (W/S adelante/atrás, A/D girar)
+627 Muévete con el stick izquierdo y arrastra el lado derecho para girar la cámara tú mismo.
+628 Muévete con WASD y mira alrededor con el ratón.
+629 Puedes correr solo con el stick. La cámara sigue tu dirección automáticamente; arrastra el lado derecho para mirar un momento.
+630 Pon el pulgar a la izquierda. Desliza hacia tu destino y mantén. Suelta para parar. La cámara sigue tu movimiento. Tras mirar a la derecha, suelta el pulgar izquierdo y vuelve a moverte para elegir una dirección desde esa vista.
+631 Primeros pasos
+632 Por las azoteas
+633 Quítate a los perseguidores
+634 Listo para correr
+635 Prueba tus controles en las azoteas
+636 Prueba los controles
+637 ¡Tutorial completado!
+638 Empezar la partida real →
+639 Usar estos controles
+640 Volver a las opciones
+641 Arrastra aquí para mirar
+642 Inténtalo de nuevo.
+643 Prueba los controles
+644 Por aquí
+645 Salir de la práctica y jugar
+646 Ve hasta la línea de despegue
+647 Sigue avanzando
+648 Salta aquí
+649 Sigue avanzando y pulsa Saltar
+650 Salta ahora
+651 Sigue hacia el otro lado
+652 Sigue avanzando para aterrizar
+653 Sigue subiendo
+654 Al agarrar el borde empieza la subida
+655 Salta en el saliente
+656 Sigue avanzando junto a la pared
+657 Sigue avanzando hasta el aterrizaje
+658 Avanza junto a la pared y salta
+659 Mantén la pared a tu lado y avanza
+660 Ve junto a la pared
+661 Sigue las flechas del suelo
+662 Viajando con el gancho
+663 Sigue adelante tras aterrizar
+664 Toca la marca en forma de rombo
+665 El mismo gancho que en el juego principal. Q en PC
+666 Desliza hasta el rellano inferior
+667 Disponible mientras estás sobre esta pendiente
+668 Sube a la pendiente
+669 Pulsa Deslizar cuando se ilumine su botón
+670 Sigue avanzando para trepar automáticamente
+671 Cruzando en tirolesa
+672 Sigue las flechas del suelo tras aterrizar
+673 Salta bajo la tirolesa
+674 El trayecto es automático una vez enganchado
+675 Ve bajo la tirolesa
+676 Salta desde la marca del suelo
+677 Avanza hasta la pequeña plataforma
+678 Sigue avanzando hasta aterrizar
+679 Rodea la pared hasta la marca
+680 Sigue las flechas alrededor de la pared
+681 Acércate a la pared
+682 Salta dos veces junto a la pared
+683 Suelta el movimiento para parar
+684 Pulsa Saltar una vez tras parar
+685 Primero, salta junto a la pared
+686 Suelta el movimiento y pulsa Saltar una vez
+687 Primer salto
+688 Pulsa Saltar otra vez
+689 Luego avanza, alejándote de la pared
+690 Salta otra vez
+691 Verde. ¡Salta ahora!
+692 Espera la señal verde
+693 Usa las señales ¡AHORA! y verde, como en el juego
+694 Sigue avanzando hacia el aterrizaje
+695 Sigue avanzando hacia la siguiente barra
+696 Sigue avanzando y aterriza en el tejado
+697 Corre hasta el borde de la plataforma y salta
+698 Salta hacia delante en dirección a la barra
+699 Sigue avanzando mientras pulsas Saltar
+700 Usar
+701 Recoge el DASH azul
+702 Tócalo para un impulso de velocidad temporal
+703 Salta con el impulso de velocidad
+704 Ve al tejado más bajo de enfrente
+705 Recargando. Espera un momento
+706 Los cargadores vacíos se recargan solos; luego se reanuda el disparo
+707 Reanudar el disparo automático
+708 Empieza con una bala para probar la recarga automática
+709 Reanudar
+710 Deja que el arma dispare mientras esperas
+711 Tú eliges el movimiento y las rutas de escape. Apuntado y disparo son automáticos
+712 Están aturdidos. Escapa ahora
+713 Ve a la marca de delante
+714 Espera a que el destello los alcance
+715 ¡Perseguidores detrás de ti! Corre a la marca
+716 Te persiguen. Usa Destello cuando se acerquen
+717 ¡Están cerca! Páralos con Destello
+718 El destello detiene a los zombis cercanos y te da tiempo para escapar
+719 Espera a aterrizar en el tejado superior
+720 Saliendo disparado del barril
+721 Toca la marca roja de explosión
+722 Acércate al barril rojo
+723 Toca la marca roja de explosión cuando aparezca
+724 Sigue avanzando hacia el tejado superior
+725 Recoge el JUMP dorado
+726 Escapando. Espera a aterrizar
+727 Sigue el camino
+728 Suelta para parar
+729 Sigue avanzando sobre muros bajos
+730 Avanza para saltar el obstáculo automáticamente

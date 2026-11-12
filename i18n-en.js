@@ -427,7 +427,7 @@
  "得点の内訳": "Score breakdown",
  "長く生存するほど得点アップ。難易度ボーナスは各得点に反映済み。": "The longer you survive, the higher your score. The difficulty bonus is already included in each score.",
  "描画品質（設定）": "Graphics quality (settings)",
- "ゲーム画面": "@aria-label: Game screen",
+ "ゲーム画面": "Game screen",
  "起爆": "Detonate",
  "プレイ前の調整": "Settings before play",
  "ホームに戻る": "Back to home",

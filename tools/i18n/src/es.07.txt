@@ -1,0 +1,6 @@
+827 WASD para moverte. Espacio para saltar.
+828 W A S D para moverte
+829 Espacio para saltar
+830 Mira alrededor con el ratón
+831 WASD: mover · Espacio: saltar
+832 WASD: mover · Ratón: mirar · Espacio: saltar

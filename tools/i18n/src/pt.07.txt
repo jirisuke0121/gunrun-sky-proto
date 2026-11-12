@@ -1,0 +1,6 @@
+827 WASD para mover. Espaço para pular.
+828 W A S D para mover
+829 Espaço para pular
+830 Olhe ao redor com o mouse
+831 WASD: mover · Espaço: pular
+832 WASD: mover · Mouse: olhar · Espaço: pular

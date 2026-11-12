@@ -1,0 +1,160 @@
+441 Ayarları kapat
+442 Yakalandın
+443 Düştün
+444 Düştün — koşu bitti
+445 Kaçtın!
+446 Oyun bitti
+447 Yine acemi modu
+448 Hayatta kalma ve öldürme puanıyla her zorluktaki oyuncularla yarış.
+449 2 dakikalık puanınla her zorluktaki oyuncularla yarış.
+450 Yeni en iyi puan
+451 Bu koşunun puanı
+452 Acemi modu tamamlandı — aferin!
+453 Şimdi Kolay, Normal veya Zor'u dene.
+454 Sınırsız canlı acemi koşusu · sıralamaya girmez
+455 Bu acemi koşusu kaydedilmez ve gönderilmez
+456 Tamamlanmadı
+457 Tamamlandı
+458 Sen
+459 Hayalet yok
+460 Hayaleti gör
+461 (JST)
+462 Sıra / Oyuncu
+463 Zorluk / Puan
+464 Henüz puan yok. İlk sen ol!
+465 Pratik ve deneme modu dışındaki koşular sayılır.
+466 Kayıtlar yükleniyor…
+467 Gönderim sonucu bilinmiyor. Yinelenenleri önlemek için yeniden gönderim beklemede
+468 Ağ hatası
+469 Gönderilmedi: pratik veya deneme modu
+470 Acemi modu: sıralamaya girmez, hiçbir şey gönderilmez
+471 Pratik alanı: sıralamaya girmez
+472 Deneme modu: sıralamaya girmez
+473 Oyun kayıtları gönderilir
+474 Sonuç bu cihaza kaydedildi (gönderilmedi)
+475 Bu cihaza kaydedildi · sunucuya gönderiliyor…
+476 Bu cihaza kaydedilemedi · bu ekranı kapatma.
+477 Bu cihaza kaydedildi · gönderilmedi.
+478 Sunucuya kaydedildi · sıralama doğrulandı
+479 Sunucuya kaydedildi · sıralama en iyi puanını gösterir
+480 Sunucuya kaydedildi (sıralamaya girmez)
+481 Sunucuya kaydedildi · sıralama güncellemesi henüz doğrulanmadı
+482 Sonuç bu cihaza kaydedildi
+483 Son sonuç:
+484 Rahatça kaçmak için temel zıplamaları ve basamakları kullan
+485 Basamaklar, boşluklar ve duvar koşularıyla tekrar tekrar mesafe aç. Silahla kaçış süresi kazan
+486 Hareketleri zincirle; düşmanların konumuna göre iniş noktalarını ve kaçış rotalarını seç. Silahı onları düşürmek ve geri tutmak için kullan
+487 Klasik ayarlar, takipçi ve sıralama
+488 Acemi modu
+489 Sınırsız can — hareket etmeyi, zıplamayı ve parkuru dene
+490 Hareket pratiği
+491 Etrafta hareket etmeyi dene. Can sınırsızdır ve düşersen yakında yeniden başlarsın.
+492 Basamakları zıpla; üst yürüyüş yoluna ulaşmak için duvarları ve merdivenleri kullan.
+493 Silah düşmanları geri de iter. Bir zombiyi kenardan düşürmeyi dene.
+494 Mesafe açmak için yükseklik farklarını ve boşlukları kullan. Zombiler uzaklaşsan bile kovalamaya devam eder.
+495 Hayaleti göster
+496 Hayalet yükleniyor…
+497 Atış yok
+498 Atış kaydı yok
+499 Silah sesleri kapalı
+500 Oyna
+501 Bu kaydın hayaleti yüklenemedi. Sıralamaya dönüp yeniden seç.
+502 Başta yalnızca bıçak
+503 HG ile başla. SG, SMG ve MG sahnedeki malzeme sandıklarından gelir
+504 Soğuyor
+505 Gölgeler
+506 Ön plandaki silah
+507 Duman ve ışık
+508 Düşük çözünürlük
+509 Karakter ve animasyonlar yükleniyor…
+510 Karakter modeli yüklenemedi. Klasik görünüm kullanılıyor.
+511 Karakter modeli hâlâ yükleniyor. Başlamadan önce lütfen biraz bekle.
+512 Yavaş gitmek için hafifçe eğ. Yana veya çapraz aşağı yavaşlatır ve döndürür. Geriye gitmek için nötre dön, sonra düz aşağı çek. Bakmak için sağda kaydır.
+513 W/S: ileri/geri, A/D: yavaşla ve dön, Alt+A/D: yana kay. Fareyle etrafa bak.
+514 3B ayrıntıyı düşürür ve gölgeleri gösterir.
+515 Klasik ayrıntı ve gölgeleri kullanır. Yavaş çalışırsa Hafif'i seç.
+516 Otomatik ateşi sürdür
+517 Duraklatıldı · mermi tasarrufu
+518 Yükseğe zıplamak için platforma dokun!
+519 Yükseğe zıplamak için platforma tıkla veya B'ye bas!
+520 Zıpla
+521 O çıkıntıya kancalanmak için yeşil işarete dokun!
+522 O çıkıntıya kancalanmak için yeşil işarete tıkla veya V'ye bas!
+523 Kurtarma
+524 Yakında tırmanılacak yüksek yer yok
+525 Patlamayla zıplamak için variline dokun!
+526 Patlamayla zıplamak için variline tıkla veya B'ye bas!
+527 Patlatmak için variline dokun
+528 Patlama zıplaması! Havada yönünü ayarla
+529 Patlamayla havalandın! Havada yönünü ayarla
+530 Varil patladı! Yakındaki düşmanlar savruldu
+531 Varil patladı!
+532 Doğu boşluğu
+533 Kuzey kirişi
+534 Halka doğu duvarı
+535 Halka batı duvarı
+536 Batı sokağı · güneye kısayol
+537 Kapı kırıldı!
+538 Kayıyorsun
+539 Yokuştan aşağı kay
+540 Güneye kay
+541 Zip hattı: hedef düğmesi (PC: 1 / 2). Merdivenden iniş: 3. Ona bakıp zıplayarak da binebilirsin.
+542 Merdivenden in: inmek için ileri / dönmek için geri / ayrılmak için zıpla
+543 Merdiven: inmek için dışarı doğru hareket et
+544 Geçiş: ileri / merdivene tırman: zıpla + ileri
+545 Güney taraftaki turkuaz okla dön → basamaklardan sokağa çık
+546 Sonraki barda çatal: düz gitmek üçlüdür / sol sütun kenarına gider
+547 Altın oktan zıpla. Kaçırırsan aşağıdaki turkuaz merdivenleri kullan
+548 Mavi üst kat önden arkaya uzanır. Sarı yan yol 4 m aşağıdadır
+549 Yemin durabileceği bir yerin yakınında kullan
+550 Yem bırakıldı — takipçileri uzaklaştır ve kaç
+551 Oyun yüklenemedi. Lütfen yeniden yükle.
+552 Karakter yüklenemedi. Lütfen yeniden yükle.
+553 Silah yüklenemedi. Lütfen yeniden yükle.
+554 Karakter yükleniyor…
+555 Silah yükleniyor…
+556 Oyun hazırlanıyor…
+557 Zombiler yükleniyor…
+558 Pratiği başlat
+559 Karakter ve silah hazırlanıyor.
+560 Burada duvar zıplaması
+561 Şimdi zıpla! Kısayol
+562 Şimdi zıpla!
+563 Duvar koşusu
+564 Oklara uy → altında zıpla
+565 Zıpla'ya dokun
+566 Duvar zıplaması için Boşluk
+567 Turkuaz oku izleyerek duvarda koş → altın JUMP çerçevesinde zıpla
+568 Fark edildin — takip yeniden başlıyor
+569 Onları atlattın
+570 Onları atlattın — yakınlarda arıyorlar
+571 Yolun ortasında ayrılmak için zıpla — havada yönünü kendin ayarlarsın
+572 Bir sürü geliyor
+573 Takipçiyi düşürdün
+574 Takipçiyi düşürdün — yakında geri dönecek
+575 Bir takipçi daha
+576 Bir patron beliriyor
+577 Bir takipçi
+578 Arkadan saldırı
+579 Sıkıştın — hem önden hem arkadan
+580 Arkadan geliyor
+581 Bıçak: öndeki zombiyi iter ve sendeletir (yakalamayı da durdurur). Arkadan tek vuruş. HG ile başlarsın; SG, SMG ve MG sahnedeki malzeme sandıklarından alınır
+582 Turuncu bardan bir kaçış çatalına gir. ② güney hava çatalı, ③ depo üst koridoru. ④ ilk bardan düz gitmek üçlüdür, sol sütun kenarına gider. ⑤ güney dans pistinde bir bar var, ⑥ kuzey balkonu iki barı geçip batı köşe kenarına, oradan batı sokağına veya mevcut çatı kancasına gider. ⑦ doğu kule tabanından batı kancasıyla mevcut kirişe; ⑧ kuzey alt kattan bir barla doğu koridoruna
+583 Kontrol türü
+584 FPS kontrolleri
+585 Elle kamera
+586 Otomatik kamera
+587 Hareket için basılı tut
+588 Bakmak için kaydır
+589 Otomatik kamera
+590 Başparmağını sağa koy ve etrafa bakmak için hareket ettir
+591 Hareketini takip eder. Sağda etrafa da bakabilirsin
+592 Sol başparmak
+593 Başparmağını sola koy → ileri gitmek için YUKARI kaydırıp basılı tut. Durmak için bırak.
+594 Klasik
+595 Seçildi
+596 Otomatik
+597 Kamerayı kendin döndürmek için sağ tarafı sürükle
+598 En uygun
+599 FPS / 3B oyunlara alışkın oyuncular
+600 Kolay kontroller

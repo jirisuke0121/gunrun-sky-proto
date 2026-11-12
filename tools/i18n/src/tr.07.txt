@@ -1,0 +1,6 @@
+827 WASD ile hareket et. Boşluk ile zıpla.
+828 W A S D ile hareket
+829 Boşluk ile zıpla
+830 Fareyle etrafa bak
+831 WASD: hareket · Boşluk: zıpla
+832 WASD: hareket · Fare: bakış · Boşluk: zıpla

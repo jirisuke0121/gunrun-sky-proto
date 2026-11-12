@@ -1,0 +1,96 @@
+731 Nhảy qua
+732 Nhảy ở mép
+733 Tiếp tục đi qua dưới cổng
+734 Bạn tự động cúi xuống
+735 Bám mép và leo lên
+736 Chạy dọc tường
+737 Đi dọc theo tường và nhảy
+738 Móc vào dấu hình thoi
+739 Chạm vào dấu / Q
+740 Trượt xuống
+741 Dùng Trượt trên dốc / C
+742 Leo thang
+743 Đi vào đó và tiếp tục tiến về phía trước
+744 Nhảy lên dây cáp trượt
+745 Sau khi bám vào, chuyến đi hoàn toàn tự động
+746 Đạp tường để bật lên
+747 Nhảy, rồi nhảy lần nữa trên không
+748 Đu sang mái nhà kế tiếp
+749 Nhảy khi đu về phía trước
+750 Tăng tốc và nhảy
+751 Lấy DASH và nhảy sang mái nhà kế tiếp
+752 Chặn kẻ truy đuổi và chạy thoát
+753 Dùng Chớp sáng khi kẻ truy đuổi đến gần / 1
+754 Bật lên bằng thùng phuy đỏ
+755 Chạm vào thùng phuy / B
+756 Dùng đạn nhảy
+757 Lấy đạn vàng rồi bật lên / Z
+758 Thử tự động ngắm và bắn
+759 Tiếp tục tự động bắn và chờ
+760 Đi đến lối ra
+761 Mang các điều khiển này vào một lượt chơi thật
+762 Một lần thoát thân cuối cùng lên cao
+763 Dùng Cứu hộ / V
+764 Di chuyển cần trái
+765 Chạm rồi kéo về hướng bạn muốn đi
+766 Nhấn phím theo hướng bạn muốn di chuyển
+767 Chạm vào hình thoi để móc
+768 Chạm vào dấu được tô sáng để di chuyển
+769 Chạm để bật lên từ thùng phuy
+770 Tạm dừng · Dùng điều khiển được tô sáng để tiếp tục
+771 Di chuyển bằng W A S D
+772 Chọn điều khiển của bạn
+773 Chọn ngay, hoặc chạm vào một hình để thử.
+774 Trang chủ
+775 Không điều khiển camera
+776 Tự động bám theo
+777 Tự điều khiển góc nhìn
+778 Góc nhìn cố định
+779 Góc nhìn tự động
+780 Chạm vào hình để thử
+781 Móc vào điểm này để di chuyển lên.
+782 Chạm vào vòng được tô sáng để móc và di chuyển tự động.
+783 Hướng về vòng được tô sáng và nhấn Q. Móc sẽ tự động kéo bạn lên.
+784 ĐÃ MÓC XONG!
+785 Móc tự động kéo bạn lên. Các vòng khác dùng cách tương tự.
+786 Ⅱ THẾ GIỚI TẠM DỪNG
+787 ĐIỂM MÓC
+788 Đóng hướng dẫn
+789 ĐÃ VƯỢT QUA!
+790 ĐÃ LEO LÊN!
+791 CHẠY TƯỜNG!
+792 Radar lân cận: bán kính 20 m, phía trước hướng lên. Bản đồ toàn cảnh: menu hoặc phím M
+793 Bản đồ toàn cảnh
+794 Đóng bản đồ
+795 Độ cao
+796 Độ cao hiện tại
+797 ▲ Bạn / hướng · ● Mọi zombie · △ Cao hơn bạn · ▽ Thấp hơn bạn
+798 Hướng bắc ở trên. Bề mặt sáng nằm ở độ cao đã chọn; đường viền mờ là các cấu trúc phía trên. Đường màu cam nối các độ cao. Mọi kẻ địch đều hiển thị xuyên tường ở mọi khoảng cách.
+799 Xem bản đồ toàn cảnh
+800 Hiện bản đồ nhỏ
+801 Radar lân cận: cùng hướng với camera trong game. Bản đồ toàn cảnh: menu hoặc phím M
+802 GẦN ĐÂY
+803 Chạy dọc bức tường này.
+804 Đi dọc theo tường và nhảy.
+805 Đạp bức tường này để bật lên.
+806 Nhảy để đạp khỏi tường.
+807 NHẢY TƯỜNG!
+808 Trượt trên dây cáp này.
+809 Nhảy để bám vào. Chuyến đi hoàn toàn tự động.
+810 ĐÃ BÁM DÂY CÁP!
+811 Trượt xuống con dốc này.
+812 Dùng Trượt / C để trượt xuống dốc.
+813 ĐANG TRƯỢT!
+814 Bật lên cao bằng thùng phuy này.
+815 Chạm vào thùng phuy được đánh dấu / nhấn B. Quá trình phóng hoàn toàn tự động.
+816 ĐÃ BẮT ĐẦU PHÓNG TỪ THÙNG PHUY!
+817 Chặn kẻ truy đuổi ở gần.
+818 Dùng Chớp sáng / 1, rồi chạy thoát khi chúng bị choáng.
+819 ĐÃ NÉM CHỚP SÁNG!
+820 Đánh lạc hướng kẻ truy đuổi bằng mồi nhử.
+821 Dùng Mồi nhử / 2 để dụ chúng đi.
+822 MỒI NHỬ ĐANG HOẠT ĐỘNG!
+823 Thoát lên chỗ cao hơn.
+824 Dùng Cứu hộ / V. Móc sẽ chọn một bệ an toàn.
+825 CỨU HỘ ĐANG HOẠT ĐỘNG!
+826 Tiếp tục nào!

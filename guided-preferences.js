@@ -11,7 +11,7 @@
  if(!['1','reset'].includes(q.get('onboarding'))&&traces.some(k=>read(k)))return;
  const touch=matchMedia('(pointer:coarse)').matches&&!matchMedia('(pointer:fine)').matches;
  const camera=q.get('camera')||read(touch?'gunrun-follow-camera-v1':'gunrun-pc-camera-v1')||(touch?'after':'before');
- const lang=q.get('lang')||read('sky.lang')||((navigator.language||'').toLowerCase().startsWith('ja')?'ja':'en');
+ const lang=q.get('lang')||read('sky.lang')||'auto';
  const next=new URL('canyon.html',u);next.search=new URLSearchParams({learn:'1',camera,lang,controlpick:'0',guides:'0',hookGuide:'0',return:u.pathname.endsWith('canyon.html')?'canyon':'town'});
  if(['fixed','hybrid','follow','follow-legacy','follow-turn'].includes(q.get('cameraTrial')))next.searchParams.set('cameraTrial',q.get('cameraTrial'));
  location.replace(next.href);

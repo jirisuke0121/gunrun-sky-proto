@@ -49,6 +49,7 @@ html:not(.dev) .challenge-select details,html:not(.dev) .map-select{display:none
 /* Language switch remains reachable outside the rotated game surface. */
 #langToggle{position:fixed;left:max(12px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));z-index:50;min-height:44px;padding:8px 14px;background:#162330;color:#dce3e8;border:1px solid #657380;border-radius:5px}
 #langToggle[hidden]{display:none}
+#langToggle{font:inherit;font-size:14px;color-scheme:dark;max-width:min(62vw,240px);text-overflow:ellipsis;cursor:pointer}
 html[lang=en] #homeHero[data-compact=true] .home-scene h2{font-size:28px}
 .home-heading-actions{display:flex;align-items:center;gap:8px;flex:none}.home-heading-actions #langToggle{position:static;z-index:auto;font-size:12px;padding:8px 12px;min-height:44px}
 
@@ -94,3 +95,8 @@ html:not(.dev) #homeMore{display:none}
 .home-difficulty-choices button.home-difficulty-trial>small{display:flex;gap:8px;font-size:10px}
 #homeHero[data-compact=true] .home-difficulty-choices button.home-difficulty-trial{min-height:28px;padding:3px 6px}
 #homeHero[data-compact=true] .home-difficulty-choices button.home-difficulty-trial[aria-pressed=true]{padding:2px 5px}
+/* Long labels (Thai, Portuguese, Vietnamese): the header actions drop to their own row when they do not fit beside the title. */
+.home-heading{gap:8px 12px;flex-wrap:wrap}.home-heading>div:first-child{min-width:0}
+.home-heading-actions{flex:0 1 auto;min-width:0;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+.home-heading-actions button{white-space:nowrap}
+.home-heading-actions #langToggle{max-width:150px}

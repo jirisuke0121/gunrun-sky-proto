@@ -1,0 +1,150 @@
+291 Fácil
+292 Difícil
+293 Extremo
+294 Prueba
+295 Corredores y brutos se unen a la persecución
+296 Sin clasificación
+297 Extremo (prueba, sin clasificación)
+298 Prueba: puntúa como Difícil (×1.2) | sin clasificación
+299 Parkour limpio
+300 Clasificación de puntos
+301 Casco Antiguo
+302 Categoría de clasificación
+303 Todas las dificultades
+304 Personalizado
+305 Clasificado por puntos con la bonificación de dificultad (Fácil ×1.0 · Normal ×1.1 · Difícil ×1.2). Cuenta la mejor puntuación de cada jugador en todas las dificultades.
+306 No se pudo cargar la clasificación.
+307 Misiones (práctica de movimientos)
+308 Mira primero la demostración y luego pruébalo. Un movimiento cada vez.
+309 Salta el hueco
+310 Sin superar
+311 Registros de juego
+312 No enviado: los resultados se guardan solo en este dispositivo
+313 Tu apodo, puntuación, entradas, país y dispositivo se envían para la clasificación.
+314 Reenviar registros pendientes
+315 Registros recientes en este dispositivo
+316 Controles y reglas de puntuación
+317 La puntuación se calcula a partir del tiempo de supervivencia y las bajas. Multiplicador de tiempo = (1 + dificultad × 0.1) × (1 + segundos sobrevividos ÷ 60); el multiplicador de bajas es el doble. Supervivencia y bajas se redondean hacia abajo por separado y luego se suman. Tirar a un zombi al vacío cuenta como una baja, y los movimientos en sí no dan puntos. La puntuación incluye la bonificación de dificultad (Fácil ×1.0, Normal ×1.1, Difícil ×1.2) y compite con todas las dificultades. Tu puntuación en el momento en que te atrapan también cuenta para la clasificación.
+318 Correr · Ratón para mirar
+319 Carrera por pared: solo funcionan las paredes con una flecha verde azulada. Salta siguiendo la flecha y mantén una dirección en el aire. Pulsa
+320 (Saltar en pantalla táctil) en el marco dorado JUMP para un atajo
+321 Clic derecho
+322 Cuchillo (también Clic cuando el arma está apagada): empuja y aturde al zombi de enfrente (también detiene un agarre). Un golpe por la espalda. Empiezas con la HG; la SG, SMG y MG se recogen en cajas de suministros del escenario
+323 Los zombis también trepan pilares que ofrecen un atajo. Dispárales mientras trepan.
+324 Escapa de los zombis durante dos minutos entre vigas flotantes y pilares de piedra. Los zombis también saltan huecos cortos y trepan pilares. Usa huecos más anchos y carreras por pared para ganar distancia. Empújalos con el cuchillo o tíralos de vigas estrechas.
+325 Escapa de los zombis durante dos minutos por tres niveles de puentes y el fondo del cañón. Los zombis también saltan huecos cortos y trepan pilares. Usa huecos más anchos y carreras por pared para ganar distancia. Empújalos con el cuchillo o tíralos de vigas estrechas.
+326 Los zombis que no llegan a un lugar alto trepan lentamente por los pilares. Puedes derribarlos a tiros mientras trepan.
+327 El arma apunta y dispara automáticamente a los enemigos cercanos con línea de visión, y recarga al vaciarse. Usa «Detener/Reanudar autodisparo» o
+328 para ahorrar munición. Empiezas con la HG. La SG, SMG y MG se suministran en azoteas y niveles altos cada 10 s (máx. 5).
+329 Completar 3 movimientos (deslizamiento, carrera por pared, agarre de saliente, escalera, tirolesa, gancho) da +1 granada de destello (máx. 2)
+330 Corre y salta contra una pared algo alta para impulsarte en ella y trepar. Caer sobre un toldo te hace rebotar alto
+331 Muestra u oculta tu mejor partida como una figura fantasma azul
+332 Corre y deslízate hacia un zombi → pasas por debajo de sus pies.
+333 Corre y salta justo delante de un zombi → le pisas la cabeza y saltas por encima
+334 Cuando veas un aro brillante, pulsa
+335 → te lanzas al otro lado de una vez con el gancho (los zombis no pueden usarlo)
+336 Cerca de la parte alta o baja de una tirolesa, pulsa
+337 → cruzas al otro lado. En una bifurcación, mira hacia la cuerda que quieras. Vuelve a pulsar a mitad de trayecto
+338 → para saltar. Conservas el impulso y te diriges en el aire
+339 Señuelo: durante 6 s todos los zombis creen que el señuelo eres tú y lo persiguen. 18 s antes de reutilizarlo. También se usa con el botón redondo de la parte inferior de la pantalla.
+340 Granada de destello (1 al empezar): se lanza hacia delante y aturde a los zombis a menos de 8 m durante 4 s. No funciona a través de paredes. +1 por cada 3 movimientos completados (máx. 2)
+341 En el aire cerca de un zombi, pulsa
+342 → patada voladora. El zombi sale despedido y tú rebotas. Puedes encadenar con el siguiente zombi
+343 Puntuación = tiempo sobrevivido + bajas + hitos (30/60/90/120 s). Cuanto más avanza la partida, más valen cada segundo y cada baja. Tirar a un zombi al abismo cuenta doble. Los movimientos en sí no dan puntos: gana más quien escapa con el movimiento adecuado para cada momento
+344 Los pilares de luz son tus puntos de ruta. Al llegar a uno se ilumina el siguiente lugar (sin puntos). Allí te esperan zombis
+345 Coger un aro azul DASH da ×1.3 de velocidad durante 5 s. Reaparece tras 36 s
+346 El JUMP dorado se repone periódicamente. Recógelo para equipar un disparo; al disparar, se dispara solo a tus pies para impulsarte. Después vuelves a tu arma habitual
+347 Empezar desde un punto
+348 Inicia un desafío de 2 minutos desde el lugar elegido. Las partidas superadas y las puntuaciones cuentan para la clasificación. El ① se ha eliminado.
+349 ② Pilar norte → bifurcación aérea sur
+350 ③ Tejado bajo → pasillo superior del almacén
+351 ④ Recto: viga diagonal → pasillo exterior → tejado sur / azotea
+352 ④ Bifurcación: borde del pilar → barra → siguiente borde
+353 ⑤ Pista de baile sur → barra → esquina oeste
+354 ⑥ Balcón norte → 2 barras → esquina noroeste
+355 ⑦ Base de la torre este → gancho oeste → viga existente
+356 ⑧ Nivel inferior norte → barra → pasillo este
+357 Púlsalo si la orientación de la pantalla está invertida (voltear izquierda/derecha)
+358 Demostración (automática)
+359 Misión
+360 Probar
+361 Ver la demostración otra vez
+362 Atrás
+363 ¡Escapaste!
+364 Siguiente misión
+365 Reintentar (R)
+366 Ver la demostración
+367 Volver al título
+368 Zombie Parkour Escape / Registro de partida
+369 Empezar en Fácil
+370 Jugar otra vez
+371 Clasificación · Registros
+372 Menú
+373 Clasificación · Registros de juego
+374 Volver a los resultados
+375 Bajar por la escalera [3]
+376 Tirolesa al este [1]
+377 Tirolesa al oeste [2]
+378 Tirolesa al norte [3]
+379 Agarre
+380 Alcance del cuchillo: F / clic derecho
+381 Fantasma
+382 Volver a la clasificación
+383 Reiniciar
+384 Velocidad 0.5×
+385 Velocidad 1×
+386 Velocidad 2×
+387 Vista de seguimiento
+388 Vista propia
+389 Disparos activados
+390 ☰ Menú
+391 Reanudar
+392 Objetivo
+393 Sobrevive 2 minutos y escapa de los zombis
+394 Controles
+395 Sobrevive 2 minutos y escapa de los zombis. Mantén y desliza a la izquierda para moverte, desliza a la derecha para mirar y toca Saltar para saltar
+396 Mejor fantasma 0 pts
+397 Ocultar fantasma
+398 Normal: las condiciones de movimiento y combate son fijas. Los multiplicadores de puntuación son Fácil ×1.0, Normal ×1.1, Difícil ×1.2, y todas las dificultades compiten en la misma clasificación. Se pueden cambiar la cámara, la sensibilidad, el volumen y los gráficos.
+399 Ajustes rápidos
+400 Controles de cámara
+401 Modo de cámara
+402 Sensibilidad de mirada (táctil / ratón)
+403 1.00×
+404 Volumen
+405 Campo de visión
+406 Resolución de render
+407 Invertir mirada vertical
+408 Autoapuntado (apunta a enemigos cercanos; en tercera persona también gira a tu espalda / desactivado = apuntado centrado, un golpe en la cabeza)
+409 Autodisparo (apunta a enemigos cercanos / detén y reanuda con el botón del juego o X)
+410 Enviar registros de juego de forma anónima (entradas, resultados, tamaño de pantalla — se usan para mejorar el juego)
+411 Enviar registros de juego y rendimiento de forma anónima (entradas, resultados, país, entorno del dispositivo — se usan para mejorar el juego)
+412 Restablecer valores predeterminados
+413 Desglose de puntos
+414 Cuanto más sobrevivas, mayor será tu puntuación. La bonificación de dificultad ya está incluida en cada puntuación.
+415 Pantalla de juego
+416 Detonar
+417 Ajustes antes de jugar
+418 Volver al inicio
+419 Bonificación Normal +10% (×1.1)
+420 Velocidad +0%
+421 Autodisparo
+422 Detener / Reanudar
+423 Los zombis no saltan (solo en la zona alta del oeste). Gana distancia con huecos y salientes
+424 Habilidades del jugador
+425 Granada de destello ×1 — aturde a los zombis a menos de 8 m durante 4 s. Suelta para lanzar, desliza hacia fuera para cancelar
+426 Señuelo (tecla 2) — confunde a los zombis durante 6 s
+427 Se puede usar en una pendiente descendente
+428 Elegir zombi
+429 Controles de cámara antes de jugar
+430 Lugares de parkour (en orden)
+431 Bajar por la escalera
+432 Tirolesa al este
+433 Tirolesa al oeste
+434 Tirolesa al norte
+435 Agarre de barra
+436 Visor de fantasma
+437 Posición de reproducción
+438 Velocidad de reproducción
+439 Vista de reproducción
+440 Abrir menú y ajustes

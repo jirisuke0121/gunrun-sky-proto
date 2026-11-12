@@ -1,0 +1,160 @@
+441 Cerrar ajustes
+442 Atrapado
+443 Te caíste
+444 Caída — fin de la partida
+445 ¡Escapaste!
+446 Fin de la partida
+447 Modo principiante otra vez
+448 Compite con jugadores de todas las dificultades en puntos de supervivencia y bajas.
+449 Compite con jugadores de todas las dificultades con tu puntuación de 2 minutos.
+450 Nueva mejor puntuación
+451 Puntuación de esta partida
+452 Modo principiante completado. ¡Buen trabajo!
+453 Ahora prueba Fácil, Normal o Difícil.
+454 Partida de principiante con vida ilimitada · sin clasificación
+455 Esta partida de principiante no se guarda ni se envía
+456 Sin superar
+457 Superado
+458 Tú
+459 Sin fantasma
+460 Ver fantasma
+461 (JST)
+462 Puesto / Jugador
+463 Dificultad / Puntos
+464 Aún no hay puntuaciones. ¡Sé el primero!
+465 Cuentan las partidas fuera del modo práctica y prueba.
+466 Cargando registros…
+467 Se desconoce el resultado del envío. El reenvío está en espera para evitar duplicados
+468 Error de red
+469 No enviado: modo práctica o prueba
+470 Modo principiante: sin clasificación, nada se envía
+471 Zona de práctica: sin clasificación
+472 Modo de prueba: sin clasificación
+473 Se envían los registros de juego
+474 Resultado guardado en este dispositivo (no enviado)
+475 Guardado en este dispositivo · enviando al servidor…
+476 No se pudo guardar en este dispositivo · no cierres esta pantalla.
+477 Guardado en este dispositivo · no enviado.
+478 Guardado en el servidor · clasificación confirmada
+479 Guardado en el servidor · la clasificación muestra tu mejor marca
+480 Guardado en el servidor (sin clasificación)
+481 Guardado en el servidor · actualización de la clasificación aún sin confirmar
+482 Resultado guardado en este dispositivo
+483 Último resultado:
+484 Usa saltos básicos y escalones para escapar con comodidad
+485 Gana distancia una y otra vez con escalones, huecos y carreras por pared. Compra tiempo de huida con el arma
+486 Encadena movimientos y elige dónde aterrizar y qué ruta tomar según dónde estén los enemigos. Usa el arma para tirarlos y contenerlos
+487 Ajustes clásicos, acosador y clasificación
+488 Modo principiante
+489 Vida ilimitada: prueba a moverte, saltar y hacer parkour
+490 Práctica de movimiento
+491 Prueba a moverte. La vida es ilimitada y reapareces cerca si te caes.
+492 Salta los escalones y usa paredes y escaleras para llegar a la pasarela superior.
+493 El arma también empuja a los enemigos. Prueba a tirar a un zombi por el borde.
+494 Usa desniveles y huecos para ganar distancia. Los zombis siguen persiguiéndote aunque te alejes.
+495 Mostrar fantasma
+496 Cargando fantasma…
+497 Sin disparos
+498 Sin registro de disparos
+499 Disparos desactivados
+500 Jugar
+501 No se pudo cargar el fantasma de este registro. Vuelve a la clasificación y elige otra vez.
+502 Solo cuchillo al principio
+503 Empiezas con la HG. La SG, SMG y MG salen de cajas de suministros del escenario
+504 Enfriando
+505 Sombras
+506 Arma en primer plano
+507 Humo y luz
+508 Baja resolución
+509 Cargando el personaje y las animaciones…
+510 No se pudo cargar el modelo del personaje. Se usa la vista clásica.
+511 El modelo del personaje aún se está cargando. Espera un momento antes de empezar.
+512 Inclina un poco para ir despacio. De lado o en diagonal hacia abajo frena y gira. Para ir marcha atrás, vuelve al centro y luego recto hacia abajo. Desliza a la derecha para mirar.
+513 W/S: adelante/atrás, A/D: frenar y girar, Alt+A/D: desplazarse de lado. Mira con el ratón.
+514 Reduce el detalle 3D y muestra sombras.
+515 Usa el detalle y las sombras clásicos. Elige Ligera si va lento.
+516 Reanudar autodisparo
+517 En pausa · ahorrando munición
+518 ¡Toca la plataforma para saltar a lo alto!
+519 ¡Haz clic en la plataforma o pulsa B para saltar a lo alto!
+520 Saltar
+521 ¡Toca la marca verde para engancharte a ese saliente!
+522 ¡Haz clic en la marca verde o pulsa V para engancharte a ese saliente!
+523 Rescate
+524 No hay terreno alto cercano al que subir
+525 ¡Toca el barril para saltar con la explosión!
+526 ¡Haz clic en el barril o pulsa B para saltar con la explosión!
+527 Toca el barril para detonarlo
+528 ¡Salto explosivo! Dirígete en el aire
+529 ¡Impulsado por la explosión! Dirígete en el aire
+530 ¡El barril explotó! Enemigos cercanos lanzados por los aires
+531 ¡El barril explotó!
+532 Hueco este
+533 Viga norte
+534 Muro este del anillo
+535 Muro oeste del anillo
+536 Callejón oeste · atajo al sur
+537 ¡La puerta se rompió!
+538 Deslizándote
+539 Desliza por la pendiente
+540 Tirolesa al sur
+541 Tirolesa: botón de destino (PC: 1 / 2). Bajada de escalera: 3. También puedes subir mirando hacia ella y saltando.
+542 Bajar la escalera: adelante para bajar / atrás para volver / salto para salir
+543 Escalera: muévete hacia fuera para bajar
+544 Atravesar: adelante / subir la escalera: salto + adelante
+545 Vuelve por la flecha verde azulada del lado sur → sube los escalones hasta la calle
+546 Bifurcación en la siguiente barra: recto es un triple / a la izquierda va al borde del pilar
+547 Salta desde la flecha dorada. Si fallas, usa las escaleras verde azuladas de abajo
+548 El nivel superior azul va de delante hacia atrás. El camino lateral amarillo está 4 m más abajo
+549 Úsalo cerca de un lugar donde el señuelo pueda colocarse
+550 Señuelo desplegado: aleja a los perseguidores y escapa
+551 No se pudo cargar el juego. Vuelve a cargar.
+552 No se pudo cargar el personaje. Vuelve a cargar.
+553 No se pudo cargar el arma. Vuelve a cargar.
+554 Cargando personaje…
+555 Cargando arma…
+556 Preparando el juego…
+557 Cargando zombis…
+558 Empezar práctica
+559 Preparando el personaje y el arma.
+560 Salto de pared aquí
+561 ¡Salta ahora! Atajo
+562 ¡Salta ahora!
+563 Carrera por pared
+564 Sigue las flechas → salta en el dorado
+565 Toca Saltar
+566 Espacio para el salto de pared
+567 Corre por la pared siguiendo la flecha verde azulada → salta en el marco dorado JUMP
+568 Te han visto: la persecución se reanuda
+569 Los despistaste
+570 Los despistaste: te buscan por la zona
+571 Salta para soltarte a mitad de trayecto: te diriges en el aire
+572 Viene una horda
+573 Tiraste al acosador
+574 Tiraste al acosador: volverá pronto
+575 Un acosador más
+576 Aparece un jefe
+577 Un acosador
+578 Ataque por la espalda
+579 Atrapado entre ambos: por delante y por detrás
+580 Viene por detrás
+581 Cuchillo: empuja y aturde al zombi de enfrente (también detiene un agarre). Un golpe por la espalda. Empiezas con la HG; la SG, SMG y MG se recogen en cajas de suministros del escenario
+582 Desde una barra naranja, toma una bifurcación de escape. ② bifurcación aérea sur, ③ pasillo superior del almacén. ④ recto desde la primera barra es un triple, a la izquierda va al borde del pilar. ⑤ la pista de baile sur tiene una barra, ⑥ el balcón norte cruza dos barras hasta el borde de la esquina oeste, y luego a la calle oeste o al gancho del tejado existente. ⑦ desde la base de la torre este, el gancho oeste hasta la viga existente; ⑧ desde el nivel inferior norte, una barra hasta el pasillo este
+583 Tipo de control
+584 Controles FPS
+585 Cámara manual
+586 Cámara automática
+587 Mantén para moverte
+588 Desliza para mirar
+589 Cámara auto
+590 Pon el pulgar a la derecha y muévelo para mirar alrededor
+591 Sigue tu movimiento. También puedes mirar alrededor a la derecha
+592 Pulgar izquierdo
+593 Pon el pulgar a la izquierda → desliza HACIA ARRIBA y mantén para avanzar. Suelta para parar.
+594 Clásico
+595 Seleccionado
+596 Auto
+597 Arrastra el lado derecho para girar la cámara tú mismo
+598 Ideal para
+599 Jugadores acostumbrados a juegos FPS / 3D
+600 Controles fáciles

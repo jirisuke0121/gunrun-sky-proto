@@ -1,0 +1,6 @@
+827 Dùng WASD để di chuyển. Nhấn Space để nhảy.
+828 W A S D để di chuyển
+829 Space để nhảy
+830 Nhìn quanh bằng chuột
+831 WASD: di chuyển · Space: nhảy
+832 WASD: di chuyển · Chuột: nhìn · Space: nhảy

@@ -1,0 +1,94 @@
+p0 Làm choáng $1 giây
+p1 $1 động tác
+p2 Đang nạp đạn · còn $1 giây
+p3 Mồi nhử đang hoạt động · còn $1 giây
+p4 Mồi nhử đang hồi · còn $1 giây
+p5 Hết lựu đạn chớp sáng · Hoàn thành thêm $1 động tác parkour để nhận lại một quả
+p6 $1 động tác parkour để nhận lại
+p7 Làm choáng $1 giây
+p8 Hộp $1 đã xuất hiện · Chạm vào để trang bị và nạp đạn
+p9 Đã trang bị $1 · Đã nạp $2 / dự trữ $3[4? · Tiếp tục sang bệ khác]
+p10 $1 Hộp $2 cách $3 m[4=上? · cao hơn $5 m][4=下? · thấp hơn $5 m] · [6=落下中 · 着地を待つ?Đang rơi; chờ tiếp đất][6=触れて武器・弾を補充?Chạm để trang bị và nạp đạn]
+p11 Bạn đã sống sót $1 giây. Chọn Bắt đầu lượt chơi thật ở mức Dễ để chơi với 8 mạng.
+p12 Biệt danh $1 (đổi)
+p13 $1:t · Đã hoàn thành
+p14 $1:t · $2 giây
+p15 $1:t Hiện tại: $2×.[3? Thay đổi áp dụng từ lượt chơi tiếp theo.]
+p16 Sống sót $1 giây → $2 điểm
+p17 $1 giây × 120 điểm × $2
+p18 Bị truy đuổi $1 giây
+p19 Sát thương hiệu quả $1 × 2 điểm × $2
+p20 $1 hạ gục × 30 điểm × $2
+p21 Hoàn thành mà không bắn và không hạ gục: tạm tính × $1
+p22 Parkour $1:t ×$2
+p23 Điểm thưởng độ khó $1:t ×$2 (+$3%)
+p24 +$1 điểm/giây
+p25 +$1 / $2 giây
+p26 Bạn đã sống sót $1 giây. Tiếp theo hãy thử lượt chơi thật ở mức Dễ.
+p27 Sống sót $1 giây
+p28 Mỗi $1 giây: $2 × $3 điểm + phần lẻ $4 điểm
+p29 $1 điểm/lần hạ gục
+p30 Hạ gục $1 → $2 điểm / Sát thương $3 → $4 điểm
+p31 Sát thương hiệu quả $1 ×$2
+p32 $1 + $2 + $3 = $4 điểm
+p33 Độ khó: $1:t
+p34 Còn $1 giây là thoát
+p35 Sống sót $1 giây / $2 hạ gục
+p36 Điểm thưởng độ khó ×$1 (+$2%)
+p37 Điểm thưởng sống sót ×$1
+p38 Điểm thưởng ×$1
+p39 $1:t (điểm ×$2)
+p40 $1 giây × 1 điểm × $2 × $3
+p41 $1 hạ gục × 2 điểm × $2 × $3
+p42 Sống sót $1 + Hạ gục $2 = $3 điểm
+p43 Kỹ năng $1/3
+p45 $1 giây
+p47 $1 điểm
+p49 Tốc độ $1%$2
+p50 Tốt nhất mọi độ khó $1 điểm
+p51 Điểm cao nhất $1 điểm
+p52 Tối đa $1 kẻ truy đuổi
+p53 $1 mạng
+p54 Bóng ma tốt nhất $1 điểm
+p55 Lựu đạn chớp sáng ×$1 — làm choáng zombie trong phạm vi $2 m trong $3 giây. Thả để ném, trượt ra ngoài để hủy
+p56 Chớp sáng! $1 zombie bị choáng $2 giây
+p57 Bị choáng $1 giây
+p58 Chớp sáng! Không trúng ai
+p59 +1 lựu đạn chớp sáng nhờ động tác
+p60 Đã tiếp tế $1! Đến hộp phát sáng trên mái nhà hoặc tầng trên
+p61 Đã nhận $1! Đã nạp $2 viên — bạn có thể vừa di chuyển vừa bắn
+p62 Bị bắt — mạng $1
+p63 Đã rơi — mạng $1
+p64 Thử lại — mạng $1
+p65 Mồi nhử đang hoạt động — còn $1
+p66 Mồi nhử sẵn sàng sau $1 giây
+p67 Zombie đang tìm kiếm quanh đây · $1 giây
+p68 Mạng $1 · Chớp sáng $2 · Hạ gục $3 (hất rơi $4) · Zombie $5
+p70 Điểm thưởng $1:t +$2% (×$3)
+p71 Điểm thưởng +$1% (×$2)
+p72 Sống sót $1 giây ×$2 → $3 điểm
+p73 Hạ gục $1 ×$2 → $3 điểm
+p74 Tổng $1 điểm
+p75 $1 / $2 giây · $3:t
+p76 Đã hoàn thành $1:t
+p77 Móc $1 · Chạy tường $2 · Vượt chướng ngại $3 · Ngã $4
+p79 $1 giây ×$2
+p80 $1 hạ gục ×$2
+p81 $1 + $2 = $3 điểm
+p82 Sống sót $1 giây / Hạ gục $2 (hất rơi: $3)
+p83 Bạn: hạng $1 / $2 người chơi $3:t
+p85 Cài đặt hiện tại: $1:t
+p86 Chưa gửi: $1
+p87 $1:t. Mạng $2:t. Bầy tối đa $3. Máu $4 ($4 phát bắn HG). Tốc độ truy đuổi $5 → $6 m/giây. Hiển thị tối đa $7 zombie, kể cả xác. Chúng vẫn tiếp tục truy đuổi dù bạn đã bỏ xa.
+p88 Còn $1
+p90 $1 (cuối game)
+p91 $1 m/giây (cuối game)
+p92 $1 ($2 phát bắn HG)
+p93 Không giới hạn (không xếp hạng)
+p95 $1:t — thử
+p96 $1:t trong game thật
+p97 Nhấn $1:t
+p98 Bạn đã qua cả $1 bước. Tiếp theo hãy thử các động tác này trong một lượt chơi thật ở mức Dễ.
+p99 Thử: $1:t
+p100 Zombie $1 · vuông $2 m
+p101 Tất cả zombie: $1

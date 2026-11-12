@@ -1,0 +1,140 @@
+1 W/S: ileri/geri, A/D: dön, Boşluk: zıpla. Otomatik kamera.
+2 Solda hareket et · Düğmeler: zıpla · Otomatik görünüm
+3 Otomatik kamera
+4 Gittiğin yönü otomatik takip eder. Kamera kontrolü yok.
+5 Kamera gittiğin yönü otomatik takip eder. Kamera kontrolü yok.
+6 Solda hareket et; zıplamak ve hareket yapmak için sağdaki düğmeleri kullan. Kamera gittiğin yönü otomatik takip eder.
+7 Sol çubuğu ekranda gitmek istediğin yöne it: yukarı senden uzağa, yanlara yan yana, aşağı sana doğru koşar. Kamera kendiliğinden takip eder. Zıplamak ve hareket yapmak için sağdaki düğmeleri kullan.
+8 Solda hareket et. Dönmek için yana it, düz gitmek için yukarı dön, geri çekilmek için aşağı çek. Zıplamak ve hareket yapmak için sağdaki düğmeleri kullan. Kamera otomatik takip eder.
+9 W/S: ileri/geri. A/D: dön. Alt + A/D: yana kay. Kamera otomatik takip eder.
+10 Geliştirme
+11 Emeği Geçenler
+12 Rehberli eğitimi oyna
+13 Sen: hareket + rota seç\nSilah: kuşanılmadı
+14 Sen: hareket + rota seç\nOtomatik: nişan + ateş
+15 Sen: hareket + rota + nişan\nOtomatik: ateş
+16 Sen: hareket + rota seç\nOtomatik ateş: durdu
+17 Bekle
+18 Çek
+19 Hareket
+20 Kaç
+21 Durdu · Devam için X'e bas
+22 Yükseğe otomatik gidiliyor · İnince rotanı seç
+23 Yukarı otomatik kaçış
+24 Yem bırakıldı · Takipçileri çekerken uzaklaş
+25 Mermi bitti · Doldurmak için parlayan sandığa dokun
+26 Durdu · Devam için bas
+27 Otomatik nişan + ateş AÇIK
+28 Geçerli hedef bekleniyor
+29 Sen hareket eder, kaçış rotasını seçersin. Silah kuşanılmadı.
+30 Sen hareket eder, kaçış rotasını seçersin. Silah kendiliğinden nişan alıp ateş eder.
+31 Sen hareket eder, rotayı seçer ve nişan alırsın. Silah düşmana nişan alınca ateş eder.
+32 Sen hareket eder, kaçış rotasını seçersin. Otomatik ateş durdu.
+33 Kapı açarken ateş edilemez
+34 Yakalandın · Tekrar ateş etmek için kurtul
+35 Bu hareketten sonra ateş yeniden başlar
+36 Merdiven çıkarken ateş edilemez
+37 Ateşe devam etmek için barı bırak
+38 Bırakmak için zıpla (yeşil = ineceksin)
+39 Ateşe devam etmek için çıkıntıya tırmanmayı bitir
+40 Şarjör boş · Otomatik doldurma bekleniyor
+41 Mermi bitti · Doldurmak için parlayan silah sandığına dokun
+42 Durdu · Ateş etmek için Otomatik ateşi sürdür'e bas
+43 Otomatik ateş için bir düşmana nişan al
+44 Otomatik nişan + ateş · Geçerli hedef bekleniyor
+45 Nişan ve ateş otomatiktir
+46 Elle nişan, otomatik ateş
+47 Etkin
+48 Doluyor
+49 Takipçileri çek
+50 Hak kalmadı
+51 Hareketin bitmesini bekle
+52 Yükseğe kaç
+53 Önerilen kaçış rotası · Parlayan halkaya gir
+54 Rota işaretine ulaşıldı · Başka bir platforma devam et
+55 Bunu bir koşu sırasında kullan
+56 Yem için zemin yok · Kullanmak için bir platforma dön
+57 Bu koşuda Kurtarma hakkı kalmadı
+58 Yakalanmışken Kurtarma kullanılamaz
+59 Bu hareket bitince Kurtarma'yı kullan
+60 Güvenli yüksek platform yok · Başka bir platformdan dene
+61 Kolayda gerçek bir koşu başlat
+62 2 dakika hayatta kaldın. 8 canla oynamak için Kolayda gerçek bir koşu başlat'ı seç.
+63 Yakalandın. Nereye gidip kaçacağına sen karar verirsin. Girişi tekrar dene ve bir çıkıntıya ya da başka bir platforma yönel.
+64 Zombilerden 2 dakika kaç. Sen hareket eder, rotayı seçersin; otomatik nişan ve ateş kaçmak için zaman kazandırır.
+65 En yakın düşman hedef alınır ve otomatik vurulur.
+66 flaş bombası yakındaki zombileri durdurur,
+67 yem onları çeker
+68 Dokun
+69 Kulenin tepesi
+70 Çatı
+71 Doğu boşluğunun ötesi
+72 Kuzey kirişinin ortası
+73 Güney köprüsü
+74 Havadaki kiriş
+75 Yangın merdiveni sahanlığı
+76 Kuzeybatı köşesi
+77 Doğu iskelesi
+78 Batı meydanı
+79 Giriş tamamlandı!
+80 2 dakika kaçtın. Şimdi Kolayda gerçek koşuyu dene.
+81 Düştün. Tutunmak için çıkıntılara ve duvarlara zıpla. Giriş koşusunu tekrar dene.
+82 Seni yakaladılar. Duvar koşuları, kancalar ve merdivenler mesafe kazanmana yardım eder. Giriş koşusunu tekrar dene.
+83 Oyun yavaş çalışıyor gibi. Grafikler hafifletilsin mi?
+84 Hafif grafik kullan
+85 Olduğu gibi kalsın
+86 Performans ipucu
+87 Zombilerden 2 dakika kaç. Her 30 saniyede ekstra puan kazanırsın.
+88 Sıralamada görünecek ad budur. Daha sonra da belirleyebilirsin.
+89 Bir takma ad seç
+90 Kaydet
+91 Sonra
+92 Bir ad gir
+93 Zombilerden iki dakika kaç.
+94 Silahını, eşyaları ve araziyi kullan. Sadece kaç.
+95 hareket için
+96 zıplamak için
+97 Hareket için solda basılı tutup kaydır · Bakmak için sağda kaydır · Zıpla'ya dokun
+98 Giriş koşusu rekorlara ve sıralamaya sayılmaz.
+99 Başlamak için dokun
+100 Giriş kontrolleri rehberi
+101 Hareket için W A S D · Zıplamak için Boşluk
+102 Hareket için solda basılı tutup kaydır · Zıpla'ya dokun
+103 Etrafa bakmak için fareyi hareket ettir
+104 Etrafa bakmak için sağ tarafta kaydır
+105 Duvarlara, çıkıntılara ve merdivenlere zıpla · Kanca için Q
+106 Duvarlara, çıkıntılara ve merdivenlere zıpla · Kanca için ekrandaki halkaya dokun
+107 Otomatik ateş · 1 flaş bombası onları durdurur · 2 yem onları çeker
+108 Otomatik ateş · Flaş düğmesi zombileri durdurur
+109 Hoş geldin
+110 Nasıl oynanır
+111 Koş ve zıpla
+112 Etrafa bak
+113 Onları atlat
+114 Otomatik ateş
+115 Hareket için solda sürükle, Zıpla düğmesiyle zıpla. Alçak geçitlerde otomatik kayarsın.
+116 etrafa bakmak için
+117 Ekranın sağ tarafını sürükle
+118 Başparmağını sola koy. İleri gitmek için YUKARI kaydırıp basılı tut. Durmak için bırak. Zıplamak için Zıpla'ya dokun.
+119 Kamera hareketini takip eder. Etrafa bakmak için sağda kaydırabilirsin. Sol başparmağını bırakıp tekrar hareket ederek o görünümden yön seçebilirsin.
+120 Başparmağını sağa koyup yana kaydırarak etrafa bak. Bunu sol başparmağınla hareket ederken yapabilirsin.
+121 Duvar koşusu, çıkıntı tutunma, merdiven ve zip hattını kullan, ayrıca
+122 kanca için
+123 Duvar koşusu, çıkıntı tutunma, merdiven ve zip hattını kullan, kanca için ekrandaki halkaya dokun
+124 En yakın düşman hedef alınır ve otomatik vurulur. Flaş düğmesi yakındaki zombileri birkaç saniye dondurur.
+125 Takma ad (sıralamada görünür)
+126 örn. RUNNER
+127 2-14 harf, rakam, _ veya -. Boş bırakıp daha sonra Nasıl oynanır'dan değiştirebilirsin.
+128 2-14 harf, rakam, _ veya - kullan
+129 Giriş koşusunda pratik yap
+130 Kontrol ayarlarını aç
+131 Yükleniyor…
+132 Kapat
+133 Zıplama atışı
+134 Zıplama atışı kullan
+135 Zıplama atışı hazır! Kullanmak için Z'ye veya düğmesine bas
+136 Altın JUMP'lar bir zıplama atışı biriktirir. Her zamanki silahını koru; ayaklarına ateş edip fırlamak için Z'ye veya Zıplama atışı düğmesine bas
+137 Takipçileri atlattın
+138 Zombi etkisiz hale getirildi
+139 Hasar eşiği
+140 Geri bildirim yükleniyor…

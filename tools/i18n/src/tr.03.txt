@@ -1,0 +1,150 @@
+291 Kolay
+292 Zor
+293 Aşırı
+294 Deneme
+295 Koşucular ve iriyarılar da takibe katılır
+296 Sıralamaya girmez
+297 Aşırı (deneme, sıralamaya girmez)
+298 Deneme: Zor gibi puanlanır (×1.2) | sıralamaya girmez
+299 Parkur temiz
+300 Puan sıralaması
+301 Eski Şehir
+302 Sıralama kategorisi
+303 Tüm zorluklar
+304 Özel
+305 Zorluk bonusuyla puana göre sıralanır (Kolay ×1.0 · Normal ×1.1 · Zor ×1.2). Her oyuncunun tüm zorluklardaki en iyi puanı sayılır.
+306 Sıralama yüklenemedi.
+307 Görevler (hareket pratiği)
+308 Önce gösteriyi izle, sonra dene. Bir seferde bir hareket.
+309 Boşluğu zıpla
+310 Tamamlanmadı
+311 Oyun kayıtları
+312 Gönderilmedi: sonuçlar yalnızca bu cihazda saklanır
+313 Takma adın, puanın, girdilerin, ülken ve cihazın sıralama için gönderilir.
+314 Gönderilmeyen kayıtları yeniden gönder
+315 Bu cihazdaki son kayıtlar
+316 Kontroller ve puanlama kuralları
+317 Puan, hayatta kalma süresi ve öldürmelerden hesaplanır. Süre çarpanı = (1 + zorluk × 0.1) × (1 + hayatta kalınan saniye ÷ 60); öldürme çarpanı bunun iki katıdır. Hayatta kalma ve öldürmeler ayrı ayrı aşağı yuvarlanır, sonra toplanır. Bir zombiyi uçurumdan düşürmek bir öldürme sayılır, hareketlerin kendisi puan vermez. Puan, zorluk bonusunu (Kolay ×1.0, Normal ×1.1, Zor ×1.2) içerir ve tüm zorluklarla yarışır. Yakalandığın andaki puanın da sıralamaya sayılır.
+318 Koş · Bakmak için fare
+319 Duvar koşusu: yalnızca turkuaz oklu duvarlar işe yarar. Oku izleyerek zıpla ve havada bir yönü basılı tutmaya devam et. Kısayol için altın JUMP çerçevesinde bas:
+320 (dokunmatikte Zıpla)
+321 Sağ tık
+322 Bıçak (silah kapalıyken Tık da olur): öndeki zombiyi iter ve sendeletir (yakalamayı da durdurur). Arkadan tek vuruş. HG ile başlarsın; SG, SMG ve MG sahnedeki malzeme sandıklarından alınır
+323 Zombiler kısayol sunan sütunlara da tırmanır. Tırmanırken onları vur.
+324 Yüzen kirişler ve taş sütunlar arasında iki dakika zombilerden kaç. Zombiler kısa boşlukları da zıplar ve sütunlara tırmanır. Mesafe açmak için daha geniş boşlukları ve duvar koşularını kullan. Onları bıçakla geri it ya da dar kirişlerden düşür.
+325 Üç köprü katı ve kanyon tabanı boyunca iki dakika zombilerden kaç. Zombiler kısa boşlukları da zıplar ve sütunlara tırmanır. Mesafe açmak için daha geniş boşlukları ve duvar koşularını kullan. Onları bıçakla geri it ya da dar kirişlerden düşür.
+326 Yüksek bir noktaya ulaşamayan zombiler sütunlara yavaşça tırmanır. Tırmanırken onları vurup düşürebilirsin.
+327 Silah, görüş hattındaki yakın düşmanlara otomatik nişan alıp ateş eder ve boşalınca şarjör doldurur. Mermi tasarrufu için "Otomatik ateşi durdur/sürdür"ü veya şunu kullan:
+328 HG ile başlarsın. SG, SMG ve MG çatılara ve üst katlara her 10 sn'de bir verilir (en fazla 5).
+329 3 hareket (kayma, duvar koşusu, çıkıntıya tutunma, merdiven, zip hattı, kanca) tamamlamak +1 flaş bombası verir (en fazla 2)
+330 Biraz yüksek bir duvara koşup zıpla, duvardan sekip yukarı tırman. Bir tentenin üzerine düşmek seni yükseğe sektirir
+331 En iyi koşunu mavi hayalet figür olarak göster veya gizle
+332 Bir zombiye koşup kay → ayaklarının altından geçersin.
+333 Bir zombinin hemen önünde koşup zıpla → kafasına basıp üzerinden atlarsın
+334 Parlayan bir halka gördüğünde bas:
+335 → kancayla tek hamlede karşıya geçersin (zombiler kullanamaz)
+336 Bir zip hattının üstüne ya da altına yakınken bas:
+337 → karşıya geçersin. Çatalda gitmek istediğin ipe dön. Yolun ortasında tekrar bas:
+338 → zıplamak için. İvmeni korursun ve havada yönünü kendin ayarlarsın
+339 Yem: 6 sn boyunca tüm zombiler yemin sen olduğunu sanıp onu kovalar. Tekrar kullanmak için 18 sn. Ekranın altındaki yuvarlak düğmeyle de kullanılır.
+340 Flaş bombası (başta 1): öne atılır, 8 m içindeki zombileri 4 sn sersemletir. Duvarların ardından işe yaramaz. Tamamladığın her 3 hareket için +1 (en fazla 2)
+341 Havada bir zombinin yanındayken bas:
+342 → uçan tekme. Zombi savrulur ve sen geri seker. Bir sonraki zombiye zincirleyebilirsin
+343 Puan = hayatta kalınan süre + öldürmeler + aşamalar (30/60/90/120 sn). Geç oldukça her saniye ve her öldürme daha değerli olur. Bir zombiyi uçuruma düşürmek çift sayılır. Hareketlerin kendisi puan vermez: o ana uygun hareketle kaçan yüksek puanı alır
+344 Işık sütunları yol noktalarındır. Birine ulaşmak bir sonraki yeri aydınlatır (puan yok). Orada zombiler bekler
+345 Mavi DASH halkasını almak 5 sn boyunca ×1.3 hız verir. 36 sn sonra yeniden belirir
+346 Altın JUMP belirli aralıklarla yenilenir. Bir atışı kuşanmak için al; ateş edince ayaklarına otomatik ateş ederek seni fırlatır. Sonra her zamanki silahına dönersin
+347 Bir noktadan başla
+348 Seçilen yerden 2 dakikalık bir meydan okuma başlatır. Tamamlamalar ve puanlar sıralamaya sayılır. ① kaldırıldı.
+349 ② Kuzey sütunu → güney hava çatalı
+350 ③ Alçak çatı → depo üst koridoru
+351 ④ Düz: çapraz kiriş → dış koridor → güney çatısı / teras
+352 ④ Çatal: sütun kenarı → bar → sonraki kenar
+353 ⑤ Güney dans pisti → bar → batı köşesi
+354 ⑥ Kuzey balkonu → 2 bar → kuzeybatı köşesi
+355 ⑦ Doğu kule tabanı → batı kancası → mevcut kiriş
+356 ⑧ Kuzey alt kat → bar → doğu koridoru
+357 Ekran yönü ters ise bas (sol/sağı çevir)
+358 Gösteri (otomatik oynatılır)
+359 Görev
+360 Dene
+361 Gösteriyi tekrar izle
+362 Geri
+363 Kaçtın!
+364 Sonraki görev
+365 Tekrar dene (R)
+366 Gösteriyi izle
+367 Başlığa dön
+368 Zombie Parkour Escape / Koşu kaydı
+369 Kolaydan başla
+370 Tekrar koş
+371 Sıralama · Kayıtlar
+372 Menü
+373 Sıralama · Oyun kayıtları
+374 Sonuçlara dön
+375 Merdivenden aşağı in [3]
+376 Doğuya kay [1]
+377 Batıya kay [2]
+378 Kuzeye kay [3]
+379 Tutuş
+380 Bıçak menzili: F / sağ tık
+381 Hayalet
+382 Sıralamaya dön
+383 Yeniden başlat
+384 0.5× hız
+385 1× hız
+386 2× hız
+387 Takip görünümü
+388 Kendi görünümün
+389 Silah sesleri açık
+390 ☰ Menü
+391 Devam et
+392 Hedef
+393 2 dakika hayatta kal ve zombilerden kaç
+394 Kontroller
+395 2 dakika hayatta kal ve zombilerden kaç. Hareket için solda basılı tutup kaydır, bakmak için sağda kaydır, zıplamak için Zıpla'ya dokun
+396 Hayalet en iyi 0 puan
+397 Hayaleti gizle
+398 Normal: hareket ve savaş koşulları sabittir. Puan çarpanları Kolay ×1.0, Normal ×1.1, Zor ×1.2'dir ve tüm zorluklar aynı sıralamada yarışır. Kamera, hassasiyet, ses ve grafik değiştirilebilir.
+399 Hızlı ayarlar
+400 Kamera kontrolleri
+401 Kamera modu
+402 Bakış hassasiyeti (dokunmatik / fare)
+403 1.00×
+404 Ses
+405 Görüş alanı
+406 Render çözünürlüğü
+407 Dikey bakışı ters çevir
+408 Otomatik nişan (yakın düşmanlara nişan alır; üçüncü şahısta ayrıca arkana döner / kapalı = merkez nişan, kafaya tek vuruş)
+409 Otomatik ateş (yakın düşmanları hedefler / oyun içi düğme veya X ile durdur ve sürdür)
+410 Oyun kayıtlarını anonim gönder (girdiler, sonuçlar, ekran boyutu — oyunu geliştirmek için kullanılır)
+411 Oyun ve performans kayıtlarını anonim gönder (girdiler, sonuçlar, ülke, cihaz ortamı — oyunu geliştirmek için kullanılır)
+412 Varsayılanlara sıfırla
+413 Puan dökümü
+414 Ne kadar uzun hayatta kalırsan puanın o kadar yüksek olur. Zorluk bonusu her puana zaten dahildir.
+415 Oyun ekranı
+416 Patlat
+417 Oyundan önce ayarlar
+418 Ana sayfaya dön
+419 Normal bonusu +%10 (×1.1)
+420 Hız +%0
+421 Otomatik ateş
+422 Durdur / Sürdür
+423 Zombiler zıplayamaz (yalnızca batıdaki yüksek arazide). Boşluklar ve çıkıntılarla mesafe aç
+424 Oyuncu becerileri
+425 Flaş bombası ×1 — 8 m içindeki zombileri 4 sn sersemletir. Atmak için bırak, iptal için dışarı kaydır
+426 Yem (tuş 2) — zombileri 6 sn şaşırtır
+427 Aşağı eğimli yokuşta kullanılabilir
+428 Zombi seç
+429 Oyundan önce kamera kontrolleri
+430 Parkur noktaları (sırayla)
+431 Merdivenden aşağı in
+432 Doğuya kay
+433 Batıya kay
+434 Kuzeye kay
+435 Bar tutuşu
+436 Hayalet izleyici
+437 Oynatma konumu
+438 Oynatma hızı
+439 Oynatma görünümü
+440 Menüyü ve ayarları aç

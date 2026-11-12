@@ -1,0 +1,140 @@
+1 W/S: tiến/lùi, A/D: xoay, Space: nhảy. Camera tự động.
+2 Di chuyển ở bên trái · Nút: nhảy · Góc nhìn tự động
+3 Camera tự động
+4 Tự động bám theo hướng di chuyển. Không có điều khiển camera.
+5 Camera tự động bám theo hướng di chuyển. Không có điều khiển camera.
+6 Di chuyển ở bên trái; dùng các nút bên phải để nhảy và thực hiện động tác. Camera tự động bám theo hướng di chuyển.
+7 Đẩy cần trái về hướng bạn muốn đi trên màn hình: lên là chạy ra xa, sang ngang là chạy ngang, xuống là chạy về phía bạn. Camera tự theo. Dùng các nút bên phải để nhảy và thực hiện động tác.
+8 Di chuyển ở bên trái. Đẩy sang ngang để xoay, đưa lên lại để đi thẳng, kéo xuống để lùi. Dùng các nút bên phải để nhảy và thực hiện động tác. Camera tự động bám theo.
+9 W/S: tiến/lùi. A/D: xoay. Alt + A/D: di chuyển ngang. Camera tự động bám theo.
+10 Phát triển
+11 Ghi công
+12 Chơi hướng dẫn từng bước
+13 Bạn: di chuyển + chọn đường\nSúng: chưa trang bị
+14 Bạn: di chuyển + chọn đường\nTự động: ngắm + bắn
+15 Bạn: di chuyển + đường + ngắm\nTự động: bắn
+16 Bạn: di chuyển + chọn đường\nTự động bắn: đã dừng
+17 Chờ
+18 Dụ
+19 Đang di chuyển
+20 Chạy thoát
+21 Đã dừng · Nhấn X để tiếp tục
+22 Tự động lên chỗ cao · Chọn đường sau khi tiếp đất
+23 Tự động thoát lên cao
+24 Đã đặt mồi nhử · Hãy rời đi trong lúc nó dụ kẻ truy đuổi
+25 Hết đạn · Chạm vào hộp phát sáng để nạp lại
+26 Đã dừng · Nhấn để tiếp tục
+27 Tự động ngắm + bắn BẬT
+28 Đang chờ mục tiêu hợp lệ
+29 Bạn di chuyển và chọn đường thoát. Chưa trang bị súng.
+30 Bạn di chuyển và chọn đường thoát. Súng tự động ngắm và bắn.
+31 Bạn di chuyển, chọn đường và ngắm. Súng bắn khi ngắm trúng kẻ địch.
+32 Bạn di chuyển và chọn đường thoát. Tự động bắn đã dừng.
+33 Không thể bắn khi đang mở cửa
+34 Bị tóm · Thoát ra để bắn tiếp
+35 Sẽ bắn lại sau động tác này
+36 Không thể bắn khi đang leo thang
+37 Thả thanh ra để bắn tiếp
+38 Nhảy để buông (xanh = bạn sẽ tiếp đất)
+39 Leo xong mép tường để bắn tiếp
+40 Hết đạn trong băng · Đang chờ tự động nạp
+41 Hết đạn · Chạm vào hộp vũ khí phát sáng để nạp lại
+42 Đã dừng · Nhấn Tiếp tục tự động bắn để bắn
+43 Ngắm vào kẻ địch để tự động bắn
+44 Tự động ngắm + bắn · Đang chờ mục tiêu hợp lệ
+45 Ngắm và bắn là tự động
+46 Ngắm thủ công, bắn tự động
+47 Đang hoạt động
+48 Đang hồi
+49 Dụ kẻ truy đuổi
+50 Hết lượt dùng
+51 Chờ động tác kết thúc
+52 Thoát lên chỗ cao
+53 Đường thoát gợi ý · Đi vào vòng phát sáng
+54 Đã đến điểm đánh dấu · Tiếp tục sang bệ khác
+55 Dùng trong lúc chơi
+56 Không có chỗ đặt mồi nhử · Quay lại bệ để dùng
+57 Hết lượt Cứu hộ trong lượt chơi này
+58 Không thể dùng Cứu hộ khi bị tóm
+59 Dùng Cứu hộ sau khi động tác này kết thúc
+60 Không có bệ cao an toàn · Thử từ bệ khác
+61 Bắt đầu lượt chơi thật ở mức Dễ
+62 Bạn đã sống sót 2 phút. Chọn Bắt đầu lượt chơi thật ở mức Dễ để chơi với 8 mạng.
+63 Bạn bị bắt. Bạn quyết định đi đâu và thoát thế nào. Hãy thử lại phần giới thiệu và hướng đến một mép tường hoặc bệ khác.
+64 Chạy thoát khỏi zombie trong 2 phút. Bạn di chuyển và chọn đường; tự động ngắm và bắn giúp bạn có thời gian chạy.
+65 Kẻ địch gần nhất được nhắm và bắn tự động.
+66 lựu đạn chớp sáng làm zombie gần đó đứng yên,
+67 mồi nhử dụ chúng đi
+68 Chạm
+69 Đỉnh tháp
+70 Mái nhà
+71 Phía sau khe hở hướng đông
+72 Giữa dầm phía bắc
+73 Cầu phía nam
+74 Dầm trên không
+75 Chiếu nghỉ cầu thang thoát hiểm
+76 Góc tây bắc
+77 Giàn giáo phía đông
+78 Quảng trường phía tây
+79 Đã hoàn thành phần giới thiệu!
+80 Bạn đã trốn thoát trong 2 phút. Tiếp theo hãy thử lượt chơi thật ở mức Dễ.
+81 Bạn đã rơi. Hãy nhảy lên mép tường và tường để bám. Thử lại phần giới thiệu.
+82 Chúng đã bắt được bạn. Chạy tường, móc và thang giúp bạn kéo giãn khoảng cách. Thử lại phần giới thiệu.
+83 Trò chơi có vẻ đang chạy chậm. Giảm đồ họa nhé?
+84 Dùng đồ họa nhẹ
+85 Giữ nguyên
+86 Mẹo hiệu năng
+87 Chạy thoát khỏi zombie trong 2 phút. Bạn nhận điểm thưởng mỗi 30 giây.
+88 Đây là tên hiển thị trên bảng xếp hạng. Bạn cũng có thể đặt sau.
+89 Chọn biệt danh
+90 Lưu
+91 Để sau
+92 Nhập tên
+93 Chạy thoát khỏi zombie trong hai phút.
+94 Dùng súng, vật phẩm và địa hình. Chỉ cần chạy thoát.
+95 để di chuyển
+96 để nhảy
+97 Giữ và trượt bên trái để di chuyển · Vuốt bên phải để nhìn · Chạm Nhảy
+98 Phần giới thiệu không được tính vào kỷ lục hay bảng xếp hạng.
+99 Chạm để bắt đầu
+100 Hướng dẫn điều khiển phần giới thiệu
+101 W A S D để di chuyển · Space để nhảy
+102 Giữ và trượt bên trái để di chuyển · Chạm Nhảy
+103 Di chuyển chuột để nhìn xung quanh
+104 Vuốt ở bên phải để nhìn xung quanh
+105 Nhảy lên tường, mép tường và thang · Q để móc
+106 Nhảy lên tường, mép tường và thang · Chạm vào vòng trên màn hình để móc
+107 Tự động bắn · 1 lựu đạn chớp sáng làm chúng đứng yên · 2 mồi nhử dụ chúng đi
+108 Tự động bắn · Nút chớp sáng làm zombie đứng yên
+109 Chào mừng
+110 Cách chơi
+111 Chạy & nhảy
+112 Nhìn xung quanh
+113 Cắt đuôi chúng
+114 Tự động bắn
+115 Kéo bên trái để di chuyển và nhảy bằng nút Nhảy. Lối đi thấp sẽ tự động trượt qua.
+116 để nhìn xung quanh
+117 Kéo phía bên phải màn hình
+118 Đặt ngón cái bên trái. Trượt LÊN và giữ để tiến. Thả ra để dừng. Chạm Nhảy để nhảy.
+119 Camera bám theo chuyển động của bạn. Bạn có thể vuốt bên phải để nhìn xung quanh. Thả ngón cái trái rồi di chuyển lại để chọn hướng từ góc nhìn đó.
+120 Đặt ngón cái bên phải và trượt ngang để nhìn xung quanh. Bạn có thể làm vậy khi đang di chuyển bằng ngón cái trái.
+121 Dùng chạy tường, bám mép, thang và dây cáp trượt, cùng với
+122 để móc
+123 Dùng chạy tường, bám mép, thang và dây cáp trượt, và chạm vào vòng trên màn hình để móc
+124 Kẻ địch gần nhất được nhắm và bắn tự động. Nút Chớp sáng làm zombie gần đó đứng yên vài giây.
+125 Biệt danh (hiển thị trên bảng xếp hạng)
+126 vd: RUNNER
+127 2-14 chữ cái, chữ số, _ hoặc -. Bạn có thể để trống và đổi sau trong Cách chơi.
+128 Dùng 2-14 chữ cái, chữ số, _ hoặc -
+129 Luyện tập trong phần giới thiệu
+130 Mở cài đặt điều khiển
+131 Đang tải…
+132 Đóng
+133 Phát bắn nhảy
+134 Dùng phát bắn nhảy
+135 Phát bắn nhảy đã sẵn sàng! Nhấn Z hoặc nút của nó để dùng
+136 JUMP vàng lưu trữ một phát bắn nhảy. Giữ vũ khí quen dùng; nhấn Z hoặc nút Phát bắn nhảy để bắn xuống chân và bật lên
+137 Bạn đã cắt đuôi được kẻ truy đuổi
+138 Đã hạ zombie
+139 Mốc sát thương
+140 Đang tải phản hồi…

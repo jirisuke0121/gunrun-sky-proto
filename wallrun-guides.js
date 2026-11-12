@@ -36,7 +36,7 @@ const jumpMaterial = material(768, 256, (ctx, w, h) => {
   ctx.strokeStyle = '#ffdc79'; ctx.lineWidth = 16; ctx.strokeRect(8, 8, w - 16, h - 16);
   ctx.fillStyle = '#ffdc79'; ctx.font = '900 100px system-ui'; ctx.textAlign = 'center';
   ctx.fillText('↑ JUMP', w / 2, 127);
-  ctx.fillStyle = '#fff6d9'; ctx.font = '700 50px system-ui'; ctx.fillText('ここで壁ジャンプ', w / 2, 207);
+  ctx.fillStyle = '#fff6d9'; ctx.font = '700 50px system-ui'; const note = 'ここで壁ジャンプ'; ctx.fillText(window.skyI18n?.tr(note) || note, w / 2, 207, w - 60);
 });
 function addPanel(route, along, y, width, height, mat, offset) {
   const [nx, nz] = route.normal, mesh = new T.Mesh(panelGeometry(width, height), mat);

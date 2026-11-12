@@ -1,0 +1,130 @@
+601 Dành cho người mới chơi FPS
+602 Camera tự động bám theo hướng chạy của bạn
+603 Dành cho người chơi lần đầu hoặc khó điều khiển camera
+604 Nhìn bằng chuột
+605 Di chuyển chuột để tự xoay camera
+606 Camera tự động
+607 Xoay bằng A/D và camera tự động bám theo
+608 xoay
+609 Chọn kiểu điều khiển
+610 Áp dụng cho phần giới thiệu và các lượt chơi thật.
+611 Bắt đầu phần giới thiệu với điều khiển dễ
+612 Bắt đầu phần giới thiệu với điều khiển FPS
+613 Hủy
+614 Bạn có thể đổi bất cứ lúc nào trong mục Điều khiển ở menu.
+615 Nhóm cài đặt
+616 Màn hình & âm thanh
+617 Luật & bản ghi
+618 Tinh chỉnh chi tiết
+619 Cần trái để di chuyển (camera tự động),
+620 Giữ và trượt bên trái để di chuyển, vuốt bên phải để nhìn,
+621 nút Nhảy để nhảy
+622 Điều khiển FPS (kéo bên phải để nhìn)
+623 Điều khiển dễ (chỉ dùng cần, camera tự động)
+624 Điều khiển dễ (bên trái để di chuyển, camera tự động)
+625 Nhìn bằng chuột (WASD + chuột, cổ điển)
+626 Camera tự động (W/S tiến/lùi, A/D xoay)
+627 Di chuyển bằng cần trái và kéo bên phải để tự xoay camera.
+628 Di chuyển bằng WASD và nhìn xung quanh bằng chuột.
+629 Bạn có thể chạy chỉ bằng cần. Camera tự động bám theo hướng của bạn; kéo bên phải để nhìn xung quanh một lát.
+630 Đặt ngón cái bên trái. Trượt về hướng muốn đến và giữ. Thả ra để dừng. Camera bám theo chuyển động của bạn. Sau khi nhìn xung quanh bên phải, hãy thả ngón cái trái rồi di chuyển lại để chọn hướng từ góc nhìn đó.
+631 Những bước đầu tiên
+632 Băng qua các mái nhà
+633 Cắt đuôi kẻ truy đuổi
+634 Sẵn sàng chạy
+635 Thử điều khiển trên các mái nhà
+636 Thử điều khiển
+637 Hoàn thành hướng dẫn!
+638 Bắt đầu lượt chơi thật →
+639 Dùng điều khiển này
+640 Quay lại lựa chọn
+641 Kéo ở đây để nhìn
+642 Thử lại.
+643 Thử điều khiển
+644 Lối này
+645 Rời luyện tập và vào chơi
+646 Di chuyển đến vạch bật nhảy
+647 Tiếp tục tiến về phía trước
+648 Nhảy ở đây
+649 Tiếp tục tiến về phía trước và nhấn Nhảy
+650 Nhảy ngay
+651 Tiếp tục băng qua
+652 Tiếp tục tiến để tiếp đất
+653 Tiếp tục leo
+654 Bám vào mép là bắt đầu leo
+655 Nhảy ở mép tường
+656 Tiếp tục đi dọc theo tường
+657 Tiếp tục tiến về chỗ tiếp đất
+658 Đi dọc theo tường và nhảy
+659 Giữ tường bên cạnh và tiến lên
+660 Di chuyển đến cạnh tường
+661 Đi theo các mũi tên trên sàn
+662 Đang di chuyển bằng móc
+663 Tiếp tục đi thẳng sau khi tiếp đất
+664 Chạm vào dấu hình thoi
+665 Giống móc trong game chính. Nhấn Q trên PC
+666 Trượt xuống chiếu nghỉ phía dưới
+667 Dùng được khi đang đứng trên dốc này
+668 Lên dốc
+669 Nhấn Trượt khi nút của nó sáng lên
+670 Tiếp tục tiến để tự động leo lên
+671 Đang đi trên dây cáp trượt
+672 Đi theo các mũi tên trên sàn sau khi tiếp đất
+673 Nhảy bên dưới dây cáp trượt
+674 Sau khi bám vào, chuyến đi hoàn toàn tự động
+675 Di chuyển đến bên dưới dây cáp trượt
+676 Nhảy từ dấu trên sàn
+677 Tiến lên bệ nhỏ
+678 Tiếp tục tiến cho đến khi tiếp đất
+679 Đi vòng qua tường đến dấu
+680 Đi theo các mũi tên quanh bức tường
+681 Đến gần tường
+682 Nhảy hai lần khi ở gần tường
+683 Thả điều khiển di chuyển để dừng
+684 Nhấn Nhảy một lần sau khi dừng
+685 Trước tiên, hãy nhảy cạnh tường
+686 Thả điều khiển di chuyển và nhấn Nhảy một lần
+687 Cú nhảy đầu tiên
+688 Nhấn Nhảy lần nữa
+689 Rồi tiến lên, rời xa bức tường
+690 Nhảy lần nữa
+691 Màu xanh. Nhảy ngay!
+692 Chờ tín hiệu xanh
+693 Dùng tín hiệu NGAY và màu xanh như trong game
+694 Tiếp tục tiến về chỗ tiếp đất
+695 Tiếp tục tiến về xà kế tiếp
+696 Tiếp tục tiến lên và tiếp đất trên mái nhà
+697 Chạy đến mép bệ rồi nhảy
+698 Nhảy về phía trước tới chiếc xà
+699 Tiếp tục tiến về phía trước khi nhấn Nhảy
+700 Dùng
+701 Lấy DASH xanh
+702 Chạm vào để tăng tốc tạm thời
+703 Nhảy khi đang tăng tốc
+704 Đi đến mái nhà thấp phía trước
+705 Đang nạp đạn. Chờ một chút
+706 Băng đạn rỗng sẽ tự nạp lại; sau đó tiếp tục bắn
+707 Tiếp tục tự động bắn
+708 Bắt đầu với một viên đạn để thử tự động nạp
+709 Tiếp tục
+710 Để súng bắn trong lúc bạn chờ
+711 Bạn chọn di chuyển và đường thoát. Ngắm và bắn là tự động
+712 Chúng đã bị choáng. Chạy thoát ngay
+713 Đi đến dấu phía trước
+714 Chờ ánh chớp lan đến chúng
+715 Kẻ truy đuổi ở phía sau! Chạy đến dấu
+716 Chúng đang đuổi theo bạn. Dùng Chớp sáng khi chúng đến gần
+717 Chúng ở gần rồi! Chặn chúng bằng Chớp sáng
+718 Chớp sáng làm zombie gần đó đứng yên và cho bạn thời gian chạy thoát
+719 Chờ tiếp đất trên mái nhà phía trên
+720 Bay lên từ thùng phuy
+721 Chạm vào dấu nổ màu đỏ
+722 Lại gần thùng phuy đỏ
+723 Chạm vào dấu nổ đỏ khi nó xuất hiện
+724 Tiếp tục tiến về mái nhà phía trên
+725 Lấy JUMP vàng
+726 Đang thoát thân. Chờ tiếp đất
+727 Đi theo con đường
+728 Thả ra để dừng
+729 Tiếp tục tiến qua các bức tường thấp
+730 Tiến về phía trước để tự động vượt chướng ngại

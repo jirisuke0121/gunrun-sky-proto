@@ -1,0 +1,94 @@
+p0 Aturdir $1 s
+p1 $1 acrobacias
+p2 Recargando · quedan $1 s
+p3 Señuelo activo · quedan $1 s
+p4 Señuelo recargando · quedan $1 s
+p5 Sin granadas de destello · Completa $1 movimientos de parkour más para recuperar una
+p6 $1 movimientos de parkour para recuperar
+p7 Aturdir $1 s
+p8 Ha llegado una caja de $1 · Tócala para equiparla y recargar
+p9 $1 equipada · Cargador $2 / reserva $3[4? · Sigue hacia otra plataforma]
+p10 $1 Caja de $2 a $3 m[4=上? · arriba $5 m][4=下? · abajo $5 m] · [6=落下中 · 着地を待つ?Cayendo; espera el aterrizaje][6=触れて武器・弾を補充?Tócala para equipar y recargar]
+p11 Sobreviviste $1 segundos. Elige Empezar una partida real en Fácil para jugar con 8 vidas.
+p12 Apodo $1 (cambiar)
+p13 $1:t · Superado
+p14 $1:t · $2 s
+p15 $1:t Actual: $2×.[3? Los cambios se aplican desde la próxima partida.]
+p16 Sobrevivido $1 s → $2 pts
+p17 $1 s × 120 pts × $2
+p18 Perseguido $1 s
+p19 Daño efectivo $1 × 2 pts × $2
+p20 $1 bajas × 30 pts × $2
+p21 Terminado sin disparos ni bajas: subtotal × $1
+p22 Parkour $1:t ×$2
+p23 Bonificación de dificultad $1:t ×$2 (+$3%)
+p24 +$1 pts/s
+p25 +$1 / $2 s
+p26 Sobreviviste $1 s. Ahora prueba la partida real en Fácil.
+p27 $1 s sobrevividos
+p28 Cada $1 s: $2 × $3 pts + parcial $4 pts
+p29 $1 pts/baja
+p30 Bajas $1 → $2 pts / Daño $3 → $4 pts
+p31 Daño efectivo $1 ×$2
+p32 $1 + $2 + $3 = $4 pts
+p33 Dificultad: $1:t
+p34 A $1 s de escapar
+p35 Sobrevivido $1 s / $2 bajas
+p36 Bonificación de dificultad ×$1 (+$2%)
+p37 Bonificación de supervivencia ×$1
+p38 Bonificación de puntos ×$1
+p39 $1:t (puntos ×$2)
+p40 $1 s × 1 pt × $2 × $3
+p41 $1 bajas × 2 pts × $2 × $3
+p42 Supervivencia $1 + Bajas $2 = $3 pts
+p43 Habilidades $1/3
+p45 $1 s
+p47 $1 pts
+p49 Velocidad $1%$2
+p50 Mejor en todas las dificultades $1 pts
+p51 Mejor puntuación $1 pts
+p52 Hasta $1 perseguidores
+p53 $1 vidas
+p54 Mejor fantasma $1 pts
+p55 Granada de destello ×$1 — aturde a los zombis a menos de $2 m durante $3 s. Suelta para lanzar, desliza hacia fuera para cancelar
+p56 ¡Destello! $1 zombis aturdidos durante $2 s
+p57 Aturdido $1 s
+p58 ¡Destello! Sin impactos
+p59 +1 granada de destello por el movimiento
+p60 ¡$1 reabastecida! Ve a la caja brillante del tejado o del nivel superior
+p61 ¡$1 obtenida! $2 balas cargadas — puedes disparar mientras te mueves
+p62 Atrapado — vida $1
+p63 Caída — vida $1
+p64 Reintento — vida $1
+p65 Señuelo activo — quedan $1
+p66 Señuelo listo en $1 s
+p67 Los zombis buscan por la zona · $1 s
+p68 Vida $1 · Destellos $2 · Bajas $3 (caídas $4) · Zombis $5
+p70 Bonificación $1:t +$2% (×$3)
+p71 Bonificación +$1% (×$2)
+p72 Supervivencia $1 s ×$2 → $3 pts
+p73 Bajas $1 ×$2 → $3 pts
+p74 Total $1 pts
+p75 $1 / $2 s · $3:t
+p76 $1:t superado
+p77 Ganchos $1 · Carreras por pared $2 · Obstáculos saltados $3 · Caídas $4
+p79 $1 s ×$2
+p80 $1 bajas ×$2
+p81 $1 + $2 = $3 pts
+p82 Sobrevivido $1 s / Bajas $2 (tiradas al vacío: $3)
+p83 Tú: puesto $1 / $2 jugadores $3:t
+p85 Ajuste actual: $1:t
+p86 Sin enviar: $1
+p87 $1:t. Vida $2:t. Horda máxima $3. Salud $4 ($4 disparos de HG). Velocidad de persecución $5 → $6 m/s. Se muestran hasta $7 zombis, incluidos los cadáveres. Siguen persiguiéndote aunque te alejes.
+p88 Quedan $1
+p90 $1 (final de partida)
+p91 $1 m/s (final de partida)
+p92 $1 ($2 disparos de HG)
+p93 Ilimitada (sin clasificación)
+p95 $1:t — probar
+p96 $1:t en el juego real
+p97 Pulsa $1:t
+p98 Superaste los $1 pasos. Ahora prueba estos movimientos en una partida real en Fácil.
+p99 Prueba: $1:t
+p100 Zombis $1 · $2 m de lado
+p101 Todos los zombis: $1

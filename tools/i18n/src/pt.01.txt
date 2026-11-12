@@ -1,0 +1,140 @@
+1 W/S: frente/trás, A/D: girar, Espaço: pular. Câmera automática.
+2 Mova à esquerda · Botões: pular · Visão automática
+3 Câmera automática
+4 Acompanha sua direção de deslocamento automaticamente. Sem controle de câmera.
+5 A câmera acompanha sua direção de deslocamento automaticamente. Sem controle de câmera.
+6 Mova à esquerda; use os botões da direita para pular e fazer manobras. A câmera acompanha sua direção de deslocamento automaticamente.
+7 Empurre o direcional esquerdo para onde quer ir na tela: para cima corre para longe de você, para os lados corre de lado, para baixo corre em sua direção. A câmera acompanha sozinha. Use os botões da direita para pular e fazer manobras.
+8 Mova à esquerda. Empurre para o lado para virar, volte para cima para seguir em frente e puxe para baixo para recuar. Use os botões da direita para pular e fazer manobras. A câmera acompanha automaticamente.
+9 W/S: frente/trás. A/D: girar. Alt + A/D: deslocar de lado. A câmera acompanha automaticamente.
+10 Desenvolvimento
+11 Créditos
+12 Jogar o tutorial guiado
+13 Você: mover + escolher rota\nArma: não equipada
+14 Você: mover + escolher rota\nAuto: mirar + atirar
+15 Você: mover + rota + mirar\nAuto: atirar
+16 Você: mover + escolher rota\nTiro automático: parado
+17 Esperar
+18 Atrair
+19 Em movimento
+20 Fugir
+21 Parado · Pressione X para retomar
+22 Subindo automaticamente · Escolha sua rota ao pousar
+23 Fuga automática para cima
+24 Isca lançada · Afaste-se enquanto ela atrai os perseguidores
+25 Sem munição · Toque em uma caixa brilhante para reabastecer
+26 Parado · Pressione para retomar
+27 Mira + tiro automáticos LIGADOS
+28 Aguardando um alvo válido
+29 Você se move e escolhe a rota de fuga. Sem arma equipada.
+30 Você se move e escolhe a rota de fuga. A arma mira e atira sozinha.
+31 Você se move, escolhe a rota e mira. A arma atira quando mirada em um inimigo.
+32 Você se move e escolhe a rota de fuga. O tiro automático está parado.
+33 Não é possível atirar ao abrir uma porta
+34 Agarrado · Solte-se para voltar a atirar
+35 O tiro volta após esta manobra
+36 Não é possível atirar ao subir uma escada
+37 Solte a barra para voltar a atirar
+38 Pule para soltar (verde = você vai pousar)
+39 Termine de subir a borda para voltar a atirar
+40 Carregador vazio · Aguardando recarga automática
+41 Sem munição · Toque em uma caixa de armas brilhante para reabastecer
+42 Parado · Pressione Retomar tiro automático para atirar
+43 Mire em um inimigo para atirar automaticamente
+44 Mira + tiro automáticos · Aguardando um alvo válido
+45 Mira e tiro são automáticos
+46 Mira manual, tiro automático
+47 Ativo
+48 Recarregando
+49 Atrair perseguidores
+50 Sem usos restantes
+51 Espere a manobra terminar
+52 Fugir para um lugar mais alto
+53 Rota de fuga sugerida · Entre no anel brilhante
+54 Marcador de rota alcançado · Siga para outra plataforma
+55 Use durante uma partida
+56 Sem apoio para uma isca · Volte a uma plataforma para usá-la
+57 Sem usos de Resgate restantes nesta partida
+58 Não é possível usar Resgate enquanto estiver agarrado
+59 Use Resgate quando esta manobra terminar
+60 Nenhuma plataforma alta segura · Tente de outra plataforma
+61 Começar uma partida real no Fácil
+62 Você sobreviveu 2 minutos. Escolha Começar uma partida real no Fácil para jogar com 8 vidas.
+63 Você foi pego. Você decide para onde se mover e fugir. Tente a introdução de novo e vá para uma borda ou outra plataforma.
+64 Escape dos zumbis por 2 minutos. Você se move e escolhe a rota; a mira e o tiro automáticos dão tempo para fugir.
+65 O inimigo mais próximo é mirado e atingido automaticamente.
+66 a granada de luz para os zumbis próximos,
+67 a isca os atrai
+68 Toque
+69 Topo da torre
+70 Telhado
+71 Além do vão leste
+72 Meio da viga norte
+73 Ponte sul
+74 Viga suspensa
+75 Patamar da escada de incêndio
+76 Canto noroeste
+77 Andaime leste
+78 Praça oeste
+79 Introdução concluída!
+80 Você escapou por 2 minutos. Agora tente a partida real no Fácil.
+81 Você caiu. Pule em bordas e paredes para se agarrar. Tente a introdução de novo.
+82 Pegaram você. Corridas na parede, ganchos e escadas ajudam a ganhar distância. Tente a introdução de novo.
+83 O jogo parece estar lento. Reduzir os gráficos?
+84 Usar gráficos leves
+85 Manter como está
+86 Dica de desempenho
+87 Escape dos zumbis por 2 minutos. Você ganha pontos extras a cada 30 segundos.
+88 Este é o nome mostrado no ranking. Você também pode definir depois.
+89 Escolha um apelido
+90 Salvar
+91 Depois
+92 Digite um nome
+93 Escape dos zumbis por dois minutos.
+94 Use sua arma, itens e o terreno. Apenas fuja.
+95 para mover
+96 para pular
+97 Segure e deslize à esquerda para mover · Deslize à direita para olhar · Toque em Pular
+98 A introdução não conta para recordes nem para o ranking.
+99 Toque para começar
+100 Guia de controles da introdução
+101 W A S D para mover · Espaço para pular
+102 Segure e deslize à esquerda para mover · Toque em Pular
+103 Mova o mouse para olhar ao redor
+104 Deslize no lado direito para olhar ao redor
+105 Pule em paredes, bordas e escadas · Q para o gancho
+106 Pule em paredes, bordas e escadas · Toque no anel na tela para o gancho
+107 Tiro automático · 1 a granada de luz os para · 2 a isca os atrai
+108 Tiro automático · O botão de luz para os zumbis
+109 Bem-vindo
+110 Como jogar
+111 Corra e pule
+112 Olhe ao redor
+113 Despiste-os
+114 Tiro automático
+115 Arraste à esquerda para mover e pule com o botão Pular. Passagens baixas são deslizadas automaticamente.
+116 para olhar ao redor
+117 Arraste o lado direito da tela
+118 Coloque o polegar à esquerda. Deslize PARA CIMA e segure para ir em frente. Solte para parar. Toque em Pular para pular.
+119 A câmera acompanha seu movimento. Você pode deslizar à direita para olhar ao redor. Solte o polegar esquerdo e mova de novo para escolher uma direção a partir dessa visão.
+120 Coloque o polegar à direita e mova-o para o lado para olhar ao redor. Você pode fazer isso enquanto se move com o polegar esquerdo.
+121 Use corridas na parede, agarres em bordas, escadas e tirolesas, além de
+122 para o gancho
+123 Use corridas na parede, agarres em bordas, escadas e tirolesas, e toque no anel na tela para o gancho
+124 O inimigo mais próximo é mirado e atingido automaticamente. O botão Luz congela os zumbis próximos por alguns segundos.
+125 Apelido (mostrado no ranking)
+126 ex.: RUNNER
+127 2 a 14 letras, números, _ ou -. Você pode deixar em branco e mudar depois em Como jogar.
+128 Use 2 a 14 letras, números, _ ou -
+129 Praticar na introdução
+130 Abrir configurações de controles
+131 Carregando…
+132 Fechar
+133 Tiro de salto
+134 Usar tiro de salto
+135 Tiro de salto pronto! Pressione Z ou o botão dele para usar
+136 Os JUMP dourados guardam um tiro de salto. Mantenha sua arma de sempre; pressione Z ou o botão de tiro de salto para atirar nos pés e se impulsionar
+137 Você despistou os perseguidores
+138 Zumbi eliminado
+139 Marco de dano
+140 Carregando feedback…

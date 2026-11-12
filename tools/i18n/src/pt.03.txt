@@ -1,0 +1,150 @@
+291 Fácil
+292 Difícil
+293 Extremo
+294 Teste
+295 Corredores e brutamontes se juntam à perseguição
+296 Fora do ranking
+297 Extremo (teste, fora do ranking)
+298 Teste: pontua como Difícil (×1.2) | fora do ranking
+299 Parkour limpo
+300 Ranking de pontuação
+301 Cidade Velha
+302 Categoria do ranking
+303 Todas as dificuldades
+304 Personalizado
+305 Classificado por pontuação com o bônus de dificuldade (Fácil ×1.0 · Normal ×1.1 · Difícil ×1.2). Conta a melhor pontuação de cada jogador em todas as dificuldades.
+306 Não foi possível carregar o ranking.
+307 Missões (treino de movimentos)
+308 Veja a demonstração primeiro e depois tente. Um movimento por vez.
+309 Pule o vão
+310 Não concluída
+311 Registros de jogo
+312 Não enviado: os resultados ficam salvos apenas neste dispositivo
+313 Seu apelido, pontuação, entradas, país e dispositivo são enviados para o ranking.
+314 Reenviar registros pendentes
+315 Registros recentes neste dispositivo
+316 Controles e regras de pontuação
+317 A pontuação é calculada a partir do tempo de sobrevivência e dos abates. Multiplicador de tempo = (1 + dificuldade × 0.1) × (1 + segundos sobrevividos ÷ 60); o multiplicador de abates é o dobro disso. Sobrevivência e abates são arredondados para baixo separadamente e depois somados. Derrubar um zumbi no vazio conta como um abate, e as manobras em si não dão pontos. A pontuação inclui o bônus de dificuldade (Fácil ×1.0, Normal ×1.1, Difícil ×1.2) e compete com todas as dificuldades. Sua pontuação no momento em que você é pego também conta para o ranking.
+318 Correr · Mouse para olhar
+319 Corrida na parede: só funcionam paredes com uma seta azul-petróleo. Pule seguindo a seta e continue segurando uma direção no ar. Pressione
+320 (Pular em toque) na moldura dourada JUMP para um atalho
+321 Clique direito
+322 Faca (também Clique quando a arma está desligada): empurra e atordoa o zumbi à frente (também interrompe um agarrão). Um golpe pelas costas. Você começa com a HG; SG, SMG e MG são obtidas em caixas de suprimentos no cenário
+323 Zumbis também escalam pilares que oferecem um atalho. Atire neles enquanto escalam.
+324 Escape dos zumbis por dois minutos entre vigas flutuantes e pilares de pedra. Zumbis também pulam vãos curtos e escalam pilares. Use vãos maiores e corridas na parede para ganhar distância. Empurre-os com a faca ou derrube-os de vigas estreitas.
+325 Escape dos zumbis por dois minutos em três níveis de pontes e no fundo do cânion. Zumbis também pulam vãos curtos e escalam pilares. Use vãos maiores e corridas na parede para ganhar distância. Empurre-os com a faca ou derrube-os de vigas estreitas.
+326 Zumbis que não alcançam um ponto alto sobem devagar pelos pilares. Você pode derrubá-los a tiros enquanto sobem.
+327 A arma mira e atira automaticamente em inimigos próximos com linha de visão e recarrega quando esvazia. Use "Parar/Retomar tiro automático" ou
+328 para economizar munição. Você começa com a HG. SG, SMG e MG são fornecidas em telhados e níveis altos a cada 10 s (máx. 5).
+329 Concluir 3 manobras (deslize, corrida na parede, agarre de borda, escada, tirolesa, gancho) dá +1 granada de luz (máx. 2)
+330 Corra e pule contra uma parede um pouco alta para se impulsionar nela e subir. Cair sobre um toldo faz você quicar alto
+331 Mostre ou oculte sua melhor partida como uma figura fantasma azul
+332 Corra e deslize em direção a um zumbi → você passa por baixo dos pés dele.
+333 Corra e pule bem na frente de um zumbi → você pisa na cabeça dele e salta por cima
+334 Quando vir um anel brilhante, pressione
+335 → você se lança de uma vez até o outro lado com o gancho (zumbis não podem usá-lo)
+336 Perto do topo ou da base de uma tirolesa, pressione
+337 → atravesse até o outro lado. Em uma bifurcação, vire-se para a corda que quiser. Pressione de novo no meio do trajeto
+338 → para pular. Você mantém o impulso e se direciona no ar
+339 Isca: por 6 s todos os zumbis acham que a isca é você e a perseguem. 18 s até poder usar de novo. Também pode ser usada com o botão redondo na parte inferior da tela.
+340 Granada de luz (1 no início): lançada à frente, atordoa zumbis a até 8 m por 4 s. Não funciona através de paredes. +1 a cada 3 manobras concluídas (máx. 2)
+341 No ar perto de um zumbi, pressione
+342 → voadora. O zumbi é arremessado e você quica de volta. Você pode encadear com o próximo zumbi
+343 Pontuação = tempo sobrevivido + abates + marcos (30/60/90/120 s). Quanto mais tarde, mais valem cada segundo e cada abate. Derrubar um zumbi no abismo conta em dobro. As manobras em si não dão pontos: quem escapa com a manobra certa para cada momento termina com a pontuação alta
+344 Pilares de luz são seus pontos de passagem. Ao alcançar um, o próximo local se ilumina (sem pontos). Zumbis esperam lá
+345 Pegar um anel azul DASH dá ×1.3 de velocidade por 5 s. Reaparece após 36 s
+346 O JUMP dourado é reabastecido periodicamente. Pegue-o para equipar um tiro; ao disparar, ele atira sozinho nos seus pés para impulsionar você. Depois você volta à sua arma de sempre
+347 Começar de um local
+348 Inicia um desafio de 2 minutos a partir do local escolhido. Conclusões e pontuações contam para o ranking. O ① foi removido.
+349 ② Pilar norte → bifurcação aérea sul
+350 ③ Telhado baixo → corredor superior do armazém
+351 ④ Reto: viga diagonal → corredor externo → telhado sul / cobertura
+352 ④ Bifurcação: borda do pilar → barra → próxima borda
+353 ⑤ Pista de dança sul → barra → canto oeste
+354 ⑥ Sacada norte → 2 barras → canto noroeste
+355 ⑦ Base da torre leste → gancho oeste → viga existente
+356 ⑧ Nível inferior norte → barra → corredor leste
+357 Pressione se a orientação da tela estiver invertida (inverter esquerda/direita)
+358 Demonstração (automática)
+359 Missão
+360 Tentar
+361 Ver a demonstração de novo
+362 Voltar
+363 Escapou!
+364 Próxima missão
+365 Tentar de novo (R)
+366 Ver a demonstração
+367 Voltar ao título
+368 Zombie Parkour Escape / Registro da partida
+369 Começar no Fácil
+370 Jogar de novo
+371 Ranking · Registros
+372 Menu
+373 Ranking · Registros de jogo
+374 Voltar aos resultados
+375 Descer pela escada [3]
+376 Tirolesa para leste [1]
+377 Tirolesa para oeste [2]
+378 Tirolesa para norte [3]
+379 Agarre
+380 Alcance da faca: F / clique direito
+381 Fantasma
+382 Voltar ao ranking
+383 Reiniciar
+384 Velocidade 0.5×
+385 Velocidade 1×
+386 Velocidade 2×
+387 Visão de acompanhamento
+388 Visão própria
+389 Tiros ligados
+390 ☰ Menu
+391 Continuar
+392 Objetivo
+393 Sobreviva 2 minutos e escape dos zumbis
+394 Controles
+395 Sobreviva 2 minutos e escape dos zumbis. Segure e deslize à esquerda para mover, deslize à direita para olhar e toque em Pular para pular
+396 Melhor fantasma 0 pts
+397 Ocultar fantasma
+398 Normal: as condições de movimento e combate são fixas. Os multiplicadores de pontuação são Fácil ×1.0, Normal ×1.1, Difícil ×1.2, e todas as dificuldades competem no mesmo ranking. Câmera, sensibilidade, volume e gráficos podem ser alterados.
+399 Ajustes rápidos
+400 Controles de câmera
+401 Modo de câmera
+402 Sensibilidade do olhar (toque / mouse)
+403 1.00×
+404 Volume
+405 Campo de visão
+406 Resolução de renderização
+407 Inverter olhar vertical
+408 Mira automática (mira em inimigos próximos; em terceira pessoa também gira para trás de você / desligada = mira central, um tiro na cabeça mata)
+409 Tiro automático (mira em inimigos próximos / pare e retome com o botão do jogo ou X)
+410 Enviar registros de jogo anonimamente (entradas, resultados, tamanho da tela — usados para melhorar o jogo)
+411 Enviar registros de jogo e desempenho anonimamente (entradas, resultados, país, ambiente do dispositivo — usados para melhorar o jogo)
+412 Restaurar padrões
+413 Detalhamento da pontuação
+414 Quanto mais você sobrevive, maior a pontuação. O bônus de dificuldade já está incluído em cada pontuação.
+415 Tela do jogo
+416 Detonar
+417 Configurações antes de jogar
+418 Voltar ao início
+419 Bônus Normal +10% (×1.1)
+420 Velocidade +0%
+421 Tiro automático
+422 Parar / Retomar
+423 Zumbis não pulam (somente no terreno alto do oeste). Ganhe distância com vãos e bordas
+424 Habilidades do jogador
+425 Granada de luz ×1 — atordoa zumbis a até 8 m por 4 s. Solte para lançar, deslize para fora para cancelar
+426 Isca (tecla 2) — confunde os zumbis por 6 s
+427 Utilizável em uma descida
+428 Escolher zumbi
+429 Controles de câmera antes de jogar
+430 Locais de parkour (em ordem)
+431 Descer pela escada
+432 Tirolesa para leste
+433 Tirolesa para oeste
+434 Tirolesa para norte
+435 Agarre de barra
+436 Visualizador de fantasma
+437 Posição da reprodução
+438 Velocidade da reprodução
+439 Visão da reprodução
+440 Abrir menu e configurações

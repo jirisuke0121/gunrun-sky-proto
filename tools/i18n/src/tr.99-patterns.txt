@@ -1,0 +1,94 @@
+p0 $1 sn sersemlet
+p1 $1 hareket
+p2 Şarjör doluyor · $1 sn kaldı
+p3 Yem etkin · $1 sn kaldı
+p4 Yem yeniden doluyor · $1 sn kaldı
+p5 Flaş bombası yok · Birini yenilemek için $1 parkur hareketi daha tamamla
+p6 Yenilemek için $1 parkur hareketi
+p7 $1 sn sersemlet
+p8 $1 sandığı geldi · Kuşanmak ve mermi doldurmak için dokun
+p9 $1 kuşanıldı · Dolu $2 / yedek $3[4? · Başka bir platforma devam et]
+p10 $1 $2 sandığı $3 m[4=上? · yukarı $5 m][4=下? · aşağı $5 m] · [6=落下中 · 着地を待つ?Düşüyor; inmeyi bekle][6=触れて武器・弾を補充?Kuşanmak ve mermi doldurmak için dokun]
+p11 $1 saniye hayatta kaldın. 8 canla oynamak için Kolayda gerçek bir koşu başlat'ı seç.
+p12 Takma ad $1 (değiştir)
+p13 $1:t · Tamamlandı
+p14 $1:t · $2 sn
+p15 $1:t Şu an: $2×.[3? Değişiklikler bir sonraki oyundan itibaren geçerli olur.]
+p16 Hayatta kalma $1 sn → $2 puan
+p17 $1 sn × 120 puan × $2
+p18 Kovalandı $1 sn
+p19 Etkili hasar $1 × 2 puan × $2
+p20 $1 öldürme × 30 puan × $2
+p21 Atış ve öldürme olmadan bitirildi: ara toplam × $1
+p22 $1:t Parkur ×$2
+p23 $1:t zorluk bonusu ×$2 (+%$3)
+p24 +$1 puan/sn
+p25 +$1 / $2 sn
+p26 $1 sn hayatta kaldın. Şimdi Kolayda gerçek koşuyu dene.
+p27 $1 sn hayatta kalındı
+p28 Her $1 sn: $2 × $3 puan + kısmi $4 puan
+p29 $1 puan/öldürme
+p30 Öldürme $1 → $2 puan / Hasar $3 → $4 puan
+p31 Etkili hasar $1 ×$2
+p32 $1 + $2 + $3 = $4 puan
+p33 Zorluk: $1:t
+p34 Kaçışa $1 sn kaldı
+p35 Hayatta kalma $1 sn / $2 öldürme
+p36 Zorluk bonusu ×$1 (+%$2)
+p37 Hayatta kalma bonusu ×$1
+p38 Puan bonusu ×$1
+p39 $1:t (puan ×$2)
+p40 $1 sn × 1 puan × $2 × $3
+p41 $1 öldürme × 2 puan × $2 × $3
+p42 Hayatta kalma $1 + Öldürme $2 = $3 puan
+p43 Beceriler $1/3
+p45 $1 sn
+p47 $1 puan
+p49 Hız %$1$2
+p50 Tüm zorluklar En iyi $1 puan
+p51 En iyi puan $1 puan
+p52 En fazla $1 takipçi
+p53 $1 can
+p54 Hayalet en iyi $1 puan
+p55 Flaş bombası ×$1 — $2 m içindeki zombileri $3 sn sersemletir. Atmak için bırak, iptal için dışarı kaydır
+p56 Flaş! $1 zombi $2 sn sersemledi
+p57 Sersemledi $1 sn
+p58 Flaş! İsabet yok
+p59 Hareket için +1 flaş bombası
+p60 $1 yenilendi! Çatıdaki ya da üst kattaki parlayan sandığa git
+p61 $1 alındı! $2 mermi dolu — hareket ederken ateş edebilirsin
+p62 Yakalandın — can $1
+p63 Düştün — can $1
+p64 Yeniden dene — can $1
+p65 Yem etkin — $1 kaldı
+p66 Yem $1 sn içinde hazır
+p67 Zombiler yakınlarda arıyor · $1 sn
+p68 Can $1 · Flaş bombaları $2 · Öldürme $3 (düşürme $4) · Zombiler $5
+p70 $1:t bonusu +%$2 (×$3)
+p71 Bonus +%$1 (×$2)
+p72 Hayatta kalma $1 sn ×$2 → $3 puan
+p73 Öldürme $1 ×$2 → $3 puan
+p74 Toplam $1 puan
+p75 $1 / $2 sn · $3:t
+p76 $1:t tamamlandı
+p77 Kanca $1 · Duvar koşusu $2 · Engel aşma $3 · Düşme $4
+p79 $1 sn ×$2
+p80 $1 öldürme ×$2
+p81 $1 + $2 = $3 puan
+p82 Hayatta kalma $1 sn / Öldürme $2 (düşürülen: $3)
+p83 Sen: $1. sıra / $2 oyuncu $3:t
+p85 Mevcut ayar: $1:t
+p86 Gönderilmeyen: $1
+p87 $1:t. Can $2:t. En fazla sürü $3. Sağlık $4 ($4 HG atışı). Takip hızı $5 → $6 m/sn. Cesetler dahil en fazla $7 zombi gösterilir. Uzaklaşsan bile kovalamaya devam ederler.
+p88 $1 kaldı
+p90 $1 (oyun sonu)
+p91 $1 m/sn (oyun sonu)
+p92 $1 ($2 HG atışı)
+p93 Sınırsız (sıralamaya girmez)
+p95 $1:t — dene
+p96 $1:t gerçek oyunda
+p97 $1:t'e bas
+p98 $1 adımın hepsini geçtin. Şimdi bu hareketleri Kolayda gerçek bir koşuda dene.
+p99 Dene: $1:t
+p100 Zombiler $1 · $2 m kare
+p101 Tüm zombiler: $1

@@ -2,7 +2,7 @@ import { installGuidedChoice } from './guided-choice.js?v=20261109-auto-follow-v
 import { installGuidedCoach } from './guided-coach.js?v=20261112-swing-input-v2';
 import { describeLesson } from './guided-prompts.js?v=20261112-swing-input-v4';
 import { createLessons } from './guided-lessons.js?v=20261112-pursuit-v1';
-import { createPursuit, approachingPursuer } from './guided-defense.js?v=20261112-pursuit-v1';
+import { createPursuit, approachingPursuer } from './guided-defense.js?v=20261113-i18n-v1';
 // A real input trial followed by a physical course. No action is fired on the player's behalf.
 (() => {
  const params=new URLSearchParams(location.search),$=id=>document.getElementById(id);
@@ -10,7 +10,7 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
  const text=(ja,english)=>en()?english:ja;
  const storage={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
  const carryTrial=u=>{const trial=params.get('cameraTrial');if(['fixed','hybrid','follow','follow-legacy','follow-turn'].includes(trial))u.searchParams.set('cameraTrial',trial);return u;};
- const courseURL=()=>{const u=new URL('canyon.html',location.href);u.search=new URLSearchParams({learn:'1',camera:window.skyFollowCamera?.mode||'after',controlpick:'0',hookGuide:'0',guides:'0',lang:en()?'en':'ja',return:location.pathname.endsWith('canyon.html')?'canyon':'town'});return carryTrial(u).href;};
+ const courseURL=()=>{const u=new URL('canyon.html',location.href);u.search=new URLSearchParams({learn:'1',camera:window.skyFollowCamera?.mode||'after',controlpick:'0',hookGuide:'0',guides:'0',lang:window.skyI18n?.pref||(en()?'en':'ja'),return:location.pathname.endsWith('canyon.html')?'canyon':'town'});return carryTrial(u).href;};
  if(!window.skyGuidedMode){
   if(window.skyPracticeMode||window.skyOwnerReplay||params.has('replay'))return;
   window.skyGuidedEntry=params.get('guidedEntry')==='1'||params.get('learned')==='1';
@@ -33,7 +33,7 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
  const combat = () => !trial && ['flash','shoot'].includes(lesson()?.id);
  let coaching=null;
  document.body.classList.add('guided-intro');
- document.title = text('屋上で操作を試す','Try your controls on the rooftops');
+ document.title = window.skyI18n?.tr(text('屋上で操作を試す','Try your controls on the rooftops'))||text('屋上で操作を試す','Try your controls on the rooftops');
  const ui = document.createElement('section'); ui.id = 'learnUI'; ui.setAttribute('aria-label',text('操作を試して覚える','Try the controls'));
  ui.innerHTML = `<header id="learnHeader"><p id="learnChapter"></p><h2 id="learnTitle"></h2><p id="learnHint" role="status" aria-live="polite"></p><div id="learnProgress" aria-hidden="true"><i></i><i></i><i></i><i></i></div></header>
    <div id="learnTrialBar"><button id="learnBack" type="button"></button><button id="learnGo" type="button"></button></div><div id="learnTarget" hidden></div>
@@ -73,7 +73,7 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
    if (finished) return; finished=true;
    storage.set('gunrun-guided-intro-v1','complete'); storage.set('gunrun-onboarding-v1',JSON.stringify({phase:'complete',at:new Date().toISOString()}));
    const u = new URL(params.get('return') === 'canyon' ? 'canyon.html' : 'index.html',location.href);
-   u.search=new URLSearchParams({learned:'1',camera:window.skyFollowCamera.mode,controlpick:'0',lang:en()?'en':'ja',});
+   u.search=new URLSearchParams({learned:'1',camera:window.skyFollowCamera.mode,controlpick:'0',lang:window.skyI18n?.pref||(en()?'en':'ja'),});
    location.assign(carryTrial(u).href);
  }
  function complete() {

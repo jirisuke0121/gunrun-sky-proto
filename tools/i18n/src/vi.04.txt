@@ -1,0 +1,160 @@
+441 Đóng cài đặt
+442 Bị bắt
+443 Bạn đã rơi
+444 Rơi — kết thúc lượt chạy
+445 Đã thoát!
+446 Kết thúc
+447 Chế độ người mới lần nữa
+448 Cạnh tranh với người chơi ở mọi độ khó về điểm sống sót và hạ gục.
+449 Cạnh tranh với người chơi ở mọi độ khó bằng điểm số 2 phút của bạn.
+450 Điểm cao mới
+451 Điểm của lượt này
+452 Hoàn thành chế độ người mới — làm tốt lắm!
+453 Tiếp theo hãy thử Dễ, Thường hoặc Khó.
+454 Lượt người mới với mạng không giới hạn · không xếp hạng
+455 Lượt người mới này không được lưu hay gửi
+456 Chưa hoàn thành
+457 Đã hoàn thành
+458 Bạn
+459 Không có bóng ma
+460 Xem bóng ma
+461 (JST)
+462 Hạng / Người chơi
+463 Độ khó / Điểm
+464 Chưa có điểm số nào. Hãy là người đầu tiên!
+465 Tính các lượt chơi ngoài chế độ luyện tập và thử nghiệm.
+466 Đang tải bản ghi…
+467 Không rõ kết quả gửi. Việc gửi lại đang tạm dừng để tránh trùng lặp
+468 Lỗi mạng
+469 Chưa gửi: chế độ luyện tập hoặc thử nghiệm
+470 Chế độ người mới: không xếp hạng, không gửi gì
+471 Khu luyện tập: không xếp hạng
+472 Chế độ thử nghiệm: không xếp hạng
+473 Dữ liệu chơi được gửi
+474 Kết quả đã lưu trên thiết bị này (chưa gửi)
+475 Đã lưu trên thiết bị này · đang gửi lên máy chủ…
+476 Không thể lưu trên thiết bị này · đừng đóng màn hình này.
+477 Đã lưu trên thiết bị này · chưa gửi.
+478 Đã lưu trên máy chủ · xếp hạng đã xác nhận
+479 Đã lưu trên máy chủ · bảng xếp hạng hiển thị điểm cao nhất của bạn
+480 Đã lưu trên máy chủ (không xếp hạng)
+481 Đã lưu trên máy chủ · chưa xác nhận cập nhật xếp hạng
+482 Kết quả đã lưu trên thiết bị này
+483 Kết quả mới nhất:
+484 Dùng các cú nhảy cơ bản và bậc thang để thoát thân thoải mái
+485 Liên tục kéo giãn khoảng cách bằng bậc thang, khe hở và chạy tường. Dùng súng để mua thêm thời gian chạy
+486 Nối các động tác và chọn chỗ tiếp đất cùng đường thoát dựa theo vị trí kẻ địch. Dùng súng để hất chúng xuống và cầm chân chúng
+487 Cài đặt cổ điển, kẻ rình rập và xếp hạng
+488 Chế độ người mới
+489 Mạng không giới hạn — thử di chuyển, nhảy và parkour
+490 Luyện di chuyển
+491 Hãy thử di chuyển xung quanh. Mạng không giới hạn và bạn sẽ xuất phát lại gần đó nếu rơi.
+492 Nhảy qua các bậc thang và dùng tường, thang để lên lối đi phía trên.
+493 Súng cũng đẩy lùi kẻ địch. Thử hất một zombie rơi khỏi mép.
+494 Dùng chênh lệch độ cao và khe hở để kéo giãn khoảng cách. Zombie vẫn tiếp tục đuổi dù bạn đã bỏ xa.
+495 Hiện bóng ma
+496 Đang tải bóng ma…
+497 Không có tiếng súng
+498 Không có bản ghi tiếng súng
+499 Tắt tiếng súng
+500 Chơi
+501 Không thể tải bóng ma của bản ghi này. Hãy quay lại bảng xếp hạng và chọn lại.
+502 Ban đầu chỉ có dao
+503 Bắt đầu với HG. SG, SMG và MG lấy từ các hộp tiếp tế trong màn chơi
+504 Đang làm nguội
+505 Bóng đổ
+506 Súng ở tiền cảnh
+507 Khói và ánh sáng
+508 Độ phân giải thấp
+509 Đang tải nhân vật và hoạt ảnh…
+510 Không thể tải mô hình nhân vật. Đang dùng hiển thị cổ điển.
+511 Mô hình nhân vật vẫn đang tải. Vui lòng đợi một chút trước khi bắt đầu.
+512 Nghiêng nhẹ để đi chậm. Sang ngang hoặc chéo xuống sẽ giảm tốc và xoay. Để đi lùi, quay về vị trí giữa rồi kéo thẳng xuống. Vuốt bên phải để nhìn xung quanh.
+513 W/S: tiến/lùi, A/D: giảm tốc và xoay, Alt+A/D: di chuyển ngang. Nhìn xung quanh bằng chuột.
+514 Giảm chi tiết 3D và hiển thị bóng đổ.
+515 Dùng chi tiết và bóng đổ cổ điển. Chọn Nhẹ nếu chạy chậm.
+516 Tiếp tục tự động bắn
+517 Tạm dừng · tiết kiệm đạn
+518 Chạm vào bệ để nhảy lên chỗ cao!
+519 Nhấp vào bệ hoặc nhấn B để nhảy lên chỗ cao!
+520 Nhảy
+521 Chạm vào dấu xanh để móc vào mép đó!
+522 Nhấp vào dấu xanh hoặc nhấn V để móc vào mép đó!
+523 Cứu hộ
+524 Không có chỗ cao gần đây để leo lên
+525 Chạm vào thùng phuy để nhảy bằng vụ nổ!
+526 Nhấp vào thùng phuy hoặc nhấn B để nhảy bằng vụ nổ!
+527 Chạm vào thùng phuy để kích nổ
+528 Nhảy nổ! Điều khiển hướng trên không
+529 Bị vụ nổ hất lên! Điều khiển hướng trên không
+530 Thùng phuy đã nổ! Kẻ địch gần đó bị hất văng
+531 Thùng phuy đã nổ!
+532 Khe hở phía đông
+533 Dầm phía bắc
+534 Tường đông của vòng
+535 Tường tây của vòng
+536 Hẻm phía tây · đường tắt xuống phía nam
+537 Cửa đã bị phá!
+538 Đang trượt
+539 Trượt xuống dốc
+540 Trượt về phía nam
+541 Dây cáp trượt: nút điểm đến (PC: 1 / 2). Xuống thang: 3. Bạn cũng có thể lên bằng cách nhìn vào nó rồi nhảy.
+542 Xuống thang: tiến để xuống / lùi để quay lại / nhảy để rời đi
+543 Thang: di chuyển ra ngoài để leo xuống
+544 Đi xuyên qua: tiến / leo thang: nhảy + tiến
+545 Quay lại theo mũi tên xanh ngọc ở phía nam → lên các bậc thang ra đường
+546 Rẽ nhánh ở xà kế tiếp: đi thẳng là ba lần / sang trái tới mép cột
+547 Nhảy từ mũi tên vàng. Nếu hụt, dùng cầu thang xanh ngọc bên dưới
+548 Tầng trên màu xanh chạy từ trước ra sau. Đường phụ màu vàng thấp hơn 4 m
+549 Dùng gần chỗ mà mồi nhử có thể đứng
+550 Đã đặt mồi nhử — dụ kẻ truy đuổi đi chỗ khác và chạy thoát
+551 Không thể tải trò chơi. Vui lòng tải lại.
+552 Không thể tải nhân vật. Vui lòng tải lại.
+553 Không thể tải súng. Vui lòng tải lại.
+554 Đang tải nhân vật…
+555 Đang tải súng…
+556 Đang chuẩn bị trò chơi…
+557 Đang tải zombie…
+558 Bắt đầu luyện tập
+559 Đang chuẩn bị nhân vật và súng.
+560 Nhảy tường tại đây
+561 Nhảy ngay! Đường tắt
+562 Nhảy ngay!
+563 Chạy tường
+564 Theo các mũi tên → nhảy ở chỗ vàng
+565 Chạm Nhảy
+566 Space để nhảy tường
+567 Chạy tường theo mũi tên xanh ngọc → nhảy ở khung JUMP vàng
+568 Bị phát hiện — cuộc truy đuổi tiếp tục
+569 Bạn đã cắt đuôi được chúng
+570 Bạn đã cắt đuôi được chúng — chúng đang tìm quanh đây
+571 Nhảy để rời đi giữa chừng — bạn tự điều khiển trên không
+572 Một bầy đang đến
+573 Đã hất kẻ rình rập xuống
+574 Đã hất kẻ rình rập xuống — nó sẽ sớm quay lại
+575 Thêm một kẻ rình rập
+576 Trùm xuất hiện
+577 Một kẻ rình rập
+578 Đánh lén
+579 Bị kẹp — từ phía trước và phía sau
+580 Đến từ phía sau
+581 Dao: đẩy lùi và làm choáng zombie phía trước (cũng chặn được cú tóm). Một đòn từ phía sau. Bạn bắt đầu với HG; SG, SMG và MG nhặt từ các hộp tiếp tế trong màn chơi
+582 Từ một xà màu cam, đi theo một nhánh thoát. ② nhánh trên không phía nam, ③ hành lang tầng trên của nhà kho. ④ đi thẳng từ xà đầu tiên là ba lần, sang trái tới mép cột. ⑤ sàn nhảy phía nam có một xà, ⑥ ban công phía bắc vượt qua hai xà tới mép góc phía tây, rồi tới phố phía tây hoặc móc mái nhà hiện có. ⑦ từ chân tháp phía đông, móc phía tây tới dầm hiện có; ⑧ từ tầng dưới phía bắc, một xà tới hành lang phía đông
+583 Kiểu điều khiển
+584 Điều khiển FPS
+585 Camera thủ công
+586 Camera tự động
+587 Giữ để di chuyển
+588 Vuốt để nhìn
+589 Camera tự động
+590 Đặt ngón cái bên phải và di chuyển để nhìn xung quanh
+591 Bám theo chuyển động của bạn. Bạn cũng có thể nhìn xung quanh ở bên phải
+592 Ngón cái trái
+593 Đặt ngón cái bên trái → trượt LÊN và giữ để tiến. Thả ra để dừng.
+594 Cổ điển
+595 Đã chọn
+596 Tự động
+597 Kéo bên phải để tự xoay camera
+598 Phù hợp với
+599 Người chơi quen với game FPS / 3D
+600 Điều khiển dễ dùng

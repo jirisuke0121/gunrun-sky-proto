@@ -1,0 +1,94 @@
+p0 Atordoar $1 s
+p1 $1 manobras
+p2 Recarregando · faltam $1 s
+p3 Isca ativa · faltam $1 s
+p4 Isca recarregando · faltam $1 s
+p5 Sem granadas de luz · Complete mais $1 manobras de parkour para recuperar uma
+p6 $1 manobras de parkour para recuperar
+p7 Atordoar $1 s
+p8 Caixa de $1 chegou · Toque nela para equipar e reabastecer
+p9 $1 equipada · Carregada $2 / reserva $3[4? · Siga para outra plataforma]
+p10 $1 Caixa de $2 a $3 m[4=上? · acima $5 m][4=下? · abaixo $5 m] · [6=落下中 · 着地を待つ?Caindo; espere o pouso][6=触れて武器・弾を補充?Toque para equipar e reabastecer]
+p11 Você sobreviveu $1 segundos. Escolha Começar uma partida real no Fácil para jogar com 8 vidas.
+p12 Apelido $1 (alterar)
+p13 $1:t · Concluída
+p14 $1:t · $2 s
+p15 $1:t Atual: $2×.[3? As alterações valem a partir da próxima partida.]
+p16 Sobrevivência $1 s → $2 pts
+p17 $1 s × 120 pts × $2
+p18 Perseguido $1 s
+p19 Dano efetivo $1 × 2 pts × $2
+p20 $1 abates × 30 pts × $2
+p21 Terminou sem tiros e sem abates: subtotal × $1
+p22 Parkour $1:t ×$2
+p23 Bônus de dificuldade $1:t ×$2 (+$3%)
+p24 +$1 pts/s
+p25 +$1 / $2 s
+p26 Você sobreviveu $1 s. Agora tente a partida real no Fácil.
+p27 $1 s sobrevividos
+p28 A cada $1 s: $2 × $3 pts + parcial $4 pts
+p29 $1 pts/abate
+p30 Abates $1 → $2 pts / Dano $3 → $4 pts
+p31 Dano efetivo $1 ×$2
+p32 $1 + $2 + $3 = $4 pts
+p33 Dificuldade: $1:t
+p34 Faltam $1 s para escapar
+p35 Sobrevivência $1 s / $2 abates
+p36 Bônus de dificuldade ×$1 (+$2%)
+p37 Bônus de sobrevivência ×$1
+p38 Bônus de pontos ×$1
+p39 $1:t (pontos ×$2)
+p40 $1 s × 1 pt × $2 × $3
+p41 $1 abates × 2 pts × $2 × $3
+p42 Sobrevivência $1 + Abates $2 = $3 pts
+p43 Habilidades $1/3
+p45 $1 s
+p47 $1 pts
+p49 Velocidade $1%$2
+p50 Melhor em todas as dificuldades $1 pts
+p51 Melhor pontuação $1 pts
+p52 Até $1 perseguidores
+p53 $1 vidas
+p54 Melhor fantasma $1 pts
+p55 Granada de luz ×$1 — atordoa zumbis a até $2 m por $3 s. Solte para lançar, deslize para fora para cancelar
+p56 Luz! $1 zumbis atordoados por $2 s
+p57 Atordoado $1 s
+p58 Luz! Nenhum acerto
+p59 +1 granada de luz pela manobra
+p60 $1 reabastecida! Vá até a caixa brilhante no telhado ou no nível superior
+p61 $1 obtida! $2 balas carregadas — você pode atirar enquanto se move
+p62 Pego — vida $1
+p63 Caiu — vida $1
+p64 Nova tentativa — vida $1
+p65 Isca ativa — faltam $1
+p66 Isca pronta em $1 s
+p67 Zumbis procurando por perto · $1 s
+p68 Vida $1 · Luz $2 · Abates $3 (quedas $4) · Zumbis $5
+p70 Bônus $1:t +$2% (×$3)
+p71 Bônus +$1% (×$2)
+p72 Sobrevivência $1 s ×$2 → $3 pts
+p73 Abates $1 ×$2 → $3 pts
+p74 Total $1 pts
+p75 $1 / $2 s · $3:t
+p76 $1:t concluída
+p77 Ganchos $1 · Corridas na parede $2 · Obstáculos pulados $3 · Quedas $4
+p79 $1 s ×$2
+p80 $1 abates ×$2
+p81 $1 + $2 = $3 pts
+p82 Sobrevivência $1 s / Abates $2 (derrubados: $3)
+p83 Você: posição $1 / $2 jogadores $3:t
+p85 Configuração atual: $1:t
+p86 Não enviados: $1
+p87 $1:t. Vida $2:t. Horda máxima $3. Saúde $4 ($4 tiros de HG). Velocidade de perseguição $5 → $6 m/s. Até $7 zumbis são exibidos, incluindo cadáveres. Eles continuam perseguindo mesmo que você se afaste.
+p88 Faltam $1
+p90 $1 (fim da partida)
+p91 $1 m/s (fim da partida)
+p92 $1 ($2 tiros de HG)
+p93 Ilimitada (fora do ranking)
+p95 $1:t — experimente
+p96 $1:t no jogo real
+p97 Pressione $1:t
+p98 Você concluiu os $1 passos. Agora experimente estas manobras em uma partida real no Fácil.
+p99 Experimente: $1:t
+p100 Zumbis $1 · $2 m de lado
+p101 Todos os zumbis: $1

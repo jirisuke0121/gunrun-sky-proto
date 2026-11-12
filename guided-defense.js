@@ -1,4 +1,4 @@
-import { FLASHBANG, flashCanReach } from './flashbang.js?v=20261108-skill-tap-v1';
+import { FLASHBANG, flashCanReach } from './flashbang.js?v=20261113-i18n-v1';
 
 // Teach Flash only after a real pursuer has moved toward the player, close
 // enough for the native forward throw to stop it even when it is behind us.

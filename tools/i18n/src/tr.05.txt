@@ -1,0 +1,130 @@
+601 FPS'e yeni başlayanlar için
+602 Kamera koşu yönünü otomatik takip eder
+603 İlk kez oynayanlar veya kamera kontrolünde zorlananlar için
+604 Fareyle bakış
+605 Kamerayı kendin döndürmek için fareyi hareket ettir
+606 Otomatik kamera
+607 A/D ile dön, kamera otomatik takip eder
+608 dön
+609 Kontrol türünü seç
+610 Giriş koşusu ve gerçek koşular için geçerlidir.
+611 Girişi kolay kontrollerle başlat
+612 Girişi FPS kontrolleriyle başlat
+613 İptal
+614 Bunu istediğin zaman menüdeki Kontroller'den değiştirebilirsin.
+615 Ayar kategorileri
+616 Ekran ve ses
+617 Kurallar ve kayıtlar
+618 Ayrıntılı ayar
+619 Hareket için sol çubuk (kamera otomatik),
+620 Hareket için solda basılı tutup kaydır, bakmak için sağda kaydır,
+621 zıplamak için Zıpla düğmesi
+622 FPS kontrolleri (bakmak için sağ tarafı sürükle)
+623 Kolay kontroller (yalnızca çubuk, otomatik kamera)
+624 Kolay kontroller (sol taraf hareket ettirir, otomatik kamera)
+625 Fareyle bakış (WASD + fare, klasik)
+626 Otomatik kamera (W/S ileri/geri, A/D dön)
+627 Sol çubukla hareket et ve kamerayı kendin döndürmek için sağ tarafı sürükle.
+628 WASD ile hareket et ve fareyle etrafa bak.
+629 Yalnızca çubukla koşabilirsin. Kamera yönünü otomatik takip eder; kısaca etrafa bakmak için sağ tarafı sürükle.
+630 Başparmağını sola koy. Gideceğin yöne kaydır ve basılı tut. Durmak için bırak. Kamera hareketini takip eder. Sağda etrafa baktıktan sonra sol başparmağını bırakıp tekrar hareket ederek o görünümden yön seç.
+631 İlk adımlar
+632 Çatılardan geçiş
+633 Takipçileri atlat
+634 Koşmaya hazır
+635 Kontrollerini çatılarda dene
+636 Kontrolleri dene
+637 Eğitim tamamlandı!
+638 Gerçek koşuyu başlat →
+639 Bu kontrolleri kullan
+640 Seçeneklere dön
+641 Bakmak için buraya sürükle
+642 Tekrar dene.
+643 Kontrolleri dene
+644 Bu yöne
+645 Pratiği bırak ve oyna
+646 Sıçrama çizgisine ilerle
+647 İlerlemeye devam et
+648 Burada zıpla
+649 İlerlemeye devam et ve Zıpla'ya bas
+650 Şimdi zıpla
+651 Karşıya geçmeye devam et
+652 İnmek için ileri gitmeye devam et
+653 Tırmanmaya devam et
+654 Kenarı yakalamak tırmanışı başlatır
+655 Çıkıntıda zıpla
+656 Duvar boyunca ilerlemeye devam et
+657 İniş noktasına doğru ilerlemeye devam et
+658 Duvar boyunca ilerle ve zıpla
+659 Duvarı yanında tut ve ilerle
+660 Duvarın yanına git
+661 Zemindeki oklara uy
+662 Kancayla gidiliyor
+663 İndikten sonra ileri devam et
+664 Elmas işarete dokun
+665 Ana oyundakiyle aynı kanca. PC'de Q
+666 Alt sahanlığa kay
+667 Bu yokuşta dururken kullanılabilir
+668 Yokuşa çık
+669 Düğmesi yanınca Kay'a bas
+670 Otomatik tırmanmak için ileri gitmeye devam et
+671 Zip hattıyla gidiliyor
+672 İndikten sonra zemindeki oklara uy
+673 Zip hattının altında zıpla
+674 Tutunduktan sonra yolculuk otomatiktir
+675 Zip hattının altına git
+676 Zemin işaretinden zıpla
+677 Küçük platforma doğru ilerle
+678 İnene kadar ileri gitmeye devam et
+679 İşarete ulaşmak için duvarın etrafından dolan
+680 Duvarın etrafında oklara uy
+681 Duvara yaklaş
+682 Duvara yakınken iki kez zıpla
+683 Durmak için hareketi bırak
+684 Durduktan sonra bir kez Zıpla'ya bas
+685 Önce duvarın yanında zıpla
+686 Hareketi bırak ve bir kez Zıpla'ya bas
+687 İlk zıplama
+688 Tekrar Zıpla'ya bas
+689 Sonra duvardan uzaklaşarak ileri git
+690 Tekrar zıpla
+691 Yeşil. Şimdi zıpla!
+692 Yeşil işareti bekle
+693 Oyundaki ŞİMDİ ve yeşil işaretlerini kullan
+694 İniş noktasına doğru ilerlemeye devam et
+695 Sonraki bara doğru ilerlemeye devam et
+696 İleri gitmeye devam et ve çatıya in
+697 Platformun kenarına koş, sonra zıpla
+698 Bara doğru ileri zıpla
+699 Zıpla'ya basarken ileri gitmeye devam et
+700 Kullan
+701 Mavi DASH'i topla
+702 Geçici hız artışı için dokun
+703 Hız artışıyla zıpla
+704 İlerideki alçak çatıya git
+705 Şarjör dolduruluyor. Biraz bekle
+706 Boş şarjörler otomatik dolar; sonra ateş devam eder
+707 Otomatik ateşi sürdür
+708 Otomatik şarjör doldurmayı denemek için tek mermiyle başla
+709 Sürdür
+710 Beklerken silahın ateş etmesine izin ver
+711 Hareketi ve kaçış rotalarını sen seçersin. Nişan ve ateş otomatiktir
+712 Sersemlediler. Şimdi kaç
+713 İlerideki işarete git
+714 Flaşın onlara ulaşmasını bekle
+715 Arkanda takipçiler var! İşarete koş
+716 Seni kovalıyorlar. Yaklaşınca Flaş kullan
+717 Yakınlar! Onları Flaşla durdur
+718 Flaş yakındaki zombileri durdurur ve sana kaçmak için zaman verir
+719 Üst çatıya inmeyi bekle
+720 Varilden fırlıyorsun
+721 Kırmızı patlama işaretine dokun
+722 Kırmızı varile yaklaş
+723 Kırmızı patlama işareti çıkınca dokun
+724 Üst çatıya doğru ilerlemeye devam et
+725 Altın JUMP'ı topla
+726 Kaçılıyor. İnmeyi bekle
+727 Yolu izle
+728 Durmak için bırak
+729 Alçak duvarların üzerinden ilerlemeye devam et
+730 Otomatik aşmak için ileri git
