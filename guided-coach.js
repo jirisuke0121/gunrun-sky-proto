@@ -33,14 +33,28 @@ export function installGuidedCoach({game,sky,english,active,lesson,cue}) {
     sync();return !!paused;
   }
   const point=e=>e.changedTouches?.[0]||e;
+  const swingEntry=()=>paused?.key==='swing:jump:entry'&&game.P.onGround;
+  const forwardHeld=()=>game.keys.KeyW||game.keys.ArrowUp||
+    (sky.inputState.on&&sky.inputState.y<-.18);
+  const pressStart=e=>['pointerdown','touchstart','mousedown'].includes(e.type);
+  function prepareSwingMove(e){
+    if(!swingEntry()||e.target.id!=='c'||!(e.pointerType==='touch'||e.type.startsWith('touch')))return false;
+    // Use the same logical coordinates as the canvas, including portrait rotation.
+    return window.__CX(point(e))<window.__VW()*.45;
+  }
   function inside(e){const p=point(e),r=document.getElementById(paused.target)?.getBoundingClientRect();return r&&p.clientX>=r.left&&p.clientX<=r.right&&p.clientY>=r.top&&p.clientY<=r.bottom;}
   function intercept(e){
     if(!paused||game.mode!=='play'||!active())return;
     if(e.target.closest?.('#bSettings,#ovPause'))return;
+    // Preparing the left thumb must not release the pause or synthesize a jump.
+    if(prepareSwingMove(e))return;
     if(paused.kind==='move'){
       if(inside(e)||sky.inputState.on||/up|end|cancel/.test(e.type))return;
     }else if(inside(e)){
-      if(e.type==='pointerdown'||e.type==='touchstart'||e.type==='mousedown')resume();return;
+      if(pressStart(e)){
+        if(swingEntry()&&!forwardHeld()){e.preventDefault();e.stopImmediatePropagation();return;}
+        resume();
+      }return;
     }else if(/move|up|end|cancel/.test(e.type)&&sky.inputState.on)return;
     e.preventDefault();e.stopImmediatePropagation();
   }
@@ -48,7 +62,10 @@ export function installGuidedCoach({game,sky,english,active,lesson,cue}) {
   document.addEventListener('keydown',e=>{
     if(!paused||game.mode!=='play'||!active()||e.repeat)return;
     const keys={tJump:['Space'],tSlide:['KeyC'],tFlash:['Digit1'],tDecoy:['Digit2'],tAutoFire:['KeyX'],tJumpGun:['KeyZ'],tRescue:['KeyV'],hookMark:['KeyQ'],blastMark:['KeyB'],stick:['KeyW','KeyA','KeyS','KeyD'],learnKeys:['KeyW','KeyA','KeyS','KeyD']};
-    if(keys[paused.target]?.includes(e.code))resume();else if(!['Escape','KeyW','KeyA','KeyS','KeyD'].includes(e.code)){e.preventDefault();e.stopImmediatePropagation();}
+    if(keys[paused.target]?.includes(e.code)){
+      if(swingEntry()&&!forwardHeld()){e.preventDefault();e.stopImmediatePropagation();return;}
+      resume();
+    }else if(!['Escape','KeyW','KeyA','KeyS','KeyD','ArrowUp'].includes(e.code)){e.preventDefault();e.stopImmediatePropagation();}
   },true);
   return {beforeFrame,sync,get blocked(){return !!paused&&game.mode==='play'&&active()},get target(){return paused?.target||null},get sequence(){return sequence},reset(){paused=null;seen=new Set();sync();}};
 }

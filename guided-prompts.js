@@ -47,7 +47,7 @@ export function describeLesson(lesson, {game, sky, practice, progress, goal, nea
     // The first prompt freezes the game until Jump is pressed, so it must not appear at the
     // spawn point: after a retry the player would be forced into a standing jump and never reach the bar.
     else if(ground&&c.pos.x<TAKEOFF_X-.2){prompt.at=[TAKEOFF_X,4,0];tell(['踏切の線まで進む','Move to the take-off line'],['足場の端まで走って、そこでジャンプ','Run to the platform edge, then jump']);}
-    else tell(['前へジャンプして、鉄棒へ','Jump forward toward the bar'],['前入力を続けると自動でつかみます','Keep moving forward to catch it'],'tJump','jump',['ジャンプ','Jump']);
+    else tell(['前へジャンプして、鉄棒へ','Jump forward toward the bar'],['前入力を押したまま、ジャンプ','Keep moving forward while pressing Jump'],'tJump','jump',['ジャンプ','Jump']);
   }
   if(id==='flash'||id==='jumpgun'||id==='rescue') {prompt.action=lesson.action;prompt.cue=id;prompt.press=text('使う','Use');}
   if(id==='dash') {if(!changed('dashPickups'))tell(['青いDASHを取る','Collect the blue DASH'],['触れると、しばらく速く走れます','Touch it for a temporary speed boost']);else if(ground&&c.pos.x>150)tell(['加速したまま、ジャンプ','Jump with the speed boost'],['向こうの低い屋上へ','Head to the lower roof ahead'],'tJump','jump',['ジャンプ','Jump']);}

@@ -1,6 +1,6 @@
 import { installGuidedChoice } from './guided-choice.js?v=20261109-auto-follow-v3';
-import { installGuidedCoach } from './guided-coach.js?v=20261106-paused-v1';
-import { describeLesson } from './guided-prompts.js?v=20261112-pursuit-v1';
+import { installGuidedCoach } from './guided-coach.js?v=20261112-swing-input-v2';
+import { describeLesson } from './guided-prompts.js?v=20261112-swing-input-v4';
 import { createLessons } from './guided-lessons.js?v=20261112-pursuit-v1';
 import { createPursuit, approachingPursuer } from './guided-defense.js?v=20261112-pursuit-v1';
 // A real input trial followed by a physical course. No action is fired on the player's behalf.
