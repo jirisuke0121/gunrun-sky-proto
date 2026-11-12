@@ -13,7 +13,7 @@
     // Trial tier (2026-11-12): Hard's bodies, speed, health and routing, plus zombie kinds (zombie-types.js): a fast
     // fragile runner and a slow tough brute among the ordinary ones. It is not part of the shared ranking: the Worker
     // scores only easy/normal/hard, so these runs are stored but never ranked.
-    { id: 'extreme', lives: 3, spacing: 4, health: 12, name: '超ベリーハード', note: 'ハードの追跡に、足の速い個体（体力半分）と倒れにくい個体（体力2倍・押しても動きにくい）が混ざる', startSpeed: 6.8, maxSpeed: 8, counts: [8, 8, 8], initial: 8, interval: .25, flank: .5, ahead: .5, drop: .25, lull: 0, quiet: 12, lead: 4, warn: 2.2, trial: true, types: true },
+    { id: 'extreme', lives: 3, spacing: 4, health: 12, name: '超ベリーハード', note: 'ハードの追跡に、足の速い個体（体力半分）と倒れにくい個体（体力2倍・押しても動きにくい）が混ざる', startSpeed: 6.8, maxSpeed: 8, counts: [8, 8, 8], initial: 8, interval: .25, flank: .5, ahead: .5, drop: .25, lull: 0, quiet: 12, lead: 3.2, warn: 2.2, trial: true, types: true },
     { id: 'legacy', name: '自由調整', note: '従来の設定・追跡者・ランキング', counts: [] },
   ];
   const intro = { id: 'intro', name: '入門モード', lives: 3, unlimited: true, spacing: 0,

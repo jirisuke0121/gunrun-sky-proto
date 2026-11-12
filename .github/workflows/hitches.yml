@@ -1,7 +1,7 @@
 name: Hitches, button rescue and zombie kinds
 on:
   pull_request:
-    paths: ['zombie-routing.js', 'zombie-types.js', 'touch-rescue.js', 'challenge-difficulty.js', 'challenge-score.js', 'enhancements.js', 'index.html', 'canyon.html', 'bench/leap-validity-cache-browser.cjs', 'bench/escape-lead-browser.cjs', 'bench/touch-rescue-browser.cjs', 'bench/zombie-types*', 'bench/zombie-routing.test.cjs', 'bench/shared-score.test.cjs', '.github/workflows/hitches.yml']
+    paths: ['zombie-routing.js', 'zombie-types.js', 'touch-rescue.js', 'challenge-difficulty.js', 'challenge-score.js', 'enhancements.js', 'index.html', 'canyon.html', 'bench/leap-validity-cache-browser.cjs', 'bench/escape-lead-browser.cjs', 'bench/touch-rescue-browser.cjs', 'bench/zombie-types*', 'bench/spawn-profile*', 'spawn-profile.js', 'bench/zombie-routing.test.cjs', 'bench/shared-score.test.cjs', '.github/workflows/hitches.yml']
 permissions:
   contents: read
 jobs:
@@ -15,6 +15,7 @@ jobs:
       - run: node bench/zombie-routing.test.cjs
       - run: node bench/zombie-types.test.cjs
       - run: node bench/shared-score.test.cjs
+      - run: node bench/spawn-profile.test.cjs
       - run: npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2 && npx playwright install --with-deps chromium
       - name: Jump/drop edge validity matches a fresh sweep after doors, rooms and boxes change
         run: node bench/leap-validity-cache-browser.cjs
@@ -24,3 +25,5 @@ jobs:
         run: node bench/touch-rescue-browser.cjs
       - name: Trial tier runs with all three zombie kinds
         run: node bench/zombie-types-browser.cjs
+      - name: Trial tier picks the tightest acceptable squeeze site, ranked tiers keep the old choice
+        run: node bench/spawn-profile-browser.cjs

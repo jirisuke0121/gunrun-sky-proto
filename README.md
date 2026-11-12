@@ -5,8 +5,9 @@
 - **ジャンプボタン**：ボタンの中心へのタップがキャンバスに届き、ジャンプが出ない区間があった（4プレイで68回、うち3プレイは直後に捕まって終了）。ボタンの円の中で始まったタッチはボタンの入力として扱う（`touch-rescue.js`、記録は `miss.buttonRescue`）。
 - **超ベリーハード（試作・ランキング対象外）**：ハードの追跡に、俊足（体力6・速さ×1.1）と重装（体力24・速さ×0.88・押し出し半減・進化型の見た目）が混ざる（`zombie-types.js`）。体の数は8のまま。ホームでは3つの難易度の下に細い行で出る。
 - **入れなかったもの**：追手を先回り・挟み込みさせる経路の案を2つ試したが、実プレイの経路をなぞる計測で差が出なかった。
+- **出現場所を難易度ごとの設定表に**（`spawn-profile.js`）：ハードまでは従来どおり。超ベリーハードだけ、挟み撃ちを「逃げ道の余裕が最も短い地点（下限3.2秒）」に、奇襲の前側を80%にした。乱数6通りの計測で最短の追手が約0.7 m近づいた程度（前側の割合は増えず）。
 - 詳細・数字・未確認は [docs/HITCHES_2026-11-12.md](docs/HITCHES_2026-11-12.md)。
-- 検査：新規 `bench/leap-validity-cache-browser.cjs`・`escape-lead-browser.cjs`・`touch-rescue-browser.cjs`・`zombie-types.test.cjs`・`zombie-types-browser.cjs`、CI は `hitches.yml`。
+- 検査：新規 `bench/spawn-profile.test.cjs`・`spawn-profile-browser.cjs`、`bench/leap-validity-cache-browser.cjs`・`escape-lead-browser.cjs`・`touch-rescue-browser.cjs`・`zombie-types.test.cjs`・`zombie-types-browser.cjs`、CI は `hitches.yml`。
 - 未確認：直したあとのiPhone実機の数字、超ベリーハードの手応え。ランキングの版は上げていない（順位対象の難易度の挙動は変えていない）。
 ## 2026-11-12 時間帯の雰囲気：朝焼け（既定）・夕方（`?mood=dawn|dusk|noon`）
 
