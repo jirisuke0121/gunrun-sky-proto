@@ -24,3 +24,4 @@ jobs:
       - run: node tools/i18n/build_packs.cjs --check
       - run: node bench/i18n-packs.test.cjs
       - run: node bench/i18n-browser.cjs
+      - run: node bench/i18n-screens-browser.cjs

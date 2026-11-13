@@ -45,6 +45,13 @@ const LOCALES = { ja: 'ja-JP', en: 'en-US', th: 'th-TH', vi: 'vi-VN', pt: 'pt-BR
       return [...out];
     });
 
+    // Japanese that is actually on screen (not hidden panels): English must have none at all, on the home screen and in play.
+    const visibleJapanese = page => page.evaluate(() => {
+      const JP = /[぀-ヿ一-鿿＀-￯]/, out = [], w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n; (n = w.nextNode());) { const p = n.parentNode; if (JP.test(n.nodeValue) && !['SCRIPT', 'STYLE', 'TEXTAREA', 'OPTION'].includes(p.nodeName) && !p.closest('#langToggle') && p.checkVisibility({ checkVisibilityCSS: true })) out.push(n.nodeValue.trim()); }
+      return out;
+    });
+
     // 1. Auto follows the browser language, an explicit choice sticks, unknown languages fall back to English.
     for (const [locale, want] of [['ja-JP', 'ja'], ['th-TH', 'th'], ['vi-VN', 'vi'], ['pt-BR', 'pt'], ['pt-PT', 'pt'], ['tr-TR', 'tr'], ['es-MX', 'es'], ['en-GB', 'en'], ['fr-FR', 'en'], ['de-DE', 'en']]) {
       const ctx = await mk(locale), page = await open(ctx, 'index.html');
@@ -86,9 +93,11 @@ const LOCALES = { ja: 'ja-JP', en: 'en-US', th: 'th-TH', vi: 'vi-VN', pt: 'pt-BR
         const ctx = await mk(LOCALES[lang]), page = await open(ctx, `${map}?lang=${lang}`);
         assert.equal(await page.evaluate(() => document.documentElement.lang), HTML_LANG[lang] || lang);
         const home = await japanese(page);
+        if (lang !== 'ja') assert.deepEqual(await visibleJapanese(page), [], `${map} ${lang}: no Japanese visible on the home screen`);
         await page.click('#bStart'); await page.waitForFunction(() => __game.mode === 'play'); await page.waitForTimeout(500);
         await page.evaluate(() => { __game.GAME.t = 40; }); await page.waitForTimeout(400);
         const play = await japanese(page);
+        if (lang !== 'ja') assert.deepEqual(await visibleJapanese(page), [], `${map} ${lang}: no Japanese visible in play`);
         if (lang !== 'ja' && lang !== 'en') assert.deepEqual([...await englishLeft(page)], [], `${map} ${lang}: English left on screen where the pack has a translation`);
         if (lang === 'ja') { assert.ok(home.length > 20, 'Japanese is left alone'); }
         else if (lang === 'en') baseline[map] = new Set([...home, ...play]);
