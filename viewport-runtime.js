@@ -68,10 +68,10 @@
     modeChanged(mode) { if (mode !== 'play') cancelInput(); guard(); },
   };
   sync(); watchResolution();
-  addEventListener('resize', schedule);
+  addEventListener('resize', recover);
   addEventListener('orientationchange', recover);
   screen.orientation?.addEventListener('change', recover);
-  window.visualViewport?.addEventListener('resize', schedule);
+  window.visualViewport?.addEventListener('resize', recover);
   window.visualViewport?.addEventListener('scroll', schedule);
   addEventListener('pageshow', recover);
   addEventListener('focus', recover);

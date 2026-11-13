@@ -19,6 +19,7 @@ async function verify(){
   status.textContent=`検証中：${map} / ${layout}`;
   const w=await load(map,layout),g=w.__game,s=w.__skyInternals,d=w.document;
   assert(w.__minimapLab,'requires isolated review server');
+  if(layout.startsWith('portrait')){assert(g.mode==='pause','portrait pauses play');assert(w.getComputedStyle(d.getElementById('rotate')).display!=='none','portrait shows rotation notice');results.push({map,layout,passed:true,portraitPaused:true});continue;}
   const initial=snapshot(w);assert(initial.count===s.Jt.filter(e=>!e.dead&&e.hp!==0&&e.remove!==true).length,'all live initial enemies');
   assert(initial.visible&&initial.boxes>100&&initial.cachedBytes>0,'cached terrain and live map');
   assert(initial.shape==='circle'&&initial.headingUp&&initial.playerLocal.yaw===0,'Unity-style circular heading-up radar');
