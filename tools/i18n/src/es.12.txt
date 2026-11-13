@@ -1,0 +1,5 @@
+857 Misión: ¡sobrevive 2 minutos!
+858 Aguanta hasta que se acabe el tiempo para superar la partida.
+859 Cuanto más difícil, mayor es la bonificación de puntuación
+860 Cuando te sientas cómodo, prueba Normal y busca una puntuación más alta.
+861 Entendido

@@ -1,7 +1,7 @@
 name: Intro tutorial
 on:
   pull_request:
-    paths: ['onboarding.*', 'next-step.js', 'index.html', 'canyon.html', 'bench/onboarding*', 'bench/next-step*', '.github/workflows/onboarding.yml']
+    paths: ['onboarding.*', 'first-run-guide.*', 'next-step.js', 'index.html', 'canyon.html', 'bench/onboarding*', 'bench/first-run-guide*', 'bench/next-step*', '.github/workflows/onboarding.yml']
 permissions:
   contents: read
 jobs:
@@ -26,3 +26,5 @@ jobs:
           fi
       - name: Tutorial, first visit and result flows
         run: node bench/onboarding-browser.cjs
+      - name: First-run lights (mission clock, score multipliers)
+        run: node bench/first-run-guide-browser.cjs

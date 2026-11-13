@@ -855,6 +855,11 @@
 854	タップでジャンプ	Tap to jump
 855	左で移動・ボタンでジャンプ	Left: move · Button: jump
 856	左で移動・右で視点・ボタンでジャンプ	Left: move · Right: look · Button: jump
+857	ミッション：2分間、生き残れ！	Mission: survive for 2 minutes!
+858	時間いっぱい逃げ切ればクリア。	Make it to the end of the clock to clear the run.
+859	難しいほど、スコアボーナスが高い	The harder the difficulty, the bigger the score bonus
+860	慣れたらノーマルに挑戦して、高得点を狙おう。	Once you are comfortable, try Normal and go for a higher score.
+861	わかった	Got it
 p0	^(\\d+)秒停止$	Stun $1s
 p1	^技あと(\\d+)$	$1 moves
 p2	^装填中 · あと([\\d.]+)秒$	Reloading · $1 s left
