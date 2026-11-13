@@ -125,7 +125,7 @@
       if (e.code !== 'KeyV' || e.repeat || e.ctrlKey || e.metaKey || !playing() || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '')) return;
       e.preventDefault(); activate();
     });
-    import('./player-skills.js?v=20261108-skill-tap-v1').then(({ bindSkillPress }) => bindSkillPress(button, available, activate, () => explain(unavailableReason())));
+    import('./player-skills.js?v=20261113-viewport-v1').then(({ bindSkillPress }) => bindSkillPress(button, available, activate, () => explain(unavailableReason())));
     window.skyRescue = { CFG, step, activate, chooseTarget, dryPull, makeAnchor, available, interior, get charges() { return charges; }, get last() { return last; }, reset() { charges = CFG.charges; lockUntil = 0; render(); } };
   });
 })();
