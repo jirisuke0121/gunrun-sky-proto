@@ -1,5 +1,5 @@
 import { playGearSound } from './gear-audio.js?v=20261026-gear-polish-v1';
-import { bindSkillPress } from './player-skills.js?v=20261112-viewport-v1';
+import { bindSkillPress } from './player-skills.js?v=20261113-viewport-v1';
 export const JUMP_GUN = Object.freeze({ up: 20, push: 10, maxUp: 24, maxPush: 14 });
 
 export function migrateJumpGunSettings(settings, storage) {

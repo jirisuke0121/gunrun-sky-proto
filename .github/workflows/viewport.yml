@@ -1,0 +1,27 @@
+name: Viewport and input recovery
+on:
+  pull_request:
+    paths: ['viewport*', 'render-quality.js', 'player-skills.js', 'index.html', 'canyon.html', 'bench/viewport-browser.cjs', '.github/workflows/viewport.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  viewport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2 && npx playwright install --with-deps chromium
+      - name: Both maps, touch and viewport recovery
+        run: |
+          mkdir -p evidence
+          python3 -m http.server 8894 --bind 127.0.0.1 > /tmp/viewport-server.log 2>&1 &
+          export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())")
+          node bench/viewport-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: viewport-evidence
+          path: evidence/
