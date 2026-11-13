@@ -13,14 +13,14 @@ export async function signInY8(req, env, cors, fetchProfile = fetch) {
   let profile;
   try {
     const response = await fetchProfile('https://account.y8.com/api/profile', {
-      headers:{authorization:`Bearer ${access}`, accept:'application/json'}, signal:AbortSignal.timeout(5000), redirect:'error',
+      headers:{authorization:`Bearer ${access}`, accept:'application/json'}, signal:AbortSignal.timeout(5000), redirect:'manual',
     });
     if ([401,403].includes(response.status)) return reply({error:'invalid_token'}, 401);
-    if (!response.ok) return reply({error:'y8_unavailable'}, 503);
+    if (!response.ok) { console.warn('y8_profile_http', response.status); return reply({error:'y8_unavailable'}, 503); }
     const raw = await response.text();
     if (raw.length > 16384) return reply({error:'y8_unavailable'}, 503);
     profile = JSON.parse(raw);
-  } catch { return reply({error:'y8_unavailable'}, 503); }
+  } catch (error) { console.warn('y8_profile_error', error?.name); return reply({error:'y8_unavailable'}, 503); }
   if (profile?.client_id !== Y8_APP_ID) return reply({error:'wrong_app'}, 401);
   if (typeof profile.pid !== 'string' || !profile.pid || profile.pid.length > 256) return reply({error:'invalid_profile'}, 503);
   const player = 'y8_' + (await digest(Y8_APP_ID + ':' + profile.pid)).slice(0,32);
