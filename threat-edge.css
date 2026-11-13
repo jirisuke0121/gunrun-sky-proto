@@ -1,0 +1,7 @@
+/* Direction edges for pursuers that are off screen: thin, dark red, behind the HUD controls. */
+#threatEdge{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+#threatEdge i{position:absolute;opacity:0;will-change:opacity}
+#threatEdge i[data-side=l]{left:0;top:12%;bottom:12%;width:22px;background:linear-gradient(90deg,#b3243a,#b3243a00)}
+#threatEdge i[data-side=r]{right:0;top:12%;bottom:12%;width:22px;background:linear-gradient(270deg,#b3243a,#b3243a00)}
+#threatEdge i[data-side=b]{left:18%;right:18%;bottom:0;height:22px;background:linear-gradient(0deg,#b3243a,#b3243a00)}
+body:has(#ovPause:not([hidden])) #threatEdge,body:has(#ovOver:not([hidden])) #threatEdge{display:none}

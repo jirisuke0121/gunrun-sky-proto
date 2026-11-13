@@ -1,0 +1,16 @@
+name: Pursuit pressure trace and direction edges
+on:
+  pull_request:
+    paths: ['threat-math.js', 'threat-trace.js', 'threat-edge.js', 'threat-edge.css', 'perf-trace.js', 'index.html', 'canyon.html', 'bench/threat-*', '.github/workflows/threat.yml']
+permissions:
+  contents: read
+jobs:
+  threat-math:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Edge sides, angles, range, strength, alive-only, trace windows and cap
+        run: node bench/threat-math.test.cjs
