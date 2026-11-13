@@ -1,10 +1,10 @@
 name: Hook arrival landing
 on:
   pull_request:
-    paths: ['hook-landing.js', 'edge-assist.js', 'free-hook.js', 'index.html', 'canyon.html', 'bench/hook-landing*', '.github/workflows/hook-landing.yml']
+    paths: ['hook-landing.js', 'hook-arc.js', 'rope-stations.js', 'edge-assist.js', 'free-hook.js', 'index.html', 'canyon.html', 'bench/hook-landing*', '.github/workflows/hook-landing.yml']
   push:
     branches: [main]
-    paths: ['hook-landing.js', 'edge-assist.js', 'follow-camera.js', 'free-hook.js', 'bench/hook-landing*', '.github/workflows/hook-landing.yml']
+    paths: ['hook-landing.js', 'hook-arc.js', 'rope-stations.js', 'edge-assist.js', 'follow-camera.js', 'free-hook.js', 'bench/hook-landing*', '.github/workflows/hook-landing.yml']
 permissions:
   contents: read
 jobs:
@@ -17,6 +17,7 @@ jobs:
         with: {node-version: '24'}
       - run: node bench/hook-landing.test.cjs
       - run: node bench/hook-touch-exits.test.cjs
+      - run: node bench/hook-arc.test.cjs
       - name: Install browser
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
@@ -26,6 +27,7 @@ jobs:
             npx playwright install --with-deps chromium
           fi
       - run: node bench/hook-landing-browser.cjs
+      - run: node bench/hook-arc-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

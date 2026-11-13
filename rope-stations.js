@@ -11,7 +11,7 @@
   const L = 8.5, HANDS = 1.9, RETURN_SECONDS = 1.2, LAND_MARGIN = .6;
   const V_ENTRY_MIN = 4, V_MAX = 11.5, PUMP = .35, MAX_ANGLE = 75 * Math.PI / 180, MAX_SECONDS = 9;
   const KICK = { x: 2, y: 2.2 };
-  const GRAB = { du: 1.6, dyLow: 1, dyHigh: 1, dv: .9, minSpeed: 2.5 };
+  const GRAB = { du: 1.6, dyLow: 1, dyHigh: 1, dv: .9, minSpeed: 2.5, maxFall: 1.5 }; // maxFall: 落ちながら通りかかっただけ（フックの到着後など）ではつかまない
   const GRIP_SECONDS = 8, GRIP_REGEN = .25, GRIP_MIN = .3;
   const STATIONS = [
     { id: 1, px: -23, pz: -7, fs: 4.2, dx: 1, dz: 0, alpha: 12, pu: 1.767, py: 15.914, mast: { x: -21.23, z: -5.2, base: 0 }, land: { f: 8, edge: 9.1, end: 15 } },
@@ -107,7 +107,7 @@
       pressed = false;
       if (['slide', 'ledge', 'ladder'].includes(c.state)) c.state = 'normal';
       c.onGround = false; c.coyote = 0; c.jumpBuf = 0; c.edgeJump = false; c.slideT = 0; c.h = 1.75; c.crouchPressed = false;
-      window.skyLandingRoll?.cancel?.();
+      window.skyLandingRoll?.cancel?.(); window.skyHookLanding?.cancel?.();
       stats.ropeSwings = (stats.ropeSwings || 0) + 1;
     }
     function release() {
@@ -134,7 +134,7 @@
         if (!playing() || c.state !== 'normal' || c.onGround || window.skyBite?.locked || grip < GRIP_MIN) return false;
         for (const id in nodes) {
           const n = nodes[id], s = n.s;
-          if (n.lock > 0 || !inGrab(s, c.pos) || c.vel.x * s.dx + c.vel.z * s.dz < GRAB.minSpeed) continue;
+          if (n.lock > 0 || !inGrab(s, c.pos) || c.vel.y < -GRAB.maxFall || c.vel.x * s.dx + c.vel.z * s.dz < GRAB.minSpeed) continue;
           begin(n); break;
         }
         if (!riding) return false;
