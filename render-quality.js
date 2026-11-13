@@ -13,16 +13,17 @@
   const nativeRatio = () => Math.min(2, devicePixelRatio || 1);
   const nextRatio = (scale = 1, native = nativeRatio()) => selected === 'high'
     ? Math.max(.25, native * (Number.isFinite(scale) ? scale : 1)) : presets[selected].cap;
-  const pixelRatio = (scale = 1, native = nativeRatio()) => active?.ratio ?? nextRatio(scale, native);
+  const roundRatio = () => active.mode === 'high' ? Math.max(.25, nativeRatio() * active.scale) : presets[active.mode].cap;
+  const pixelRatio = (scale = 1, native = nativeRatio()) => active ? roundRatio() : nextRatio(scale, native);
   function sync() {
     document.body.dataset.skyRenderQuality = selected;
     for (const id of ['homeRenderQuality', 'settingsRenderQuality']) {
       const element = document.getElementById(id);
       if (!element) continue;
       element.value = selected;
-      const pending = active && (active.mode !== selected || Math.abs(active.ratio - nextRatio(internals?.U.renderScale)) > .0001);
+      const pending = active && (active.mode !== selected || Math.abs(roundRatio() - nextRatio(internals?.U.renderScale)) > .0001);
       document.getElementById(id + 'Description').textContent = presets[selected].description +
-        (active ? ` 現在は${active.ratio.toFixed(2).replace(/0$/, '')}倍。` : '') +
+        (active ? ` 現在は${roundRatio().toFixed(2).replace(/0$/, '')}倍。` : '') +
         (pending ? ' 変更は次のプレイから適用します。' : '');
     }
   }
@@ -75,7 +76,7 @@
     get mode() { return selected; },
     get revision() { return revision; },
     beginRound() {
-      active = { mode: selected, ratio: nextRatio(internals?.U.renderScale), revision };
+      active = { mode: selected, scale: internals?.U.renderScale ?? 1, revision };
       apply(); sync();
     },
     finishRound() {
