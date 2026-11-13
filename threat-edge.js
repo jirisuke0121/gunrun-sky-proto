@@ -21,6 +21,8 @@ if (game && math && hud) {
       const v = shown[side] < .02 ? 0 : shown[side];
       const text = v ? v.toFixed(2) : '0';
       if (bars[side].dataset.v !== text) { bars[side].dataset.v = text; bars[side].style.opacity = String(Math.min(.9, v * 1.15)); }
+      const tier = String(math.tier(v));
+      if (bars[side].dataset.tier !== tier) bars[side].dataset.tier = tier;
     }
     requestAnimationFrame(frame);
   }

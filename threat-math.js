@@ -24,6 +24,10 @@
     }
     return out;
   }
+  // The edge strength back to a distance, and the three steps shown on screen: 10-16 m a thin dark edge, 6-10 m wider and
+  // brighter, under 6 m widest and pulsing. Same red throughout (yellow and orange stay marker colours).
+  const distanceOf = (strength, range = RANGE) => strength > 0 ? range * (1 - Math.pow(Math.min(1, strength), 1 / 1.2)) : Infinity;
+  const tier = (strength, range = RANGE) => { if (!(strength > 0)) return 0; const d = distanceOf(strength, range); return d < 6 ? 3 : d < 10 ? 2 : 1; };
   // One sample of how close the pursuit is: nearest distance (m), pursuers within 10 m, and how many are in view.
   function sample(player, zombies, inView) {
     let nearest = Infinity, within10 = 0, visible = 0;
@@ -59,7 +63,7 @@
       },
     };
   }
-  const api = { RANGE, FRONT, BACK, relativeAngle, edges, sample, createTrace };
+  const api = { RANGE, FRONT, BACK, relativeAngle, edges, distanceOf, tier, sample, createTrace };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.skyThreatMath = api;
 })(globalThis);

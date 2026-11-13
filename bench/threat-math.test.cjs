@@ -46,3 +46,15 @@ assert.deepEqual(snap.w[1], { i: 1, n: 1, near: 5, min: 5, in10: 1, vis: 0, none
 assert.ok(JSON.stringify(snap).length < 400, 'the record stays tiny');
 t.reset(); assert.equal(t.snapshot().w.length, 0);
 console.log('PASS threat-math: edge sides/angles/range/strength, alive-only, trace windows and cap');
+
+// Three steps by distance (range 16): 10-16 m thin, 6-10 m wider, under 6 m widest.
+const strengthAt = d => m.edges(P, 0, [at(0, d)]).b;
+assert.equal(m.tier(0), 0);
+assert.equal(m.tier(strengthAt(14)), 1);
+assert.equal(m.tier(strengthAt(10.5)), 1);
+assert.equal(m.tier(strengthAt(9.5)), 2);
+assert.equal(m.tier(strengthAt(6.5)), 2);
+assert.equal(m.tier(strengthAt(5.5)), 3);
+assert.equal(m.tier(strengthAt(1)), 3);
+assert.ok(Math.abs(m.distanceOf(strengthAt(8)) - 8) < 1e-9);
+console.log('PASS threat-math: distance steps');
