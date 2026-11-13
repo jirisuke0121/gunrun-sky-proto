@@ -58,3 +58,13 @@ assert.equal(m.tier(strengthAt(5.5)), 3);
 assert.equal(m.tier(strengthAt(1)), 3);
 assert.ok(Math.abs(m.distanceOf(strengthAt(8)) - 8) < 1e-9);
 console.log('PASS threat-math: distance steps');
+
+// Far marker: 16-35 m only, same sides, faint and growing as it gets closer, alive-only, none in front.
+const farB = d => m.far(P, 0, [at(0, d)]).b;
+assert.equal(farB(15.9), 0);
+assert.equal(farB(35), 0);
+assert.ok(farB(16) > farB(25) && farB(25) > farB(34) && farB(34) >= 0.12 && farB(16) <= 0.37 + 1e-9);
+assert.equal(m.far(P, 0, [at(0, -25)]).b + m.far(P, 0, [at(0, -25)]).l + m.far(P, 0, [at(0, -25)]).r, 0, 'ahead draws nothing');
+assert.ok(m.far(P, 0, [at(25, 0)]).r > 0 && m.far(P, 0, [at(-25, 0)]).l > 0);
+assert.equal(m.far(P, 0, [at(0, 25, { dead: true })]).b, 0);
+console.log('PASS threat-math: far marker');

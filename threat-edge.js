@@ -13,7 +13,10 @@ if (game && math && hud) {
     const dt = Math.min(.1, (now - lastTime) / 1000); lastTime = now;
     const on = game.modeRef() === 'play' && !game.z.over && !window.skyPracticeMode;
     const yaw = window.skyFollowCamera?.view?.yaw ?? game.c.yaw;
-    const target = on ? math.edges({ x: game.c.pos.x, z: game.c.pos.z }, yaw, game.Jt) : { l: 0, r: 0, b: 0 };
+    const me = { x: game.c.pos.x, z: game.c.pos.z };
+    // Somebody within 16 m (any direction): the three-step edges. Nobody: a faint thin marker for pursuers 16-35 m away.
+    const isFar = on && math.sample(me, game.Jt).nearest >= math.RANGE;
+    const target = !on ? { l: 0, r: 0, b: 0 } : isFar ? math.far(me, yaw, game.Jt) : math.edges(me, yaw, game.Jt);
     for (const side of ['l', 'r', 'b']) {
       // Rises in about 0.1 s, fades in about 0.5 s: a pursuer passing behind a wall does not make it flicker.
       const rate = target[side] > shown[side] ? 14 : 3.5;
@@ -21,7 +24,7 @@ if (game && math && hud) {
       const v = shown[side] < .02 ? 0 : shown[side];
       const text = v ? v.toFixed(2) : '0';
       if (bars[side].dataset.v !== text) { bars[side].dataset.v = text; bars[side].style.opacity = String(Math.min(.9, v * 1.15)); }
-      const tier = String(math.tier(v));
+      const tier = v && isFar ? 'far' : String(math.tier(v));
       if (bars[side].dataset.tier !== tier) bars[side].dataset.tier = tier;
     }
     requestAnimationFrame(frame);

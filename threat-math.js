@@ -24,6 +24,23 @@
     }
     return out;
   }
+  // Far pursuers (beyond `from`, up to `to` m): the same sides and angles as edges(), but only a faint marker, 0.12 (far) to 0.37
+  // (near). The caller shows it only while nobody is within `from` m, so it reads as "still being followed, far away".
+  const FAR = 35;
+  function far(player, yaw, zombies, from = RANGE, to = FAR) {
+    const out = { l: 0, r: 0, b: 0 };
+    for (const e of zombies) {
+      if (!alive(e)) continue;
+      const d = Math.hypot(e.pos.x - player.x, e.pos.z - player.z);
+      if (d < from || d >= to) continue;
+      const w = .12 + .25 * (1 - (d - from) / (to - from)), a = relativeAngle(player.x, player.z, e.pos.x, e.pos.z, yaw), m = Math.abs(a);
+      if (m < FRONT) continue;
+      if (m >= BACK) out.b = Math.max(out.b, w);
+      else if (a > 0) out.r = Math.max(out.r, w);
+      else out.l = Math.max(out.l, w);
+    }
+    return out;
+  }
   // The edge strength back to a distance, and the three steps shown on screen: 10-16 m a thin dark edge, 6-10 m wider and
   // brighter, under 6 m widest and pulsing. Same red throughout (yellow and orange stay marker colours).
   const distanceOf = (strength, range = RANGE) => strength > 0 ? range * (1 - Math.pow(Math.min(1, strength), 1 / 1.2)) : Infinity;
@@ -63,7 +80,7 @@
       },
     };
   }
-  const api = { RANGE, FRONT, BACK, relativeAngle, edges, distanceOf, tier, sample, createTrace };
+  const api = { RANGE, FRONT, BACK, relativeAngle, edges, far, FAR, distanceOf, tier, sample, createTrace };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.skyThreatMath = api;
 })(globalThis);
