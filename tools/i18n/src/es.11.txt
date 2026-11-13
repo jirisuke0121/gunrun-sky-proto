@@ -1,0 +1,5 @@
+852 Desliza el stick izquierdo hacia arriba. Suelta para parar.
+853 Muévete con el pulgar izquierdo
+854 Toca para saltar
+855 Izquierda: mover · Botón: saltar
+856 Izquierda: mover · Derecha: mirar · Botón: saltar

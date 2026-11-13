@@ -1,0 +1,2 @@
+850 WASD hacia la marca
+851 Pulsa la tecla de la dirección en la que quieres moverte [W A S D]

@@ -1,0 +1,2 @@
+850 WASD işarete doğru
+851 Gitmek istediğin yönün tuşuna bas [W A S D]

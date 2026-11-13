@@ -218,3 +218,10 @@ WASDで移動・マウスで視点・Spaceでジャンプ	WASD: move · Mouse: l
 ここからやり直す	Retry from here
 次の技へ	Next move
 試す技	Moves to try
+WASDでマークへ	WASD toward the marker
+進みたい方向のキーを押す [W A S D]	Press the key for the direction you want to move [W A S D]
+左の丸を上へずらす → 離すと止まる	Slide the left stick up. Release to stop.
+左で移動	Move with your left thumb
+タップでジャンプ	Tap to jump
+左で移動・ボタンでジャンプ	Left: move · Button: jump
+左で移動・右で視点・ボタンでジャンプ	Left: move · Right: look · Button: jump

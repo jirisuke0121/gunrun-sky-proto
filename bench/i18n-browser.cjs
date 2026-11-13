@@ -105,7 +105,7 @@ const LOCALES = { ja: 'ja-JP', en: 'en-US', th: 'th-TH', vi: 'vi-VN', pt: 'pt-BR
 
     // 4. The guided course speaks the chosen language. Judged against English on the same page (some dev/tuning panels stay Japanese everywhere).
     let learnBase = null;
-    for (const lang of ['en', 'th', 'es']) {
+    for (const lang of ['en', 'th', 'vi', 'pt', 'tr', 'es']) {
       const ctx = await mk(LOCALES[lang]), page = await open(ctx, `canyon.html?learn=1&lang=${lang}&controlpick=0&guides=0&hookGuide=0`);
       await page.waitForTimeout(1500);
       const left = await japanese(page);
@@ -119,6 +119,24 @@ const LOCALES = { ja: 'ja-JP', en: 'en-US', th: 'th-TH', vi: 'vi-VN', pt: 'pt-BR
       await ctx.close();
     }
     console.log(`learn course: English leaves ${learnBase.size} Japanese strings (shared)`);
+    // 6. Phones (touch): the course and the home screen have their own copy (stick, tap, buttons); every language, compared with English.
+    {
+      const touchBase = {};
+      for (const lang of ['en', 'th', 'vi', 'pt', 'tr', 'es']) for (const url of ['canyon.html?learn=1&controlpick=0&guides=0&hookGuide=0', 'index.html']) {
+        const ctx = await browser.newContext({ locale: LOCALES[lang], viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
+        await ctx.addInitScript(() => { window.__hold = true; });
+        await ctx.route('https://**/*', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"top":[],"total":0}' }));
+        const page = await open(ctx, `${url}${url.includes('?') ? '&' : '?'}lang=${lang}`); await page.waitForTimeout(1500);
+        if (url.startsWith('canyon')) { await page.evaluate(() => document.getElementById('bStart')?.click()); await page.waitForTimeout(1500); }
+        const left = new Set(await japanese(page));
+        if (lang === 'en') touchBase[url] = left;
+        else {
+          assert.deepEqual([...left].filter(x => !touchBase[url].has(x)), [], `touch ${url} ${lang}: Japanese left that English translates`);
+          assert.deepEqual(await englishLeft(page), [], `touch ${url} ${lang}: English left where the pack has a translation`);
+        }
+        await ctx.close();
+      }
+    }
     // 5. While the language pack is still loading (slow network) or fails, the screen shows Japanese or the chosen language, never a stuck English fallback.
     for (const lang of ['th', 'es']) {
       const ctx = await mk(LOCALES[lang]); let delay = true;

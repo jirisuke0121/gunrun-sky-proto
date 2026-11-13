@@ -848,6 +848,13 @@
 847	ここからやり直す	Retry from here
 848	次の技へ	Next move
 849	試す技	Moves to try
+850	WASDでマークへ	WASD toward the marker
+851	進みたい方向のキーを押す [W A S D]	Press the key for the direction you want to move [W A S D]
+852	左の丸を上へずらす → 離すと止まる	Slide the left stick up. Release to stop.
+853	左で移動	Move with your left thumb
+854	タップでジャンプ	Tap to jump
+855	左で移動・ボタンでジャンプ	Left: move · Button: jump
+856	左で移動・右で視点・ボタンでジャンプ	Left: move · Right: look · Button: jump
 p0	^(\\d+)秒停止$	Stun $1s
 p1	^技あと(\\d+)$	$1 moves
 p2	^装填中 · あと([\\d.]+)秒$	Reloading · $1 s left

@@ -1,0 +1,5 @@
+852 Deslize o direcional esquerdo para cima. Solte para parar.
+853 Mova com o polegar esquerdo
+854 Toque para pular
+855 Esquerda: mover · Botão: pular
+856 Esquerda: mover · Direita: olhar · Botão: pular

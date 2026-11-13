@@ -1,0 +1,5 @@
+852 Trượt cần trái lên trên. Thả ra để dừng.
+853 Di chuyển bằng ngón cái trái
+854 Chạm để nhảy
+855 Trái: di chuyển · Nút: nhảy
+856 Trái: di chuyển · Phải: nhìn · Nút: nhảy

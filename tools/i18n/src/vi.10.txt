@@ -1,0 +1,2 @@
+850 WASD về phía dấu mốc
+851 Nhấn phím theo hướng bạn muốn đi [W A S D]

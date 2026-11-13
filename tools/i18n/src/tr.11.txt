@@ -1,0 +1,5 @@
+852 Sol çubuğu yukarı kaydır. Durmak için bırak.
+853 Sol başparmağınla hareket et
+854 Zıplamak için dokun
+855 Sol: hareket · Düğme: zıpla
+856 Sol: hareket · Sağ: bakış · Düğme: zıpla
