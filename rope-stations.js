@@ -9,21 +9,21 @@
 //          land = 着地する台（床の高さ f、park から d 方向に edge〜end の範囲）、mast = 柱の足元（見た目だけ、当たり判定なし）。
 (() => {
   const L = 8.5, HANDS = 1.9, RETURN_SECONDS = 1.2, LAND_MARGIN = .6;
-  const V_ENTRY_MIN = 4, V_MAX = 11.5, PUMP = .35, MAX_ANGLE = 75 * Math.PI / 180, MAX_SECONDS = 9;
-  const KICK = { x: 2, y: 2.2 };
-  const GRAB = { du: 1.6, dyLow: 1, dyHigh: 1, dv: .9, minSpeed: 2.5 };
+  const V_ENTRY_MIN = 4, V_MAX = 13, PUMP = .6, MAX_ANGLE = 75 * Math.PI / 180, MAX_SECONDS = 9;
+  const KICK = { x: 3, y: 3 };
+  const GRAB = { r: 3.4, dyLow: 1.2, dyHigh: 2, maxFall: 1.5 }; // maxFall: 落ちながら通りかかっただけ（フックの到着後など）ではつかまない
   const GRIP_SECONDS = 8, GRIP_REGEN = .25, GRIP_MIN = .3;
   const STATIONS = [
-    { id: 1, px: -23, pz: -7, fs: 4.2, dx: 1, dz: 0, alpha: 12, pu: 1.767, py: 15.914, mast: { x: -21.23, z: -5.2, base: 0 }, land: { f: 8, edge: 9.1, end: 15 } },
-    { id: 2, px: -54, pz: -2, fs: 0, dx: -0.9659, dz: -0.2588, alpha: 25, pu: 3.592, py: 11.104, mast: { x: -57, z: -4.67, base: 3.4 }, land: { f: 3, edge: 10.4, end: 16.5 } },
-    { id: 3, px: -45, pz: 8, fs: 4.4, dx: -1, dz: 0, alpha: 12, pu: 1.767, py: 16.114, mast: { x: -46.77, z: 6.2, base: 0 }, land: { f: 6.2, edge: 8.1, end: 12 } },
-    { id: 4, px: -38, pz: -11, fs: 2.6, dx: 1, dz: 0, alpha: 12, pu: 1.767, py: 14.314, mast: { x: -36.23, z: -9.2, base: 2.6 }, land: { f: 6.4, edge: 13.1, end: 16 } },
-    { id: 5, px: -59, pz: 11, fs: 4.6, dx: -0.9659, dz: 0.2588, alpha: 12, pu: 1.767, py: 16.314, mast: { x: -61.33, z: 9.14, base: 6 }, land: { f: 6.5, edge: 7.3, end: 11.3 } },
+    { id: 1, px: -58, pz: 5, fs: 3.4, dx: -0.2588, dz: 0.9659, alpha: 12, pu: 1.767, py: 15.114, mast: { x: -60.2, z: 6.24, base: 4 }, land: { f: 5.5, edge: 7.8, end: 13.4 } },
+    { id: 2, px: -23, pz: -7, fs: 4.2, dx: 1, dz: 0, alpha: 12, pu: 1.767, py: 15.914, mast: { x: -21.23, z: -5.2, base: 0 }, land: { f: 8, edge: 9.1, end: 15 } },
+    { id: 3, px: -42, pz: 8, fs: 4.4, dx: -1, dz: 0, alpha: 12, pu: 1.767, py: 16.114, mast: { x: -43.77, z: 6.2, base: 15 }, land: { f: 6.2, edge: 11.1, end: 15 } },
+    { id: 4, px: -31, pz: 13, fs: 2.8, dx: 0, dz: -1, alpha: 12, pu: 1.767, py: 14.514, mast: { x: -29.2, z: 11.23, base: 0 }, land: { f: 5.5, edge: 8.1, end: 14 } },
+    { id: 5, px: -30, pz: -8, fs: 4.2, dx: 0.2588, dz: 0.9659, alpha: 12, pu: 1.767, py: 15.914, mast: { x: -31.28, z: -5.83, base: 13.3 }, land: { f: 6.4, edge: 7.3, end: 13.4 } },
     { id: 6, px: -34, pz: -22, fs: 0, dx: 0.866, dz: 0.5, alpha: 12, pu: 1.767, py: 11.714, mast: { x: -33.37, z: -19.56, base: 0 }, land: { f: 4.2, edge: 9.1, end: 14.4 } },
-    { id: 7, px: -35, pz: 13, fs: 4, dx: 0.7071, dz: -0.7071, alpha: 25, pu: 3.592, py: 15.104, mast: { x: -31.19, z: 11.73, base: 0 }, land: { f: 6.4, edge: 11.4, end: 15.5 } },
-    { id: 8, px: -30, pz: -7, fs: 4.2, dx: 0.2588, dz: 0.9659, alpha: 12, pu: 1.767, py: 15.914, mast: { x: -31.86, z: -4.67, base: 0 }, land: { f: 6.4, edge: 6.3, end: 12.4 } },
-    { id: 9, px: -22, pz: -13, fs: 4.2, dx: 0.7071, dz: 0.7071, alpha: 12, pu: 1.767, py: 15.914, mast: { x: -22.02, z: -10.48, base: 6.4 }, land: { f: 8, edge: 11.4, end: 19.7 } },
-    { id: 10, px: -21, pz: 2, fs: 0, dx: 0, dz: 1, alpha: 12, pu: 1.767, py: 11.714, mast: { x: -22.8, z: 3.77, base: 0 }, land: { f: 4.2, edge: 10.6, end: 15.7 } }
+    { id: 7, px: -53, pz: 0, fs: 3.4, dx: 1, dz: 0, alpha: 38, pu: 5.233, py: 13.498, mast: { x: -47.77, z: 1.8, base: 6.2 }, land: { f: 5.5, edge: 19, end: 23.9 } },
+    { id: 8, px: -21, pz: 0, fs: 0, dx: 0, dz: 1, alpha: 25, pu: 3.592, py: 11.104, mast: { x: -22.8, z: 3.59, base: 0 }, land: { f: 4.2, edge: 12.6, end: 17.7 } },
+    { id: 9, px: -22, pz: -13, fs: 4.2, dx: 0.5, dz: 0.866, alpha: 38, pu: 5.233, py: 14.298, mast: { x: -20.94, z: -7.57, base: 0.3 }, land: { f: 8, edge: 16.1, end: 27.9 } },
+    { id: 10, px: -55, pz: 10, fs: 4.6, dx: -1, dz: 0, alpha: 12, pu: 1.767, py: 16.314, mast: { x: -56.77, z: 8.2, base: 6.2 }, land: { f: 6.5, edge: 11.1, end: 15 } },
   ];
   for (const s of STATIONS) { s.parkY = s.fs + 1.5; s.nx = -s.dz; s.nz = s.dx; s.th0 = -s.alpha * Math.PI / 180; }
   const hand = (s, th) => ({ u: s.pu + L * Math.sin(th), y: s.py - L * Math.cos(th) });
@@ -97,8 +97,8 @@
     for (const name of ['pointerup', 'pointercancel', 'pointerleave']) jumpButton?.addEventListener(name, () => { touchHeld = false; });
     addEventListener('blur', () => { jumpHeld = touchHeld = pressed = false; });
 
-    const inGrab = (s, p) => { const rx = p.x - s.px, rz = p.z - s.pz, u = rx * s.dx + rz * s.dz, v = rx * s.nx + rz * s.nz;
-      return Math.abs(u) <= GRAB.du && p.y >= s.parkY - GRAB.dyLow && p.y <= s.parkY + GRAB.dyHigh && Math.abs(v) <= GRAB.dv; };
+    // 鉄棒と同じく、ロープの周り（水平 3.4 m）で空中にいればどの位置・向きからでもつかめる。つかんだら目標の台の向きへ振れる。
+    const inGrab = (s, p) => Math.hypot(p.x - s.px, p.z - s.pz) <= GRAB.r && p.y >= s.parkY - GRAB.dyLow && p.y <= s.parkY + GRAB.dyHigh;
     function begin(n) {
       const s = n.s, p = c.pos, u = (p.x - s.px) * s.dx + (p.z - s.pz) * s.dz;
       const th = Math.max(-MAX_ANGLE, Math.min(MAX_ANGLE, Math.atan2(u - s.pu, s.py - (p.y + HANDS))));
@@ -107,13 +107,13 @@
       pressed = false;
       if (['slide', 'ledge', 'ladder'].includes(c.state)) c.state = 'normal';
       c.onGround = false; c.coyote = 0; c.jumpBuf = 0; c.edgeJump = false; c.slideT = 0; c.h = 1.75; c.crouchPressed = false;
-      window.skyLandingRoll?.cancel?.();
+      window.skyLandingRoll?.cancel?.(); window.skyHookLanding?.cancel?.();
       stats.ropeSwings = (stats.ropeSwings || 0) + 1;
     }
     function release() {
       const r = riding, s = r.n.s, p = feet(s, r.th), v = releaseVelocity(r.th, r.w), sign = r.w >= 0 ? 1 : -1, w = world(s, p.u);
       c.pos.set(w.x, p.y, w.z); c.vel.set(s.dx * v.u, v.y, s.dz * v.u);
-      c.state = 'normal'; c.onGround = false; c.coyote = 0; c.airT = 0; c.edgeJump = false; c.jumpBuf = 0; c.h = 1.75;
+      c.state = 'normal'; c.onGround = false; c.coyote = 0; c.airT = 0; c.edgeJump = window.SKY_ROPE_STATIONS.jumpLike !== false; c.jumpBuf = 0; c.h = 1.75; // ジャンプと同じ扱い：飛び出した後に縁へ届けば、よじ登る・縁をつかむ
       c.yaw = Math.atan2(-sign * s.dx, -sign * s.dz);
       r.n.from = r.th; r.n.lock = RETURN_SECONDS; r.n.mat.color.setHex(0xffa21f);
       stats.ropeReleases = (stats.ropeReleases || 0) + 1;
@@ -134,7 +134,7 @@
         if (!playing() || c.state !== 'normal' || c.onGround || window.skyBite?.locked || grip < GRIP_MIN) return false;
         for (const id in nodes) {
           const n = nodes[id], s = n.s;
-          if (n.lock > 0 || !inGrab(s, c.pos) || c.vel.x * s.dx + c.vel.z * s.dz < GRAB.minSpeed) continue;
+          if (n.lock > 0 || !inGrab(s, c.pos) || c.vel.y < -GRAB.maxFall) continue;
           begin(n); break;
         }
         if (!riding) return false;
@@ -151,8 +151,12 @@
       n.mat.color.setHex(cue.ok ? 0x7ef0aa : 0xffa21f);
       hint.style.opacity = '1'; showGrip();
       c.jumpBuf = 0;
+      // 前へ押していて、進む先に登れる縁が手の届く所にあれば、ロープを離してそのままよじ登る（ジャンプ中と同じ判定へ渡す）。
+      const climbable = r.age > .3 && r.th > .15 && r.w > 0 && input && (input.fwdIn || 0) > .25 && (() => { const k = window.__skyInternals, f = k?.canExitLadder; if (!f) return false;
+        const sg = r.w >= 0 ? 1 : -1, q = .22 + c.r; return !!f({ x: c.pos.x - s.dx * sg * q, z: c.pos.z - s.dz * sg * q, nx: s.dx * sg, nz: s.dz * sg, y1: c.pos.y + .95 }); })();
+      if (climbable) { n.draw(r.th); release(); return false; }
       if (pressed || Math.abs(r.th) > MAX_ANGLE || r.age > MAX_SECONDS || grip <= 0 || window.skyBite?.locked) { n.draw(r.th); release(); return false; }
-      const p = feet(s, r.th), w = world(s, p.u), blend = Math.min(1, (game.z.t - r.t0) / .18); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる
+      const p = feet(s, r.th), w = world(s, p.u), blend = Math.min(1, (game.z.t - r.t0) / .25); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる
       c.pos.set(c.pos.x + (w.x - c.pos.x) * blend, c.pos.y + (p.y - c.pos.y) * blend, c.pos.z + (w.z - c.pos.z) * blend);
       const v = r.w * L; c.vel.set(s.dx * v * Math.cos(r.th), v * Math.sin(r.th), s.dz * v * Math.cos(r.th));
       c.yaw = Math.atan2(-s.dx, -s.dz); c.onGround = false; c.h = 1.75;
