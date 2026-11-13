@@ -20,7 +20,7 @@ export function installAudioRecovery(game, win = window, doc = document) {
     if (disposed || !ctx) return;
     observe(ctx);
     stats.state = ctx.state;
-    if (!visible() || !['suspended', 'interrupted'].includes(ctx.state)) return;
+    if (win.skyY8?.muted || !visible() || !['suspended', 'interrupted'].includes(ctx.state)) return;
     // A foreground resume can remain pending until user activation on Safari.
     // A real input must be allowed to retry it synchronously inside its handler.
     if (!gesture && pending?.ctx === ctx && Date.now() - pending.at < 1500) return;

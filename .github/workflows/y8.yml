@@ -1,0 +1,35 @@
+name: Y8 release integration
+on:
+  pull_request:
+    paths: ['y8-*.js', 'server/y8-*', 'server/worker.js', 'run-records.js', 'audio-recovery.js', 'home-focus.js', 'credits.js', 'dev-mode.js', 'index.html', 'canyon.html', 'tools/make_release_zip.py', 'bench/y8-*', '.github/workflows/y8.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: |
+          node bench/y8-auth.test.cjs
+          node bench/y8-package.test.cjs
+          node bench/record-integrity.test.cjs
+          node bench/audio-recovery.test.cjs
+          python3 tools/make_release_zip.py --y8 /tmp/gunrun-y8.zip
+          python3 -m zipfile -e /tmp/gunrun-y8.zip /tmp/gunrun-y8
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          npx playwright install --with-deps chromium
+      - run: node bench/y8-browser.cjs
+        env: {Y8_BUILD_DIR: /tmp/gunrun-y8}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: y8-integration
+          path: browser-evidence/y8/
+          retention-days: 7

@@ -40,5 +40,8 @@
   dialog.querySelector('#creditsClose').addEventListener('click', close);
   dialog.addEventListener('click', event => { if (event.target === dialog) close(); });
   dialog.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
-  development.append(open);
+  if (window.SKY_PLATFORM?.id === 'y8') {
+    open.style.cssText='display:inline-block;margin:0 0 0 14px;padding:0';
+    document.querySelector('#homeHero .home-heading-actions').append(open);
+  } else development.append(open);
 })();
