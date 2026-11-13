@@ -54,6 +54,7 @@ const root=path.resolve(process.env.Y8_BUILD_DIR||'.'),base='http://127.0.0.1:88
   if(mode==='skipped'){
    await page.locator('#bIntro').click();
    assert.equal(await page.evaluate(()=>skyY8.qa.adRequests),0,'tutorial entry never requests an advertisement');
+   assert.equal(await page.evaluate(()=>skyChallenge.isIntroRun),true,'nested start preserves the actual intro run');
    await page.evaluate(()=>__skyInternals.An('menu'));
    await page.locator('[data-difficulty="normal"]').click();
   }

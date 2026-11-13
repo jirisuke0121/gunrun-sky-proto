@@ -221,6 +221,7 @@
     settingsForStorage() { return game ? (fixedApplied ? { ...game.U, ...customSettings } : game.U) : undefined; },
     get id() { return active; }, get selected() { return selected; },
     get name() { return level(active).name; },
+    get isIntroLaunch() { return launchingIntro; },
     get isIntro() { return active === 'intro' && !game?.z.mission; },
     get isIntroRun() { return !game?.z.mission && game?.z.challenge?.id === 'intro'; },
     maxLives(fallback = 3) { return profile()?.lives ?? fallback; },

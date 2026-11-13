@@ -132,6 +132,7 @@ export function installY8(win = window, doc = document) {
   win.addEventListener('click', event => {
     const target = event.target.closest?.('#bStart,#bRetry,#bRestart');
     if (!target || target.disabled) return;
+    if (win.skyChallenge?.isIntroLaunch || (target.id !== 'bStart' && win.skyChallenge?.isIntroRun)) return;
     if (forwarded === target) { forwarded = null; return; }
     // Tutorial entry and menu navigation never request advertisements.
     if (!sdk || !readyAds) return;
