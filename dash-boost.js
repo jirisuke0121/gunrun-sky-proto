@@ -173,8 +173,9 @@ export function createDash(sky, game) {
       const practiceSpeed = document.getElementById('practiceSpeed');
       if (practiceSpeed && status.parentElement !== practiceSpeed.parentElement) practiceSpeed.after(status);
     }
-    status.hidden = false;
     const percent = Math.round((factor() - 1) * 100);
+    // "+0%" never changes in normal play, so it is shown only while a boost is on (and always in practice).
+    status.hidden = percent <= 0 && !window.skyPracticeMode;
     status.dataset.boosted = String(percent > 0);
     label.textContent = `速度 +${percent}%${percent > 0 ? ' ↑' : ''}`;
     for (const item of items) {

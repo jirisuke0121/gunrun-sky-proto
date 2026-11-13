@@ -147,18 +147,8 @@ export function createWeaponDrops(sky, game) {
       item.body.rotation.y = elapsed * .6; item.ring.position.y = -.93;
       item.beam.visible = item.age < FALL_SECONDS || Math.sin(elapsed * 2) > -.6;
     }
-    const target = active.reduce((best, item) => !best || c.pos.distanceTo(item.group.position) < c.pos.distanceTo(best.group.position) ? item : best, null);
-    if (target) {
-      const dx = target.node.x - c.pos.x, dz = target.node.z - c.pos.z, dy = target.node.y - c.pos.y;
-      const yaw=window.skyFollowCamera?.view?.yaw??c.yaw;
-      const angle = Math.atan2(dx * Math.cos(yaw) - dz * Math.sin(yaw), -dx * Math.sin(yaw) - dz * Math.cos(yaw));
-      const arrow = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'][(Math.round(angle / (Math.PI / 4)) + 8) % 8];
-      const height=dy>1?` 上${Math.round(dy)}m`:dy< -1?` 下${Math.round(-dy)}m`:'';
-      const action=target.age<FALL_SECONDS?'落下中 · 着地を待つ':'触れて武器・弾を補充';
-      const text=`${arrow} ${TYPES[target.type].name}の箱 ${Math.round(Math.hypot(dx,dz))}m${height} · ${action}`;
-      status.textContent = window.skyI18n?.tr(text)||text;
-    }
-    status.hidden = !playing || !target;
+    // The crates (beam, ring) stay; the text guidance ("○の箱 ○m · 触れて武器・弾を補充") is no longer shown.
+    status.hidden = true;
     document.body.dataset.skyWeaponDrops = JSON.stringify({ interval: WEAPON_DROP_INTERVAL, limit: WEAPON_DROP_LIMIT,
       elapsed: +elapsed.toFixed(2), next: +next.toFixed(2), spawned, collected, candidates: candidates.length, weapon: U.weapon | 0,
       items: active.map(i => ({ weapon: TYPES[i.type].name, position: [i.node.x, i.node.y, i.node.z], age: +i.age.toFixed(2), falling: i.age < FALL_SECONDS })) });

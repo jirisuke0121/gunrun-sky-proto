@@ -40,7 +40,9 @@ export function createDecoy(game, runtime) {
   root.visible = false;
   const audio = createDecoyAudio(game.Ut);
   const playing = () => game.modeRef() === 'play' && !z.over && !game.demoActive();
-  const available = () => playing() && !active && cooldown <= 0;
+  // 分身 is introduced from ノーマル: イージー shows only 閃光玉 and 救済 (入門 / practice keep all skills).
+  const locked = () => !window.skyPracticeMode && window.skyChallenge?.id === 'easy';
+  const available = () => playing() && !locked() && !active && cooldown <= 0;
   const unavailableReason = () => !playing() ? 'プレイ中に使えます' : active ? `分身発動中 · あと${Math.ceil(DECOY.duration-active.age)}秒` : cooldown>0 ? `分身は再使用待ち · あと${Math.ceil(cooldown)}秒` : null;
   const explain = text => window.skyPlayerClarity?.explain('tDecoy',text);
 
@@ -89,7 +91,8 @@ export function createDecoy(game, runtime) {
   function reset() { clear(); cooldown = 0; scanTime = fieldTime = 0; runtime.stats.decoys = runtime.stats.decoyLures = 0; hud(); }
   function hud() {
     const value = active ? `${Math.ceil(DECOY.duration - active.age)}s` : cooldown > 0 ? `${Math.ceil(cooldown)}s` : '✓';
-    const state = `${value}:${!!active}:${cooldown > 0}:${available()}`;
+    const state = `${value}:${!!active}:${cooldown > 0}:${available()}:${locked()}`;
+    if (button.hidden !== locked()) button.hidden = locked();
     if (state !== hudStamp) {
       button.querySelector('.skill-value').textContent = value;
       button.classList.toggle('active', !!active); button.classList.toggle('cool', cooldown > 0 && !active);
@@ -184,8 +187,9 @@ export function createDecoy(game, runtime) {
     banner.classList.toggle('on', t < 1.4 || t > DECOY.duration - 1.5);
   }
   const cancelPress = bindSkillPress(button, available, activate, () => explain(unavailableReason()));
-  document.addEventListener('keydown', e => { if (['Digit2', 'Numpad2'].includes(e.code) && !e.repeat && playing() && !/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName)) { e.preventDefault(); activate(); } });
+  document.addEventListener('keydown', e => { if (['Digit2', 'Numpad2'].includes(e.code) && !e.repeat && playing() && !locked() && !/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName)) { e.preventDefault(); activate(); } });
   document.addEventListener('visibilitychange', () => audio.sync(!!active && playing() && !document.hidden, active?.age || 0));
+  document.addEventListener('sky-difficulty-change', () => { hudStamp = ''; hud(); });
   hud();
   return { audio, activate, unavailableReason, canActivate: () => available() && !!landing(), tick, frame, reset, clear, stats, config: DECOY,
     get active() { return active; }, get remaining() { return active ? Math.max(0, DECOY.duration - active.age) : 0; }, get cooldown() { return cooldown; },

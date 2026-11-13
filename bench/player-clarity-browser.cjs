@@ -83,7 +83,7 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  await p.evaluate(()=>{clarityPlace();__game.setMode('pause');skyPlayerClarity.render()});assert.equal(await p.locator('#actionFeedback').isVisible(),false);
  await p.evaluate(()=>{__game.setMode('play');clarityPlace();clarityTick(400);skyWeaponDrops.frame();skyPlayerClarity.render()});
  const drops=await p.evaluate(()=>JSON.parse(document.body.dataset.skyWeaponDrops));assert.ok(drops.spawned>=1,JSON.stringify(drops));
- const status=await p.locator('#weaponSupplyStatus').innerText();assert.match(status,lang==='ja'?/触れて武器・弾を補充/:/Touch to equip and refill/);
+ assert.equal(await p.locator('#weaponSupplyStatus').isVisible(),false,'crate text guidance is no longer shown (the crate itself stays: drops.spawned>=1 above)');
  await clearView();await p.screenshot({path:`${out}/${id}-supply-target.png`});
  const pickup=await p.evaluate(()=>{const g=__game,s=__skyInternals,d=JSON.parse(document.body.dataset.skyWeaponDrops).items[0];clarityPlace();g.P.pos.fromArray(d.position);g.P.pos.y+=.01;s.Et.ammo=1;s.Et.reserve=0;const before=g.stats.weaponPickups||0;skyWeaponDrops.step(.01);skyWeaponDrops.frame();g.frameOnce(0);skyPlayerClarity.render();return{before,after:g.stats.weaponPickups,ammo:s.Et.ammo,reserve:s.Et.reserve,mag:s.wpc().mag,text:document.getElementById('supplyFeedback').textContent}});
  assert.equal(pickup.after,pickup.before+1);assert.equal(pickup.ammo,pickup.mag);assert.ok(pickup.reserve>0);assert.match(pickup.text,lang==='ja'?/装填.*予備.*逃げよう/:/Loaded.*reserve.*Keep moving/);await p.screenshot({path:`${out}/${id}-supply-collected.png`});
@@ -93,6 +93,6 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  await p.screenshot({path:`${out}/${id}-intro-result.png`});
  await p.locator('#introNext').click();await p.waitForFunction(()=>__game.mode==='play'&&skyChallenge.id==='easy'&&!skyChallenge.isIntroRun);
  const next=await p.evaluate(()=>({mode:__game.mode,difficulty:skyChallenge.id,intro:skyChallenge.isIntroRun,life:__game.P.life}));assert.equal(next.life,8);
- if(lang==='en')for(const text of [active,cooldown,emptyFlash,rescue?.text||'',status,pickup.text,marker.action])assert.ok(!jp.test(text),text);
+ if(lang==='en')for(const text of [active,cooldown,emptyFlash,rescue?.text||'',pickup.text,marker.action])assert.ok(!jp.test(text),text);
  assert.equal(posts,0);assert.deepEqual(errors,[]);results.push({id,home,shotReasons,active,cooldown,emptyFlash,rescue,rects,view,drops,pickup,marker,next,posts,errors});fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2));console.log('PASS',id,'roles, native shot blocks, skill denial/no spend, supplies, route marker, direct intro-to-Easy, clear central view and no uploads');await ctx.close();
 }}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

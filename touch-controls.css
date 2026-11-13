@@ -88,3 +88,12 @@ html.touch #stick:not(.on){left:var(--touch-left)!important;top:auto!important;b
 html.touch #stick.on{opacity:.95}
 html.touch #knob{border:1px solid #e0ffefcc;background:#c5ffde80;box-shadow:0 1px 6px #0004}
 html.touch #stick:not(.on) #knob{transform:none!important}
+
+/* Normal play: the auto-fire control is a mark only (words are explained in 入門). */
+body.autofire-mark #tAutoFire{min-width:0;width:54px;height:54px;min-height:0;padding:6px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:absolute}
+body.autofire-mark #tAutoFire svg{display:block;width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+body.autofire-mark #tAutoFire .slash{stroke:#ffcf99;stroke-width:3}
+body.autofire-mark #tAutoFire kbd{position:absolute;right:-2px;bottom:-4px;padding:0 .3em;font-size:9px;line-height:1.4}
+body.autofire-mark #tAutoFire #gunState{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+html.touch body.autofire-mark #tAutoFire{width:58px;height:58px;min-width:0;min-height:0;padding:6px}
+html.touch body.autofire-mark #tFire{right:calc(var(--touch-right) + 58px + var(--touch-gap))}

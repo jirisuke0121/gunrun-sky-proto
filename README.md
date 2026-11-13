@@ -1,3 +1,13 @@
+## 2026-11-13 HUDの整理（通常プレイ）とイージーのスキル出し分け
+
+- **自動射撃**（`auto-fire-controls.js`、`touch-controls.css`）：通常プレイは照準マーク（停止中は斜線）だけ。「自動射撃を停止」の文言と状態の説明は入門・練習の画面だけに残す（`body.autofire-mark`）。状態の文は画面外の読み上げ用に残している。
+- **「速度 +0%」**（`dash-boost.js`）：ブースト中（+N%）だけ表示。0% のときは出さない（練習では従来どおり）。
+- **武器箱の案内文**（`weapon-drops.js`）：「○の箱 ○m · 触れて武器・弾を補充」を出さない。箱（光の柱・リング）と拾う処理は変えていない。
+- **スキルの出し分け**（`skill-decoy.js`）：イージーは 閃光玉・救済 の2つだけ。分身はノーマルから（ボタンを隠し、2キーも無効。入門・練習は全部出す）。難易度の切り替え（`sky-difficulty-change`）で即時に反映。
+- 「10 DMG」バッジと弾数（`0 / 0 HG`）は今回は触っていない（HG以外の武器もあるため、見せ方を検討中）。
+- テスト：`bench/dash-browser.cjs`（+0% 非表示）、`bench/player-clarity-browser.cjs`（箱の文言の非表示）を更新。`dash-boost.test` / `player-skills.test` / `dash-browser` / `player-clarity-browser` / `player-skills-browser` は通過。イージーで分身が隠れること・ノーマルで3つ出ることは、実画面（スマホ幅）で確認した。
+- 確認していないこと：実機の画面での押しやすさ（自動射撃マークが小さくなった分）。
+
 ## 2026-11-13 入門のあと、イージーで遊べるようになるまでの案内（`first-run-guide.js`）
 
 - 入門を終えた初回プレイヤーに、次の3つを**1回ずつ**だけ出す（`gunrun-first-run-guide-v1` に記録。`?onboarding=reset` で消える）。

@@ -2,6 +2,11 @@
 const game = window.__skyInternals;
 const { U, Et } = game;
 const button = document.getElementById('tAutoFire');
+// Normal play shows the control as a mark only; the explanation (words + state) belongs to the 入門 / practice screens.
+const markOnly = !window.skyPracticeMode;
+document.body.classList.toggle('autofire-mark', markOnly);
+const MARK = '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="8"/><path d="M16 3v6M16 23v6M3 16h6M23 16h6"/></svg>';
+const MARK_OFF = '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="8"/><path d="M16 3v6M16 23v6M3 16h6M23 16h6"/><path class="slash" d="M6 26 26 6"/></svg>';
 const migration = 'gunrun-auto-fire-default-20261030';
 game.Jn.autoFire = true;
 game.Jn.aimAuto = true;
@@ -59,7 +64,9 @@ function sync() {
   const state = `${visible}:${U.autoFire}:${U.aimAuto}`;
   if (state !== lastState) {
     const label = U.autoFire ? '自動射撃を停止' : '自動射撃を再開';
-    button.innerHTML = `<span>${label} <kbd>X</kbd></span><small>${U.autoFire ? U.aimAuto ? '照準・射撃は自動' : '照準は手動・射撃は自動' : '停止中・弾を温存'}</small>`;
+    button.innerHTML = markOnly
+      ? `${U.autoFire ? MARK : MARK_OFF}<kbd>X</kbd>`
+      : `<span>${label} <kbd>X</kbd></span><small>${U.autoFire ? U.aimAuto ? '照準・射撃は自動' : '照準は手動・射撃は自動' : '停止中・弾を温存'}</small>`;
     button.setAttribute('aria-label', label);
     button.setAttribute('aria-pressed', String(!!U.autoFire));
     button.setAttribute('aria-keyshortcuts','X');

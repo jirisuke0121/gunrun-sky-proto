@@ -23,7 +23,7 @@
 html.touch #skillDock #tRescue .skill-name kbd{display:none}
 #skillDock #tRescue.empty{filter:saturate(.35);opacity:.65}
 #skillDock #tJumpGun{--skill-color:#ffc568}
-#skillDock #tJumpGun[hidden]{display:none}
+#skillDock #tJumpGun[hidden],#skillDock #tDecoy[hidden]{display:none}
 #skillDock #tJumpGun .skill-name kbd{padding:0 .25em;font-size:9px}
 html.touch #skillDock #tJumpGun .skill-name kbd{display:none}
 #skillDock button svg{display:block;width:29px;height:29px;margin:0 auto;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px currentColor)}
