@@ -109,7 +109,7 @@
 709 Retomar
 710 Deixe a arma atirar enquanto você espera
 711 Você escolhe o movimento e as rotas de fuga. Mira e tiro são automáticos
-712 Eles estão atordoados. Escape agora
+712 Eles estão atordoados. Fuja agora
 713 Vá até a marca à frente
 714 Espere a luz alcançá-los
 715 Perseguidores atrás de você! Corra até a marca

@@ -71,7 +71,7 @@
 211 Luz
 212 Habilidades 0/3
 213 Isca
-214 Sobreviva 2 minutos. Escape dos zumbis
+214 Sobreviva 2 minutos. Fuja dos zumbis
 215 frente/trás
 216 girar
 217 Mouse
@@ -84,7 +84,7 @@
 224 GunRun · Corredor do Céu
 225 Zombie Parkour
 226 Escape
-227 Sobreviva 2 minutos. Escape dos zumbis.
+227 Sobreviva 2 minutos. Fuja dos zumbis.
 228 Vitória
 229 Sobreviva 2 minutos sem ser pego
 230 Derrota

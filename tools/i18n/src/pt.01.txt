@@ -61,7 +61,7 @@
 61 Começar uma partida real no Fácil
 62 Você sobreviveu 2 minutos. Escolha Começar uma partida real no Fácil para jogar com 8 vidas.
 63 Você foi pego. Você decide para onde se mover e fugir. Tente a introdução de novo e vá para uma borda ou outra plataforma.
-64 Escape dos zumbis por 2 minutos. Você se move e escolhe a rota; a mira e o tiro automáticos dão tempo para fugir.
+64 Fuja dos zumbis por 2 minutos. Você se move e escolhe a rota; a mira e o tiro automáticos dão tempo para fugir.
 65 O inimigo mais próximo é mirado e atingido automaticamente.
 66 a granada de luz para os zumbis próximos,
 67 a isca os atrai
@@ -84,13 +84,13 @@
 84 Usar gráficos leves
 85 Manter como está
 86 Dica de desempenho
-87 Escape dos zumbis por 2 minutos. Você ganha pontos extras a cada 30 segundos.
+87 Fuja dos zumbis por 2 minutos. Você ganha pontos extras a cada 30 segundos.
 88 Este é o nome mostrado no ranking. Você também pode definir depois.
 89 Escolha um apelido
 90 Salvar
 91 Depois
 92 Digite um nome
-93 Escape dos zumbis por dois minutos.
+93 Fuja dos zumbis por dois minutos.
 94 Use sua arma, itens e o terreno. Apenas fuja.
 95 para mover
 96 para pular

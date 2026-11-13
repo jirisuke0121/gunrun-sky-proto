@@ -31,8 +31,8 @@
 321 Clique direito
 322 Faca (também Clique quando a arma está desligada): empurra e atordoa o zumbi à frente (também interrompe um agarrão). Um golpe pelas costas. Você começa com a HG; SG, SMG e MG são obtidas em caixas de suprimentos no cenário
 323 Zumbis também escalam pilares que oferecem um atalho. Atire neles enquanto escalam.
-324 Escape dos zumbis por dois minutos entre vigas flutuantes e pilares de pedra. Zumbis também pulam vãos curtos e escalam pilares. Use vãos maiores e corridas na parede para ganhar distância. Empurre-os com a faca ou derrube-os de vigas estreitas.
-325 Escape dos zumbis por dois minutos em três níveis de pontes e no fundo do cânion. Zumbis também pulam vãos curtos e escalam pilares. Use vãos maiores e corridas na parede para ganhar distância. Empurre-os com a faca ou derrube-os de vigas estreitas.
+324 Fuja dos zumbis por dois minutos entre vigas flutuantes e pilares de pedra. Zumbis também pulam vãos curtos e escalam pilares. Use vãos maiores e corridas na parede para ganhar distância. Empurre-os com a faca ou derrube-os de vigas estreitas.
+325 Fuja dos zumbis por dois minutos em três níveis de pontes e no fundo do cânion. Zumbis também pulam vãos curtos e escalam pilares. Use vãos maiores e corridas na parede para ganhar distância. Empurre-os com a faca ou derrube-os de vigas estreitas.
 326 Zumbis que não alcançam um ponto alto sobem devagar pelos pilares. Você pode derrubá-los a tiros enquanto sobem.
 327 A arma mira e atira automaticamente em inimigos próximos com linha de visão e recarrega quando esvazia. Use "Parar/Retomar tiro automático" ou
 328 para economizar munição. Você começa com a HG. SG, SMG e MG são fornecidas em telhados e níveis altos a cada 10 s (máx. 5).
