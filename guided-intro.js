@@ -113,7 +113,7 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
  }
  function setText(node,value){if(node.textContent!==value)node.textContent=value;}
  function render(schedule=true) {
-   if(!started&&g.mode==='play'){started=true;trialJumps=g.stats.jumps||0;targets(false);document.body.dataset.learnStage='controls';choice.start();}
+   if(!started&&g.mode==='play'){started=true;trialJumps=g.stats.jumps||0;targets(false);document.body.dataset.learnStage='controls';if(window.skyFollowCamera.touchDevice)choice.start();else{window.skyFollowCamera.setMode('before',false);startCourse();}}
    ui.hidden=!started||g.mode!=='play';
    if(completing){if(ui.hidden)ui.hidden=false;if(schedule)requestAnimationFrame(()=>render());return;}
    if(ui.hidden){if(schedule)requestAnimationFrame(()=>render());return;}

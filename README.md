@@ -1,3 +1,11 @@
+## 2026-11-13 PCは操作タイプの選択をなくし、FPS（WASD＋マウス）一択にした
+
+- PCでは常にFPS。入門の「操作を選ぶ」画面（`guided-choice.js`）は出さず、入門コースの最初のレッスンへ直接入る（`guided-intro.js`）。設定の「操作」タブの選択カード（`pause-focus.js`）とホームの操作タイプのセレクト（`follow-camera.js`）もPCでは出さない。
+- PCは保存値（`gunrun-pc-camera-v1`）を使わない。テスト用に `?camera=` だけ残した。入門への入口（`guided-preferences.js`）もPCは `before` を渡す。
+- スマホは変更なし（入門の選択画面・開始時のポップアップ・設定カードのまま）。
+- 検査：`bench/guided-paused-browser.cjs`（PCは選択画面なしで始まりFPS）、`bench/pc-controls-browser.cjs`（保存値があってもFPS）、`bench/development-entry-browser.cjs` をPC向けに更新。`follow-camera.test.cjs`・`easy-controls-browser.cjs`・`auto-follow-entry-browser.cjs` も通過。
+- 未確認：実機のPCブラウザでの目視。
+
 ## 2026-11-13 多言語対応（Auto / 日本語 / English / ไทย / Tiếng Việt / Português (Brasil) / Türkçe / Español）
 
 - ナイトラインと同じ8択のセレクトをホームに追加。Auto はブラウザの言語に従い、対応外は英語。選択は `localStorage sky.lang` に保存、`?lang=` でも指定できる。

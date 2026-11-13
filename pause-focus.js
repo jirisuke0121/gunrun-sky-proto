@@ -20,7 +20,7 @@
   const resetButton = $('bReset');
   const toolsRow = resetButton?.closest('.row');
   const copyArea = $('copyArea');
-  const chooser = window.skyControlStyle?.chooser({ compact: true });
+  const chooser = window.skyFollowCamera?.touchDevice ? window.skyControlStyle?.chooser({ compact: true }) : null; // PC: FPS only, nothing to choose
 
   // ---- Shell: tab list + panes ----
   const defs = [

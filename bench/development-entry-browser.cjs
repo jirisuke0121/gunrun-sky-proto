@@ -18,6 +18,6 @@ for(const map of ['index.html','canyon.html'])for(const lang of ['ja','en'])for(
  assert.match(await p.locator('#bGuidedIntro').innerText(),lang==='ja'?/入門モードで遊ぶ/:/guided tutorial/);
  if(map==='index.html'&&lang==='ja'&&width===844)await p.screenshot({path:'browser-evidence/development-entry/development.png'});
  await p.locator('#bGuidedIntro').click();await p.waitForURL('**/canyon.html?learn=1*');await p.waitForFunction(()=>window.skyGuidedIntro&&__game.mode==='play',null,{timeout:90000});
- await p.locator('[data-learn-adopt=after]').click();await p.keyboard.down('w');await p.evaluate(()=>{for(let i=0;i<180&&skyGuidedIntro.stage==='move';i++)__game.advance(1/60)});await p.keyboard.up('w');assert.equal(await p.evaluate(()=>skyGuidedIntro.stage),'vault');assert.deepEqual(errors,[]);
+ if(touch)await p.locator('[data-learn-adopt=after]').click();else assert.equal(await p.locator('#learnChoice').isVisible(),false,'PC skips the control choice');await p.keyboard.down('w');await p.evaluate(()=>{for(let i=0;i<180&&skyGuidedIntro.stage==='move';i++)__game.advance(1/60)});await p.keyboard.up('w');assert.equal(await p.evaluate(()=>skyGuidedIntro.stage),'vault');assert.deepEqual(errors,[]);
  results.push({map,lang,width,height,touch,readyWithoutRandomUUID:true,developmentEntry:true});console.log('PASS development entry',map,lang,width);await p.close();
 }fs.writeFileSync('browser-evidence/development-entry/results.json',JSON.stringify(results,null,2));}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

@@ -100,11 +100,12 @@ const base = 'http://127.0.0.1:8808/';
       assert.ok(combat.reload > 0, 'empty magazine reloads automatically');
       assert.deepEqual(errors, []);
 
-      // An intentional choice still persists separately, and leaves touch alone.
+      // PC has no control-type choice any more: even a stored 'after' never replaces FPS, and touch's key is left alone.
       await page.evaluate(() => skyFollowCamera.setMode('after'));
       await page.goto(base + map, { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => window.skyFollowCamera);
-      assert.equal(await page.evaluate(() => skyFollowCamera.mode), 'after');
+      assert.equal(await page.evaluate(() => skyFollowCamera.mode), 'before', 'PC always starts as FPS');
+      assert.equal(await page.evaluate(() => document.querySelector('.follow-camera-home')?.offsetParent), null, 'PC home has no control-type select');
       assert.equal(await page.evaluate(() => localStorage.getItem('gunrun-follow-camera-v1')), 'after');
       await page.evaluate(() => skyFollowCamera.setMode('before'));
       await page.goto(base + map, { waitUntil: 'domcontentloaded' });
