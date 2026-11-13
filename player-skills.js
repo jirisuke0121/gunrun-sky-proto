@@ -50,6 +50,7 @@ export function bindSkillPress(button, canUse, activate, unavailable = () => {})
   for (const type of ['pointercancel', 'lostpointercapture']) button.addEventListener(type, cancel);
   button.addEventListener('click', e => { if (e.detail === 0) { e.preventDefault(); if (canUse()) activate(); else unavailable(); } });
   button.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('sky-input-reset', cancel);
   window.addEventListener('blur', cancel); window.addEventListener('resize', cancel);
   document.addEventListener('visibilitychange', () => { if (document.hidden) cancel(); });
   return cancel;

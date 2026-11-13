@@ -1,5 +1,5 @@
 import { playGearSound } from './gear-audio.js?v=20261026-gear-polish-v1';
-import { FLASH_ICON, bindSkillPress } from './player-skills.js?v=20261108-skill-tap-v1';
+import { FLASH_ICON, bindSkillPress } from './player-skills.js?v=20261112-viewport-v1';
 // Defensive flashbang. Simulation time owns the fuse and stun, including pause.
 export const FLASHBANG = Object.freeze({ radius: 8, duration: 4, fuse: 0.22, maxCharges: 2, burstDuration: 1, screenDuration: 0.8, reducedScreenDuration: 0.4 });
 
