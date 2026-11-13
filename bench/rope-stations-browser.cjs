@@ -14,7 +14,7 @@ const root = path.resolve(__dirname, '..'), PORT = Number(process.env.PORT || 87
     const context = await browser.newContext({ locale: 'ja-JP', viewport: { width: 1280, height: 720 } });
     await context.addInitScript(() => { window.__hold = true; });
     await context.route('https://**/*', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"top":[],"total":0,"ok":true}' }));
-    const page = await context.newPage(), errors = []; page.on('pageerror', e => errors.push(e.message)); page.setDefaultTimeout(600000);
+    const page = await context.newPage(), errors = [];  page.on('pageerror', e => errors.push(e.message)); page.setDefaultTimeout(600000);
     await page.goto(`http://127.0.0.1:${PORT}/index.html?challengeDebug=1`);
     await page.waitForFunction(() => window.__game && window.skyRopeStations?.step && window.skyRopeSwing?.step);
     const level = page.locator('[data-difficulty=normal]'); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
@@ -45,7 +45,7 @@ const root = path.resolve(__dirname, '..'), PORT = Number(process.env.PORT || 87
           if (api.active()) {
             wasRiding = true; rode += dt; const cur = api.current(); if (rideId === null) { rideId = cur.id; grabV = +((c.pos.x - st.px) * st.nx + (c.pos.z - st.pz) * st.nz).toFixed(2); } maxAngle = Math.max(maxAngle, Math.abs(cur.th)); minY = Math.min(minY, c.pos.y); maxSpeed = Math.max(maxSpeed, Math.abs(cur.w) * RS.L); gripMin = Math.min(gripMin, api.grip());
             if (rode > .25 && !s.oe(c.pos.x, c.pos.y + .012, c.pos.z, c.r, c.h)) { blocked++; if (debug) trace.push(["blk", +(rode).toFixed(2), +c.pos.x.toFixed(2), +c.pos.y.toFixed(2), +c.pos.z.toFixed(2)]); }
-            const cue = api.landing(st, cur.th, cur.w, s.U.gravity); if (debug && i % 15 === 0) trace.push([+rode.toFixed(2), +(cur.th * 57.3).toFixed(0), +(cur.w * RS.L).toFixed(1), +c.pos.y.toFixed(1), cue.why, cue.u === undefined ? null : +cue.u.toFixed(1), s.oe(c.pos.x, c.pos.y + .012, c.pos.z, c.r, c.h) ? 0 : 1]);
+            const cue = api.landing(st, cur.th, cur.w, s.U.gravity, cur.e); if (debug && i % 15 === 0) trace.push([+rode.toFixed(2), +(cur.th * 57.3).toFixed(0), +(cur.e.x * st.dx + cur.e.z * st.dz).toFixed(3), +(cur.w * RS.L).toFixed(1), +c.pos.y.toFixed(1), cue.why, cue.u === undefined ? null : +cue.u.toFixed(1), cue.y === undefined ? null : +cue.y.toFixed(2), s.oe(c.pos.x, c.pos.y + .012, c.pos.z, c.r, c.h) ? 0 : 1]);
             if (cue.ok) { cueSeen = true; if (firstCue === null) firstCue = +rode.toFixed(2); }
             const press = mode === 'cue' ? cue.ok && rode > .3 : String(mode).startsWith('early') ? rode > Number(String(mode).split(':')[1] || .45) : false;
             if (press && pressedAt === null) { pressedAt = +rode.toFixed(2); key('Space', 'keydown'); hold = 4; }
@@ -68,28 +68,32 @@ const root = path.resolve(__dirname, '..'), PORT = Number(process.env.PORT || 87
         const wide = [[3.0, 1.2], [3.0, -1.2], [1.8, 0], [4.2, 0]].map(([ja, lat]) => { const r = run(st, 3.8, ja, 'cue', 14, lat); return r.rides === 1 && r.blocked === 0 && onTarget(st, r) ? 1 : 0; }).join('');
         const walk = run(st, 3.8, 99, 'cue', 3).rides === 0;
         const cl = run(st, 3.8, 2.8, 'never', 14), climb = !!cl.landed && Math.abs(cl.landed.y - st.land.f) < .06 && cl.landed.u > st.land.edge - 1.5, em = run(st, 3.8, 2.8, 'early', 14), early = !!em.landed && em.landed.y >= st.land.f - .06, sweep = [.35, .5, .65, .8, .95, 1.1].map(t0 => { const q = run(st, 3.8, 2.8, 'early:' + t0, 14); return q.landed && q.landed.y >= st.land.f - .06 && q.landed.u > st.land.edge - 2 ? 1 : 0; }).join('');
-        // 空中の手の高さに、いろいろな向き・位置から入って、緑で離して目標の台に着地するか（鉄棒と同じ「どこからでも」）。
-        const air = (lat, ang, fwd) => { run(st, 3.8, 99, 'never', .1); api.cancel(); rope.cancel(); const n0 = g.stats.ropeSwings || 0; let releasedAt = null, landed = null, press = false, blocked = 0;
-          g.placeAt({ x: st.px + st.nx * lat + st.dx * fwd, y: st.parkY, z: st.pz + st.nz * lat + st.dz * fwd, yaw: Math.atan2(-st.dx, -st.dz) });
-          c.onGround = false; c.vel.set((st.dx * Math.cos(ang) + st.nx * Math.sin(ang)) * 5, 1, (st.dz * Math.cos(ang) + st.nz * Math.sin(ang)) * 5); c.state = 'normal'; c.coyote = 0; key('KeyW', 'keydown');
-          for (let i = 0, rode = 0; i < 120 * 14; i++) { g.advance(dt); if (api.active()) { rode += dt; if (!s.oe(c.pos.x, c.pos.y + .012, c.pos.z, c.r, c.h) && rode > .3) blocked++; const cue = api.landing(st, api.current().th, api.current().w, s.U.gravity); if (cue.ok && rode > .3 && !press) { press = true; key('Space', 'keydown'); } } else { if (press) { key('Space', 'keyup'); press = false; } if (rode > 0 && releasedAt === null) releasedAt = i; }
-            if (releasedAt !== null && c.onGround) { const rx = c.pos.x - st.px, rz = c.pos.z - st.pz; landed = { u: +(rx * st.dx + rz * st.dz).toFixed(2), y: +c.pos.y.toFixed(2) }; break; } }
-          const rides = (g.stats.ropeSwings || 0) - n0; key('KeyW', 'keyup'); api.cancel(); rope.cancel(); return { rides, blocked, landed, ok: rides === 1 && blocked <= 2 && !!landed && Math.abs(landed.y - st.land.f) < .06 && landed.u > st.land.edge && landed.u < st.land.end + .6 }; };
-        const rv = air(0, Math.PI, -2.2), rv2 = air(2.4, Math.PI / 2, 0), rv3 = air(-2.4, -Math.PI / 2, 0); const back = rv.ok && rv2.ok && rv3.ok; rv.trace = [];
+        // 手の高さの空中へ、前・後ろ・左・右の4か所から入る。向かう先が「つかんだ位置から支点の真下を通る向き」になっているか、緑で離したとき予測どおりの所へ着くか。
+        const A = api.anchor(st);
+        const air = (lat, fwd) => { run(st, 3.8, 99, 'never', .1); api.cancel(); rope.cancel(); const n0 = g.stats.ropeSwings || 0; let releasedAt = null, landed = null, press = false, blocked = 0, dot = null, pred = null, green = false;
+          const x0 = st.px + st.nx * lat + st.dx * fwd, z0 = st.pz + st.nz * lat + st.dz * fwd, ex = A.x - x0, ez = A.z - z0, el = Math.hypot(ex, ez);
+          g.placeAt({ x: x0, y: st.parkY, z: z0, yaw: Math.atan2(-ex, -ez) });
+          c.onGround = false; c.vel.set(ex / el * 5, 1, ez / el * 5); c.state = 'normal'; c.coyote = 0; key('KeyW', 'keydown');
+          for (let i = 0, rode = 0; i < 120 * 14; i++) { g.advance(dt); if (api.active()) { rode += dt; const cur = api.current(); if (dot === null) dot = +(cur.e.x * ex / el + cur.e.z * ez / el).toFixed(3); if (!s.oe(c.pos.x, c.pos.y + .012, c.pos.z, c.r, c.h) && rode > .3) blocked++; const cue = api.landing(st, cur.th, cur.w, s.U.gravity, cur.e); if (cue.ok && rode > .3 && !press) { press = true; green = true; pred = cue; key('Space', 'keydown'); } } else { if (press) { key('Space', 'keyup'); press = false; } if (rode > 0 && releasedAt === null) releasedAt = i; }
+            if (releasedAt !== null && c.onGround) { landed = { x: c.pos.x, z: c.pos.z, y: +c.pos.y.toFixed(2) }; break; } }
+          const rides = (g.stats.ropeSwings || 0) - n0; key('KeyW', 'keyup'); api.cancel(); rope.cancel();
+          const err = green && landed ? +Math.hypot(landed.x - pred.x, landed.z - pred.z).toFixed(2) : null;
+          return { rides, blocked, dot, green, err, landedY: landed && landed.y, ok: rides === 0 || rides >= 1 && dot > .6 && blocked <= 2 && (!green || (landed && err < 1.2 && Math.abs(landed.y - pred.y) < .15)) }; };
+        const rv = air(0, -2.2), rv2 = air(2.4, 0), rv3 = air(-2.4, 0), rv4 = air(0, 2.2); const back = rv.ok && rv2.ok && rv3.ok && rv4.ok && [rv, rv2, rv3, rv4].filter(x => x.rides >= 1).length >= 2; // どの向きも通り道がふさがる場所では掴まない（めり込まない）
         // 手の高さの空中に、横へずらして入る（前向きの速さ 5 m/s）。ずれ 2.6 m ではつかまず、1.2 m ではつかむ。
         const probe = (lat, ang = 0) => { run(st, 3.8, 99, 'never', .1); api.cancel(); rope.cancel(); const n0 = g.stats.ropeSwings || 0;
           g.placeAt({ x: st.px + st.nx * lat - st.dx * 1.5, y: st.parkY, z: st.pz + st.nz * lat - st.dz * 1.5, yaw: Math.atan2(-st.dx, -st.dz) });
           c.onGround = false; c.vel.set((st.dx * Math.cos(ang) + st.nx * Math.sin(ang)) * 5, 1, (st.dz * Math.cos(ang) + st.nz * Math.sin(ang)) * 5); c.state = 'normal'; c.coyote = 0;
           for (let i = 0; i < 36; i++) { g.advance(dt); if (api.active()) break; } const ride = (g.stats.ropeSwings || 0) - n0; api.cancel(); rope.cancel(); return ride; };
         const side = probe(2.6) === 1 && probe(-2.6) === 1 && probe(1.2) === 1 && probe(2.6, Math.PI) === 1 && probe(0, Math.PI / 2) === 1 && probe(4.4) === 0;
-        res[st.id] = { wide, walk, side, back, climb, early, sweep, climbLanded: cl.landed && [cl.landed.u, cl.landed.y, cl.rode], earlyLanded: em.landed && [em.landed.u, em.landed.y, em.rode], rvDebug: only ? [rv, rv2, rv3].map(x => ({ rides: x.rides, blocked: x.blocked, landed: x.landed })) : undefined, backLanded: [rv, rv2, rv3].map(x => x.landed && [x.landed.u, x.landed.y]), fs: st.fs, f: st.land.f, okCount: tries.filter(t => t.ok).length, rode: tries.map(t => t.rode), firstCue: tries.map(t => t.firstCue), landed: tries.map(t => t.landed && [t.landed.u, t.landed.y]), rides: tries.map(t => t.rides), blocked: tries.map(t => t.blocked), tries: tries.map(t => t.ok ? 1 : 0).join(''), trace: only ? tries[1].trace : undefined, ci: only ? { r: c.r, h: c.h } : undefined };
+        res[st.id] = { wide, walk, side, back, climb, early, sweep, climbLanded: cl.landed && [cl.landed.u, cl.landed.y, cl.rode], earlyLanded: em.landed && [em.landed.u, em.landed.y, em.rode], rvDebug: only ? [rv, rv2, rv3, rv4] : undefined, backLanded: [rv, rv2, rv3, rv4].map(x => [x.dot, x.green, x.err, x.landedY]), fs: st.fs, f: st.land.f, okCount: tries.filter(t => t.ok).length, rode: tries.map(t => t.rode), firstCue: tries.map(t => t.firstCue), landed: tries.map(t => t.landed && [t.landed.u, t.landed.y]), rides: tries.map(t => t.rides), blocked: tries.map(t => t.blocked), tries: tries.map(t => t.ok ? 1 : 0).join(''), trace: only ? tries[1].trace : undefined, ci: only ? { r: c.r, h: c.h } : undefined };
       }
       return res;
     }, [only, lo, hi, OLDJ0]);
     for (const [id, r] of Object.entries(out)) {
       if (r.trace) console.log(JSON.stringify(r.ci), '\n' + r.trace.map(x => x.join(' ')).join('\n')); if (r.rvDebug) console.log('REV', JSON.stringify(r.rvDebug));
       const ok = r.okCount >= 2 && r.walk && r.side && r.back; if (!ok) failed++;
-      console.log(`${ok ? 'ok  ' : 'FAIL'} #${id} 床${r.fs}→${r.f}m 成功(跳ぶ位置4通り) ${r.tries} 後ろ向き・真横から掴んでも目標へ着地=${r.back} 離さず前へ押す→縁へよじ登る=${r.climb}${JSON.stringify(r.climbLanded)} 早く離す→縁へ届く=${r.early} 離す時刻を変えて台へ着く(.35〜1.1秒)=${r.sweep}${JSON.stringify(r.earlyLanded)} 広げた判定(横±1.2m・早め・遅め) ${r.wide} 歩いて通るだけで不つかみ=${r.walk} どの位置・向きからでも掴む（横2.6m・後ろ向き・真横）／4.4mは掴まない=${r.side} つかんだ回数${JSON.stringify(r.rides)} 乗っていた秒${JSON.stringify(r.rode)} 緑までの秒${JSON.stringify(r.firstCue)} 着地(u,y)${JSON.stringify(r.landed)} 体が重なった${JSON.stringify(r.blocked)}`);
+      console.log(`${ok ? 'ok  ' : 'FAIL'} #${id} 床${r.fs}→${r.f}m 成功(跳ぶ位置4通り) ${r.tries} 前後左右どこから掴んでも向きが変わり予測どおり着地=${r.back} 離さず前へ押す→縁へよじ登る=${r.climb}${JSON.stringify(r.climbLanded)} 早く離す→縁へ届く=${r.early} 離す時刻を変えて台へ着く(.35〜1.1秒)=${r.sweep}${JSON.stringify(r.earlyLanded)} 広げた判定(横±1.2m・早め・遅め) ${r.wide} 歩いて通るだけで不つかみ=${r.walk} どの位置・向きからでも掴む（横2.6m・後ろ向き・真横）／4.4mは掴まない=${r.side} つかんだ回数${JSON.stringify(r.rides)} 乗っていた秒${JSON.stringify(r.rode)} 緑までの秒${JSON.stringify(r.firstCue)} 着地(u,y)${JSON.stringify(r.landed)} 体が重なった${JSON.stringify(r.blocked)}`);
     }
     if (errors.length) { failed++; console.log('FAIL ページのエラー', errors.slice(0, 3)); }
   } finally { await browser.close(); server.kill(); }

@@ -33,22 +33,35 @@
     const sign = w >= 0 ? 1 : -1, v = w * L;
     return { u: v * Math.cos(th) + sign * KICK.x, y: v * Math.sin(th) + KICK.y };
   }
-  // いま離したときの落下先（重力だけの予測）。ok = 着地する台の上（縁から LAND_MARGIN 以上奥）に降りる。壁に当たる・届かない・戻る飛びは false。
-  function landing(s, th, w, gravity = 20) {
-    const p = feet(s, th), v = releaseVelocity(th, w), dt = 1 / 120, T = s.land;
-    let u = p.u, y = p.y, vu = v.u, vy = v.y;
-    if (vu <= 0) return { ok: false, why: 'back' };
+  // 支点（柱の先）の真下の点。ロープはここを通る任意の向きの縦の面で振れる。
+  const anchor = s => ({ x: s.px + s.dx * s.pu, z: s.pz + s.dz * s.pu });
+  const feetAt = (s, e, th) => { const A = anchor(s); return { x: A.x + e.x * L * Math.sin(th), y: s.py - L * Math.cos(th) - HANDS, z: A.z + e.z * L * Math.sin(th) }; };
+  // いま離したときの落下先を、実際の当たり判定（oe）で予測する。ok = 今の足場より MIN_GAIN 以上高い所に、縁から LAND_MARGIN 以上奥へ降りる。壁・天井に当たる・届かない・戻る飛びは false。
+  const MIN_GAIN = 1.7; // 1段上がるだけの低い屋根では緑にしない（空中の道へ戻るためのロープ）
+  function landing(s, th, w, gravity = 20, e = { x: s.dx, z: s.dz }) {
+    const I = window.__skyInternals, free = (x, y, z) => I.oe(x, y + .012, z, I.c.r, 1.75);
+    const f = feetAt(s, e, th), v = releaseVelocity(th, w), dt = 1 / 60;
+    if (v.u <= 0) return { ok: false, why: 'back' };
+    let x = f.x, y = f.y, z = f.z, vy = v.y;
     for (let t = 0; t < 4; t += dt) {
-      vy -= gravity * dt; u += vu * dt; y += vy * dt;
-      if (u > T.edge - .4 && u < T.edge && y < T.f - .01) return { ok: false, why: 'wall', u, y };
-      if (y <= T.f && vy < 0) { const inside = u - T.edge; return { ok: inside >= LAND_MARGIN && u <= T.end, why: inside < LAND_MARGIN ? 'short' : u > T.end ? 'long' : 'ok', u, y, inside }; }
-      if (y < 0) break;
+      const nvy = vy - gravity * dt, nx = x + e.x * v.u * dt, ny = y + nvy * dt, nz = z + e.z * v.u * dt;
+      if (!free(nx, ny, nz)) {
+        if (!free(nx, y, nz)) return { ok: false, why: 'wall', u: (x - f.x) * e.x + (z - f.z) * e.z, y };
+        if (nvy > 0) return { ok: false, why: 'ceil', u: (x - f.x) * e.x + (z - f.z) * e.z, y };
+        let lo = ny, hi = y; for (let i = 0; i < 8; i++) { const m = (lo + hi) / 2; if (free(nx, m, nz)) hi = m; else lo = m; } // 地面の高さ
+        const gy = hi, u = (nx - f.x) * e.x + (nz - f.z) * e.z, ground = I.c.lastGround ? I.c.lastGround.y : 0;
+        const held = !free(nx - e.x * (LAND_MARGIN + .35), gy - .1, nz - e.z * (LAND_MARGIN + .35)) && !free(nx, gy - .1, nz);
+        const ok = held && gy >= ground + MIN_GAIN;
+        return { ok, why: !held ? 'edge' : gy < ground + MIN_GAIN ? 'low' : 'ok', u, y: gy, x: nx, z: nz };
+      }
+      x = nx; y = ny; z = nz; vy = nvy;
+      if (y < -3) break;
     }
     return { ok: false, why: 'fall' };
   }
   function swingStep(th, w, dt, gravity = 20) { w += -(gravity / L) * Math.sin(th) * dt; return { th: th + w * dt, w }; }
   window.SKY_ROPE_STATIONS = { L, HANDS, STATIONS, GRAB, KICK, V_MAX, PUMP, MAX_SECONDS, RETURN_SECONDS, LAND_MARGIN, GRIP_SECONDS, GRIP_REGEN, GRIP_MIN };
-  window.skyRopeStations = { hand, feet, world, releaseVelocity, landing, swingStep };
+  window.skyRopeStations = { hand, feet, world, anchor, feetAt, releaseVelocity, landing, swingStep };
 
   addEventListener('load', () => {
     const game = window.__skyInternals, base = window.skyRopeSwing;
@@ -66,15 +79,17 @@
       const mast = new Mesh(new Box(.22, h, .22), steel); mast.position.set(s.mast.x, s.mast.base + h / 2, s.mast.z); group.add(mast);
       const armLen = Math.hypot(px - s.mast.x, pz - s.mast.z), arm = new Mesh(new Box(armLen + .3, .16, .16), steel);
       arm.position.set((px + s.mast.x) / 2, s.py + .12, (pz + s.mast.z) / 2); arm.rotation.y = -Math.atan2(pz - s.mast.z, px - s.mast.x); group.add(arm);
-      // ロープと取っ手（d 方向を x 軸にした面の中で振れる）。
+      // 跳ぶ位置の印（もとの向きに固定）と、ロープ・取っ手（支点の真下を通る面の中で、つかんだ向きへ振れる）。
       const g = new Group(); g.position.set(s.px, 0, s.pz); g.rotation.y = -Math.atan2(s.dz, s.dx); group.add(g);
-      n.rope = new Mesh(new Box(.05, 1, .05), ropeMat); n.handle = new Mesh(new Torus(.27, .055, 8, 20), n.mat); g.add(n.rope); g.add(n.handle);
+      const rg = new Group(); rg.position.set(px, 0, pz); group.add(rg); n.rg = rg; n.yaw = Math.atan2(s.dz, s.dx); n.yaw0 = n.yaw;
+      n.rope = new Mesh(new Box(.05, 1, .05), ropeMat); n.handle = new Mesh(new Torus(.27, .055, 8, 20), n.mat); rg.add(n.rope); rg.add(n.handle);
       // 跳ぶ位置の印（橙）。
       const y = s.fs + .03, mark = (w, d, u, v) => { const m = new Mesh(new Box(w, .03, d), orange); m.position.set(u, y, v); g.add(m); };
       mark(.14, 1.8, -.4, 0); mark(4, .1, -2.2, -.85); mark(4, .1, -2.2, .85);
       for (const u of [-1.6, -2.8, -4]) for (const sd of [-1, 1]) { const m = new Mesh(new Box(.7, .03, .1), orange); m.position.set(u, y, sd * .22); m.rotation.y = sd * .6; g.add(m); }
-      n.draw = th => { const hd = hand(s, th), dxp = hd.u - s.pu, dyp = hd.y - s.py, len = Math.hypot(dxp, dyp); n.th = th;
-        n.rope.scale.y = len; n.rope.position.set((hd.u + s.pu) / 2, (hd.y + s.py) / 2, 0); n.rope.rotation.z = th; n.handle.position.set(hd.u, hd.y - .27, 0); };
+      n.draw = th => { const hx = L * Math.sin(th), hy = s.py - L * Math.cos(th), len = Math.hypot(hx, hy - s.py); n.th = th; rg.rotation.y = -n.yaw;
+        n.rope.scale.y = len; n.rope.position.set(hx / 2, (hy + s.py) / 2, 0); n.rope.rotation.z = th; n.handle.position.set(hx, hy - .27, 0); };
+      n.setDir = e => { n.yaw = Math.atan2(e.z, e.x); };
       n.draw(s.th0);
     }
     game.ue.add(group);
@@ -99,43 +114,67 @@
 
     // 鉄棒と同じく、ロープの周り（水平 3.4 m）で空中にいればどの位置・向きからでもつかめる。つかんだら目標の台の向きへ振れる。
     const inGrab = (s, p) => Math.hypot(p.x - s.px, p.z - s.pz) <= GRAB.r && p.y >= s.parkY - GRAB.dyLow && p.y <= s.parkY + GRAB.dyHigh;
-    function begin(n) {
-      const s = n.s, p = c.pos, u = (p.x - s.px) * s.dx + (p.z - s.pz) * s.dz;
-      const th = Math.max(-MAX_ANGLE, Math.min(MAX_ANGLE, Math.atan2(u - s.pu, s.py - (p.y + HANDS))));
-      const vd = c.vel.x * s.dx + c.vel.z * s.dz, vt = vd * Math.cos(th) + c.vel.y * Math.sin(th);
-      riding = { n, th, w: Math.min(V_MAX, Math.max(V_ENTRY_MIN, vt)) / L, t0: game.z.t, last: null, age: 0 };
+    // つかんだ位置から支点の真下を通り抜ける向きへ振れる（真下に近いときは、進んでいた向き→もとの向き）。
+    function dirFor(s, p) {
+      const A = anchor(s), dx = A.x - p.x, dz = A.z - p.z, d = Math.hypot(dx, dz);
+      if (d > .7) return { x: dx / d, z: dz / d };
+      const sp = Math.hypot(c.vel.x, c.vel.z); return sp > 1.5 ? { x: c.vel.x / sp, z: c.vel.z / sp } : { x: s.dx, z: s.dz };
+    }
+    // 振れの通り道が壁や床にめり込まないか、少し先まで確かめる（漕いで大きくなる分も見込む）。
+    function arcFree(s, e, th, w) {
+      const cap = V_MAX / L; let t = th, v = w;
+      for (let k = 0; k < 21; k++) { // 離せる頃合い（約0.7秒）まで。それ以降は、ぶつかったらその場で離れる
+        const nx = swingStep(t, v, 1 / 30, U.gravity); t = nx.th; v = Math.min(cap, nx.w + Math.sign(nx.w) * PUMP / 30);
+        const f = feetAt(s, e, t); if (k >= 5 && !game.oe(f.x, f.y + .012, f.z, c.r, 1.75)) return false;
+      } return true;
+    }
+    // 向きの候補を、つかんだ位置から支点へ向かう向きに近い順に試して、通り道が空いている最初のものを使う。
+    function pick(s, p) {
+      const e0 = dirFor(s, p), A = anchor(s);
+      for (const deg of [0, 25, -25, 50, -50, 75, -75]) {
+        const a = deg * Math.PI / 180, e = { x: e0.x * Math.cos(a) - e0.z * Math.sin(a), z: e0.x * Math.sin(a) + e0.z * Math.cos(a) };
+        const u = (p.x - A.x) * e.x + (p.z - A.z) * e.z, th = Math.max(-MAX_ANGLE, Math.min(MAX_ANGLE, Math.atan2(u, s.py - (p.y + HANDS))));
+        const vd = c.vel.x * e.x + c.vel.z * e.z, vt = vd * Math.cos(th) + c.vel.y * Math.sin(th), w = Math.min(V_MAX, Math.max(V_ENTRY_MIN, vt)) / L;
+        if (arcFree(s, e, th, w)) return { e, th, w };
+      } return null;
+    }
+    function begin(n, pk) {
+      const { e, th, w } = pk;
+      n.setDir(e);
+      riding = { n, e, th, w, t0: game.z.t, last: null, age: 0 };
       pressed = false;
       if (['slide', 'ledge', 'ladder'].includes(c.state)) c.state = 'normal';
       c.onGround = false; c.coyote = 0; c.jumpBuf = 0; c.edgeJump = false; c.slideT = 0; c.h = 1.75; c.crouchPressed = false;
       window.skyLandingRoll?.cancel?.(); window.skyHookLanding?.cancel?.();
       stats.ropeSwings = (stats.ropeSwings || 0) + 1;
     }
-    function release() {
-      const r = riding, s = r.n.s, p = feet(s, r.th), v = releaseVelocity(r.th, r.w), sign = r.w >= 0 ? 1 : -1, w = world(s, p.u);
-      c.pos.set(w.x, p.y, w.z); c.vel.set(s.dx * v.u, v.y, s.dz * v.u);
+    function release(inPlace) {
+      const r = riding, s = r.n.s, e = r.e, p = feetAt(s, e, r.th), v = releaseVelocity(r.th, r.w), sign = r.w >= 0 ? 1 : -1;
+      if (!inPlace) { c.pos.set(p.x, p.y, p.z); c.vel.set(e.x * v.u, v.y, e.z * v.u); } // inPlace: 通り道がふさがったので、今いる所からそのまま落ちる
       c.state = 'normal'; c.onGround = false; c.coyote = 0; c.airT = 0; c.edgeJump = window.SKY_ROPE_STATIONS.jumpLike !== false; c.jumpBuf = 0; c.h = 1.75; // ジャンプと同じ扱い：飛び出した後に縁へ届けば、よじ登る・縁をつかむ
-      c.yaw = Math.atan2(-sign * s.dx, -sign * s.dz);
-      r.n.from = r.th; r.n.lock = RETURN_SECONDS; r.n.mat.color.setHex(0xffa21f);
+      c.yaw = Math.atan2(-sign * e.x, -sign * e.z);
+      r.n.from = r.th; r.n.yawFrom = r.n.yaw; r.n.lock = RETURN_SECONDS; r.n.mat.color.setHex(0xffa21f);
       stats.ropeReleases = (stats.ropeReleases || 0) + 1;
       riding = null; pressed = false; hint.style.opacity = '0';
     }
     function cancel() {
       riding = null; pressed = false; hint.style.opacity = '0'; grip = 1; bar.style.opacity = '0';
-      for (const id in nodes) { const n = nodes[id]; n.lock = 0; n.draw(n.s.th0); n.mat.color.setHex(0xffa21f); }
+      for (const id in nodes) { const n = nodes[id]; n.lock = 0; n.yaw = n.yaw0; n.draw(n.s.th0); n.mat.color.setHex(0xffa21f); }
     }
     function showGrip() { fill.style.width = Math.round(Math.max(0, grip) * 100) + '%'; fill.style.background = grip < .3 ? '#e24b4a' : '#ffb647'; bar.style.opacity = riding || grip < .999 ? '1' : '0'; }
     function step(dt, input) {
       if (riding && (!playing() || game.z.t < riding.t0 || (riding.last && c.pos.distanceTo(riding.last) > 1))) cancel();
       if (!riding) {
         for (const id in nodes) { const n = nodes[id]; if (n.lock > 0) { // 空のロープが元の位置へ戻る
-          n.lock = Math.max(0, n.lock - dt); const f = 1 - n.lock / RETURN_SECONDS, e = f * f * (3 - 2 * f); n.draw(n.from + (n.s.th0 - n.from) * e); } }
+          n.lock = Math.max(0, n.lock - dt); const f = 1 - n.lock / RETURN_SECONDS, e = f * f * (3 - 2 * f); n.yaw = n.yaw0 + (((n.yawFrom - n.yaw0 + Math.PI * 3) % (Math.PI * 2)) - Math.PI) * (1 - e); n.draw(n.from + (n.s.th0 - n.from) * e); } }
         if (c.onGround && grip < 1) grip = Math.min(1, grip + GRIP_REGEN * dt);
         showGrip();
         if (!playing() || c.state !== 'normal' || c.onGround || window.skyBite?.locked || grip < GRIP_MIN) return false;
         for (const id in nodes) {
           const n = nodes[id], s = n.s;
           if (n.lock > 0 || !inGrab(s, c.pos) || c.vel.y < -GRAB.maxFall) continue;
-          begin(n); break;
+          const pk = pick(n.s, c.pos); if (!pk) continue;
+          begin(n, pk); break;
         }
         if (!riding) return false;
       }
@@ -147,19 +186,21 @@
         if (pumping) r.w += Math.sign(r.w) * PUMP * h;
         const cap = V_MAX / L; if (Math.abs(r.w) > cap) r.w = Math.sign(r.w) * cap;
       }
-      const cue = landing(s, r.th, r.w, gravity);
+      const cue = landing(s, r.th, r.w, gravity, r.e);
       n.mat.color.setHex(cue.ok ? 0x7ef0aa : 0xffa21f);
       hint.style.opacity = '1'; showGrip();
       c.jumpBuf = 0;
       // 前へ押していて、進む先に登れる縁が手の届く所にあれば、ロープを離してそのままよじ登る（ジャンプ中と同じ判定へ渡す）。
       const climbable = r.age > .3 && r.th > .15 && r.w > 0 && input && (input.fwdIn || 0) > .25 && (() => { const k = window.__skyInternals, f = k?.canExitLadder; if (!f) return false;
-        const sg = r.w >= 0 ? 1 : -1, q = .22 + c.r; return !!f({ x: c.pos.x - s.dx * sg * q, z: c.pos.z - s.dz * sg * q, nx: s.dx * sg, nz: s.dz * sg, y1: c.pos.y + .95 }); })();
+        const sg = r.w >= 0 ? 1 : -1, q = .22 + c.r; return !!f({ x: c.pos.x - r.e.x * sg * q, z: c.pos.z - r.e.z * sg * q, nx: r.e.x * sg, nz: r.e.z * sg, y1: c.pos.y + .95 }); })();
       if (climbable) { n.draw(r.th); release(); return false; }
       if (pressed || Math.abs(r.th) > MAX_ANGLE || r.age > MAX_SECONDS || grip <= 0 || window.skyBite?.locked) { n.draw(r.th); release(); return false; }
-      const p = feet(s, r.th), w = world(s, p.u), blend = Math.min(1, (game.z.t - r.t0) / .12); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる
+      const e = r.e, p = feetAt(s, e, r.th), w = p;
+      if (r.age > .2 && !game.oe(p.x, p.y + .012, p.z, c.r, 1.75)) { n.draw(r.th); release(true); return false; }
+      const blend = Math.min(1, (game.z.t - r.t0) / .12); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる
       c.pos.set(c.pos.x + (w.x - c.pos.x) * blend, c.pos.y + (p.y - c.pos.y) * blend, c.pos.z + (w.z - c.pos.z) * blend);
-      const v = r.w * L; c.vel.set(s.dx * v * Math.cos(r.th), v * Math.sin(r.th), s.dz * v * Math.cos(r.th));
-      c.yaw = Math.atan2(-s.dx, -s.dz); c.onGround = false; c.h = 1.75;
+      const v = r.w * L; c.vel.set(e.x * v * Math.cos(r.th), v * Math.sin(r.th), e.z * v * Math.cos(r.th));
+      c.yaw = Math.atan2(-e.x, -e.z); c.onGround = false; c.h = 1.75;
       riding.last = c.pos.clone(); n.draw(r.th);
       return true;
     }
@@ -174,7 +215,7 @@
     base.active = () => !!orig.active?.() || !!riding;
     base.state = () => riding ? { th: riding.th, w: riding.w, side: 'S' + riding.n.s.id } : orig.state?.() || null;
     base.side = () => riding ? 'S' + riding.n.s.id : orig.side?.() || null;
-    Object.assign(window.skyRopeStations, { step, cancel, active: () => !!riding, current: () => riding && { id: riding.n.s.id, th: riding.th, w: riding.w },
+    Object.assign(window.skyRopeStations, { step, cancel, active: () => !!riding, current: () => riding && { id: riding.n.s.id, th: riding.th, w: riding.w, e: riding.e },
       ready: id => nodes[id].lock <= 0, grip: () => grip, nodes, group });
   });
 })();
