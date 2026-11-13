@@ -1,0 +1,16 @@
+834 Gelişmiş ayarlar
+835 Özel ayarı kullan
+836 Zombi sayısını, canı ve hızı ayrı ayrı belirle. Kayıtlar üç zorluk seviyesinden ayrı tutulur.
+837 Kayalık kanyon (beyaz kutu)
+838 Oynamadan önce kontrol türü
+839 2–14 karakter: harf, rakam, _ ve -. Boş bırakıp da oynayabilirsin.
+840 Kovalayan yok, süre sınırı yok. Hareketleri pist boyunca zincirle ya da istediğin harekete doğrudan geç. Düşersen son noktaya dönersin.
+841 Alıştığında aşağıdan Kolay, Normal veya Zor'a geç. Girişi atlayıp doğrudan seçebilirsin.
+842 Menüdeki zombi değerlerini kullanır. 6 zombilik görüntüleme sınırı geçerli değildir ve zombi sayısı arttıkça yük de artar. Şimdiye kadarki kayıtların burada.
+843 Özel ayar: zombi sayısını, canı, hızı ve kovalayanları ayrı ayrı belirle.
+844 Antrenman alanı
+845 Antrenman alanı kontrolleri
+846 Hareket seç
+847 Buradan yeniden dene
+848 Sonraki hareket
+849 Denenecek hareketler

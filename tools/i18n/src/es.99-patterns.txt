@@ -92,3 +92,4 @@ p98 Superaste los $1 pasos. Ahora prueba estos movimientos en una partida real e
 p99 Prueba: $1:t
 p100 Zombis $1 · $2 m de lado
 p101 Todos los zombis: $1
+p102 Granada cegadora, tecla $1. Quedan $2. Detiene a los zombis a $3 m durante $4 s. Suelta para usar, desliza fuera para cancelar.

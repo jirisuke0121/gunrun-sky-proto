@@ -15,6 +15,7 @@ const EXTRA_PATTERNS = [
   ['^お試し：(.+)$', 'Try: $1'],
   ['^ゾンビ (\\d+) · (\\d+)m四方$', 'Zombies $1 · $2m square'],
   ['^全ゾンビ (\\d+)体$', 'All zombies: $1'],
+  ['^閃光弾 (.+)キー 残り(\\d+)個 周囲(\\d+)mのゾンビを(\\d+)秒停止。離すと使用、外へずらすと取消$', 'Flashbang, key $1. $2 left. Stops zombies within $3 m for $4 s. Release to use, slide away to cancel.'],
 ];
 
 function loadBase() {

@@ -200,3 +200,21 @@ Spaceでジャンプ	Space to jump
 マウスで見回す	Look around with the mouse
 WASDで移動・Spaceでジャンプ	WASD: move · Space: jump
 WASDで移動・マウスで視点・Spaceでジャンプ	WASD: move · Mouse: look · Space: jump
+人物・銃を読み込み中…	Loading character and gun…
+詳細設定	Advanced settings
+自由調整を使う	Use custom tuning
+ゾンビ数・体力・速さを個別に設定します。3段階のチャレンジとは別の記録になります。	Set zombie count, health and speed individually. Records are kept separately from the three challenge levels.
+岩壁渓谷（白箱）	Rock Canyon (white box)
+プレイ前の操作タイプ	Control type before playing
+2〜14文字の文字・数字・_・-。空欄のままでも遊べます。	2–14 letters, numbers, _ and -. You can also play with it blank.
+2〜14文字の文字・数字・_・-で入力してください	Enter 2–14 letters, numbers, _ or -
+追手・制限時間なし。技を繋げて一周したり、好きな技からすぐ試せます。落ちたら直前の地点に戻ります。	No chasers, no time limit. Chain moves around the course, or jump straight to any move. If you fall, you return to the last checkpoint.
+慣れたら下のイージー・ノーマル・ハードへ。入門を飛ばして選んでも構いません。	When you're comfortable, move on to Easy, Normal or Hard below. You can also skip the intro and pick one directly.
+メニューのゾンビ調整値を使います。6体の表示制限は対象外で、数を増やすほど負荷も増えます。これまでの記録はこちら。	Uses the zombie values from the menu. The 6-zombie display limit does not apply, and more zombies means a heavier load. Your records so far are here.
+自由調整：ゾンビ数・体力・速さ・追跡者を個別に調整できます。	Custom tuning: set zombie count, health, speed and chasers individually.
+練習場	Practice range
+練習場の操作	Practice range controls
+技を選ぶ	Choose a move
+ここからやり直す	Retry from here
+次の技へ	Next move
+試す技	Moves to try

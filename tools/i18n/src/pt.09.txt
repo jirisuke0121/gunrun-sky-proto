@@ -1,0 +1,16 @@
+834 Configurações avançadas
+835 Usar ajuste personalizado
+836 Defina separadamente o número de zumbis, a vida e a velocidade. O recorde fica separado dos três níveis de desafio.
+837 Cânion rochoso (caixa branca)
+838 Tipo de controle antes de jogar
+839 De 2 a 14 caracteres: letras, números, _ e -. Você também pode jogar sem preencher.
+840 Sem perseguidores e sem limite de tempo. Encadeie movimentos pelo percurso ou vá direto ao movimento que quiser. Se cair, você volta ao último ponto.
+841 Quando se sentir à vontade, passe para Fácil, Normal ou Difícil abaixo. Você também pode pular a introdução e escolher direto.
+842 Usa os valores de zumbis do menu. O limite de 6 zumbis visíveis não se aplica e, quanto mais zumbis, maior a carga. Seus recordes até agora estão aqui.
+843 Ajuste personalizado: defina separadamente o número de zumbis, a vida, a velocidade e os perseguidores.
+844 Campo de treino
+845 Controles do campo de treino
+846 Escolher movimento
+847 Tentar de novo daqui
+848 Próximo movimento
+849 Movimentos para testar

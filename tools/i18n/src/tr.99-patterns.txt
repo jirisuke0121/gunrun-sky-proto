@@ -92,3 +92,4 @@ p98 $1 adımın hepsini geçtin. Şimdi bu hareketleri Kolayda gerçek bir koşu
 p99 Dene: $1:t
 p100 Zombiler $1 · $2 m kare
 p101 Tüm zombiler: $1
+p102 Flaş bombası, tuş $1. $2 kaldı. $3 m içindeki zombileri $4 sn durdurur. Kullanmak için bırak, iptal için dışarı kaydır.

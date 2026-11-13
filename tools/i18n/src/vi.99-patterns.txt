@@ -92,3 +92,4 @@ p98 Bạn đã qua cả $1 bước. Tiếp theo hãy thử các động tác nà
 p99 Thử: $1:t
 p100 Zombie $1 · vuông $2 m
 p101 Tất cả zombie: $1
+p102 Lựu đạn chớp, phím $1. Còn $2. Làm zombie trong $3 m đứng yên $4 giây. Thả để dùng, trượt ra ngoài để hủy.

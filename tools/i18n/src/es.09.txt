@@ -1,0 +1,16 @@
+834 Ajustes avanzados
+835 Usar ajuste personalizado
+836 Configura por separado el número de zombis, la salud y la velocidad. Se guarda en un registro aparte de los tres niveles de desafío.
+837 Cañón rocoso (caja blanca)
+838 Tipo de control antes de jugar
+839 De 2 a 14 caracteres: letras, números, _ y -. También puedes jugar sin ponerlo.
+840 Sin perseguidores ni límite de tiempo. Encadena movimientos por todo el recorrido o prueba directamente el que quieras. Si caes, vuelves al último punto.
+841 Cuando te sientas cómodo, pasa a Fácil, Normal o Difícil. También puedes saltarte la introducción y elegir uno directamente.
+842 Usa los valores de zombis del menú. El límite de 6 zombis visibles no se aplica y, cuantos más haya, mayor será la carga. Tus registros hasta ahora están aquí.
+843 Ajuste personalizado: configura por separado el número de zombis, la salud, la velocidad y los perseguidores.
+844 Campo de práctica
+845 Controles del campo de práctica
+846 Elegir movimiento
+847 Reintentar desde aquí
+848 Siguiente movimiento
+849 Movimientos para probar

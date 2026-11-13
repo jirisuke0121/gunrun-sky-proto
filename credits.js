@@ -17,9 +17,11 @@
     #creditsDialog button{margin-top:14px;min-height:44px;padding:8px 18px;border:1px solid #657380;border-radius:8px;background:transparent;color:#dbe3e9;font:inherit;cursor:pointer}`);
   document.head.append(style);
   const dialog = make('div', { id: 'creditsDialog', hidden: true });
+  // The licence text stays English; only the title and button follow the chosen language (th/vi/pt/tr/es).
+  const L = (jp, en) => { const i = window.skyI18n; return i && i.lang !== 'ja' && i.lang !== 'en' ? i.tr(jp) : en; };
   dialog.setAttribute('role', 'dialog'); dialog.setAttribute('aria-modal', 'true'); dialog.setAttribute('aria-labelledby', 'creditsTitle');
   dialog.innerHTML = `<div class="credits-card">
-    <h2 id="creditsTitle">Credits</h2>
+    <h2 id="creditsTitle">${L('クレジット', 'Credits')}</h2>
     <p>Zombie Parkour Escape (空中回廊 追跡) — made by jirisuke0121.</p>
     <dl>
       <dt>Engine</dt><dd>three.js (MIT License).</dd>
@@ -28,7 +30,7 @@
       <dt>Sound</dt><dd>CC0 recordings from OpenGameArt.org: The Free Firearm Sound Library (Ben Jaszczak and others); RPG Sound Pack, Zombies Sound Pack and Swishes Sound Pack (artisticdude); Squish Sounds Effects (EZduzziteh); 80 CC0 creature SFX and 100 CC0 metal and wood SFX (rubberduck); Punch and 15 vocal male strain/hurt/pain/jump sounds (qubodup); Breathing Tired (mikeask); Fantozzi's Footsteps (Fantozzi); 50 RPG sound effects (Kenney); and other CC0 contributors.</dd>
       <dt>Font</dt><dd>Noto Sans JP (SIL Open Font License 1.1).</dd>
     </dl>
-    <button id="creditsClose" type="button">Close</button>
+    <button id="creditsClose" type="button">${L('閉じる', 'Close')}</button>
   </div>`;
   document.body.append(dialog);
   const open = make('button', { id: 'homeCredits', type: 'button' }, 'クレジット');

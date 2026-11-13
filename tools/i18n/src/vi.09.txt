@@ -1,0 +1,16 @@
+834 Cài đặt nâng cao
+835 Dùng chỉnh tay
+836 Thiết lập riêng số zombie, máu và tốc độ. Kỷ lục được lưu tách biệt với ba mức thử thách.
+837 Hẻm núi đá (hộp trắng)
+838 Kiểu điều khiển trước khi chơi
+839 2–14 ký tự gồm chữ, số, _ và -. Bạn cũng có thể chơi mà không nhập.
+840 Không có kẻ truy đuổi, không giới hạn thời gian. Nối các kỹ thuật quanh đường chạy hoặc thử ngay kỹ thuật bạn muốn. Nếu rơi, bạn quay lại điểm trước đó.
+841 Khi đã quen, hãy chuyển sang Dễ, Thường hoặc Khó bên dưới. Bạn cũng có thể bỏ qua phần nhập môn và chọn thẳng.
+842 Dùng các giá trị zombie trong menu. Giới hạn hiển thị 6 zombie không áp dụng, và càng nhiều zombie thì máy càng nặng. Kỷ lục từ trước đến nay ở đây.
+843 Chỉnh tay: thiết lập riêng số zombie, máu, tốc độ và kẻ truy đuổi.
+844 Khu luyện tập
+845 Điều khiển khu luyện tập
+846 Chọn kỹ thuật
+847 Thử lại từ đây
+848 Kỹ thuật tiếp theo
+849 Kỹ thuật để thử

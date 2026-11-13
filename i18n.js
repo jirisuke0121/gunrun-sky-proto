@@ -37,16 +37,20 @@
   const SKIP = new Set(['SCRIPT', 'STYLE', 'TEXTAREA']);
   document.documentElement.lang = HTML_LANG[lang] || lang;
 
-  // Pack loading: the pack must be in place before the first pass over the page.
+  // Pack loading. A document.write()n script only runs after this one finishes, so the first pass can come before the pack.
+  // Until the pack is in (or has failed), lookups return nothing: the Japanese stays and is translated when the pack arrives,
+  // instead of falling back to English and staying English.
   const self = document.currentScript;
-  if (lang !== 'ja' && lang !== 'en' && self?.src) {
+  const needsPack = lang !== 'ja' && lang !== 'en';
+  const packPending = () => needsPack && !window.skyI18nPacks?.[lang] && !window.skyI18nPackFailed;
+  window.skyI18nPackDone = () => { cache.clear(); if (document.body) fix(document.body); };
+  if (needsPack && self?.src) {
     const url = new URL('i18n-' + lang + '.js' + (self.src.includes('?') ? '?' + self.src.split('?')[1] : ''), self.src).href;
-    const onReady = () => { cache.clear(); if (document.body) { fix(document.body); } };
     if (document.readyState === 'loading') {
-      document.write('<script src="' + url + '"><\/script>');
+      document.write('<script src="' + url + '" onload="window.skyI18nPackDone()" onerror="window.skyI18nPackFailed=1;window.skyI18nPackDone()"><\/script>');
     } else {
       const el = document.createElement('script');
-      el.src = url; el.onload = onReady; document.head.append(el);
+      el.src = url; el.onload = window.skyI18nPackDone; el.onerror = () => { window.skyI18nPackFailed = 1; window.skyI18nPackDone(); }; document.head.append(el);
     }
   }
 
@@ -57,7 +61,7 @@
 
   function lookup(key) {
     const base = window.skyI18nEn;
-    if (!base) return undefined;
+    if (!base || packPending()) return undefined;
     const pack = lang === 'en' ? null : window.skyI18nPacks?.[lang];
     let out = pack?.exact[key];
     if (out === undefined) out = base.exact[key];

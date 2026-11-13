@@ -92,3 +92,4 @@ p98 Você concluiu os $1 passos. Agora experimente estas manobras em uma partida
 p99 Experimente: $1:t
 p100 Zumbis $1 · $2 m de lado
 p101 Todos os zumbis: $1
+p102 Granada de luz, tecla $1. Restam $2. Para os zumbis a $3 m por $4 s. Solte para usar, deslize para fora para cancelar.

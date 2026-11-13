@@ -36,6 +36,15 @@ const LOCALES = { ja: 'ja-JP', en: 'en-US', th: 'th-TH', vi: 'vi-VN', pt: 'pt-BR
       return [...out];
     });
 
+    // Text nodes showing the English dictionary value while the language pack has its own translation (English fallback that stuck).
+    const englishLeft = page => page.evaluate(() => {
+      const en = window.skyI18nEn, pack = window.skyI18nPacks?.[window.skyI18n.lang], out = new Set(); if (!pack) return [];
+      const vals = new Set(); for (const [jp, e] of Object.entries(en.exact)) if (pack.exact[jp] !== undefined && pack.exact[jp] !== e) vals.add(e);
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n; (n = w.nextNode());) { const t = n.nodeValue.replace(/\s+/g, ' ').trim(); if (t && vals.has(t) && !['SCRIPT', 'STYLE', 'OPTION'].includes(n.parentNode.nodeName)) out.add(t); }
+      return [...out];
+    });
+
     // 1. Auto follows the browser language, an explicit choice sticks, unknown languages fall back to English.
     for (const [locale, want] of [['ja-JP', 'ja'], ['th-TH', 'th'], ['vi-VN', 'vi'], ['pt-BR', 'pt'], ['pt-PT', 'pt'], ['tr-TR', 'tr'], ['es-MX', 'es'], ['en-GB', 'en'], ['fr-FR', 'en'], ['de-DE', 'en']]) {
       const ctx = await mk(locale), page = await open(ctx, 'index.html');
@@ -80,6 +89,7 @@ const LOCALES = { ja: 'ja-JP', en: 'en-US', th: 'th-TH', vi: 'vi-VN', pt: 'pt-BR
         await page.click('#bStart'); await page.waitForFunction(() => __game.mode === 'play'); await page.waitForTimeout(500);
         await page.evaluate(() => { __game.GAME.t = 40; }); await page.waitForTimeout(400);
         const play = await japanese(page);
+        if (lang !== 'ja' && lang !== 'en') assert.deepEqual([...await englishLeft(page)], [], `${map} ${lang}: English left on screen where the pack has a translation`);
         if (lang === 'ja') { assert.ok(home.length > 20, 'Japanese is left alone'); }
         else if (lang === 'en') baseline[map] = new Set([...home, ...play]);
         else {
@@ -104,10 +114,38 @@ const LOCALES = { ja: 'ja-JP', en: 'en-US', th: 'th-TH', vi: 'vi-VN', pt: 'pt-BR
       const chapter = await page.evaluate(() => document.getElementById('learnChapter')?.textContent || '');
       assert.ok(chapter.length > 0 && !/[぀-ヿ一-鿿]/.test(chapter), `learn course ${lang}: chapter title is translated (${chapter})`);
       if (lang !== 'en') assert.notEqual(chapter, 'First steps', `${lang}: not the English fallback`);
+      if (lang !== 'en') assert.deepEqual(await englishLeft(page), [], `learn ${lang}: English left on screen where the pack has a translation`);
       assert.deepEqual(page.errors, [], `learn ${lang}: no page errors`);
       await ctx.close();
     }
     console.log(`learn course: English leaves ${learnBase.size} Japanese strings (shared)`);
+    // 5. While the language pack is still loading (slow network) or fails, the screen shows Japanese or the chosen language, never a stuck English fallback.
+    for (const lang of ['th', 'es']) {
+      const ctx = await mk(LOCALES[lang]); let delay = true;
+      await ctx.route(`**/i18n-${lang}.js*`, async r => { if (delay) await new Promise(x => setTimeout(x, 1500)); r.continue(); });
+      const page = await ctx.newPage(); page.setDefaultTimeout(60000);
+      await page.goto(base + `index.html?lang=${lang}`, { waitUntil: 'commit' });
+      const seen = new Set();
+      for (let i = 0; i < 30; i++) {
+        await page.waitForTimeout(100);
+        const t = await page.evaluate(() => [document.getElementById('bStart')?.textContent, document.getElementById('bIntro')?.textContent, document.getElementById('introReadyStatus')?.textContent].join('|')).catch(() => null);
+        if (t) seen.add(t);
+      }
+      await page.waitForFunction(() => window.__game && window.skyStartReadiness?.ready);
+      assert.deepEqual([...seen].filter(t => /Getting the|Loading character|Loading gun|Start practice/.test(t)), [], `${lang}: no stuck English while the pack loads`);
+      assert.deepEqual(await japanese(page), [...(await japanese(page))].filter(s => baseline['index.html'].has(s)), `${lang}: after a slow pack load nothing translatable is left in Japanese`);
+      assert.deepEqual(await englishLeft(page), [], `${lang}: no English left after a slow pack load`);
+      await ctx.close();
+    }
+    // A pack that never arrives falls back to English instead of staying Japanese.
+    {
+      const ctx = await mk('th-TH'); await ctx.route('**/i18n-th.js*', r => r.abort());
+      const page = await open(ctx, 'index.html?lang=th');
+      const left = (await japanese(page)).filter(s => !baseline['index.html'].has(s));
+      assert.deepEqual(left, [], 'a missing pack falls back to English');
+      assert.equal(await page.evaluate(() => document.getElementById('bStart').textContent.trim()), 'Start (2 min)');
+      await ctx.close();
+    }
     console.log('i18n browser checks passed');
   } finally {
     await browser?.close(); server?.kill();
