@@ -83,7 +83,7 @@
 223 Dừng
 224 GunRun · Hành Lang Trên Không
 225 Zombie Parkour
-226 Chạy thoát
+226 Escape
 227 Sống sót 2 phút. Chạy thoát khỏi zombie.
 228 Thắng
 229 Sống sót 2 phút mà không bị bắt

@@ -83,7 +83,7 @@
 223 Dur
 224 GunRun · Gökyüzü Koridoru
 225 Zombie Parkour
-226 Kaç
+226 Escape
 227 2 dakika hayatta kal. Zombilerden kaç.
 228 Kazan
 229 Yakalanmadan 2 dakika hayatta kal

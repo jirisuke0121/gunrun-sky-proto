@@ -83,7 +83,7 @@
 223 Parar
 224 GunRun · Corredor do Céu
 225 Zombie Parkour
-226 Escapar
+226 Escape
 227 Sobreviva 2 minutos. Escape dos zumbis.
 228 Vitória
 229 Sobreviva 2 minutos sem ser pego

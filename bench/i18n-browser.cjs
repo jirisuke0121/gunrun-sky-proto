@@ -39,7 +39,7 @@ const LOCALES = { ja: 'ja-JP', en: 'en-US', th: 'th-TH', vi: 'vi-VN', pt: 'pt-BR
     // Text nodes showing the English dictionary value while the language pack has its own translation (English fallback that stuck).
     const englishLeft = page => page.evaluate(() => {
       const en = window.skyI18nEn, pack = window.skyI18nPacks?.[window.skyI18n.lang], out = new Set(); if (!pack) return [];
-      const vals = new Set(); for (const [jp, e] of Object.entries(en.exact)) if (pack.exact[jp] !== undefined && pack.exact[jp] !== e) vals.add(e);
+      const own = new Set(Object.values(pack.exact)), vals = new Set(); for (const [jp, e] of Object.entries(en.exact)) if (pack.exact[jp] !== undefined && pack.exact[jp] !== e && !own.has(e)) vals.add(e);
       const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
       for (let n; (n = w.nextNode());) { const t = n.nodeValue.replace(/\s+/g, ' ').trim(); if (t && vals.has(t) && !['SCRIPT', 'STYLE', 'OPTION'].includes(n.parentNode.nodeName)) out.add(t); }
       return [...out];
@@ -96,6 +96,7 @@ const LOCALES = { ja: 'ja-JP', en: 'en-US', th: 'th-TH', vi: 'vi-VN', pt: 'pt-BR
           const extra = [...home, ...play].filter(s => !baseline[map].has(s));
           assert.deepEqual(extra, [], `${map} ${lang}: Japanese left on screen that English translates`);
           const title = await page.title(); assert.equal(title.includes('Zombie Parkour Escape'), true, `${lang}: title`);
+          assert.equal(await page.evaluate(() => document.querySelector('.home-heading h1')?.textContent.replace(/\s+/g, '')), 'ZombieParkourEscape', `${map} ${lang}: the game name stays "Zombie Parkour Escape"`);
         }
         assert.deepEqual(page.errors, [], `${map} ${lang}: no page errors`);
         await ctx.close();

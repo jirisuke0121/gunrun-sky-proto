@@ -83,7 +83,7 @@
 223 Detener
 224 GunRun · Corredor del Cielo
 225 Zombie Parkour
-226 Escapar
+226 Escape
 227 Sobrevive 2 minutos. Escapa de los zombis.
 228 Ganar
 229 Sobrevive 2 minutos sin que te atrapen
