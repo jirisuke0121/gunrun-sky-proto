@@ -9,6 +9,9 @@ if (game && math) {
     project.set(e.pos.x, e.pos.y + 1, e.pos.z).project(game.Se);
     return project.z > -1 && project.z < 1 && Math.abs(project.x) < 1 && Math.abs(project.y) < 1;
   };
+  // ?threatHud=1 (dev only): the numbers that are recorded, shown live. Nothing is shown to normal players.
+  const hud = new URLSearchParams(location.search).get('threatHud') === '1' ? Object.assign(document.createElement('div'), { id: 'threatHud' }) : null;
+  if (hud) { hud.setAttribute('aria-hidden', 'true'); hud.style.cssText = 'position:fixed;left:10px;top:150px;z-index:9;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,.55);color:#fff;font:12px/1.4 monospace;pointer-events:none'; document.body.appendChild(hud); }
   let next = 0, last = -1;
   function frame() {
     const t = game.z.t;
@@ -16,7 +19,9 @@ if (game && math) {
     last = t;
     if (game.modeRef() === 'play' && !game.z.over && !window.skyPracticeMode && t >= next) {
       next = t + .25;
-      trace.add(t, math.sample({ x: game.c.pos.x, z: game.c.pos.z }, game.Jt, inView));
+      const sample = math.sample({ x: game.c.pos.x, z: game.c.pos.z }, game.Jt, inView);
+      trace.add(t, sample);
+      if (hud) hud.textContent = `最寄り ${Number.isFinite(sample.nearest) ? sample.nearest.toFixed(1) : '-'} m / 10m以内 ${sample.within10} / 画面内 ${sample.visible}`;
     }
     requestAnimationFrame(frame);
   }
