@@ -12,6 +12,8 @@ export function createLessons(sky, game, practice, progress) {
     Math.abs(c.pos.y - at[1]) < .2 && sky.jn.some(supports);
   const landedAfterSwing = () => changed('barJumps') && landed() && sky.jn.some(b =>
     (b.swingCourse === 'upper-landing' || b.practice === 'dash-roof') && supports(b));
+  const holdingCourseBar = () => c.state === 'swing' &&
+    !!window.skySwing?.course?.bars?.includes(window.skySwing?.active?.bar);
   const near = (at, r = 1.3) => Math.hypot(c.pos.x - at[0], c.pos.z - at[2]) < r && Math.abs(c.pos.y - at[1]) < 1;
   const make = (id, chapter, title, hint, goal, done, extra = {}) => ({
     id, chapter, title, hint, goal, done, checkpoint: course.sections.find(s => s.id === id), ...extra,
@@ -27,7 +29,7 @@ export function createLessons(sky, game, practice, progress) {
     make('downhill', 1, ['斜面を滑ろう', 'Slide down'], ['斜面で「斜面滑り」 ／ C', 'Use Slide on the slope / C'], [83, 0, 0], () => changed('slides') && c.pos.x > 81.5 && c.pos.y < .5 && c.onGround, { action: 'tSlide', retryIf: () => c.pos.x > 82 && landed() && !changed('slides') }),
     make('ladder', 1, ['はしごを登ろう', 'Climb the ladder'], ['はしごへ、そのまま前入力', 'Move into it and keep moving forward'], [92, 4, 0], () => changed('ladders') && c.pos.y > 3.9 && landed(), { path: [[88, 0, 0]] }),
     make('zip', 1, ['ロープへ、ジャンプ', 'Jump to the zipline'], ['つかまれば自動で渡ります', 'Travel is automatic once attached'], [111.5, 2.8, -3.2], () => changed('zips') && c.pos.x > 107 && c.pos.y > 2.7 && landed(), { path: [[94, 4, 0]], action: 'tJump' }),
-    make('walljump', 1, ['壁を蹴って、上へ', 'Kick off the wall'], ['ジャンプ → 空中でもう一度', 'Jump, then jump again in midair'], [119, 4, 0], () => changed('walljumps') && c.pos.x > 117.7 && c.pos.y > 3.9 && landed(), { path: [[115, 2.8, -3.2]], action: 'tJump' }),
+    make('walljump', 1, ['壁を蹴って、上へ', 'Kick off the wall'], ['ジャンプ → 空中でもう一度', 'Jump, then jump again in midair'], [119, 4, 0], () => changed('walljumps') && c.pos.x > 117.7 && c.pos.y > 3.9 && landed(), { path: [[115, 2.8, -3.2]], action: 'tJump', handoff: holdingCourseBar }),
     make('swing', 1, ['鉄棒で、向こうの足場へ', 'Swing onto the next roof'], ['前へ振れたらジャンプ', 'Jump as you swing forward'], [140, 6.8, 0], landedAfterSwing, { action: 'tJump', retryIf: () => changed('barJumps') && landed() && !landedAfterSwing() }),
     make('dash', 1, ['加速して、跳ぶ', 'Speed up and jump'], ['青いDASHを取って、先の屋上へ', 'Collect DASH and jump to the next roof'], [163, 0, 0], () => changed('dashPickups') && c.pos.x > 154 && c.pos.y < .2 && landed(), { action: 'tJump' }),
     make('flash', 2, ['追手を止めて、逃げよう', 'Stop the pursuers and escape'], ['追手が近づいたら、閃光玉を使う ／ 1', 'Use Flash when the pursuers get close / 1'], [176, 0, 0], () => progress.flashPursued && window.skyFlashbang.stats.affected > progress.flash && c.pos.x > 180.3 && landed(), { action: 'tFlash' }),
