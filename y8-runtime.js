@@ -8,9 +8,8 @@ export function installY8(win = window, doc = document) {
   const endpoint = 'https://gunrun-runs.jirisuke0121.workers.dev';
   const nativeFetch = win.fetch.bind(win);
   let sdk, initialized = false, session = null, generation = 0, sessionFlight = null;
-  let currentRun = null, background = doc.hidden, adActive = false, focusPaused = false;
-  let adFlight = null, forwarded = null, readyAds = false;
-  const qa = {sdkReady:false, auth:'loading', adRequests:0, adStatus:'idle'};
+  let currentRun = null, background = doc.hidden, focusPaused = false;
+  const qa = {sdkReady:false, auth:'loading'};
   const guest = () => { try { return win.localStorage.getItem('gunrun-pid'); } catch { return null; } };
   const labels = {
     ja:['Y8でログイン','ログアウト','Y8に接続できません。ゲストで遊べます。','Y8に接続中…'],
@@ -76,7 +75,7 @@ export function installY8(win = window, doc = document) {
     initialized = true;
     try {
       sdk = win.y8.sdk();
-      sdk.init({appId:Y8_CONFIG.appId, autoLogin:true}, {gameId:Y8_CONFIG.gameId, preloadAdBreaks:'on', sound:'on', onReady(){readyAds=true;}});
+      sdk.init({appId:Y8_CONFIG.appId, autoLogin:true});
       sdk.onAuth((user, error) => {
         clearSession(); qa.auth = error ? 'error' : user ? 'loading' : 'guest'; mount();
         const version = generation;
@@ -85,7 +84,7 @@ export function installY8(win = window, doc = document) {
       qa.sdkReady = true; mount();
     } catch { qa.auth = 'error'; mount(); }
   }
-  const muted = () => background || adActive || focusPaused;
+  const muted = () => background || focusPaused;
   function syncAudio() {
     const ctx = game.Ut.ctx;
     if (muted()) {
@@ -107,45 +106,11 @@ export function installY8(win = window, doc = document) {
   doc.addEventListener('visibilitychange', () => doc.hidden ? leave() : focus());
   win.addEventListener('pagehide', leave);
   win.addEventListener('pageshow', focus);
-  function showStartAd() {
-    if (adFlight) return adFlight;
-    if (!sdk || !readyAds) return Promise.resolve();
-    adFlight = new Promise(resolve => {
-      let settled = false;
-      const finish = result => {
-        if (settled) return; settled = true;
-        win.clearTimeout(timer); adActive = false; qa.adStatus = result; syncAudio(); resolve();
-      };
-      // A blocked provider must not trap the Start button. Once an ad actually
-      // starts, its callbacks own the pause, so the timeout is cancelled.
-      const timer = win.setTimeout(() => finish('unavailable'), 8000);
-      qa.adRequests++; qa.adStatus='requested';
-      try {
-        Promise.resolve(sdk.showAd({type:'start', name:'start-run',
-          beforeAd(){ if (settled) return; win.clearTimeout(timer); adActive=true; qa.adStatus='showing'; syncAudio(); },
-          afterAd(){ finish('finished'); }, adBreakDone(info){ finish(info?.breakStatus || 'done'); },
-        })).catch(() => finish('error'));
-      } catch { finish('error'); }
-    }).finally(() => { adFlight = null; });
-    return adFlight;
-  }
-  win.addEventListener('click', event => {
-    const target = event.target.closest?.('#bStart,#bRetry,#bRestart');
-    if (!target || target.disabled) return;
-    if (win.skyChallenge?.isIntroLaunch || (target.id !== 'bStart' && win.skyChallenge?.isIntroRun)) return;
-    if (forwarded === target) { forwarded = null; return; }
-    // Tutorial entry and menu navigation never request advertisements.
-    if (!sdk || !readyAds) return;
-    event.preventDefault(); event.stopImmediatePropagation();
-    if (adFlight) return;
-    game.initAudio();
-    void showStartAd().then(() => { forwarded=target; target.click(); forwarded=null; });
-  }, true);
   const api = {
-    qa, get blocked(){return background || adActive;}, get muted(){return muted();},
+    qa, get blocked(){return background;}, get muted(){return muted();},
     player:() => session?.player || guest(), runPlayer:() => currentRun || session?.player || guest(),
     beginRun(){ currentRun=session?.player || guest(); },
-    modeChanged(mode){ if (mode === 'play' && !background && !adActive) focusPaused=false; syncAudio(); },
+    modeChanged(mode){ if (mode === 'play' && !background) focusPaused=false; syncAudio(); },
     async fetch(input, init) {
       const url = new URL(String(input), win.location.href);
       if (url.origin !== endpoint || url.pathname !== '/runs' || init?.method !== 'POST') return nativeFetch(input, init);
