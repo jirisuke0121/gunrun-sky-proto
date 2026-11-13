@@ -26,6 +26,7 @@ jobs:
       - run: python3 -m http.server 8881 --bind 127.0.0.1 > /tmp/learn-server.log 2>&1 &
       - run: node bench/guided-intro-browser.cjs
       - run: node bench/guided-intro-parity-browser.cjs
+      - run: node bench/learn-boot-cover-browser.cjs
       - run: node bench/development-entry-browser.cjs
       - run: node bench/random-uuid.test.cjs
       - run: node bench/guided-swing-landing.test.cjs

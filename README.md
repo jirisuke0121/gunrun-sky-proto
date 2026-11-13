@@ -1,3 +1,10 @@
+## 2026-11-13 入門の開始時に旧式の開始画面が見えるバグを直した
+
+- 原因：入門（`canyon.html?learn=1`）は、読み込み後に `practice.js` が「人物の読み込み完了」を待って開始ボタンを自動で押す作り。それまでの数秒間、ホーム用に整える前の旧式の開始画面（「パルクール練習場／入門モードで試す」の札）が、`sky-home-pending`（DOMContentLoadedで解除）の後にそのまま見えていた。実機では速いので「一瞬」に見えていた。
+- 直し：`?learn` のときだけ `<html>` に `sky-learn-booting` を付け（`canyon.html` の先頭のインライン）、無地の濃紺の覆い＋小さなスピナー（文字なし）で全体を隠す。入門が始まった次のフレームで `guided-intro.js` が外す。失敗しても20秒でCSSだけで自動解除。
+- 検査：`bench/learn-boot-cover-browser.cjs`（覆いが解除される前に `#ovStart` が見えたフレームが0／覆いは最初の描画から付く）。CIの `guided-intro.yml` に追加。`guided-paused-browser.cjs`・`development-entry-browser.cjs` も通過。スマホ・PCとも、遷移は「ホーム → 覆い → 操作選択（PCは最初のレッスン）」の2回だけになった（録画フレームで確認）。
+- 未確認：実機での目視。`?practice`（パルクール練習場）も同じ自動開始だが、今回は対象外。
+
 ## 2026-11-13 PCは操作タイプの選択をなくし、FPS（WASD＋マウス）一択にした
 
 - PCでは常にFPS。入門の「操作を選ぶ」画面（`guided-choice.js`）は出さず、入門コースの最初のレッスンへ直接入る（`guided-intro.js`）。設定の「操作」タブの選択カード（`pause-focus.js`）とホームの操作タイプのセレクト（`follow-camera.js`）もPCでは出さない。
