@@ -7,7 +7,10 @@ if (game && math) {
   const inView = e => {
     if (!project) return false;
     project.set(e.pos.x, e.pos.y + 1, e.pos.z).project(game.Se);
-    return project.z > -1 && project.z < 1 && Math.abs(project.x) < 1 && Math.abs(project.y) < 1;
+    if (!(project.z > -1 && project.z < 1 && Math.abs(project.x) < 1 && Math.abs(project.y) < 1)) return false;
+    // In the frame is not enough: a pursuer behind a wall is not in view (the first day's numbers counted those as visible).
+    const boxes = window.__game?.solids;
+    return !(boxes && math.segmentBlocked(game.Se.position, { x: e.pos.x, y: e.pos.y + 1, z: e.pos.z }, boxes));
   };
   // ?threatHud=1 (dev only): the numbers that are recorded, shown live. Nothing is shown to normal players.
   const hud = new URLSearchParams(location.search).get('threatHud') === '1' ? Object.assign(document.createElement('div'), { id: 'threatHud' }) : null;

@@ -1,4 +1,4 @@
-/* Direction edges for pursuers that are off screen, behind the HUD controls. Three steps by distance, one red:
+/* Direction edges for pursuers that are off screen (left / right / behind; the top edge is for one ahead but hidden by a wall), behind the HUD controls. Three steps by distance, one red:
    (far 16-35 m, nobody close: a faint 10px marker), 10-16 m thin and dark, 6-10 m wider and brighter, under 6 m widest and pulsing (data-tier 1 / 2 / 3). */
 #threatEdge{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
 #threatEdge i{--c:#b3243a;--w:22px;position:absolute;opacity:0;will-change:opacity;transition:width .15s,height .15s}
@@ -7,11 +7,12 @@
 #threatEdge i[data-tier='3']{--c:#f0263c;--w:46px}
 #threatEdge i[data-side=l]{left:0;top:12%;bottom:12%;width:var(--w);transform-origin:left;background:linear-gradient(90deg,var(--c),transparent)}
 #threatEdge i[data-side=r]{right:0;top:12%;bottom:12%;width:var(--w);transform-origin:right;background:linear-gradient(270deg,var(--c),transparent)}
+#threatEdge i[data-side=t]{left:18%;right:18%;top:0;height:var(--w);transform-origin:top;background:linear-gradient(180deg,var(--c),transparent)}
 #threatEdge i[data-side=b]{left:18%;right:18%;bottom:0;height:var(--w);transform-origin:bottom;background:linear-gradient(0deg,var(--c),transparent)}
 body:has(#ovPause:not([hidden])) #threatEdge,body:has(#ovOver:not([hidden])) #threatEdge{display:none}
 @keyframes threatPulseX{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.35)}}
 @keyframes threatPulseY{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.35)}}
 @media (prefers-reduced-motion:no-preference){
 #threatEdge i[data-tier='3'][data-side=l],#threatEdge i[data-tier='3'][data-side=r]{animation:threatPulseX .6s ease-in-out infinite}
-#threatEdge i[data-tier='3'][data-side=b]{animation:threatPulseY .6s ease-in-out infinite}
+#threatEdge i[data-tier='3'][data-side=b],#threatEdge i[data-tier='3'][data-side=t]{animation:threatPulseY .6s ease-in-out infinite}
 }

@@ -10,14 +10,15 @@
     return Math.atan2(dx * Math.cos(yaw) - dz * Math.sin(yaw), -dx * Math.sin(yaw) - dz * Math.cos(yaw));
   }
   // Strength 0..1 of the left / right / behind edges from the pursuers near the player.
-  function edges(player, yaw, zombies, range = RANGE) {
+  function edges(player, yaw, zombies, range = RANGE, blocked = null) {
     const out = { l: 0, r: 0, b: 0 };
+    if (blocked) out.t = 0;
     for (const e of zombies) {
       if (!alive(e)) continue;
       const d = Math.hypot(e.pos.x - player.x, e.pos.z - player.z);
       if (d >= range) continue;
       const w = Math.pow(1 - d / range, 1.2), a = relativeAngle(player.x, player.z, e.pos.x, e.pos.z, yaw), m = Math.abs(a);
-      if (m < FRONT) continue;
+      if (m < FRONT) { if (blocked && blocked(e)) out.t = Math.max(out.t, w); continue; }
       if (m >= BACK) out.b = Math.max(out.b, w);
       else if (a > 0) out.r = Math.max(out.r, w);
       else out.l = Math.max(out.l, w);
@@ -27,19 +28,39 @@
   // Far pursuers (beyond `from`, up to `to` m): the same sides and angles as edges(), but only a faint marker, 0.12 (far) to 0.37
   // (near). The caller shows it only while nobody is within `from` m, so it reads as "still being followed, far away".
   const FAR = 35;
-  function far(player, yaw, zombies, from = RANGE, to = FAR) {
+  function far(player, yaw, zombies, from = RANGE, to = FAR, blocked = null) {
     const out = { l: 0, r: 0, b: 0 };
+    if (blocked) out.t = 0;
     for (const e of zombies) {
       if (!alive(e)) continue;
       const d = Math.hypot(e.pos.x - player.x, e.pos.z - player.z);
       if (d < from || d >= to) continue;
       const w = .12 + .25 * (1 - (d - from) / (to - from)), a = relativeAngle(player.x, player.z, e.pos.x, e.pos.z, yaw), m = Math.abs(a);
-      if (m < FRONT) continue;
+      if (m < FRONT) { if (blocked && blocked(e)) out.t = Math.max(out.t, w); continue; }
       if (m >= BACK) out.b = Math.max(out.b, w);
       else if (a > 0) out.r = Math.max(out.r, w);
       else out.l = Math.max(out.l, w);
     }
     return out;
+  }
+  // Is the straight line from `a` to `b` cut by a wall or a floor? boxes: the game's solids (minX..maxZ). Only slabs and
+  // monoliths hide a pursuer (a beam, a prop or a door does not). The last 3% of the line is ignored so a pursuer standing
+  // right against a wall is not "hidden" by the wall it stands on.
+  const HIDES = { slab: 1, mono: 1 };
+  function segmentBlocked(a, b, boxes) {
+    const dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
+    for (let i = 0; i < boxes.length; i++) {
+      const k = boxes[i];
+      if (!k.solid || k.off || !HIDES[k.type]) continue;
+      let t0 = 0, t1 = .97;
+      if (dx) { let u = (k.minX - a.x) / dx, v = (k.maxX - a.x) / dx; if (u > v) { const w = u; u = v; v = w; } if (u > t0) t0 = u; if (v < t1) t1 = v; } else if (a.x < k.minX || a.x > k.maxX) continue;
+      if (t0 > t1) continue;
+      if (dy) { let u = (k.minY - a.y) / dy, v = (k.maxY - a.y) / dy; if (u > v) { const w = u; u = v; v = w; } if (u > t0) t0 = u; if (v < t1) t1 = v; } else if (a.y < k.minY || a.y > k.maxY) continue;
+      if (t0 > t1) continue;
+      if (dz) { let u = (k.minZ - a.z) / dz, v = (k.maxZ - a.z) / dz; if (u > v) { const w = u; u = v; v = w; } if (u > t0) t0 = u; if (v < t1) t1 = v; } else if (a.z < k.minZ || a.z > k.maxZ) continue;
+      if (t0 <= t1) return true;
+    }
+    return false;
   }
   // The edge strength back to a distance, and the three steps shown on screen: 10-16 m a thin dark edge, 6-10 m wider and
   // brighter, under 6 m widest and pulsing. Same red throughout (yellow and orange stay marker colours).
@@ -80,7 +101,7 @@
       },
     };
   }
-  const api = { RANGE, FRONT, BACK, relativeAngle, edges, far, FAR, distanceOf, tier, sample, createTrace };
+  const api = { RANGE, FRONT, BACK, relativeAngle, edges, far, FAR, segmentBlocked, distanceOf, tier, sample, createTrace };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.skyThreatMath = api;
 })(globalThis);

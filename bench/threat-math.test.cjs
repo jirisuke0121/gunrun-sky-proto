@@ -68,3 +68,22 @@ assert.equal(m.far(P, 0, [at(0, -25)]).b + m.far(P, 0, [at(0, -25)]).l + m.far(P
 assert.ok(m.far(P, 0, [at(25, 0)]).r > 0 && m.far(P, 0, [at(-25, 0)]).l > 0);
 assert.equal(m.far(P, 0, [at(0, 25, { dead: true })]).b, 0);
 console.log('PASS threat-math: far marker');
+
+// Hidden pursuer ahead: the line from the camera to the chest is cut by a slab or monolith (not by a beam, prop or an off box).
+const wall = (extra = {}) => ({ minX: -2, maxX: 2, minY: 0, maxY: 5, minZ: -8, maxZ: -7, type: 'mono', solid: true, ...extra });
+const cam = { x: 0, y: 1.6, z: 0 }, chest = d => ({ x: 0, y: 1, z: -d });
+assert.equal(m.segmentBlocked(cam, chest(15), [wall()]), true, 'wall between');
+assert.equal(m.segmentBlocked(cam, chest(15), []), false, 'nothing between');
+assert.equal(m.segmentBlocked(cam, chest(5), [wall()]), false, 'wall behind the pursuer');
+for (const x of [{ type: 'beam' }, { type: 'prop' }, { type: 'door' }, { off: true }, { solid: false }]) assert.equal(m.segmentBlocked(cam, chest(15), [wall(x)]), false, JSON.stringify(x));
+assert.equal(m.segmentBlocked(cam, chest(15), [wall({ minX: 3, maxX: 5 })]), false, 'wall beside the line');
+assert.equal(m.segmentBlocked(cam, chest(7.1), [wall()]), false, 'pursuer right against the wall is not hidden by it');
+assert.equal(m.segmentBlocked(cam, chest(15), [wall({ minY: 3, maxY: 5 })]), false, 'wall above the line');
+const hid = () => true, seen = () => false;
+assert.equal(m.edges(P, 0, [at(0, -6)], m.RANGE, seen).t, 0, 'ahead and visible: no top edge');
+assert.ok(m.edges(P, 0, [at(0, -6)], m.RANGE, hid).t > 0, 'ahead and hidden: top edge');
+assert.equal(m.edges(P, 0, [at(0, -6)], m.RANGE, hid).b, 0);
+assert.equal(m.edges(P, 0, [at(0, 6)], m.RANGE, hid).t, 0, 'hidden but behind: bottom edge, not top');
+assert.ok(m.far(P, 0, [at(0, -25)], m.RANGE, m.FAR, hid).t > 0, 'far marker for a hidden pursuer ahead');
+assert.deepEqual(m.edges(P, 0, [at(0, 6)]), { l: 0, r: 0, b: m.edges(P, 0, [at(0, 6)]).b }, 'no predicate: no t key');
+console.log('PASS threat-math: hidden pursuer ahead');
