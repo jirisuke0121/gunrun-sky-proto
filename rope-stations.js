@@ -11,7 +11,7 @@
   const L = 8.5, HANDS = 1.9, RETURN_SECONDS = 1.2, LAND_MARGIN = .6;
   const V_ENTRY_MIN = 4, V_MAX = 13, PUMP = .6, MAX_ANGLE = 75 * Math.PI / 180, MAX_SECONDS = 9;
   const KICK = { x: 3, y: 3 };
-  const GRAB = { du: 2.4, dyLow: 1.2, dyHigh: 1.5, dv: 1.5, minSpeed: 2.5, maxFall: 1.5 }; // maxFall: 落ちながら通りかかっただけ（フックの到着後など）ではつかまない
+  const GRAB = { r: 3.4, dyLow: 1.2, dyHigh: 2, maxFall: 1.5 }; // maxFall: 落ちながら通りかかっただけ（フックの到着後など）ではつかまない
   const GRIP_SECONDS = 8, GRIP_REGEN = .25, GRIP_MIN = .3;
   const STATIONS = [
     { id: 1, px: -58, pz: 5, fs: 3.4, dx: -0.2588, dz: 0.9659, alpha: 12, pu: 1.767, py: 15.114, mast: { x: -60.2, z: 6.24, base: 4 }, land: { f: 5.5, edge: 7.8, end: 13.4 } },
@@ -97,8 +97,8 @@
     for (const name of ['pointerup', 'pointercancel', 'pointerleave']) jumpButton?.addEventListener(name, () => { touchHeld = false; });
     addEventListener('blur', () => { jumpHeld = touchHeld = pressed = false; });
 
-    const inGrab = (s, p) => { const rx = p.x - s.px, rz = p.z - s.pz, u = rx * s.dx + rz * s.dz, v = rx * s.nx + rz * s.nz;
-      return Math.abs(u) <= GRAB.du && p.y >= s.parkY - GRAB.dyLow && p.y <= s.parkY + GRAB.dyHigh && Math.abs(v) <= GRAB.dv; };
+    // 鉄棒と同じく、ロープの周り（水平 3.4 m）で空中にいればどの位置・向きからでもつかめる。つかんだら目標の台の向きへ振れる。
+    const inGrab = (s, p) => Math.hypot(p.x - s.px, p.z - s.pz) <= GRAB.r && p.y >= s.parkY - GRAB.dyLow && p.y <= s.parkY + GRAB.dyHigh;
     function begin(n) {
       const s = n.s, p = c.pos, u = (p.x - s.px) * s.dx + (p.z - s.pz) * s.dz;
       const th = Math.max(-MAX_ANGLE, Math.min(MAX_ANGLE, Math.atan2(u - s.pu, s.py - (p.y + HANDS))));
@@ -113,7 +113,7 @@
     function release() {
       const r = riding, s = r.n.s, p = feet(s, r.th), v = releaseVelocity(r.th, r.w), sign = r.w >= 0 ? 1 : -1, w = world(s, p.u);
       c.pos.set(w.x, p.y, w.z); c.vel.set(s.dx * v.u, v.y, s.dz * v.u);
-      c.state = 'normal'; c.onGround = false; c.coyote = 0; c.airT = 0; c.edgeJump = false; c.jumpBuf = 0; c.h = 1.75;
+      c.state = 'normal'; c.onGround = false; c.coyote = 0; c.airT = 0; c.edgeJump = window.SKY_ROPE_STATIONS.jumpLike !== false; c.jumpBuf = 0; c.h = 1.75; // ジャンプと同じ扱い：飛び出した後に縁へ届けば、よじ登る・縁をつかむ
       c.yaw = Math.atan2(-sign * s.dx, -sign * s.dz);
       r.n.from = r.th; r.n.lock = RETURN_SECONDS; r.n.mat.color.setHex(0xffa21f);
       stats.ropeReleases = (stats.ropeReleases || 0) + 1;
@@ -134,7 +134,7 @@
         if (!playing() || c.state !== 'normal' || c.onGround || window.skyBite?.locked || grip < GRIP_MIN) return false;
         for (const id in nodes) {
           const n = nodes[id], s = n.s;
-          if (n.lock > 0 || !inGrab(s, c.pos) || c.vel.y < -GRAB.maxFall || c.vel.x * s.dx + c.vel.z * s.dz < GRAB.minSpeed) continue;
+          if (n.lock > 0 || !inGrab(s, c.pos) || c.vel.y < -GRAB.maxFall) continue;
           begin(n); break;
         }
         if (!riding) return false;
@@ -151,8 +151,12 @@
       n.mat.color.setHex(cue.ok ? 0x7ef0aa : 0xffa21f);
       hint.style.opacity = '1'; showGrip();
       c.jumpBuf = 0;
+      // 前へ押していて、進む先に登れる縁が手の届く所にあれば、ロープを離してそのままよじ登る（ジャンプ中と同じ判定へ渡す）。
+      const climbable = r.age > .3 && r.th > .15 && r.w > 0 && input && (input.fwdIn || 0) > .25 && (() => { const k = window.__skyInternals, f = k?.canExitLadder; if (!f) return false;
+        const sg = r.w >= 0 ? 1 : -1, q = .22 + c.r; return !!f({ x: c.pos.x - s.dx * sg * q, z: c.pos.z - s.dz * sg * q, nx: s.dx * sg, nz: s.dz * sg, y1: c.pos.y + .95 }); })();
+      if (climbable) { n.draw(r.th); release(); return false; }
       if (pressed || Math.abs(r.th) > MAX_ANGLE || r.age > MAX_SECONDS || grip <= 0 || window.skyBite?.locked) { n.draw(r.th); release(); return false; }
-      const p = feet(s, r.th), w = world(s, p.u), blend = Math.min(1, (game.z.t - r.t0) / .18); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる
+      const p = feet(s, r.th), w = world(s, p.u), blend = Math.min(1, (game.z.t - r.t0) / .25); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる
       c.pos.set(c.pos.x + (w.x - c.pos.x) * blend, c.pos.y + (p.y - c.pos.y) * blend, c.pos.z + (w.z - c.pos.z) * blend);
       const v = r.w * L; c.vel.set(s.dx * v * Math.cos(r.th), v * Math.sin(r.th), s.dz * v * Math.cos(r.th));
       c.yaw = Math.atan2(-s.dx, -s.dz); c.onGround = false; c.h = 1.75;
