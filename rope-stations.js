@@ -8,7 +8,7 @@
 // 各ロープ: park = 跳ぶ位置（足の高さ fs+1.5 でつかむ）、d = 向き（水平）、pu/py = 支点（park から d 方向に pu、高さ py）、
 //          land = 着地する台（床の高さ f、park から d 方向に edge〜end の範囲）、mast = 柱の足元（見た目だけ、当たり判定なし）。
 (() => {
-  const L = 8.5, HANDS = 1.9, RETURN_SECONDS = 1.2, LAND_MARGIN = .6;
+  const L = 8.5, HANDS = 1.9, RETURN_SECONDS = .6, LAND_MARGIN = .6;
   const V_ENTRY_MIN = 4, V_MAX = 13, PUMP = .6, MAX_ANGLE = 75 * Math.PI / 180, MAX_SECONDS = 9;
   const KICK = { x: 3, y: 3 };
   const GRAB = { r: 3.4, dyLow: 1.2, dyHigh: 2, maxFall: 1.5 }; // maxFall: 落ちながら通りかかっただけ（フックの到着後など）ではつかまない
@@ -156,7 +156,7 @@
         const sg = r.w >= 0 ? 1 : -1, q = .22 + c.r; return !!f({ x: c.pos.x - s.dx * sg * q, z: c.pos.z - s.dz * sg * q, nx: s.dx * sg, nz: s.dz * sg, y1: c.pos.y + .95 }); })();
       if (climbable) { n.draw(r.th); release(); return false; }
       if (pressed || Math.abs(r.th) > MAX_ANGLE || r.age > MAX_SECONDS || grip <= 0 || window.skyBite?.locked) { n.draw(r.th); release(); return false; }
-      const p = feet(s, r.th), w = world(s, p.u), blend = Math.min(1, (game.z.t - r.t0) / .25); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる
+      const p = feet(s, r.th), w = world(s, p.u), blend = Math.min(1, (game.z.t - r.t0) / .12); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる
       c.pos.set(c.pos.x + (w.x - c.pos.x) * blend, c.pos.y + (p.y - c.pos.y) * blend, c.pos.z + (w.z - c.pos.z) * blend);
       const v = r.w * L; c.vel.set(s.dx * v * Math.cos(r.th), v * Math.sin(r.th), s.dz * v * Math.cos(r.th));
       c.yaw = Math.atan2(-s.dx, -s.dz); c.onGround = false; c.h = 1.75;
