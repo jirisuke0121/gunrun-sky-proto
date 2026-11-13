@@ -22,7 +22,7 @@ export function resultOnly(a) {
 // Collection, durable local storage, server acknowledgement and ranking are
 // separate states. A closed collector never means a successful upload.
 export function createRunRecords({ storage, fetcher = fetch, uuid = () => randomUUID(), allowed = () => true,
-  announce = () => {}, emit = () => {}, endpoint = RECORD_ENDPOINT } = {}) {
+  announce = () => {}, emit = () => {}, identity = null, endpoint = RECORD_ENDPOINT } = {}) {
   const read = (key, fallback) => { try { return JSON.parse(storage.getItem(key)) || fallback; } catch { return fallback; } };
   const queue = read(OUTBOX, {}); let history = read(HISTORY, []), protocol = 0;
   const flights = new Map();
@@ -123,7 +123,7 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => random
     let a;
     try { a = copy(value); } catch { a = copy(resultOnly(value)); }
     const profile=globalThis.window?.skyFoundation?.profile?.();if(profile)Object.assign(a,profile);
-    a.clientRunId ||= uuid(); a.player = player; a.mapKey = recordMap(a);
+    a.clientRunId ||= uuid(); a.player = identity?.runPlayer?.() || player; a.mapKey = recordMap(a);
     // Optional nickname chosen on the first-visit guide; the Worker validates it again.
     try { const nick = storage.getItem('gunrun-name'); if (nick) a.name = nick; else delete a.name; } catch {}
     const existing = history.find(row => row.clientRunId === a.clientRunId);
@@ -142,7 +142,7 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => random
     await capability();
     for (const id of Object.keys(queue)) await deliver(id);
   }
-  return { submit,retry,capability,newRunId:uuid,get player(){return player;},get history(){return rows();},get pending(){return Object.keys(queue).length;},get protocol(){return protocol;} };
+  return { submit,retry,capability,newRunId:uuid,get player(){return identity?.player?.() || player;},get history(){return rows();},get pending(){return Object.keys(queue).length;},get protocol(){return protocol;} };
 }
 
 export function installRunRecords(game, win = window, doc = document) {
@@ -178,7 +178,7 @@ export function installRunRecords(game, win = window, doc = document) {
     const legacy = doc.getElementById('oLog'); if (legacy && legacy.textContent !== status) legacy.textContent = status;
   }
   const storage = {getItem:key=>{try{return win.localStorage.getItem(key);}catch{return null;}},setItem:(key,value)=>win.localStorage.setItem(key,value)};
-  store = createRunRecords({ storage,fetcher:(...args)=>win.fetch(...args),uuid:()=>randomUUID(win.crypto),
+  store = createRunRecords({ storage,identity:{runPlayer:()=>win.skyY8?.runPlayer(),player:()=>win.skyY8?.player()},fetcher:(...args)=>win.skyY8 ? win.skyY8.fetch(...args) : win.fetch(...args),uuid:()=>randomUUID(win.crypto),
     allowed:()=>!win.skyOwnerReplay&&!win.skyPracticeMode&&!win.skyChallenge.debug&&!win.skyChallenge.isIntro&&!!game.U.sendLog,
     announce:row=>render(row),emit:detail=>doc.dispatchEvent(new CustomEvent('sky-run-uploaded',{detail})) });
   for (const [id,target] of [['recordDeliveryHome',doc.getElementById('recNote')],['recordDeliveryResult',doc.getElementById('unityRecordStatus') || doc.getElementById('oLog')]]) {

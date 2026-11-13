@@ -1,0 +1,36 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {DatabaseSync}=require('node:sqlite');
+(async()=>{
+ const {signInY8,Y8_APP_ID,y8Session}=await import('../server/y8-auth.js');
+ const {default:worker}=await import('../server/worker.js');
+ const sql=new DatabaseSync(':memory:');
+ sql.exec(fs.readFileSync('server/schema.sql','utf8'));sql.exec(fs.readFileSync('server/y8-schema.sql','utf8'));
+ const DB={prepare(query){let args=[];return {bind(...a){args=a;return this},async run(){return sql.prepare(query).run(...args)},async first(){return sql.prepare(query).get(...args)||null},async all(){return{results:sql.prepare(query).all(...args)}}}},async batch(items){return Promise.all(items.map(x=>x.run()))}};
+ const env={DB,ALLOWED_ORIGINS:'https://*.y8.com'};
+ const req=token=>new Request('https://fixture/auth/y8',{method:'POST',headers:{authorization:`Bearer ${token}`}});
+ const profile=(pid='player-one',client_id=Y8_APP_ID)=>async(url,options)=>{
+   assert.equal(url,'https://account.y8.com/api/profile');assert.equal(options.headers.authorization,'Bearer valid-access');
+   return Response.json({pid,client_id,nickname:'Y8 Name',trust_details:{email:'never-stored@example.invalid'}});
+ };
+ assert.equal((await signInY8(req('bad token'),env,{})).status,401);
+ assert.equal((await signInY8(req('valid-access'),env,{},profile('x','nightline-app'))).status,401);
+ assert.equal((await signInY8(req('valid-access'),env,{},async()=>{throw Error('offline')})).status,503);
+ assert.equal((await signInY8(req('valid-access'),env,{},async()=>new Response('',{status:401}))).status,401);
+ const a=await (await signInY8(req('valid-access'),env,{},profile())).json();
+ const b=await (await signInY8(req('valid-access'),env,{},profile())).json();
+ assert.equal(a.player,b.player,'cross-device identity is stable');assert.notEqual(a.session.token,b.session.token);
+ const c=await (await signInY8(req('valid-access'),env,{},profile('other-player'))).json();assert.notEqual(a.player,c.player);
+ const stored=sql.prepare('SELECT * FROM y8_sessions').all();
+ assert.ok(!JSON.stringify(stored).includes(a.session.token));assert.ok(!JSON.stringify(stored).includes('valid-access'));assert.ok(!JSON.stringify(stored).includes('never-stored'));
+ assert.equal((await y8Session(req(a.session.token),env)).player,a.player);
+ sql.prepare('UPDATE y8_sessions SET expires_at = 1 WHERE player=?').run(c.player);assert.equal(await y8Session(req(c.session.token),env),null);
+ const run={v:3,clientRunId:crypto.randomUUID(),player:a.player,at:new Date().toISOString(),kind:'map',channel:'dev',build:'y8-auth-dev',reason:'time',t:120,score:{total:100},challenge:{id:'normal',version:'corridor-crowd6-v6'}};
+ const send=(token,body=run)=>worker.fetch(new Request('https://fixture/runs',{method:'POST',headers:{Origin:'https://html5.gamedistribution.y8.com',...(token?{authorization:`Bearer ${token}`}:{})},body:JSON.stringify(body)}),env);
+ assert.equal((await send()).status,401);assert.equal((await send(null,{...run,player:[a.player]})).status,401,'array coercion cannot bypass identity verification');assert.equal((await send(b.session.token,{...run,player:c.player})).status,403);
+ assert.equal((await send(a.session.token)).status,200);assert.equal((await send(b.session.token)).status,200,'retry remains idempotent across devices');
+ assert.equal(sql.prepare('SELECT COUNT(*) AS n FROM runs').get().n,1);
+ assert.equal(JSON.parse(sql.prepare('SELECT json FROM runs WHERE player=?').get(a.player).json).name,'Y8_NAME');
+ assert.equal((await send(null,{...run,clientRunId:crypto.randomUUID(),player:'anonymous-device'})).status,200);
+ const denied=await worker.fetch(new Request('https://fixture/auth/y8',{method:'POST',headers:{Origin:'https://other.invalid'}}),env);assert.equal(denied.status,403);
+ console.log('PASS Y8 app isolation, stable identity, token hashing, privacy, expiry, account mismatch, verified uploads, guest play and idempotent retry');
+})().catch(e=>{console.error(e);process.exitCode=1});

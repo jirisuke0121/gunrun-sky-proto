@@ -1,6 +1,7 @@
 // Developer mode: shows the tuning tools that players must not see (free-tuning difficulty,
 // raw balance sliders, white-box map). Turn on with ?dev=1 (remembered), off with ?dev=0.
 (() => {
+  if (window.SKY_PLATFORM?.id === 'y8') { window.skyDevMode = false; return; }
   const KEY = 'sky.dev';
   const query = new URLSearchParams(location.search).get('dev');
   let on = false;

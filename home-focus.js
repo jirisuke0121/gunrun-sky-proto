@@ -33,7 +33,7 @@
   const difficulty = make('div', { id: 'homeDifficulty' }, '<div class="home-difficulty-heading"><h2>難易度を選ぶ</h2><span>難しいほど得点にボーナス</span></div>');
   const selector = $('challengeDifficulty'); selector.hidden = true;
   const choices = make('div', { className: 'home-difficulty-choices', role: 'group', ariaLabel: '難易度' });
-  const levels = window.skyChallenge.levels.filter(p => p.id !== 'legacy');
+  const levels = window.skyChallenge.levels.filter(p => p.id !== 'legacy' && !(window.SKY_PLATFORM?.id === 'y8' && p.trial));
   for (const [index, p] of levels.entries()) {
     // The trial tier is a slim row under the three ranked choices: it is not part of the shared ranking.
     const button = p.trial
@@ -57,7 +57,8 @@
   const development = make('details', { id:'homeDevelopment' });
   development.append(make('summary', {}, '開発用'));
   const developmentButton=make('button', { id:'bGuidedIntro', type:'button' }, '入門モードで遊ぶ');
-  development.append(developmentButton);
+  if (window.SKY_PLATFORM?.id !== 'y8') development.append(developmentButton);
+  else development.hidden = true;
   const syncDevelopment = () => { developmentButton.disabled = introButton.disabled; };
   new MutationObserver(syncDevelopment).observe(introButton,{attributes:true,attributeFilter:['disabled']});
   syncDevelopment();main.append(intro);

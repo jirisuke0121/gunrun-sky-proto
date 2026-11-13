@@ -1,3 +1,4 @@
+import { signInY8, y8Session } from './y8-auth.js';
 import { recordMap, replayFromRecord, validateGhost } from '../replay-data.js';
 import rankedRules from '../ranked-rules.js';
 import survivalScore from '../survival-score.js';
@@ -34,6 +35,10 @@ export default {
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
 
     try {
+      if (url.pathname === '/auth/y8' && req.method === 'POST') {
+        if (!originAllowed(origin, allowed)) return json({error:'origin'},403,cors);
+        return await signInY8(req, env, cors);
+      }
       if (url.pathname === '/telemetry' && req.method === 'POST') return await receiveTelemetry(req, env, cors, origin, allowed);
       if (['/admin/players','/admin/player','/admin/replay'].includes(url.pathname) && req.method==='GET') {
         if (!canReadOverview(req,env)) return json({error:'unauthorized'},401,{...cors,'cache-control':'private, no-store'});
@@ -50,7 +55,7 @@ export default {
       if (ghost && req.method === "GET") return await publicGhost(env, cors, url, ghost[1]);
       const m = url.pathname.match(/^\/runs\/([\w-]+)$/);
       if (m && req.method === "GET") return await one(req, env, cors, m[1]);
-      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-02-survival15-v1", recordProtocol: 2, replayDetail: 1, ownerLogin: 1, environmentTelemetry: 1, customDateRange: 1, dbEfficiency: 1, playerConsole:1, rankedRules: rankedRules.version }, 200, cors);
+      if (url.pathname === "/") return json({ ok: true, service: "gunrun-runs", build: "2026-11-02-survival15-v1", recordProtocol: 2, replayDetail: 1, ownerLogin: 1, environmentTelemetry: 1, customDateRange: 1, dbEfficiency: 1, playerConsole:1, y8Auth:1, rankedRules: rankedRules.version }, 200, cors);
       return json({ error: "not_found" }, 404, cors);
     } catch (e) {
       return json({ error: "server_error" }, 500, cors);
@@ -103,6 +108,18 @@ async function receive(req, env, cors, origin, allowed) {
   try { a = JSON.parse(text); } catch { return json({ error: "bad_json" }, 400, cors); }
   if (!a || typeof a !== "object" || !Number.isFinite(a.t) || a.t < 0 || a.t > 300 || typeof a.reason !== "string") return json({ error: "bad_shape" }, 400, cors);
   if (a.challenge?.id === 'intro') return json({ error: 'intro_not_recorded' }, 400, cors);
+  // Reserved Y8 identities require a verified game session, including retries.
+  const requestedPlayer = String(a.player || 'anon').slice(0,40);
+  if (requestedPlayer.startsWith('y8_')) {
+    const account = await y8Session(req, env);
+    if (!account) return json({error:'y8_session_required'},401,cors);
+    if (account.player !== requestedPlayer) return json({error:'y8_account_mismatch'},403,cors);
+    a.player = account.player;
+    // Keep an explicitly chosen valid game nickname; otherwise use the verified Y8 name.
+    const accountName = account.name.normalize('NFKC').replace(/[^\p{L}\p{N}_-]/gu,'_').slice(0,14);
+    a.name = playerName.normalize(a.name) || playerName.normalize(accountName) || ('Y8_' + account.player.slice(-8)).toUpperCase();
+    a.source = 'y8';
+  }
   // The nickname is shown publicly, so only a name that passes the shared rule is kept.
   const nickname = playerName.normalize(a.name); if (nickname) a.name = nickname; else delete a.name;
   // Keep the result even when it cannot participate in the fixed competition.
