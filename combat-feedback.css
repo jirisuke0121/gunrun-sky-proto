@@ -37,3 +37,6 @@
 #combatFeedback.cf-narrow .cf-event>span{grid-template-columns:1fr}
 #combatFeedback.cf-narrow .cf-event-detail{grid-column:1;grid-row:2;text-align:left;font-size:14px}
 @media(prefers-reduced-motion:reduce){.cf-trails{display:none}#combatFeedback *{will-change:auto!important}}
+
+/* The number alone is shown while it flies to the score. */
+.cf-damage small,.cf-flight small{display:none}

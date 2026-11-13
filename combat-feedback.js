@@ -38,6 +38,7 @@
       <div id="threatFeedback" class="cf-event" hidden>${art('skull.png', 'cf-event-icon')}<span><b class="cf-event-caption"></b><strong class="cf-event-title"></strong><small class="cf-event-detail"></small></span><i class="cf-event-line"></i></div>`;
     document.getElementById('hud').append(root);
     const $ = sel => root.querySelector(sel), hit = $('#threatHit'), toast = $('#threatFeedback');
+    const STACK = false; // the fixed "n / 10 DMG" badge and the 10-DMG award are off: numbers fly to the score instead
     const stack = $('#damageStack'), award = $('#damageAward'), trailGroup = $('.cf-trails g');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const format = n => Number(n.toFixed(1)).toLocaleString('en-US');
@@ -121,16 +122,25 @@
       hit.style.left = p.x + 'px'; hit.style.top = p.y + 'px'; hit.hidden = false; hitAt = at;
       sound('hit');
     }
+    function scoreTarget() {
+      // The score sits inside a centring transform, so layout offsets are off: use real positions, but only while the
+      // viewport is not rotated/scaled (the portrait prompt hides play); otherwise keep the default target.
+      const node = document.getElementById('unityTotal');
+      if (!node || !node.offsetWidth) return null;
+      const r = node.getBoundingClientRect(), rr = root.getBoundingClientRect();
+      if (Math.abs(rr.width - root.offsetWidth) > 2 || Math.abs(rr.height - root.offsetHeight) > 2) return null;
+      return { x: r.left - rr.left + r.width / 2, y: r.top - rr.top + r.height / 2 };
+    }
     function launch() {
       let f = flights.find(f => !f.active);
       if (!f) { f = flights.reduce((a, b) => a.at < b.at ? a : b); settle(f); }
       const p = pending; pending = null;
       f.damage = p.damage; f.points = p.points; f.at = now(); f.active = true; counts.flights++;
       f.origin = { x: p.x / p.damage, y: p.y / p.damage };
-      stack.hidden = false;
+      stack.hidden = !STACK;
       f.destination = { x: root.clientWidth / 2, y: parseFloat(getComputedStyle(root).getPropertyValue('--cf-stack-top')) + 25 };
-      // Local offsets also work when the logical game viewport is rotated.
-      if (stack.offsetWidth) f.destination = { x: stack.offsetLeft + stack.offsetWidth / 2, y: stack.offsetTop + stack.offsetHeight / 2 };
+      // The number lands on the score itself.
+      f.destination = scoreTarget() || f.destination;
       f.control = { x: (f.origin.x + f.destination.x) / 2 + 55, y: Math.min(f.origin.y, f.destination.y) - 35 };
       f.node.querySelector('b').textContent = '+' + format(f.damage); f.node.querySelector('em').textContent = f.points ? '+' + f.points + ' pt' : '';
       f.node.hidden = false; hit.hidden = true;
@@ -173,6 +183,7 @@
         if (!reduced) f.path.setAttribute('d', `M${f.destination.x},${f.destination.y} Q${f.control.x * r + f.destination.x * e},${f.control.y * r + f.destination.y * e} ${x},${y}`);
         if (age >= .36) settle(f);
       }
+      if (STACK) {
       const awarding = at - awardAt < 1.2;
       if (!awarding) {
         const ceiling = (medals + 1) * 10, target = Math.min(arrived, ceiling);
@@ -195,6 +206,7 @@
       });
       award.hidden = at - awardAt >= 1.2;
       if (!award.hidden) { const age = at - awardAt; award.style.opacity = Math.min(age / .07, (1.2 - age) / .22, 1); award.style.transform = `scale(${reduced ? 1 : 1 + .06 * Math.sin(Math.min(1, age / .24) * Math.PI)})`; }
+      } else { stack.hidden = award.hidden = true; presented = arrived; medals = Math.floor(arrived / 10); }
       if (!toast.hidden) paintEvent(at);
     }
     document.addEventListener('visibilitychange', () => { if (document.hidden) { setActive(false); } });
