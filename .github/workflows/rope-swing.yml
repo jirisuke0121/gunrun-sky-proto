@@ -1,14 +1,14 @@
 name: Rope swing (west platform to central roof) and wind
 on:
   pull_request:
-    paths: ['index.html', 'tower-tunnel.js', 'rope-swing.js', 'wind-fx.js', 'canyon.html', 'dash-boost.js', 'town-heights.js', 'bench/rope-swing*', 'bench/wind-fx*', 'bench/ambient-wind*', '.github/workflows/rope-swing.yml']
+    paths: ['index.html', 'tower-tunnel.js', 'rope-swing.js', 'rope-stations.js', 'wind-fx.js', 'canyon.html', 'dash-boost.js', 'town-heights.js', 'bench/rope-swing*', 'bench/rope-stations*', 'bench/wind-fx*', 'bench/ambient-wind*', '.github/workflows/rope-swing.yml']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   rope-swing:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
@@ -24,4 +24,5 @@ jobs:
             npx playwright install --with-deps chromium
           fi
       - run: node bench/rope-swing-browser.cjs
+      - run: node bench/rope-stations-browser.cjs
       - run: node bench/wind-fx-browser.cjs
