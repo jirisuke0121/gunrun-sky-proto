@@ -8,7 +8,7 @@ const {chromium}=require('playwright');
   {id:'touch-manual-fresh',width:844,height:390,touch:true,camera:'before',retry:false},
   {id:'touch-small-retry',width:640,height:320,touch:true,camera:'after',retry:true,lang:'en'},
   {id:'touch-follow-fresh',width:844,height:390,touch:true,camera:'after',retry:false},
-  {id:'pc-follow-fresh',width:1280,height:720,touch:false,camera:'after',retry:false},
+  {id:'pc-manual-fresh',width:1280,height:720,touch:false,camera:'before',retry:false},
   {id:'pc-manual-retry',width:1280,height:720,touch:false,camera:'before',retry:true},
  ];
  const results=[];
@@ -19,7 +19,7 @@ const {chromium}=require('playwright');
   const base=process.env.RUNNING_QA_URL||'http://127.0.0.1:8882/';
   await p.route('https://**/*',r=>new URL(r.request().url()).origin===new URL(base).origin?r.continue():r.fulfill({status:200,contentType:'application/json',body:'{"top":[]}'}));
   await p.goto(base+`canyon.html?learn=1&camera=${config.camera}&lang=${config.lang||'ja'}&return=canyon&controlpick=0`);
-  await p.waitForFunction(()=>window.skyGuidedIntro?.choice==='choose',null,{timeout:90000});await p.locator(`[data-learn-adopt=${config.camera}]`).click();
+  if(config.touch){await p.waitForFunction(()=>window.skyGuidedIntro?.choice==='choose',null,{timeout:90000});await p.locator(`[data-learn-adopt=${config.camera}]`).click();}else await p.waitForFunction(()=>window.skyGuidedIntro&&!skyGuidedIntro.trial&&__game.mode==='play',null,{timeout:90000});
   const cdp=config.touch?await p.context().newCDPSession(p):null;
   // Invert the game's own rotation mapping, so these are the same logical thumb gestures in either orientation.
   const points=await p.evaluate(()=>{const zero={clientX:0,clientY:0},x0=__CX(zero),y0=__CY(zero),a=__CX({clientX:1,clientY:0})-x0,b=__CX({clientX:0,clientY:1})-x0,c=__CY({clientX:1,clientY:0})-y0,d=__CY({clientX:0,clientY:1})-y0,det=a*d-b*c;

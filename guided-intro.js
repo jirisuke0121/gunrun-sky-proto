@@ -1,7 +1,7 @@
 import { installGuidedChoice } from './guided-choice.js?v=20261109-auto-follow-v3';
 import { installGuidedCoach } from './guided-coach.js?v=20261112-swing-input-v2';
 import { describeLesson } from './guided-prompts.js?v=20261112-swing-input-v4';
-import { createLessons } from './guided-lessons.js?v=20261112-pursuit-v1';
+import { createLessons } from './guided-lessons.js?v=20261113-bar-handoff-v1';
 import { createPursuit, approachingPursuer } from './guided-defense.js?v=20261113-i18n-v1';
 // A real input trial followed by a physical course. No action is fired on the player's behalf.
 (() => {
@@ -106,7 +106,9 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
    for (let n=0;n<lessons.length;n++) {
      const current=lesson();
      while(current.path?.[progress.path]&&(near(current.path[progress.path],1)||reached(current.path[progress.path])))progress.path++;
-     if(current.done()) {if(index===lessons.length-1){complete();return;}enter(index+1);continue;}
+     // A native grab commits the next obstacle even if the small approach pad
+     // was reached without the previous skill. Do not rewind a completed bar route.
+     if(current.done()||current.handoff?.()) {if(index===lessons.length-1){complete();return;}enter(index+1);continue;}
      if(current.retryIf?.())practice.retry();
      return;
    }
