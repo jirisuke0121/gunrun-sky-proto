@@ -1,3 +1,9 @@
+## 2026-11-14（続き14）入門コースの「銃の自動操作」授業を削除
+
+- 銃は常に自動（停止・再開もできない）ので、「銃に任せて、その場で待つ」授業（`shoot`）は何も教えていなかった。授業・チェックポイント・敵の配置・指示文・弾の入れ直し（前回の `shootArmed`）を削除（`guided-lessons.js`、`guided-prompts.js`、`guided-intro.js`、`guided-world.js` の `shootPositions`）。コースは「…ジャンプ弾 → 出口 → 救済」になった（フラッシュの授業は残る）。
+- 前回の「入門のフラッシュ〜ジャンプ弾で拳銃の弾を使い切る」副作用は、shoot がなくなったので無関係になった。
+- テスト：`guided-intro-cues` / `guided-intro` / `guided-intro-flow` / `guided-swing-landing` / `first-visit-course` / `controls-guide` / `i18n-browser` / `i18n-packs` が通る（`guided-intro-flow` は他のテストと並列だと遅くて詰まるので単独で実行）。`guided-intro-parity` は前回記載のとおり既存の失敗のまま。
+
 ## 2026-11-14（続き13）自動射撃の停止／再開を入門コースからも外す
 
 - **背景**：通常ランでは自動射撃の停止（Xキー・停止マーク）を廃止済みだったが、入門コース（練習マップ）だけ `canStop = !!skyPracticeMode` で残っていた。入門の「フラッシュ」で自動射撃を止め、「銃の自動操作を試そう」で「自動射撃を再開」ボタンを押させていた。

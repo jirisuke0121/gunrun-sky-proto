@@ -1,7 +1,7 @@
 import { installGuidedChoice } from './guided-choice.js?v=20261114-controls-guide-v1';
 import { installGuidedCoach } from './guided-coach.js?v=20261114-no-autofire-toggle-v1';
-import { describeLesson } from './guided-prompts.js?v=20261114-no-autofire-toggle-v1';
-import { createLessons } from './guided-lessons.js?v=20261114-no-autofire-toggle-v1';
+import { describeLesson } from './guided-prompts.js?v=20261114-no-shoot-lesson-v1';
+import { createLessons } from './guided-lessons.js?v=20261114-no-shoot-lesson-v1';
 import { createPursuit, approachingPursuer } from './guided-defense.js?v=20261113-i18n-v1';
 // A real input trial followed by a physical course. No action is fired on the player's behalf.
 (() => {
@@ -27,14 +27,14 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
  const g = window.__game, sky = window.__skyInternals, practice = window.skyPractice, c = g.P;
  if (!practice) return;
  const course = window.skyPracticeCourse;
- const progress = { stats: {}, flash: 0, lured: false, path: 0, reloadSeen:false };
+ const progress = { stats: {}, flash: 0, lured: false, path: 0 };
  const { lessons, goal, near, reached, observe, baseline, reset } = createLessons(sky, g, practice, progress);
  const chapters = [['はじめの一歩','First steps'],['屋上を渡る','Across the rooftops'],['追手をかわす','Shake off pursuers'],['本番へ','Ready to run']];
  let index = -1, trial = true, started = false, finished = false, completing = false, trialReached = false, trialJumps = 0;
  let copyKey = '', lastStage = '', retryUntil = 0;
  const lesson = () => lessons[index];
  const defense = () => !trial && lesson()?.id === 'flash';
- const combat = () => !trial && ['flash','shoot'].includes(lesson()?.id);
+ const combat = () => !trial && lesson()?.id==='flash';
  let coaching=null;
  document.body.classList.add('guided-intro');
  document.title = window.skyI18n?.tr(text('屋上で操作を試す','Try your controls on the rooftops'))||text('屋上で操作を試す','Try your controls on the rooftops');
@@ -55,18 +55,17 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
    practice.targets.forEach((e,j) => {
      e.dead = e.remove = !active; e.m.root.visible = active;
      if (!active) return;
-     const at = lesson()?.id==='shoot'?course.shootPositions[j]:defense() ? [Math.max(154,c.pos.x-5-j*2),0,(j-.5)*.8] : course.targetPositions[j];
-     e.pos.fromArray(at);e.m.root.position.copy(e.pos);e.vel.set(0,0,0);e.hp=lesson()?.id==='shoot'?4:1e6;e.practiceFloor=at[1];e.spawnT=0;e.rise=e.act=e.fall=null;e.stun=0;
+     const at = defense() ? [Math.max(154,c.pos.x-5-j*2),0,(j-.5)*.8] : course.targetPositions[j];
+     e.pos.fromArray(at);e.m.root.position.copy(e.pos);e.vel.set(0,0,0);e.hp=1e6;e.practiceFloor=at[1];e.spawnT=0;e.rise=e.act=e.fall=null;e.stun=0;
      e.flank=e.dropper=e.stalker=false;e.speedMul=1;e.sideT=0;e.guard=0;e.navT=0;e.onGround=true;
    });
    if (defense()) { progress.flashOrigins = createPursuit(practice.targets); progress.flashPursued = false; }
  }
  function enter(i) {
-   index = i; progress.stats = baseline(lesson()); progress.path = 0; progress.lured = false;progress.reloadSeen=false;progress.shootArmed=false;
+   index = i; progress.stats = baseline(lesson()); progress.path = 0; progress.lured = false;
    const current = lesson(); practice.checkpoint(current.checkpoint);
    targets(combat());
    if (defense()) {window.skyFlashbang.reset();window.skyDecoy.reset();progress.flash=window.skyFlashbang.stats.affected;}
-   if(current.id==='shoot'){sky.U.gunOn=true;sky.U.weapon=0;sky.nl();g.G.ammo=1;g.G.reserve=24;}
    if (current.id === 'rescue') window.skyRescue?.reset();
    if (current.id === 'blast') {sky.U.gunOn=true;sky.U.weapon=0;sky.nl();}
    document.body.dataset.learnStage=current.id;
@@ -96,9 +95,6 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
    sky.U.sendLog=false;g.RL.on=false;g.RL.sealed=true;
    if (trial) {if(near(course.trialGoal,1.4))trialReached=true;render(false);return;}
    const current=lesson();if(!current||finished||completing)return;
-   // The jump gun puts the hand gun back a moment after its lesson, with the ammo it had before. Load the lesson's one round only once the hand gun is really in hand.
-   if(current.id==='shoot'&&!progress.shootArmed&&(sky.U.weapon|0)===0&&!sky.wpc().jumpGun){g.G.ammo=1;g.G.reserve=24;g.G.reloadT=0;progress.shootArmed=true;}
-   if(current.id==='shoot'&&g.G.reloadT>0)progress.reloadSeen=true;
    if(current.id==='flash'&&!progress.flashPursued)progress.flash=window.skyFlashbang.stats.affected;
    if(current.id==='flash'&&window.skyFlashbang.charges===0&&!window.skyFlashbang.grenades.length&&window.skyFlashbang.stats.affected<=progress.flash)window.skyFlashbang.reset();
    advanceLessons();
@@ -165,7 +161,7 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
  const skip=document.createElement('button');skip.id='learnSkip';skip.textContent=text('練習を終えて本番へ','Leave practice and play');skip.onclick=finish;$('bResume').after(skip);
  for(const node of [$('learnTrialBar'),$('learnDone')])for(const type of ['pointerdown','pointerup','touchstart','touchend','touchmove'])node.addEventListener(type,e=>e.stopPropagation());
  window.skyGuidedIntro={beforeFrame(){if(completing)return true;if(!started&&g.mode==='play')render(false);if(trial)return choice.blocked;advanceLessons();render(false);return coach.blocked;},get blocked(){return completing||(trial?choice.blocked:coach.blocked)},get completing(){return completing},get choice(){return choice.phase},get pausedTarget(){return coach.target},get pauseSequence(){return coach.sequence},get total(){return lessons.length},get finished(){return finished},get trial(){return trial},get stage(){return trial?'controls':lesson()?.id},get defense(){return defense()},get cue(){return coaching},get completed(){return lessons.slice(0,Math.max(0,index)).map(s=>s.id)},
-   retrying(){coach.reset();reset(lesson());retryUntil=g.GAME.t+2;progress.path=0;progress.reloadSeen=false;if(lesson()?.id==='flash')window.skyFlashbang.reset();},
-   restored(){progress.stats={...g.stats};targets(combat());if(lesson()?.id==='shoot'){g.G.ammo=1;g.G.reserve=24;} },finish,complete};
+   retrying(){coach.reset();reset(lesson());retryUntil=g.GAME.t+2;progress.path=0;if(lesson()?.id==='flash')window.skyFlashbang.reset();},
+   restored(){progress.stats={...g.stats};targets(combat()); },finish,complete};
  render();
 })();

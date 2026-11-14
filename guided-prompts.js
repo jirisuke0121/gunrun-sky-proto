@@ -51,11 +51,7 @@ export function describeLesson(lesson, {game, sky, practice, progress, goal, nea
   }
   if(id==='flash'||id==='jumpgun'||id==='rescue') {prompt.action=lesson.action;prompt.cue=id;prompt.press=text('使う','Use');}
   if(id==='dash') {if(!changed('dashPickups'))tell(['青いDASHを取る','Collect the blue DASH'],['触れると、しばらく速く走れます','Touch it for a temporary speed boost']);else if(ground&&c.pos.x>150)tell(['加速したまま、ジャンプ','Jump with the speed boost'],['向こうの低い屋上へ','Head to the lower roof ahead'],'tJump','jump',['ジャンプ','Jump']);}
-  if(id==='shoot') {
-    if(game.G.reloadT>0)tell(['装填中。少し待つ','Reloading. Wait a moment'],['弾切れで自動装填。終わると射撃再開','Empty magazines reload automatically; fire then resumes']);
-    else tell(['銃に任せて、その場で待つ','Let the gun fire while you wait'],['自分は移動・逃げ道選び。照準・射撃は自動','You choose movement and escape routes. Aim and fire are automatic']);
-  }
-  if(['hook','zip','flash','shoot','rescue'].includes(id))prompt.motion='stop';
+  if(['hook','zip','flash','rescue'].includes(id))prompt.motion='stop';
   if(['jump','mantle','wallrun','downhill','ladder','swing','dash'].includes(id)&&prompt.cue!=='move')prompt.motion='forward';
   if(id==='jump'&&!ground)prompt.motion='forward';
   if(id==='wallrun'&&(c.state==='wallrun'||changed('wallruns')))prompt.motion='forward';

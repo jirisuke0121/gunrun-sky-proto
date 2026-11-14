@@ -15,13 +15,13 @@
     section('swing', [119, 4, 0]), section('dash', [142, 6.8, 0], 0),
     section('flash', [169, 0, 0]),
     section('blast', [183, 0, 0]), section('jumpgun', [199, 2, 0]),
-    section('shoot', [222, 8, 0]), section('exit', [220, 8, 0]), section('rescue', [243, 8, 0]),
+    section('exit', [220, 8, 0]), section('rescue', [243, 8, 0]),
   ];
   const course = window.skyPracticeCourse = {
     version: 'rooftop-learning-v2', sections, start: sections[0],
     bounds: { minX: -7, maxX: 270, minZ: -8, maxZ: 8 },
     trialBounds: { minX: -2.8, maxX: 6.4, minZ: -2.4, maxZ: 2.4 },
-    trialGoal: [5.7, 2, 0], shootPositions: [[234,8,-1.2],[238,8,1.2]], targetPositions: [[169, 0, 0], [172, 0, .35]],
+    trialGoal: [5.7, 2, 0], targetPositions: [[169, 0, 0], [172, 0, .35]],
     dashPositions: [[145, 6.8, 0]], jumpPositions: [[201, 2, 0]],
     wallSpots: [], paint: [], gates: [],
   };

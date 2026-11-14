@@ -35,7 +35,6 @@ export function createLessons(sky, game, practice, progress) {
     make('flash', 2, ['追手を止めて、逃げよう', 'Stop the pursuers and escape'], ['追手が近づいたら、閃光玉を使う ／ 1', 'Use Flash when the pursuers get close / 1'], [176, 0, 0], () => progress.flashPursued && window.skyFlashbang.stats.affected > progress.flash && c.pos.x > 180.3 && landed(), { action: 'tFlash' }),
     make('blast', 3, ['赤い缶で、高く跳ぶ', 'Launch with the red barrel'], ['缶をタップ ／ Q', 'Tap the barrel / Q'], [198, 2, 0], () => changed('blastLaunches') && c.pos.x > 194 && c.pos.y > 1.9 && landed(), { action: 'barrel' }),
     make('jumpgun', 3, ['ジャンプ弾で、もう一つ上へ', 'Use the jump charge'], ['金色の弾を拾い、ジャンプ弾 ／ 4', 'Collect gold, then Launch / 4'], [220, 8, 0], () => changed('jumpGunLaunches') && c.pos.x > 214 && c.pos.y > 7.9 && landed(), { action: 'tJumpGun' }),
-    make('shoot',3,['銃の自動操作を試そう','Try automatic aim and fire'],['銃に任せて、その場で待つ','Let the gun fire while you wait'],[222,8,0],()=>game.G.reloadT<=0&&game.G.ammo>0&&progress.reloadSeen&&practice.targets.every(e=>e.dead)&&(game.stats.shots||0)>progress.stats.shots),
     make('exit', 3, ['出口へ進もう', 'Head to the exit'], ['覚えた操作で、本番へ', 'Take these controls into a real run'], [243, 8, 0], () => reached([243, 8, 0])),
   ];
   if (new URLSearchParams(location.search).get('return') !== 'canyon') lessons.push(
@@ -43,7 +42,7 @@ export function createLessons(sky, game, practice, progress) {
   );
   // If a required action was missed, return from the landing beyond it rather
   // than leave the next marker behind a camera that cannot turn around.
-  const missedAt = {vault:16.5,jump:26.4,mantle:36,wallrun:53,hook:68,ladder:95,zip:115,walljump:120.5,swing:153,dash:155,flash:184,blast:202,jumpgun:224,shoot:243};
+  const missedAt = {vault:16.5,jump:26.4,mantle:36,wallrun:53,hook:68,ladder:95,zip:115,walljump:120.5,swing:153,dash:155,flash:184,blast:202,jumpgun:224};
   for(const lesson of lessons)if(missedAt[lesson.id]!==undefined){
     const retry=lesson.retryIf;
     lesson.retryIf=()=>retry?.()||(landed()&&c.pos.x>missedAt[lesson.id]&&!lesson.done());
