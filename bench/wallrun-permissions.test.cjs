@@ -27,6 +27,19 @@ for(const {at:[x,y,z],normal:[nx,nz]} of spots){
   assert.equal(w.__skyCanWallJumpAtSpot({...player,pos:{x:player.pos.x+(nx?0:5),y,z:player.pos.z+(nx?5:0)}},()=>wall,normal),false,'jump remains limited to the marked take-off area');
 }
 assert.equal(w.__skyCanWallRunOnFace({type:'mono',minX:11,maxX:14,minZ:-14,maxZ:-1,minY:0,maxY:7},{x:1,z:0}),false,'old north-east marker is not a shortcut permission');
+// The west wall (z -14..-1.5) was split by a window (z -12.9..-11.1, y 4..7.2). Every box inside the
+// run span keeps the permission; the window head above the run height and boxes past the span do not.
+{
+  const west=(minZ,maxZ,minY,maxY)=>({type:'mono',minX:-14,maxX:-13,minZ,maxZ,minY,maxY});
+  const n={x:-1,z:0};
+  assert.equal(w.__skyCanWallRunOnFace(west(-14,-12.9,0,8),n),true,'north end box');
+  assert.equal(w.__skyCanWallRunOnFace(west(-11.1,-1.5,0,8),n),true,'long box left of the window');
+  assert.equal(w.__skyCanWallRunOnFace(west(-12.9,-11.1,0,4),n),true,'box under the window');
+  assert.equal(w.__skyCanWallRunOnFace(west(-12.9,-11.1,7.2,8),n),false,'window head is above the run height');
+  assert.equal(w.__skyCanWallRunOnFace(west(-22,-14,0,8),n),false,'box beyond the run span');
+  assert.equal(w.__skyCanWallRunOnFace({...west(-11.1,-1.5,0,8),minX:-15,maxX:-14},n),false,'parallel box on another plane');
+  assert.equal(w.__skyCanWallRunOnFace(west(-11.1,-1.5,0,8),{x:1,z:0}),false,'opposite face still denied');
+}
 // Exercise the actual bundled entry/continuation functions against the gate,
 // including a failed/missing permission script and a move onto a denied wall.
 const html=fs.readFileSync('index.html','utf8'),start=html.indexOf('function Qc(n,t,e)'),end=html.indexOf('var Fe=',start);

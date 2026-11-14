@@ -3,7 +3,10 @@
     { at: [26, 1.9, -1.5], normal: [0, 1], direction: [1, 0], name: '東の隙間' },
     { at: [29.6, 1.9, -25.2], normal: [0, 1], direction: [1, 0], name: '北の梁' },
     { at: [14, 1.4, 6.8], normal: [1, 0], direction: [0, 1], name: 'リング東壁' },
-    { at: [-14, 0.3, -13.6], normal: [-1, 0], direction: [0, -1], name: 'リング西壁' },
+    // run: the whole wall face (z -14..-1.5). A window cut into it (return/dive
+    // links) splits the wall into several boxes; every box inside the span keeps
+    // the permission, not only the box that contains the take-off point.
+    { at: [-14, 0.3, -13.6], normal: [-1, 0], direction: [0, -1], name: 'リング西壁', run: [-14, -1.5] },
     { at: [-14, 1.4, 6.8], normal: [-1, 0], direction: [0, 1], name: '西の路地・南への近道' },
   ];
   const key = 'gunrun-old-town-walljumps-v1';
@@ -19,8 +22,8 @@
     // Practice and canyon courses own their own permissions and route guides.
     if (window.skyPracticeMode || window.skySwingCourse) return;
     window.__skyWallRunSpots = defaults.map(({ at, normal }) => ({ at: [...at], normal: [...normal] }));
-    window.__skyWallRunRoutes = defaults.map(({ at, normal, direction, name }) =>
-      ({ at: [...at], normal: [...normal], direction: [...direction], name }));
+    window.__skyWallRunRoutes = defaults.map(({ at, normal, direction, name, run }) =>
+      ({ at: [...at], normal: [...normal], direction: [...direction], name, ...(run ? { run: [...run] } : {}) }));
     window.dispatchEvent?.(new Event('sky-walljump-layout-change'));
   }
   function apply(value, persist = false) {
@@ -65,12 +68,13 @@
   // much smaller take-off area used by matchingPoint below.
   window.__skyCanWallRunOnFace = (wall, normal) => {
     if (!wall || wall.type !== "mono" || wall.wr === false || wall.off || !normal) return false;
-    return (window.skyPracticeMode ? window.skyPracticeCourse.wallSpots : defaults).some(({ at: [x, y, z], normal: [nx, nz] }) => {
+    return (window.skyPracticeMode ? window.skyPracticeCourse.wallSpots : defaults).some(({ at: [x, y, z], normal: [nx, nz], run }) => {
       if (normal.x !== nx || normal.z !== nz) return false;
       const plane = nx ? (nx > 0 ? wall.maxX : wall.minX) : (nz > 0 ? wall.maxZ : wall.minZ);
       const along = nx ? z : x;
+      const low = nx ? wall.minZ : wall.minX, high = nx ? wall.maxZ : wall.maxX;
       return Math.abs(plane - (nx ? x : z)) < .05
-        && along > (nx ? wall.minZ : wall.minX) && along < (nx ? wall.maxZ : wall.maxX)
+        && ((along > low && along < high) || (run && low >= run[0] - .05 && high <= run[1] + .05))
         && y >= wall.minY && y < wall.maxY;
     });
   };

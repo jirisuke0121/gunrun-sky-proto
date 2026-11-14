@@ -58,7 +58,17 @@ function rebuildGuides() {
       && (nx ? route.at[2] > wall.minZ && route.at[2] < wall.maxZ : route.at[0] > wall.minX && route.at[0] < wall.maxX)
       && route.at[1] >= wall.minY && route.at[1] < wall.maxY);
     if (!wall) continue;
-    const low = (nx ? wall.minZ : wall.minX) + .08, high = (nx ? wall.maxZ : wall.maxX) - .08;
+    // A route with a run span is painted across every box of that face (a window
+    // may have split the wall); other routes keep the single box at the marker.
+    let spanLow = nx ? wall.minZ : wall.minX, spanHigh = nx ? wall.maxZ : wall.maxX;
+    if (route.run) for (const part of game.solids) {
+      if (part === wall || !window.__skyCanWallRunOnFace?.(part, normal)) continue;
+      if (Math.abs((nx ? (nx > 0 ? part.maxX : part.minX) : (nz > 0 ? part.maxZ : part.minZ)) - (nx ? route.at[0] : route.at[2])) >= .05
+        || !(route.at[1] >= part.minY && route.at[1] < part.maxY)
+        || (nx ? part.minZ : part.minX) < route.run[0] - .05 || (nx ? part.maxZ : part.maxX) > route.run[1] + .05) continue;
+      spanLow = Math.min(spanLow, nx ? part.minZ : part.minX); spanHigh = Math.max(spanHigh, nx ? part.maxZ : part.maxX);
+    }
+    const low = spanLow + .08, high = spanHigh - .08;
     const along = nx ? route.at[2] : route.at[0];
     const y = Math.max(wall.minY + .65, Math.min(wall.maxY - .7, route.at[1] + .85));
     const sign = Math.sign(nz * route.direction[0] - nx * route.direction[1]);
