@@ -26,7 +26,7 @@ const root = path.resolve(__dirname, '..'), PORT = Number(process.env.PORT || 88
         g.SCR.off = g.PACE.off = g.MARK.off = true;
         Object.assign(g.S, { sendLog: false, gunOn: false, autoFire: false, aimAuto: false, stalkerOn: false, stalker2: false, dropShare: 0 }); c.invuln = Infinity;
         const quiet = () => { for (const k of Object.keys(g.keys)) g.keys[k] = false; key('Space', 'keyup'); key('KeyW', 'keyup'); key('KeyQ', 'keyup'); };
-        const reset = () => { quiet(); window.skySwing.reset(); window.skyDash?.reset?.(false); window.skyRopeSwing?.cancel?.(); g.GAME.over = false; g.GAME.t = 0; c.life = 3; g.GAME.spawnT = g.GAME.surgeT = 1e9; g.GAME.safeT = 0; g.setMode('play'); c.hookCD = 0; c.hookPressed = false; c.hookPick = null; };
+        const reset = () => { quiet(); window.skyRescue?.reset?.(); window.skySwing.reset(); window.skyDash?.reset?.(false); window.skyRopeSwing?.cancel?.(); g.GAME.over = false; g.GAME.t = 0; c.life = 3; g.GAME.spawnT = g.GAME.surgeT = 1e9; g.GAME.safeT = 0; g.setMode('play'); c.hookCD = 0; c.hookPressed = false; c.hookPick = null; };
         const fwd = () => [-Math.sin(c.yaw), -Math.cos(c.yaw)];
         let added = null;
         const addAnchor = (ahead = 6, up = 3) => { const [fx, fz] = fwd(); added = [c.pos.x + fx * ahead, c.pos.y + up, c.pos.z + fz * ahead]; s.us.push(added); return added; };
@@ -35,8 +35,8 @@ const root = path.resolve(__dirname, '..'), PORT = Number(process.env.PORT || 88
         // --- 鉄棒 ---
         const course = window.skySwing.course;
         if (course?.bars?.length) {
-          const grab = () => {
-            reset(); const b = course.bars[0], d = b.direction;
+          const grab = (bi = 0) => {
+            reset(); const b = course.bars[bi], d = b.direction;
             c.pos.set(b.at[0] - d[0], b.at[1] - 2, b.at[2] - d[1]); c.vel.set(d[0] * 5, 0, d[1] * 5);
             Object.assign(c, { yaw: Math.atan2(-d[0], -d[1]), pitch: 0, state: 'normal', onGround: false, h: 1.75, jumpBuf: 0, catchCD: 0, coyote: 0, crouchPressed: false, edgeOff: null, life: 3 });
             window.skyFollowCamera?.reset(); g.cam(dt); g.playerStep(1 / 120);
@@ -63,7 +63,10 @@ const root = path.resolve(__dirname, '..'), PORT = Number(process.env.PORT || 88
           out.barJump = grab(); frame(8); key('Space', 'keydown'); frame(2); key('Space', 'keyup'); frame(2);
           out.barJumpState = { active: !!window.skySwing.active, state: c.state };
           // 救済（3キー）も、つかまったまま使える。
-          out.barRescueGrab = grab(); frame(8); const r0 = window.skyRescue?.charges; const ct = window.skyRescue?.chooseTarget?.(); out.barChoose = !!ct; out.barAvail = window.skyRescue?.available?.(); document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Digit3', bubbles: true })); frame(1);
+          // 救済先のある棒を探す（棒ごとに周りの高台が違う）。見つからなければ従来どおりスキップ。
+          let rescueBar = 0; for (let bi = 0; bi < course.bars.length; bi++) { grab(bi); frame(8); if (window.skyRescue?.chooseTarget?.()) { rescueBar = bi; break; } }
+          out.barRescueBar = rescueBar;
+          out.barRescueGrab = grab(rescueBar); frame(8); const r0 = window.skyRescue?.charges; const ct = window.skyRescue?.chooseTarget?.(); out.barChoose = !!ct; out.barAvail = window.skyRescue?.available?.(); document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Digit3', bubbles: true })); frame(1);
           out.barRescue = { has: r0 !== undefined, state: c.state, active: !!window.skySwing.active, charges: window.skyRescue?.charges };
         }
         // --- ロープ（旧市街のみ） ---

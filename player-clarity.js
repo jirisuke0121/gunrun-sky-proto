@@ -16,12 +16,10 @@ export function installPlayerClarity(sky,game) {
   const playing=()=>sky.modeRef()==='play'&&!sky.z.over&&!sky.demoActive();
   const responsibility=()=>!sky.U.gunOn?'移動・逃げ道選びは自分で。銃は装備していません。'
     :sky.U.autoFire&&sky.U.aimAuto?'移動・逃げ道選びは自分で。銃は自動で狙い撃ちます。'
-    :sky.U.autoFire?'移動・逃げ道選びと照準は自分で。敵に向けると自動射撃。'
-    :'移動・逃げ道選びは自分で。自動射撃は停止中です。';
+    :'移動・逃げ道選びと照準は自分で。敵に向けると自動射撃。';
   const roleCue=()=>!sky.U.gunOn?'自分：移動・逃げ道\n銃：未装備'
     :sky.U.autoFire&&sky.U.aimAuto?'自分：移動・逃げ道\n自動：照準・射撃'
-    :sky.U.autoFire?'自分：移動・逃げ道・照準\n自動：射撃'
-    :'自分：移動・逃げ道\n自動射撃：停止中';
+    :'自分：移動・逃げ道・照準\n自動：射撃';
   function gunText(){
     const {Et,U,c}=sky;
     const blocked=sky.gunBlockReason?.();
@@ -33,7 +31,6 @@ export function installPlayerClarity(sky,game) {
     if(blocked==='swing')return '鉄棒を離すと射撃再開';
     if(blocked==='ledge')return '縁を登り終えると射撃再開';
     if(Et.ammo<=0)return U.reserveAmmo>=99||Et.reserve>0?'弾切れ · 自動装填を待とう':'弾切れ · 光る武器箱で補給';
-    if(!U.autoFire)return window.skyFollowCamera?.touchDevice?'停止中 · 押すと再開':'停止中 · Xキーで再開';
     if(!U.aimAuto)return '照準は自分で · 敵に向けると射撃';
     const target=sky.aimLock?.();
     return target&&!target.dead&&!target.remove?'自動照準・射撃ON':'撃てる敵を待機中';
@@ -63,9 +60,9 @@ export function installPlayerClarity(sky,game) {
     gun.hidden=!on||!sky.U.gunOn||!!sky.wpc().jumpGun;
     if(!gun.hidden){write(gun,gunText());gun.dataset.empty=String(sky.Et.ammo<=0&&sky.U.reserveAmmo<99&&sky.Et.reserve<=0);}
     const decoy=window.skyDecoy;
-    if(decoy)skill('tDecoy',decoy.active?'発動中':decoy.cooldown>0?'待機':'おとり');
+    if(decoy)skill('tDecoy',decoy.active?'発動中':decoy.cooldown>0?'待機':'分身');
     const rescue=window.skyRescue;
-    if(rescue)skill('tRescue',rescue.charges<=0?'残り0回':!rescue.available()?'移動中':'退避');
+    if(rescue)skill('tRescue',rescue.charges<=0?'残り0回':!rescue.available()?'移動中':'救済');
     feedback.hidden=!explaining;
     if(!feedback.hidden){write(feedback,explanation.text);feedback.dataset.action=explanation.id;}
     for(const id of ['tFlash','tDecoy','tRescue'])if($(id))$(id).dataset.reasonShown=String(!feedback.hidden&&explanation.id===id);

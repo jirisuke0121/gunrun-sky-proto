@@ -1,3 +1,14 @@
+## 2026-11-14（続き15）全体見直しの修正（自動射撃の残骸・古い文言・ニックネーム導線）
+
+- **ポーズメニュー**：「自動射撃（…Xで停止と再開）」のチェックを `index.html` / `canyon.html` の設定リストから削除した（押しても強制オンに戻るだけの項目だった）。`auto-fire-controls.js` は「常にオン」だけの最小形（X キー・停止マーク・チェック処理を撤去。`#tAutoFire` は `player-clarity.js` の弾状態の置き場として非表示のまま残す）。`player-clarity.js` の「停止中」分岐も削除。
+- **古い文言**：HUD 右上の直書き（`.hud-tr`「クリック/F ナイフ　Q フック」）と、開始画面のナイフ行（「クリック/F/右クリック」）を、実行時の書き換え結果に合わせた。ホームの操作凡例（PC）に `Q／右クリック 技（フック・爆破）　E スライド` を追加（`home-focus.js`）。
+- **アイテム名**：スキルボタンの状態表示を「おとり」「退避」→「分身」「救済」に統一（授業名の「退避」は説明文なので触らない）。
+- **ニックネーム導線**：初回はコース→`index.html?learned=1` の本番ランへ進むが、ニックネームの促しは旧入門の結果（`sky-intro-result`）にしか付いていなかった。`challenge-score.js` が `?learned=1` の最初のラン結果で `sky-learned-result` を出し、`onboarding.js` がそこで1回だけ開く（「あとで」可・`namePrompted` で再表示なし）。`bench/onboarding-browser.cjs` に確認を追加。
+- **白い弧**：調べた結果、不具合ではなかった。`bite-shove.js` の無敵の合図（足元の水色リング）で、開始直後の無敵中に出る仕様。
+- **guided-intro-parity**：失敗の原因は、本番イージーでは 分身 が出ない（`skill-decoy.js`）のに、コースは全スキルを出すため。テストの比較相手を本番ノーマルにして通した（`bench/guided-intro-parity-browser.cjs`）。
+- **テスト更新**：`swing-hook-browser`（鉄棒の救済を、救済先のある棒を探して必ず実行／テスト間で救済をリセット）、`viewport-browser`（停止操作の確認 → 常時オンの確認に差し替え）。
+- **確認できていないこと**：実機（iPhone・タッチPC）での見え方・操作。canyon の鉄棒救済（canyon には `skyRescue` がない）。
+
 ## 2026-11-14（続き14）入門コースの「銃の自動操作」授業を削除
 
 - 銃は常に自動（停止・再開もできない）ので、「銃に任せて、その場で待つ」授業（`shoot`）は何も教えていなかった。授業・チェックポイント・敵の配置・指示文・弾の入れ直し（前回の `shootArmed`）を削除（`guided-lessons.js`、`guided-prompts.js`、`guided-intro.js`、`guided-world.js` の `shootPositions`）。コースは「…ジャンプ弾 → 出口 → 救済」になった（フラッシュの授業は残る）。

@@ -66,7 +66,7 @@
   new MutationObserver(syncDevelopment).observe(introButton,{attributes:true,attributeFilter:['disabled']});
   syncDevelopment();main.append(intro);
   const best = $('bestLine'); main.append(best);
-  const controls = make('p', { className: 'home-controls' }, '<span class="home-controls-desktop"><kbd>W A S D</kbd> 移動　<kbd>マウス</kbd> 視点　<kbd>Space</kbd> ジャンプ</span><span class="home-controls-touch">左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ</span>');
+  const controls = make('p', { className: 'home-controls' }, '<span class="home-controls-desktop"><kbd>W A S D</kbd> 移動　<kbd>マウス</kbd> 視点　<kbd>Space</kbd> ジャンプ　<kbd>Q</kbd>/<kbd>右クリック</kbd> 技（フック・爆破）　<kbd>E</kbd> スライド</span><span class="home-controls-touch">左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ</span>');
   const trial = new URLSearchParams(location.search).get('cameraTrial');
   {
     const originalControls = controls.innerHTML;

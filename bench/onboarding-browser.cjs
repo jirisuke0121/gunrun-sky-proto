@@ -84,6 +84,16 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   assert.equal(await page.evaluate(()=>skyChallenge.isIntroRun),true);
   await ctx.close();
 
+  // After the 入門 course the first real run (?learned=1) ends with the one-time nickname prompt.
+  ctx=await mk('ja',false,()=>localStorage.setItem('gunrun-onboarding-v1','{"phase":"complete"}'));page=await open(ctx,map+'?learned=1&onboarding=auto');
+  if(!await page.evaluate(()=>__game.mode==='play')){await page.evaluate(()=>document.getElementById('bStart').click());}
+  await page.waitForFunction(()=>__game.mode==='play');
+  assert.equal(await dialog(page),false,'no nickname prompt while the post-course run is going');
+  await page.evaluate(()=>{__game.GAME.t=40;__game.endGame('caught');__game.advance(1.5)});await page.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
+  await page.waitForFunction(()=>!document.getElementById('onboarding').hidden,null,{timeout:6000});
+  assert.equal(JSON.parse(await page.evaluate(()=>localStorage.getItem('gunrun-onboarding-v1'))).namePrompted,true,'the nickname prompt is offered once');
+  await ctx.close();
+
   // The intro run's own result decides the next recommendation (and whether to ask about lighter graphics).
   ctx=await mk('ja',false,()=>localStorage.setItem('gunrun-onboarding-v1','{"phase":"started","namePrompted":true}'));page=await open(ctx,map+'?onboarding=auto');
   await page.click('#homeGuide');await page.click('#onbIntro');await page.waitForFunction(()=>__game.mode==='play');

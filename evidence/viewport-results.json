@@ -1,0 +1,118 @@
+[
+  {
+    "map": "index.html",
+    "initial": {
+      "v": {
+        "width": 844,
+        "height": 390,
+        "left": 0,
+        "top": 0,
+        "dpr": 3,
+        "blocked": false,
+        "standalone": false
+      },
+      "ratio": 1.5,
+      "buffer": [
+        1266,
+        585
+      ],
+      "rect": [
+        844,
+        390
+      ],
+      "aspect": 2.164102564102564,
+      "mode": "play"
+    },
+    "final": {
+      "v": {
+        "width": 844,
+        "height": 390,
+        "left": 0,
+        "top": 0,
+        "dpr": 3,
+        "blocked": false,
+        "standalone": false
+      },
+      "ratio": 1.5,
+      "buffer": [
+        1266,
+        585
+      ],
+      "rect": [
+        844,
+        390
+      ],
+      "aspect": 2.164102564102564,
+      "mode": "play"
+    },
+    "twoFingerJump": true,
+    "autoFire": true,
+    "skillHitTargets": true,
+    "rotateCycles": 3,
+    "visualViewportOnly": true,
+    "blurReset": true,
+    "retry": true,
+    "menu": true,
+    "settings": true,
+    "reload": true,
+    "errors": []
+  },
+  {
+    "map": "canyon.html",
+    "initial": {
+      "v": {
+        "width": 844,
+        "height": 390,
+        "left": 0,
+        "top": 0,
+        "dpr": 3,
+        "blocked": false,
+        "standalone": false
+      },
+      "ratio": 1.5,
+      "buffer": [
+        1266,
+        585
+      ],
+      "rect": [
+        844,
+        390
+      ],
+      "aspect": 2.164102564102564,
+      "mode": "play"
+    },
+    "final": {
+      "v": {
+        "width": 844,
+        "height": 390,
+        "left": 0,
+        "top": 0,
+        "dpr": 3,
+        "blocked": false,
+        "standalone": false
+      },
+      "ratio": 1.5,
+      "buffer": [
+        1266,
+        585
+      ],
+      "rect": [
+        844,
+        390
+      ],
+      "aspect": 2.164102564102564,
+      "mode": "play"
+    },
+    "twoFingerJump": true,
+    "autoFire": true,
+    "skillHitTargets": true,
+    "rotateCycles": 3,
+    "visualViewportOnly": true,
+    "blurReset": true,
+    "retry": true,
+    "menu": true,
+    "settings": true,
+    "reload": true,
+    "errors": []
+  }
+]

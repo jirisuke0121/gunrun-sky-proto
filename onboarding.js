@@ -146,6 +146,14 @@
     saveState({ namePrompted: true });
     setTimeout(() => { if (root.hidden) openDialog('name'); }, 1600);
   });
+  // 2026-11-14: the first visit now starts with the 入門 course (canyon.html?learn=1), which ends in a real run
+  // (index.html?learned=1). Ask for the nickname after that run's result instead (once; "あとで" skips it).
+  document.addEventListener('sky-learned-result', () => {
+    const current = state();
+    if (current.phase !== 'complete' || current.namePrompted || savedName()) return;
+    saveState({ namePrompted: true });
+    setTimeout(() => { if (root.hidden) openDialog('name'); }, 1600);
+  });
 
   window.skyOnboarding = { first, open: openDialog, name: savedName, commitName,
     get splashVisible() { return !!splash?.isConnected; }, get dialogVisible() { return !root.hidden; } };
