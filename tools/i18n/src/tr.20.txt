@@ -1,0 +1,26 @@
+893 Güçten düştün…
+894 Eller kayıyor… Zıpla!
+895 Şimdi!
+896 Grafikler hafifletilsin mi?
+897 İlk oyununda performans sürekli düşük kaldı. Hafif grafik 3B ayrıntıyı azaltır ve gölgeleri kaldırır. Kontroller ve oyun kuralları değişmez. İstediğin zaman Ayarlar'dan geri dönebilirsin.
+898 Yüksek kaliteyi koru
+899 Eski kayıt: 1 sn aralıklı kaba bir iz. Atış veya düşman kaydı yok. İnsan hareketi yaklaşıktır.
+900 Hareketi, bakışı, atışları ve yakındaki düşmanları (en fazla 6) oynatır. İnsan hareketi ve düşman ara değerlemesi yaklaşıktır.
+901 Hareketi, bakışı, atışları ve yakındaki düşmanları (en fazla 6) oynatır. İnsan hareketi ve düşman ara değerlemesi yaklaşıktır. Atışların yalnızca bir kısmı kaydedildi.
+902 Hareketi ve bakışı oynatır. Bu kayıtta atış veya düşman verisi yok. İnsan hareketi yaklaşıktır.
+903 Tarih bilinmiyor
+904 Kaydedildi: tarih bilinmiyor
+905 Güney çatıya kancayı at / kuzey çatı katı / batıya zıplarsan aşağıya dönüş yolu
+906 Ayağının altında zemin olan yerde ateş edersen büyük zıplarsın
+907 Yere inince Zıplama silahını yeniden kullanabilirsin
+908 Geri tepme zıplaması! Havada yönünü ayarla
+909 JUMP · inmeyi bekle
+910 Kayıt kaydetme özelliği yüklenemedi. Lütfen sayfayı yenile.
+911 Patlat
+912 İşarete doğru ilerle
+913 Hareketi bırak
+914 Hareket tuşlarını bırak
+915 İleri itmeye devam et
+916 W tuşunu basılı tut
+917 Tırmanmaya devam et
+918 Merdivene doğru ilerle

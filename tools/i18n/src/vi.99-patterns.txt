@@ -93,3 +93,8 @@ p99 Thử: $1:t
 p100 Zombie $1 · vuông $2 m
 p101 Tất cả zombie: $1
 p102 Lựu đạn chớp, phím $1. Còn $2. Làm zombie trong $3 m đứng yên $4 giây. Thả để dùng, trượt ra ngoài để hủy.
+p103 Móc sẵn sàng sau $1 giây · Phía bắc là sân thượng / nhảy sang tây để xuống đường quay lại
+p104 Mức tham khảo khi tự động bắn xuống chân: khoảng $1 m (thay đổi khi có trần nhà, v.v.)
+p105 $1 / $2 giây
+p106 Bóng ma của $1 · $2 điểm
+p107 Ghi lúc $1 (giờ Nhật Bản)

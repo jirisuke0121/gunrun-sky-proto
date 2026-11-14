@@ -1,0 +1,26 @@
+893 Sem forças…
+894 Escorregando… Pule!
+895 Agora!
+896 Reduzir os gráficos?
+897 Sua primeira partida ficou pesada o tempo todo. Com os gráficos leves, o detalhe 3D diminui e as sombras somem. Controles e regras não mudam. Você pode voltar quando quiser nas Configurações.
+898 Manter alta qualidade
+899 Registro antigo: trajetória aproximada em intervalos de 1 s. Sem tiros nem inimigos. O movimento humano é aproximado.
+900 Reproduz movimento, visão, tiros e inimigos próximos (até 6). O movimento humano e a interpolação dos inimigos são aproximados.
+901 Reproduz movimento, visão, tiros e inimigos próximos (até 6). O movimento humano e a interpolação dos inimigos são aproximados. Apenas alguns tiros foram registrados.
+902 Reproduz movimento e visão. Este registro não tem dados de tiros nem de inimigos. O movimento humano é aproximado.
+903 Data desconhecida
+904 Registrado: data desconhecida
+905 Gancho para o telhado sul / ao norte, a laje / pule para o oeste para voltar lá embaixo
+906 Atire onde houver chão sob os pés para um grande pulo
+907 Pouse para usar a arma de pulo de novo
+908 Pulo de recuo! Ajuste a direção no ar
+909 JUMP · aguarde o pouso
+910 Não foi possível carregar o recurso de salvar registros. Recarregue a página.
+911 Explodir
+912 Vá até a marca
+913 Solte o movimento
+914 Solte as teclas de movimento
+915 Continue empurrando para a frente
+916 Mantenha a tecla W pressionada
+917 Continue subindo
+918 Avance em direção à escada

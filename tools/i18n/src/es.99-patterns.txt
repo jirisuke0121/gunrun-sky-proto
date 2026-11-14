@@ -93,3 +93,8 @@ p99 Prueba: $1:t
 p100 Zombis $1 · $2 m de lado
 p101 Todos los zombis: $1
 p102 Granada cegadora, tecla $1. Quedan $2. Detiene a los zombis a $3 m durante $4 s. Suelta para usar, desliza fuera para cancelar.
+p103 Gancho listo en $1 s · Al norte, la azotea / salta al oeste para volver abajo
+p104 Referencia con disparo automático a tus pies: unos $1 m (varía con techos, etc.)
+p105 $1 / $2 s
+p106 Fantasma de $1 · $2 pts
+p107 Registrado el $1 (hora de Japón)

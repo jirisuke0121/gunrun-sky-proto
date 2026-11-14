@@ -1,0 +1,26 @@
+893 Sin fuerzas…
+894 Te resbalas… ¡Salta!
+895 ¡Ya!
+896 ¿Aligerar los gráficos?
+897 Tu primera partida fue lenta de forma continua. Con los gráficos ligeros se reduce el detalle 3D y se quitan las sombras. Los controles y las reglas no cambian. Puedes volver atrás cuando quieras en Ajustes.
+898 Mantener alta calidad
+899 Registro antiguo: trayectoria aproximada a intervalos de 1 s. No hay disparos ni enemigos. El movimiento humano es aproximado.
+900 Reproduce movimiento, vista, disparos y enemigos cercanos (hasta 6). El movimiento humano y la interpolación de enemigos son aproximados.
+901 Reproduce movimiento, vista, disparos y enemigos cercanos (hasta 6). El movimiento humano y la interpolación de enemigos son aproximados. Solo se registraron algunos disparos.
+902 Reproduce movimiento y vista. Este registro no tiene datos de disparos ni enemigos. El movimiento humano es aproximado.
+903 Fecha desconocida
+904 Registrado: fecha desconocida
+905 Gancho al tejado sur / al norte, la azotea / salta al oeste para volver abajo
+906 Dispara donde haya suelo bajo tus pies para un gran salto
+907 Aterriza para volver a usar el arma de salto
+908 ¡Salto por retroceso! Ajusta el rumbo en el aire
+909 JUMP · espera al aterrizar
+910 No se pudo cargar la función de guardado de registros. Vuelve a cargar la página.
+911 Volar
+912 Ve hasta la marca
+913 Suelta el movimiento
+914 Suelta las teclas de movimiento
+915 Sigue empujando hacia delante
+916 Mantén pulsada la W
+917 Sigue trepando
+918 Avanza hacia la escalera

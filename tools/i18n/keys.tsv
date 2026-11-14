@@ -891,6 +891,32 @@
 890	斜面滑りボタン／Eキーで滑れます。	Use Slide / E to slide downhill.
 891	斜面で「斜面滑り」 ／ E	Use Slide on the slope / E
 892	銃は射線が通る近い敵を自動で狙って撃ち、弾切れ時は自動装填。HGで開始。SG・SMG・MGは10秒ごとに屋根・上層へ補給される（最大5個）	The gun automatically aims at and shoots close enemies in line of sight, and reloads when empty. You start with the HG. SG, SMG and MG are supplied to rooftops and upper levels every 10 s (max 5).
+893	力尽きた…	Out of grip…
+894	手が滑る… ジャンプ！	Slipping… Jump!
+895	今！	Now!
+896	描画を軽くしますか？	Lighten the graphics?
+897	最初のプレイで動作が重い状態が続きました。軽量にすると3D描画の細かさを抑え、影を省きます。操作やゲームのルールは変わりません。設定からいつでも戻せます。	Your first run kept running slowly. Light graphics lowers 3D detail and skips shadows. Controls and game rules stay the same. You can switch back anytime in Settings.
+898	高画質を続ける	Keep high quality
+899	旧記録：1秒間隔のおおまかな軌跡です。発砲・敵の記録はありません。人間の動作は近似です。	Old record: a rough trail sampled once per second (1 s). No shots or enemies were recorded. Human motion is approximate.
+900	移動・視点・発砲と近くの敵（最大6体）を再生します。人間の動作と敵の補間は近似です。	Replays movement, view, shots and nearby enemies (up to 6). Human motion and enemy interpolation are approximate.
+901	移動・視点・発砲と近くの敵（最大6体）を再生します。人間の動作と敵の補間は近似です。発砲は一部のみ記録されています。	Replays movement, view, shots and nearby enemies (up to 6). Human motion and enemy interpolation are approximate. Only some shots were recorded.
+902	移動・視点を再生します。この記録には発砲・敵の情報がありません。人間の動作は近似です。	Replays movement and view. This record has no shot or enemy data. Human motion is approximate.
+903	日時不明	Date unknown
+904	記録 日時不明	Recorded: date unknown
+905	南屋根へフック／北は屋上／西へ跳ぶと下の復帰路	Hook to the south roof / north is the rooftop / jump west for the way back down
+906	足元に床がある場所で発射すると大ジャンプ	Fire where there is floor under your feet for a big jump
+907	着地するとジャンプガンを再使用できます	Land to use the Jump Gun again
+908	反動ジャンプ！ 空中で進路を調整	Recoil jump! Steer in mid-air
+909	JUMP・着地待ち	JUMP · wait to land
+910	記録の保存機能を読み込めませんでした。再読み込みしてください	Could not load the record-saving feature. Please reload the page.
+911	爆破	Blast
+912	マークへ移動	Move to the marker
+913	移動を離す	Release movement
+914	移動キーを離す	Release move keys
+915	前へ押し続ける	Keep pushing forward
+916	Wを押し続ける	Keep holding W
+917	そのまま、上まで	Keep climbing
+918	はしごへ前入力	Move into the ladder
 p0	^(\\d+)秒停止$	Stun $1s
 p1	^技あと(\\d+)$	$1 moves
 p2	^装填中 · あと([\\d.]+)秒$	Reloading · $1 s left
@@ -994,3 +1020,8 @@ p99	^お試し：(.+)$	Try: $1
 p100	^ゾンビ (\\d+) · (\\d+)m四方$	Zombies $1 · $2m square
 p101	^全ゾンビ (\\d+)体$	All zombies: $1
 p102	^閃光弾 (.+)キー 残り(\\d+)個 周囲(\\d+)mのゾンビを(\\d+)秒停止。離すと使用、外へずらすと取消$	Flashbang, key $1. $2 left. Stops zombies within $3 m for $4 s. Release to use, slide away to cancel.
+p103	^フック待ち ([\\d.]+)秒 · 北は屋上／西へ跳ぶと下の復帰路$	Hook ready in $1 s · North is the rooftop / jump west for the way back down
+p104	^足元への自動射撃での目安：約([\\d.]+)m（天井などで変わります）$	Rough guide with auto-fire at your feet: about $1 m (varies under ceilings, etc.)
+p105	^([\\d.]+) / ([\\d.]+)秒$	$1 / $2 s
+p106	^(.+) のゴースト · (\\d+)点$	$1's ghost · $2 pts
+p107	^記録 (\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2})（日本時間）$	Recorded $1 (Japan time)

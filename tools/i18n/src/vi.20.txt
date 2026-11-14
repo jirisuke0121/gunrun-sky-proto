@@ -1,0 +1,26 @@
+893 Hết sức rồi…
+894 Tay trượt rồi… Nhảy!
+895 Bây giờ!
+896 Giảm đồ họa nhé?
+897 Ván đầu tiên của bạn chạy chậm liên tục. Đồ họa nhẹ sẽ giảm độ chi tiết 3D và bỏ bóng đổ. Điều khiển và luật chơi không thay đổi. Bạn có thể đổi lại bất cứ lúc nào trong Cài đặt.
+898 Giữ chất lượng cao
+899 Bản ghi cũ: quỹ đạo sơ lược cách nhau 1 giây. Không có dữ liệu bắn hay kẻ địch. Chuyển động của người chỉ mang tính xấp xỉ.
+900 Phát lại di chuyển, góc nhìn, phát bắn và kẻ địch ở gần (tối đa 6). Chuyển động của người và phần nội suy kẻ địch chỉ mang tính xấp xỉ.
+901 Phát lại di chuyển, góc nhìn, phát bắn và kẻ địch ở gần (tối đa 6). Chuyển động của người và phần nội suy kẻ địch chỉ mang tính xấp xỉ. Chỉ một phần phát bắn được ghi lại.
+902 Phát lại di chuyển và góc nhìn. Bản ghi này không có dữ liệu bắn hay kẻ địch. Chuyển động của người chỉ mang tính xấp xỉ.
+903 Không rõ thời gian
+904 Ghi lúc: không rõ
+905 Móc lên mái phía nam / phía bắc là sân thượng / nhảy sang tây để xuống đường quay lại
+906 Bắn ở nơi có sàn dưới chân để nhảy cao
+907 Hạ cánh để dùng lại súng nhảy
+908 Nhảy nhờ độ giật! Chỉnh hướng khi đang bay
+909 JUMP · chờ hạ cánh
+910 Không tải được chức năng lưu bản ghi. Vui lòng tải lại trang.
+911 Nổ
+912 Di chuyển tới dấu
+913 Thả điều khiển di chuyển
+914 Thả các phím di chuyển
+915 Tiếp tục đẩy về phía trước
+916 Giữ phím W
+917 Tiếp tục leo
+918 Tiến về phía thang

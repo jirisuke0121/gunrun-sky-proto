@@ -93,3 +93,8 @@ p99 Dene: $1:t
 p100 Zombiler $1 · $2 m kare
 p101 Tüm zombiler: $1
 p102 Flaş bombası, tuş $1. $2 kaldı. $3 m içindeki zombileri $4 sn durdurur. Kullanmak için bırak, iptal için dışarı kaydır.
+p103 Kanca $1 sn sonra hazır · Kuzey çatı katı / batıya zıplarsan aşağıya dönüş yolu
+p104 Ayaklarına otomatik ateşle yaklaşık değer: yaklaşık $1 m (tavan vb. durumlarda değişir)
+p105 $1 / $2 sn
+p106 $1 hayaleti · $2 puan
+p107 Kaydedilme: $1 (Japonya saati)

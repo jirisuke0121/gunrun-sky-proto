@@ -250,3 +250,29 @@ WASDでマークへ	WASD toward the marker
 斜面滑りボタン／Eキーで滑れます。	Use Slide / E to slide downhill.
 斜面で「斜面滑り」 ／ E	Use Slide on the slope / E
 銃は射線が通る近い敵を自動で狙って撃ち、弾切れ時は自動装填。HGで開始。SG・SMG・MGは10秒ごとに屋根・上層へ補給される（最大5個）	The gun automatically aims at and shoots close enemies in line of sight, and reloads when empty. You start with the HG. SG, SMG and MG are supplied to rooftops and upper levels every 10 s (max 5).
+力尽きた…	Out of grip…
+手が滑る… ジャンプ！	Slipping… Jump!
+今！	Now!
+描画を軽くしますか？	Lighten the graphics?
+最初のプレイで動作が重い状態が続きました。軽量にすると3D描画の細かさを抑え、影を省きます。操作やゲームのルールは変わりません。設定からいつでも戻せます。	Your first run kept running slowly. Light graphics lowers 3D detail and skips shadows. Controls and game rules stay the same. You can switch back anytime in Settings.
+高画質を続ける	Keep high quality
+旧記録：1秒間隔のおおまかな軌跡です。発砲・敵の記録はありません。人間の動作は近似です。	Old record: a rough trail sampled once per second (1 s). No shots or enemies were recorded. Human motion is approximate.
+移動・視点・発砲と近くの敵（最大6体）を再生します。人間の動作と敵の補間は近似です。	Replays movement, view, shots and nearby enemies (up to 6). Human motion and enemy interpolation are approximate.
+移動・視点・発砲と近くの敵（最大6体）を再生します。人間の動作と敵の補間は近似です。発砲は一部のみ記録されています。	Replays movement, view, shots and nearby enemies (up to 6). Human motion and enemy interpolation are approximate. Only some shots were recorded.
+移動・視点を再生します。この記録には発砲・敵の情報がありません。人間の動作は近似です。	Replays movement and view. This record has no shot or enemy data. Human motion is approximate.
+日時不明	Date unknown
+記録 日時不明	Recorded: date unknown
+南屋根へフック／北は屋上／西へ跳ぶと下の復帰路	Hook to the south roof / north is the rooftop / jump west for the way back down
+足元に床がある場所で発射すると大ジャンプ	Fire where there is floor under your feet for a big jump
+着地するとジャンプガンを再使用できます	Land to use the Jump Gun again
+反動ジャンプ！ 空中で進路を調整	Recoil jump! Steer in mid-air
+JUMP・着地待ち	JUMP · wait to land
+記録の保存機能を読み込めませんでした。再読み込みしてください	Could not load the record-saving feature. Please reload the page.
+爆破	Blast
+マークへ移動	Move to the marker
+移動を離す	Release movement
+移動キーを離す	Release move keys
+前へ押し続ける	Keep pushing forward
+Wを押し続ける	Keep holding W
+そのまま、上まで	Keep climbing
+はしごへ前入力	Move into the ladder

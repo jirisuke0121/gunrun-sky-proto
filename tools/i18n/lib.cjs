@@ -16,6 +16,11 @@ const EXTRA_PATTERNS = [
   ['^ゾンビ (\\d+) · (\\d+)m四方$', 'Zombies $1 · $2m square'],
   ['^全ゾンビ (\\d+)体$', 'All zombies: $1'],
   ['^閃光弾 (.+)キー 残り(\\d+)個 周囲(\\d+)mのゾンビを(\\d+)秒停止。離すと使用、外へずらすと取消$', 'Flashbang, key $1. $2 left. Stops zombies within $3 m for $4 s. Release to use, slide away to cancel.'],
+  ["^フック待ち ([\\d.]+)秒 · 北は屋上／西へ跳ぶと下の復帰路$", "Hook ready in $1 s · North is the rooftop / jump west for the way back down"],
+  ["^足元への自動射撃での目安：約([\\d.]+)m（天井などで変わります）$", "Rough guide with auto-fire at your feet: about $1 m (varies under ceilings, etc.)"],
+  ["^([\\d.]+) / ([\\d.]+)秒$", "$1 / $2 s"],
+  ["^(.+) のゴースト · (\\d+)点$", "$1's ghost · $2 pts"],
+  ["^記録 (\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2})（日本時間）$", "Recorded $1 (Japan time)"],
 ];
 
 function loadBase() {
