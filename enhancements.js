@@ -1,4 +1,4 @@
-import { installMinimap } from './minimap.js?v=20261108-hybrid-v1';
+import { installMinimap } from './minimap.js?v=20261114-big-enemies-v1';
 import { installRunRecords } from './run-records.js?v=20261109-no-send-notice-v1';
 import { createGunRecoil } from './gun-recoil.js?v=20261101-recoil-v1';
 import { createSwing } from './parkour-swing.js?v=20261114-hook-v1';
@@ -20,7 +20,7 @@ import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapo
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261031-no-point-lights-v1';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261031-grip-v1';
 import { createJumpPickups } from './jump-pickups.js?v=20261101-jump-stash-v1';
-import { createWeaponDrops } from './weapon-drops.js?v=20261114-pc-playtest-v1';
+import { createWeaponDrops } from './weapon-drops.js?v=20261114-crate-pillar-v3';
 import { createDash } from './dash-boost.js?v=20261113-hud-v1';
 import { mergeStaticMaterialGroups } from './world-batching.js?v=20261108-opaque-v1';
 import { installWallReadability } from './wall-readability.js?v=20261106-south-v1';

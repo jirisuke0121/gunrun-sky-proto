@@ -89,6 +89,7 @@ export function installMinimap(game, publicGame) {
     } else ctx.drawImage(cache.get(level),0,0);
     if(!view){ctx.fillStyle='#d6e1de';ctx.font='bold 12px system-ui';ctx.fillText('N ↑',8,17);}metrics.terrainCopies++;
   }
+  const NEAR_M=3;
   function drawMarkers(target,markers,player,level,bounds=model.bounds,size=MAP_SIZE,heading=0) {
     const ctx=target.getContext('2d');ctx.clearRect(0,0,target.width,target.height);
     // Doors change during a run: never bake a closed door into static terrain.
@@ -96,12 +97,16 @@ export function installMinimap(game, publicGame) {
     ctx.save();ctx.translate(target.width/2,target.height/2);ctx.rotate(heading);ctx.translate(-target.width/2,-target.height/2);
     for(const b of doors)if(!b.off && b.minY<level+LEVEL_HEIGHT && b.maxY>level)ctx.fillRect(...pixelRect(ctx,b,bounds,size));
     ctx.restore();
+    // 2026-11-14: the nearby radar (small, 256px canvas shown at about 148px) drew enemies too small to read. Enemies are bigger
+    // there with a light outline, and one that is within NEAR_M of the player is bigger still: that is the one about to catch you.
+    const radar=size===LOCAL_MAP_SIZE,k=radar?1.85:1,nearPx=NEAR_M*size/LOCAL_MAP_SPAN;
     for(const marker of markers){
-      const x=Math.max(6,Math.min(target.width-6,marker.x)),y=Math.max(6,Math.min(target.height-6,marker.y));
+      const near=radar&&player&&Math.hypot(marker.x-player.x,marker.y-player.y)<nearPx,m=k*(near?1.3:1);
+      const pad=6*m,x=Math.max(pad,Math.min(target.width-pad,marker.x)),y=Math.max(pad,Math.min(target.height-pad,marker.y));
       ctx.beginPath();
-      if(marker.relative==='same')ctx.arc(x,y,5.5,0,Math.PI*2);
-      else {const sign=marker.relative==='above'?-1:1;ctx.moveTo(x,y+sign*6.5);ctx.lineTo(x-6,y-sign*4.5);ctx.lineTo(x+6,y-sign*4.5);ctx.closePath();}
-      ctx.fillStyle=marker.stalker?'#ffb35e':'#ff6578';ctx.strokeStyle='#201b29';ctx.lineWidth=1.6;ctx.fill();ctx.stroke();
+      if(marker.relative==='same')ctx.arc(x,y,5.5*m,0,Math.PI*2);
+      else {const sign=marker.relative==='above'?-1:1;ctx.moveTo(x,y+sign*6.5*m);ctx.lineTo(x-6*m,y-sign*4.5*m);ctx.lineTo(x+6*m,y-sign*4.5*m);ctx.closePath();}
+      ctx.fillStyle=marker.stalker?'#ffb35e':'#ff6578';ctx.strokeStyle=radar?'#fff4f0':'#201b29';ctx.lineWidth=radar?2.2:1.6;ctx.fill();ctx.stroke();
     }
     if(player){
       ctx.save();ctx.translate(Math.max(10,Math.min(target.width-10,player.x)),Math.max(10,Math.min(target.height-10,player.y)));

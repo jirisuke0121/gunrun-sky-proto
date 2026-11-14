@@ -5,10 +5,15 @@ import { segmentDistance } from './dash-boost.js?v=20261027-jump-items-v1';
 export const WEAPON_DROP_INTERVAL = 10;
 export const WEAPON_DROP_LIMIT = 5;
 const FALL_SECONDS = 1.4, ITEM_SECONDS = 50;
+// A tall thin pillar of light over every landed crate, so the supply is findable from far away over the rooftops. It is
+// deliberately unlike the route marker (orange, 70 m high, 1 m wide): thin, in the weapon's own colour, pulsing, and it
+// never uses orange/yellow (those are marker colours). Walls hide it (depth test on), so only the tip shows from behind a roof.
+const PILLAR_HEIGHT = 60, PILLAR_RADIUS = .22, PILLAR_GLOW_RADIUS = .6, PILLAR_OPACITY = .8, PILLAR_GLOW_OPACITY = .22, PILLAR_NEAR = 6, PILLAR_FAR = 16, PILLAR_NEAR_FADE = .25;
+// color: crate band / label / ring. pillar: a more saturated variant, because the pale dawn sky washes out light colours.
 const TYPES = [
-  { index: 1, name: 'SG', color: 0xffaf61, height: 3.5, distance: 15 },
-  { index: 2, name: 'SMG', color: 0x78e7b0, height: 5, distance: 23 },
-  { index: 3, name: 'MG', color: 0xc0a0ff, height: 8, distance: 30 },
+  { index: 1, name: 'SG', color: 0x6cc8ff, pillar: 0x1f9bff, height: 3.5, distance: 15 },
+  { index: 2, name: 'SMG', color: 0x78e7b0, pillar: 0x14c97a, height: 5, distance: 23 },
+  { index: 3, name: 'MG', color: 0xc0a0ff, pillar: 0x9a5cff, height: 8, distance: 30 },
 ];
 
 // Use the actual directed traversal graph in both directions. A roof must be
@@ -28,6 +33,7 @@ export function createWeaponDrops(sky, game) {
   const root = new T.Group(); root.name = 'Parkour weapon supplies'; sky.ue.add(root);
   const geometry = new T.Box(.54, .38, .54), bandGeometry = new T.Box(.58, .09, .58);
   const ringGeometry = new T.Torus(.58, .035, 5, 28), beamGeometry = new T.Cylinder(.025, .025, 2.6, 5);
+  const pillarGeometry = new T.Cylinder(PILLAR_RADIUS, PILLAR_RADIUS, PILLAR_HEIGHT, 8), glowGeometry = new T.Cylinder(PILLAR_GLOW_RADIUS, PILLAR_GLOW_RADIUS, PILLAR_HEIGHT, 10);
   const crateMaterial = new T.Standard({ color: 0x303b3c, roughness: .8 });
   const materials = TYPES.map(type => {
     const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 96;
@@ -40,10 +46,15 @@ export function createWeaponDrops(sky, game) {
     const body = new T.Group(), group = new T.Group(), crate = new T.Mesh(geometry, crateMaterial);
     const band = new T.Mesh(bandGeometry, materials[0].color), ring = new T.Mesh(ringGeometry, materials[0].color);
     const beam = new T.Mesh(beamGeometry, materials[0].color), label = new T.Sprite(materials[0].label);
+    const pillarMaterial = new T.Basic({ color: TYPES[0].color, transparent: true, opacity: 0, depthWrite: false, fog: false });
+    const pillar = new T.Mesh(pillarGeometry, pillarMaterial);
+    const glowMaterial = new T.Basic({ color: TYPES[0].pillar, transparent: true, opacity: 0, depthWrite: false, fog: false });
+    const glow = new T.Mesh(glowGeometry, glowMaterial); glow.renderOrder = 1; glow.frustumCulled = false; pillar.add(glow);
     ring.rotation.x = -Math.PI / 2; beam.position.y = 1.3;
+    pillar.position.y = PILLAR_HEIGHT / 2 - .93; pillar.renderOrder = 2; pillar.frustumCulled = false;
     label.position.y = 1; label.scale.set(1.4, .525, 1);
-    body.add(crate, band, label); group.add(body, ring, beam); root.add(group); group.visible = false;
-    return { group, body, band, ring, beam, label, node: null, type: 0, age: 0 };
+    body.add(crate, band, label); group.add(body, ring, beam, pillar); root.add(group); group.visible = false;
+    return { group, body, band, ring, beam, pillar, pillarMaterial, glowMaterial, label, node: null, type: 0, age: 0 };
   });
   const status = document.createElement('div'); status.id = 'weaponSupplyStatus'; status.hidden = true;
   document.getElementById('hud').append(status);
@@ -96,6 +107,7 @@ export function createWeaponDrops(sky, game) {
     item.node = pick; item.type = sequence % TYPES.length; item.age = 0;
     const material = materials[item.type];
     item.band.material = item.ring.material = item.beam.material = material.color;
+    item.pillarMaterial.color.setHex(TYPES[item.type].pillar); item.glowMaterial.color.setHex(TYPES[item.type].pillar);
     item.label.material = material.label; item.group.position.set(pick.x, pick.y + 1, pick.z);
     recent.push(pick); if (recent.length > 2) recent.shift();
     sequence++; spawned++;
@@ -146,6 +158,10 @@ export function createWeaponDrops(sky, game) {
       item.body.position.y = fall * item.node.weaponDropHeight + Math.sin(elapsed * 2.4) * .06;
       item.body.rotation.y = elapsed * .6; item.ring.position.y = -.93;
       item.beam.visible = item.age < FALL_SECONDS || Math.sin(elapsed * 2) > -.6;
+      // Pillar: fades in while the crate falls, pulses slowly, and thins out when the player is close (the crate itself is then visible).
+      const near = Math.min(1, Math.max(PILLAR_NEAR_FADE, (Math.hypot(item.node.x - c.pos.x, item.node.z - c.pos.z) - PILLAR_NEAR) / (PILLAR_FAR - PILLAR_NEAR)));
+      const strength = near * (.82 + .18 * Math.sin(elapsed * 1.6 + item.type)) * Math.min(1, item.age / FALL_SECONDS);
+      item.pillarMaterial.opacity = PILLAR_OPACITY * strength; item.glowMaterial.opacity = PILLAR_GLOW_OPACITY * strength;
     }
     // The crates (beam, ring) stay; the text guidance ("○の箱 ○m · 触れて武器・弾を補充") is no longer shown.
     status.hidden = true;
