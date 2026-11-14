@@ -27,8 +27,8 @@
   const SQUEEZE_RATE = Number(new URLSearchParams(location.search).get('followSqueeze') ?? 1.5);
   let savedMode;
   try { savedMode = localStorage.getItem(storageKey); } catch {}
-  // PC has one control style (WASD + mouse), so a stored value never overrides it; ?camera= stays for tests.
-  let mode = [queryMode, coarse() ? savedMode : null, defaultMode()].find(value => value === 'before' || value === 'after');
+  // PC defaults to WASD + mouse; a PC player who picked the easy (auto camera) type keeps it via the PC-only key above.
+  let mode = [queryMode, savedMode, defaultMode()].find(value => value === 'before' || value === 'after');
   const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
   const angle = n => Math.atan2(Math.sin(n), Math.cos(n));
   const view = { yaw: c.yaw, pitch: c.pitch };
@@ -325,7 +325,6 @@
     group.className = home ? 'follow-camera-home' : 'set-group follow-camera-settings';
     group.setAttribute('aria-label', home ? 'プレイ前の操作タイプ' : '操作タイプ');
     group.innerHTML = `${home ? '' : '<h4>操作タイプ</h4>'}<label for="${id}">操作タイプ</label><select id="${id}" aria-label="操作タイプ"><option value="before">${NAMES.before}</option><option value="after">${NAMES.after}</option></select><p class="note follow-camera-help"></p>`;
-    if (!coarse()) { group.hidden = true; if (group.style) group.style.display = 'none'; } // PC: no control-type choice
     const select = group.querySelector('select'); selectors.push(select);
     select.addEventListener('change', () => setMode(select.value));
     for (const name of ['pointerdown', 'pointerup', 'touchstart', 'touchend']) group.addEventListener(name, event => event.stopPropagation());

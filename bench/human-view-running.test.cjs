@@ -230,9 +230,10 @@ const { fixture } = require('./human-running.test.cjs');
   update(1,false);assert.equal(JSON.stringify({p:c.pos.toArray(),v:c.vel.toArray(),yaw:c.yaw,state:c.state}),flightState);
   c.swingFlight=null;c.onGround=false;update(1,false);assert.equal(+dataset.skyHumanReleaseAccent,0,'another airborne action cancels the visual turn immediately');
   c.onGround=true;c.vel.set(0,0,0);update(20,false);sky.U.gunOn=true;
-  // Return from first person or a respawn without accumulating an old distance.
-  keys.get('keydown')({ code: 'KeyV', repeat: false }); update(1, false); assert.equal(dataset.skyHumanView, 'first');
-  keys.get('keydown')({ code: 'KeyV', repeat: false }); c.pos.z -= 100; c.vel.z = -6; update(1, false);
+  // V is the Rescue key (free-hook.js): it must never flip the view to first person (2026-11-14 PC playtest).
+  keys.get('keydown')?.({ code: 'KeyV', repeat: false }); update(1, false); assert.equal(dataset.skyHumanView, 'third', 'V does not switch the view');
+  // A respawn does not accumulate an old distance.
+  c.pos.z -= 100; c.vel.z = -6; update(1, false);
   assert.equal(+dataset.skyHumanGaitPhase, 0);
   assert.ok(body.morphTargetInfluences.every(Number.isFinite));
   console.log('PASS actual human-view integration: moving/blocked feet, walk/run/strafe/back, firing/reload, pause, jump/slide/ladder, ledge contacts, wall run/look/pause/exit, view switch/respawn; level two-hand bar contact after a turn, unarmed release/reach and same-frame airborne fire; 60 first-shot barrel/ray, visible chest direction, foot preservation and actual deformed wrist contacts');

@@ -148,7 +148,7 @@ function sync() {
   choiceButtons.forEach(button => button.classList.toggle('on', button.dataset.human === choice));
   document.body.dataset.skyHumanTrial = choice;
   document.body.dataset.skyHumanView = choice === 'unity' && asset ? view : 'first';
-  if (status && asset && choice === 'unity') status.textContent = `${view === 'third' ? '三人称' : '一人称'}で表示中${motion ? '（Unityアニメーション）' : '（静止モデル）'}。プレイ中は V で視点切替`;
+  if (status && asset && choice === 'unity') status.textContent = `${view === 'third' ? '三人称' : '一人称'}で表示中${motion ? '（Unityアニメーション）' : '（静止モデル）'}`;
   if (status && choice === 'existing') status.textContent = '';
 }
 function select(next) {
@@ -166,12 +166,7 @@ document.getElementById('bStart')?.addEventListener('click', event => {
     status.textContent = 'Unity人間モデルを読み込み中です。少し待ってから開始してください。';
   }
 }, true);
-document.addEventListener('keydown', event => {
-  if (event.code === 'KeyV' && !event.repeat && choice === 'unity' && sky.modeRef() === 'play') {
-    view = view === 'third' ? 'first' : 'third';
-    sync();
-  }
-});
+// V is the Rescue key (free-hook.js); the old V view toggle flipped the camera to first person on every Rescue press.
 
 const pivot = new Vector3(), wanted = new Vector3(), delta = new Vector3(), probe = new Vector3(), forward = new Vector3(), right = new Vector3();
 const weaponNames = ['Sky HG','Sky SG','Sky SMG','Sky MG','Sky Unity HG','Sky Easy Shotgun','Sky Easy M4','Sky Easy Rail Gun','Sky Easy Beam Gun','Sky Easy Cluster Launcher','Sky Easy Rocket Launcher','Sky Easy M79','Sky Jump Gun'];

@@ -87,7 +87,7 @@
     Object.assign(hint.style, { position: 'fixed', left: '50%', top: '118px',
       transform: 'translateX(-50%)', zIndex: '21', pointerEvents: 'none',
       padding: '4px 10px', borderRadius: '8px', background: 'rgba(24,20,14,.6)',
-      color: '#ffe4a1', font: 'bold 12px sans-serif', textAlign: 'center',
+      color: '#ffe4a1', font: 'bold 14px sans-serif', textAlign: 'center',
       whiteSpace: 'nowrap', display: 'none' });
     document.body.appendChild(hint);
     const projected = new Vector3();

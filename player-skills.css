@@ -52,3 +52,14 @@ html.touch #weaponSupplyStatus{top:calc(var(--touch-top) + 60px)}
 /* PC key hints sit in the skill name (1 flashbang, 2 decoy); touch has the buttons instead. */
 #skillDock #tFlash .skill-name kbd,#skillDock #tDecoy .skill-name kbd{padding:0 .3em;font-size:9px}
 html.touch #skillDock #tFlash .skill-name kbd,html.touch #skillDock #tDecoy .skill-name kbd{display:none}
+
+/* PC: the mouse is captured while playing, so skills are used by key. Make the key the biggest thing on each button
+   (2026-11-14, from a first-time PC playtest where the item keys could not be found). */
+html:not(.touch) #skillDock #tFlash .skill-name,html:not(.touch) #skillDock #tDecoy .skill-name,
+html:not(.touch) #skillDock #tJumpGun .skill-name,html:not(.touch) #skillDock #tRescue .skill-name{top:calc(100% + 8px);font-size:12px}
+html:not(.touch) #skillDock #tFlash .skill-name kbd,html:not(.touch) #skillDock #tDecoy .skill-name kbd,
+html:not(.touch) #skillDock #tJumpGun .skill-name kbd,html:not(.touch) #skillDock #tRescue .skill-name kbd{
+  display:block;width:max-content;min-width:26px;margin:4px auto 0;padding:3px 8px;border-radius:6px;background:#fff;color:#172332;text-align:center;
+  font:900 16px/1 system-ui,sans-serif;box-shadow:0 2px 0 #0009}
+html:not(.touch) .hookmark span{font-size:19px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000}
+html:not(.touch) #blastMark span{font-size:19px!important;font-weight:900}

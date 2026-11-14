@@ -12,7 +12,7 @@ export function createGhostReplay(game) {
   const baseKey = `gunrun-ranked-ghost-v1-${map}`;
   let key;
   let replayRequest=null,bestPresentation='';
-  let samples = [], recording = false, best = null, showBest = true, active = null, fetchToken = 0;
+  let samples = [], recording = false, best = null, showBest = false, active = null, fetchToken = 0;
   function loadBest() {
     key = window.skyChallenge.key(baseKey); best = null;
     try { const data = JSON.parse(localStorage.getItem(key)); if (validateGhost(data?.ghost, map, 300)) best = data; } catch {}
@@ -69,7 +69,9 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
   document.getElementById('challengeSettingsNote').before(chip);
   function toggleBest() { showBest = !showBest; syncBest(); }
   function syncBest() {
-    const hidden=!!(!best || z.mission || window.skyChallenge.isIntro || active);
+    // 2026-11-14: the best-run ghost body during play looked like a stray zombie shadow to first-time players, so it is
+    // off by default and the switch only exists in dev mode. Ranking replays (viewing someone's ghost) are unchanged.
+    const hidden=!!(!window.skyDevMode || !best || z.mission || window.skyChallenge.isIntro || active);
     if(chip.hidden!==hidden)chip.hidden=hidden;
     const presentation=`${best?.total??0}|${showBest}`;
     if(presentation===bestPresentation)return;
@@ -194,7 +196,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
   el('replayView').addEventListener('change', () => update(0));
   document.addEventListener('keydown', event => {
     if (active && event.code === 'Escape') { event.preventDefault(); close(); }
-    if (!active && event.code === 'KeyH' && !event.repeat && game.modeRef() === 'play') toggleBest();
+    if (window.skyDevMode && !active && event.code === 'KeyH' && !event.repeat && game.modeRef() === 'play') toggleBest();
   });
   if(window.skyOwnerReplay && window.parent!==window){
     const ownerOrigin='https://sky-corridor-owner.jirisuke.chatgpt.site';

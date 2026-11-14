@@ -45,9 +45,10 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  for(const row of shotReasons.rows){assert.equal(row.blocked,row.state);assert.equal(row.before,row.after);assert.ok(row.text.length>4);if(lang==='en')assert.ok(!jp.test(row.text),row.text)}
  assert.match(shotReasons.empty,lang==='ja'?/弾切れ.*補給/:/Out of ammo.*refill/);await p.screenshot({path:`${out}/${id}-empty.png`});
  await p.evaluate(()=>{const s=__skyInternals;s.Et.ammo=s.Et.mag;s.Et.reserve=24;s.Et.reloadT=0;skyPlayerClarity.render()});
- await press('#tAutoFire');await p.waitForFunction(()=>!__game.S.autoFire);await p.evaluate(()=>skyPlayerClarity.render());
- assert.match(await p.locator('#gunState').innerText(),lang==='ja'?/停止中.*再開/:/Stopped.*resume/i);
- await press('#tAutoFire');await p.waitForFunction(()=>__game.S.autoFire);await p.evaluate(()=>{__game.S.autoFire=false;skyPlayerClarity.render()});
+ // 2026-11-14: normal play has no stop/resume control any more (first PC playtest): the mark is hidden and X does nothing.
+ assert.equal(await p.locator('#tAutoFire').isVisible(),false,`${id}: auto-fire stop mark is gone in normal play`);
+ await p.keyboard.press('x');await p.evaluate(()=>skyPlayerClarity.render());assert.equal(await p.evaluate(()=>__game.S.autoFire),true,`${id}: X no longer stops automatic fire`);
+ await p.evaluate(()=>{__game.S.autoFire=false;skyPlayerClarity.render()});
  // The real skill button consumes once; rejected repeated presses consume nothing.
  await press('#tDecoy');assert.equal(await p.evaluate(()=>skyDecoy.stats.used),1);
  await press('#tDecoy');await p.evaluate(()=>skyPlayerClarity.render());

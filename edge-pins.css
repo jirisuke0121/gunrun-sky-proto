@@ -1,0 +1,21 @@
+/* Direction pins (edge-pins.js). Red = off-screen pursuer, cyan/white = ammo crate. No yellow/orange (marker colours). */
+.edge-pin{position:absolute;left:0;top:0;pointer-events:none;z-index:7;will-change:transform}
+.edge-pin[hidden],.edge-pin.ammo[hidden]{display:none}
+.edge-pin.pursuer{width:30px;height:30px}
+.edge-pin.pursuer svg{display:block;width:100%;height:100%;transform:rotate(var(--turn,0deg));fill:#ff3347;stroke:#fff;stroke-width:2.5;stroke-linejoin:round;filter:drop-shadow(0 0 5px #000a)}
+.edge-pin.pursuer[data-tier='2'] svg{width:36px;height:36px;margin:-3px}
+.edge-pin.pursuer[data-tier='3'] svg{width:44px;height:44px;margin:-7px}
+@media (prefers-reduced-motion:no-preference){.edge-pin.pursuer[data-tier='3'] svg{animation:edgePinPulse .5s ease-in-out infinite}}
+@keyframes edgePinPulse{0%,100%{opacity:1}50%{opacity:.55}}
+.edge-pin.ammo{display:flex;flex-direction:column;align-items:center;gap:1px;color:#e8fffb;font:800 12px/1 system-ui,sans-serif;text-shadow:0 1px 3px #000,0 0 2px #000}
+.edge-pin.ammo .edge-pin-arrow{width:30px;height:30px;transform:rotate(var(--turn,0deg))}
+.edge-pin.ammo.on-screen .edge-pin-arrow{display:none}
+.edge-pin.ammo .edge-pin-arrow svg{display:block;width:100%;height:100%;fill:#45e6ff;stroke:#fff;stroke-width:2.5;stroke-linejoin:round;filter:drop-shadow(0 0 5px #000a)}
+.edge-pin.ammo b{padding:3px 7px;border-radius:6px;background:#0b3d48;border:2px solid #45e6ff;letter-spacing:.04em}
+.edge-pin.ammo i{font-style:normal;font-size:13px}
+#ammoEmptyNote{position:absolute;left:50%;top:34%;transform:translateX(-50%);z-index:8;padding:6px 14px;border-radius:8px;background:#3a0c14e6;border:2px solid #ff3347;color:#fff;font:800 17px/1.2 system-ui,sans-serif;pointer-events:none;white-space:nowrap}
+#ammoEmptyNote[hidden]{display:none}
+@media (prefers-reduced-motion:no-preference){#ammoEmptyNote{animation:edgePinPulse .8s ease-in-out infinite}}
+body:has(#ovPause:not([hidden])) .edge-pin,body:has(#ovOver:not([hidden])) .edge-pin,body:has(#ovPause:not([hidden])) #ammoEmptyNote,body:has(#ovOver:not([hidden])) #ammoEmptyNote{display:none}
+/* The soft red edge stays as the "how close" cue, but the pins now carry the direction. */
+#threatEdge{opacity:.6}

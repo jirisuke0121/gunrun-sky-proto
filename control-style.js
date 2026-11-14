@@ -134,10 +134,10 @@
     ui.cards.find(el => el.dataset.mode === picked)?.focus({ preventScroll: true });
   }
 
-  // Every way into the intro run (splash, 遊び方, the home button) clicks #bIntro; ask first on touch devices.
+  // Every way into the intro run (splash, 遊び方, the home button) clicks #bIntro; ask first (touch and PC).
   // Automated browsers (the bench scripts) skip the popup unless ?controlpick=1.
   const skip = window.skyOwnerReplay || params.has('ownerReplay') || window.skyPracticeMode || params.has('practice') || params.get('controlpick') === '0';
-  const ask = () => !window.skyGuidedEntry && !skip && touch && (navigator.webdriver !== true || params.get('controlpick') === '1');
+  const ask = () => !window.skyGuidedEntry && !skip && (navigator.webdriver !== true || params.get('controlpick') === '1');
   let passing = false;
   document.addEventListener('click', event => {
     const intro = event.target.closest?.('#bIntro');

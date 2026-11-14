@@ -1,4 +1,4 @@
-import { installGuidedChoice } from './guided-choice.js?v=20261109-auto-follow-v3';
+import { installGuidedChoice } from './guided-choice.js?v=20261114-pc-playtest-v1';
 import { installGuidedCoach } from './guided-coach.js?v=20261112-swing-input-v2';
 import { describeLesson } from './guided-prompts.js?v=20261112-swing-input-v4';
 import { createLessons } from './guided-lessons.js?v=20261113-bar-handoff-v1';
@@ -115,7 +115,7 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
  }
  function setText(node,value){if(node.textContent!==value)node.textContent=value;}
  function render(schedule=true) {
-   if(!started&&g.mode==='play'){started=true;trialJumps=g.stats.jumps||0;targets(false);document.body.dataset.learnStage='controls';if(window.skyFollowCamera.touchDevice)choice.start();else{window.skyFollowCamera.setMode('before',false);startCourse();}requestAnimationFrame(()=>document.documentElement.classList.remove('sky-learn-booting'));}
+   if(!started&&g.mode==='play'){started=true;trialJumps=g.stats.jumps||0;targets(false);document.body.dataset.learnStage='controls';choice.start();requestAnimationFrame(()=>document.documentElement.classList.remove('sky-learn-booting'));}
    ui.hidden=!started||g.mode!=='play';
    if(completing){if(ui.hidden)ui.hidden=false;if(schedule)requestAnimationFrame(()=>render());return;}
    if(ui.hidden){if(schedule)requestAnimationFrame(()=>render());return;}

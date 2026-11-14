@@ -153,5 +153,7 @@ export function createWeaponDrops(sky, game) {
       elapsed: +elapsed.toFixed(2), next: +next.toFixed(2), spawned, collected, candidates: candidates.length, weapon: U.weapon | 0,
       items: active.map(i => ({ weapon: TYPES[i.type].name, position: [i.node.x, i.node.y, i.node.z], age: +i.age.toFixed(2), falling: i.age < FALL_SECONDS })) });
   }
-  return { reset, placePickups, step, frame };
+  // Landed, collectable crates (for the ammo direction pin in edge-pins.js).
+  const crates = () => items.filter(i => i.node && i.age >= FALL_SECONDS).map(i => ({ x: i.node.x, y: i.node.y + 1, z: i.node.z, weapon: TYPES[i.type].name }));
+  return { reset, placePickups, step, frame, crates };
 }
