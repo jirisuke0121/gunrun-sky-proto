@@ -1,5 +1,5 @@
 // Local Unity human trial for the old town and canyon maps.
-import { addParkourRun, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, RUN_STRIDE, DASH_STRIDE, LANDING_SECONDS, releaseAccent } from './human-running.js?v=20261103-bite-v5';
+import { addParkourRun, dequantizeMorphs, sampleClip, strideAdvance, runningBlend, jumpPhase, ledgeAnchor, wallRunFrame, WALLRUN_STRIDE, RUN_STRIDE, DASH_STRIDE, LANDING_SECONDS, releaseAccent } from './human-running.js?v=20261114-morph-int16-v1';
 import { GRIP_SLIP_SECONDS } from './swing-fatigue.js?v=20261031-grip-v1';
 import { createLandingRoll, rollTuck, rollTurn } from './landing-roll.js?v=20261029-edge-assist-v3';
 import { buildHeldWeapon, createHumanAim } from './human-aim.js?v=20261030-rotation-cache-v2';
@@ -87,7 +87,7 @@ function readBounds(object) {
 async function readAnimatedHuman() {
   if (!window.DecompressionStream) throw new Error('gzip decompression is unavailable');
   const [response, details] = await Promise.all([
-    fetch('./assets/human-gunrun-animated.glb.gz?v=20261025-slide-pose-v5'),
+    fetch('./assets/human-gunrun-animated.glb.gz?v=20261114-morph-int16-v1'),
     fetch('./assets/human-gunrun-animated.json?v=20261025-slide-pose-v5').then(r => { if (!r.ok) throw new Error('motion metadata'); return r.json(); })
   ]);
   if (!response.ok) throw new Error('animated human GLB');
@@ -108,6 +108,7 @@ function loadHuman() {
       holder = new Group();
       holder.name = 'Unity challenge human';
       model = gltf.scene;
+      dequantizeMorphs(model, Geom.Float32Attribute);
       const corrected = model;
       const { low, high } = readBounds(corrected);
       const height = high.y - low.y;

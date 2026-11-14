@@ -31,6 +31,10 @@ async function loadHuman() {
 
 async function fixture() {
   const gltf = await loadHuman(), motion = JSON.parse(fs.readFileSync('assets/human-gunrun-animated.json'));
+  // The shipped GLB stores morphs as int16; the game restores Float32 right after parsing.
+  const { dequantizeMorphs } = await import('../human-running.js');
+  let Attribute; gltf.scene.traverse(n => { if (!Attribute && n.isMesh) Attribute = n.geometry.attributes.position.constructor; });
+  fixture.restored = dequantizeMorphs(gltf.scene, Attribute);
   return { gltf, motion };
 }
 
@@ -46,6 +50,10 @@ if (require.main === module) (async () => {
   const { gltf, motion } = await fixture(), meshes = [];
   gltf.scene.traverse(o => { if (o.isMesh) meshes.push(o); });
   const body = meshes.find(o => o.name.startsWith('Body_mesh'));
+  assert.equal(fixture.restored, 3, 'the three morphing meshes are restored from int16');
+  for (const mesh of meshes) for (const a of mesh.geometry.morphAttributes.position || []) {
+    assert.ok(a.array instanceof Float32Array && a.itemSize === 3 && a.array.length === a.count * 3, 'morph arrays are plain Float32 after restore');
+  }
   const originalNames = Object.keys(body.morphTargetDictionary);
   const positions = body.geometry.morphAttributes.position.map(a => Array.from(a.array));
   const start = performance.now();

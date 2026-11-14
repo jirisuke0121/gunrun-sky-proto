@@ -23,9 +23,11 @@
     "source": "Resources/GunRunAudio/Bonus.wav",
     "sha256": "41ae205f9f03e14f13bb0602853f00cabc11826b9a5f1e2b208a673de9463b76"
   },
-  "damage-bullet.png": {
+  "damage-bullet.webp": {
     "source": "Resources/InfectionProgression/damage-bullet.png",
-    "sha256": "00e73ce34fedb9e8baacd728b69ea8d71939ce96ff57ec88428a25bab8f23a6a"
+    "sourceSHA256": "00e73ce34fedb9e8baacd728b69ea8d71939ce96ff57ec88428a25bab8f23a6a",
+    "derivation": "1774x887 PNG resized to 256x128 (LANCZOS) and saved as lossy WebP q90 (alpha kept); shown at 46x30 CSS px",
+    "sha256": "4d7ea718a92827bc3d41db0e44505e3bd64676fa7dd167c3d2bf43984be47f63"
   },
   "feedback-medium.woff": {
     "source": "Fonts/NotoSansJP-Medium.otf",

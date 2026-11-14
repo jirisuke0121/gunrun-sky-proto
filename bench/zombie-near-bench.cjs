@@ -12,7 +12,7 @@ const map=process.env.BENCH_MAP||'index.html',density=process.env.BENCH_DENSITY|
   s=s.slice(0,a)+fn+'function so(...args){const p=performance.now();try{return benchSearch(...args)}finally{window.__navMs=(window.__navMs||0)+performance.now()-p}}'+s.slice(b);
   return route.fulfill({status:200,contentType:'text/html',body:s});}return route.continue();});
  const page=await context.newPage();page.setDefaultTimeout(60000);await page.goto('http://127.0.0.1:8774/'+map);
- await page.waitForFunction(()=>window.__skyInternals?.benchModels().length>=4&&window.__skyUpgrade?.loaded?.mg);
+ await page.waitForFunction(()=>window.__skyInternals?.benchModels().length>=4&&(window.__skyEnsureWeaponDetail?.('mg'), window.__skyUpgrade?.loaded?.mg));
  await page.locator('#humanSel [data-human="unity"]').click();await page.waitForFunction(()=>document.body.dataset.skyHumanLoaded==='true');await page.locator('#bStart').click();await page.waitForFunction(()=>Object.keys(window.skyZombieNear?.results||{}).length===4&&window.__skyInternals.zombieModels().every(e=>e.lo));
  const result=await page.evaluate(async({density,map})=>{
   const g=window.__game,s=window.__skyInternals,c=g.P,r=g.debug.renderer,T=s.Geom;

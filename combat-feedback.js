@@ -18,7 +18,7 @@
           if (!response.ok) throw Error(name + ': HTTP ' + response.status);
           assets.buffers[key] = await decoder.decodeAudioData(await response.arrayBuffer());
         }),
-        ...['damage-bullet.png', 'skull.png', 'titanium.png', 'gold.png', 'socket.png', 'escaped.svg'].map(name =>
+        ...['damage-bullet.webp', 'skull.png', 'titanium.png', 'gold.png', 'socket.png', 'escaped.svg'].map(name =>
           new Promise((resolve, reject) => { const img = new Image(); img.onload = resolve; img.onerror = () => reject(Error(name)); img.src = base + name; })),
         (async () => { const font = new FontFace('SkyFeedback', `url(${base}feedback-medium.woff)`); await font.load(); document.fonts.add(font); })(),
       ]);
@@ -32,7 +32,7 @@
     const root = document.createElement('div'); root.id = 'combatFeedback'; root.hidden = true; root.setAttribute('aria-hidden', 'true');
     const art = (name, cls = '') => `<img class="${cls}" src="${base + name}" alt="" draggable="false">`;
     root.innerHTML = `<svg class="cf-trails" aria-hidden="true"><g></g></svg>
-      <div id="threatHit" class="cf-damage" hidden>${art('damage-bullet.png')}<span><b></b><small>DMG</small><em></em></span></div>
+      <div id="threatHit" class="cf-damage" hidden>${art('damage-bullet.webp')}<span><b></b><small>DMG</small><em></em></span></div>
       <div id="damageStack" class="cf-stack" hidden><div class="cf-chips">${Array.from({length: 5}, () => `<span>${art('socket.png')}<i>${art('titanium.png')}</i></span>`).join('')}</div><span class="cf-damage-total">0 / 10 DMG</span></div>
       <div id="damageAward" class="cf-award" hidden>${art('gold.png')}<span><b>10 DMG</b><small>ダメージ達成</small></span></div>
       <div id="threatFeedback" class="cf-event" hidden>${art('skull.png', 'cf-event-icon')}<span><b class="cf-event-caption"></b><strong class="cf-event-title"></strong><small class="cf-event-detail"></small></span><i class="cf-event-line"></i></div>`;
@@ -51,7 +51,7 @@
     const voices = new Set(), lastSound = {}, history = [], counts = { flights: 0, arrivals: 0, kills: 0, escapes: 0, ticks: 0 };
     const flights = Array.from({ length: 12 }, () => {
       const node = document.createElement('div'); node.className = 'cf-flight'; node.hidden = true;
-      node.innerHTML = `${art('damage-bullet.png')}<span><b></b><small>DMG</small><em></em></span>`; root.append(node);
+      node.innerHTML = `${art('damage-bullet.webp')}<span><b></b><small>DMG</small><em></em></span>`; root.append(node);
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); trailGroup.append(path);
       return { node, path, active: false, damage: 0, points: 0, at: 0, origin: null, destination: null };
     });

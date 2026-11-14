@@ -256,6 +256,7 @@ box(uh, 0.014, 0.016, 0.06, palette.amber, 0, 0.009, -0.39);
 
 // Optimized Meshy assets use the procedural viewmodels as load-error fallbacks.
 const loaded = { hg: false, sg: false, smg: false, mg: false, unityHg: false, easyShotgun: false, easyM4: false, easyRail: false, easyBeam: false, easyCluster: false, easyRocket: false, easyM79: false, glove: false, knife: false, ladder: false, hook: false, anchor: false, trolley: false, flashbang: false, error: '' };
+let weaponLazyHook = null;
 function recordAssetLoaded(key) {
   loaded[key] = true;
   document.body.dataset.skyModels = JSON.stringify(loaded);
@@ -558,6 +559,7 @@ function updateEquipment(now) {
   updateKnifeCue();
   const mode = game.modeRef();
   const weapon = U.weapon | 0;
+  if (weaponLazyHook) weaponLazyHook(mode, weapon);
   if (mode === 'menu' || (mode === 'play' && z.t + 0.5 < lastRunClock)) weaponAmmo.clear();
   if (mode === 'play') lastRunClock = z.t;
   syncWeapon(weapon);
@@ -651,7 +653,17 @@ if (window.T2?.GLTFLoader) {
       gloveFallbacks[index].forEach((part) => { part.visible = false; });
     }
   });
-  for (const [key, index, scale, forward] of [['hg', 0, 0.25, -0.16], ['sg', 1, 0.47, -0.13], ['smg', 2, 0.36, -0.13], ['mg', 3, 0.70, -0.10]]) {
+  // HG is needed at Start. SG/SMG/MG only appear as pickups (first drop at 10 s),
+  // so their Meshy models are fetched lazily: on first equip, or prefetched a few
+  // seconds after play begins. The low-poly fallback views stay until they arrive.
+  const WEAPON_DETAILS = { hg: [0, 0.25, -0.16], sg: [1, 0.47, -0.13], smg: [2, 0.36, -0.13], mg: [3, 0.70, -0.10] };
+  const WEAPON_KEYS = ['hg', 'sg', 'smg', 'mg'];
+  const weaponRequested = {};
+  const ensureWeaponDetail = (key) => {
+    const entry = WEAPON_DETAILS[key];
+    if (!entry || weaponRequested[key]) return;
+    weaponRequested[key] = true;
+    const [index, scale, forward] = entry;
     loadDetail(key, `${key}-meshy-low.glb`, (root) => {
       const view = weaponViews[index];
       root.name = `Meshy ${key.toUpperCase()} mobile LOD`;
@@ -661,7 +673,24 @@ if (window.T2?.GLTFLoader) {
       view.add(root);
       for (const child of view.children) if (child !== root) child.visible = false;
     });
-  }
+  };
+  ensureWeaponDetail('hg');
+  window.__skyEnsureWeaponDetail = ensureWeaponDetail;
+  let weaponPrefetchArmed = false;
+  const armWeaponPrefetch = () => {
+    if (weaponPrefetchArmed) return;
+    weaponPrefetchArmed = true;
+    ['sg', 'smg', 'mg'].forEach((key, i) => {
+      setTimeout(() => {
+        const run = () => ensureWeaponDetail(key);
+        if (window.requestIdleCallback) requestIdleCallback(run, { timeout: 2000 }); else run();
+      }, 2000 + i * 2500);
+    });
+  };
+  weaponLazyHook = (mode, weapon) => {
+    if (mode === 'play') armWeaponPrefetch();
+    if (weapon >= 1 && weapon <= 3) ensureWeaponDetail(WEAPON_KEYS[weapon]);
+  };
   loadDetail('hook', 'hook-launcher-meshy-low.glb', (root) => {
     root.name = 'Meshy hook launcher mobile LOD';
     root.rotation.y = -Math.PI / 2;

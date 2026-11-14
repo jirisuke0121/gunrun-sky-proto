@@ -192,6 +192,31 @@ function frameNormals(positions, indices, baseNormal) {
   return out;
 }
 
+// The animated human GLB stores morph deltas as int16 plus a per-target scale
+// (mesh.extras.morphScale, see tools/quantize-human-morphs.py) to cut the
+// download. Restore Float32 straight after parsing so every consumer below keeps
+// reading plain Float32 arrays. Meshes without morphScale (the static fallback
+// model) are left alone. Returns how many meshes were restored.
+export function dequantizeMorphs(model, Attribute) {
+  let restored = 0;
+  model.traverse(node => {
+    const scales = node.userData?.morphScale, targets = node.geometry?.morphAttributes?.position;
+    if (!scales || !targets) return;
+    for (let j = 0; j < targets.length; j++) {
+      const source = targets[j], scale = scales[j];
+      if (!(scale > 0) || source.array instanceof Float32Array) continue;
+      const out = new Float32Array(source.count * 3);
+      for (let i = 0; i < source.count; i++) {
+        out[i * 3] = source.getX(i) * scale;
+        out[i * 3 + 1] = source.getY(i) * scale;
+        out[i * 3 + 2] = source.getZ(i) * scale;
+      }
+      targets[j] = new Attribute(out, 3);
+    }
+    restored++;
+  });
+  return restored;
+}
 export function addParkourRun(model, motion, Attribute) {
   const meshes = [];
   model.updateMatrixWorld(true);

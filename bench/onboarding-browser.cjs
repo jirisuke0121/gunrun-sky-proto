@@ -21,7 +21,7 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   let ctx=await mk('ja',false),page=await open(ctx,map);
   assert.equal(await splash(page),false,'automation skips the first-visit card by default');
   assert.equal(await page.locator('#introEntry').isVisible(),true,'automated browsers keep the home intro block');
-  if(map==='index.html')assert.equal(await page.locator('#homeDevelopment').isVisible(),true,'the collapsed development tab is available on the home screen');
+  if(map==='index.html'){assert.equal(await page.locator('#homeDevelopment').isVisible(),false,'the development tab is hidden without ?dev=1');assert.equal(await page.locator('#homeCredits').isVisible(),true,'the credits link stays on the home screen for players');}
   assert.equal(await page.locator('#homeGuide').isVisible(),true);
   await page.click('#bStart');await page.waitForFunction(()=>__game.mode==='play');await page.waitForTimeout(300);
   assert.equal(await page.locator('#introTutorial').count(),0,'there is no tutorial card');await ctx.close();

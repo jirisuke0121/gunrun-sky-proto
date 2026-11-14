@@ -1,3 +1,24 @@
+## 2026-11-14（続き7）初回ダウンロードを 10.60 MB → 7.64 MB に削減（Poki の目安 8 MB 未満）
+
+- **目的**：Poki の「初回ダウンロードは 8 MB 未満が目安」に合わせる。ゲームの挙動・見た目・スコア・ランキングは変えない（ランキングの版は変更なし。Worker の更新は不要）。
+- **1. MG/SMG/SG のモデルを遅延読み込み**（`enhancements.js`）：HG だけ起動時に読み、`sg/smg/mg-meshy-low.glb`（計 約 1.1 MB）は、(a) 遊び始めて 2 秒・4.5 秒・7 秒後にアイドル時間で順に先読み、(b) その前に拾って持ち替えたら即読み込み。モデルが届くまでは、これまでも読み込み失敗時の代替だった低ポリの銃が出て、届くと自動で差し替わる（一人称の作り直しは `signature` が子の数の変化を見て行う）。最初の SG/SMG/MG の出現は 10 秒後なので、通常は先読みが先に終わる。開始の可否（`start-readiness.js`）は従来どおり HG だけを見る。
+- **2. 人体モデルの morph を int16 化**（`tools/quantize-human-morphs.py`）：348 個の morph ターゲットを int16＋ターゲットごとの倍率（`mesh.extras.morphScale`）にして、`human-gunrun-animated.glb.gz` が 3.28 MB → 1.99 MB。読み込み直後に `human-running.js` の `dequantizeMorphs` で Float32 に戻すので、他のコードは変わらない。元の Float32 と読み込み後の値の最大差は 8.3e-4（最大変位 54 の 0.0015%）。Unity からの書き出し直後（Float32）のファイルにだけ使う（量子化済みは拒否）。
+- **3. `damage-bullet.png`（527 KB）を 256×128 の WebP（6 KB）へ**（`combat-feedback.js`）：画面上の大きさは 46×30 CSS px。3倍密度で並べて見比べ、差は見えない。元の素材の出どころと派生手順は `assets/combat-feedback/source-manifest.json`。
+- **計測**（`/home/claude/scripts/measure-download.cjs`、ホーム表示完了まで、テキストは gzip 換算）：10.60 MB → **7.64 MB**（227 → 224 ファイル）。遊び始め 8 秒で SG が追加で約 0.36 MB。`python3 size_check.sh`：合計 13.03 MB（圧縮後の目安 9.09 MB）、CrazyGames 初回 50MB の 26%、スマホのトップ掲載 20MB の 65%。
+- **テスト**（ローカルの Chrome）：`start-readiness.test`・`zombie-drop-entry.test`・`human-running.test`（Float32 に戻ることの確認を追加）・`human-wallrun.test`・`human-view-running.test`・`human-actions.test`・`dash-boost.test` 通過。`human-aim-browser`（13 武器、index/canyon、PC/タッチ）と `human-running-browser`（4 構成）通過。SG を持ち替えた直後に読み込みが始まり、差し替わること、起動時に `sg/smg/mg` を取りに行かないことをブラウザで確認。
+- **確認できていないこと**：実機スマホでの SG 持ち替え直後の引っかかり（このコンテナはソフトウェア描画で、フレーム時間が参考にならない。GLB は 3 枚の小さな JPEG と約 300 KB の頂点データのみ）。`combat-feedback-browser.cjs` は 2 件目のケースの結果カード待ちで 90 秒タイムアウトするが、変更前の HEAD でも同じ箇所で失敗する（このコンテナ固有の不具合で、今回の変更とは無関係）ので、WebP 表示は 1 件目（index・日本語）の通過までの確認。
+- `?v=` を `20261114-lazyweapons-v1`（`enhancements.js`）、`20261114-morph-int16-v1`（`human-view.js`・`human-running.js`・GLB）、`20261114-webp-v1`（`combat-feedback.js`）に上げた。
+
+## 2026-11-14（続き6）ホームの「開発用」タブを通常は非表示に／クレジットを常時表示のフッターへ／AGENTS.md の「3分」を「2分」へ
+
+- **目的**：Poki・Y8 などの審査や初見のプレイヤーに、未完成の連続入門コース（「開発用」タブ）を見せない。
+- **変更**：`home-focus.css` で「開発用」タブ（`#homeDevelopment`）を、開発者モード（`?dev=1`、`index.html` は `dev-mode.js` が記憶）のときだけ表示にした。`canyon.html` は `dev-mode.js` を読まないので、URLに `dev=1` があるときだけ表示する（`data-dev-url`）。連続入門コースは `canyon.html?learn=1` で直接開ける（変更なし）。
+- **クレジット**：タブの中にあったクレジットのリンク（`#homeCredits`）を、常時表示の `#homeFooter`（`home-focus.js`）へ移した（`credits.js`）。Meshy 製モデルの CC BY 4.0 の帰属表示を兼ねるため、プレイヤーから見えなくしない。
+- **AGENTS.md**：「3分生存が主モード」を「2分（120秒）」へ。コード（`challenge-difficulty.js`、通常プレイ120秒）と `CHALLENGE_DIFFICULTY.md` に合わせた。「開発用」タブの扱いも追記。
+- **ゲームの挙動・ルール・スコアは変更なし**。ランキングの版は変更なし（Worker の更新は不要）。`?v=` を `20261114-devtab-v1` に上げた（`home-focus.css`・`home-focus.js`・`credits.js`）。
+- **テスト**（ローカルの Chrome、`http.server` で配信）：`bench/development-entry-browser.cjs` 12条件すべて通過（`?dev=1` なしではタブが出ず、クレジットは開けることの確認を追加）。`bench/onboarding-browser.cjs`（旧市街・渓谷）通過（既定でタブが出ないことへ期待値を更新）。`bench/auto-follow-entry-browser.cjs` 4条件通過（`?dev=1` 付きのURLで走る）。
+- **確認できていないこと**：実機スマホでのフッターの見え方（高さの小さい横画面）。`guided-intro.yml`・`onboarding.yml`・`easy-controls.yml` の CI は、このPRで初めて走る。
+
 ## 2026-11-14（続き5）西のリング西壁（北向き）の壁走りを復旧
 
 - **症状**：リング西壁（x=-14、z -14〜-1.5）の壁走りができず、緑の目印も北端の1.1 mにしか出ない。

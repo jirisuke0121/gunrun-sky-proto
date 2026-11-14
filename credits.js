@@ -1,10 +1,10 @@
-// Credits: a link inside the home development tab opens the third-party material list (see CREDITS.md).
+// Credits: a link in the home footer (always visible; the development tab is hidden unless ?dev=1) opens the third-party material list (see CREDITS.md).
 // Names are proper nouns, so the list stays in English in both languages; only the link label is translated.
 (() => {
   const params = new URLSearchParams(location.search);
   if (window.skyOwnerReplay || params.has('ownerReplay') || window.skyPracticeMode || params.has('practice')) return;
-  const development = document.getElementById('homeDevelopment');
-  if (!development || document.getElementById('homeCredits')) return;
+  const host = document.getElementById('homeFooter') || document.getElementById('homeDevelopment');
+  if (!host || document.getElementById('homeCredits')) return;
   const make = (tag, props = {}, html = '') => Object.assign(document.createElement(tag), props, html ? { innerHTML: html } : {});
   const style = make('style', {}, `
     #homeCredits{display:block;grid-column:1/-1;justify-self:start;margin:8px 0 0;padding:6px 0;border:0;background:none;color:#a8b6c1;font:inherit;font-size:11px;cursor:pointer;text-decoration:underline}
@@ -40,5 +40,5 @@
   dialog.querySelector('#creditsClose').addEventListener('click', close);
   dialog.addEventListener('click', event => { if (event.target === dialog) close(); });
   dialog.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
-  development.append(open);
+  host.append(open);
 })();

@@ -54,7 +54,11 @@
   intro.replaceChildren(make('div', {}, '<b>はじめての方へ</b><small>ライフ無限で、操作を練習。</small>'), introButton, introStatus, ...introRetries);
   // Keep the unfinished guided course in the collapsed development tab on the home screen.
   // Players get the intro run from the first-visit card (onboarding.js) and from 遊び方.
+  // The tab is shown only in developer mode (?dev=1, home-focus.css). The credits link must stay visible to players
+  // (CC BY attribution), so it lives in its own footer slot instead of inside the tab (credits.js).
   const development = make('details', { id:'homeDevelopment' });
+  const footer = make('div', { id:'homeFooter' });
+  if (new URLSearchParams(location.search).get('dev') === '1') development.dataset.devUrl = '1';
   development.append(make('summary', {}, '開発用'));
   const developmentButton=make('button', { id:'bGuidedIntro', type:'button' }, '入門モードで遊ぶ');
   development.append(developmentButton);
@@ -89,11 +93,11 @@
   more.append(make('summary', {}, '開発者向け（?dev=1）'));
   const body = make('div', { className: 'homeMoreBody' }); more.append(body);
   const mainControls = new Set(main.children);
-  const rotFlip = $('rotFlip'); plate.insertBefore(rankSlot, rotFlip || null); plate.insertBefore(development, rotFlip || null); plate.insertBefore(more, rotFlip || null);
+  const rotFlip = $('rotFlip'); plate.insertBefore(rankSlot, rotFlip || null); plate.insertBefore(development, rotFlip || null); plate.insertBefore(footer, rotFlip || null); plate.insertBefore(more, rotFlip || null);
   // The ranking module adds #titleRanking next to the (hidden) map switch, which sits in the fold: bring it out.
   const adoptRanking = () => { const box = $('titleRanking'); if (box && box.parentElement !== rankSlot) rankSlot.append(box); };
   const sweep = () => {
-    for (const child of [...plate.children]) if (![hero, rankSlot, development, more, rotFlip].includes(child)) body.append(child);
+    for (const child of [...plate.children]) if (![hero, rankSlot, development, footer, more, rotFlip].includes(child)) body.append(child);
     adoptRanking();
   };
   sweep(); new MutationObserver(sweep).observe(plate, { childList: true });

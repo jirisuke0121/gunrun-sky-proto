@@ -6,15 +6,17 @@ for(const map of ['index.html','canyon.html'])for(const lang of ['ja','en'])for(
  // Reproduce the missing secure-context API on LAN HTTP without changing randomness.
  await p.addInitScript(()=>{window.__hold=true;Object.defineProperty(crypto,'randomUUID',{value:undefined});});
  await p.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'}));p.on('pageerror',e=>errors.push(e.message));
- await p.goto(base+map+`?lang=${lang}&controlpick=0&guides=0&hookGuide=0`);await p.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:90000});
+ await p.goto(base+map+`?lang=${lang}&controlpick=0&guides=0&hookGuide=0&dev=1`);await p.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:90000});
  assert.ok(new URL(p.url()).pathname.endsWith(map));assert.equal(await p.locator('#onbSplash').isVisible(),false);assert.equal(await p.locator('#bStart').isVisible(),true);assert.equal(await p.locator('#introEntry').isVisible(),true);assert.equal(await p.locator('#bGuidedIntro').isVisible(),false);
  if(map==='index.html'&&lang==='ja'&&width===844)await p.screenshot({path:'browser-evidence/development-entry/home.png'});
  assert.equal(await p.locator('#homeDevelopment').isVisible(),true);
- assert.equal(await p.locator('#homeCredits').isVisible(),false);
+ assert.equal(await p.locator('#homeCredits').isVisible(),true,'credits live in the always-visible footer, not in the development tab');
  await p.locator('#homeDevelopment summary').click();assert.equal(await p.locator('#bGuidedIntro').isVisible(),true);
- assert.equal(await p.locator('#homeDevelopment #homeCredits').isVisible(),true);
+ assert.equal(await p.locator('#homeFooter #homeCredits').isVisible(),true);
  await p.locator('#homeCredits').click();assert.equal(await p.locator('#creditsDialog').isVisible(),true);
  await p.locator('#creditsClose').click();assert.equal(await p.locator('#creditsDialog').isVisible(),false);
+ // Without ?dev=1 (what players and Poki/Y8 reviewers get): no development tab, but the credits link still works.
+ if(map==='index.html'&&lang==='ja'&&width===1280){const q=await browser.newPage({viewport:{width,height},locale:'ja-JP'});await q.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'}));await q.goto(base+map+'?lang=ja&controlpick=0&guides=0&hookGuide=0',{timeout:90000});await q.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:90000});assert.equal(await q.locator('#homeDevelopment').isVisible(),false,'the development tab is hidden without ?dev=1');assert.equal(await q.locator('#bGuidedIntro').isVisible(),false);assert.equal(await q.locator('#homeCredits').isVisible(),true,'credits stay reachable for players');await q.locator('#homeCredits').click();assert.equal(await q.locator('#creditsDialog').isVisible(),true);await q.close();}
  assert.match(await p.locator('#bGuidedIntro').innerText(),lang==='ja'?/入門モードで遊ぶ/:/guided tutorial/);
  if(map==='index.html'&&lang==='ja'&&width===844)await p.screenshot({path:'browser-evidence/development-entry/development.png'});
  await p.locator('#bGuidedIntro').click();await p.waitForURL('**/canyon.html?learn=1*');await p.waitForFunction(()=>window.skyGuidedIntro&&__game.mode==='play',null,{timeout:90000});
