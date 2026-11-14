@@ -1,0 +1,4 @@
+#introSkip{display:block;margin-top:6px;padding:6px 12px;border:1px solid rgba(255,255,255,.35);border-radius:8px;background:rgba(15,25,35,.78);color:#fff;font-weight:600;font-size:12px;line-height:1.2;font-family:inherit;text-shadow:none;cursor:pointer;pointer-events:auto;white-space:nowrap}
+#introSkip[hidden]{display:none}
+#introSkip:hover,#introSkip:focus-visible{background:#e8825a;border-color:#e8825a;color:#1b120d;outline:none}
+html.touch #introSkip{min-height:34px;padding:7px 12px}
