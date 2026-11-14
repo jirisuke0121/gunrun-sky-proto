@@ -27,8 +27,14 @@
       const g = canvas.getContext('2d');
       g.fillStyle = '#e63b2e'; g.beginPath(); g.arc(64, 64, 58, 0, Math.PI * 2); g.fill();
       g.lineWidth = 8; g.strokeStyle = '#fff4d6'; g.stroke();
-      g.fillStyle = '#fff4d6'; g.font = 'bold 74px sans-serif';
-      g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('爆', 64, 70);
+      // A pictogram (explosion burst), not a character: the badge reads the same in every language.
+      g.fillStyle = '#fff4d6'; g.beginPath();
+      for (let i = 0; i < 20; i++) {
+        const angle = -Math.PI / 2 + i * Math.PI / 10, radius = i % 2 ? 22 : 43;
+        g[i ? 'lineTo' : 'moveTo'](64 + Math.cos(angle) * radius, 64 + Math.sin(angle) * radius);
+      }
+      g.closePath(); g.fill();
+      g.fillStyle = '#e63b2e'; g.beginPath(); g.arc(64, 64, 11, 0, Math.PI * 2); g.fill();
       return new CanvasTexture(canvas);
     })();
     const badgeMaterial = new SpriteMaterial({ map: badgeTexture, transparent: true });

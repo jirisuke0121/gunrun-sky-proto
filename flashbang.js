@@ -66,7 +66,7 @@ export function createFlashbang(game) {
   function hud() {
     if (count) count.textContent = String(charges);
     if (button) {
-      button.innerHTML = `${FLASH_ICON}<span class="skill-value">×${charges}</span><span class="skill-name">閃光玉 <kbd>1</kbd></span><small>${charges ? `${FLASHBANG.duration}秒停止` : `技あと${3-skills}`}</small>`;
+      button.innerHTML = `${FLASH_ICON}<span class="skill-value">×${charges}</span><span class="skill-name">閃光玉 <kbd>1</kbd></span><small${charges ? ' data-quiet' : ''}>${charges ? `${FLASHBANG.duration}秒停止` : `技あと${3-skills}`}</small>`;
       button.style.setProperty('--skill-progress', String(charges ? 1 : skills / 3));
       button.classList.toggle('empty', charges === 0);
       button.setAttribute('aria-label', `閃光弾 1キー 残り${charges}個 周囲${FLASHBANG.radius}mのゾンビを${FLASHBANG.duration}秒停止。離すと使用、外へずらすと取消`);

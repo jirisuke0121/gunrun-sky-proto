@@ -1,0 +1,13 @@
+/* Phone HUD: one message per slot. Overlapping duplicates are removed rather than shrunk. */
+/* The route hint under the HUD repeats what the glowing ring and marker already show. */
+#markAction{display:none!important}
+/* "Coming from front and back" repeats the red edge arrows; the one centre-top slot is arbitrated in hud-declutter.js. */
+.hud-hide{visibility:hidden!important}
+/* Marker: at the screen edge only the ring and the distance (the place name was clipped); no name under a hook diamond. */
+.markmark.edge b{display:none}
+body:has(#hookMark.on) #markMark b,body:has(#hookMark.on) #markMark span{display:none}
+/* Skill labels: the second line already names the skill, so the small state text shows only when it carries news. */
+#skillDock [data-quiet]{visibility:hidden}
+/* EMPTY sits on the ammo counter, smaller. */
+#ammoEmptyNote{font-size:13px!important;gap:5px!important;padding:3px 9px 3px 6px!important;border-width:1px!important;border-radius:6px!important}
+#ammoEmptyNote svg{width:22px!important;height:17px!important}

@@ -29,7 +29,7 @@ if (game && hud) {
   const alive = e => e && !e.dead && !e.remove && !e.rise && !(e.spawnT > 0);
   const Vec = game.Geom.Vector3, proj = new Vec(), dir = new Vec();
   // Screen position of a world point: on screen -> its own pixel; off screen -> the screen edge in that direction.
-  function place(el, x, y, z, margin, bottomMargin = margin) {
+  function place(el, x, y, z, margin, bottomMargin = margin, topMargin = margin) {
     const w = hud.clientWidth, h = hud.clientHeight;
     const f = Se.getWorldDirection(dir), fl = Math.hypot(f.x, f.z) || 1, fx = f.x / fl, fz = f.z / fl;
     const dx = x - Se.position.x, dz = z - Se.position.z;
@@ -41,7 +41,7 @@ if (game && hud) {
     else {
       let vx = lx, vy = -lz; const len = Math.hypot(vx, vy);
       if (len < 1e-4) { vx = 0; vy = 1; } else { vx /= len; vy /= len; }
-      const hx = w / 2 - margin, hy = (vy > 0 ? h / 2 - bottomMargin : h / 2 - margin), t = Math.min(vx ? hx / Math.abs(vx) : Infinity, vy ? hy / Math.abs(vy) : Infinity);
+      const hx = w / 2 - margin, hy = (vy > 0 ? h / 2 - bottomMargin : h / 2 - topMargin), t = Math.min(vx ? hx / Math.abs(vx) : Infinity, vy ? hy / Math.abs(vy) : Infinity);
       px = w / 2 + vx * t; py = h / 2 + vy * t; angle = Math.atan2(vy, vx) * 180 / Math.PI + 90;
     }
     el.style.transform = `translate(${px.toFixed(1)}px,${py.toFixed(1)}px) translate(-50%,-50%)`;
@@ -70,7 +70,7 @@ if (game && hud) {
     for (const { e, d } of near) {
       if (used >= pursuerPins.length) break;
       const el = pursuerPins[used];
-      const visible = place(el, e.pos.x, e.pos.y + 1.1, e.pos.z, 46, 130);
+      const visible = place(el, e.pos.x, e.pos.y + 1.1, e.pos.z, 46, 130, 84);
       if (visible) continue;                                   // on screen: the zombie itself is the marker
       el.hidden = false; used++;
       el.dataset.tier = d < 6 ? '3' : d < 12 ? '2' : '1';
@@ -84,12 +84,18 @@ if (game && hud) {
     let best = null, bd = Infinity;
     for (const k of crates) { const d = Math.hypot(k.x - c.pos.x, k.z - c.pos.z); if (d < bd) { bd = d; best = k; } }
     if ((low || dry) && best) {
-      const visible = place(ammoPin, best.x, best.y + 1.2, best.z, 56, 140);
+      const visible = place(ammoPin, best.x, best.y + 1.2, best.z, 56, 140, 84);
       ammoPin.hidden = false; ammoPin.classList.toggle('on-screen', visible);
       ammoPin.querySelector('i').textContent = Math.round(bd) + 'm';
     } else ammoPin.hidden = true;
     // ---- empty: click + note, only while an enemy is close enough that auto-fire would have fired ----
     note.hidden = !dry;
+    if (dry && ammoBox) {                                                  // sits right above the ammo counter, not in the middle of the view
+      const a = ammoBox.getBoundingClientRect(), h = hud.getBoundingClientRect();
+      note.style.left = (a.left + a.width / 2 - h.left).toFixed(0) + 'px';
+      note.style.top = (a.top - h.top - 6).toFixed(0) + 'px';
+      note.style.transform = 'translate(-50%,-100%)';
+    }
     ammoBox?.classList.toggle('ammo-empty', dry);
     if (dry && !wasDry) { try { Tt.empty(); } catch {} }                   // the one click, the moment it runs dry
     if (!dry && left > 0) spell = false;                                   // new rounds: the next dry spell may click again

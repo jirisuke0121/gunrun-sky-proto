@@ -46,6 +46,7 @@ export function installPlayerClarity(sky,game) {
     let label=button.querySelector('[data-action-state]');
     if(!label){label=document.createElement('small');label.dataset.actionState='';button.append(label);}
     write(label,text);
+    label.toggleAttribute('data-quiet',text==='分身'||text==='救済');
   }
   function render(){
     const on=playing(),clock=sky.z.t;
