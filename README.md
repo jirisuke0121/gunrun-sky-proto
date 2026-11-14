@@ -1,3 +1,11 @@
+## 2026-11-14（続き13）自動射撃の停止／再開を入門コースからも外す
+
+- **背景**：通常ランでは自動射撃の停止（Xキー・停止マーク）を廃止済みだったが、入門コース（練習マップ）だけ `canStop = !!skyPracticeMode` で残っていた。入門の「フラッシュ」で自動射撃を止め、「銃の自動操作を試そう」で「自動射撃を再開」ボタンを押させていた。
+- **変更**：`auto-fire-controls.js` は `canStop = false`・マークだけ表示（どこでも止められない）。`guided-intro.js` の「フラッシュで自動射撃オフ」を削除、`guided-lessons.js` の shoot の指示を「銃に任せて、その場で待つ」（ボタン操作なし）に、`guided-prompts.js` の「自動射撃を再開する」分岐と `guided-coach.js` の X キー表示を削除。スタート画面の説明から「自動射撃を停止／再開 または X で弾を温存」を削除（5言語 id 892）。`practice.js` の dev 練習（`practice.html`、非ガイド）は従来どおり自動射撃オフ（stomp などの動作検査のため。プレイヤーには出ない）。
+- **副作用への対処**：自動射撃が常時オンになったため、入門のフラッシュ〜ジャンプ弾の間に拳銃の弾を使い切り、ジャンプ弾が拳銃を戻すときに保存された空の弾数で上書きされて shoot の授業が進まなくなった（`bench/guided-intro-cues-browser.cjs` で発見）。shoot の弾（1発＋予備24）は、拳銃が実際に手に戻ってから入れる（`progress.shootArmed`）。
+- **テスト**：`guided-intro-cues` / `guided-intro` / `guided-intro-flow` / `guided-swing-landing` / `player-clarity` / `easy-controls` / `practice-flow` / `i18n-browser` / `i18n-packs` が通る。`bench/guided-intro-parity-browser.cjs` は変更前（c4422a6 の時点）から失敗していた既存の差（入門コースのみに出るボタンの有無でボタン配置がずれる）で、今回は直していない。
+- **確認できていないこと**：実機（iPhone）の入門で、shoot の授業が最後まで進むこと。
+
 ## 2026-11-14（続き12）スライディングを E キーへ（Q はフック・爆破だけ）
 
 - **背景**：Q を押してフックが出なかったとき、代わりにスライディングが出る仕様（`context-click.js`）だったため、フックを外したつもりで滑る誤爆が起きうる。E は手動射撃用だったが、通常ランは常に自動射撃（`auto-fire-controls.js`）で、手動で撃つのは左クリックなので実質空いていた。

@@ -53,7 +53,6 @@ export function describeLesson(lesson, {game, sky, practice, progress, goal, nea
   if(id==='dash') {if(!changed('dashPickups'))tell(['青いDASHを取る','Collect the blue DASH'],['触れると、しばらく速く走れます','Touch it for a temporary speed boost']);else if(ground&&c.pos.x>150)tell(['加速したまま、ジャンプ','Jump with the speed boost'],['向こうの低い屋上へ','Head to the lower roof ahead'],'tJump','jump',['ジャンプ','Jump']);}
   if(id==='shoot') {
     if(game.G.reloadT>0)tell(['装填中。少し待つ','Reloading. Wait a moment'],['弾切れで自動装填。終わると射撃再開','Empty magazines reload automatically; fire then resumes']);
-    else if(!sky.U.autoFire)tell(['自動射撃を、再開する','Resume automatic fire'],['残り1発から、自動装填も体験します','Start with one round to experience automatic reload'],'tAutoFire','resume-fire',['再開する','Resume']);
     else tell(['銃に任せて、その場で待つ','Let the gun fire while you wait'],['自分は移動・逃げ道選び。照準・射撃は自動','You choose movement and escape routes. Aim and fire are automatic']);
   }
   if(['hook','zip','flash','shoot','rescue'].includes(id))prompt.motion='stop';

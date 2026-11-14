@@ -3,10 +3,10 @@ const game = window.__skyInternals;
 const { U, Et } = game;
 const button = document.getElementById('tAutoFire');
 // Normal play shows the control as a mark only; the explanation (words + state) belongs to the 入門 / practice screens.
-const markOnly = !window.skyPracticeMode;
-// 2026-11-14: only the 入門 / practice screens can stop automatic fire. A first-time PC playtest found the stop mark
-// and X key confusing, so normal runs always fire automatically (the player's aim stays free for manual headshots).
-const canStop = !!window.skyPracticeMode;
+const markOnly = true;
+// 2026-11-14: nobody can stop automatic fire any more, in normal play and in the 入門 / practice course alike. A first-time PC playtest found the
+// stop mark and X key confusing, so every run fires automatically (the player's aim stays free for manual headshots).
+const canStop = false;
 document.body.classList.toggle('autofire-mark', markOnly);
 const MARK = '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="8"/><path d="M16 3v6M16 23v6M3 16h6M23 16h6"/></svg>';
 const MARK_OFF = '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="8"/><path d="M16 3v6M16 23v6M3 16h6M23 16h6"/><path class="slash" d="M6 26 26 6"/></svg>';

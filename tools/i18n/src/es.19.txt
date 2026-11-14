@@ -1,0 +1,1 @@
+892 El arma apunta y dispara automáticamente a los enemigos cercanos con línea de visión, y recarga al vaciarse. Empiezas con la HG. La SG, SMG y MG se suministran en azoteas y niveles altos cada 10 s (máx. 5).

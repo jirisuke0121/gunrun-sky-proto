@@ -1,7 +1,7 @@
 import { installGuidedChoice } from './guided-choice.js?v=20261114-controls-guide-v1';
-import { installGuidedCoach } from './guided-coach.js?v=20261112-swing-input-v2';
-import { describeLesson } from './guided-prompts.js?v=20261112-swing-input-v4';
-import { createLessons } from './guided-lessons.js?v=20261113-bar-handoff-v1';
+import { installGuidedCoach } from './guided-coach.js?v=20261114-no-autofire-toggle-v1';
+import { describeLesson } from './guided-prompts.js?v=20261114-no-autofire-toggle-v1';
+import { createLessons } from './guided-lessons.js?v=20261114-no-autofire-toggle-v1';
 import { createPursuit, approachingPursuer } from './guided-defense.js?v=20261113-i18n-v1';
 // A real input trial followed by a physical course. No action is fired on the player's behalf.
 (() => {
@@ -62,12 +62,11 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
    if (defense()) { progress.flashOrigins = createPursuit(practice.targets); progress.flashPursued = false; }
  }
  function enter(i) {
-   index = i; progress.stats = baseline(lesson()); progress.path = 0; progress.lured = false;progress.reloadSeen=false;
+   index = i; progress.stats = baseline(lesson()); progress.path = 0; progress.lured = false;progress.reloadSeen=false;progress.shootArmed=false;
    const current = lesson(); practice.checkpoint(current.checkpoint);
    targets(combat());
    if (defense()) {window.skyFlashbang.reset();window.skyDecoy.reset();progress.flash=window.skyFlashbang.stats.affected;}
-   if(current.id==='flash'&&sky.U.autoFire){sky.U.autoFire=false;sky.nl();}
-   if(current.id==='shoot'){sky.U.gunOn=true;sky.U.weapon=0;g.G.ammo=1;g.G.reserve=24;sky.nl();}
+   if(current.id==='shoot'){sky.U.gunOn=true;sky.U.weapon=0;sky.nl();g.G.ammo=1;g.G.reserve=24;}
    if (current.id === 'rescue') window.skyRescue?.reset();
    if (current.id === 'blast') {sky.U.gunOn=true;sky.U.weapon=0;sky.nl();}
    document.body.dataset.learnStage=current.id;
@@ -97,6 +96,8 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
    sky.U.sendLog=false;g.RL.on=false;g.RL.sealed=true;
    if (trial) {if(near(course.trialGoal,1.4))trialReached=true;render(false);return;}
    const current=lesson();if(!current||finished||completing)return;
+   // The jump gun puts the hand gun back a moment after its lesson, with the ammo it had before. Load the lesson's one round only once the hand gun is really in hand.
+   if(current.id==='shoot'&&!progress.shootArmed&&(sky.U.weapon|0)===0&&!sky.wpc().jumpGun){g.G.ammo=1;g.G.reserve=24;g.G.reloadT=0;progress.shootArmed=true;}
    if(current.id==='shoot'&&g.G.reloadT>0)progress.reloadSeen=true;
    if(current.id==='flash'&&!progress.flashPursued)progress.flash=window.skyFlashbang.stats.affected;
    if(current.id==='flash'&&window.skyFlashbang.charges===0&&!window.skyFlashbang.grenades.length&&window.skyFlashbang.stats.affected<=progress.flash)window.skyFlashbang.reset();

@@ -890,6 +890,7 @@
 889	走りながら押す。押している間滑る	Press while running. You slide while it is held
 890	斜面滑りボタン／Eキーで滑れます。	Use Slide / E to slide downhill.
 891	斜面で「斜面滑り」 ／ E	Use Slide on the slope / E
+892	銃は射線が通る近い敵を自動で狙って撃ち、弾切れ時は自動装填。HGで開始。SG・SMG・MGは10秒ごとに屋根・上層へ補給される（最大5個）	The gun automatically aims at and shoots close enemies in line of sight, and reloads when empty. You start with the HG. SG, SMG and MG are supplied to rooftops and upper levels every 10 s (max 5).
 p0	^(\\d+)秒停止$	Stun $1s
 p1	^技あと(\\d+)$	$1 moves
 p2	^装填中 · あと([\\d.]+)秒$	Reloading · $1 s left

@@ -1,0 +1,1 @@
+892 A arma mira e atira automaticamente em inimigos próximos com linha de visão e recarrega quando esvazia. Você começa com a HG. SG, SMG e MG são fornecidas em telhados e níveis altos a cada 10 s (máx. 5).
