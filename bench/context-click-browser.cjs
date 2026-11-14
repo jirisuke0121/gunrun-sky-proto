@@ -1,4 +1,4 @@
-// Right click = contextual move (context-click.js): blast mark > ready hook mark > knife (zombie in reach) > slide while running.
+// Q / right click = blast or pad mark, else the hook; E = slide (context-click.js).
 const assert = require('node:assert/strict');
 const { spawn } = require('node:child_process');
 const { chromium } = require('playwright');
@@ -38,7 +38,6 @@ const base = 'http://127.0.0.1:8813/';
           c.state = 'normal'; c.onGround = true; c.hookPressed = false;
           await sleep(o.wait || 0);
           __setup(o);
-          if (o.mark === 'recent') window.skyContextAction.markSeen();
           const press = type => how === 'right' ? (type === 'keydown' ? window.skyContextAction() : window.skyContextAction.release()) : document.dispatchEvent(new KeyboardEvent(type, { code: 'KeyQ', bubbles: true, cancelable: true }));
           press('keydown');
           await sleep(300);
@@ -49,16 +48,21 @@ const base = 'http://127.0.0.1:8813/';
       };
       let r;
       const has = (r, k) => r.keys.includes(k);
-      // Right click and the Q key must behave identically.
+      // Right click and the Q key must behave identically: blast / pad mark -> B tap, otherwise nothing from the router (the hook has its own handler). Never a slide.
       for (const how of ['right', 'key']) {
         const tag = map + ' [' + how + ']';
         r = await go({ blast: true }, how, true); assert.ok(has(r, 'keydown:KeyB') && has(r, 'keyup:KeyB'), tag + ': blast mark -> B tap'); assert.ok(!has(r, 'keydown:KeyC'), tag + ': no slide on a blast');
-        r = await go({ wait: 400 }, how, true); assert.ok(r.mid.includes('keydown:KeyC'), tag + ': running, nothing to hook -> slide'); assert.ok(!r.mid.includes('keyup:KeyC'), tag + ': slide held while the button is held'); assert.ok(has(r, 'keyup:KeyC'), tag + ': slide released with the button');
-        if (how === 'right') continue;
         r = await go({ pad: true }, how, true); assert.ok(has(r, 'keydown:KeyB'), tag + ': jump-pad mark -> B');
-        r = await go({ mark: 'recent' }, how, true); assert.ok(!has(r, 'keydown:KeyC'), tag + ': a mark that just vanished does not become a slide');
-        r = await go({ wait: 400 }, how, false); assert.ok(!has(r, 'keydown:KeyC') && !has(r, 'keydown:KeyB'), tag + ': standing still -> nothing');
+        r = await go({ wait: 400 }, how, true); assert.ok(!has(r, 'keydown:KeyC') && !has(r, 'keydown:KeyB'), tag + ': running, nothing to hook -> no slide (slide is the E key now)');
       }
+      // E = slide, held while E is held; key repeat sends nothing more; the C key is still sent as the one the game knows.
+      r = await page.evaluate(async () => {
+        const sleep = ms => new Promise(r => setTimeout(r, ms)), key = (type, repeat = false) => window.dispatchEvent(new KeyboardEvent(type, { code: 'KeyE', repeat, bubbles: true, cancelable: true }));
+        window.__keys.length = 0; key('keydown'); key('keydown', true); key('keydown', true); await sleep(120);
+        const mid = window.__keys.slice(); key('keyup'); await sleep(60);
+        const gunBefore = __skyInternals.Et.held; return { mid, keys: window.__keys.slice(), gunBefore };
+      });
+      assert.deepEqual(r.mid, ['keydown:KeyC'], map + ': E -> one C key down, held (repeat adds nothing)'); assert.deepEqual(r.keys, ['keydown:KeyC', 'keyup:KeyC'], map + ': releasing E releases the slide'); assert.ok(!r.gunBefore, map + ': E no longer fires the gun');
       // The real mouse path: right button reaches the same function; left button never does.
       await page.evaluate(() => { window.__calls = 0; const o = window.skyContextAction; const w = (...a) => { window.__calls++; return o(...a); }; w.release = o.release; window.skyContextAction = w; });
       await page.mouse.move(640, 360); await page.mouse.down({ button: 'left' }); await page.mouse.up({ button: 'left' });
@@ -66,7 +70,7 @@ const base = 'http://127.0.0.1:8813/';
       await page.mouse.down({ button: 'right' }); await page.mouse.up({ button: 'right' });
       assert.equal(await page.evaluate(() => window.__calls), 1, map + ': right click triggers the context action');
       assert.deepEqual(errors, []);
-      console.log('PASS', map, 'Q and right click: blast/pad, else the hook (own handler), else slide; same behavior; left click untouched');
+      console.log('PASS', map, 'Q and right click: blast/pad, else the hook (own handler), no slide (E slides); same behavior; left click untouched');
       await context.close();
     }
   } finally { await browser?.close(); server.kill(); }

@@ -159,7 +159,7 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
  choice=installGuidedChoice({game:g,sky,english:en,clearInput,adopt:startCourse,reset:()=>{practice.place(course.start);trialReached=false;},exit:()=>location.assign(new URL(params.get('return')==='canyon'?'canyon.html':'index.html',location.href).href)});
  coach=installGuidedCoach({game:g,sky,english:en,active:()=>!trial&&!finished&&!completing,lesson:()=>lesson()?.id,cue:()=>coaching});
  go.onclick=()=>choice.confirm();$('learnDoneGo').onclick=finish;$('learnBack').onclick=()=>{clearInput();practice.place(course.start);trialReached=false;choice.show();};
- addEventListener('keydown',e=>{if(trial&&['KeyQ','KeyB','Digit3','Digit4','KeyC','Digit1','Digit2'].includes(e.code)){e.preventDefault();e.stopImmediatePropagation();}},true);
+ addEventListener('keydown',e=>{if(trial&&['KeyQ','KeyE','KeyB','Digit3','Digit4','KeyC','Digit1','Digit2'].includes(e.code)){e.preventDefault();e.stopImmediatePropagation();}},true);
  $('bMenu').addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();location.assign(new URL(params.get('return')==='canyon'?'canyon.html':'index.html',location.href).href);},true);
  const skip=document.createElement('button');skip.id='learnSkip';skip.textContent=text('練習を終えて本番へ','Leave practice and play');skip.onclick=finish;$('bResume').after(skip);
  for(const node of [$('learnTrialBar'),$('learnDone')])for(const type of ['pointerdown','pointerup','touchstart','touchend','touchmove'])node.addEventListener(type,e=>e.stopPropagation());

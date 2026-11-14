@@ -1,0 +1,5 @@
+887 Hareketler (kanca, patlama)
+888 İşaret çıkınca bas
+889 Koşarken bas. Basılı tuttuğun sürece kayarsın
+890 Yokuş aşağı kaymak için Kay / E kullan.
+891 Yokuşta Kay'ı kullan / E

@@ -45,7 +45,7 @@
       <p class="onb-lead" data-for="again">2分間、ゾンビから逃げ切ろう。自分で移動して逃げ道を選び、銃の自動照準・射撃で逃げる時間を作ります。</p>
       <p class="onb-lead" data-for="name">ランキングに表示される名前です。あとからでも決められます。</p></header>
     <ol class="onb-steps">
-      <li><b>走る・跳ぶ</b><span class="onb-pc"><kbd>W A S D</kbd> 移動　<kbd>Space</kbd> ジャンプ　<kbd>Q</kbd> 技（フック・爆破・スライド）</span><span id="onbTouchMove" class="onb-touch">左側に指を置き、上へずらして押したまま前進。離すと停止。「ジャンプ」で跳ぶ</span></li>
+      <li><b>走る・跳ぶ</b><span class="onb-pc"><kbd>W A S D</kbd> 移動　<kbd>Space</kbd> ジャンプ　<kbd>Q</kbd> 技（フック・爆破）　<kbd>E</kbd> スライド</span><span id="onbTouchMove" class="onb-touch">左側に指を置き、上へずらして押したまま前進。離すと停止。「ジャンプ」で跳ぶ</span></li>
       <li><b id="onbLookTitle">視点を回す</b><span id="onbPcLook" class="onb-pc"><kbd>マウス</kbd> で視点を動かす</span><span id="onbTouchLook" class="onb-touch"></span></li>
       <li><b>技で引き離す</b><span class="onb-pc">壁走り・縁つかみ・はしご・ジップラインに加えて、<kbd>Q</kbd> でフック</span><span class="onb-touch">壁走り・縁つかみ・はしご・ジップラインに加えて、画面の輪をタップでフック</span></li>
       <li><b>銃は自動</b><span class="onb-pc">近い敵を自動で狙って撃ちます。<kbd>1</kbd> の閃光弾で周りのゾンビを止め、<kbd>2</kbd> の分身でおびき寄せます</span><span class="onb-touch">近い敵を自動で狙って撃ちます。「閃光弾」ボタンで周りのゾンビを数秒止められます</span></li>

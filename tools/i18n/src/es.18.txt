@@ -1,0 +1,5 @@
+887 Movimientos (gancho, explosión)
+888 Pulsa cuando aparezca una marca
+889 Pulsa mientras corres. Te deslizas mientras la mantengas
+890 Usa Deslizar / E para bajar deslizándote.
+891 Usa Deslizar en la pendiente / E

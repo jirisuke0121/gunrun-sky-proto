@@ -50,9 +50,9 @@ fs.mkdirSync(output, { recursive: true });
         // Exercise the real start, keyboard handlers and physics before poses.
         await page.evaluate(() => { window.__game.S.gunOn = true; window.__game.S.sendLog = false; });
         const ammo = await page.evaluate(() => window.__skyInternals.Et.ammo);
-        await page.keyboard.down('e');
+        if (device === 'desktop') { await page.mouse.move(640, 360); await page.mouse.down(); } else await page.evaluate(() => document.getElementById('tFire').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })));
         await page.evaluate(() => { for (let i = 0; i < 20; i++) window.__game.advance(1 / 60); });
-        await page.keyboard.up('e');
+        if (device === 'desktop') await page.mouse.up(); else await page.evaluate(() => document.getElementById('tFire').dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true })));
         assert.ok(await page.evaluate(() => window.__skyInternals.Et.ammo) < ammo, 'real shooting input consumes ammunition');
         await page.keyboard.down('w');
         await page.evaluate(() => { for (let i = 0; i < 20; i++) window.__game.advance(1 / 60); window.__game.frameOnce(0); });

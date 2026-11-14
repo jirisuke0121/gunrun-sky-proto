@@ -1,0 +1,5 @@
+887 Movimentos (gancho, explosão)
+888 Pressione quando uma marca aparecer
+889 Pressione correndo. Você desliza enquanto segura
+890 Use Deslizar / E para descer deslizando.
+891 Use Deslizar na rampa / E

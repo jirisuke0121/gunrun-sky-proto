@@ -1,0 +1,5 @@
+887 Chiêu (móc, nổ)
+888 Nhấn khi có dấu hiệu xuất hiện
+889 Nhấn khi đang chạy. Giữ phím là còn trượt
+890 Dùng Trượt / E để trượt xuống dốc.
+891 Dùng Trượt trên dốc / E

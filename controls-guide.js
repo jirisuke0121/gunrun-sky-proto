@@ -22,14 +22,15 @@
       block(CIRCLE, '移動', '左の円に指を置いて移動'),
       auto ? block(CAMERA, 'カメラ自動', 'カメラは自動で追いかけます') : block(LOOK, '視点', '右側をなぞって見回す'),
       block(`<span class="cg-btn">ジャンプ</span>`, 'ジャンプ', '画面下のボタン'),
-      block(`<span class="cg-ring"></span>`, '技（フック・爆破・スライド）', '光る印をタップ。低い通路は自動でスライド'),
+      block(`<span class="cg-ring"></span>`, '技（フック・爆破）', '光る印をタップ。低い通路は自動でスライド'),
     ];
     return [
       block(auto ? `<div class="cg-keys">${k('W', 'a')}<br>${k('A', 'b')}${k('S', 'a')}${k('D', 'b')}</div>` : `<div class="cg-keys">${k('W')}<br>${k('A')}${k('S')}${k('D')}</div>`,
         auto ? '<span class="cg-a">前後</span> / <span class="cg-b">曲がる</span>' : '移動'),
       auto ? block(CAMERA, 'カメラ自動', 'カメラは自動で追いかけます') : block(MOUSE(false), '視点', 'マウスを動かして視点を回す'),
       block(`<div class="cg-keys">${k('Space', 'wide')}</div>`, 'ジャンプ'),
-      block(`<div class="cg-keys">${k('Q', 'hot')}</div><span class="cg-or">/</span>${MOUSE(true)}`, '技（フック・爆破・スライド）', 'マークが出たら押す。走っているときはスライド'),
+      block(`<div class="cg-keys">${k('Q', 'hot')}</div><span class="cg-or">/</span>${MOUSE(true)}`, '技（フック・爆破）', 'マークが出たら押す'),
+      block(`<div class="cg-keys">${k('E', 'hot')}</div>`, 'スライド', '走りながら押す。押している間滑る'),
       block(`<div class="cg-keys items">${k('1')}${k('2')}${k('3')}${k('4')}</div>`, 'アイテム', '閃光弾 · 分身 · 救済 · ジャンプ弾'),
     ];
   }

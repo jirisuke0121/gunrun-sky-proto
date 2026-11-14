@@ -21,7 +21,7 @@ export function installGuidedCoach({game,sky,english,active,lesson,cue}) {
     const el=document.getElementById(paused.target),r=el?.getBoundingClientRect(),app=document.getElementById('app').getBoundingClientRect();if(!r)return;
     const ring=root.querySelector('#learnSpotlight'),box={left:r.left-app.left-6+'px',top:r.top-app.top-6+'px',width:r.width+12+'px',height:r.height+12+'px',borderRadius:/^(stick|tJump|tSlide|tFlash|tDecoy|tRescue)$/.test(paused.target)?'50%':'14px'};for(const [k,v]of Object.entries(box))if(ring.style[k]!==v)ring.style[k]=v;
     const pc=!window.skyFollowCamera.touchDevice;
-    const key={tJump:'Space',tSlide:'Q',tFlash:'1',tDecoy:'2',tAutoFire:'X',tJumpGun:'4',tRescue:'3',hookMark:'Q',blastMark:'Q',stick:'W A S D',learnKeys:'W A S D'}[paused.target];
+    const key={tJump:'Space',tSlide:'E',tFlash:'1',tDecoy:'2',tAutoFire:'X',tJumpGun:'4',tRescue:'3',hookMark:'Q',blastMark:'Q',stick:'W A S D',learnKeys:'W A S D'}[paused.target];
     write('small',text('一時停止 · 光る場所を操作すると再開','Paused · Use the highlighted control to resume'));
     write('b',pc&&paused.kind==='move'?text('W A S D で移動する','Move with W A S D'):paused.title);
     write('p',paused.hint+(pc&&key?'  ['+key+']':''));
@@ -61,7 +61,7 @@ export function installGuidedCoach({game,sky,english,active,lesson,cue}) {
   for(const type of ['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend','mousedown','mouseup','click'])document.addEventListener(type,intercept,{capture:true,passive:false});
   document.addEventListener('keydown',e=>{
     if(!paused||game.mode!=='play'||!active()||e.repeat)return;
-    const keys={tJump:['Space'],tSlide:['KeyC','KeyQ'],tFlash:['Digit1'],tDecoy:['Digit2'],tAutoFire:['KeyX'],tJumpGun:['Digit4'],tRescue:['Digit3'],hookMark:['KeyQ'],blastMark:['KeyB','KeyQ'],stick:['KeyW','KeyA','KeyS','KeyD'],learnKeys:['KeyW','KeyA','KeyS','KeyD']};
+    const keys={tJump:['Space'],tSlide:['KeyC','KeyE'],tFlash:['Digit1'],tDecoy:['Digit2'],tAutoFire:['KeyX'],tJumpGun:['Digit4'],tRescue:['Digit3'],hookMark:['KeyQ'],blastMark:['KeyB','KeyQ'],stick:['KeyW','KeyA','KeyS','KeyD'],learnKeys:['KeyW','KeyA','KeyS','KeyD']};
     if(keys[paused.target]?.includes(e.code)){
       if(swingEntry()&&!forwardHeld()){e.preventDefault();e.stopImmediatePropagation();return;}
       resume();

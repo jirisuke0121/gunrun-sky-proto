@@ -25,8 +25,8 @@ const { chromium } = require('playwright');
         box: [...r.querySelectorAll('.cg-block,.cg-ok')].every(e => { const b = e.getBoundingClientRect(); return b.left >= 0 && b.top >= 0 && b.right <= innerWidth + 1 && b.bottom <= innerHeight + 1; }) }; });
       assert.equal(info.kind, touch ? 'touch' : 'pc'); assert.equal(info.mode, mode); assert.ok(info.box, id + ': everything fits on screen');
       if (!touch) {
-        assert.ok(['W', 'A', 'S', 'D', 'Q', 'Space', '1', '2', '3', '4'].every(k => info.keys.includes(k)), id + ': all the keys are pictured');
-        assert.equal(info.blocks, 5); assert.equal(info.mouse, mode === 'before' ? 2 : 1, id + ': mouse look only when the camera is yours (right-click mouse is always there)');
+        assert.ok(['W', 'A', 'S', 'D', 'Q', 'E', 'Space', '1', '2', '3', '4'].every(k => info.keys.includes(k)), id + ': all the keys are pictured');
+        assert.equal(info.blocks, 6); assert.equal(info.mouse, mode === 'before' ? 2 : 1, id + ': mouse look only when the camera is yours (right-click mouse is always there)');
       } else assert.equal(info.blocks, 4);
       if (lang === 'en') assert.ok(!/[ぁ-んァ-ン一-龥]/.test(info.text), id + ': English screen has no Japanese: ' + info.text.replace(/\n/g, ' | '));
       await page.screenshot({ path: `${out}/${id}.png` });

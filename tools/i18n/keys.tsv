@@ -885,6 +885,11 @@
 884	光る印をタップ。低い通路は自動でスライド	Tap a glowing marker. Low passages slide by themselves
 885	画面下のボタン	Buttons at the bottom
 886	射撃とナイフは自動です	Shooting and the knife are automatic
+887	技（フック・爆破）	Moves (hook, blast)
+888	マークが出たら押す	Press when a marker appears
+889	走りながら押す。押している間滑る	Press while running. You slide while it is held
+890	斜面滑りボタン／Eキーで滑れます。	Use Slide / E to slide downhill.
+891	斜面で「斜面滑り」 ／ E	Use Slide on the slope / E
 p0	^(\\d+)秒停止$	Stun $1s
 p1	^技あと(\\d+)$	$1 moves
 p2	^装填中 · あと([\\d.]+)秒$	Reloading · $1 s left

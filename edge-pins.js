@@ -17,7 +17,6 @@ if (game && hud) {
   let spell = false, lastPress = -1e9;
   const pressed = () => { lastPress = performance.now(); };
   addEventListener('mousedown', e => { if (e.button === 0) pressed(); }, true);
-  addEventListener('keydown', e => { if (e.code === 'KeyE' && !e.repeat) pressed(); }, true);
   addEventListener('pointerdown', e => { if (e.target?.closest?.('#tFire')) pressed(); }, true);
   Tt.empty = function (...args) {
     const manual = performance.now() - lastPress < 350;

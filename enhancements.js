@@ -820,8 +820,8 @@ if (window.T2?.GLTFLoader) {
   const setHints = () => {
     if (!hudKeys) return;
     hudKeys.innerHTML = U.gunOn
-      ? '自動射撃・自動ナイフ　<kbd>Q</kbd>/<kbd>右クリック</kbd> 技（フック・爆破・スライド）　<kbd>1</kbd>-<kbd>4</kbd> アイテム　<kbd>Esc</kbd> 一時停止・調整'
-      : '<kbd>クリック</kbd> ナイフ　<kbd>Q</kbd>/<kbd>右クリック</kbd> 技（フック・爆破・スライド）　<kbd>1</kbd>-<kbd>4</kbd> アイテム　<kbd>Esc</kbd> 一時停止・調整';
+      ? '自動射撃・自動ナイフ　<kbd>Q</kbd>/<kbd>右クリック</kbd> 技（フック・爆破）　<kbd>E</kbd> スライド　<kbd>1</kbd>-<kbd>4</kbd> アイテム　<kbd>Esc</kbd> 一時停止・調整'
+      : '<kbd>クリック</kbd> ナイフ　<kbd>Q</kbd>/<kbd>右クリック</kbd> 技（フック・爆破）　<kbd>E</kbd> スライド　<kbd>1</kbd>-<kbd>4</kbd> アイテム　<kbd>Esc</kbd> 一時停止・調整';
   };
   for (const item of document.querySelectorAll('#ovStart .rules .keys li')) {
     item.innerHTML = item.innerHTML.replace('<kbd>クリック</kbd>/<kbd>F</kbd>/<kbd>右クリック</kbd> ナイフ', 'ナイフ（銃オフのときはクリックも）');
