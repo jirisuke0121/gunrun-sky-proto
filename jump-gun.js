@@ -32,7 +32,7 @@ export function createJumpGun(game) {
   const button=document.createElement('button');
   button.id='tJumpGun';button.type='button';button.className='player-skill';button.hidden=true;
   button.setAttribute('aria-label','ジャンプ弾を使う');
-  button.innerHTML='<svg viewBox="0 0 32 32" aria-hidden="true"><path d="m8 15 8-9 8 9M16 6v19M7 25h18"/></svg><span class="skill-value">1</span><span class="skill-name">ジャンプ弾 <kbd>Z</kbd></span>';
+  button.innerHTML='<svg viewBox="0 0 32 32" aria-hidden="true"><path d="m8 15 8-9 8 9M16 6v19M7 25h18"/></svg><span class="skill-value">1</span><span class="skill-name">ジャンプ弾 <kbd>4</kbd></span>';
   const quantity=button.querySelector('.skill-value');let controlState='';
   const fireLabel=document.getElementById('tFire').textContent;
   function stow() {
@@ -50,7 +50,7 @@ export function createJumpGun(game) {
   function grant() {
     if(carried || savedWeapon || game.modeRef()!=='play' || z.over)return false;
     carried=true;spent=false;
-    game.rn('ジャンプ弾取得！ Zキー・専用ボタンで使う');
+    game.rn('ジャンプ弾取得！ 4キー・専用ボタンで使う');
     report('stored');syncControl();return true;
   }
   const report = (result, extra={}) => {
@@ -79,7 +79,7 @@ export function createJumpGun(game) {
   }
   bindSkillPress(button,canUse,use);
   document.addEventListener('keydown',event=>{
-    if(event.code!=='KeyZ' || event.repeat || event.ctrlKey || event.metaKey || event.altKey ||
+    if(event.code!=='Digit4' || event.repeat || event.ctrlKey || event.metaKey || event.altKey ||
       /INPUT|TEXTAREA|SELECT/.test(event.target?.tagName) || event.target?.isContentEditable || !canUse())return;
     event.preventDefault();event.stopImmediatePropagation();use();
   },true);

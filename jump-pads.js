@@ -1,4 +1,4 @@
-// ジャンプ台（旧市街）。台の近くに立つと目印が出て、タップ／Bキーで高台へ大ジャンプする補助式。
+// ジャンプ台（旧市街）。台の近くに立つと目印が出て、タップ／Qキーで高台へ大ジャンプする補助式。
 // 動きは通常の物理（初速を与えるだけ）。ドカンの爆破ジャンプと同じ軌道式で、着地先の屋根の少し上を通って降りる。
 // 置き場所は tools/escape-sites.cjs で候補を出し、tools/jump-pad-verify.cjs で実物理の着地を確認したものだけ。
 (() => {
@@ -73,8 +73,8 @@
       ringMaterial.opacity = .55 + .3 * Math.sin(performance.now() / 260);
       const assist = assistTarget();
       if (assist) {
-        mark.style.left = assist.sx + 'px'; mark.style.top = assist.sy + 'px'; mark.textContent = isTouch() ? '跳ぶ' : 'B'; mark.style.opacity = '1';
-        hint.textContent = isTouch() ? 'ジャンプ台をタップで高台へ！' : 'ジャンプ台をクリック／Bキーで高台へ！'; hint.style.display = 'block';
+        mark.style.left = assist.sx + 'px'; mark.style.top = assist.sy + 'px'; mark.textContent = isTouch() ? '跳ぶ' : 'Q'; mark.style.opacity = '1';
+        hint.textContent = isTouch() ? 'ジャンプ台をタップで高台へ！' : 'ジャンプ台をクリック／Qキーで高台へ！'; hint.style.display = 'block';
       } else { mark.style.opacity = '0'; hint.style.display = 'none'; }
       requestAnimationFrame(guide);
     };

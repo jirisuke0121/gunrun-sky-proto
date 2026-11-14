@@ -26,20 +26,20 @@ export function createLessons(sky, game, practice, progress) {
     make('mantle', 0, ['段差へ、ジャンプ', 'Jump up to the ledge'], ['縁をつかんで登れます', 'Catch the edge and climb up'], [34, 4.4, 0], () => changed('mantles') && c.pos.y > 4.3 && landed(), { action: 'tJump' }),
     make('wallrun', 1, ['壁を走って渡ろう', 'Run along the wall'], ['壁ぎわで前へ進みながらジャンプ', 'Move along the wall and jump'], [50, 4.4, -1.3], () => changed('wallruns') && c.pos.x > 46.2 && c.pos.y > 4.2 && landed(), { path: [[37, 4.4, -1.3]], action: 'tJump' }),
     make('hook', 1, ['ひし形のマークへ、フック', 'Hook to the diamond marker'], ['マークをタップ ／ Q', 'Tap the marker / Q'], [64, 6.6, 0], () => changed('hooks') && c.pos.x > 61 && c.pos.y > 5.1 && landed(), { action: 'hook' }),
-    make('downhill', 1, ['斜面を滑ろう', 'Slide down'], ['斜面で「斜面滑り」 ／ C', 'Use Slide on the slope / C'], [83, 0, 0], () => changed('slides') && c.pos.x > 81.5 && c.pos.y < .5 && c.onGround, { action: 'tSlide', retryIf: () => c.pos.x > 82 && landed() && !changed('slides') }),
+    make('downhill', 1, ['斜面を滑ろう', 'Slide down'], ['斜面で「斜面滑り」 ／ Q', 'Use Slide on the slope / Q'], [83, 0, 0], () => changed('slides') && c.pos.x > 81.5 && c.pos.y < .5 && c.onGround, { action: 'tSlide', retryIf: () => c.pos.x > 82 && landed() && !changed('slides') }),
     make('ladder', 1, ['はしごを登ろう', 'Climb the ladder'], ['はしごへ、そのまま前入力', 'Move into it and keep moving forward'], [92, 4, 0], () => changed('ladders') && c.pos.y > 3.9 && landed(), { path: [[88, 0, 0]] }),
     make('zip', 1, ['ロープへ、ジャンプ', 'Jump to the zipline'], ['つかまれば自動で渡ります', 'Travel is automatic once attached'], [111.5, 2.8, -3.2], () => changed('zips') && c.pos.x > 107 && c.pos.y > 2.7 && landed(), { path: [[94, 4, 0]], action: 'tJump' }),
     make('walljump', 1, ['壁を蹴って、上へ', 'Kick off the wall'], ['ジャンプ → 空中でもう一度', 'Jump, then jump again in midair'], [119, 4, 0], () => changed('walljumps') && c.pos.x > 117.7 && c.pos.y > 3.9 && landed(), { path: [[115, 2.8, -3.2]], action: 'tJump', handoff: holdingCourseBar }),
     make('swing', 1, ['鉄棒で、向こうの足場へ', 'Swing onto the next roof'], ['前へ振れたらジャンプ', 'Jump as you swing forward'], [140, 6.8, 0], landedAfterSwing, { action: 'tJump', retryIf: () => changed('barJumps') && landed() && !landedAfterSwing() }),
     make('dash', 1, ['加速して、跳ぶ', 'Speed up and jump'], ['青いDASHを取って、先の屋上へ', 'Collect DASH and jump to the next roof'], [163, 0, 0], () => changed('dashPickups') && c.pos.x > 154 && c.pos.y < .2 && landed(), { action: 'tJump' }),
     make('flash', 2, ['追手を止めて、逃げよう', 'Stop the pursuers and escape'], ['追手が近づいたら、閃光玉を使う ／ 1', 'Use Flash when the pursuers get close / 1'], [176, 0, 0], () => progress.flashPursued && window.skyFlashbang.stats.affected > progress.flash && c.pos.x > 180.3 && landed(), { action: 'tFlash' }),
-    make('blast', 3, ['赤い缶で、高く跳ぶ', 'Launch with the red barrel'], ['缶をタップ ／ B', 'Tap the barrel / B'], [198, 2, 0], () => changed('blastLaunches') && c.pos.x > 194 && c.pos.y > 1.9 && landed(), { action: 'barrel' }),
-    make('jumpgun', 3, ['ジャンプ弾で、もう一つ上へ', 'Use the jump charge'], ['金色の弾を拾い、ジャンプ弾 ／ Z', 'Collect gold, then Launch / Z'], [220, 8, 0], () => changed('jumpGunLaunches') && c.pos.x > 214 && c.pos.y > 7.9 && landed(), { action: 'tJumpGun' }),
+    make('blast', 3, ['赤い缶で、高く跳ぶ', 'Launch with the red barrel'], ['缶をタップ ／ Q', 'Tap the barrel / Q'], [198, 2, 0], () => changed('blastLaunches') && c.pos.x > 194 && c.pos.y > 1.9 && landed(), { action: 'barrel' }),
+    make('jumpgun', 3, ['ジャンプ弾で、もう一つ上へ', 'Use the jump charge'], ['金色の弾を拾い、ジャンプ弾 ／ 4', 'Collect gold, then Launch / 4'], [220, 8, 0], () => changed('jumpGunLaunches') && c.pos.x > 214 && c.pos.y > 7.9 && landed(), { action: 'tJumpGun' }),
     make('shoot',3,['銃の自動操作を試そう','Try automatic aim and fire'],['自動射撃を再開し、その場で待つ','Resume automatic fire and wait'],[222,8,0],()=>game.G.reloadT<=0&&game.G.ammo>0&&progress.reloadSeen&&practice.targets.every(e=>e.dead)&&(game.stats.shots||0)>progress.stats.shots,{action:'tAutoFire'}),
     make('exit', 3, ['出口へ進もう', 'Head to the exit'], ['覚えた操作で、本番へ', 'Take these controls into a real run'], [243, 8, 0], () => reached([243, 8, 0])),
   ];
   if (new URLSearchParams(location.search).get('return') !== 'canyon') lessons.push(
-    make('rescue', 3, ['最後は、自動で退避', 'One last escape upward'], ['救済を使う ／ V', 'Use Rescue / V'], [259, 11, 0], () => changed('rescues') && c.pos.y > 10.8 && landed(), { action: 'tRescue' })
+    make('rescue', 3, ['最後は、自動で退避', 'One last escape upward'], ['救済を使う ／ 3', 'Use Rescue / 3'], [259, 11, 0], () => changed('rescues') && c.pos.y > 10.8 && landed(), { action: 'tRescue' })
   );
   // If a required action was missed, return from the landing beyond it rather
   // than leave the next marker behind a camera that cannot turn around.

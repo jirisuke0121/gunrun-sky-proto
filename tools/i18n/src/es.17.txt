@@ -1,0 +1,9 @@
+878 Estos son tus controles
+879 La cámara te sigue sola
+880 Mueve el ratón para mirar alrededor
+881 Pulsa cuando aparezca una marca. Si vas corriendo, te deslizas
+882 Toca el círculo de la izquierda para moverte
+883 Arrastra el lado derecho para mirar alrededor
+884 Toca una marca brillante. Los pasos bajos se deslizan solos
+885 Botones en la parte inferior
+886 El disparo y el cuchillo son automáticos

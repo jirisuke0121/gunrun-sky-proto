@@ -862,6 +862,29 @@
 861	わかった	Got it
 862	岩壁渓谷	Rock Canyon
 863	残弾	Ammo
+864	ジャンプ弾取得！ 4キー・専用ボタンで使う	Jump shot ready! Press 4 or its button to use it
+865	金色のJUMPはジャンプ弾を1発補給。通常武器を持ったまま、4キー・ジャンプ弾ボタンで足元に発射して跳ぶ	Gold JUMP pickups store one jump shot. Keep your usual weapon; press 4 or the Jump shot button to fire at your feet and launch
+866	金色の弾を拾い、ジャンプ弾 ／ 4	Collect gold, then Launch / 4
+867	救済を使う ／ 3	Use Rescue / 3
+868	救済ボタン／3キー。安全な高台への移動は自動です。	Use Rescue / 3. The hook chooses a safe platform.
+869	ジャンプ台をクリック／Qキーで高台へ！	Click the pad or press Q to jump up to the high ground!
+870	ドラム缶をクリック／Qキーで爆破ジャンプ！	Click the barrel or press Q to blast-jump!
+871	斜面で「斜面滑り」 ／ Q	Use Slide on the slope / Q
+872	缶をタップ ／ Q	Tap the barrel / Q
+873	斜面滑りボタン／Qキーで滑れます。	Use Slide / Q to slide downhill.
+874	表示されたドラム缶をタップ／Qキー。接近・爆破ジャンプは自動です。	Tap the marked barrel / press Q. The launch sequence is automatic.
+875	自動射撃・自動ナイフ	Auto-fire & auto-knife
+876	技（フック・爆破・スライド）	Moves (hook, blast, slide)
+877	アイテム	Items
+878	操作はこの通り	Here are your controls
+879	カメラは自動で追いかけます	The camera follows by itself
+880	マウスを動かして視点を回す	Move the mouse to look around
+881	マークが出たら押す。走っているときはスライド	Press when a marker appears. While running, it slides
+882	左の円に指を置いて移動	Touch the left circle to move
+883	右側をなぞって見回す	Drag the right side to look around
+884	光る印をタップ。低い通路は自動でスライド	Tap a glowing marker. Low passages slide by themselves
+885	画面下のボタン	Buttons at the bottom
+886	射撃とナイフは自動です	Shooting and the knife are automatic
 p0	^(\\d+)秒停止$	Stun $1s
 p1	^技あと(\\d+)$	$1 moves
 p2	^装填中 · あと([\\d.]+)秒$	Reloading · $1 s left

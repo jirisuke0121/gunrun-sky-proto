@@ -108,7 +108,7 @@
 ひし形のマークへ、フック	Hook to the diamond marker
 マークをタップ ／ Q	Tap the marker / Q
 斜面を滑ろう	Slide down
-斜面で「斜面滑り」 ／ C	Use Slide on the slope / C
+斜面で「斜面滑り」 ／ Q	Use Slide on the slope / Q
 はしごを登ろう	Climb the ladder
 はしごへ、そのまま前入力	Move into it and keep moving forward
 ロープへ、ジャンプ	Jump to the zipline
@@ -122,15 +122,15 @@
 追手を止めて、逃げよう	Stop the pursuers and escape
 追手が近づいたら、閃光玉を使う ／ 1	Use Flash when the pursuers get close / 1
 赤い缶で、高く跳ぶ	Launch with the red barrel
-缶をタップ ／ B	Tap the barrel / B
+缶をタップ ／ Q	Tap the barrel / Q
 ジャンプ弾で、もう一つ上へ	Use the jump charge
-金色の弾を拾い、ジャンプ弾 ／ Z	Collect gold, then Launch / Z
+金色の弾を拾い、ジャンプ弾 ／ 4	Collect gold, then Launch / 4
 銃の自動操作を試そう	Try automatic aim and fire
 自動射撃を再開し、その場で待つ	Resume automatic fire and wait
 出口へ進もう	Head to the exit
 覚えた操作で、本番へ	Take these controls into a real run
 最後は、自動で退避	One last escape upward
-救済を使う ／ V	Use Rescue / V
+救済を使う ／ 3	Use Rescue / 3
 左のスティックを動かす	Move the left stick
 指を置き、進みたい方向へずらす	Touch, then drag toward where you want to move
 進みたい方向のキーを押す	Press the key for the direction you want to move
@@ -179,10 +179,10 @@ W A S D で移動する	Move with W A S D
 ジャンプでロープにつかまります。その後は自動で移動します。	Jump to attach. Travel is automatic.
 ジップライン成功！	ZIPLINE CONNECTED!
 この斜面を滑って下れる。	Slide down this slope.
-斜面滑りボタン／Cキーで滑れます。	Use Slide / C to slide downhill.
+斜面滑りボタン／Qキーで滑れます。	Use Slide / Q to slide downhill.
 斜面滑り成功！	SLIDING!
 ドラム缶で高い場所へ跳べる。	Launch upward with this barrel.
-表示されたドラム缶をタップ／Bキー。接近・爆破ジャンプは自動です。	Tap the marked barrel / press B. The launch sequence is automatic.
+表示されたドラム缶をタップ／Qキー。接近・爆破ジャンプは自動です。	Tap the marked barrel / press Q. The launch sequence is automatic.
 爆破ジャンプ開始！	BARREL LAUNCH STARTED!
 追手を閃光玉で止められる。	Stop nearby pursuers.
 閃光玉ボタン／1キーで使用。止まっている間に逃げよう。	Use Flash / 1, then escape while they are stunned.
@@ -191,7 +191,7 @@ W A S D で移動する	Move with W A S D
 分身ボタン／2キーで使用。追手の注意をそらして逃げよう。	Use Decoy / 2 to draw them away.
 分身発動！	DECOY ACTIVE!
 救済フックで高台へ逃げられる。	Escape to higher ground.
-救済ボタン／Vキー。安全な高台への移動は自動です。	Use Rescue / V. The hook chooses a safe platform.
+救済ボタン／3キー。安全な高台への移動は自動です。	Use Rescue / 3. The hook chooses a safe platform.
 救済フック発動！	RESCUE ACTIVE!
 そのまま進もう！	Keep going!
 WASDで移動。Spaceでジャンプ。	WASD to move. Space to jump.
@@ -232,3 +232,15 @@ WASDでマークへ	WASD toward the marker
 わかった	Got it
 岩壁渓谷	Rock Canyon
 残弾	Ammo
+自動射撃・自動ナイフ	Auto-fire & auto-knife
+技（フック・爆破・スライド）	Moves (hook, blast, slide)
+アイテム	Items
+操作はこの通り	Here are your controls
+カメラは自動で追いかけます	The camera follows by itself
+マウスを動かして視点を回す	Move the mouse to look around
+マークが出たら押す。走っているときはスライド	Press when a marker appears. While running, it slides
+左の円に指を置いて移動	Touch the left circle to move
+右側をなぞって見回す	Drag the right side to look around
+光る印をタップ。低い通路は自動でスライド	Tap a glowing marker. Low passages slide by themselves
+画面下のボタン	Buttons at the bottom
+射撃とナイフは自動です	Shooting and the knife are automatic

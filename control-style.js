@@ -118,7 +118,7 @@
     ui = chooser({ onPick: mode => select(mode) });
     ui.manual = true; // the popup keeps its own pending choice until "始める"
     dialog.querySelector('.cs-slot').append(ui.box);
-    $('csGo').addEventListener('click', () => { const done = onDone; close(); fc.setMode(picked); done?.(); });
+    $('csGo').addEventListener('click', () => { const done = onDone, mode = picked; close(); fc.setMode(mode); window.skyControlsGuide ? window.skyControlsGuide.show(mode, done) : done?.(); });
     $('csCancel').addEventListener('click', close);
     dialog.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
   }

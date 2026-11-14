@@ -24,7 +24,7 @@
     // スキル欄のボタン。
     const ICON = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4v18"/><path d="M7 18a9 9 0 0 0 18 0"/><path d="M4 15l3 3 3-3M22 15l3 3 3-3"/></svg>';
     const button = document.createElement('button'); button.type = 'button'; button.id = 'tRescue'; button.className = 'player-skill';
-    button.innerHTML = `${ICON}<span class="skill-value">${charges}</span><span class="skill-name">救済 <kbd>V</kbd></span>`;
+    button.innerHTML = `${ICON}<span class="skill-value">${charges}</span><span class="skill-name">救済 <kbd>3</kbd></span>`;
     dock.append(button);
     const note = document.createElement('div');
     Object.assign(note.style, { position: 'fixed', left: '50%', bottom: '150px', transform: 'translateX(-50%)', zIndex: '26', pointerEvents: 'none', padding: '4px 10px', borderRadius: '8px',
@@ -122,7 +122,7 @@
     const loop = () => { step(); requestAnimationFrame(loop); }; requestAnimationFrame(loop);
 
     document.addEventListener('keydown', e => {
-      if (e.code !== 'KeyV' || e.repeat || e.ctrlKey || e.metaKey || !playing() || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '')) return;
+      if (e.code !== 'Digit3' || e.repeat || e.ctrlKey || e.metaKey || !playing() || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '')) return;
       e.preventDefault(); activate();
     });
     import('./player-skills.js?v=20261113-viewport-v1').then(({ bindSkillPress }) => bindSkillPress(button, available, activate, () => explain(unavailableReason())));

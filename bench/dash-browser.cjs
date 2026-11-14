@@ -122,7 +122,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     assert.equal(await page.evaluate(()=>skyDash.swingRemaining),0);assert.equal(await page.locator('#dashStatus').isVisible(),false,'"+0%" is hidden in normal play');
     await page.evaluate(l=>__dashPlaceLane(l),lane);await page.keyboard.down('w');
     const afterSwing=await page.evaluate(()=>__dashFrames(35));await page.keyboard.up('w');assert.ok(Math.abs(afterSwing.speed-6)<.05);
-    await page.keyboard.press('v');await page.evaluate(()=>window.__game.frameOnce(1/60));assert.equal(await page.evaluate(()=>document.body.dataset.skyHumanView),'first');
+    await page.evaluate(()=>window.skyHumanView.select('existing'));await page.evaluate(()=>window.__game.frameOnce(1/60));assert.equal(await page.evaluate(()=>document.body.dataset.skyHumanView),'first');
     await page.evaluate(()=>window.__game.startGame());
     assert.equal(await page.evaluate(()=>window.skyDash.remaining),0);assert.ok(await page.evaluate(()=>window.skyDash.pickups.every(p=>p.cooldown===0)));
     assert.deepEqual(errors,[]);results.push({id,placements,lane,baseline,boost:running,normal,swing,swingWalk,refresh,pauseSwing,afterSwing,paused,ended,status:'passed'});

@@ -1,0 +1,9 @@
+878 Đây là cách điều khiển
+879 Camera tự động đi theo
+880 Di chuyển chuột để nhìn xung quanh
+881 Nhấn khi có dấu hiệu hiện ra. Khi đang chạy sẽ trượt
+882 Chạm vào vòng tròn bên trái để di chuyển
+883 Kéo bên phải để nhìn xung quanh
+884 Chạm vào dấu hiệu sáng. Lối thấp sẽ tự trượt
+885 Các nút ở cuối màn hình
+886 Bắn và dùng dao đều tự động

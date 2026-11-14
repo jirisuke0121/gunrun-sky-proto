@@ -1,0 +1,9 @@
+878 Kontroller şöyle
+879 Kamera kendiliğinden takip eder
+880 Etrafa bakmak için fareyi oynat
+881 İşaret çıkınca bas. Koşarken kayar
+882 Hareket için soldaki daireye dokun
+883 Etrafa bakmak için sağ tarafı sürükle
+884 Parlayan işarete dokun. Alçak geçitlerde kendiliğinden kayar
+885 Alttaki düğmeler
+886 Ateş ve bıçak otomatiktir

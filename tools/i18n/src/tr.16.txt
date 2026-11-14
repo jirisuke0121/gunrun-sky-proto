@@ -1,0 +1,9 @@
+869 Yükseğe zıplamak için platforma tıkla veya Q'ye bas!
+870 Patlamayla zıplamak için variline tıkla veya Q'ye bas!
+871 Yokuşta Kay'ı kullan / Q
+872 Variline dokun / Q
+873 Yokuş aşağı kaymak için Kay / Q kullan.
+874 İşaretli variline dokun / Q'ye bas. Fırlatma sırası otomatiktir.
+875 Otomatik ateş ve bıçak
+876 Hareketler (kanca, patlama, kayma)
+877 Eşyalar

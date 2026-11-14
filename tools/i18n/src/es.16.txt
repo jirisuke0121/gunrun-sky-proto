@@ -1,0 +1,9 @@
+869 ¡Haz clic en la plataforma o pulsa Q para saltar a lo alto!
+870 ¡Haz clic en el barril o pulsa Q para saltar con la explosión!
+871 Usa Deslizar en la pendiente / Q
+872 Toca el barril / Q
+873 Usa Deslizar / Q para bajar deslizándote.
+874 Toca el barril marcado / pulsa Q. La secuencia de lanzamiento es automática.
+875 Autodisparo y cuchillo automático
+876 Movimientos (gancho, explosión, deslizamiento)
+877 Objetos

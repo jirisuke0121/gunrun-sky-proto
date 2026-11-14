@@ -1,0 +1,9 @@
+878 Estes são os seus controles
+879 A câmera acompanha sozinha
+880 Mova o mouse para olhar ao redor
+881 Pressione quando aparecer uma marca. Correndo, você desliza
+882 Toque no círculo da esquerda para se mover
+883 Arraste o lado direito para olhar ao redor
+884 Toque numa marca brilhante. Passagens baixas deslizam sozinhas
+885 Botões na parte de baixo
+886 Tiro e faca são automáticos

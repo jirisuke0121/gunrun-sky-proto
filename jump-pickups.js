@@ -24,7 +24,7 @@ export function createJumpPickups(sky, game) {
   const rule = document.querySelector('#ovStart .rules .keys');
   if (rule) {
     const li = document.createElement('li');
-    li.textContent = '金色のJUMPはジャンプ弾を1発補給。通常武器を持ったまま、Zキー・ジャンプ弾ボタンで足元に発射して跳ぶ';
+    li.textContent = '金色のJUMPはジャンプ弾を1発補給。通常武器を持ったまま、4キー・ジャンプ弾ボタンで足元に発射して跳ぶ';
     rule.appendChild(li);
   }
   let time = 0, previous = null;

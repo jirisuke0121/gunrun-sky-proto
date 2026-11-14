@@ -14,7 +14,7 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  await ctx.addInitScript(()=>{window.__hold=true;localStorage.setItem('gunrun-name','Clarity test');localStorage.setItem('gunrun-quality-check-v1','done')});let posts=0;
  await ctx.route('https://**/*',r=>{if(r.request().method()==='POST')posts++;return r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'})});
  const p=await ctx.newPage();p.on('pageerror',e=>errors.push(e.message));p.setDefaultTimeout(20000);
- const press=async selector=>{if(!layout.touch){await p.keyboard.press({'#tDecoy':'2','#tFlash':'1','#tRescue':'v','#tAutoFire':'x'}[selector]);return}const r=await p.locator(selector).boundingBox();assert.ok(r);await p.touchscreen.tap(r.x+r.width/2,r.y+r.height/2)};
+ const press=async selector=>{if(!layout.touch){await p.keyboard.press({'#tDecoy':'2','#tFlash':'1','#tRescue':'3','#tAutoFire':'x'}[selector]);return}const r=await p.locator(selector).boundingBox();assert.ok(r);await p.touchscreen.tap(r.x+r.width/2,r.y+r.height/2)};
  const clearView=async()=>{
   const boxes=await p.evaluate(()=>{const box=e=>{const r=e.getBoundingClientRect();return{x:r.x,y:r.y,w:r.width,h:r.height}};return{messages:[...document.querySelectorAll('#runResponsibility,#actionFeedback,#supplyFeedback,#weaponSupplyStatus')].filter(e=>e.checkVisibility({visibilityProperty:true})).map(e=>({id:e.id,...box(e)})),life:box(document.querySelector('.hud-tl')),labels:[...document.querySelectorAll('#skillDock [data-action-state],#tFlash small')].map(e=>({text:e.textContent,...box(e),button:box(e.closest('button'))}))}});
   assert.ok(boxes.messages.length<=1,`${id}: duplicate HUD explanations`);

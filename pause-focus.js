@@ -12,7 +12,7 @@
   const make = (tag, props = {}, html = '') => Object.assign(document.createElement(tag), props, html ? { innerHTML: html } : {});
 
   const keys = make('p', { className: 'note pauseKeys pauseKeysDesktop' },
-    '<b>目的</b> 2分間ゾンビから逃げ切る　<b>操作</b> <span class="keysAfter"><kbd>W</kbd><kbd>S</kbd> 前後　<kbd>A</kbd><kbd>D</kbd> 曲がる　</span><span class="keysBefore"><kbd>W A S D</kbd> 移動　</span><kbd>Space</kbd> ジャンプ　<kbd>C</kbd> スライド　<kbd>クリック</kbd> ナイフ　<kbd>Q</kbd> フック　<kbd>1</kbd> 閃光弾　<kbd>2</kbd> 分身');
+    '<b>目的</b> 2分間ゾンビから逃げ切る　<b>操作</b> <span class="keysAfter"><kbd>W</kbd><kbd>S</kbd> 前後　<kbd>A</kbd><kbd>D</kbd> 曲がる　</span><span class="keysBefore"><kbd>W A S D</kbd> 移動　</span><kbd>Space</kbd> ジャンプ　<kbd>Q</kbd>/<kbd>右クリック</kbd> 技（フック・爆破・スライド）　<kbd>1</kbd> 閃光弾　<kbd>2</kbd> 分身');
   const keysTouch = make('p', { className: 'note pauseKeys pauseKeysTouch' },
     '<b>目的</b> 2分間ゾンビから逃げ切る　<span class="keysAfter">左スティックで移動（視点は自動）、</span><span class="keysBefore">左ドラッグで移動、右ドラッグで視点、</span>「ジャンプ」で跳ぶ');
 

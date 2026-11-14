@@ -7,20 +7,22 @@ export function installSurfaceReadability(game) {
   const ctx=canvas.getContext('2d');ctx.fillStyle='#aa9f89';ctx.fillRect(0,0,256,256);
   ctx.fillStyle='#d8cfb9';ctx.fillRect(4,4,248,248);
   const paving=new CanvasTexture(canvas);paving.wrapS=paving.wrapT=1000;paving.colorSpace='srgb';
-  const copies=new Map();
-  function roleMaterial(original){
+  const copies=new Map(),dimCopies=new Map();
+  // dim=true: the top of a block nobody can stand on (no navigation node on it) gets a dark slate top, so pale paving always means "a place you can land".
+  function roleMaterial(original,dim=false){
     if(!original?.isMeshStandardMaterial||!original.map)return original;
-    if(copies.has(original))return copies.get(original);
+    const cache=dim?dimCopies:copies;
+    if(cache.has(original))return cache.get(original);
     const material=original.clone(),prepare=original.onBeforeCompile;
     material.onBeforeCompile=function(shader,renderer){
       prepare.call(this,shader,renderer);shader.uniforms.skyRolePaving={value:paving};
       shader.vertexShader='varying float vSkyRoleUp;\n'+shader.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvSkyRoleUp=normal.y;');
       shader.fragmentShader='varying float vSkyRoleUp;\nuniform sampler2D skyRolePaving;\n'+shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
-        if(vSkyRoleUp>.5)diffuseColor.rgb=texture2D(skyRolePaving,vMapUv).rgb;
+        if(vSkyRoleUp>.5)diffuseColor.rgb=texture2D(skyRolePaving,vMapUv).rgb${dim?'*vec3(.40,.43,.45)':''};
         else diffuseColor.rgb=mix(vec3(.30,.33,.32),diffuseColor.rgb*.65,.18);`);
     };
-    material.customProgramCacheKey=()=>original.customProgramCacheKey()+'|surface-roles-v1';
-    copies.set(original,material);return material;
+    material.customProgramCacheKey=()=>original.customProgramCacheKey()+(dim?'|surface-roles-v1-dim':'|surface-roles-v1');
+    cache.set(original,material);return material;
   }
   // Interiors keep their original warm brown. The grey/paving roles are for
   // outdoor readability only. A box counts as indoor when it overlaps a room
@@ -30,11 +32,15 @@ export function installSurfaceReadability(game) {
   const overlap=(a0,a1,b0,b1)=>Math.min(a1,b1)-Math.max(a0,b0);
   const indoor=box=>rooms.some(r=>overlap(box.minX,box.maxX,r.minX,r.maxX)>.1&&overlap(box.minY,box.maxY,r.minY,r.maxY)>.1&&
     overlap(box.minZ,box.maxZ,r.minZ,r.maxZ)>.1&&box.maxX-box.minX<=r.maxX-r.minX+4&&box.maxZ-box.minZ<=r.maxZ-r.minZ+4);
-  let surfaces=0,indoorKept=0;
+  // A top counts as standable when the navigation graph has a node on it (the game's own definition of a reachable surface).
+  const nodes=window.__game?.NAV?.nodes||[];
+  const standable=box=>!nodes.length||nodes.some(n=>n.x>=box.minX-.3&&n.x<=box.maxX+.3&&n.z>=box.minZ-.3&&n.z<=box.maxZ+.3&&Math.abs(n.y-box.maxY)<.6);
+  let surfaces=0,indoorKept=0,dimmed=0;
   for(const box of game.jn){
     if(box.hidden||box.tint!=null||box.shape||!box.mesh?.isMesh||!['mono','slab','beam'].includes(box.type))continue;
     if(indoor(box)){indoorKept++;continue;}
-    box.mesh.material=Array.isArray(box.mesh.material)?box.mesh.material.map(roleMaterial):roleMaterial(box.mesh.material);surfaces++;
+    const dim=!standable(box);if(dim)dimmed++;
+    box.mesh.material=Array.isArray(box.mesh.material)?box.mesh.material.map(m=>roleMaterial(m,dim)):roleMaterial(box.mesh.material,dim);surfaces++;
   }
   // The pictured roof edges and the small houses share these existing bounds.
   // Stairs keep their individual treads; outlining every step would add noise.
@@ -69,5 +75,5 @@ export function installSurfaceReadability(game) {
     geometry.computeBoundingSphere();const mesh=new Mesh(geometry,new Standard({color:0xe4d6b1,roughness:1,side:2}));
     mesh.name='Walkable roof and beam coping';mesh.receiveShadow=true;game.ue.add(mesh);
   }
-  window.skySurfaceReadability={revision:'opaque-surface-roles-v2-indoor-original',surfaces,indoorKept,roofRims:roofs.length+ (roofs.length?2:0)};
+  window.skySurfaceReadability={revision:'opaque-surface-roles-v3-dim-unreachable',surfaces,indoorKept,dimmed,roofRims:roofs.length+ (roofs.length?2:0)};
 }

@@ -13,8 +13,12 @@
 .edge-pin.ammo .edge-pin-arrow svg{display:block;width:100%;height:100%;fill:#45e6ff;stroke:#fff;stroke-width:2.5;stroke-linejoin:round;filter:drop-shadow(0 0 5px #000a)}
 .edge-pin.ammo b{padding:3px 7px;border-radius:6px;background:#0b3d48;border:2px solid #45e6ff;letter-spacing:.04em}
 .edge-pin.ammo i{font-style:normal;font-size:13px}
-#ammoEmptyNote{position:absolute;left:50%;top:34%;transform:translateX(-50%);z-index:8;padding:6px 14px;border-radius:8px;background:#3a0c14e6;border:2px solid #ff3347;color:#fff;font:800 17px/1.2 system-ui,sans-serif;pointer-events:none;white-space:nowrap}
+#ammoEmptyNote{position:absolute;left:50%;top:34%;transform:translateX(-50%);z-index:8;display:flex;align-items:center;gap:8px;padding:6px 16px 6px 10px;border-radius:8px;background:#3a0c14e6;border:2px solid #ff3347;color:#fff;font:900 20px/1.2 system-ui,sans-serif;letter-spacing:.08em;pointer-events:none;white-space:nowrap}
+#ammoEmptyNote svg{width:36px;height:27px}#ammoEmptyNote .g{fill:#e8edf2;opacity:.9}#ammoEmptyNote .x{fill:none;stroke:#ff3347;stroke-width:3.5;stroke-linecap:round}
 #ammoEmptyNote[hidden]{display:none}
+#ammoBox.ammo-empty #weaponIcon{position:relative}#ammoBox.ammo-empty #weaponIcon svg{opacity:.5}
+#ammoBox.ammo-empty #weaponIcon::before,#ammoBox.ammo-empty #weaponIcon::after{content:"";position:absolute;left:-3px;right:-3px;top:calc(50% - 1.5px);height:3px;border-radius:2px;background:#ff3347;box-shadow:0 0 0 1px #0008;transform:rotate(45deg)}
+#ammoBox.ammo-empty #weaponIcon::after{transform:rotate(-45deg)}
 @media (prefers-reduced-motion:no-preference){#ammoEmptyNote{animation:edgePinPulse .8s ease-in-out infinite}}
 body:has(#ovPause:not([hidden])) .edge-pin,body:has(#ovOver:not([hidden])) .edge-pin,body:has(#ovPause:not([hidden])) #ammoEmptyNote,body:has(#ovOver:not([hidden])) #ammoEmptyNote{display:none}
 /* The soft red edge stays as the "how close" cue, but the pins now carry the direction. */

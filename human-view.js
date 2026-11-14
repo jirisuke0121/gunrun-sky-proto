@@ -166,7 +166,7 @@ document.getElementById('bStart')?.addEventListener('click', event => {
     status.textContent = 'Unity人間モデルを読み込み中です。少し待ってから開始してください。';
   }
 }, true);
-// V is the Rescue key (free-hook.js); the old V view toggle flipped the camera to first person on every Rescue press.
+// Rescue is key 3 (free-hook.js; it was V); the old V view toggle flipped the camera to first person on every Rescue press.
 
 const pivot = new Vector3(), wanted = new Vector3(), delta = new Vector3(), probe = new Vector3(), forward = new Vector3(), right = new Vector3();
 const weaponNames = ['Sky HG','Sky SG','Sky SMG','Sky MG','Sky Unity HG','Sky Easy Shotgun','Sky Easy M4','Sky Easy Rail Gun','Sky Easy Beam Gun','Sky Easy Cluster Launcher','Sky Easy Rocket Launcher','Sky Easy M79','Sky Jump Gun'];

@@ -137,10 +137,10 @@
       if (assist) {
         mark.style.left = assist.sx + 'px';
         mark.style.top = assist.sy + 'px';
-        markLabel.textContent = isTouch() ? '爆破' : 'B';
+        markLabel.textContent = isTouch() ? '爆破' : 'Q';
         mark.style.opacity = '1';
         hint.textContent = isTouch() ? 'ドラム缶をタップで爆破ジャンプ！' :
-          'ドラム缶をクリック／Bキーで爆破ジャンプ！';
+          'ドラム缶をクリック／Qキーで爆破ジャンプ！';
         hint.style.display = 'block';
       } else {
         mark.style.opacity = '0';

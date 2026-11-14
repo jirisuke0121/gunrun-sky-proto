@@ -40,10 +40,12 @@ export function installGuidedChoice({game,sky,english,clearInput,adopt,reset,exi
   for(const button of root.querySelectorAll('[data-learn-mode]'))button.onclick=()=>{
     clearInput();reset();window.skyFollowCamera.setMode(button.dataset.learnMode,false);phase='try';sync();document.getElementById('c').focus();
   };
+  // After the pick, a picture of the controls (controls-guide.js) comes first; "Got it" starts the course.
+  const proceed=mode=>window.skyControlsGuide?window.skyControlsGuide.show(mode,adopt):adopt();
   for(const button of root.querySelectorAll('[data-learn-adopt]'))button.onclick=()=>{
-    clearInput();window.skyFollowCamera.setMode(button.dataset.learnAdopt,false);phase='done';sync();adopt();
+    clearInput();window.skyFollowCamera.setMode(button.dataset.learnAdopt,false);phase='done';sync();proceed(button.dataset.learnAdopt);
   };
   root.querySelector('#learnChoiceExit').onclick=exit;
   for(const type of ['pointerdown','pointerup','touchstart','touchend'])root.addEventListener(type,e=>e.stopPropagation());
-  return {get phase(){return phase},get blocked(){return ready&&phase==='choose'},start(){ready=true;capture();sync();},sync,show,confirm(){phase='done';sync();adopt();}};
+  return {get phase(){return phase},get blocked(){return ready&&phase==='choose'},start(){ready=true;capture();sync();},sync,show,confirm(){phase='done';sync();proceed(window.skyFollowCamera.mode);}};
 }

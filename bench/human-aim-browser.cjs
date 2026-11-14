@@ -96,7 +96,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
       await page.screenshot({path:`browser-evidence/${id}-${i}-rear.png`});await page.evaluate(()=>window.__aimSide());await page.screenshot({path:`browser-evidence/${id}-${i}-side.png`});
      }
     }
-    await page.keyboard.press('v');
+    await page.evaluate(()=>window.skyHumanView.select('existing'));
     const first=await page.evaluate(()=>{const s=window.__skyInternals;window.__game.cam(1/60);window.skyHumanView.update(1/60);return window.skyHumanView.prepareShot(s.Se.position,new s.Geom.Vector3(0,0,-1),20);});
     assert.equal(first,null,'first-person fire path is unchanged');assert.deepEqual(errors,[]);
     console.log(`PASS ${id}: ${cases.length} actual shots; upward/downward, running, airborne, slide, auto-aim, all 13 weapon axes, visible chest/feet/head equipment, barrel/ray/muzzle/tracer/grip, first-person regression`);

@@ -39,10 +39,12 @@ const base = 'http://127.0.0.1:8812/';
       const clicks = await page.evaluate(async () => {
         const s = __skyInternals; let n = 0; const orig = s.Tt.empty; s.Tt.empty = (...a) => { n++; return orig?.apply(s.Tt, a); };
         s.U.reserveAmmo = 24; s.Et.ammo = 0; s.Et.reserve = 0; s.Et.reloadT = 0; s.Et.autoReload = 0;
-        await new Promise(r => setTimeout(r, 400)); s.Tt.empty = orig; return n;
+        await new Promise(r => setTimeout(r, 1500)); s.Tt.empty = orig; return n;
       });
       assert.equal(await visible('#ammoEmptyNote'), 1, map + ': out-of-ammo note');
-      assert.ok(clicks >= 1, map + ': empty click sound plays');
+      assert.equal(await page.evaluate(() => document.getElementById('ammoEmptyNote').innerText.trim()), 'EMPTY', map + ': the note is just EMPTY (with a crossed-out gun)');
+      assert.equal(await page.evaluate(() => document.getElementById('ammoBox').classList.contains('ammo-empty')), true, map + ': HUD gun icon is crossed out');
+      assert.equal(clicks, 1, map + ': one empty click the moment it runs dry, none repeating for 1.5 s');
       // Infinite reserve never shows it.
       await page.evaluate(() => { const s = __skyInternals; s.U.reserveAmmo = 99; });
       await page.waitForTimeout(300);

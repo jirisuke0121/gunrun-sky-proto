@@ -1,0 +1,5 @@
+864 Zıplama atışı hazır! Kullanmak için 4'e veya düğmesine bas
+865 Altın JUMP'lar bir zıplama atışı biriktirir. Her zamanki silahını koru; ayaklarına ateş edip fırlamak için 4'e veya Zıplama atışı düğmesine bas
+866 Altını topla, sonra fırla / 4
+867 Kurtarma'yı kullan / 3
+868 Kurtarma / 3 kullan. Kanca güvenli bir platform seçer.

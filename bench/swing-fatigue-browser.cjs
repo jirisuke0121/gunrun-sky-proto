@@ -70,7 +70,7 @@ try{
    if(stage==='fall')break;
   }
   const layers=await p.evaluate(()=>{let max=0;__skyInternals.ue.traverse(o=>{if(o.isMesh)max=Math.max(max,o.geometry?.morphAttributes?.position?.length||0)});return max;});assert.ok(layers<=256,id+' WebGL2 layers');
-  const first=await p.evaluate(()=>{document.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyV'}));gripSetup();for(let i=0;i<250;i++){const t=gripTick();if(t.slipAge>.17)return{...t,visibleHands:__skyInternals.mr.map(h=>({position:h.root.position.toArray(),rotation:[h.root.rotation.x,h.root.rotation.y,h.root.rotation.z]})),weaponVisible:__skyInternals.tl.visible,knifeVisible:__skyInternals.uh.visible};}throw Error('no first-person slip');});
+  const first=await p.evaluate(()=>{window.skyHumanView.select('existing');gripSetup();for(let i=0;i<250;i++){const t=gripTick();if(t.slipAge>.17)return{...t,visibleHands:__skyInternals.mr.map(h=>({position:h.root.position.toArray(),rotation:[h.root.rotation.x,h.root.rotation.y,h.root.rotation.z]})),weaponVisible:__skyInternals.tl.visible,knifeVisible:__skyInternals.uh.visible};}throw Error('no first-person slip');});
   assert.ok(first.firstHands.every(Boolean));assert.equal(first.weaponVisible,false);assert.equal(first.knifeVisible,false);
   for(let i=0;i<2;i++)for(let k=0;k<3;k++){assert.ok(Math.abs(first.visibleHands[i].position[k]-first.firstHands[i].position[k])<.001,id+' rendered first-person wrist');assert.ok(Math.abs(first.visibleHands[i].rotation[k]-first.firstHands[i].rotation[k])<.001,id+' rendered first-person release');}
   const gl=await p.evaluate(()=>gripRender());assert.equal(gl,0);await p.screenshot({path:`${out}/${id}-first-person.png`});

@@ -1,0 +1,9 @@
+869 Nhấp vào bệ hoặc nhấn Q để nhảy lên chỗ cao!
+870 Nhấp vào thùng phuy hoặc nhấn Q để nhảy bằng vụ nổ!
+871 Dùng Trượt trên dốc / Q
+872 Chạm vào thùng phuy / Q
+873 Dùng Trượt / Q để trượt xuống dốc.
+874 Chạm vào thùng phuy được đánh dấu / nhấn Q. Quá trình phóng hoàn toàn tự động.
+875 Tự động bắn · Dao tự động
+876 Chiêu (móc, nổ, trượt)
+877 Vật phẩm

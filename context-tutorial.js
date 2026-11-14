@@ -5,11 +5,11 @@
  wallrun:{jp:['この壁を走って渡れる。','壁に沿って前へ進みながらジャンプします。','壁走り成功！'],en:['Run along this wall.','Move along the wall and jump.','WALL RUN!'],button:'tJump',jump:true,state:'wallrun'},
  walljump:{jp:['壁を蹴って、別の足場へ。','ジャンプで壁を蹴れます。','壁ジャンプ成功！'],en:['Kick off this wall.','Jump to push off the wall.','WALL JUMP!'],button:'tJump',jump:true,stat:'walljumps'},
  zip:{jp:['このロープで向こうへ渡れる。','ジャンプでロープにつかまります。その後は自動で移動します。','ジップライン成功！'],en:['Ride this zipline.','Jump to attach. Travel is automatic.','ZIPLINE CONNECTED!'],button:'tJump',jump:true,state:'zip'},
- slide:{jp:['この斜面を滑って下れる。','斜面滑りボタン／Cキーで滑れます。','斜面滑り成功！'],en:['Slide down this slope.','Use Slide / C to slide downhill.','SLIDING!'],button:'tSlide',crouch:true,state:'slide'},
- barrel:{jp:['ドラム缶で高い場所へ跳べる。','表示されたドラム缶をタップ／Bキー。接近・爆破ジャンプは自動です。','爆破ジャンプ開始！'],en:['Launch upward with this barrel.','Tap the marked barrel / press B. The launch sequence is automatic.','BARREL LAUNCH STARTED!'],keys:['KeyB']},
+ slide:{jp:['この斜面を滑って下れる。','斜面滑りボタン／Qキーで滑れます。','斜面滑り成功！'],en:['Slide down this slope.','Use Slide / Q to slide downhill.','SLIDING!'],button:'tSlide',crouch:true,state:'slide'},
+ barrel:{jp:['ドラム缶で高い場所へ跳べる。','表示されたドラム缶をタップ／Qキー。接近・爆破ジャンプは自動です。','爆破ジャンプ開始！'],en:['Launch upward with this barrel.','Tap the marked barrel / press Q. The launch sequence is automatic.','BARREL LAUNCH STARTED!'],keys:['KeyB','KeyQ']},
  flash:{jp:['追手を閃光玉で止められる。','閃光玉ボタン／1キーで使用。止まっている間に逃げよう。','閃光玉を投げた！'],en:['Stop nearby pursuers.','Use Flash / 1, then escape while they are stunned.','FLASH THROWN!'],button:'tFlash',keys:['Digit1','Numpad1']},
  decoy:{jp:['分身に追手を引きつけられる。','分身ボタン／2キーで使用。追手の注意をそらして逃げよう。','分身発動！'],en:['Distract pursuers with a decoy.','Use Decoy / 2 to draw them away.','DECOY ACTIVE!'],button:'tDecoy',keys:['Digit2','Numpad2']},
- rescue:{jp:['救済フックで高台へ逃げられる。','救済ボタン／Vキー。安全な高台への移動は自動です。','救済フック発動！'],en:['Escape to higher ground.','Use Rescue / V. The hook chooses a safe platform.','RESCUE ACTIVE!'],button:'tRescue',keys:['KeyV']}
+ rescue:{jp:['救済フックで高台へ逃げられる。','救済ボタン／3キー。安全な高台への移動は自動です。','救済フック発動！'],en:['Escape to higher ground.','Use Rescue / 3. The hook chooses a safe platform.','RESCUE ACTIVE!'],button:'tRescue',keys:['Digit3']}
  };
  function candidates(g,env,seen={}){
   const c=g.c,p=c.pos,out=[],add=(id,point)=>{if(!seen[id])out.push({id,point});};

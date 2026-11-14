@@ -24,7 +24,7 @@ import { createWeaponDrops } from './weapon-drops.js?v=20261114-pc-playtest-v1';
 import { createDash } from './dash-boost.js?v=20261113-hud-v1';
 import { mergeStaticMaterialGroups } from './world-batching.js?v=20261108-opaque-v1';
 import { installWallReadability } from './wall-readability.js?v=20261106-south-v1';
-import { installSurfaceReadability } from './surface-readability.js?v=20261108-indoor-brown-v1';
+import { installSurfaceReadability } from './surface-readability.js?v=20261114-dim-top-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -499,7 +499,7 @@ const knifeHint = document.createElement('div');
 knifeHint.id = 'knifeHint';
 knifeHint.style.cssText = 'position:fixed;left:50%;top:60%;transform:translateX(-50%);padding:3px 12px;border-radius:14px;' +
   'background:rgba(150,25,25,.62);color:#fff;font:600 14px system-ui,sans-serif;pointer-events:none;display:none;z-index:6;white-space:nowrap';
-knifeHint.textContent = 'ナイフ範囲：F / 右クリック';
+knifeHint.textContent = 'ナイフ範囲：F / 右クリック';   // the knife swings by itself now: the cue stays hidden (kept so updateKnifeCue has its element)
 document.body.appendChild(knifeHint);
 const coarsePointer = matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches;
 function updateKnifeCue() {
@@ -522,7 +522,7 @@ function updateKnifeCue() {
       if (d < 2.0 + zb.r && d > 0.3 && (dx * fx + dz * fz) / d > 0.64 && Math.abs(zb.pos.y - c.pos.y) < 1.4) { near = true; break; }
     }
   }
-  knifeHint.style.display = near ? 'block' : 'none';
+  knifeHint.style.display = 'none';
 }
 
 let lastFrame = performance.now(), lastWeapon = -1, lastMotionShots = window.__game?.stats?.shots || 0;
@@ -820,11 +820,11 @@ if (window.T2?.GLTFLoader) {
   const setHints = () => {
     if (!hudKeys) return;
     hudKeys.innerHTML = U.gunOn
-      ? '自動射撃　<kbd>X</kbd> 停止／再開　<kbd>右クリック</kbd>/<kbd>F</kbd> ナイフ　<kbd>Q</kbd> フック　<kbd>Esc</kbd> 一時停止・調整'
-      : '<kbd>クリック</kbd>/<kbd>F</kbd> ナイフ　<kbd>Q</kbd> フック　<kbd>Esc</kbd> 一時停止・調整';
+      ? '自動射撃・自動ナイフ　<kbd>Q</kbd>/<kbd>右クリック</kbd> 技（フック・爆破・スライド）　<kbd>1</kbd>-<kbd>4</kbd> アイテム　<kbd>Esc</kbd> 一時停止・調整'
+      : '<kbd>クリック</kbd> ナイフ　<kbd>Q</kbd>/<kbd>右クリック</kbd> 技（フック・爆破・スライド）　<kbd>1</kbd>-<kbd>4</kbd> アイテム　<kbd>Esc</kbd> 一時停止・調整';
   };
   for (const item of document.querySelectorAll('#ovStart .rules .keys li')) {
-    item.innerHTML = item.innerHTML.replace('<kbd>クリック</kbd>/<kbd>F</kbd>/<kbd>右クリック</kbd> ナイフ', '<kbd>F</kbd>/<kbd>右クリック</kbd> ナイフ（銃オフのときはクリックも）');
+    item.innerHTML = item.innerHTML.replace('<kbd>クリック</kbd>/<kbd>F</kbd>/<kbd>右クリック</kbd> ナイフ', 'ナイフ（銃オフのときはクリックも）');
   }
   let prevMode = '';
   const audioTick = () => {
