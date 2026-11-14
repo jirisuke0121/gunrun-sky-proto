@@ -13,8 +13,12 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
  const courseURL=()=>{const u=new URL('canyon.html',location.href);u.search=new URLSearchParams({learn:'1',camera:window.skyFollowCamera?.mode||'after',controlpick:'0',hookGuide:'0',guides:'0',lang:window.skyI18n?.pref||(en()?'en':'ja'),return:location.pathname.endsWith('canyon.html')?'canyon':'town'});return carryTrial(u).href;};
  if(!window.skyGuidedMode){
   if(window.skyPracticeMode||window.skyOwnerReplay||params.has('replay'))return;
-  window.skyGuidedEntry=params.get('guidedEntry')==='1'||params.get('learned')==='1';
-  document.addEventListener('click',event=>{const b=event.target.closest?.('#bGuidedIntro,#bIntro');if(!b)return;if(b.id==='bIntro'&&params.get('guidedEntry')!=='1')return;if(b.disabled)return;event.preventDefault();event.stopImmediatePropagation();location.assign(courseURL());},true);
+  // 2026-11-14: the first-visit card, 遊び方 and the home button all start the practice-map course (canyon.html?learn=1), on PC and phone alike;
+  // the old in-map intro run is gone for players. Automated browsers keep the old run unless ?guidedEntry=1 (the bench scripts click #bIntro),
+  // and ?guidedEntry=0 forces the old run.
+  const legacyIntro=params.get('guidedEntry')==='0'||(navigator.webdriver===true&&!params.has('guidedEntry'));
+  window.skyGuidedEntry=!legacyIntro||params.get('learned')==='1';
+  document.addEventListener('click',event=>{const b=event.target.closest?.('#bGuidedIntro,#bIntro');if(!b)return;if(b.id==='bIntro'&&legacyIntro)return;if(b.disabled)return;event.preventDefault();event.stopImmediatePropagation();location.assign(courseURL());},true);
   if(params.get('learned')==='1'){
    const start=()=>{if(!window.skyStartReadiness?.ready){requestAnimationFrame(start);return;}const custom=$('challengeCustom');if(custom?.checked)custom.click();const choice=$('challengeDifficulty');choice.value='easy';choice.dispatchEvent(new Event('change'));$('bStart').click();};start();
   }

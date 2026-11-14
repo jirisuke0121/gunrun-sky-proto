@@ -1,7 +1,7 @@
 name: Rope swing (west platform to central roof) and wind
 on:
   pull_request:
-    paths: ['index.html', 'tower-tunnel.js', 'rope-swing.js', 'rope-stations.js', 'wind-fx.js', 'canyon.html', 'dash-boost.js', 'town-heights.js', 'bench/rope-swing*', 'bench/rope-stations*', 'bench/wind-fx*', 'bench/ambient-wind*', '.github/workflows/rope-swing.yml']
+    paths: ['index.html', 'tower-tunnel.js', 'rope-swing.js', 'rope-stations.js', 'wind-fx.js', 'canyon.html', 'dash-boost.js', 'town-heights.js', 'bench/rope-swing*', 'bench/swing-hook*', 'parkour-swing.js', 'free-hook.js', 'bench/rope-stations*', 'bench/wind-fx*', 'bench/ambient-wind*', '.github/workflows/rope-swing.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,5 +24,6 @@ jobs:
             npx playwright install --with-deps chromium
           fi
       - run: node bench/rope-swing-browser.cjs
+      - run: node bench/swing-hook-browser.cjs
       - run: node bench/rope-stations-browser.cjs
       - run: node bench/wind-fx-browser.cjs

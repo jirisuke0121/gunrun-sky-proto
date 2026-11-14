@@ -165,6 +165,20 @@ export function createSwing(sky, game, course) {
     delete jumpButton?.dataset.swingReady;
     if(jumpButton)jumpButton.textContent=jumpLabel;
   }
+  // フックへ移るための手離し。勢いは振りのまま、跳び出しや回転演出は付けない（hookPressed は本体へ渡すので消さない）。
+  function handOff() {
+    const a = active;
+    if (!a) return;
+    c.state = 'normal'; c.swing = null; c.jumpBuf = 0; c.coyote = 0; c.airT = 0; c.catchCD = .25; c.edgeOff = null; c.edgeJump = false;
+    cooldown = .08; releasedBar = a.bar.id; recatch = .45;
+    gripBudget = { bar: a.bar.id, heldSeconds: a.heldSeconds, turns: a.turns, turnSide: a.turnSide };
+    c.swingFall = null; c.swingFlight = null;
+    event('barHook', { bar: a.bar.id, chain, angle: +a.angle.toFixed(3), omega: +a.omega.toFixed(3) });
+    active = null; jumpPressed = false; previous = c.pos.toArray(); hint.hidden = true; gripStatus.hidden = true;
+    setGripCue(null, false);
+    delete jumpButton?.dataset.swingReady;
+    if (jumpButton) jumpButton.textContent = jumpLabel;
+  }
   function attach(bar, nearest) {
     const direction = [...bar.direction];
     const into = c.vel.x * direction[0] + c.vel.z * direction[1];
@@ -223,6 +237,12 @@ export function createSwing(sky, game, course) {
       // Approach buffers and held/repeated inputs never release a grip. Only a
       // fresh press made while attached is consumed, at this exact swing phase.
       c.jumpBuf = 0;
+      // 鉄棒につかまったままフック（Q／右クリック／マークをタップ）で移れる。先が有効なときだけ手を離し、本体のフック処理へ渡す。
+      if (c.hookPressed) {
+        const assist = sky.hookAssist?.(), pick = c.hookPick, target = assist && (pick ? (assist.valid(pick) ? pick : null) : assist.target());
+        if (target && !(c.hookCD > 0)) { handOff(); return false; }
+        c.hookPressed = false; c.hookPick = null; c.skyHookSource = null;
+      }
       if (a.slipAge===undefined && jumpPressed) { detach(); return true; }
       if (a.slipAge===undefined && (input.fwdIn < -.55 || c.crouchPressed)) { c.crouchPressed = false; detach(true); return true; }
       if(a.slipAge!==undefined){a.slipAge+=dt;jumpPressed=false;c.crouchPressed=false;if(a.slipAge>=GRIP_LET_GO_SECONDS){detach(true,true);return true;}}
@@ -319,5 +339,5 @@ export function createSwing(sky, game, course) {
     return {position:[side*(.22+.16*release)+shake,.30-.72*release-.035*tired,-.30-.12*release],
       rotation:[1.5-1.15*release,0,side*.3*release],curl:.95*(1-release)+.08*release};
   }
-  return { step, frame, reset, handPose, get active() { return active; }, get course() { return course; }, get cameraSpeed() { return active ? Math.max(6,SWING_LENGTH*Math.abs(active.omega)) : 0; } };
+  return { step, frame, reset, handPose, handOff, get active() { return active; }, get course() { return course; }, get cameraSpeed() { return active ? Math.max(6,SWING_LENGTH*Math.abs(active.omega)) : 0; } };
 }

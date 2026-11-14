@@ -1,7 +1,7 @@
 import { installMinimap } from './minimap.js?v=20261108-hybrid-v1';
 import { installRunRecords } from './run-records.js?v=20261109-no-send-notice-v1';
 import { createGunRecoil } from './gun-recoil.js?v=20261101-recoil-v1';
-import { createSwing } from './parkour-swing.js?v=20261104-branch-transfer';
+import { createSwing } from './parkour-swing.js?v=20261114-hook-v1';
 import { installRanking } from './ranking.js?v=20261108-send-always-v1';
 import { createFlashbang } from './flashbang.js?v=20261113-viewport-v1';
 import { installSkillDock } from './player-skills.js?v=20261113-viewport-v1';

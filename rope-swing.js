@@ -118,6 +118,7 @@
       const speed = Math.min(V_MAX, Math.max(V_ENTRY_MIN, vt * s.dir)) * s.dir;
       riding = { side, th, w: speed / L, t0: game.z.t, last: null, age: 0 };
       pressed = false;
+      c.hookPressed = false; c.hookPick = null;
       if (['slide', 'ledge', 'ladder'].includes(c.state)) c.state = 'normal';
       c.onGround = false; c.coyote = 0; c.jumpBuf = 0; c.edgeJump = false; c.slideT = 0; c.h = 1.75; c.crouchPressed = false;
       window.skyLandingRoll?.cancel?.();
@@ -150,6 +151,12 @@
           begin(side); break;
         }
         if (!riding) return false;
+      }
+      // 振っている最中でもフック（Q／右クリック／マークをタップ）で移れる。先が有効なときだけ手を離して本体のフック処理へ渡す。
+      if (c.hookPressed) {
+        const assist = game.hookAssist?.(), pick = c.hookPick, target = assist && (pick ? (assist.valid(pick) ? pick : null) : assist.target());
+        if (target && !(c.hookCD > 0)) { const yaw = c.yaw; drawRope(riding.side, riding.th); release(); c.yaw = yaw; return false; } // 向きは変えない（マークが外れないように）
+        c.hookPressed = false; c.hookPick = null; c.skyHookSource = null;
       }
       const r = riding, s = SIDES[r.side], gravity = U.gravity;
       r.age += dt;

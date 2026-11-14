@@ -34,7 +34,7 @@
 
     const livingZombies = () => game.Jt.filter(z => !z.dead && !z.remove && !z.rise);
     const playing = () => game.modeRef() === 'play' && !game.z.over;
-    const busy = () => ['hook', 'zip', 'swing'].includes(c.state);
+    const busy = () => ['hook', 'zip'].includes(c.state);
     const available = () => playing() && charges > 0 && !busy() && !window.skyBite?.locked && performance.now() >= lockUntil;
     const unavailableReason = () => !playing()?'プレイ中に使えます':charges<=0?'救済は残り0回 · このランでは使い切りました':window.skyBite?.locked?'つかまれ中は救済を使えません':busy()||performance.now()<lockUntil?'移動技の終了後に救済を使えます':null;
     const explain = text => window.skyPlayerClarity?.explain('tRescue',text);
@@ -94,6 +94,8 @@
       const target = chooseTarget();
       if (!target) { explain('安全に登れる高台がありません · 別の足場で使おう'); if(!window.skyPlayerClarity)say('近くに登れる高台がありません'); return false; }
       if (['ledge', 'ladder', 'slide'].includes(c.state)) { c.state = 'normal'; c.ledge = null; c.ladder = null; }
+      if (c.state === 'swing') window.skySwing?.handOff?.();
+      if (window.skyRopeSwing?.active?.()) window.skyRopeSwing.cancel();
       const dx = target.x - c.pos.x, dz = target.z - c.pos.z;
       c.yaw = Math.atan2(-dx, -dz);
       c.state = 'hook'; c.hook = target.anchor; c.hookT = 0; c.wallKey = null;
