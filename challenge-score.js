@@ -135,7 +135,7 @@
   }
   function showResult(b, reason, best) {
     if (lastResult === b) return;
-    lastResult = b; cancelAnimationFrame(animation); fit();
+    lastResult = b; cancelAnimationFrame(animation); fit(); window.skyTipCards?.clear();
     const intro = window.skyChallenge.isIntroRun;
     const failed = reason !== 'time';
     $('unityResultCard').classList.toggle('intro-result', intro);
@@ -180,6 +180,11 @@
     }
     $('unityScoreDetails').hidden = true;
     $('unityResultCard').hidden = false;
+    // 2nd finished real run: up to two unused moves as small looping demos (once; skipped on very short screens).
+    if (!intro) {
+      const due = window.skyTipUsage?.afterRun(window.__game.stats) || [];
+      if (due.length && $('unityResultCard').dataset.tiny !== 'true' && window.skyTipCards?.show(due)) window.skyTipUsage.markShown();
+    }
     if (intro) document.dispatchEvent(new CustomEvent('sky-intro-result'));
     // The first run after the 入門 course (index.html?learned=1) is a real run; onboarding asks for the nickname after it.
     if (!intro && new URLSearchParams(location.search).get('learned') === '1') document.dispatchEvent(new CustomEvent('sky-learned-result'));
@@ -242,6 +247,7 @@
             <p id="unityResultEquation" class="uc-equation" aria-label="内訳の合計"></p>
           </section>
         </div>
+        <section id="unityTips" hidden aria-label="コツ"></section>
         <footer id="unityResultActions"><button id="unityRetry" type="button">もう一度逃げる</button><button id="unityMenu" type="button">ホームへ</button><button id="unityMore" type="button">ランキング・記録</button></footer>
       </article>
       <section id="unityScoreDetails" hidden><h2>ランキング・プレイの記録</h2><p id="unityRunDetails"></p><p id="unityRunMoves"></p><div id="unityScoreRanking"></div><p id="unityRecordStatus"></p><button id="unityDetailsBack" type="button">リザルトに戻る</button></section>`;
@@ -263,8 +269,8 @@
     $('unityScoreDetails').setAttribute('aria-label', 'ランキング・プレイの記録');
     $('unityResultCard').setAttribute('role', 'dialog');
     $('unityResultCard').setAttribute('aria-labelledby', 'unityResultTitle');
-    $('unityRetry').addEventListener('click', () => $('bRetry').click());
-    $('unityMenu').addEventListener('click', () => $('bMenu2').click());
+    $('unityRetry').addEventListener('click', () => { window.skyTipCards?.clear(); $('bRetry').click(); });
+    $('unityMenu').addEventListener('click', () => { window.skyTipCards?.clear(); $('bMenu2').click(); });
     $('unityMore').addEventListener('click', () => { $('unityScoreDetails').hidden = false; $('unityResultCard').hidden = true; $('unityDetailsBack').focus(); });
     $('unityDetailsBack').addEventListener('click', () => { $('unityScoreDetails').hidden = true; $('unityResultCard').hidden = false; $('unityMore').focus(); });
     new ResizeObserver(fit).observe($('app'));

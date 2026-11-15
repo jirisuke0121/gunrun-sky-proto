@@ -1,0 +1,30 @@
+919 Duvar kenarında ileri + zıpla
+920 Altın işarette zıpla
+921 Turkuaz oklu bir duvara git
+922 Duvar boyunca ileri koş
+923 Altın işaretle zıpla
+924 Flaş: yakındaki zombileri birkaç saniye durdurur
+925 Yem: kovalayanları kendine çeker
+926 Kurtarma: kendiliğinden güvenli bir yüksek yere kaçar
+927 İpte sallanma
+928 Bırakmak için zıpla
+929 İpe zıpla
+930 İleri doğru sallanınca…
+931 Bırakmak için zıpla ve karşıya geç
+932 Zip hattı
+933 Zıpla: mesafe UP
+934 İpin altında zıpla
+935 Gerisi otomatik
+936 İnerken de zıpla, daha uzağa git
+937 Patlamayla zıplama
+938 Variline dokun
+939 Kırmızı bir varile yaklaş
+940 Patlama seni yüksek çatıya fırlatır
+941 Ayaklarına ateş et
+942 Ayaklarına ateş et (düğme / 4 tuşu)
+943 Büyük zıplamayla yükseğe çık
+944 Bara yeniden tutunma
+945 Kenardan aşağı atla
+946 Bir barın yüksekliğinden geçince otomatik tutunur
+947 İleri gitmek için zıpla
+948 İpuçları

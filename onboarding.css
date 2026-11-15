@@ -42,8 +42,29 @@ body.onb-open{overflow:hidden}
 #app:not([data-fit=roomy]) .onb-link{min-height:30px!important}
 
 /* Dialog modes: 遊び方 (again) and the one-time nickname prompt (name). */
-#onboarding[data-mode=name] .onb-steps,#onboarding[data-mode=name] #onbIntro,#onboarding[data-mode=name] #onbSettings,#onboarding[data-mode=name] .onb-lead[data-for=again]{display:none}
+#onboarding[data-mode=name] .onb-tips,#onboarding[data-mode=again] .onb-steps,#onboarding[data-mode=again] .onb-name,#onboarding[data-mode=again] #onbSettings,#onboarding[data-mode=again] .onb-lead[data-for=again],#onboarding[data-mode=name] .onb-steps,#onboarding[data-mode=name] #onbIntro,#onboarding[data-mode=name] #onbSettings,#onboarding[data-mode=name] .onb-lead[data-for=again]{display:none}
 #onboarding[data-mode=again] #onbSave,#onboarding[data-mode=again] .onb-lead[data-for=name]{display:none}
+
+/* コツ: tip names on the left, one looping demo on the right. */
+#onboarding[data-mode=again] .onb-card{width:min(760px,100%)}
+.onb-tips{display:grid;grid-template-columns:170px 1fr;gap:14px;align-items:start}
+.onb-tip-list{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.onb-tip-list button{box-sizing:border-box;width:100%;display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #3a4756;border-left:3px solid #5d7183;background:#15212d;color:#e0e6eb;font-size:14px;text-align:left}
+.onb-tip-list button[aria-current=true]{border-color:#e8805a;background:#1d2b3a;color:#fff}
+.onb-dot{flex:none;width:9px;height:9px;border-radius:50%;background:transparent}.onb-dot.on{background:#EF9F27}
+.onb-tip-view{display:grid;gap:6px;min-width:0}
+.onb-tip-stage{border:1px solid #3a4756;background:#0b1118}
+.onb-tip-canvas{display:block;width:100%;aspect-ratio:380/150}
+.onb-tip-cap{margin:0;min-height:2.6em;font-size:15px;font-weight:700;line-height:1.4;color:#ffdfa0}
+#onboarding[data-mode=again] footer{grid-template-columns:1fr 1fr}
+#app:not([data-fit=roomy]) #onboarding[data-mode=again] .onb-card{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:10px 14px}
+#app:not([data-fit=roomy]) .onb-tips{grid-template-columns:140px 1fr;gap:10px}
+#app:not([data-fit=roomy]) .onb-tip-list{gap:3px}
+#app:not([data-fit=roomy]) .onb-tip-list button{min-height:0!important;padding:3px 8px;font-size:12px}
+#app:not([data-fit=roomy]) .onb-tip-cap{font-size:12px;min-height:2.4em}
+#app:not([data-fit=roomy]) .onb-tip-canvas{width:auto;height:46vh;max-width:100%}
+#app:not([data-fit=roomy]) .onb-tip-stage{width:fit-content;max-width:100%;margin:0 auto}
+#app:not([data-fit=roomy]) .onb-tip-cap{text-align:center}
 
 /* First visit: one start card instead of the home screen (NIGHTLINE's first drive). */
 #onbSplash{position:fixed;inset:0;z-index:61;display:grid;grid-template-rows:minmax(0,1fr);place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 35%,#16222f 0%,#0a1017 70%);color:#e8eef2}

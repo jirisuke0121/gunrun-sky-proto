@@ -72,13 +72,16 @@ const port=Number(process.env.SKY_TEST_PORT||18806),base=`http://127.0.0.1:${por
   await page.waitForFunction(()=>!document.getElementById('onboarding').hidden,null,{timeout:8000});
   await page.fill('#onbName','ｒunner_1');await page.click('#onbSave');
   assert.equal(await dialog(page),false);assert.equal(await page.evaluate(()=>localStorage.getItem('gunrun-name')),'RUNNER_1');
-  // Returning: no card, home intro block gone, 遊び方 offers the controls, the name and the intro run.
+  // Returning: no card, home intro block gone, コツ lists the moves and offers the intro run (controls and name live elsewhere).
   await page.close();page=await open(ctx,map+'?onboarding=auto');
   assert.equal(await splash(page),false,'seen once, never again');
   assert.equal(await page.locator('#introEntry').isVisible(),false,'after the first visit the home screen has no intro button');
   await page.click('#homeGuide');assert.equal(await page.evaluate(()=>document.getElementById('onboarding').dataset.mode),'again');
-  assert.equal(await page.inputValue('#onbName'),'RUNNER_1');assert.equal(await page.locator('.onb-steps').isVisible(),true);
-  assert.equal(await page.textContent('#onbIntro'),'入門モードで練習する');assert.equal(await page.locator('#onbSettings').isVisible(),true);
+  assert.equal(await page.textContent('#onbTitle'),'コツ');assert.equal(await page.locator('.onb-tips').isVisible(),true);
+  assert.equal(await page.locator('.onb-steps').isVisible(),false);assert.equal(await page.locator('.onb-name').isVisible(),false);assert.equal(await page.locator('#onbSettings').isVisible(),false);
+  assert.equal(await page.locator('#onbTipList button').count(),7);assert.equal(await page.locator('#onbTipStage canvas').count(),1,'one demo at a time');
+  await page.click('#onbTipList li:nth-child(3) button');assert.equal(await page.locator('#onbTipStage canvas').count(),1);
+  assert.equal(await page.textContent('#onbIntro'),'入門モードで練習する');
   await page.click('#onbMain');assert.equal(await dialog(page),false);
   await page.click('#homeGuide');await page.click('#onbIntro');await page.waitForFunction(()=>__game.mode==='play');
   assert.equal(await page.evaluate(()=>skyChallenge.isIntroRun),true);

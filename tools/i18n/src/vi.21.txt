@@ -1,0 +1,30 @@
+919 Chạy tới + nhảy sát tường
+920 Nhảy khi có dấu vàng
+921 Đến bức tường có mũi tên xanh ngọc
+922 Chạy dọc theo tường
+923 Nhảy ra khi thấy tín hiệu vàng
+924 Chớp sáng: làm zombie gần đó đứng yên vài giây
+925 Mồi nhử: dụ đám đuổi theo đi chỗ khác
+926 Cứu hộ: tự thoát lên chỗ cao an toàn
+927 Đu dây
+928 Nhảy để buông ra
+929 Nhảy lên sợi dây
+930 Khi dây đung đưa về phía trước…
+931 Nhảy để buông và sang bờ bên kia
+932 Dây cáp trượt
+933 Nhảy: khoảng cách UP
+934 Nhảy bên dưới sợi dây
+935 Phần còn lại tự động
+936 Khi xuống cũng nhảy để đi xa hơn
+937 Nhảy bằng vụ nổ
+938 Chạm vào thùng phuy
+939 Lại gần thùng phuy đỏ
+940 Vụ nổ hất bạn lên mái nhà cao
+941 Bắn xuống chân
+942 Bắn xuống chân (nút / phím 4)
+943 Nhảy lớn lên chỗ cao
+944 Bắt lại thanh xà
+945 Nhảy xuống từ mép
+946 Đi qua độ cao của thanh xà là tự động bám vào
+947 Nhảy để đi tiếp
+948 Mẹo

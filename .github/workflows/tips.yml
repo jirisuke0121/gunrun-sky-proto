@@ -1,0 +1,25 @@
+name: Tips (コツ)
+on:
+  pull_request:
+    paths: ['tips-demos.js', 'tip-usage.js', 'tip-cards.*', 'onboarding.*', 'challenge-score.*', 'index.html', 'canyon.html', 'bench/tip-*', '.github/workflows/tips.yml']
+permissions:
+  contents: read
+jobs:
+  tips:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: node bench/tip-usage.test.cjs
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: コツ screen and 2nd game-over cards
+        run: node bench/tip-cards-browser.cjs

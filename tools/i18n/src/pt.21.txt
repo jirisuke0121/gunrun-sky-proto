@@ -1,0 +1,30 @@
+919 Para frente + pulo junto à parede
+920 Pule na marca dourada
+921 Vá até uma parede com setas turquesa
+922 Avance ao longo da parede
+923 Pule com o sinal dourado
+924 Luz: para os zumbis próximos por alguns segundos
+925 Isca: atrai os perseguidores
+926 Resgate: foge sozinho para um lugar alto e seguro
+927 Balanço na corda
+928 Pule para soltar
+929 Pule na corda
+930 Quando balançar para a frente…
+931 Pule para soltar e atravessar
+932 Tirolesa
+933 Pule: mais distância UP
+934 Pule embaixo da corda
+935 O trajeto é automático
+936 Pule também ao soltar para ir mais longe
+937 Pulo com explosão
+938 Toque no barril
+939 Aproxime-se de um barril vermelho
+940 A explosão lança você ao telhado alto
+941 Atire nos seus pés
+942 Atire nos seus pés (botão / tecla 4)
+943 Pulo grande até o lugar alto
+944 Reagarrar a barra
+945 Salte da borda
+946 Ao passar pela altura de uma barra, você a agarra sozinho
+947 Pule para seguir em frente
+948 Dicas

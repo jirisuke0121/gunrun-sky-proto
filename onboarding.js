@@ -1,8 +1,8 @@
 // First visit, modelled on NIGHTLINE's "first drive": no home screen and no form up front.
 // A first-time player sees one short start card and is taken straight into the intro run,
 // where interactive instruction cards guide the player; the nickname is asked once after the
-// intro run ends (skippable). Returning players never see the card; "遊び方" on the home
-// screen reopens the controls and the nickname. Nothing here awards score or changes the rules.
+// intro run ends (skippable). Returning players never see the card; "コツ" on the home
+// screen lists the moves with short demos (controls live in 操作設定). Nothing here awards score or changes the rules.
 (() => {
   const params = new URLSearchParams(location.search);
   if (window.skyOwnerReplay || params.has('ownerReplay') || window.skyPracticeMode || params.has('practice')) return;
@@ -41,7 +41,7 @@
   const root = make('div', { id: 'onboarding', hidden: true });
   root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'onbTitle');
   root.innerHTML = `<div class="onb-card">
-    <header><p class="onb-kicker">GUNRUN · PARKOUR SURVIVAL</p><h2 id="onbTitle">遊び方</h2>
+    <header><p class="onb-kicker">GUNRUN · PARKOUR SURVIVAL</p><h2 id="onbTitle">コツ</h2>
       <p class="onb-lead" data-for="again">2分間、ゾンビから逃げ切ろう。自分で移動して逃げ道を選び、銃の自動照準・射撃で逃げる時間を作ります。</p>
       <p class="onb-lead" data-for="name">ランキングに表示される名前です。あとからでも決められます。</p></header>
     <ol class="onb-steps">
@@ -50,6 +50,8 @@
       <li><b>技で引き離す</b><span class="onb-pc">壁走り・縁つかみ・はしご・ジップラインに加えて、<kbd>Q</kbd> でフック</span><span class="onb-touch">壁走り・縁つかみ・はしご・ジップラインに加えて、画面の輪をタップでフック</span></li>
       <li><b>銃は自動</b><span class="onb-pc">近い敵を自動で狙って撃ちます。<kbd>1</kbd> の閃光弾で周りのゾンビを止め、<kbd>2</kbd> の分身でおびき寄せます</span><span class="onb-touch">近い敵を自動で狙って撃ちます。「閃光弾」ボタンで周りのゾンビを数秒止められます</span></li>
     </ol>
+    <section class="onb-tips" aria-label="コツ"><ul id="onbTipList" class="onb-tip-list"></ul>
+      <div class="onb-tip-view"><div id="onbTipStage" class="onb-tip-stage"></div><p id="onbTipCap" class="onb-tip-cap" aria-live="off"></p></div></section>
     <section class="onb-name"><label for="onbName">ニックネーム（ランキングに表示されます）</label>
       <input id="onbName" type="text" maxlength="14" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="例：RUNNER">
       <p id="onbError" class="onb-error" role="alert"></p><small>2〜14文字の文字・数字・_・-。空欄のままでも遊べます。</small></section>
@@ -70,6 +72,29 @@
     if (!name) { error.textContent = names.MESSAGE; input.setAttribute('aria-invalid', 'true'); input.focus(); return false; }
     input.removeAttribute('aria-invalid'); error.textContent = ''; input.value = name; write(NAME, name); document.dispatchEvent(new Event('sky-name-change')); return true;
   }
+  // ---- コツ: tip list (left) + one looping demo (right). Orange dot = a move this player has not used yet. ----
+  let tipPlayer = null, tipId = null;
+  const unusedTips = () => { try { return window.skyTipUsage?.unused?.() || []; } catch { return []; } };
+  function pickTip(id) {
+    const tips = window.skyTips; if (!tips) return;
+    tipId = id;
+    $('onbTipList').querySelectorAll('button').forEach(b => b.setAttribute('aria-current', String(b.dataset.id === id)));
+    tipPlayer?.destroy();
+    const stage = $('onbTipStage'); stage.textContent = '';
+    const canvas = make('canvas', { className: 'onb-tip-canvas' }); stage.append(canvas);
+    tipPlayer = tips.createPlayer(canvas, { onStep: text => { $('onbTipCap').textContent = text; } });
+    tipPlayer.show(id);
+  }
+  function buildTips() {
+    const tips = window.skyTips, list = $('onbTipList'); if (!tips) return;
+    const unused = unusedTips(); list.textContent = '';
+    tips.ORDER.forEach(id => {
+      const li = make('li'), b = make('button', { type: 'button' }, `<span class="onb-dot${unused.includes(id) ? ' on' : ''}" aria-hidden="true"></span><span>${tips.names[id]}</span>`);
+      b.dataset.id = id; b.addEventListener('click', () => pickTip(id)); li.append(b); list.append(li);
+    });
+    pickTip(unused[0] || tips.ORDER[0]);
+  }
+  function stopTips() { tipPlayer?.destroy(); tipPlayer = null; $('onbTipStage').textContent = ''; }
   function syncIntro() {
     const ready = !!intro && !intro.disabled;
     $('onbIntro').disabled = !ready;
@@ -78,7 +103,7 @@
   function openDialog(kind) {
     mode = root.dataset.mode = kind;
     input.value = savedName(); error.textContent = ''; input.removeAttribute('aria-invalid');
-    $('onbTitle').textContent = kind === 'name' ? 'ニックネームを決めよう' : '遊び方';
+    $('onbTitle').textContent = kind === 'name' ? 'ニックネームを決めよう' : 'コツ';
     $('onbMain').textContent = kind === 'name' ? 'あとで' : '閉じる';
     const fixed = params.get('cameraTrial') === 'fixed' && window.skyFollowCamera?.mode === 'after';
     const automatic = window.skyFollowCamera?.mode === 'after' && window.skyFollowCamera.manualLook === false;
@@ -94,9 +119,9 @@
       $('onbPcLook').textContent=$('onbTouchLook').textContent='見通しが悪い区間だけ向きが変わります。押し続けた移動方向は変わりません';
     }
     root.hidden = false; document.body.classList.add('onb-open'); syncIntro();
-    input.focus({ preventScroll: true });
+    if (kind === 'name') input.focus({ preventScroll: true }); else buildTips();
   }
-  function closeDialog() { root.hidden = true; document.body.classList.remove('onb-open'); }
+  function closeDialog() { stopTips(); root.hidden = true; document.body.classList.remove('onb-open'); }
   $('onbSave').addEventListener('click', () => {
     if (!input.value.trim()) { error.textContent = '名前を入力してください'; input.focus(); return; }
     if (commitName()) closeDialog();
@@ -108,8 +133,8 @@
   root.addEventListener('keydown', event => { if (event.key === 'Escape') $('onbMain').click(); });
   if (intro) new MutationObserver(syncIntro).observe(intro, { attributes: true, attributeFilter: ['disabled'] });
 
-  // Always reachable from the home screen: the controls again, and the nickname.
-  const guide = make('button', { id: 'homeGuide', type: 'button' }, '遊び方');
+  // Always reachable from the home screen: the tips (the nickname is edited from the name chip).
+  const guide = make('button', { id: 'homeGuide', type: 'button' }, 'コツ');
   guide.addEventListener('click', () => openDialog('again'));
   hero.querySelector('.home-heading-actions')?.prepend(guide);
 

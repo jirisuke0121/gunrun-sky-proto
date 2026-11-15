@@ -1,0 +1,30 @@
+919 Adelante + salto junto a la pared
+920 Salta en la marca dorada
+921 Ve a una pared con flechas turquesa
+922 Avanza a lo largo de la pared
+923 Salta con la señal dorada
+924 Destello: detiene a los zombis cercanos unos segundos
+925 Señuelo: atrae a los perseguidores
+926 Rescate: escapa solo a un lugar alto y seguro
+927 Balanceo en cuerda
+928 Salta para soltarte
+929 Salta a la cuerda
+930 Cuando te balancees hacia delante…
+931 Salta para soltarte y cruzar al otro lado
+932 Tirolesa
+933 Salta: más distancia UP
+934 Salta debajo de la cuerda
+935 El recorrido es automático
+936 Salta también al soltarte para llegar más lejos
+937 Salto con explosión
+938 Toca el barril
+939 Acércate a un barril rojo
+940 La explosión te lanza al tejado alto
+941 Dispara a tus pies
+942 Dispara a tus pies (botón / tecla 4)
+943 Gran salto hasta el lugar alto
+944 Reagarre de barra
+945 Déjate caer desde el borde
+946 Al pasar a la altura de una barra, la agarras sola
+947 Salta para seguir adelante
+948 Consejos
