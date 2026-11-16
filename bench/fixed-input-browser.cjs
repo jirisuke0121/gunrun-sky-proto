@@ -11,7 +11,7 @@ for(const map of ['index.html','canyon.html'])for(const startsPortrait of [false
  await p.waitForFunction(()=>window.skyStartReadiness?.ready&&window.skyFixedCamera,null,{timeout:120000});
  // This game supports landscape only. Verify the portrait guard, then the
  // supported transition into landscape rather than forcing past that guard.
- if(startsPortrait){await p.locator('#rotate').waitFor({state:'visible'});await p.setViewportSize({width:844,height:390});await p.locator('#rotate').waitFor({state:'hidden'})}
+ if(startsPortrait){await p.waitForFunction(()=>document.documentElement.dataset.skyRotation==='1');await p.setViewportSize({width:844,height:390});await p.waitForFunction(()=>document.documentElement.dataset.skyRotation==='0')}
  await p.evaluate(()=>document.getElementById('bIntro').click());
  await p.evaluate(()=>{const g=__game,c=g.P;g.S.sendLog=g.S.autoFire=false;c.invuln=Infinity;for(const z of g.zombies){z.dead=true;z.remove=true}g.GAME.spawnT=Infinity;
  window.fixedTick=n=>{for(let i=0;i<n;i++){c.onGround=false;c.pos.y=200;c.vel.y=0;g.playerStep(1/120);g.cam(1/120)}c.pos.y=200;g.frameOnce(0)};

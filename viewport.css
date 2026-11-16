@@ -3,8 +3,5 @@
 #app canvas#c,#app #hud,#app #touch,#app #stick,#app .tb,#app .ov,
 #app #splat,#app #fade,#app #blood,#app #threat,#app .lockmk,#app #rotate{position:absolute}
 #app{overflow:hidden}
-html.touch[data-sky-portrait="true"] #rotate{display:grid}
-html[data-sky-portrait="false"] #rotate{display:none}
-html.touch[data-sky-portrait="true"] #skillDock,
-html.touch[data-sky-portrait="true"] #blastHint,
-html.touch[data-sky-portrait="true"] #blastActionHint{visibility:hidden!important}
+/* Portrait is a rotated landscape game, never a separate screen or prompt. */
+#app #rotate{display:none!important}

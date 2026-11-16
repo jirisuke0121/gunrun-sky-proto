@@ -14,7 +14,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=requ
    await p.waitForTimeout(900);const pausedWind=await p.evaluate(()=>({blocked:skyGuidedIntro.blocked,wind:__skyInternals.Ut.wind.gain.value}));
    // Fixture skips the already covered course, then uses its production finish/navigation.
    await p.evaluate(()=>skyGuidedIntro.finish());await p.waitForURL('**/'+map+'?learned=1*');
-   await p.waitForFunction(()=>__game?.mode==='play'&&skyChallenge?.id==='easy',null,{timeout:120000});
+   await p.waitForFunction(()=>skyStartReadiness?.ready&&skyChallenge?.id==='easy',null,{timeout:120000});assert.equal(await p.evaluate(()=>__game.mode),'menu');await p.locator('#bStart').tap();await p.waitForFunction(()=>__game.mode==='play');
    results.push({map,entry,pausedWind});
   }else{await p.goto(base+map+'?controlpick=0&guides=0&hookGuide=0');await p.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:120000});await p.locator('#bStart').tap();results.push({map,entry});}
   if(await p.evaluate(()=>__skyInternals.Ut.ctx.state!=='running'))await p.locator('#tAutoFire').tap();await p.waitForFunction(()=>__skyInternals.Ut.ctx.state==='running');

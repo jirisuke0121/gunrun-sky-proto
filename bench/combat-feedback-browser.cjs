@@ -117,7 +117,7 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
       await page.screenshot({path:`${out}/${map}-${lang}.png`});
       if(touch){
         await page.setViewportSize({width:390,height:844});
-        assert.equal(await page.locator('#rotate').isVisible(),true,'portrait displays the rotate prompt');
+        assert.equal(await page.locator('#rotate').count(),0,'portrait uses rotated landscape');
         await page.screenshot({path:`${out}/${map}-${lang}-portrait.png`});
         await page.setViewportSize({width:844,height:390});
       }

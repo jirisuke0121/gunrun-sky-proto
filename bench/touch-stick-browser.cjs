@@ -21,9 +21,9 @@ fs.mkdirSync(out, { recursive: true });
       await p.goto(base + map, {waitUntil:'domcontentloaded',timeout:120000});
       await p.waitForFunction(() => window.skyDash && document.body.dataset.skyHumanLoaded === 'true', null, {timeout:120000});
       if (startsPortrait) {
-        await p.locator('#rotate').waitFor({ state: 'visible' });
+        await p.waitForFunction(()=>document.documentElement.dataset.skyRotation==='1');
         await p.setViewportSize({width:844,height:390});
-        await p.locator('#rotate').waitFor({ state: 'hidden' });
+        await p.waitForFunction(()=>document.documentElement.dataset.skyRotation==='0');
       }
       await p.locator('#bStart').tap();
       await p.evaluate(() => {

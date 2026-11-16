@@ -8,15 +8,16 @@ const base = 'http://127.0.0.1:8792/';
     for (let i = 0; i < 50; i++) { if (await fetch(base).then(r => r.ok, () => false)) break; await new Promise(r => setTimeout(r, 100)); }
     browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
       args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=user-gesture-required'] });
-    for (const map of ['index.html', 'canyon.html']) for (const touch of [false, true]) {
+    for (const map of ['index.html', 'canyon.html']) for (const touch of [false, true]) for (const learned of [false, true]) {
       const context = await browser.newContext({ viewport: { width: 844, height: 390 }, hasTouch: touch, isMobile: touch });
       await context.addInitScript(() => { window.__hold = true; });
       await context.route('https://**/*', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"top":[],"total":0,"ok":true}' }));
       const page = await context.newPage(), errors = []; page.on('pageerror', e => errors.push(e.message));
-      await page.goto(base + map);
+      await page.goto(base + map + (learned ? '?learned=1' : ''));
       await page.waitForFunction(() => window.skyAudioRecovery && window.skyDecoy, null, { timeout: 120000 });
+      await page.waitForFunction(() => skyStartReadiness?.ready);if(learned){await page.waitForFunction(()=>skyChallenge?.id==='easy');assert.equal(await page.evaluate(()=>__game.mode),'menu');}
       assert.equal(await page.evaluate(() => __skyInternals.Ut.ctx), null);
-      await page.locator('#bStart').click();
+      if(touch)await page.locator('#bStart').tap();else await page.locator('#bStart').click();
       await page.waitForFunction(() => __skyInternals.Ut.ctx?.state === 'running');
       await page.evaluate(() => {
         const a = __skyInternals.Ut;
@@ -68,7 +69,7 @@ const base = 'http://127.0.0.1:8792/';
       });
       assert.ok(evidence.peak > .005, 'real rendered audio is nonzero after recovery');
       assert.equal(evidence.state, 'running'); assert.equal(evidence.volume, 0); assert.equal(evidence.gain, 0);
-      assert.deepEqual(errors, []); results.push({ map, touch, ...evidence, errors }); await context.close();
+      assert.deepEqual(errors, []); results.push({ map, touch, learned, ...evidence, errors }); await context.close();
     }
     fs.mkdirSync('browser-evidence', { recursive: true });
     fs.writeFileSync('browser-evidence/audio-recovery.json', JSON.stringify(results, null, 2));

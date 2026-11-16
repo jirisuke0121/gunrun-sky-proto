@@ -1,7 +1,7 @@
 name: Viewport and input recovery
 on:
   pull_request:
-    paths: ['viewport*', 'render-quality.js', 'player-skills.js', 'index.html', 'canyon.html', 'bench/viewport-browser.cjs', '.github/workflows/viewport.yml']
+    paths: ['viewport*', 'render-quality.js', 'player-skills.js', 'index.html', 'canyon.html', 'bench/viewport-browser.cjs', 'bench/landscape-guard.test.cjs', '.github/workflows/viewport.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -13,6 +13,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: '24'}
+      - run: node bench/landscape-guard.test.cjs
       - run: npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2 && npx playwright install --with-deps chromium
       - name: Both maps, touch and viewport recovery
         run: |
