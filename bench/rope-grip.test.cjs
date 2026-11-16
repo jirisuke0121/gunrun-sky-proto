@@ -38,7 +38,11 @@ for(const fps of [20,30,60,120]) {
   assert.ok(api.grip()>.2);assert.ok(maxAngle<=75*Math.PI/180+1e-9,'swing stays inside the existing safety angle');
   traces.push({fps,seconds:6,grip:+api.grip().toFixed(3),maxDegrees:+(maxAngle*180/Math.PI).toFixed(1)});
   // A deliberate jump still releases immediately.
+  const pose=api.current(),station=w.SKY_ROPE_STATIONS.STATIONS.find(x=>x.id===pose.id);
+  const expectedVelocity=api.releaseVelocity(pose.th,pose.w),expectedFeet=api.feetAt(station,pose.e,pose.th);
   f.key('keydown');f.step(1/fps);f.key('keyup');assert.equal(api.active(),false);
+  assert.ok(Math.abs(f.c.pos.y-expectedFeet.y)<1e-9,'jump releases from the pose shown with the cue');
+  assert.ok(Math.abs(f.c.vel.y-expectedVelocity.y)<1e-9,'jump keeps the displayed trajectory before physics can reverse it');
   // Actual stamina exhaustion still releases, without a key press.
   w.skyRopeSwing.cancel();f.c.state='normal';f.c.onGround=false;
   f.c.pos.set(s.px,s.parkY,s.pz);f.c.vel.set(s.dx*4,0,s.dz*4);f.step(1/fps);
@@ -59,5 +63,9 @@ for(const fps of [20,30,60,120]) {
  w.skyRopeStations.spendGrip(8);
  f.c.pos.set(s.parkX,s.parkY,w.SKY_ROPE_SWING.Z);f.c.vel.set(11.5,0,0);f.c.onGround=false;f.c.state='normal';
  f.step(1/120);assert.equal(w.skyRopeSwing.active(),false);
+}
+{
+ const f=fixture(),w=f.window,s=w.SKY_ROPE_STATIONS.STATIONS.find(s=>s.id===5);
+ assert.equal(w.skyRopeStations.landing(s,-75*Math.PI/180,.50564).ok,false,'a returning downward launch must not promise a safe landing');
 }
 console.log('PASS no angle-triggered grip loss; jump release and exhaustion preserved',JSON.stringify(traces));

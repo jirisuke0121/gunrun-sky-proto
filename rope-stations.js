@@ -39,6 +39,10 @@
     const I = window.__skyInternals, free = (x, y, z) => I.oe(x, y + .012, z, I.c.r, 1.75);
     const f = feetAt(s, e, th), v = releaseVelocity(th, w), dt = 1 / 60;
     if (v.u <= 0) return { ok: false, why: 'back' };
+    // On the returning downswing a gravity-only prediction can point at a
+    // platform below us while live air steering carries the player past it.
+    // Keep the cue for rising launches toward a higher route.
+    if (v.y <= 0) return { ok: false, why: 'descending' };
     let x = f.x, y = f.y, z = f.z, vy = v.y;
     for (let t = 0; t < 4; t += dt) {
       const nvy = vy - gravity * dt, nx = x + e.x * v.u * dt, ny = y + nvy * dt, nz = z + e.z * v.u * dt;
@@ -176,6 +180,9 @@
         if (!riding) return false;
       }
       const r = riding, n = r.n, s = n.s, gravity = U.gravity;
+      // Release from the pose whose green landing cue the player saw, before
+      // another physics step can reverse the pendulum at its angle limit.
+      if (pressed) { n.draw(r.th); release(); return false; }
       r.age += dt; grip = Math.max(0, grip - dt / GRIP_SECONDS);
       const pumping = input && Math.hypot(input.fwdIn || 0, input.strIn || 0) > .25 && Math.abs(r.w) > .15;
       for (let left = dt; left > 0; left -= 1 / 120) {
@@ -193,7 +200,7 @@
       const climbable = r.age > .3 && r.th > .15 && r.w > 0 && input && (input.fwdIn || 0) > .25 && (() => { const k = window.__skyInternals, f = k?.canExitLadder; if (!f) return false;
         const sg = r.w >= 0 ? 1 : -1, q = .22 + c.r; return !!f({ x: c.pos.x - r.e.x * sg * q, z: c.pos.z - r.e.z * sg * q, nx: r.e.x * sg, nz: r.e.z * sg, y1: c.pos.y + .95 }); })();
       if (climbable) { n.draw(r.th); release(); return false; }
-      if (pressed || grip <= 0 || window.skyBite?.locked) { n.draw(r.th); release(); return false; }
+      if (grip <= 0 || window.skyBite?.locked) { n.draw(r.th); release(); return false; }
       const e = r.e, p = feetAt(s, e, r.th), w = p;
       if (r.age > .2 && !game.oe(p.x, p.y + .012, p.z, c.r, 1.75)) { n.draw(r.th); release(true); return false; }
       const blend = Math.min(1, (game.z.t - r.t0) / .12); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる

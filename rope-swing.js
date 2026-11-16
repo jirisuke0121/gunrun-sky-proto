@@ -159,6 +159,8 @@
         c.hookPressed = false; c.hookPick = null; c.skyHookSource = null;
       }
       const r = riding, s = SIDES[r.side], gravity = U.gravity;
+      // Honour the displayed landing cue before advancing/reversing the swing.
+      if (pressed) { drawRope(r.side, r.th); release(); return false; }
       r.age += dt;
       // The large rope uses the same visible stamina budget as the return ropes.
       // The standalone fallback is only for pages that omit rope-stations.js.
@@ -176,7 +178,7 @@
       handleMats[r.side].color.setHex(cue.ok ? 0x7ef0aa : 0xffa21f);
       hint.style.opacity = '1';
       c.jumpBuf = 0;
-      if (pressed || !gripLeft || window.skyBite?.locked) { drawRope(r.side, r.th); release(); return false; }
+      if (!gripLeft || window.skyBite?.locked) { drawRope(r.side, r.th); release(); return false; }
       const p = feet(r.th), blend = Math.min(1, (game.z.t - r.t0) / .18); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる
       c.pos.set(c.pos.x + (p.x - c.pos.x) * blend, c.pos.y + (p.y - c.pos.y) * blend, c.pos.z + (Z - c.pos.z) * blend);
       c.vel.set(r.w * L * Math.cos(r.th), r.w * L * Math.sin(r.th), 0);
