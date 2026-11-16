@@ -20,7 +20,7 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
   window.skyGuidedEntry=!legacyIntro||params.get('learned')==='1';
   document.addEventListener('click',event=>{const b=event.target.closest?.('#bGuidedIntro,#bIntro');if(!b)return;if(b.id==='bIntro'&&legacyIntro)return;if(b.disabled)return;event.preventDefault();event.stopImmediatePropagation();location.assign(courseURL());},true);
   if(params.get('learned')==='1'){
-   const start=()=>{if(!window.skyStartReadiness?.ready){requestAnimationFrame(start);return;}const custom=$('challengeCustom');if(custom?.checked)custom.click();const choice=$('challengeDifficulty');choice.value='easy';choice.dispatchEvent(new Event('change'));$('bStart').click();};start();
+   const start=()=>{if(!window.skyStartReadiness?.ready){requestAnimationFrame(start);return;}const custom=$('challengeCustom');if(custom?.checked)custom.click();const choice=$('challengeDifficulty');choice.value='easy';choice.dispatchEvent(new Event('change'));$('bStart').focus?.();};start();
   }
   return;
  }

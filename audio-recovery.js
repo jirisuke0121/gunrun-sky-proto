@@ -50,7 +50,11 @@ export function installAudioRecovery(game, win = window, doc = document) {
     scheduleRetry();
   }
   function input(event) {
-    if (event.isTrusted) resume(event.type, true);
+    if (!event.isTrusted || !visible()) return;
+    // A new document cannot inherit the tutorial's audio activation. If a
+    // programmatic start left no graph, create it inside this actual gesture.
+    if (!audio.ctx && game.modeRef?.() === 'play') game.initAudio?.();
+    resume(event.type, true);
   }
   const inputs = ['pointerdown', 'touchend', 'click', 'keydown'];
   const options = { capture: true, passive: true };
