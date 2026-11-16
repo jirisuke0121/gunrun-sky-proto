@@ -145,7 +145,7 @@
           lock[side] = Math.max(0, lock[side] - dt); const f = 1 - lock[side] / RETURN_SECONDS, e = f * f * (3 - 2 * f), home = angleOf(side);
           drawRope(side, from[side] + (home - from[side]) * e);
         }
-        if (!playing() || c.state !== 'normal' || c.onGround || window.skyBite?.locked) return false;
+        if (!playing() || c.state !== 'normal' || c.onGround || window.skyBite?.locked || window.skyRopeStations?.canGrab?.() === false) return false;
         for (const side of ['A', 'B']) {
           if (lock[side] > 0 || !inGrab(side, c.pos) || c.vel.x * SIDES[side].dir < GRAB.minSpeed) continue;
           begin(side); break;
@@ -160,18 +160,23 @@
       }
       const r = riding, s = SIDES[r.side], gravity = U.gravity;
       r.age += dt;
+      // The large rope uses the same visible stamina budget as the return ropes.
+      // The standalone fallback is only for pages that omit rope-stations.js.
+      const gripLeft = window.skyRopeStations?.spendGrip?.(dt) ?? r.age <= MAX_SECONDS;
       // 振る（細かく刻んで安定させる）。移動入力を押していると、振りの向きにゆるく漕げる。
       const pumping = input && Math.hypot(input.fwdIn || 0, input.strIn || 0) > .25 && Math.abs(r.w) > .15;
       for (let left = dt; left > 0; left -= 1 / 120) {
         const h = Math.min(left, 1 / 120); const n = swingStep(r.th, r.w, h, gravity); r.th = n.th; r.w = n.w;
         if (pumping) r.w += Math.sign(r.w) * PUMP * h;
         const cap = V_MAX / L; if (Math.abs(r.w) > cap) r.w = Math.sign(r.w) * cap;
+        // Reaching the safety angle reverses the pendulum; it never opens the grip.
+        if (Math.abs(r.th) > MAX_ANGLE) { r.th = Math.sign(r.th) * MAX_ANGLE; r.w = -Math.sign(r.th) * Math.abs(r.w); }
       }
       const cue = landing(r.side, r.th, r.w, gravity);
       handleMats[r.side].color.setHex(cue.ok ? 0x7ef0aa : 0xffa21f);
       hint.style.opacity = '1';
       c.jumpBuf = 0;
-      if (pressed || Math.abs(r.th) > MAX_ANGLE || r.age > MAX_SECONDS || window.skyBite?.locked) { drawRope(r.side, r.th); release(); return false; }
+      if (pressed || !gripLeft || window.skyBite?.locked) { drawRope(r.side, r.th); release(); return false; }
       const p = feet(r.th), blend = Math.min(1, (game.z.t - r.t0) / .18); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる
       c.pos.set(c.pos.x + (p.x - c.pos.x) * blend, c.pos.y + (p.y - c.pos.y) * blend, c.pos.z + (Z - c.pos.z) * blend);
       c.vel.set(r.w * L * Math.cos(r.th), r.w * L * Math.sin(r.th), 0);

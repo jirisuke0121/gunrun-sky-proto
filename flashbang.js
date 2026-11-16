@@ -1,7 +1,8 @@
 import { playGearSound } from './gear-audio.js?v=20261026-gear-polish-v1';
 import { FLASH_ICON, bindSkillPress } from './player-skills.js?v=20261113-viewport-v1';
-// Defensive flashbang. Simulation time owns the fuse and stun, including pause.
-export const FLASHBANG = Object.freeze({ radius: 8, duration: 4, fuse: 0.22, maxCharges: 2, burstDuration: 1, screenDuration: 0.8, reducedScreenDuration: 0.4 });
+// Defensive flashbang. Simulation time owns the fuse, cooldown and stun, including pause.
+// The 0.8s input guard matches the existing full-screen fade and absorbs accidental repeat taps.
+export const FLASHBANG = Object.freeze({ radius: 8, duration: 4, fuse: 0.22, cooldown: 0.8, maxCharges: 2, burstDuration: 1, screenDuration: 0.8, reducedScreenDuration: 0.4 });
 
 // One bright pulse, then a smooth afterglow across the entire screen.
 export function flashScreenOpacity(age, reducedMotion = false) {
@@ -54,7 +55,7 @@ export function createFlashbang(game) {
   glow.style.cssText = 'position:absolute;inset:0;pointer-events:none;opacity:0;z-index:7;mix-blend-mode:screen';
   document.getElementById('app').appendChild(glow);
   const can = new Cylinder(0.08, 0.08, 0.23, 8);
-  let charges = 1, skills = 0, previousSkill = 'none', grenadeTemplate = null;
+  let charges = 1, skills = 0, cooldown = 0, hudStamp = '', previousSkill = 'none', grenadeTemplate = null;
   const button = document.getElementById('tFlash'), count = document.getElementById('hFlash');
   const notice = document.createElement('div');
   notice.id = 'flashNotice'; notice.setAttribute('role', 'status');
@@ -64,11 +65,17 @@ export function createFlashbang(game) {
   const playing = () => game.modeRef() === 'play' && !z.over;
   const blinded = enemy => !enemy.dead && (affected.get(enemy)?.remaining || 0) > 0;
   function hud() {
+    const cooling = cooldown > 0, tenth = Math.ceil(cooldown * 10 - 1e-6);
+    const stamp = `${charges}:${skills}:${cooling}:${tenth}`;
+    if (stamp === hudStamp) return;
+    hudStamp = stamp;
     if (count) count.textContent = String(charges);
     if (button) {
-      button.innerHTML = `${FLASH_ICON}<span class="skill-value">×${charges}</span><span class="skill-name">閃光玉 <kbd>1</kbd></span><small${charges ? ' data-quiet' : ''}>${charges ? `${FLASHBANG.duration}秒停止` : `技あと${3-skills}`}</small>`;
-      button.style.setProperty('--skill-progress', String(charges ? 1 : skills / 3));
+      button.innerHTML = `${FLASH_ICON}<span class="skill-value">×${charges}</span><span class="skill-name">閃光玉 <kbd>1</kbd></span><small${charges && !cooling ? ' data-quiet' : ''}>${cooling ? `${(tenth / 10).toFixed(1)}s` : charges ? `${FLASHBANG.duration}秒停止` : `技あと${3-skills}`}</small>`;
+      button.style.setProperty('--skill-progress', String(cooling ? 1 - cooldown / FLASHBANG.cooldown : charges ? 1 : skills / 3));
       button.classList.toggle('empty', charges === 0);
+      button.classList.toggle('cooling', cooling);
+      button.setAttribute('aria-disabled', String(cooling || charges === 0));
       button.setAttribute('aria-label', `閃光弾 1キー 残り${charges}個 周囲${FLASHBANG.radius}mのゾンビを${FLASHBANG.duration}秒停止。離すと使用、外へずらすと取消`);
     }
   }
@@ -93,7 +100,7 @@ export function createFlashbang(game) {
     grenades.length = bursts.length = 0;
     notice.style.display = 'none'; noticeTime = 0; glow.style.opacity = '0'; light.intensity = 0;
   }
-  function reset() { clear(); charges = 1; skills = 0; previousSkill = 'none'; hud(); }
+  function reset() { clear(); charges = 1; skills = 0; cooldown = 0; previousSkill = 'none'; hud(); }
   function marker(enemy) {
     const model = new Group(); model.name = 'Flash stunned zombie'; root.add(model);
     const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 80;
@@ -166,7 +173,7 @@ export function createFlashbang(game) {
     if (window.__skyAudio) window.__skyAudio.flashbang++;
   }
   function throwFlashbang() {
-    if (!playing()) return false;
+    if (!playing() || cooldown > 0) return false;
     if (charges <= 0) { window.skyPlayerClarity?.explain('tFlash',`閃光玉は残り0個 · あと技${3-skills}回で1個補充`); return false; }
     const start = new Vector3(c.pos.x, c.pos.y + Math.min(c.h * 0.7, 1.1), c.pos.z);
     const dx = -Math.sin(c.yaw), dz = -Math.cos(c.yaw);
@@ -182,11 +189,12 @@ export function createFlashbang(game) {
     const trailMaterial = new Basic({ color: 0x8feaff, transparent: true, opacity: 0.75, depthWrite: false, fog: false, toneMapped: false });
     const trail = new Line(trailGeometry, trailMaterial); trail.frustumCulled = false; root.add(trail);
     root.add(model); grenades.push({ model, start, end, trail, age: 0, ownedMaterials: [trailMaterial] });
-    charges--; stats.thrown++; Tt.swish(); hud(); return true;
+    charges--; cooldown = FLASHBANG.cooldown; stats.thrown++; Tt.swish(); hud(); return true;
   }
   const skillStates = ['wallrun', 'slide', 'ledge', 'ladder', 'zip', 'hook'];
   function tick(dt) {
     if (!playing()) return;
+    if (cooldown > 0) { cooldown = Math.max(0, cooldown - dt); if (cooldown < 1e-9) cooldown = 0; hud(); }
     if (c.state !== previousSkill) {
       if (skillStates.includes(c.state)) {
         skills = Math.min(3, skills + 1);
@@ -297,11 +305,11 @@ export function createFlashbang(game) {
   });
   // A consumable fires on release. A camera drag that starts here can slide clearly off the button
   // to cancel without spending a charge. The press logic is shared with the other skill buttons.
-  const cancelPress = button ? bindSkillPress(button, () => playing() && charges > 0, throwFlashbang, throwFlashbang) : () => {};
+  const cancelPress = button ? bindSkillPress(button, () => playing() && charges > 0 && cooldown <= 0, throwFlashbang, () => { if (cooldown <= 0) throwFlashbang(); }) : () => {};
   // Keyboard / assistive activation produces a click without a pointer press (handled by bindSkillPress).
   hud();
   return { tick, reset, clear, throw: throwFlashbang, stats, grenades, bursts, affected, blinded, config: FLASHBANG,
-    get charges() { return charges; }, get skillCount() { return skills; }, setGrenadeTemplate(template) { grenadeTemplate = template; },
+    get charges() { return charges; }, get cooldown() { return cooldown; }, get skillCount() { return skills; }, setGrenadeTemplate(template) { grenadeTemplate = template; },
     modeChanged(mode) { if (mode !== 'play') cancelPress(); if (mode === 'menu' || mode === 'over') clear(); }
   };
 }

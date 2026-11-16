@@ -35,7 +35,7 @@ html.touch #skillDock #tJumpGun .skill-name kbd{display:none}
 #skillDock #tDecoy.active{--skill-color:#ff80ef;border-color:#ffb0f5;box-shadow:0 0 22px #eb48df77}
 #skillDock button.armed{filter:brightness(1.55);box-shadow:0 0 0 4px #ffffff38,0 0 22px #7af5efaa}
 #skillDock button:focus-visible{outline:3px solid white;outline-offset:4px}
-#skillDock #tFlash.empty{filter:saturate(.35);opacity:.65}
+#skillDock #tFlash.cooling,#skillDock #tFlash.empty{filter:saturate(.35);opacity:.65}
 .hud-tl .hud-detail:has(#hFlash){display:none!important}
 #catchBox{bottom:113px}
 #scorePop{bottom:145px}
