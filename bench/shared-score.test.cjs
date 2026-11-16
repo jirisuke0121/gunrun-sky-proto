@@ -177,6 +177,18 @@ function policyFixture(practice = false) {
   assert.equal((await post(v13Heavy)).receipt.ranked,true,'v14 arithmetic is validated');
   assert.equal((await get('/ranking?'+scope)).top.some(r=>r.score===2774),true);
 
+  // Cached v14 clients retain their own board and replay while v15 rolls out.
+  const v14=make('cached-v14','hard',9000,{ghost});v14.challenge.version='corridor-balanced-score-v14';
+  assert.equal((await post(v14)).receipt.ranked,true);
+  const v14scope='map=old-town&rules=corridor-balanced-score-v14&mode=score&difficulty=all';
+  const v14board=await get('/ranking?'+v14scope);
+  assert.equal(v14board.total,1);assert.equal(v14board.top[0].runId,v14.clientRunId);assert.equal(v14board.top[0].stars,0);
+  assert.deepEqual((await get('/ghosts/'+v14.clientRunId+'?'+v14scope)).ghost.samples,ghost.samples);
+  assert.equal((await get('/ranking?'+scope)).top.some(r=>r.runId===v14.clientRunId),false,'v14 never enters v15');
+  const badV14=structuredClone(v14);badV14.clientRunId=crypto.randomUUID();badV14.player='bad-v14';badV14.score.total++;
+  assert.equal((await post(badV14)).receipt.ranked,false,'cached clients still require valid score arithmetic');
+  assert.equal((await get('/ranking?'+v14scope)).total,1);
+
   // Parkour clear (no shots, no kills) is validated against the stored stats; the jump gun does not count as shooting.
   const parkour=make('parkour','hard',1);parkour.stats={};parkour.score=evaluate(120,0,2,{damageUnits:0,gunShots:0});
   assert.equal(parkour.score.total,2808);assert.equal((await post(parkour)).receipt.ranked,true,'a clean parkour clear is ranked');

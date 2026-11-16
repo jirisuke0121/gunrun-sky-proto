@@ -39,6 +39,10 @@
     const I = window.__skyInternals, free = (x, y, z) => I.oe(x, y + .012, z, I.c.r, 1.75);
     const f = feetAt(s, e, th), v = releaseVelocity(th, w), dt = 1 / 60;
     if (v.u <= 0) return { ok: false, why: 'back' };
+    // On the returning downswing a gravity-only prediction can point at a
+    // platform below us while live air steering carries the player past it.
+    // Keep the cue for rising launches toward a higher route.
+    if (v.y <= 0) return { ok: false, why: 'descending' };
     let x = f.x, y = f.y, z = f.z, vy = v.y;
     for (let t = 0; t < 4; t += dt) {
       const nvy = vy - gravity * dt, nx = x + e.x * v.u * dt, ny = y + nvy * dt, nz = z + e.z * v.u * dt;
@@ -158,7 +162,7 @@
       riding = null; pressed = false; hint.style.opacity = '0'; grip = 1; bar.style.opacity = '0';
       for (const id in nodes) { const n = nodes[id]; n.lock = 0; n.yaw = n.yaw0; n.draw(n.s.th0); n.mat.color.setHex(0xffa21f); }
     }
-    function showGrip() { fill.style.width = Math.round(Math.max(0, grip) * 100) + '%'; fill.style.background = grip < .3 ? '#e24b4a' : '#ffb647'; bar.style.opacity = riding || grip < .999 ? '1' : '0'; }
+    function showGrip() { fill.style.width = Math.round(Math.max(0, grip) * 100) + '%'; fill.style.background = grip < .3 ? '#e24b4a' : '#ffb647'; bar.style.opacity = riding || base.active?.() || grip < .999 ? '1' : '0'; }
     function step(dt, input) {
       if (riding && (!playing() || game.z.t < riding.t0 || (riding.last && c.pos.distanceTo(riding.last) > 1))) cancel();
       if (!riding) {
@@ -176,12 +180,17 @@
         if (!riding) return false;
       }
       const r = riding, n = r.n, s = n.s, gravity = U.gravity;
-      r.age += dt; grip -= dt / GRIP_SECONDS;
+      // Release from the pose whose green landing cue the player saw, before
+      // another physics step can reverse the pendulum at its angle limit.
+      if (pressed) { n.draw(r.th); release(); return false; }
+      r.age += dt; grip = Math.max(0, grip - dt / GRIP_SECONDS);
       const pumping = input && Math.hypot(input.fwdIn || 0, input.strIn || 0) > .25 && Math.abs(r.w) > .15;
       for (let left = dt; left > 0; left -= 1 / 120) {
         const h = Math.min(left, 1 / 120), nx = swingStep(r.th, r.w, h, gravity); r.th = nx.th; r.w = nx.w;
         if (pumping) r.w += Math.sign(r.w) * PUMP * h;
         const cap = V_MAX / L; if (Math.abs(r.w) > cap) r.w = Math.sign(r.w) * cap;
+        // Reaching the safety angle reverses the pendulum; it never opens the grip.
+        if (Math.abs(r.th) > MAX_ANGLE) { r.th = Math.sign(r.th) * MAX_ANGLE; r.w = -Math.sign(r.th) * Math.abs(r.w); }
       }
       const cue = landing(s, r.th, r.w, gravity, r.e);
       n.mat.color.setHex(cue.ok ? 0x7ef0aa : 0xffa21f);
@@ -191,7 +200,7 @@
       const climbable = r.age > .3 && r.th > .15 && r.w > 0 && input && (input.fwdIn || 0) > .25 && (() => { const k = window.__skyInternals, f = k?.canExitLadder; if (!f) return false;
         const sg = r.w >= 0 ? 1 : -1, q = .22 + c.r; return !!f({ x: c.pos.x - r.e.x * sg * q, z: c.pos.z - r.e.z * sg * q, nx: r.e.x * sg, nz: r.e.z * sg, y1: c.pos.y + .95 }); })();
       if (climbable) { n.draw(r.th); release(); return false; }
-      if (pressed || Math.abs(r.th) > MAX_ANGLE || r.age > MAX_SECONDS || grip <= 0 || window.skyBite?.locked) { n.draw(r.th); release(); return false; }
+      if (grip <= 0 || window.skyBite?.locked) { n.draw(r.th); release(); return false; }
       const e = r.e, p = feetAt(s, e, r.th), w = p;
       if (r.age > .2 && !game.oe(p.x, p.y + .012, p.z, c.r, 1.75)) { n.draw(r.th); release(true); return false; }
       const blend = Math.min(1, (game.z.t - r.t0) / .12); // つかんだ直後は、跳んだ位置から円へなめらかに寄せる
@@ -213,6 +222,9 @@
     base.state = () => riding ? { th: riding.th, w: riding.w, side: 'S' + riding.n.s.id } : orig.state?.() || null;
     base.side = () => riding ? 'S' + riding.n.s.id : orig.side?.() || null;
     Object.assign(window.skyRopeStations, { step, cancel, active: () => !!riding, current: () => riding && { id: riding.n.s.id, th: riding.th, w: riding.w, e: riding.e },
-      ready: id => nodes[id].lock <= 0, grip: () => grip, nodes, group });
+      ready: id => nodes[id].lock <= 0, grip: () => grip,
+      canGrab: () => grip >= GRIP_MIN,
+      spendGrip(dt) { grip = Math.max(0, grip - dt / GRIP_SECONDS); showGrip(); return grip > 0; },
+      nodes, group });
   });
 })();
