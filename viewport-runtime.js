@@ -3,7 +3,7 @@
 (() => {
   const root = document.documentElement, app = document.getElementById('app');
   const listeners = new Set();
-  let current, game, resetInput, frame = 0, settle = [], resolutionQuery;
+  let current, game, resetInput, frame = 0, settle = [], resolutionQuery, landscape = null, lockPending = false;
   const touch = () => root.classList.contains('touch') || matchMedia('(pointer: coarse)').matches;
   function measure() {
     const vv = window.visualViewport;
@@ -23,15 +23,24 @@
       cancelInput(); game.setMode('pause');
     }
   }
-  function blocked() { return document.hidden || (touch() && current.height > current.width); }
+  function blocked() { return document.hidden || current.portrait; }
   function sync() {
     frame = 0;
-    const next = measure(), old = current;
+    const physical = measure(), old = current;
+    const portrait = physical.height > physical.width;
+    if (!portrait) landscape = { width: physical.width, height: physical.height };
+    const bounds = portrait ? landscape || { width: physical.height, height: physical.width } : physical;
+    const next = { ...physical, width: bounds.width, height: bounds.height, portrait,
+      physicalWidth: physical.width, physicalHeight: physical.height };
     const changed = !old || Object.keys(next).some(key => next[key] !== old[key]);
     current = next;
     root.dataset.skyRotation = '0';
-    root.dataset.skyPortrait = String(touch() && next.height > next.width);
+    root.dataset.skyPortrait = String(portrait);
     if (changed) {
+      root.style.setProperty('--visible-width', physical.width + 'px');
+      root.style.setProperty('--visible-height', physical.height + 'px');
+      root.style.setProperty('--visible-left', physical.left + 'px');
+      root.style.setProperty('--visible-top', physical.top + 'px');
       // Every fixed game surface is local to #app (viewport.css), including button hit targets.
       Object.assign(app.style, { inset: 'auto', left: next.left + 'px', top: next.top + 'px', width: next.width + 'px', height: next.height + 'px' });
       app.style.setProperty('--control-height', next.height + 'px');
@@ -67,6 +76,15 @@
     attach(value, reset) { game = value; resetInput = reset; recover(); },
     modeChanged(mode) { if (mode !== 'play') cancelInput(); guard(); },
   };
+  // Orientation lock is best-effort; iOS browsers can reject or omit it.
+  // The portrait guard remains authoritative even when the API is unsupported.
+  function lockLandscape(event) {
+    if (!event.isTrusted || !touch() || lockPending || !screen.orientation?.lock || screen.orientation.type?.startsWith('landscape')) return;
+    lockPending = true;
+    try { Promise.resolve(screen.orientation.lock('landscape')).catch(() => {}).finally(() => { lockPending = false; }); }
+    catch { lockPending = false; }
+  }
+  for (const name of ['click', 'touchend', 'keydown']) document.addEventListener(name, lockLandscape, { capture: true, passive: true });
   sync(); watchResolution();
   addEventListener('resize', recover);
   addEventListener('orientationchange', recover);

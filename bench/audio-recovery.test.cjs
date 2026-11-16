@@ -52,5 +52,13 @@ const assert = require('node:assert/strict');
   ctx.state = 'interrupted'; ctx.resume = () => { throw Error('sync failure'); }; doc.emit('click', true);
   assert.equal(r.stats.failures, 2);
   r.dispose(); ctx.resume = normal; doc.emit('click', true); win.emit('focus'); later(); assert.equal(ctx.state, 'interrupted');
+  // A fresh main document may have no context after leaving the course.
+  const doc2=new Events(),win2=new Events();Object.assign(win2,{setTimeout:win.setTimeout,clearTimeout:win.clearTimeout});
+  let initialized=0;const fresh={Ut:{ctx:null},modeRef:()=>fresh.mode,mode:'menu',initAudio(){initialized++;this.Ut.ctx=ctx;}};
+  const r2=installAudioRecovery(fresh,win2,doc2);ctx.resume=normal;ctx.state='suspended';
+  doc2.emit('click',true);assert.equal(initialized,0,'menu input does not create an audio graph');
+  fresh.mode='play';doc2.emit('click',false);assert.equal(initialized,0,'synthetic auto-start is not activation');
+  doc2.emit('pointerdown',true);await flush();assert.equal(initialized,1);assert.equal(ctx.state,'running');
+  doc2.emit('click',true);assert.equal(initialized,1,'existing graph is retained');r2.dispose();
   console.log('PASS interrupted/suspended, foreground/input, hidden, rejection/hung promise, preserved graph/volume/mute, cleanup');
 })().catch(e => { console.error(e); process.exitCode = 1; });

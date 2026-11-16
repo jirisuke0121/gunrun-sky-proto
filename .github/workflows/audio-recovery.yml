@@ -1,7 +1,7 @@
 name: Audio interruption recovery
 on:
   pull_request:
-    paths: ['audio-recovery.js', 'enhancements.js', 'index.html', 'canyon.html', 'bench/audio-recovery*', 'bench/ambient-wind*', 'wind-fx.js', '.github/workflows/audio-recovery.yml']
+    paths: ['audio-recovery.js', 'guided-intro.js', 'bench/guided-start-audio.test.cjs', 'enhancements.js', 'index.html', 'canyon.html', 'bench/audio-recovery*', 'bench/ambient-wind*', 'wind-fx.js', '.github/workflows/audio-recovery.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -17,6 +17,7 @@ jobs:
       - name: Recovery state transitions and existing audio
         run: |
           node bench/audio-recovery.test.cjs
+          node bench/guided-start-audio.test.cjs
           node bench/decoy-audio.test.cjs
       - name: Install browser
         run: |
