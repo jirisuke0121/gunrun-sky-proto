@@ -91,9 +91,9 @@ if (game && hud) {
     // ---- empty: click + note, only while an enemy is close enough that auto-fire would have fired ----
     note.hidden = !dry;
     if (dry && ammoBox) {                                                  // sits right above the ammo counter, not in the middle of the view
-      const a = ammoBox.getBoundingClientRect(), h = hud.getBoundingClientRect();
-      note.style.left = (a.left + a.width / 2 - h.left).toFixed(0) + 'px';
-      note.style.top = (a.top - h.top - 6).toFixed(0) + 'px';
+      const a = ammoBox.getBoundingClientRect(), h = hud.getBoundingClientRect(), scale = window.skyViewport?.snapshot().scale || 1;
+      note.style.left = ((a.left + a.width / 2 - h.left) / scale).toFixed(0) + 'px';
+      note.style.top = ((a.top - h.top) / scale - 6).toFixed(0) + 'px';
       note.style.transform = 'translate(-50%,-100%)';
     }
     ammoBox?.classList.toggle('ammo-empty', dry);

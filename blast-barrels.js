@@ -619,7 +619,7 @@
       if (assist) {
         const radius = touch ? Math.min(128, Math.max(104,
           Math.min(window.__VW(), window.__VH()) * 0.26)) : 70;
-        if (Math.hypot(assist.sx - clientX, assist.sy - clientY) <= radius) {
+        if (Math.hypot(assist.sx - (window.__CX?.({clientX, clientY}) ?? clientX), assist.sy - (window.__CY?.({clientX, clientY}) ?? clientY)) <= radius) {
           return startAuto(assist.barrel);
         }
       }

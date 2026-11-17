@@ -19,7 +19,7 @@ export function installGuidedCoach({game,sky,english,active,lesson,cue}) {
     const on=!!paused&&game.mode==='play'&&active();if(root.hidden===on)root.hidden=!on;if(document.body.dataset.learnPaused!==String(on))document.body.dataset.learnPaused=String(on);
     if(!on)return;
     const el=document.getElementById(paused.target),r=el?.getBoundingClientRect(),app=document.getElementById('app').getBoundingClientRect();if(!r)return;
-    const ring=root.querySelector('#learnSpotlight'),box={left:r.left-app.left-6+'px',top:r.top-app.top-6+'px',width:r.width+12+'px',height:r.height+12+'px',borderRadius:/^(stick|tJump|tSlide|tFlash|tDecoy|tRescue)$/.test(paused.target)?'50%':'14px'};for(const [k,v]of Object.entries(box))if(ring.style[k]!==v)ring.style[k]=v;
+    const scale=window.skyViewport?.snapshot().scale||1,ring=root.querySelector('#learnSpotlight'),box={left:(r.left-app.left)/scale-6+'px',top:(r.top-app.top)/scale-6+'px',width:r.width/scale+12+'px',height:r.height/scale+12+'px',borderRadius:/^(stick|tJump|tSlide|tFlash|tDecoy|tRescue)$/.test(paused.target)?'50%':'14px'};for(const [k,v]of Object.entries(box))if(ring.style[k]!==v)ring.style[k]=v;
     const pc=!window.skyFollowCamera.touchDevice;
     const key={tJump:'Space',tSlide:'E',tFlash:'1',tDecoy:'2',tJumpGun:'4',tRescue:'3',hookMark:'Q',blastMark:'Q',stick:'W A S D',learnKeys:'W A S D'}[paused.target];
     write('small',text('一時停止 · 光る場所を操作すると再開','Paused · Use the highlighted control to resume'));
@@ -39,7 +39,7 @@ export function installGuidedCoach({game,sky,english,active,lesson,cue}) {
   const pressStart=e=>['pointerdown','touchstart','mousedown'].includes(e.type);
   function prepareSwingMove(e){
     if(!swingEntry()||e.target.id!=='c'||!(e.pointerType==='touch'||e.type.startsWith('touch')))return false;
-    // Use the same logical coordinates as the canvas, including portrait rotation.
+    // Use the same logical coordinates as the canvas, including portrait scaling.
     return window.__CX(point(e))<window.__VW()*.45;
   }
   function inside(e){const p=point(e),r=document.getElementById(paused.target)?.getBoundingClientRect();return r&&p.clientX>=r.left&&p.clientX<=r.right&&p.clientY>=r.top&&p.clientY<=r.bottom;}

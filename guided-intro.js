@@ -1,5 +1,5 @@
 import { installGuidedChoice } from './guided-choice.js?v=20261114-controls-guide-v1';
-import { installGuidedCoach } from './guided-coach.js?v=20261114-no-autofire-toggle-v1';
+import { installGuidedCoach } from './guided-coach.js?v=20261117-no-rotation-v1';
 import { describeLesson } from './guided-prompts.js?v=20261114-no-shoot-lesson-v1';
 import { createLessons } from './guided-lessons.js?v=20261114-no-shoot-lesson-v1';
 import { createPursuit, approachingPursuer } from './guided-defense.js?v=20261113-i18n-v1';
@@ -142,7 +142,7 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
    lastStage=id;document.body.dataset.learnAction=trial?(trialReached&&(g.stats.jumps||0)<=trialJumps?'tJump':''):coaching.action;ui.dataset.cue=trial?'trial':coaching.cue;ui.dataset.motion=trial?'toward':coaching.motion;
    const at=trial?course.trialGoal:coaching.at;
    const press=$('learnPressCue'),button=!trial&&coaching.action?$(coaching.action):null;press.hidden=!button||button.id==='tJump'||!coaching.press||!button.getClientRects().length||getComputedStyle(button).visibility==='hidden';
-   if(!press.hidden){const r=button.getBoundingClientRect(),a=$('app').getBoundingClientRect(),left=['tJump','tSlide'].includes(button.id);press.dataset.side=left?'left':'top';press.style.left=(r.left-a.left+(left?-8:r.width/2))+'px';press.style.top=(r.top-a.top+(left?r.height/2:-8))+'px';setText(press,coaching.press);}
+   if(!press.hidden){const r=button.getBoundingClientRect(),a=$('app').getBoundingClientRect(),left=['tJump','tSlide'].includes(button.id),scale=window.skyViewport?.snapshot().scale||1;press.dataset.side=left?'left':'top';press.style.left=((r.left-a.left)/scale+(left?-8:r.width/scale/2))+'px';press.style.top=((r.top-a.top)/scale+(left?r.height/scale/2:-8))+'px';setText(press,coaching.press);}
    window.skyGuidedPresentation?.target(at,id,trial&&trialReached);
    const v=new sky.Geom.Vector3(at[0],at[1]+.25,at[2]).project(sky.Se),w=$('app').clientWidth,h=$('app').clientHeight;
    const visible=v.z>-1&&v.z<1&&Math.abs(v.x)<.88&&Math.abs(v.y)<.8;

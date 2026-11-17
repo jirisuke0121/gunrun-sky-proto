@@ -3,5 +3,6 @@
 #app canvas#c,#app #hud,#app #touch,#app #stick,#app .tb,#app .ov,
 #app #splat,#app #fade,#app #blood,#app #threat,#app .lockmk,#app #rotate{position:absolute}
 #app{overflow:hidden}
-/* Portrait is a rotated landscape game, never a separate screen or prompt. */
+/* Keep the landscape frame upright, centred with dark letterboxing in portrait. */
+html{background:#070b12}
 #app #rotate{display:none!important}
