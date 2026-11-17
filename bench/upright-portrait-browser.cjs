@@ -27,6 +27,23 @@ const base=process.env.VIEWPORT_URL||'http://127.0.0.1:8894/';
   assert.equal(await p.evaluate(()=>document.documentElement.dataset.skyRotation),'0');
   assert.doesNotMatch(await p.evaluate(()=>document.body.style.transform),/rotate/);
   assert.deepEqual(errors,[]);await p.screenshot({path:'evidence/'+map+'-portrait-intro.png'});
-  await context.close();console.log('PASS',map,'portrait startup, upright frame, guided highlight and real drag');
+  // The main canvas supplies logical coordinates to barrel taps as well.
+  await p.goto(base+map);await p.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:120000});await p.locator('#bStart').tap();
+  const mark=await p.evaluate(()=>{
+   const g=__game,c=g.P,B=skyBlastBarrels,I=__skyInternals;
+   g.S.sendLog=g.S.gunOn=g.S.autoFire=false;g.SCR.off=g.PACE.off=g.MARK.off=true;g.GAME.spawnT=g.GAME.surgeT=1e9;
+   for(const enemy of g.zombies){enemy.dead=true;enemy.remove=true;}
+   for(const barrel of B.barrels)for(const [ox,oz]of [[-4,0],[4,0],[0,4],[0,-4],[-3,-3],[3,3]]){
+    B.reset();c.pos.set(barrel.x+ox,barrel.y||0,barrel.z+oz);c.vel.set(0,0,0);c.state='normal';c.onGround=true;
+    c.yaw=Math.atan2(-(barrel.x-c.pos.x),-(barrel.z-c.pos.z));c.pitch=-.1;skyFollowCamera.reset();
+    for(let i=0;i<20;i++){g.advance(1/60);g.cam(1/60);}
+    const a=B.assistTarget();if(a?.barrel===barrel&&a.sx>150&&a.sx<__VW()-100&&a.sy>65&&a.sy<__VH()-100)return {x:a.sx,y:a.sy,v:skyViewport.snapshot()};
+   }return null;
+  });
+  assert.ok(mark,'a visible barrel tap target is available');
+  await p.touchscreen.tap(mark.v.contentLeft+mark.x*mark.v.scale,mark.v.contentTop+mark.y*mark.v.scale);
+  assert.ok(await p.evaluate(()=>!!skyBlastBarrels.sequence),'the physical portrait tap starts the actual barrel action');
+  assert.deepEqual(errors,[]);
+  await context.close();console.log('PASS',map,'portrait startup, upright frame, guided highlight, real drag and barrel tap');
  }
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

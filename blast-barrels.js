@@ -612,14 +612,16 @@
     function tapAt(clientX, clientY, touch = false) {
       if (game.modeRef() !== 'play' || game.z.over || window.skyBite?.locked) return false;
       const canvas = document.getElementById('c');
-      const bounds = canvas.getBoundingClientRect();
+      // The canvas input handlers pass logical pixels (already unscaled).
+      const width = window.__VW(), height = window.__VH();
+      const bounds = { left: 0, top: 0, right: width, bottom: height, width, height };
       if (clientX < bounds.left || clientX > bounds.right ||
           clientY < bounds.top || clientY > bounds.bottom) return false;
       const assist = assistTarget();
       if (assist) {
         const radius = touch ? Math.min(128, Math.max(104,
           Math.min(window.__VW(), window.__VH()) * 0.26)) : 70;
-        if (Math.hypot(assist.sx - (window.__CX?.({clientX, clientY}) ?? clientX), assist.sy - (window.__CY?.({clientX, clientY}) ?? clientY)) <= radius) {
+        if (Math.hypot(assist.sx - clientX, assist.sy - clientY) <= radius) {
           return startAuto(assist.barrel);
         }
       }
@@ -645,7 +647,7 @@
     }
 
     document.getElementById('c').addEventListener('mousedown', event => {
-      if (event.button !== 0 || !tapAt(event.clientX, event.clientY)) return;
+      if (event.button !== 0 || !tapAt(window.__CX(event), window.__CY(event))) return;
       event.preventDefault();
       event.stopImmediatePropagation();
     }, true);
