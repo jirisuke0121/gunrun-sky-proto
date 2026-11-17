@@ -1,26 +1,32 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright');
-(async()=>{const b=await chromium.launch({headless:process.env.HEADED!=='1',executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',args:process.platform==='darwin'?['--no-sandbox']:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});const results=[];try{
+(async()=>{const b=await chromium.launch({headless:process.env.HEADED!=='1',executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});const results=[];fs.mkdirSync('evidence',{recursive:true});try{
 for(const map of ['index.html','canyon.html']){
- const ctx=await b.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true,deviceScaleFactor:3,locale:'ja-JP'});
+ const ctx=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:3,locale:'ja-JP'});
  await ctx.addInitScript(()=>{window.__hold=true;});await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"ok":true,"top":[],"total":0}'}));
- const p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto((process.env.VIEWPORT_URL||'http://127.0.0.1:8894/')+map);await p.waitForFunction(()=>window.skyStartReadiness?.ready,{},{timeout:120000});await p.locator('#bStart').tap();
+ const p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto((process.env.VIEWPORT_URL||'http://127.0.0.1:8894/')+map);await p.waitForFunction(()=>window.skyStartReadiness?.ready,{},{timeout:120000});await p.locator('#bStart').tap();await p.setViewportSize({width:844,height:390});await p.waitForFunction(()=>document.documentElement.dataset.skyPortrait==='false');
  const layout=()=>p.evaluate(()=>{const r=__game.debug.renderer,c=r.domElement,v=skyViewport.snapshot();return{v,ratio:r.getPixelRatio(),buffer:[c.width,c.height],rect:[c.clientWidth,c.clientHeight],aspect:__game.debug.camera.aspect,mode:__game.mode}});
  const valid=async()=>{const s=await layout();assert.deepEqual(s.rect,[s.v.width,s.v.height]);assert.deepEqual(s.buffer,[Math.floor(s.v.width*s.ratio),Math.floor(s.v.height*s.ratio)]);assert.ok(Math.abs(s.aspect-s.v.width/s.v.height)<1e-6);return s;};
  const initial=await valid(),cdp=await ctx.newCDPSession(p);
+ const point=(x,y,id=1)=>p.evaluate(({x,y,id})=>{const v=skyViewport.snapshot();return {x:v.contentLeft+x*v.scale,y:v.contentTop+y*v.scale,id}},{x,y,id});
  const down=async()=>{await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:100,y:250,id:1}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:100,y:195,id:1}]});await p.waitForFunction(()=>__skyInternals.inputState.on);};
  await down();await p.evaluate(()=>dispatchEvent(new Event('blur')));assert.equal(await p.evaluate(()=>__skyInternals.inputState.on),false);assert.equal(await p.evaluate(()=>__game.mode),'pause');await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});await p.locator('#bResume').tap();
  await down();const jump=await p.locator('#tJump').boundingBox();const before=await p.evaluate(()=>skyTelemetryProbe.inspect().jumps.length);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:100,y:195,id:1},{x:jump.x+jump.width/2,y:jump.y+jump.height/2,id:2}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[{x:100,y:195,id:1}]});assert.equal(await p.evaluate(()=>skyTelemetryProbe.inspect().jumps.length),before+1);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  assert.equal(await p.evaluate(()=>__game.S.autoFire),true,'auto-fire is always on (no stop control since 2026-11-14)');assert.equal(await p.locator('#tAutoFire').isVisible(),false);
  for(const id of ['tFlash','tDecoy','tRescue']){if(!await p.locator('#'+id).count())continue;const hits=await p.locator('#'+id).evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));});assert.ok(hits,id+' is hit at its drawn centre');}
  for(let n=0;n<3;n++){
-  await p.setViewportSize({width:390,height:844});await p.waitForFunction(()=>document.documentElement.dataset.skyRotation==='1');
+  await p.setViewportSize({width:390,height:844});await p.waitForFunction(()=>document.documentElement.dataset.skyPortrait==='true'&&skyViewport.snapshot().scale<1);
   assert.equal(await p.locator('#rotate').count(),0);assert.equal(await p.evaluate(()=>skyViewport.blocked),false);assert.equal(await p.evaluate(()=>__game.mode),'play');await valid();
-  const mapped=await p.evaluate(()=>({x:__CX({clientX:140,clientY:100}),y:__CY({clientX:140,clientY:100})}));assert.deepEqual(mapped,{x:100,y:250});
-  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:140,y:100,id:1}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:195,y:100,id:1}]});await p.waitForFunction(()=>__skyInternals.inputState.on&&__skyInternals.inputState.y<0);
+  const start=await point(100,250),move=await point(100,195);
+  const mapped=await p.evaluate(event=>({x:__CX({clientX:event.x,clientY:event.y}),y:__CY({clientX:event.x,clientY:event.y})}),start);assert.ok(Math.abs(mapped.x-100)<1e-6&&Math.abs(mapped.y-250)<1e-6);
+  const frame=await p.locator('#app').boundingBox();assert.ok(frame.width>frame.height&&frame.x>=0&&frame.y>0&&frame.x+frame.width<=391&&frame.y+frame.height<=844);
+  assert.equal(await p.evaluate(()=>document.documentElement.dataset.skyRotation),'0');assert.doesNotMatch(await p.evaluate(()=>document.body.style.transform),/rotate/);
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:30,y:20,id:1}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});assert.equal(await p.evaluate(()=>__skyInternals.inputState.on),false,'letterbox cannot start movement');
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[start]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[move]});await p.waitForFunction(()=>__skyInternals.inputState.on&&__skyInternals.inputState.y<0);
   const rect=await p.locator('#tJump').boundingBox(),before=await p.evaluate(()=>skyTelemetryProbe.inspect().jumps.length);
-  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:195,y:100,id:1},{x:rect.x+rect.width/2,y:rect.y+rect.height/2,id:2}]});
-  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[{x:195,y:100,id:1}]});assert.equal(await p.evaluate(()=>skyTelemetryProbe.inspect().jumps.length),before+1);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-  await p.setViewportSize({width:844,height:390});await p.waitForFunction(()=>document.documentElement.dataset.skyRotation==='0');await valid();
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[move,{x:rect.x+rect.width/2,y:rect.y+rect.height/2,id:2}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[move]});assert.equal(await p.evaluate(()=>skyTelemetryProbe.inspect().jumps.length),before+1);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await p.evaluate(()=>__game.frameOnce(1/60));await p.screenshot({path:'evidence/'+map+'-portrait-upright.png'});
+  await p.setViewportSize({width:844,height:390});await p.waitForFunction(()=>document.documentElement.dataset.skyPortrait==='false');await valid();
  }
 
  // A standalone Safari viewport can change without a window resize. Use the real VisualViewport event path.

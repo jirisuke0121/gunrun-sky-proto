@@ -30,10 +30,10 @@
   // Dim everything except the lit rectangles (even-odd cut-outs), plus a glowing ring around each one.
   function paint() {
     if (!layer || !current) return;
-    const app = $('app'), box = app.getBoundingClientRect();
+    const app = $('app'), box = app.getBoundingClientRect(), scale = window.skyViewport?.snapshot().scale || 1;
     const rects = current.targets().map(el => el.getBoundingClientRect()).filter(r => r.width > 0 && r.height > 0)
-      .map(r => ({ x: r.left - box.left, y: r.top - box.top, w: r.width, h: r.height }));
-    const pad = 6, W = box.width, H = box.height;
+      .map(r => ({ x: (r.left - box.left) / scale, y: (r.top - box.top) / scale, w: r.width / scale, h: r.height / scale }));
+    const pad = 6, W = box.width / scale, H = box.height / scale;
     let d = `M0 0H${W}V${H}H0Z`;
     layer.querySelectorAll('.fg-ring').forEach(el => el.remove());
     for (const r of rects) {
@@ -50,7 +50,7 @@
     if (rects.length) {
       // Keep clear of the whole block the lit numbers belong to (e.g. the three difficulty buttons), not just the numbers.
       const block = current.avoid?.()?.getBoundingClientRect(), keep = block && block.width > 0
-        ? [{ y: block.top - box.top, h: block.height }] : rects;
+        ? [{ y: (block.top - box.top) / scale, h: block.height / scale }] : rects;
       const top = Math.min(...keep.map(r => r.y)), bottom = Math.max(...keep.map(r => r.y + r.h));
       const above = top, below = H - bottom;
       const place = current.place === 'below' || (current.place !== 'above' && below >= above) ? 'below' : 'above';

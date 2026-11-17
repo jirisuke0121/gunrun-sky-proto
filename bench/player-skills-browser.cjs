@@ -34,9 +34,9 @@ fs.mkdirSync('browser-evidence', { recursive: true });
         await page.waitForFunction(() => window.__game && window.skyDecoy && window.skyHumanView && document.body.dataset.skyHumanLoaded === 'true');
         if (layout.width < layout.height) {
           assert.equal(await page.locator('#rotate').count(), 0, 'portrait has no separate screen');
-          assert.equal(await page.evaluate(() => document.documentElement.dataset.skyRotation), '1');
+          assert.equal(await page.evaluate(() => document.documentElement.dataset.skyRotation), '0');
           await context.close();
-          console.log('PASS', id, 'portrait remains a rotated landscape game');
+          console.log('PASS', id, 'portrait keeps an upright landscape frame');
           continue;
         }
         await page.locator('#bStart').click();

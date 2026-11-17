@@ -95,11 +95,11 @@
       const view = target?.anchor && game.hookAssist().inspect(target.anchor);
       spot.hidden = phase === 'success' || !view || !!view.reason;
       if (!spot.hidden) {
-        const bounds = app.getBoundingClientRect(), y = view.y;
+        const y = view.y;
         spot.style.left = view.x + 'px'; spot.style.top = y + 'px';
         spot.classList.toggle('label-below', y < 90);
         // Put the card on the opposite side so it never hides the target.
-        card.classList.toggle('at-top', y > bounds.height * .58);
+        card.classList.toggle('at-top', y > app.clientHeight * .58);
       }
       if (lastPhase !== phase && phase === 'action') document.getElementById('c').focus({ preventScroll: true });
       lastPhase = phase;
