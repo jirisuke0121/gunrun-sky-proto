@@ -14,7 +14,7 @@ pre{white-space:pre-wrap;margin:8px 0 0;font:12px/1.55 ui-monospace,Menlo,monosp
 // 条件を1ラウンドで一巡し、順番をずらして繰り返す(時間経過・発熱の影響を、ラウンド内の対の差で相殺)。
 // 差が60fps上限に隠れないよう、1フレームに K 回ぶん余計に描画して差を (K+1) 倍に増幅し、結果は (K+1) で割って1回あたりに戻す。
 // 参考として「描画解像度×0.75」も測る(画質を軽量にしたときの効きの目安)。影・アンチエイリアスは切り替えに作り直しが要るため測らない。
-// ゲーム本体は変更しない。プレイ記録は送らない(計測中だけ iframe 内の fetch / sendBeacon を止める)。ゲームは終了させない。
+// ゲーム本体は変更しない。プレイ記録は送らない(iframe 内の fetch / sendBeacon を、ページを閉じるまで止めたままにする)。
 // 開くと自動で始まる(?auto=0 で手動)。調整: ?slice=1200 &rounds=6 &k=3 &settle=300 &stall=400 &pr=(描画倍率を固定)
 const q = new URLSearchParams(location.search);
 const PR = +q.get('pr') || 0, STALL = +q.get('stall') || 400, SLICE = +q.get('slice') || 1200, ROUNDS = +q.get('rounds') || 6, K = +q.get('k') || 3, SETTLE = +q.get('settle') || 300, AUTO = q.get('auto') !== '0';
@@ -68,9 +68,10 @@ async function run() {
     ...present.map(([k, label]) => ({ key: 'no_' + k, label: label + 'なし', off: [k], res: 1 })),
     { key: 'no_all', label: `${present.length}つとも なし`, off: present.map(f => f[0]), res: 1 },
     { key: 'res75', label: '参考:描画解像度×0.75', off: [], res: .75 }];
-  // 記録を送らない: 計測中だけ iframe の送信手段を止める(ゲームは終了させないので通常は送られないが、念のため)
-  const origFetch = W.fetch, origBeacon = W.navigator.sendBeacon?.bind(W.navigator);
-  W.fetch = () => Promise.resolve(new W.Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }));
+  // 記録を送らない: iframe の送信手段をページを閉じるまで止めたままにする。
+  // ゲームは120秒で自分で終わり、そのとき記録を本番へ送って順位に載ってしまう(2026-11-20に実際に起きた)。計測後に戻してはいけない。
+  // 返事は「保存済み」の形にして、未送信として残って次の起動で再送されないようにする。
+  W.fetch = () => Promise.resolve(new W.Response('{"ok":true,"top":[],"total":0,"recordProtocol":2}', { status: 200, headers: { 'content-type': 'application/json' } }));
   try { W.navigator.sendBeacon = () => true; } catch {}
   G.startGame(); G.P.invuln = 1e9;
   const prevRatio = rd.getPixelRatio();
@@ -98,7 +99,7 @@ async function run() {
       }
     }
   } finally {
-    extra = 0; rd.render = origRender; apply({ off: [], res: 1 }); rd.setPixelRatio(prevRatio); W.fetch = origFetch; try { if (origBeacon) W.navigator.sendBeacon = origBeacon; } catch {}
+    extra = 0; rd.render = origRender; apply({ off: [], res: 1 }); rd.setPixelRatio(prevRatio);
   }
   const valid = results.base.map((_, i) => COMBOS.every(c => Number.isFinite(results[c.key][i])));
   const keep = k => results[k].filter((_, i) => valid[i]);
