@@ -1,0 +1,163 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>空中回廊・画質の軸と画質プリセットの重さ計測</title>
+<style>
+html,body{margin:0;height:100%;background:#111;color:#fff;font:14px/1.5 system-ui,sans-serif}
+iframe{position:fixed;inset:0;width:100%;height:100%;border:0}
+#panel{position:fixed;left:8px;top:8px;z-index:9;width:min(92vw,560px);max-height:90vh;overflow:auto;background:#000d;padding:10px 12px;border-radius:10px}
+button{font:inherit;padding:8px 14px;margin-right:6px}
+pre{white-space:pre-wrap;margin:8px 0 0;font:12px/1.55 ui-monospace,Menlo,monospace}
+</style>
+<iframe id="g" src="../index.html" allow="autoplay"></iframe>
+<div id="panel"><b>画質の軸・プリセットの重さ計測 #4（開くだけで自動）</b><div style="margin-top:6px"><button id="go" disabled>読み込み中…</button><button id="copy" hidden>結果をコピー</button></div><pre id="out">ゲームの読み込みを待っています。</pre></div>
+<script>
+// 見た目の追加分は約2ms(12msのうち)で主因ではなかった(#2/#3)。重さの大半は画素に比例しない部分(解像度×0.6でも約2.4msしか減らない)。
+// そこで、画質の軸(影の有無・影の大きさ・描画解像度)と、画質プリセット(標準・軽量・最軽量)を、同じ画面・同じ場面で一括して測る。
+// 1回の読み込みの中で条件を切り替えるので、読み込み直しより精度が高い(ラウンド内の対の差で時間経過・発熱を相殺)。
+// 影はゲームが1フレームおきに更新しているので、計測でも描画ごとに交互に更新して、実際のプレイと同じ割合で影を数える。
+// 差が60fps上限に隠れないよう、1フレームに K 回ぶん余計に描画して差を (K+1) 倍に増幅し、結果は (K+1) で割って1回あたりに戻す。
+// ゲーム本体は変更しない。プレイ記録は送らない(iframe の fetch / sendBeacon を、ページを閉じるまで止めたままにする)。
+// 開くと自動で始まる(?auto=0 で手動)。調整: ?slice=1200 &rounds=10 &k=3 &settle=800 &stall=400
+const q = new URLSearchParams(location.search);
+const PR = +q.get('pr') || 0, STALL = +q.get('stall') || 400, SLICE = +q.get('slice') || 1200, ROUNDS = +q.get('rounds') || 10, K = +q.get('k') || 3, SETTLE = +q.get('settle') || 800, AUTO = q.get('auto') !== '0';
+const $ = id => document.getElementById(id), frame = $('g'), out = $('out'), go = $('go'), copy = $('copy');
+let running = false, lastText = '', stalls = 0, retries = 0;
+
+const ready = () => { try { const W = frame.contentWindow; return !!(W.__game && W.__skyInternals && W.document.getElementById('bStart') && !W.document.getElementById('bStart').disabled); } catch { return false; } };
+let waited = 0;
+const poll = setInterval(() => {
+  waited += 250;
+  if (ready()) {
+    clearInterval(poll); go.disabled = false; go.textContent = '計測し直す';
+    if (AUTO) { out.textContent = '準備できました。3秒後に自動で計測を始めます（約1分半・画面に触れない）。'; setTimeout(() => start(), 3000); }
+    else out.textContent = '準備できました。ボタンを押すと、ゲームを自動で開始して計測します。';
+  } else if (waited > 120000) { clearInterval(poll); out.textContent = 'ゲームの読み込みが2分以内に終わりませんでした。ページを開き直してください。'; }
+}, 250);
+
+const mean = a => a.reduce((s, v) => s + v, 0) / a.length;
+const sd = a => { if (a.length < 2) return 0; const m = mean(a); return Math.sqrt(a.reduce((s, v) => s + (v - m) ** 2, 0) / (a.length - 1)); };
+const trimmedMean = a => { const s = a.slice().sort((x, y) => x - y), cut = Math.floor(s.length * .05); return mean(s.slice(0, s.length - cut || undefined)); };
+const fmt = (v, d = 2) => (v >= 0 ? '+' : '') + v.toFixed(d);
+
+function sampler(W, ms) {
+  return new Promise(res => {
+    const iv = []; let last = null, t0 = null;
+    const tick = t => { if (last !== null) iv.push(t - last); last = t; t0 ??= t; if (t - t0 >= ms) return res(iv); W.requestAnimationFrame(tick); };
+    W.requestAnimationFrame(tick);
+  });
+}
+// 画面が隠れる・タブが止まると描画タイマーが止まり、数百ms〜数秒の間隔が混じる。STALL(既定400ms)超は停止として除外し回数を数える。
+// 有効な間隔が5個未満、または1割超が停止なら、その条件はやり直す(最大3回)。
+async function measure(W, ms) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const all = await sampler(W, ms), good = all.filter(v => v <= STALL);
+    stalls += all.length - good.length;
+    if (good.length >= 5 && all.length - good.length <= Math.ceil(all.length * .1)) return trimmedMean(good);
+    retries++;
+  }
+  return NaN;
+}
+const named = (scene, cam, name) => { const a = []; scene.traverse(o => { if (o.name === name) a.push(o); }); cam.traverse?.(o => { if (o.name === name && !a.includes(o)) a.push(o); }); return a; };
+
+async function run() {
+  if (running) return; running = true; go.disabled = true; copy.hidden = true; stalls = 0; retries = 0;
+  const W = frame.contentWindow, G = W.__game, I = W.__skyInternals, rd = G.debug.renderer, scene = I.ue;
+  // 記録を送らない: iframe の送信手段をページを閉じるまで止めたままにする(2026-11-20に本番へ記録が入った事故の再発防止)。
+  W.fetch = () => Promise.resolve(new W.Response('{"ok":true,"top":[],"total":0,"recordProtocol":2}', { status: 200, headers: { 'content-type': 'application/json' } }));
+  try { W.navigator.sendBeacon = () => true; } catch {}
+  G.startGame(); G.P.invuln = 1e9;
+  const prevRatio = rd.getPixelRatio();
+  let extra = 0, shadowTick = 0; const origRender = rd.render;
+  // 影は1フレームおきに更新(ゲームと同じ)。描画ごとに交互に更新フラグを立てる。
+  const preShadow = () => { if (rd.shadowMap.enabled) rd.shadowMap.needsUpdate = (shadowTick++ & 1) === 0; };
+  rd.render = function (s, c) {
+    if (s === scene) {
+      if (extra > 0) { const ac = rd.autoClear; rd.autoClear = true; for (let i = 0; i < extra; i++) { preShadow(); origRender.call(rd, s, c); } rd.autoClear = ac; }
+      preShadow();
+    }
+    return origRender.call(rd, s, c);
+  };
+  // 影の切り替え: render-quality.js の apply() と同じ手順(影の有無・影の大きさ・シェーダーの作り直し)。
+  const originalSizes = new Map(); let shadowMode = 'full';
+  const setShadow = mode => {
+    if (mode === shadowMode) return; shadowMode = mode;
+    const on = mode !== 'off', shaderChange = rd.shadowMap.enabled !== on; rd.shadowMap.enabled = on;
+    scene.traverse(n => {
+      if (!n.isLight || !n.shadow) return;
+      if (!originalSizes.has(n)) originalSizes.set(n, n.shadow.mapSize.clone());
+      const o = originalSizes.get(n), w = mode === '1024' ? 1024 : o.x, h = mode === '1024' ? 1024 : o.y;
+      if (n.shadow.mapSize.x === w && n.shadow.mapSize.y === h) return;
+      n.shadow.map?.dispose(); n.shadow.map = null; n.shadow.mapPass?.dispose(); n.shadow.mapPass = null; n.shadow.mapSize.set(w, h); n.shadow.needsUpdate = true;
+    });
+    rd.shadowMap.needsUpdate = true;
+    if (shaderChange) { const mats = new Set(); for (const sc of [I.ue, I.fo]) sc?.traverse(n => { if (n.material) for (const m of Array.isArray(n.material) ? n.material : [n.material]) mats.add(m); }); for (const m of mats) m.needsUpdate = true; }
+  };
+  let baseRatio = prevRatio;
+  const ratioOf = v => v === 'base' ? baseRatio : Math.min(v, baseRatio);
+  const apply = c => { setShadow(c.shadow); const want = ratioOf(c.ratio); if (Math.abs(rd.getPixelRatio() - want) > 1e-3) rd.setPixelRatio(want); };
+  const COMBOS = [
+    { key: 'base', label: '現状(影あり・倍率そのまま)', shadow: 'full', ratio: 'base' },
+    { key: 'shadow_off', label: '影なし', shadow: 'off', ratio: 'base' },
+    { key: 'shadow_1024', label: '影を小さく(1024)', shadow: '1024', ratio: 'base' },
+    { key: 'res_1', label: '描画倍率を1.0に', shadow: 'full', ratio: 1 },
+    { key: 'res_05', label: '描画倍率を0.5に', shadow: 'full', ratio: .5 },
+    { key: 'p_balanced', label: 'プリセット「標準」(1.0倍・影1024)', shadow: '1024', ratio: 1 },
+    { key: 'p_perf', label: 'プリセット「軽量」(0.75倍・影なし)', shadow: 'off', ratio: .75 },
+    { key: 'p_min', label: 'プリセット「最軽量」(0.5倍・影なし)', shadow: 'off', ratio: .5 },
+  ];
+  const results = Object.fromEntries(COMBOS.map(c => [c.key, []]));
+  try {
+    out.textContent = 'ゲームを始めています…'; await new Promise(r => setTimeout(r, 2500));
+    baseRatio = rd.getPixelRatio();
+    extra = K;
+    for (let r = 0; r < ROUNDS; r++) {
+      for (let j = 0; j < COMBOS.length; j++) {
+        const c = COMBOS[(j + r) % COMBOS.length];
+        apply(c); out.textContent = `計測中… ラウンド ${r + 1}/${ROUNDS}・${j + 1}/${COMBOS.length}（画面に触れないでください）`;
+        await sampler(W, SETTLE);
+        results[c.key].push(await measure(W, SLICE));
+      }
+    }
+  } finally {
+    extra = 0; rd.render = origRender; setShadow('full'); rd.setPixelRatio(prevRatio);
+  }
+  const valid = results.base.map((_, i) => COMBOS.every(c => Number.isFinite(results[c.key][i])));
+  const keep = k => results[k].filter((_, i) => valid[i]);
+  const basePer = valid.some(Boolean) ? mean(keep('base')) / (K + 1) : NaN;
+  const stat = key => {
+    const d = keep(key).map((v, i) => (v - keep('base')[i]) / (K + 1)); // 現状との差(ms/1回)。負=正=その条件のほうが短い
+    if (d.length < 3) return { n: d.length, saved: NaN };
+    const saved = -mean(d), s = sd(d), se = s / Math.sqrt(d.length), t = se ? saved / se : 0;
+    const level = t < 2 && Math.abs(saved) >= .3 ? '判定不能(ばらつき大)' : saved >= 1 ? '大きい' : saved >= .3 ? '小さい' : '誤差';
+    return { n: d.length, saved, s, t, level, pct: saved / basePer * 100 };
+  };
+  const line = (label, st) => st.n < 3 ? `${label}: 有効ラウンドが${st.n}回で判定不能` : `${label}: 消すと ${fmt(st.saved)} ms（約${fmt(st.pct, 1)}%）±${st.s.toFixed(2)} → ${st.level}`;
+  const stats = Object.fromEntries(COMBOS.slice(1).map(c => [c.key, stat(c.key)]));
+  const rq = W.skyRenderQuality?.snapshot?.() || {};
+  const row = c => { const st = stats[c.key]; return st.n < 3 ? `・${c.label}: 有効ラウンドが${st.n}回で判定不能` : `・${c.label}: ${fmt(st.saved)} ms 軽い（約${fmt(st.pct, 1)}%、±${st.s.toFixed(2)}、t=${st.t.toFixed(1)}）→ 1回 約${(basePer - st.saved).toFixed(1)} ms｜${st.level}`; };
+  const effective = COMBOS.slice(1).filter(c => ['大きい'].includes(stats[c.key].level)).sort((a, b) => stats[b.key].saved - stats[a.key].saved);
+  const lines = [
+    `【結論】${effective.length ? '効くもの: ' + effective.map(c => `${c.label}(${fmt(stats[c.key].saved)}ms)`).join('、') : 'はっきり効くものは見えませんでした（判定不能が多いときは冷ましてもう一度）'}`,
+    '(数字は「1回の描画あたりms」。60fpsは16.7ms。差＝現状 − その条件。正なら軽くなる。1ms以上=大きい、0.3〜1ms=小さい。%は現状に対する割合)',
+    '',
+    `・現状(影あり・倍率${rq.pixelRatio ?? baseRatio}) 1回 約 ${Number.isFinite(basePer) ? basePer.toFixed(1) : '?'} ms`,
+    '【1つずつ】',
+    ...['shadow_off', 'shadow_1024', 'res_1', 'res_05'].map(k => row(COMBOS.find(c => c.key === k))),
+    '【画質プリセット（倍率と影の組み合わせ）】',
+    ...['p_balanced', 'p_perf', 'p_min'].map(k => row(COMBOS.find(c => c.key === k))),
+    '',
+    `有効ラウンド ${valid.filter(Boolean).length}/${ROUNDS}、描画停止の検知 ${stalls}回、条件のやり直し ${retries}回`,
+    `現状: 間隔(増幅${K + 1}倍) ${Number.isFinite(basePer) ? (basePer * (K + 1)).toFixed(1) : '?'} ms → 1回あたり約 ${Number.isFinite(basePer) ? basePer.toFixed(1) : '?'} ms`,
+    `端末: ${navigator.userAgent.replace(/^Mozilla\/5.0 /, '').slice(0, 90)}`,
+    `画面: ${innerWidth}x${innerHeight} DPR${devicePixelRatio} / 描画画質: ${rq.mode ?? '?'} 倍率${baseRatio} バッファ約${Math.round(innerWidth * baseRatio)}x${Math.round(innerHeight * baseRatio)} 影${rq.shadows ? 'あり' : 'なし'}`,
+    `設定: 1条件${SLICE}ms × ${COMBOS.length}条件 × ${ROUNDS}ラウンド、増幅K=${K}、日時 ${new Date().toISOString()}`,
+    '※影は1フレームおき更新(実際と同じ)で測る。アンチエイリアスは作り直しが要るので測っていない。端末が熱いと数字が動くので、迷ったら冷めてからもう一度。',
+  ];
+  lastText = lines.join('\n'); out.textContent = lastText;
+  go.textContent = '計測し直す'; go.disabled = false; copy.hidden = false; running = false;
+  window.__abResult = { K, SLICE, ROUNDS, stats, basePer, results };
+}
+const start = () => run().catch(e => { out.textContent = '計測が止まりました: ' + (e && e.message || e); running = false; go.disabled = false; });
+go.addEventListener('click', start);
+copy.addEventListener('click', async () => { try { await navigator.clipboard.writeText(lastText); copy.textContent = 'コピーしました'; } catch { const r = document.createRange(); r.selectNodeContents(out); getSelection().removeAllRanges(); getSelection().addRange(r); copy.textContent = '文字を選択しました'; } });
+</script>
+</html>
