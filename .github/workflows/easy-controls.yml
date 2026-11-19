@@ -1,7 +1,7 @@
 name: Easy touch controls
 on:
   pull_request:
-    paths: ['follow-camera.*', 'control-style.*', 'onboarding.*', 'i18n*.js', 'guided-*', 'index.html', 'canyon.html', 'bench/auto-follow*', 'bench/screen-stick*', 'bench/follow-camera.test.cjs', 'bench/easy-controls-browser.cjs', '.github/workflows/easy-controls.yml']
+    paths: ['follow-camera.*', 'desktop-look-fallback.js', 'control-style.*', 'onboarding.*', 'i18n*.js', 'guided-*', 'index.html', 'canyon.html', 'bench/auto-follow*', 'bench/screen-stick*', 'bench/follow-camera.test.cjs', 'bench/easy-controls-browser.cjs', 'bench/trackpad-look-browser.cjs', '.github/workflows/easy-controls.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,6 +30,8 @@ jobs:
           fi
       - name: Actual touch delivery and bilingual phone chooser
         run: node bench/easy-controls-browser.cjs
+      - name: Trackpad look (left drag in the trial, two-finger swipe)
+        run: node bench/trackpad-look-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

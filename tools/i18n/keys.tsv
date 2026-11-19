@@ -947,6 +947,7 @@
 946	鉄棒の高さを通ると自動でつかむ	Passing a bar's height grabs it automatically
 947	ジャンプで先へ	Jump onward
 948	コツ	Tips
+949	マウスが固定されない場合は、右ドラッグまたはトラックパッドの2本指スワイプで視点操作	If the mouse isn't captured, right-drag or swipe with 2 fingers on the trackpad to look around
 p0	^(\\d+)秒停止$	Stun $1s
 p1	^技あと(\\d+)$	$1 moves
 p2	^装填中 · あと([\\d.]+)秒$	Reloading · $1 s left
