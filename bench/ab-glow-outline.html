@@ -1,0 +1,107 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>空中回廊・太陽グロー×輪郭線 A/B計測</title>
+<style>
+html,body{margin:0;height:100%;background:#111;color:#fff;font:14px/1.5 system-ui,sans-serif}
+iframe{position:fixed;inset:0;width:100%;height:100%;border:0}
+#panel{position:fixed;left:8px;top:8px;z-index:9;width:min(92vw,560px);max-height:90vh;overflow:auto;background:#000d;padding:10px 12px;border-radius:10px}
+button{font:inherit;padding:8px 14px;margin-right:6px}
+pre{white-space:pre-wrap;margin:8px 0 0;font:12px/1.55 ui-monospace,Menlo,monospace}
+</style>
+<iframe id="g" src="../index.html" allow="autoplay"></iframe>
+<div id="panel"><b>太陽グロー × 輪郭線　A/B計測</b><div style="margin-top:6px"><button id="go" disabled>読み込み中…</button><button id="copy" hidden>結果をコピー</button></div><pre id="out">ゲームの読み込みを待っています。</pre></div>
+<script>
+// 同じ画面・同じ場面で、太陽グロー(Sun glow)と輪郭線(Ink outline)の表示を切り替えながら描画時間を測る。
+// 4条件(両方あり/グローなし/輪郭線なし/両方なし)を1ラウンドで一巡し、順番をずらして繰り返す(時間経過・発熱の影響を相殺)。
+// 差が60fps上限に隠れないよう、1フレームあたり K 回ぶん余計に描画して差を (K+1) 倍に増幅し、結果は (K+1) で割って1回あたりに戻す。
+// ゲーム本体は変更しない。プレイ記録は送らない(計測中だけ iframe 内の fetch / sendBeacon を止める)。ゲームは終了させない。
+// 調整: ?slice=1500(1条件の計測ms) &rounds=6 &k=3 &settle=300
+const q = new URLSearchParams(location.search);
+const SLICE = +q.get('slice') || 1500, ROUNDS = +q.get('rounds') || 6, K = +q.get('k') || 3, SETTLE = +q.get('settle') || 300;
+const $ = id => document.getElementById(id), frame = $('g'), out = $('out'), go = $('go'), copy = $('copy');
+const COMBOS = [['both', 'グローあり・輪郭線あり(現状)', true, true], ['noGlow', 'グローなし', false, true], ['noInk', '輪郭線なし', true, false], ['neither', '両方なし', false, false]];
+let running = false, lastText = '';
+
+const ready = () => { try { const W = frame.contentWindow; return !!(W.__game && W.__skyInternals && W.skyInkOutline && W.skyMotes && W.document.getElementById('bStart') && !W.document.getElementById('bStart').disabled); } catch { return false; } };
+let waited = 0;
+const poll = setInterval(() => {
+  waited += 250;
+  if (ready()) { clearInterval(poll); go.disabled = false; go.textContent = '計測を始める（約1分・画面に触れない）'; out.textContent = '準備できました。ボタンを押すと、ゲームを自動で開始して計測します。'; }
+  else if (waited > 120000) { clearInterval(poll); out.textContent = 'ゲームの読み込みが2分以内に終わりませんでした。ページを開き直してください。'; }
+}, 250);
+
+const mean = a => a.reduce((s, v) => s + v, 0) / a.length;
+const sd = a => { if (a.length < 2) return 0; const m = mean(a); return Math.sqrt(a.reduce((s, v) => s + (v - m) ** 2, 0) / (a.length - 1)); };
+const trimmedMean = a => { const s = a.slice().sort((x, y) => x - y), cut = Math.floor(s.length * .05); return mean(s.slice(0, s.length - cut || undefined)); };
+const fmt = (v, d = 2) => (v >= 0 ? '+' : '') + v.toFixed(d);
+
+function sampler(W, ms) {
+  return new Promise(res => {
+    const iv = []; let last = null, t0 = null;
+    const tick = t => { if (last !== null) iv.push(t - last); last = t; t0 ??= t; if (t - t0 >= ms) return res(iv); W.requestAnimationFrame(tick); };
+    W.requestAnimationFrame(tick);
+  });
+}
+const named = (scene, cam, name) => { const a = []; scene.traverse(o => { if (o.name === name) a.push(o); }); cam.traverse?.(o => { if (o.name === name && !a.includes(o)) a.push(o); }); return a; };
+
+async function run() {
+  if (running) return; running = true; go.disabled = true; copy.hidden = true;
+  const W = frame.contentWindow, G = W.__game, I = W.__skyInternals, rd = G.debug.renderer, scene = I.ue, cam = I.Se;
+  const glow = named(scene, cam, 'Sun glow'), ink = named(scene, cam, 'Ink outline');
+  if (!glow.length || !ink.length) { out.textContent = `対象が見つかりません(グロー${glow.length}個・輪郭線${ink.length}個)。mood=noon や look=classic では使えません。`; running = false; go.disabled = false; return; }
+  // 記録を送らない: 計測中だけ iframe の送信手段を止める(ゲームは終了させないので通常は送られないが、念のため)
+  const origFetch = W.fetch, origBeacon = W.navigator.sendBeacon?.bind(W.navigator);
+  W.fetch = () => Promise.resolve(new W.Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }));
+  try { W.navigator.sendBeacon = () => true; } catch {}
+  G.startGame(); G.P.invuln = 1e9;
+  let extra = 0; const origRender = rd.render;
+  rd.render = function (s, c) {
+    if (s === scene && extra > 0) { const ac = rd.autoClear; rd.autoClear = true; for (let i = 0; i < extra; i++) origRender.call(rd, s, c); rd.autoClear = ac; }
+    return origRender.call(rd, s, c);
+  };
+  const apply = (g, o) => { glow.forEach(x => x.visible = g); ink.forEach(x => x.visible = o); };
+  const results = Object.fromEntries(COMBOS.map(c => [c[0], []]));
+  try {
+    out.textContent = 'ゲームを始めています…'; await new Promise(r => setTimeout(r, 2500));
+    extra = K;
+    for (let r = 0; r < ROUNDS; r++) {
+      for (let j = 0; j < COMBOS.length; j++) {
+        const [key, , g, o] = COMBOS[(j + r) % COMBOS.length];
+        apply(g, o); out.textContent = `計測中… ラウンド ${r + 1}/${ROUNDS}（画面に触れないでください）`;
+        await sampler(W, SETTLE);
+        results[key].push(trimmedMean(await sampler(W, SLICE)));
+      }
+    }
+  } finally {
+    extra = 0; rd.render = origRender; apply(true, true); W.fetch = origFetch; try { if (origBeacon) W.navigator.sendBeacon = origBeacon; } catch {}
+  }
+  const per = k => results[k].map((v, i) => (v - results.both[i]) / (K + 1)); // 現状との差(ms/フレーム)。負=除去で短くなる
+  const verdict = (label, a) => {
+    const saved = -mean(a), s = sd(a), se = s / Math.sqrt(a.length), t = se ? saved / se : 0;
+    // 差がばらつきに埋もれている(t<2)ときは、大きく見えても断定しない
+    const level = t < 2 && Math.abs(saved) >= .3 ? '判定不能(ばらつきが大きい。冷めてからもう一度)'
+      : saved >= 1 ? '大きい(除去する価値あり)' : saved >= .3 ? '小さい(あれば効く程度)' : '誤差(除去しても変わらない)';
+    return `${label}: 除去で ${fmt(saved)} ms/フレーム（ばらつき ±${s.toFixed(2)}、t=${t.toFixed(1)}）→ ${level}`;
+  };
+  const dG = per('noGlow'), dO = per('noInk'), dB = per('neither');
+  const rq = W.skyRenderQuality?.snapshot?.() || {};
+  const lines = [
+    '【結果】現状との差を、1回の描画あたりms(60fpsなら16.7ms)で表します。',
+    verdict('太陽グロー', dG), verdict('輪郭線', dO), verdict('両方', dB),
+    `(足し算の目安: グロー+輪郭線 = ${fmt(-(mean(dG) + mean(dO)))} / 両方なしの実測 = ${fmt(-mean(dB))})`,
+    '',
+    `現状の間隔(増幅${K + 1}倍): ${mean(results.both).toFixed(1)} ms → 1回あたり約 ${(mean(results.both) / (K + 1)).toFixed(1)} ms`,
+    ...COMBOS.map(c => `  ${c[1]}: ${(mean(results[c[0]]) / (K + 1)).toFixed(2)} ms/回  [${results[c[0]].map(v => (v / (K + 1)).toFixed(1)).join(', ')}]`),
+    '',
+    `端末: ${navigator.userAgent.replace(/^Mozilla\/5.0 /, '').slice(0, 90)}`,
+    `画面: ${innerWidth}x${innerHeight} DPR${devicePixelRatio} / 描画画質: ${rq.mode ?? '?'} 倍率${rq.pixelRatio ?? '?'} バッファ${rq.buffer ? rq.buffer.join('x') : '?'} 影${rq.shadows ? 'あり' : 'なし'}`,
+    `設定: 1条件${SLICE}ms × ${COMBOS.length}条件 × ${ROUNDS}ラウンド、増幅K=${K}、日時 ${new Date().toISOString()}`,
+    '※差が±ばらつきより小さいときは誤差です。端末が熱いと数字が動くので、迷ったら冷めてからもう一度。',
+  ];
+  lastText = lines.join('\n'); out.textContent = lastText;
+  go.textContent = 'もう一度計測'; go.disabled = false; copy.hidden = false; running = false;
+  window.__abResult = { K, SLICE, ROUNDS, results, glowSaved: -mean(dG), inkSaved: -mean(dO), bothSaved: -mean(dB) };
+}
+go.addEventListener('click', () => run().catch(e => { out.textContent = '計測が止まりました: ' + (e && e.message || e); running = false; go.disabled = false; }));
+copy.addEventListener('click', async () => { try { await navigator.clipboard.writeText(lastText); copy.textContent = 'コピーしました'; } catch { const r = document.createRange(); r.selectNodeContents(out); getSelection().removeAllRanges(); getSelection().addRange(r); copy.textContent = '文字を選択しました'; } });
+</script>
+</html>
