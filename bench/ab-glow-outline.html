@@ -16,7 +16,7 @@ pre{white-space:pre-wrap;margin:8px 0 0;font:12px/1.55 ui-monospace,Menlo,monosp
 // ゲーム本体は変更しない。プレイ記録は送らない(計測中だけ iframe 内の fetch / sendBeacon を止める)。ゲームは終了させない。
 // 調整: ?slice=1500(1条件の計測ms) &rounds=6 &k=3 &settle=300
 const q = new URLSearchParams(location.search);
-const STALL = +q.get("stall") || 400, SLICE = +q.get('slice') || 1500, ROUNDS = +q.get('rounds') || 6, K = +q.get('k') || 3, SETTLE = +q.get('settle') || 300;
+const PR = +q.get('pr') || 0, STALL = +q.get("stall") || 400, SLICE = +q.get('slice') || 1500, ROUNDS = +q.get('rounds') || 6, K = +q.get('k') || 3, SETTLE = +q.get('settle') || 300;
 const $ = id => document.getElementById(id), frame = $('g'), out = $('out'), go = $('go'), copy = $('copy');
 const COMBOS = [['both', 'グローあり・輪郭線あり(現状)', true, true], ['noGlow', 'グローなし', false, true], ['noInk', '輪郭線なし', true, false], ['neither', '両方なし', false, false]];
 let running = false, lastText = '';
@@ -65,6 +65,8 @@ async function run() {
   W.fetch = () => Promise.resolve(new W.Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }));
   try { W.navigator.sendBeacon = () => true; } catch {}
   G.startGame(); G.P.invuln = 1e9;
+  const prevRatio = rd.getPixelRatio();
+  const holdRatio = () => { if (PR && Math.abs(rd.getPixelRatio() - PR) > 1e-3) rd.setPixelRatio(PR); };
   let extra = 0; const origRender = rd.render;
   rd.render = function (s, c) {
     if (s === scene && extra > 0) { const ac = rd.autoClear; rd.autoClear = true; for (let i = 0; i < extra; i++) origRender.call(rd, s, c); rd.autoClear = ac; }
@@ -78,13 +80,13 @@ async function run() {
     for (let r = 0; r < ROUNDS; r++) {
       for (let j = 0; j < COMBOS.length; j++) {
         const [key, , g, o] = COMBOS[(j + r) % COMBOS.length];
-        apply(g, o); out.textContent = `計測中… ラウンド ${r + 1}/${ROUNDS}（画面に触れないでください）`;
+        holdRatio(); apply(g, o); out.textContent = `計測中… ラウンド ${r + 1}/${ROUNDS}（画面に触れないでください）`;
         await sampler(W, SETTLE);
         results[key].push(await measure(W, SLICE));
       }
     }
   } finally {
-    extra = 0; rd.render = origRender; apply(true, true); W.fetch = origFetch; try { if (origBeacon) W.navigator.sendBeacon = origBeacon; } catch {}
+    extra = 0; rd.render = origRender; apply(true, true); if (PR) rd.setPixelRatio(prevRatio); W.fetch = origFetch; try { if (origBeacon) W.navigator.sendBeacon = origBeacon; } catch {}
   }
   const valid = results.both.map((_, i) => COMBOS.every(c => Number.isFinite(results[c[0]][i])));
   const keep = k => results[k].filter((_, i) => valid[i]);
@@ -109,7 +111,7 @@ async function run() {
     ...COMBOS.map(c => `  ${c[1]}: ${(mean(keep(c[0])) / (K + 1)).toFixed(2)} ms/回  [${results[c[0]].map(v => Number.isFinite(v) ? (v / (K + 1)).toFixed(1) : '無効').join(', ')}]`),
     '',
     `端末: ${navigator.userAgent.replace(/^Mozilla\/5.0 /, '').slice(0, 90)}`,
-    `画面: ${innerWidth}x${innerHeight} DPR${devicePixelRatio} / 描画画質: ${rq.mode ?? '?'} 倍率${rq.pixelRatio ?? '?'} バッファ${rq.buffer ? rq.buffer.join('x') : '?'} 影${rq.shadows ? 'あり' : 'なし'}`,
+    `画面: ${innerWidth}x${innerHeight} DPR${devicePixelRatio} / 描画画質: ${rq.mode ?? '?'} 倍率${PR ? PR + '(?prで指定)' : rq.pixelRatio ?? '?'} バッファ${PR ? '約' + Math.round(innerWidth * PR) + 'x' + Math.round(innerHeight * PR) : rq.buffer ? rq.buffer.join('x') : '?'} 影${rq.shadows ? 'あり' : 'なし'}`,
     `設定: 1条件${SLICE}ms × ${COMBOS.length}条件 × ${ROUNDS}ラウンド、増幅K=${K}、日時 ${new Date().toISOString()}`,
     '※差が±ばらつきより小さいときは誤差です。端末が熱いと数字が動くので、迷ったら冷めてからもう一度。',
   ];
