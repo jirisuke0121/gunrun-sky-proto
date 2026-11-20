@@ -22,6 +22,10 @@ pre{white-space:pre-wrap;margin:8px 0 0;font:12px/1.55 ui-monospace,Menlo,monosp
 // 記録は送らない: iframe の fetch / sendBeacon を止める。画質の設定は一時的に書き換え、読み込み後すぐ元に戻す。
 const q = new URLSearchParams(location.search);
 const LAPS = +q.get('laps') || 4, LAP_SEC = +q.get('lapSec') || 118, AUTO = q.get('auto') !== '0', QUALITY = q.get('q') || '';
+// 周ごとに再読み込みする方式: ?reload=1 (同じページで連続した周と比べ、周の悪化が「ページ内に溜まる物」か「端末の熱」かを分ける)
+//   連続(既定)で周が悪化し、?reload=1 では悪化しなければ、ページ内に溜まる物が原因。どちらも悪化するなら熱。冷却は間に10分以上。
+const RELOAD = q.get('reload') === '1', SKEY = 'soak-reload-v1';
+function loadStored() { try { const st = JSON.parse(sessionStorage.getItem(SKEY)); return st && Date.now() - st.at < 15 * 60 * 1000 && Array.isArray(st.laps) ? st : null; } catch { return null; } }
 const QKEY = 'gunrun-render-quality-v1', QUALITIES = ['high', 'balanced', 'performance', 'minimum'];
 const $ = id => document.getElementById(id), frame = $('g'), out = $('out'), go = $('go'), copy = $('copy');
 let lastText = '', running = false, finished = false, origQuality = null, qTouched = false, wake = null, traj = null;
@@ -52,10 +56,14 @@ async function run() {
   W.fetch = () => Promise.resolve(new W.Response('{"ok":true,"top":[],"total":0,"recordProtocol":2}', { status: 200, headers: { 'content-type': 'application/json' } }));
   try { W.navigator.sendBeacon = () => true; } catch {}
   const rq = W.skyRenderQuality?.snapshot?.() || {};
-  const laps = [];
-  let stalls = 0, errors = 0;
-  for (let lap = 1; lap <= LAPS; lap++) {
+  let laps = [], stalls = 0, errors = 0, firstLap = 1, lastLap = LAPS;
+  if (RELOAD) { // 1周ごとにページごと再読み込みする方式: 前の周までの結果を引き継ぎ、今回は1周だけ測る
+    const st = loadStored(); if (st) { laps = st.laps; stalls = st.stalls; errors = st.errors; }
+    firstLap = lastLap = laps.length + 1;
+  }
+  for (let lap = firstLap; lap <= lastLap; lap++) {
     G.startGame(); G.P.invuln = 1e9; W.skyPerfTrace?.reset?.();
+    const res0 = resources(W, G, I);
     const t0 = performance.now(), iv = []; let last = null, done = false, prevPos = null, prevT = 0, shown = -1;
     await new Promise(res => {
       const tick = ts => {
@@ -82,18 +90,38 @@ async function run() {
     const snap = W.skyPerfTrace?.snapshot?.(); const sb = snap?.buckets || [];
     laps.push({ lap, ms: mean(good.map(x => x[1])), slow: good.filter(x => x[1] > 33.3).length / Math.max(1, good.length) * 100, n: good.length,
       cpu: mean(sb.map(b => b.cpu)), render: mean(sb.map(b => b.s?.render?.[0])), adv: mean(sb.map(b => b.s?.adv?.[0])), ai: mean(sb.map(b => b.s?.ai?.[0])),
-      zMax: Math.max(0, ...sb.map(b => b.zMax || 0)), first: mean((buckets[0] || [])), last: mean(buckets[Math.max(...Object.keys(buckets).map(Number))] || []) });
+      zMax: Math.max(0, ...sb.map(b => b.zMax || 0)), first: mean((buckets[0] || [])), last: mean(buckets[Math.max(...Object.keys(buckets).map(Number))] || []),
+      so: mean(sb.map(b => b.s?.so?.[0])), soCalls: sb.reduce((s, b) => s + (b.soCalls || 0), 0), res0, res1: resources(W, G, I) });
     lastText = report(laps, rq, stalls, errors, lap === LAPS); out.textContent = lastText; copy.hidden = false;
   }
-  try { frame.src = 'about:blank'; } catch {}
   try { await wake?.release(); } catch {}
-  running = false; finished = true; go.textContent = '最初からやり直す(再読み込み)'; go.disabled = false;
   window.__soakResult = { laps, stalls, errors };
+  if (RELOAD && laps.length < LAPS) { // 次の周は、ページを読み込み直してから測る
+    try { sessionStorage.setItem(SKEY, JSON.stringify({ at: Date.now(), laps, stalls, errors })); } catch {}
+    out.textContent = lastText + '\n\n（次の周のため、まもなくページを読み込み直します）';
+    running = false; setTimeout(() => location.reload(), 1500); return;
+  }
+  try { sessionStorage.removeItem(SKEY); } catch {}
+  try { frame.src = 'about:blank'; } catch {}
+  running = false; finished = true; go.textContent = '最初からやり直す(再読み込み)'; go.disabled = false;
+}
+
+// 1周の始めと終わりに、描画物と経路探索の溜まり具合を記録する(周ごとに増え続けていれば、再開時に片づいていない物がある)。
+function resources(W, G, I) {
+  try {
+    const R = G.debug?.renderer || I.debug?.renderer || G.renderer, info = R?.info || {};
+    let objs = 0, meshes = 0;
+    for (const s of [I.ue, I.fo]) s?.traverse?.(n => { objs++; if (n.isMesh) meshes++; });
+    return { geo: info.memory?.geometries, tex: info.memory?.textures, prog: info.programs?.length, objs, meshes,
+      heapMB: W.performance?.memory ? W.performance.memory.usedJSHeapSize / 1048576 : null };
+  } catch { return {}; }
 }
 
 function report(laps, rq, stalls, errors, finished) {
   const real = [21.0, 24.5, 26.5, 27.2];
-  const rows = laps.map((l, i) => `・${l.lap}周め: 平均 ${f1(l.ms)} ms（${(1000 / l.ms).toFixed(0)}fps）、30fps未満 ${f1(l.slow)}%｜冒頭10秒 ${f1(l.first)} → 終盤10秒 ${f1(l.last)} ms｜JS処理 ${f1(l.cpu)} ms（物理${f1(l.adv)}・描画発行${f1(l.render)}・AI${f1(l.ai)}）、最大ゾンビ ${l.zMax.toFixed(0)}${real[i] ? `｜実プレイ${l.lap}回目 ${real[i]} ms` : ''}`);
+  const rows = laps.map((l, i) => `・${l.lap}周め: 平均 ${f1(l.ms)} ms（${(1000 / l.ms).toFixed(0)}fps）、30fps未満 ${f1(l.slow)}%｜冒頭10秒 ${f1(l.first)} → 終盤10秒 ${f1(l.last)} ms｜JS処理 ${f1(l.cpu)} ms（物理${f1(l.adv)}・描画発行${f1(l.render)}・AI${f1(l.ai)}）、いちばん遅かったゾンビ1体の更新 ${l.zMax.toFixed(0)} ms｜経路探索 ${f1(l.so)} ms・${l.soCalls ?? '?'}回${real[i] ? `｜実プレイ${l.lap}回目 ${real[i]} ms` : ''}`);
+  const rn = v => v == null || !Number.isFinite(v) ? '?' : Math.round(v);
+  const resRows = laps.map(l => `・${l.lap}周め 始め→終わり: ジオメトリ${rn(l.res0?.geo)}→${rn(l.res1?.geo)}、テクスチャ${rn(l.res0?.tex)}→${rn(l.res1?.tex)}、シェーダー${rn(l.res0?.prog)}→${rn(l.res1?.prog)}、シーンの物${rn(l.res0?.objs)}→${rn(l.res1?.objs)}(メッシュ${rn(l.res0?.meshes)}→${rn(l.res1?.meshes)})${l.res1?.heapMB != null ? `、JSメモリ${rn(l.res0?.heapMB)}→${rn(l.res1?.heapMB)}MB` : ''}`);
   const rise = laps.length > 1 ? laps.at(-1).ms - laps[0].ms : NaN;
   const realRise = real[Math.min(laps.length, 4) - 1] - real[0];
   const head = laps.length < 2 ? '1周めの途中経過です' : `${laps.length}周で ${f1(laps[0].ms)} → ${f1(laps.at(-1).ms)} ms（${rise >= 0 ? '+' : ''}${f1(rise)} ms）。実プレイは同じ回数で ${realRise >= 0 ? '+' : ''}${f1(realRise)} ms`;
@@ -103,7 +131,11 @@ function report(laps, rq, stalls, errors, finished) {
     '',
     ...rows,
     '',
-    `画質: ${QUALITY || '(既定)'} → 実際 ${rq.mode ?? '?'} 倍率${rq.pixelRatio ?? '?'} 影${rq.shadows ? 'あり' : 'なし'}`,
+    '描画物の溜まり具合（周をまたいで増え続けていれば、始め直しで片づいていない物がある）',
+    ...resRows,
+    '',
+    `方式: ${RELOAD ? '1周ごとにページを再読み込み（周のたびにメモリ・描画の状態を作り直す。熱は溜まる）' : '同じページで連続（メモリ・描画の状態は引き継がれる）'}`,
+    `画質:${QUALITY || '(既定)'} → 実際 ${rq.mode ?? '?'} 倍率${rq.pixelRatio ?? '?'} 影${rq.shadows ? 'あり' : 'なし'}`,
     `画面が止まった区間(1秒超) ${stalls}回、軌跡の適用エラー ${errors}回、1周${LAP_SEC}秒 × ${LAPS}周`,
     `端末: ${navigator.userAgent.replace(/^Mozilla\/5.0 /, '').slice(0, 90)}`,
     `画面: ${innerWidth}x${innerHeight} DPR${devicePixelRatio}、日時 ${new Date().toISOString()}`,
@@ -111,6 +143,7 @@ function report(laps, rq, stalls, errors, finished) {
   ].join('\n');
 }
 
+const W0rq = () => { try { return frame.contentWindow.skyRenderQuality?.snapshot?.() || {}; } catch { return {}; } };
 async function boot() {
   try {
     traj = await (await fetch('data/trajectory-old-town-hard-120s.json')).json();
@@ -129,7 +162,9 @@ async function boot() {
     restoreQuality(); // ゲームは読み込み時に画質を読み終えている。あなたの設定をすぐ元へ戻す。
     go.disabled = false; go.textContent = '計測し直す';
     const t = LAPS * LAP_SEC / 60;
-    if (AUTO) { out.textContent = `準備できました。3秒後に自動で始めます（${LAPS}周 約${t.toFixed(0)}分。画面に触れない・画面を消さない）。`; setTimeout(start, 3000); }
+    const prev = RELOAD ? loadStored() : null;
+    if (prev) lastText = report(prev.laps, W0rq(), prev.stalls, prev.errors, false);
+    if (AUTO) { out.textContent = (prev ? lastText + '\n\n' : '') + `準備できました。3秒後に自動で始めます（${prev ? `${prev.laps.length + 1}周め` : `${LAPS}周 約${t.toFixed(0)}分`}。画面に触れない・画面を消さない）。`; setTimeout(start, 3000); }
     else out.textContent = '準備できました。「計測し直す」を押すと始めます。';
   } catch (e) { restoreQuality(); out.textContent = '準備できませんでした: ' + (e && e.message || e); }
 }
