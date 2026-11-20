@@ -1,0 +1,141 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>空中回廊・連続プレイの重さ(軌跡で自動プレイ)</title>
+<style>
+html,body{margin:0;height:100%;background:#111;color:#fff;font:14px/1.5 system-ui,sans-serif}
+iframe{position:fixed;inset:0;width:100%;height:100%;border:0}
+#panel{position:fixed;left:8px;top:8px;z-index:9;width:min(92vw,560px);max-height:90vh;overflow:auto;background:#000d;padding:10px 12px;border-radius:10px}
+button{font:inherit;padding:8px 14px;margin-right:6px}
+pre{white-space:pre-wrap;margin:8px 0 0;font:12px/1.55 ui-monospace,Menlo,monospace}
+</style>
+<iframe id="g" allow="autoplay"></iframe>
+<div id="panel"><b>連続プレイの重さ（過去の軌跡で自動プレイ）</b><div style="margin-top:6px"><button id="go" disabled>読み込み中…</button><button id="copy" hidden>結果をコピー</button></div><pre id="out">準備中…</pre></div>
+<script>
+// 実プレイでは「同じ座りで続けて遊ぶほどフレーム時間が伸びる」(1回目21.0ms→4回目27.2ms、約3.5ms/回)。
+// 熱で遅くなるのが主因らしいので、人が続けて遊ばなくても同じ状況を再現して、画質や見た目を変えた版を比べられるようにする。
+// 方法: 過去に120秒生き残った実プレイの軌跡(bench/data/trajectory-old-town-hard-120s.json、0.05〜0.1秒ごとの位置・向き)どおりに、
+//   自キャラを毎フレーム動かす。無敵にして、ゾンビ・銃・描画・カメラ・演出は本物のゲームのまま動く。これを laps 周つづける(周の間はゲームを始め直す)。
+//   操作の記録は残っていないので「操作の再生」ではなく「動いた道筋の再生」。自キャラの物理計算(約1〜2ms)と着地などの演出、音は実プレイより少ない。
+// 使い方(画質ごとにURLを分け、間に10分以上の冷却を置く。冷えた状態・充電なし・画面の明るさは同じにして始める):
+//   soak-trajectory.html            : 今の既定の画質(高精細)で4周
+//   soak-trajectory.html?q=balanced : 標準(1.0倍・影1024) 〃 ?q=performance 軽量(0.75倍・影なし) 〃 ?q=minimum 最軽量
+//   ほか ?laps=4 &lapSec=118 &auto=0(手動開始)
+// 記録は送らない: iframe の fetch / sendBeacon を止める。画質の設定は一時的に書き換え、読み込み後すぐ元に戻す。
+const q = new URLSearchParams(location.search);
+const LAPS = +q.get('laps') || 4, LAP_SEC = +q.get('lapSec') || 118, AUTO = q.get('auto') !== '0', QUALITY = q.get('q') || '';
+const QKEY = 'gunrun-render-quality-v1', QUALITIES = ['high', 'balanced', 'performance', 'minimum'];
+const $ = id => document.getElementById(id), frame = $('g'), out = $('out'), go = $('go'), copy = $('copy');
+let lastText = '', running = false, finished = false, origQuality = null, qTouched = false, wake = null, traj = null;
+const mean = a => a.length ? a.reduce((s, v) => s + v, 0) / a.length : NaN;
+const f1 = v => Number.isFinite(v) ? v.toFixed(1) : '?';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function restoreQuality() { if (!qTouched) return; qTouched = false; try { if (origQuality === null) localStorage.removeItem(QKEY); else localStorage.setItem(QKEY, origQuality); } catch {} }
+addEventListener('pagehide', restoreQuality);
+async function keepAwake() { try { wake = await navigator.wakeLock?.request('screen'); } catch { wake = null; } }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && running) keepAwake(); });
+
+// 軌跡: [t,x,y,z,yaw,pitch,state,cut]。cut=1 は復活などで飛んだ点(間を補間しない)。
+function sampleAt(T, t) {
+  const s = T.samples; let lo = 0, hi = s.length - 1;
+  if (t <= s[0][0]) return { p: s[0], n: s[0], k: 0, i: 0 };
+  if (t >= s[hi][0]) return { p: s[hi], n: s[hi], k: 0, i: hi };
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (s[m][0] <= t) lo = m; else hi = m; }
+  const p = s[lo], n = s[hi];
+  return { p, n, k: n[7] ? 0 : (t - p[0]) / Math.max(1e-6, n[0] - p[0]), i: lo };
+}
+const wrap = a => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
+
+async function run() {
+  if (running) return; running = true; go.disabled = true; copy.hidden = true;
+  await keepAwake();
+  const W = frame.contentWindow, G = W.__game, I = W.__skyInternals, c = I.c, z = I.z;
+  W.fetch = () => Promise.resolve(new W.Response('{"ok":true,"top":[],"total":0,"recordProtocol":2}', { status: 200, headers: { 'content-type': 'application/json' } }));
+  try { W.navigator.sendBeacon = () => true; } catch {}
+  const rq = W.skyRenderQuality?.snapshot?.() || {};
+  const laps = [];
+  let stalls = 0, errors = 0;
+  for (let lap = 1; lap <= LAPS; lap++) {
+    G.startGame(); G.P.invuln = 1e9; W.skyPerfTrace?.reset?.();
+    const t0 = performance.now(), iv = []; let last = null, done = false, prevPos = null, prevT = 0, shown = -1;
+    await new Promise(res => {
+      const tick = ts => {
+        if (done) return;
+        if (last !== null) iv.push([(ts - t0) / 1000, ts - last]); last = ts;
+        const el = (performance.now() - t0) / 1000;
+        if (el >= LAP_SEC) { done = true; return res(); }
+        try {
+          const { p, n, k } = sampleAt(traj, el);
+          const x = p[1] + (n[1] - p[1]) * k, y = p[2] + (n[2] - p[2]) * k, zz = p[3] + (n[3] - p[3]) * k;
+          c.pos.set(x, y, zz); c.yaw = wrap(p[4] + wrap(n[4] - p[4]) * k); c.pitch = p[5] + (n[5] - p[5]) * k;
+          if (prevPos && el > prevT) { const d = el - prevT; c.vel.set((x - prevPos[0]) / d, (y - prevPos[1]) / d, (zz - prevPos[2]) / d); }
+          prevPos = [x, y, zz]; prevT = el; G.P.invuln = 1e9;
+        } catch (e) { errors++; }
+        if (Math.floor(el) !== shown) { shown = Math.floor(el); out.textContent = `${QUALITY ? '画質 ' + QUALITY + ' / ' : ''}${lap}/${LAPS}周め ${shown}/${LAP_SEC}秒（画面に触れない・画面を消さない）\n\n` + lastText; }
+        W.requestAnimationFrame(tick);
+      };
+      W.requestAnimationFrame(tick);
+    });
+    // この周の集計: 10秒ごとの平均間隔と、30fps未満(33.3ms超)の割合。1秒超は画面が止まった区間として除外して数える。
+    const good = iv.filter(([, d]) => d <= 1000); stalls += iv.length - good.length;
+    const buckets = {};
+    for (const [t, d] of good) { const b = Math.floor(t / 10); (buckets[b] ||= []).push(d); }
+    const snap = W.skyPerfTrace?.snapshot?.(); const sb = snap?.buckets || [];
+    laps.push({ lap, ms: mean(good.map(x => x[1])), slow: good.filter(x => x[1] > 33.3).length / Math.max(1, good.length) * 100, n: good.length,
+      cpu: mean(sb.map(b => b.cpu)), render: mean(sb.map(b => b.s?.render?.[0])), adv: mean(sb.map(b => b.s?.adv?.[0])), ai: mean(sb.map(b => b.s?.ai?.[0])),
+      zMax: Math.max(0, ...sb.map(b => b.zMax || 0)), first: mean((buckets[0] || [])), last: mean(buckets[Math.max(...Object.keys(buckets).map(Number))] || []) });
+    lastText = report(laps, rq, stalls, errors, lap === LAPS); out.textContent = lastText; copy.hidden = false;
+  }
+  try { frame.src = 'about:blank'; } catch {}
+  try { await wake?.release(); } catch {}
+  running = false; finished = true; go.textContent = '最初からやり直す(再読み込み)'; go.disabled = false;
+  window.__soakResult = { laps, stalls, errors };
+}
+
+function report(laps, rq, stalls, errors, finished) {
+  const real = [21.0, 24.5, 26.5, 27.2];
+  const rows = laps.map((l, i) => `・${l.lap}周め: 平均 ${f1(l.ms)} ms（${(1000 / l.ms).toFixed(0)}fps）、30fps未満 ${f1(l.slow)}%｜冒頭10秒 ${f1(l.first)} → 終盤10秒 ${f1(l.last)} ms｜JS処理 ${f1(l.cpu)} ms（物理${f1(l.adv)}・描画発行${f1(l.render)}・AI${f1(l.ai)}）、最大ゾンビ ${l.zMax.toFixed(0)}${real[i] ? `｜実プレイ${l.lap}回目 ${real[i]} ms` : ''}`);
+  const rise = laps.length > 1 ? laps.at(-1).ms - laps[0].ms : NaN;
+  const realRise = real[Math.min(laps.length, 4) - 1] - real[0];
+  const head = laps.length < 2 ? '1周めの途中経過です' : `${laps.length}周で ${f1(laps[0].ms)} → ${f1(laps.at(-1).ms)} ms（${rise >= 0 ? '+' : ''}${f1(rise)} ms）。実プレイは同じ回数で ${realRise >= 0 ? '+' : ''}${f1(realRise)} ms`;
+  return [
+    `【${finished ? '結論' : '途中経過'}】${head}`,
+    '(数字は「実際に画面が更新された間隔」。60fpsは16.7ms。同じ画質・同じ手順の周同士、または画質違いのURL同士で比べる)',
+    '',
+    ...rows,
+    '',
+    `画質: ${QUALITY || '(既定)'} → 実際 ${rq.mode ?? '?'} 倍率${rq.pixelRatio ?? '?'} 影${rq.shadows ? 'あり' : 'なし'}`,
+    `画面が止まった区間(1秒超) ${stalls}回、軌跡の適用エラー ${errors}回、1周${LAP_SEC}秒 × ${LAPS}周`,
+    `端末: ${navigator.userAgent.replace(/^Mozilla\/5.0 /, '').slice(0, 90)}`,
+    `画面: ${innerWidth}x${innerHeight} DPR${devicePixelRatio}、日時 ${new Date().toISOString()}`,
+    '※軌跡: 2026-11-16の実プレイ(ハード・旧市街・120秒生存)。自キャラの物理計算・着地などの演出・音は実プレイより少ない。画質違いを比べるときは、間に10分以上の冷却を置き、冷えた状態・同じ明るさ・充電なしで始める。',
+  ].join('\n');
+}
+
+async function boot() {
+  try {
+    traj = await (await fetch('data/trajectory-old-town-hard-120s.json')).json();
+    if (QUALITY) {
+      if (!QUALITIES.includes(QUALITY)) throw new Error('q は high / balanced / performance / minimum のどれかです');
+      try { origQuality = localStorage.getItem(QKEY); } catch {}
+      try { localStorage.setItem(QKEY, QUALITY); qTouched = true; } catch {}
+    }
+    frame.src = '../index.html';
+    let waited = 0;
+    for (;;) {
+      await sleep(250); waited += 250;
+      try { const W = frame.contentWindow; if (W.__game && W.__skyInternals && W.document.getElementById('bStart') && !W.document.getElementById('bStart').disabled) break; } catch {}
+      if (waited > 120000) throw new Error('ゲームの読み込みが2分以内に終わりませんでした。ページを開き直してください。');
+    }
+    restoreQuality(); // ゲームは読み込み時に画質を読み終えている。あなたの設定をすぐ元へ戻す。
+    go.disabled = false; go.textContent = '計測し直す';
+    const t = LAPS * LAP_SEC / 60;
+    if (AUTO) { out.textContent = `準備できました。3秒後に自動で始めます（${LAPS}周 約${t.toFixed(0)}分。画面に触れない・画面を消さない）。`; setTimeout(start, 3000); }
+    else out.textContent = '準備できました。「計測し直す」を押すと始めます。';
+  } catch (e) { restoreQuality(); out.textContent = '準備できませんでした: ' + (e && e.message || e); }
+}
+const start = () => run().catch(e => { restoreQuality(); out.textContent = '止まりました: ' + (e && e.message || e) + '\n\n' + lastText; running = false; go.disabled = false; });
+go.addEventListener('click', () => finished ? location.reload() : start());
+copy.addEventListener('click', async () => { try { await navigator.clipboard.writeText(lastText); copy.textContent = 'コピーしました'; } catch { const r = document.createRange(); r.selectNodeContents(out); getSelection().removeAllRanges(); getSelection().addRange(r); copy.textContent = '文字を選択しました'; } });
+boot();
+</script>
+</html>
