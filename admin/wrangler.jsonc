@@ -1,0 +1,9 @@
+{
+  "$schema":"./node_modules/wrangler/config-schema.json",
+  "name":"sky-corridor-owner",
+  "main":"worker.js",
+  "compatibility_date":"2026-11-03",
+  "assets":{"directory":"./public","binding":"ASSETS","run_worker_first":true},
+  "d1_databases":[{"binding":"DB","database_name":"gunrun-runs","database_id":"a0a53b40-d8bd-4a8b-90cc-76181d5d6885"}],
+  "preview_urls":false
+}
