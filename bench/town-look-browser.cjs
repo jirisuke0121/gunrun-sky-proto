@@ -14,7 +14,7 @@ async function open(browser,base,query){
  // スマホの既定は影なし（2026-11-21）。描画回数と暗さは従来どおり影ありの高精細で測る。
  await ctx.addInitScript(()=>{try{localStorage.setItem('gunrun-render-quality-v1','high')}catch{}});
  await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'}));
- const p=await ctx.newPage(),errors=[];p.setDefaultTimeout(120000);p.on('pageerror',e=>errors.push(e.message));
+ const p=await ctx.newPage(),errors=[];p.setDefaultTimeout(120000);p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(/Shader Error|WebGLProgram/.test(m.text()))errors.push(m.text().slice(0,300))});
  await p.goto(base+`index.html?camera=after&lang=ja&controlpick=0&hookGuide=0&dev=1${query}`);
  await p.waitForFunction(()=>window.skyStartReadiness?.ready&&document.body.dataset.skyHumanLoaded==='true'&&window.skyLookInfo&&(window.skyInkOutline||false));
  await p.locator('#bStart').tap();await p.waitForTimeout(2500);
@@ -44,6 +44,10 @@ async function dark(p,view){
   assert.ok(info.info.recoloured>=20,'meshes recoloured: '+info.info.recoloured);
   assert.ok(info.info.tileMeshes>=1,'terracotta tile meshes turn slate');
   assert.equal(info.info.sameColourNeighbours,0,'no two touching buildings share a colour');
+  // masonry (11/21): painted stone base / string course / bare brick on the walls, cut-stone coursing on the big loose shafts
+  assert.equal(info.info.masonry,true,'masonry is on by default');
+  assert.ok(info.info.loose>=3,'the big unmerged shafts get the wall shader too: '+info.info.loose);
+  assert.deepEqual(on.errors,[],'no shader or page errors with masonry on');
   assert.ok(info.hull&&info.hull.visible&&!info.hull.castShadow,'outline mesh exists and casts no shadow');
   assert.ok(info.hull.count>2000&&info.hull.count<30000,'outline triangle count is small: '+info.hull.count);
   assert.equal(await off.p.evaluate(()=>window.skyInkOutline.enabled),false,'?outline=0 turns the outline off');
@@ -51,15 +55,17 @@ async function dark(p,view){
   const old=await plain.p.evaluate(()=>({look:window.skyLook,info:window.skyLookInfo}));
   assert.equal(old.look,'district');assert.equal(old.info.recoloured,0,'?look=district keeps the previous tint-only look');
   // draw calls: switching the one outline mesh on and off in the same page changes the count by about one
-  const calls=await on.p.evaluate(()=>new Promise(resolve=>{const hull=window.__skyInternals.ue.children.find(c=>c.name==='Ink outline'),info=window.__game.debug.renderer.info.render;
-   const read=visible=>new Promise(r=>{hull.visible=visible;setTimeout(()=>r(info.calls),500)});
-   read(false).then(a=>read(true).then(b=>read(false).then(c=>read(true).then(d=>resolve({without:[a,c],with:[b,d]})))));}));
+  // (rendered by hand, back to back, so moving zombies between two live frames cannot change the count - the live reading was flaky)
+  const calls=await on.p.evaluate(()=>{const S=window.__skyInternals,g=window.__game,R=g.debug.renderer,hull=S.ue.children.find(c=>c.name==='Ink outline');
+   const read=visible=>{hull.visible=visible;let c=0;for(let i=0;i<4;i++){R.info.reset();R.render(S.ue,g.debug.camera);c+=R.info.render.calls}return c/4};
+   const a=read(false),b=read(true),c=read(false),d=read(true);return{without:[a,c],with:[b,d]}});
   summary.calls=calls;
   const delta=Math.min(...calls.with)-Math.max(...calls.without);
   assert.ok(delta>=0&&delta<=3,'the outline costs about one draw call: '+JSON.stringify(calls));
   // regression: no view gets darker with the outline on
   summary.dark=[];
-  for(const view of VIEWS){const a=await dark(off.p,view),b=await dark(on.p,view);summary.dark.push([+a.toFixed(3),+b.toFixed(3)]);
+  for(const view of VIEWS.filter(Boolean)){ // fixed cameras only: the game's own camera shows a different moment on each page, so comparing it was flaky
+   const a=await dark(off.p,view),b=await dark(on.p,view);summary.dark.push([+a.toFixed(3),+b.toFixed(3)]);
    assert.ok(b-a<.02,`outline darkens a fixed view (${JSON.stringify(view)}): ${a} -> ${b}`);}
   for(const o of [on,off,plain])assert.deepEqual(o.errors,[],'no page errors');
   console.log(JSON.stringify(summary));console.log('PASS town look: palette, slate roofs, one-mesh outline, switches, no black walls');

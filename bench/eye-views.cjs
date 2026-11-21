@@ -1,11 +1,12 @@
 // Eye-level review sheet for the old town: 8 fixed views taken a few metres behind the runner at the real start spots
 // (start-spots.js) and two street spots, same camera for every run, so a look change can be compared before / after.
-//   node bench/eye-views.cjs [query] [outPrefix]     e.g.  node bench/eye-views.cjs "&scenery=0" /tmp/before
+//   node bench/eye-views.cjs [query] [outPrefix] [phone|high]     e.g.  node bench/eye-views.cjs "&scenery=0" /tmp/before
+// The default quality is the phone default (no shadows): that is what most players see.
 // Writes <outPrefix>_0..7.png and a contact sheet <outPrefix>_sheet.png (needs python3 + Pillow for the sheet), and prints
 // the draw calls / triangles of each view ("PER [[calls, triangles], ...]"). Software GL: look and counts only, not speed.
 const fs = require('node:fs'), path = require('node:path'), http = require('node:http'), {execFileSync} = require('node:child_process');
 const {chromium} = require('playwright');
-const root = path.resolve(__dirname, '..'), query = process.argv[2] || '', out = process.argv[3] || 'eye';
+const root = path.resolve(__dirname, '..'), query = process.argv[2] || '', out = process.argv[3] || 'eye', quality = process.argv[4] || 'phone'; // phone = the phone default (no shadows); high = shadows on
 const SPOTS = {'west-ledge': [-37, 4.63, 0], 'north-roof': [-13, 8, -13], 'south-balcony': [-4, 4, 17], 'east-high': [19, 9.3, -8], 'east-mid': [35, 7, 0], 'far-east': [52, 9.48, -14], 'street-west': [-42, 0, 8], 'center-street': [-4, 0, -6]};
 const VIEWS = Object.values(SPOTS).map(([x, y, z]) => { // [camera xyz, look-at xyz, fov]: behind the runner, looking at the middle of the map
   const dx0 = 0 - x, dz0 = -4 - z, l = Math.hypot(dx0, dz0) || 1, dx = dx0 / l, dz = dz0 / l, r = v => Math.round(v * 10) / 10;
@@ -18,7 +19,7 @@ const server = http.createServer(async (req, res) => { try { const name = path.r
   const browser = await chromium.launch({headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH, args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']});
   try {
     const ctx = await browser.newContext({viewport: {width: 844, height: 390}, isMobile: true, hasTouch: true, locale: 'ja-JP'});
-    await ctx.addInitScript(() => { try { localStorage.setItem('gunrun-render-quality-v1', 'high'); } catch {} }); // shadows on: the darkest case
+    await ctx.addInitScript(q => { try { localStorage.setItem('gunrun-render-quality-v1', q); } catch {} }, quality);
     await ctx.route('https://**/*', r => r.fulfill({status: 200, contentType: 'application/json', body: '{"top":[],"total":0,"ok":true}'}));
     const p = await ctx.newPage(); p.setDefaultTimeout(180000); p.on('pageerror', e => console.log('PAGEERR', e.message));
     await p.goto(base + `index.html?camera=after&lang=ja&controlpick=0&hookGuide=0&dev=1${query}`);

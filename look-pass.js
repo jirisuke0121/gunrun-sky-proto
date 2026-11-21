@@ -17,7 +17,7 @@
 // default colour (0,0,0) and the surface is drawn black for good. A geometry that has never been drawn
 // always gets its buffers before its first draw, so we hand the renderer fresh geometry objects.
 (() => {
-  const mode = new URLSearchParams(location.search).get('look');
+  const params = new URLSearchParams(location.search), mode = params.get('look');
   if (mode === 'classic') { window.skyLook = 'classic'; return; }
   window.skyLook = mode === 'sky' ? 'sky' : mode === 'district' ? 'district' : mode === 'townDebug' ? 'townDebug' : 'town';
 
@@ -269,7 +269,20 @@
       vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
       return mix(mix(plasterHash(i), plasterHash(i + vec2(1., 0.)), f.x), mix(plasterHash(i + vec2(0., 1.)), plasterHash(i + vec2(1., 1.)), f.x), f.y);
     }
+    // Masonry joints (running bond), 1 on the joint. uv in metres. Anti-aliased with the screen-space derivative,
+    // so thin lines do not shimmer far away.
+    float townJoint(vec2 uv, vec2 size, float width) {
+      vec2 g = uv / size; g.x += floor(g.y) * .5;
+      vec2 d = (.5 - abs(fract(g) - .5)) * size;
+      vec2 line = 1.0 - smoothstep(vec2(width * .5), vec2(width * .5) + fwidth(uv) + 1e-4, d);
+      return max(line.x, line.y);
+    }
+    float townBlock(vec2 uv, vec2 size) { vec2 g = uv / size; g.x += floor(g.y) * .5; return plasterHash(floor(g)); }
   `;
+  // Crisp masonry painted on the walls (11/21): a cut-stone base, a string course per storey and patches of
+  // brick where the plaster has fallen off. Paint only - nothing a runner could mistake for a window, a door
+  // or a ledge. ?walls=plain turns it off (compile-time, so it then costs nothing).
+  const MASONRY = params.get('walls') !== 'plain';
   function paletteMaterial(material, clone) {
     const previous = material.onBeforeCompile, average = textureAverage(material.map);
     const reference = Math.max(.02, linearLuma(material.color.r, material.color.g, material.color.b) * (average ? linearLuma(...average) : 1));
@@ -278,7 +291,7 @@
       shader.uniforms.townLumaRef = { value: reference };
       shader.vertexShader = 'attribute vec4 aTownPalette;\nattribute vec2 aTownBand;\nvarying vec4 vTownPalette;\nvarying vec2 vTownBand;\nvarying float vTownY;\nvarying vec3 vTownPos;\n' +
         shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvTownPalette = aTownPalette; vTownBand = aTownBand; vTownPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vTownY = vTownPos.y;');
-      shader.fragmentShader = 'varying vec4 vTownPalette;\nvarying vec2 vTownBand;\nvarying float vTownY;\nvarying vec3 vTownPos;\nuniform float townLumaRef;\n' + PLASTER_GLSL + shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+      shader.fragmentShader = (MASONRY ? '#define TOWN_MASONRY\n' : '') + 'varying vec4 vTownPalette;\nvarying vec2 vTownBand;\nvarying float vTownY;\nvarying vec3 vTownPos;\nuniform float townLumaRef;\n' + PLASTER_GLSL + shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
         if (vTownPalette.a > .0) {
           float townLuma = dot(diffuseColor.rgb, vec3(.2126, .7152, .0722));
           vec3 townColour = vTownPalette.rgb * mix(1.0, clamp(townLuma / townLumaRef, .72, 1.28), .45);
@@ -286,6 +299,9 @@
             float plinth = 1.0 - smoothstep(vTownBand.x + .50, vTownBand.x + .56, vTownY);
             float cornice = smoothstep(vTownBand.y - .36, vTownBand.y - .32, vTownY);
             float shadow = smoothstep(vTownBand.y - .46, vTownBand.y - .42, vTownY) * (1.0 - cornice);
+            #ifdef TOWN_MASONRY
+            plinth = 0.; // the cut-stone base below replaces the flat dark band
+            #endif
             townColour *= (1.0 - .24 * plinth) * (1.0 + .16 * cornice) * (1.0 - .16 * shadow);
             // Plaster that is not one flat colour: patchy mottling, drip streaks, soft shade towards the ground
             // and a little damp near the foot. A wall's two horizontal axes are folded into one (x + z; the
@@ -295,9 +311,38 @@
             float streak = plasterNoise(vec2(wall.x * 2.3, wall.y * .16)) - .5;
             float rise = clamp((vTownY - vTownBand.x) / 1.7, 0., 1.);
             float foot = 1.0 - smoothstep(.0, 1.7, vTownY - vTownBand.x);
+            #ifdef TOWN_MASONRY
+            townColour *= 1.0 + .22 * blotch + .10 * grain - .20 * streak * (1.0 - .5 * cornice);
+            townColour = mix(townColour, townColour * vec3(.80, .75, .70), foot * .30);
+            townColour *= mix(.90, 1.0, rise);
+            float townH = vTownY - vTownBand.x, townTop = vTownBand.y - vTownY;
+            vec2 townFw = fwidth(wall);
+            float townLod = clamp(1.25 - max(townFw.x, townFw.y) * 14.0, 0., 1.); // fine joints fade out with distance
+            // (1) brick showing where the plaster has fallen off: crisp-edged patches, more of them low on the wall
+            float bare = blotch + .16 * grain + .10 * (1.0 - clamp(townH / 6.0, 0., 1.));
+            float patchMask = smoothstep(.150, .162, bare) * step(.9, townH) * step(.55, townTop);
+            float lip = (smoothstep(.118, .150, bare) - smoothstep(.150, .162, bare)) * step(.9, townH) * step(.55, townTop);
+            vec2 brickSize = vec2(.52, .17);
+            vec3 brick = mix(townColour * .62, vec3(.36, .27, .24), .5) * (.86 + .28 * townBlock(wall, brickSize));
+            brick = mix(brick, townColour * .92, townJoint(wall, brickSize, .022) * .75 * townLod);
+            townColour = mix(townColour * (1.0 - .22 * lip), brick, patchMask);
+            // (2) string course: a pale band with a thin shadow under it, one per storey (walls taller than 4.6 m)
+            float storey = mod(townH, 2.9), tall = step(4.6, vTownBand.y - vTownBand.x) * step(2.8, townH) * step(1.3, townTop);
+            float course = tall * (1.0 - smoothstep(.13, .15, storey));
+            float under = tall * smoothstep(2.80, 2.82, storey);
+            townColour = mix(townColour, vTownPalette.rgb * 1.16, course) * (1.0 - .20 * under);
+            // (3) cut-stone base: two courses, greyer and darker than the wall, each block a little different
+            float baseMask = 1.0 - smoothstep(.88, .90, townH);
+            vec2 stoneUv = vec2(wall.x, townH), stoneSize = vec2(.95, .45);
+            vec3 stone = mix(vTownPalette.rgb, vec3(dot(vTownPalette.rgb, vec3(.33))), .6) * (.66 + .16 * townBlock(stoneUv, stoneSize)) * (1.0 + .10 * grain);
+            stone *= 1.0 - .34 * townJoint(stoneUv, stoneSize, .03) * townLod;
+            stone *= 1.0 - .18 * (1.0 - smoothstep(.0, .25, townH));          // a little darker right at the ground
+            townColour = mix(townColour, stone, baseMask) * (1.0 - .16 * (smoothstep(.90, .93, townH) - smoothstep(.93, .99, townH)));
+            #else
             townColour *= 1.0 + .34 * blotch + .12 * grain - .24 * streak * (1.0 - .5 * cornice);
             townColour = mix(townColour, townColour * vec3(.80, .75, .70), foot * .45);
             townColour *= mix(.84, 1.0, rise);
+            #endif
           }
           diffuseColor.rgb = mix(diffuseColor.rgb, townColour, vTownPalette.a);
         } else {
@@ -310,10 +355,24 @@
             float paving = smoothstep(.06, .32, dot(diffuseColor.rgb, vec3(.2126, .7152, .0722))); // dark floors (shade, wood) are left alone
             diffuseColor.rgb *= mix(1.0, mix(.76, 1.0, smoothstep(.28, .72, broad)) * (1.0 + .10 * fine), paving);
           }
+          #ifdef TOWN_MASONRY
+          else if (abs(floorNormal.y) < .3) {
+            // The big unpainted walls (tower shafts, tall dividing walls): large cut-stone coursing, each block a
+            // little different, with soft weathering. Route cues (saturated yellow / orange / red) are left alone.
+            float townSat = max(diffuseColor.r, max(diffuseColor.g, diffuseColor.b)) - min(diffuseColor.r, min(diffuseColor.g, diffuseColor.b));
+            float cue = step(.22, townSat) * step(.12, diffuseColor.r - diffuseColor.b);
+            vec2 ashlar = vec2(vTownPos.x + vTownPos.z, vTownPos.y), ashlarSize = vec2(1.3, .62);
+            vec2 ashlarFw = fwidth(ashlar);
+            float ashlarLod = clamp(1.25 - max(ashlarFw.x, ashlarFw.y) * 9.0, 0., 1.);
+            float tone = (.93 + .14 * townBlock(ashlar, ashlarSize)) * (.94 + .12 * plasterNoise(ashlar * .35));
+            tone *= 1.0 - .22 * townJoint(ashlar, ashlarSize, .035) * ashlarLod;
+            diffuseColor.rgb *= mix(tone, 1.0, cue);
+          }
+          #endif
         }`);
     };
     const keyBefore = material.customProgramCacheKey.bind(material);
-    clone.customProgramCacheKey = () => keyBefore() + '|town-palette-v8';
+    clone.customProgramCacheKey = () => keyBefore() + '|town-palette-v9' + (MASONRY ? '-masonry' : '');
   }
 
   // Colour is stored per vertex (the world is merged into a few big meshes), so the draw call
@@ -335,17 +394,29 @@
     const cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2;
     const hx = Math.max(10, (maxX - minX) / 2), hz = Math.max(10, (maxZ - minZ) / 2);
     const town = townMode ? buildTown(game, scene.fog.color.constructor) : null;
+    // The tallest shafts and widest slabs are single boxes that were never merged (one material each), so the
+    // list above misses them - and they are the largest blank faces on screen. They only get the wall shader
+    // (cut-stone coursing); their colour is left as it is.
+    const loose = new Set();
+    if (town && MASONRY) for (const b of game.jn) {
+      const m = b.mesh;
+      if (!m?.isMesh || m.parent !== scene || !m.visible || b.hidden || b.shape || b.tint != null || Array.isArray(m.material) || NAMES.has(m.name) || loose.has(m) || !['slab', 'mono'].includes(b.type)) continue;
+      if (b.maxY - b.minY > 40 || (b.maxX - b.minX) * (b.maxZ - b.minZ) > 700) { loose.add(m); meshes.push(m); }
+    }
     const clones = new Map(), replaced = [], hsl = { h: 0, s: 0, l: 0 };
     let tinted = 0, recoloured = 0, tiles = 0;
     for (const mesh of meshes) {
       const material = mesh.material;
       if (!material || Array.isArray(material) || !material.color || material.transparent) continue;
       material.color.getHSL(hsl);
-      const district = !material.vertexColors && hsl.s <= .5; // bright accent colours (route cues) keep their colour
+      const district = !loose.has(mesh) && !material.vertexColors && hsl.s <= .5; // bright accent colours (route cues) keep their colour
       const tile = town && material.map && isTerracottaTile(material);
-      const palette = !town ? null : tile ? tilePalette(town, mesh.geometry) : paletteFor(town, mesh.geometry, townMode === 'debug');
-      if (!district && !palette) continue;
+      const palette = !town || loose.has(mesh) ? null : tile ? tilePalette(town, mesh.geometry) : paletteFor(town, mesh.geometry, townMode === 'debug');
+      if (!district && !palette && !loose.has(mesh)) continue;
       const original = mesh.geometry, position = original.attributes.position, Attribute = position.constructor;
+      // Neutral meshes with no building in them (tower shafts, tall dividing walls) still get the wall shader, with an
+      // empty palette, so their big faces get the cut-stone coursing instead of staying one flat colour.
+      const shaded = palette || (town && MASONRY && (district || loose.has(mesh)) ? { colours: new Float32Array(position.count * 4), band: new Float32Array(position.count * 2) } : null);
       const geometry = original.clone(); // a new object the renderer has never seen (see the note at the top)
       if (district) {
         const colors = new Float32Array(position.count * 3);
@@ -356,15 +427,15 @@
         }
         geometry.setAttribute('color', new Attribute(colors, 3));
       }
-      if (palette) { geometry.setAttribute('aTownPalette', new Attribute(palette.colours, 4)); geometry.setAttribute('aTownBand', new Attribute(palette.band, 2)); }
-      const cacheKey = material.uuid + (district ? 'd' : '') + (palette ? 'p' : '');
+      if (shaded) { geometry.setAttribute('aTownPalette', new Attribute(shaded.colours, 4)); geometry.setAttribute('aTownBand', new Attribute(shaded.band, 2)); }
+      const cacheKey = material.uuid + (district ? 'd' : '') + (shaded ? 'p' : '');
       let clone = clones.get(cacheKey);
       if (!clone) {
         clone = material.clone();
         // Material.copy omits custom shader hooks (e.g. the facade's coping).
         clone.onBeforeCompile = material.onBeforeCompile;
         clone.customProgramCacheKey = material.customProgramCacheKey.bind(material);
-        if (palette) paletteMaterial(material, clone);
+        if (shaded) paletteMaterial(material, clone);
         if (district) clone.vertexColors = true;
         clone.needsUpdate = true; clones.set(cacheKey, clone);
       }
@@ -376,7 +447,7 @@
       if (tile) tiles++;
     }
     for (const original of replaced) original.dispose(); // free the old GPU copies
-    return { tinted, recoloured, tiles, buildings: town?.clusters.length ?? 0, sameColour: town?.sameColour ?? 0 };
+    return { tinted, recoloured, tiles, loose: loose.size, buildings: town?.clusters.length ?? 0, sameColour: town?.sameColour ?? 0 };
   }
 
   let tries = 0;
@@ -389,7 +460,7 @@
       recolourSky(game);
       const world = window.skyLook === 'sky' ? { tinted: 0 }
         : tintWorld(game, window.skyLook === 'town' ? 'town' : window.skyLook === 'townDebug' ? 'debug' : null);
-      window.skyLookInfo = { tinted: world.tinted, recoloured: world.recoloured ?? 0, tileMeshes: world.tiles ?? 0, buildings: world.buildings ?? 0, sameColourNeighbours: world.sameColour ?? 0 };
+      window.skyLookInfo = { tinted: world.tinted, recoloured: world.recoloured ?? 0, tileMeshes: world.tiles ?? 0, buildings: world.buildings ?? 0, loose: world.loose ?? 0, masonry: MASONRY, sameColourNeighbours: world.sameColour ?? 0 };
       document.body.dataset.skyLook = window.skyLook;
     } catch (error) { console.warn('look pass skipped', error); }
   }, 200);
