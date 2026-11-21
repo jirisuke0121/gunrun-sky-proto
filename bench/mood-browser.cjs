@@ -69,7 +69,7 @@ async function dark(p,view){
     if(r<180)midTop=Math.max(midTop,y);
     if(y>F.cloudY+12)landNear=Math.min(landNear,r);} // anything clearly above the cloud is land or a building
    let floating=0;S.ue.traverse(o=>{if(o.isMesh&&o.visible&&[0xd9bf94,0xc9a46a].includes(o.material?.color?.getHex?.())){o.geometry.computeBoundingSphere();const c=o.geometry.boundingSphere.center.clone().applyMatrix4(o.matrixWorld);if(Math.hypot(c.x+4,c.z+6)>110&&o.geometry.boundingSphere.radius<60)floating++}});
-   return{nearTop,midTop,landNear,far,fallY:S.fallY,cloudY:F.cloudY,gap:F.gap,fog:m.fog,texture:!!m.map,shadow:F.mesh.castShadow||F.mesh.receiveShadow,collision:S.jn.some(b=>b.mesh===F.mesh),hidden:F.hidden,floating,villages:F.villages,houses:F.houses,outline:!!S.ue.children.find(c=>c.name==='Ink outline')}});
+   return{nearTop,midTop,landNear,far,fallY:S.fallY,cloudY:F.cloudY,gap:F.gap,fog:m.fog,texture:!!m.map,shadow:F.mesh.castShadow||F.mesh.receiveShadow,collision:S.jn.some(b=>b.mesh===F.mesh),hidden:F.hidden,floating,villages:F.villages,houses:F.houses,ridges:F.ridges,outline:!!S.ue.children.find(c=>c.name==='Ink outline')}});
   summary.rules=rules;
   assert.ok(rules.cloudY<rules.fallY-8,'the cloud top is well under the fall line: '+JSON.stringify(rules));
   assert.ok(rules.nearTop<rules.fallY,'inside the gap nothing reaches the fall line (cloud only): '+rules.nearTop);
@@ -78,7 +78,7 @@ async function dark(p,view){
   assert.ok(rules.far<=430,'the scenery stays inside the sky dome: '+rules.far);
   assert.ok(!rules.texture&&!rules.shadow&&!rules.collision&&!rules.fog,'colour only: no texture, shadow, collision or scene fog');
   assert.ok(rules.hidden>0&&rules.floating===0,'the floating domes are hidden: '+JSON.stringify([rules.hidden,rules.floating]));
-  assert.ok(rules.villages>=8&&rules.houses>=40,'villages on the islands: '+JSON.stringify([rules.villages,rules.houses]));
+  assert.ok(rules.villages===3&&rules.houses>=30&&rules.ridges===3,'three village islands, three ridge layers: '+JSON.stringify([rules.villages,rules.houses,rules.ridges]));
   // 3. classic ignores the mood; the lowest quality hides the motes
   const quality=await dusk.p.evaluate(()=>new Promise(resolve=>{const m=window.__skyInternals.ue.children.find(c=>c.name==='Dust motes'),a=m.visible;window.skyRenderQuality.select('minimum');setTimeout(()=>{const b=m.visible;window.skyRenderQuality.select('high');setTimeout(()=>resolve([a,b,m.visible]),50)},50)}));
   assert.deepEqual(quality,[true,false,true],'motes are hidden in the lowest render quality: '+JSON.stringify(quality));

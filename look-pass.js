@@ -360,7 +360,7 @@
             // The big unpainted walls (tower shafts, tall dividing walls): large cut-stone coursing, each block a
             // little different, with soft weathering. Route cues (saturated yellow / orange / red) are left alone.
             float townSat = max(diffuseColor.r, max(diffuseColor.g, diffuseColor.b)) - min(diffuseColor.r, min(diffuseColor.g, diffuseColor.b));
-            float cue = step(.22, townSat) * step(.12, diffuseColor.r - diffuseColor.b);
+            float cue = max(step(.22, townSat) * step(.12, diffuseColor.r - diffuseColor.b), step(.5, townSat)); // warm cues, and anything vivid (signs, markers)
             vec2 ashlar = vec2(vTownPos.x + vTownPos.z, vTownPos.y), ashlarSize = vec2(1.3, .62);
             vec2 ashlarFw = fwidth(ashlar);
             float ashlarLod = clamp(1.25 - max(ashlarFw.x, ashlarFw.y) * 9.0, 0., 1.);
@@ -412,11 +412,13 @@
       const district = !loose.has(mesh) && !material.vertexColors && hsl.s <= .5; // bright accent colours (route cues) keep their colour
       const tile = town && material.map && isTerracottaTile(material);
       const palette = !town || loose.has(mesh) ? null : tile ? tilePalette(town, mesh.geometry) : paletteFor(town, mesh.geometry, townMode === 'debug');
-      if (!district && !palette && !loose.has(mesh)) continue;
+      if (!district && !palette && !loose.has(mesh) && !(town && MASONRY)) continue;
       const original = mesh.geometry, position = original.attributes.position, Attribute = position.constructor;
       // Neutral meshes with no building in them (tower shafts, tall dividing walls) still get the wall shader, with an
       // empty palette, so their big faces get the cut-stone coursing instead of staying one flat colour.
-      const shaded = palette || (town && MASONRY && (district || loose.has(mesh)) ? { colours: new Float32Array(position.count * 4), band: new Float32Array(position.count * 2) } : null);
+      // So does every other opaque static mesh: the coloured accent walls (navy, etc.) get the coursing too; the
+      // cue colours (yellow / orange / red, and anything vivid) are skipped in the shader.
+      const shaded = palette || (town && MASONRY ? { colours: new Float32Array(position.count * 4), band: new Float32Array(position.count * 2) } : null);
       const geometry = original.clone(); // a new object the renderer has never seen (see the note at the top)
       if (district) {
         const colors = new Float32Array(position.count * 3);
