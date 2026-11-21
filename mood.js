@@ -171,7 +171,7 @@
     hemi.color.set(mood.hemi.sky); hemi.groundColor.set(mood.hemi.ground);
     const renderer = window.__game?.debug?.renderer;
     if (renderer && mood.exposure) renderer.toneMappingExposure = mood.exposure; // the game sets 1.25 once and never changes it
-    try { addSunGlow(game, mood); addSkyline(game, mood); addMotes(game, mood); } catch (error) { console.warn('mood decoration skipped', error); }
+    try { addSunGlow(game, mood); if (params.get('scenery') === '0') addSkyline(game, mood); /* else far-scenery.js draws the land and the sea of clouds */ addMotes(game, mood); } catch (error) { console.warn('mood decoration skipped', error); }
     document.body.dataset.skyMood = window.skyMoodName;
   }, 100);
 })();

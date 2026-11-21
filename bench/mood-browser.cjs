@@ -1,6 +1,7 @@
 // Mood (mood.js): ?mood=dusk|dawn changes the light and sky only, and adds three small meshes.
 //  1. ?mood=noon is the look before mood.js existed: no mood meshes, the original high sun. The default (no parameter) is dawn.
-//  2. dusk: low warm sun, sun glow + far skyline + dust motes, each costs at most one draw call; skyline stays under 2000 triangles
+//  2. dusk: low warm sun, sun glow + far scenery + dust motes, each costs at most one draw call; the scenery stays under 12000 triangles
+//  2b. far scenery (far-scenery.js) keeps the "can I go there?" rules: only cloud near the map, nothing near reaches the fall line; ?scenery=0 brings the old skyline back
 //  3. ?look=classic ignores the mood; the lowest render quality hides the motes
 //  3b. contact shadow: one cheap mesh, off with ?contact=0, ?look=classic and the lowest quality
 //  4. the fixed views do not become dark enough to hide the player: near-black share stays small
@@ -10,7 +11,7 @@ const root=path.resolve(__dirname,'..');
 const server=http.createServer(async(req,res)=>{try{const name=path.resolve(root,'.'+new URL(req.url,'http://localhost').pathname);if(!name.startsWith(root+path.sep))throw Error('path');const type={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.wav':'audio/wav','.mp3':'audio/mpeg'}[path.extname(name)]||'application/octet-stream';res.writeHead(200,{'content-type':type});res.end(await fs.promises.readFile(name));}catch{res.writeHead(404);res.end();}});
 // [camera x,y,z, look-at x,y,z, fov]; null = the game's own camera
 const VIEWS=[null,[-20,60,70,-20,0,0,55],[-60,14,40,-40,3,0,60],[-31.4,5.5,2.9,-32.7,4.9,-7,70],[24,11,-12,-20,3,8,62],[-34,11,12,10,2,-10,62],[0,13,-20,-10,2,10,70],[2.3,2,5,-6.5,1.4,.3,70]];
-const MOOD_MESHES=['Sun glow','Far skyline','Dust motes'];
+const MOOD_MESHES=['Sun glow','Far scenery','Dust motes'];
 async function open(browser,base,query){
  const ctx=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true,locale:'ja-JP'});
  // スマホの既定は影なし（2026-11-21）。暗さは影ありの高精細（いちばん暗くなる条件）で比べるので、画質を固定する。
@@ -46,9 +47,9 @@ async function dark(p,view){
   assert.ok(noonSun.y>.8&&noonSun.exposure===1.25&&noonSun.mood===null,'noon keeps the original sun and exposure: '+JSON.stringify(noonSun));
   // 2. dusk and dawn
   for(const [name,o,maxY] of [['dusk',dusk,.4],['dawn',dawn,.3]]){
-   assert.deepEqual(await has(o.p),[true,true,true],name+' adds sun glow, skyline and motes');
-   const s=await o.p.evaluate(()=>({y:window.skySunDir.y,mood:document.body.dataset.skyMood,skyline:window.skySkyline.triangles,ambient:window.skyAmbient}));
-   assert.equal(s.mood,name);assert.ok(s.y>.15&&s.y<maxY,name+' sun is low: '+s.y);assert.ok(s.skyline<=2000,name+' skyline triangles: '+s.skyline);
+   await o.p.waitForFunction(()=>window.skyFarScenery);assert.deepEqual(await has(o.p),[true,true,true],name+' adds sun glow, far scenery and motes');
+   const s=await o.p.evaluate(()=>({y:window.skySunDir.y,mood:document.body.dataset.skyMood,skyline:window.skyFarScenery.triangles,ambient:window.skyAmbient}));
+   assert.equal(s.mood,name);assert.ok(s.y>.15&&s.y<maxY,name+' sun is low: '+s.y);assert.ok(s.skyline>2000&&s.skyline<=12000,name+' far scenery triangles: '+s.skyline);
    summary[name]=s;
   }
   // draw-call cost of each mesh, averaged over 4 frames (the shadow map refreshes every other frame)
@@ -59,7 +60,25 @@ async function dark(p,view){
    return{out,sum}},MOOD_MESHES);
   summary.cost=cost;
   for(const n of MOOD_MESHES)assert.ok(cost.out[n][0]>=0&&cost.out[n][0]<=1.01,n+' costs at most one draw call: '+cost.out[n][0]);
-  assert.ok(cost.sum[0]<=3.05&&cost.sum[1]<=3000,'mood costs 3 draw calls and under 3000 triangles: '+JSON.stringify(cost.sum));
+  assert.ok(cost.sum[0]<=3.05&&cost.sum[1]<=13000,'mood costs 3 draw calls and under 13000 triangles: '+JSON.stringify(cost.sum));
+  // 2b. the rules that keep the scenery from looking like a foothold
+  const rules=await dawn.p.evaluate(()=>{const F=window.skyFarScenery,S=window.__skyInternals,p=F.mesh.geometry.attributes.position,m=F.mesh.material;
+   let nearTop=-1e9,landNear=1e9,midTop=-1e9,far=0;
+   for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),r=Math.hypot(x+4,z+6);if(y>F.cloudY+1)far=Math.max(far,r); // the flat cloud runs on to the horizon colour
+    if(r<F.gap)nearTop=Math.max(nearTop,y);          // within the gap: cloud only
+    if(r<180)midTop=Math.max(midTop,y);
+    if(y>F.cloudY+12)landNear=Math.min(landNear,r);} // anything clearly above the cloud is land or a building
+   let floating=0;S.ue.traverse(o=>{if(o.isMesh&&o.visible&&[0xd9bf94,0xc9a46a].includes(o.material?.color?.getHex?.())){o.geometry.computeBoundingSphere();const c=o.geometry.boundingSphere.center.clone().applyMatrix4(o.matrixWorld);if(Math.hypot(c.x+4,c.z+6)>110&&o.geometry.boundingSphere.radius<60)floating++}});
+   return{nearTop,midTop,landNear,far,fallY:S.fallY,cloudY:F.cloudY,gap:F.gap,fog:m.fog,texture:!!m.map,shadow:F.mesh.castShadow||F.mesh.receiveShadow,collision:S.jn.some(b=>b.mesh===F.mesh),hidden:F.hidden,floating,villages:F.villages,houses:F.houses,outline:!!S.ue.children.find(c=>c.name==='Ink outline')}});
+  summary.rules=rules;
+  assert.ok(rules.cloudY<rules.fallY-8,'the cloud top is well under the fall line: '+JSON.stringify(rules));
+  assert.ok(rules.nearTop<rules.fallY,'inside the gap nothing reaches the fall line (cloud only): '+rules.nearTop);
+  assert.ok(rules.midTop<-4,'within 180 m everything stays under the town floor: '+rules.midTop);
+  assert.ok(rules.landNear>=rules.gap,'land starts beyond the gap: '+rules.landNear);
+  assert.ok(rules.far<=430,'the scenery stays inside the sky dome: '+rules.far);
+  assert.ok(!rules.texture&&!rules.shadow&&!rules.collision&&!rules.fog,'colour only: no texture, shadow, collision or scene fog');
+  assert.ok(rules.hidden>0&&rules.floating===0,'the floating domes are hidden: '+JSON.stringify([rules.hidden,rules.floating]));
+  assert.ok(rules.villages>=8&&rules.houses>=40,'villages on the islands: '+JSON.stringify([rules.villages,rules.houses]));
   // 3. classic ignores the mood; the lowest quality hides the motes
   const quality=await dusk.p.evaluate(()=>new Promise(resolve=>{const m=window.__skyInternals.ue.children.find(c=>c.name==='Dust motes'),a=m.visible;window.skyRenderQuality.select('minimum');setTimeout(()=>{const b=m.visible;window.skyRenderQuality.select('high');setTimeout(()=>resolve([a,b,m.visible]),50)},50)}));
   assert.deepEqual(quality,[true,false,true],'motes are hidden in the lowest render quality: '+JSON.stringify(quality));
@@ -82,12 +101,15 @@ async function dark(p,view){
   // switches that remove things, checked one page at a time at the end (five live pages at once starve the software GPU)
   for(const o of [noon,dusk,dawn])await o.ctx.close();
   const classic=await open(browser,base,'&mood=dusk&look=classic');
-  assert.deepEqual(await has(classic.p),[false,false,false],'?look=classic ignores the mood');
+  await classic.p.waitForTimeout(1500);assert.deepEqual(await has(classic.p),[false,false,false],'?look=classic ignores the mood');
   assert.equal(await classic.p.evaluate(()=>window.__skyInternals.ue.children.some(c=>c.name==='Contact shadow')),false,'?look=classic has no contact shadow');
   assert.deepEqual(classic.errors,[],'no page errors (classic)');await classic.ctx.close();
   const nocontact=await open(browser,base,'&contact=0');
   assert.equal(await nocontact.p.evaluate(()=>window.__skyInternals.ue.children.some(c=>c.name==='Contact shadow')),false,'?contact=0 removes the contact shadow');
   assert.deepEqual(nocontact.errors,[],'no page errors (contact=0)');await nocontact.ctx.close();
+  const noscenery=await open(browser,base,'&scenery=0');
+  assert.deepEqual(await noscenery.p.evaluate(()=>['Far scenery','Far skyline'].map(n=>window.__skyInternals.ue.children.some(c=>c.name===n))),[false,true],'?scenery=0 brings the old skyline back');
+  assert.deepEqual(noscenery.errors,[],'no page errors (scenery=0)');await noscenery.ctx.close();
   console.log(JSON.stringify(summary));console.log('PASS mood: noon unchanged, dusk/dawn light, three cheap meshes, switches, readable darkness');
  }finally{await browser?.close();server.close();}
 })().catch(e=>{console.error(e);process.exit(1)});

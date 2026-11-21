@@ -13,6 +13,14 @@
 - **ポータルの表紙**（`promo/covers/`、出荷物の容量には入らない）：CrazyGamesの必須3サイズ（1920x1080・800x1200・800x800）。文字は題名だけ（「Play」「New」などは禁止）。
 - 確認：単体テスト87本、`onboarding`・`player-clarity`・`foundation`・`home-first-paint`（1回目は待ち時間で失敗、再実行で成功）・`i18n-screens`・`start-readiness`・`viewport`・`auto-follow-entry`・`tip-cards`・`first-visit-course`・`combat-feedback` が成功。`development-entry-browser` は従来から失敗（PCの操作選択の前提が古い）。
 - 未確認：iPhone実機、表紙をCrazyGamesの提出画面に入れたときの見え方。
+## 2026-11-21 遠景：雲海・丘の村・城・山（`far-scenery.js`）
+
+- 旧市街の外と下に、見た目だけの景色を足した。足元は雲海、遠くの丘に村と花の木、朝日の下の峰に城（目印）、地平線に山。1メッシュ・色だけ（当たり判定・影・テクスチャ・輪郭線なし）。マップは変えていない。
+- 前の遠景（紫の建物の輪）と、宙に浮いた丸屋根28メッシュは描かない。`?scenery=0` で前の見た目に戻る。
+- 「あそこ行ける？」と思わせないルール：中心から150 m以内は雲だけ／雲は落下判定より下／180 m以内は街の床より低い／輪郭線なし・遠いほど霞む・目印色は不使用。`bench/mood-browser.cjs` で数値を検査。
+- 負荷：`?scenery=0` と比べて描画回数 −6〜−13、三角形 +4,000〜+5,100（固定4視点）。容量 +16 KB。
+- 検査：`mood-browser`（ルールの検査を追加）、`town-look-browser`、`start-readiness-browser`、`wall-readability-browser`、`foundation-browser`。
+- 未確認：iPhone実機の速さ（`bench/ab-scenery.html` を開くだけで測れる）と見え方。初めての人に見せる確認。詳細は `docs/FAR_SCENERY_2026-11-21.md`。
 
 ## 2026-11-21 プライバシーポリシーと、ホームの絵（ゾンビに追われて跳ぶ場面）
 

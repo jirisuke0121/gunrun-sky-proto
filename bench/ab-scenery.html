@@ -1,0 +1,165 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>空中回廊・遠景の重さ A/B計測（雲海と丘の遠景あり／なし）</title>
+<style>
+html,body{margin:0;height:100%;background:#111;color:#fff;font:14px/1.5 system-ui,sans-serif}
+iframe{position:fixed;inset:0;width:100%;height:100%;border:0}
+#panel{position:fixed;left:8px;top:8px;z-index:9;width:min(92vw,560px);max-height:90vh;overflow:auto;background:#000d;padding:10px 12px;border-radius:10px}
+button{font:inherit;padding:8px 14px;margin-right:6px}
+pre{white-space:pre-wrap;margin:8px 0 0;font:12px/1.55 ui-monospace,Menlo,monospace}
+</style>
+<div id="panel"><b>遠景の重さ A/B計測（開くだけで自動）</b><div style="margin-top:6px"><button id="go">開始</button><button id="copy" hidden>結果をコピー</button></div><pre id="out">準備中…</pre></div>
+<script>
+// 遠景(far-scenery.js: 雲海・丘・村・城・山)あり／なし(?scenery=0)の比較。計測の仕組みは ab-look-classic.html と同じ。
+// 「遠景」の確認欄は 旧い遠景の数/新しい遠景の数（あり=0/1、なし=1/0 が正しい）。
+// 小さな見た目の部品を1つずつ消す計測(ab-glow-outline.html)は、ばらつき(±1ms前後)に埋もれて判定できなかった。
+// そこで「11/10の見た目に全部戻す」を1条件として、遠景ありと交互に測る。
+//   A = 遠景あり      : ../index.html
+//   B = 11/10相当       : ../index.html?look=classic&mood=noon&outline=0&windFx=0
+//       (look=classic: 漆喰シェーダー・建物の色・床のむら・接地影が従来。mood=noon: 低い朝日・太陽グロー・遠景・塵なし。outline=0: 輪郭線なし。windFx=0: 風の筋なし)
+// 条件を変えるにはゲームの読み込み直しが要る。毎ラウンド A→B / B→A を入れ替え、時間経過・発熱の偏りを相殺する。
+// 1回の読み込みの中では、同じ場面で「描画解像度を約0.6倍」にした対照も測る(確実に効く変更を、この精度で検出できるかの目安)。
+// 差が60fps上限に隠れないよう、1フレームに K 回ぶん余計に描画して差を (K+1) 倍に増幅し、結果は (K+1) で割って1回あたりに戻す。
+// ゲーム本体は変更しない。プレイ記録は送らない(iframe の fetch / sendBeacon を止め、計測後は iframe ごと捨てるのでゲームは終わらない)。
+// 開くと自動で始まる(?auto=0 で手動)。調整: ?rounds=12 &slice=1000 &k=3 &settle=500 &stall=400 &pr=(描画倍率を固定)
+const q = new URLSearchParams(location.search);
+const ROUNDS = +q.get('rounds') || 12, SLICE = +q.get('slice') || 1000, K = +q.get('k') || 3, SETTLE = +q.get('settle') || 500, STALL = +q.get('stall') || 400, PR = +q.get('pr') || 0, AUTO = q.get('auto') !== '0';
+const CTRL = .6;
+const SIDES = { A: { label: '遠景あり', url: '../index.html' }, B: { label: '遠景なし(11/21午前まで)', url: '../index.html?scenery=0' } };
+const $ = id => document.getElementById(id), out = $('out'), go = $('go'), copy = $('copy');
+let running = false, lastText = '', stalls = 0, retries = 0, loadMs = [];
+
+const mean = a => a.reduce((s, v) => s + v, 0) / a.length;
+const sd = a => { if (a.length < 2) return 0; const m = mean(a); return Math.sqrt(a.reduce((s, v) => s + (v - m) ** 2, 0) / (a.length - 1)); };
+const trimmedMean = a => { const s = a.slice().sort((x, y) => x - y), cut = Math.floor(s.length * .05); return mean(s.slice(0, s.length - cut || undefined)); };
+const fmt = (v, d = 2) => (v >= 0 ? '+' : '') + v.toFixed(d);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function sampler(W, ms) {
+  return new Promise(res => {
+    const iv = []; let last = null, t0 = null;
+    const tick = t => { if (last !== null) iv.push(t - last); last = t; t0 ??= t; if (t - t0 >= ms) return res(iv); W.requestAnimationFrame(tick); };
+    W.requestAnimationFrame(tick);
+  });
+}
+// 画面が隠れる・タブが止まると描画タイマーが止まり、数百ms〜数秒の間隔が混じる。STALL超は停止として除外して回数を数える。
+// 有効な間隔が5個未満、または1割超が停止なら、その区間はやり直す(最大3回)。
+async function measure(W, ms) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const all = await sampler(W, ms), good = all.filter(v => v <= STALL);
+    stalls += all.length - good.length;
+    if (good.length >= 5 && all.length - good.length <= Math.ceil(all.length * .1)) return trimmedMean(good);
+    retries++;
+  }
+  return NaN;
+}
+const named = (scene, cam, name) => { const ids = new Set(); scene.traverse(o => { if (o.name === name) ids.add(o.id); }); cam.traverse?.(o => { if (o.name === name) ids.add(o.id); }); return ids.size; };
+
+// 1回ぶん: iframeを作る → 読み込み完了を待つ → ゲーム開始 → 測る → 描画を止めて捨てる。
+async function trial(sideKey, label) {
+  const t0 = performance.now();
+  const f = document.createElement('iframe'); f.allow = 'autoplay'; f.src = SIDES[sideKey].url; document.body.prepend(f);
+  let W = null;
+  try {
+    for (let waited = 0; ; waited += 250) {
+      await sleep(250);
+      try { W = f.contentWindow; if (W.__game && W.__skyInternals && W.document.getElementById('bStart') && !W.document.getElementById('bStart').disabled) break; } catch {}
+      if (waited > 120000) throw new Error('ゲームの読み込みが2分以内に終わりませんでした');
+    }
+    loadMs.push(performance.now() - t0);
+    // 記録を送らない(送信手段を止める。返事は「保存済み」の形)。
+    W.fetch = () => Promise.resolve(new W.Response('{"ok":true,"top":[],"total":0,"recordProtocol":2}', { status: 200, headers: { 'content-type': 'application/json' } }));
+    try { W.navigator.sendBeacon = () => true; } catch {}
+    const G = W.__game, I = W.__skyInternals, rd = G.debug.renderer, scene = I.ue, cam = I.Se;
+    G.startGame(); G.P.invuln = 1e9;
+    await sleep(2500);
+    const base = PR || rd.getPixelRatio();
+    let extra = 0; const origRender = rd.render;
+    rd.render = function (s, c) {
+      if (s === scene && extra > 0) { const ac = rd.autoClear; rd.autoClear = true; for (let i = 0; i < extra; i++) origRender.call(rd, s, c); rd.autoClear = ac; }
+      return origRender.call(rd, s, c);
+    };
+    if (PR) rd.setPixelRatio(PR);
+    extra = K;
+    const slice = async (ratio) => {
+      if (Math.abs(rd.getPixelRatio() - base * ratio) > 1e-3) rd.setPixelRatio(base * ratio);
+      out.textContent = label + '（画面に触れないでください）'; await sampler(W, SETTLE); return measure(W, SLICE);
+    };
+    const f1 = await slice(1), c1 = await slice(CTRL), f2 = await slice(1);
+    extra = 0; rd.render = origRender; rd.setPixelRatio(base);
+    // 何が効いていたかの裏づけ: 描画命令数・三角形数、切り替えが効いたかの確認。
+    await sampler(W, 100);
+    const info = rd.info?.render || {};
+    const facts = { calls: info.calls, tris: info.triangles, look: W.skyLook || 'default', mood: W.skyMoodName, ink: named(scene, cam, 'Ink outline'), glow: named(scene, cam, 'Sun glow'), skyline: named(scene, cam, 'Far skyline') + '/' + named(scene, cam, 'Far scenery'), motes: named(scene, cam, 'Dust motes'), contact: named(scene, cam, 'Contact shadow'), shadows: !!rd.shadowMap?.enabled };
+    const rq = W.skyRenderQuality?.snapshot?.() || {};
+    facts.mode = rq.mode; facts.pr = rd.getPixelRatio();
+    const per = Number.isFinite(f1) && Number.isFinite(f2) ? (f1 + f2) / 2 : NaN;
+    return { per, ctrl: Number.isFinite(per) && Number.isFinite(c1) ? (per - c1) : NaN, facts };
+  } finally {
+    // WebGLのコンテキストを確実に手放してから捨てる(24回ぶん作り直してもメモリが溜まらないように)。
+    try { const rd = W.__game.debug.renderer; rd.dispose?.(); rd.forceContextLoss?.(); } catch {}
+    try { f.src = 'about:blank'; } catch {}
+    await sleep(200); f.remove(); await sleep(300);
+  }
+}
+
+function report(rows, done, total, finished) {
+  const valid = rows.filter(r => Number.isFinite(r.A.per) && Number.isFinite(r.B.per));
+  const diff = valid.map(r => (r.A.per - r.B.per) / (K + 1)); // 戻すと軽くなる量(ms/1回)。正=遠景ありのほうが重い
+  const ctrl = rows.map(r => [r.A.ctrl, r.B.ctrl]).flat().filter(Number.isFinite).map(v => v / (K + 1));
+  const aPer = valid.length ? mean(valid.map(r => r.A.per)) / (K + 1) : NaN, bPer = valid.length ? mean(valid.map(r => r.B.per)) / (K + 1) : NaN;
+  const n = diff.length, saved = n ? mean(diff) : NaN, s = sd(diff), se = n > 1 ? s / Math.sqrt(n) : NaN, t = se ? saved / se : 0, limit = 2 * se;
+  const cSaved = ctrl.length ? mean(ctrl) : NaN, cSe = ctrl.length > 1 ? sd(ctrl) / Math.sqrt(ctrl.length) : NaN;
+  let verdict;
+  if (n < 4) verdict = '有効なラウンドが少なく判定できません';
+  else if (t >= 2 && saved >= 3) verdict = `遠景が重いです。外すと約 ${saved.toFixed(1)} ms 軽くなります（遠景を軽くするか、外す判断を）`;
+  else if (t >= 2 && saved >= 1) verdict = `遠景が約 ${saved.toFixed(1)} ms 重くしています（有意）。三角形を減らす余地を見ます`;
+  else if (t >= 2 && saved >= .3) verdict = `差は約 ${saved.toFixed(1)} ms で、遠景はほぼ負担になっていません`;
+  else if (limit < 1) verdict = `差は見えませんでした（検出できる目安 ±${limit.toFixed(1)}ms より小さい）。遠景はほぼ負担になっていません`;
+  else verdict = `判定不能です（ばらつきが大きく、約 ±${limit.toFixed(1)}ms 以上の差でないと見えません）。ラウンドを増やすか、冷めてから測り直してください`;
+  const fa = rows.map(r => r.A.facts).filter(Boolean), fb = rows.map(r => r.B.facts).filter(Boolean);
+  const med = a => { const v = a.filter(Number.isFinite).sort((x, y) => x - y); return v.length ? v[Math.floor(v.length / 2)] : NaN; };
+  const bool = (arr, k) => arr.length ? arr.map(x => x[k]).join('/').slice(0, 24) : '?';
+  const wasA = fa[0] || {};
+  const lines = [
+    finished ? `【結論】${verdict}` : `計測中… ${done}/${total}ラウンド（途中経過）: ${verdict}`,
+    '(数字は「1回の描画あたりms」。60fpsは16.7ms。差=遠景あり − 遠景なし。正なら今のほうが重い)',
+    '',
+    `・遠景あり ${Number.isFinite(aPer) ? aPer.toFixed(1) : '?'} ms / 遠景なし ${Number.isFinite(bPer) ? bPer.toFixed(1) : '?'} ms`,
+    `・差(戻すと軽くなる量) ${n ? fmt(saved) : '?'} ms ±${n > 1 ? s.toFixed(2) : '?'}（ラウンドごとのばらつき）、有意性 t=${n > 1 ? t.toFixed(1) : '?'}（2以上で差あり）`,
+    `・このテストで検出できる差の目安 約 ±${Number.isFinite(limit) ? limit.toFixed(1) : '?'} ms`,
+    `・対照: 描画解像度を約${CTRL}倍にすると ${Number.isFinite(cSaved) ? fmt(cSaved) : '?'} ms（±${Number.isFinite(cSe) ? cSe.toFixed(2) : '?'}）。確実に効く変更の目安`,
+    '',
+    `描画命令数(calls) 今 ${med(fa.map(x => x.calls))} / 戻し ${med(fb.map(x => x.calls))}、三角形 今 ${Math.round(med(fa.map(x => x.tris)) / 1000)}k / 戻し ${Math.round(med(fb.map(x => x.tris)) / 1000)}k`,
+    `切り替えの確認 今: look=${bool(fa, 'look')} mood=${bool(fa, 'mood')} 輪郭線${bool(fa, 'ink')} グロー${bool(fa, 'glow')} 遠景${bool(fa, 'skyline')} 塵${bool(fa, 'motes')} 接地影${bool(fa, 'contact')}`,
+    `                 戻し: look=${bool(fb, 'look')} mood=${bool(fb, 'mood')} 輪郭線${bool(fb, 'ink')} グロー${bool(fb, 'glow')} 遠景${bool(fb, 'skyline')} 塵${bool(fb, 'motes')} 接地影${bool(fb, 'contact')}`,
+    `有効ラウンド ${n}/${done}、描画停止の検知 ${stalls}回、区間のやり直し ${retries}回、1回の読み込み 約${loadMs.length ? (mean(loadMs) / 1000).toFixed(0) : '?'}秒`,
+    `端末: ${navigator.userAgent.replace(/^Mozilla\/5.0 /, '').slice(0, 90)}`,
+    `画面: ${innerWidth}x${innerHeight} DPR${devicePixelRatio} / 描画画質: ${wasA.mode ?? '?'} 倍率${PR ? PR + '(?pr指定)' : wasA.pr ?? '?'} 影${wasA.shadows ? 'あり' : 'なし'}`,
+    `設定: 1区間${SLICE}ms × (等倍2+対照1) × A,B × ${total}ラウンド、増幅K=${K}、日時 ${new Date().toISOString()}`,
+    '※「見た目が3ms以上」なら見た目が原因、「1ms前後」なら見た目はほぼ無実、が目安。端末が熱いと数字が動くので、迷ったら冷めてからもう一度。',
+  ];
+  return { text: lines.join('\n'), n, saved, se, t, limit, aPer, bPer, cSaved, verdict };
+}
+
+async function run() {
+  if (running) return; running = true; go.disabled = true; copy.hidden = true; stalls = 0; retries = 0; loadMs = [];
+  const rows = [];
+  try {
+    for (let r = 0; r < ROUNDS; r++) {
+      const order = r % 2 ? ['B', 'A'] : ['A', 'B'], row = {};
+      for (const k of order) row[k] = await trial(k, `計測中… ラウンド ${r + 1}/${ROUNDS}・${SIDES[k].label}`);
+      rows.push(row);
+      const rep = report(rows, r + 1, ROUNDS, false); lastText = rep.text; out.textContent = rep.text; copy.hidden = false;
+    }
+  } finally { running = false; }
+  const rep = report(rows, ROUNDS, ROUNDS, true);
+  lastText = rep.text; out.textContent = rep.text; go.textContent = '計測し直す'; go.disabled = false; copy.hidden = false;
+  window.__abResult = { K, SLICE, ROUNDS, rows, ...rep, text: undefined };
+}
+const start = () => run().catch(e => { out.textContent = '計測が止まりました: ' + (e && e.message || e) + '\n\n' + lastText; running = false; go.disabled = false; });
+go.addEventListener('click', start);
+copy.addEventListener('click', async () => { try { await navigator.clipboard.writeText(lastText); copy.textContent = 'コピーしました'; } catch { const r = document.createRange(); r.selectNodeContents(out); getSelection().removeAllRanges(); getSelection().addRange(r); copy.textContent = '文字を選択しました'; } });
+if (AUTO) { out.textContent = '3秒後に自動で計測を始めます（ゲームを24回読み込み直すので、数分かかります。画面に触れない・画面を消さない）。'; setTimeout(start, 3000); }
+else out.textContent = '「開始」を押すと計測します。';
+</script>
+</html>
