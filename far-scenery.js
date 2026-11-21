@@ -37,18 +37,19 @@
     const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
     const sunLen = Math.hypot(...mood.sun.dir), SUN = mood.sun.dir.map(v => v / sunLen);
     const sunAz = Math.atan2(SUN[2], SUN[0]);
-    const HAZE = lin(mood.haze), WARM = lin(mood.glow), COOL = lin(0xa7a2dc), LOW = lin(mood.skyLow);
+    const HAZE = lin(mood.haze), WARM = lin(mood.glow), COOL = lin(0x9fa6e6), LOW = lin(mood.skyLow);
     const FARTINT = mix(lin(mood.skyline[0]), HAZE, 0.35); // distant land fades to a lavender silhouette, clouds to the horizon colour
     let fade = FARTINT;
     const C = {
-      grass: lin(0x7fa582), meadow: lin(0xa3bd90), rock: lin(0x9a8fa6), snow: lin(0xf4ecf0),
-      cloud: lin(0xfff3ee), stone: lin(0xd8cdc4), slate: lin(0x56607c), roofRed: lin(0x9c5a5e),
+      grass: lin(0x5a8f6c), meadow: lin(0x94b97e), rock: lin(0xa58fae), snow: lin(0xf4ecf0),
+      cloud: lin(0xfff3ee), stone: lin(0xd8cdc4), castle: lin(0xd9c8cc), window: lin(0xfff2cc), slate: lin(0x56607c), roofRed: lin(0x9c5a5e),
       walls: [0xe6d9c8, 0xd9a6a6, 0xb9c4a6, 0xc9c2bc, 0xa9c2c0].map(lin), blossom: lin(0xf3b4cb), blossom2: lin(0xfad7e2), leaf: lin(0x6f9a72),
     };
     const pos = [], col = [];
     // Aerial perspective: everything fades toward the haze colour with distance from the map.
-    const hazeAt = r => Math.pow(Math.max(0, Math.min(1, (r - 120) / 290)), 0.85) * 0.74;
+    const hazeAt = r => 0.1 + Math.pow(Math.max(0, Math.min(1, (r - 215) / 190)), 1.1) * 0.72; // near islands and the castle keep their colour; the mountains fade
     // One flat-shaded triangle. The light is baked: warm on faces toward the sun, cool on the others.
+    let wrap = 0.3, crest = 0; // wrap: light reaches a little past the terminator; crest: extra sun on up-facing faces (set per land face)
     let inside = null; // a point inside the solid being built; null = terrain (faces look up)
     const tri = (a, b, c, base, glow = 0) => {
       { const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
@@ -57,12 +58,12 @@
         if (out < 0) { const t = b; b = c; c = t; } }
       const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
       let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx; const n = Math.hypot(nx, ny, nz) || 1; nx /= n; ny /= n; nz /= n;
-      const lit = Math.max(0, nx * SUN[0] + ny * SUN[1] + nz * SUN[2]), skyUp = 0.5 + 0.5 * ny;
+      const lit = Math.max(0, (nx * SUN[0] + ny * SUN[1] + nz * SUN[2] + wrap) / (1 + wrap)) + crest * Math.max(0, ny), skyUp = 0.5 + 0.5 * ny;
       const mx = (a[0] + b[0] + c[0]) / 3 - CX, mz = (a[2] + b[2] + c[2]) / 3 - CZ, h = hazeAt(Math.hypot(mx, mz));
       for (const p of [a, b, c]) {
         pos.push(p[0], p[1], p[2]);
         for (let k = 0; k < 3; k++) {
-          const shade = base[k] * (COOL[k] * (0.78 + 0.42 * skyUp) + WARM[k] * lit * 1.5);
+          const shade = base[k] * (COOL[k] * (0.6 + 0.5 * skyUp) + WARM[k] * lit * 1.7);
           col.push((shade + (base[k] - shade) * glow) * (1 - h) + fade[k] * h);
         }
       }
@@ -94,7 +95,7 @@
     // --- 1. sea of clouds: a flat fan, darker under the town and melting into the horizon --------
     {
       const RINGS = [0, 90, 190, 300, 420, 560], SEG = 40, tone = [0.9, 0.95, 0.985, 1, 1, 1];
-      const ringColour = i => mix(mix(LOW, C.cloud, 0.62), HAZE, [0.25, 0.3, 0.42, 0.62, 0.84, 1][i]).map(v => v * tone[i]);
+      const ringColour = i => mix(mix(LOW, C.cloud, 0.5), HAZE, [0.12, 0.18, 0.34, 0.6, 0.86, 1][i]).map(v => v * tone[i]);
       const flat = (a, b, c, ca, cb, cc) => { for (const [p, k] of [[a, ca], [b, cb], [c, cc]]) { pos.push(...p); col.push(...k); } };
       for (let i = 0; i < RINGS.length - 1; i++) for (let j = 0; j < SEG; j++) {
         const a0 = j / SEG * Math.PI * 2, a1 = (j + 1) / SEG * Math.PI * 2, r0 = RINGS[i], r1 = RINGS[i + 1], c0 = ringColour(i), c1 = ringColour(i + 1);
@@ -132,7 +133,9 @@
         const minX = Math.floor(Math.min(a[0], b[0], c[0]) / CELL), maxX = Math.floor(Math.max(a[0], b[0], c[0]) / CELL), minZ = Math.floor(Math.min(a[2], b[2], c[2]) / CELL), maxZ = Math.floor(Math.max(a[2], b[2], c[2]) / CELL);
         for (let ix = minX; ix <= maxX; ix++) for (let iz = minZ; iz <= maxZ; iz++) { const key = ix + ',' + iz; if (!cells.has(key)) cells.set(key, []); cells.get(key).push([a, b, c]); }
         const y = (a[1] + b[1] + c[1]) / 3, r = Math.hypot((a[0] + b[0] + c[0]) / 3 - CX, (a[2] + b[2] + c[2]) / 3 - CZ);
+        crest = 0.5 * step(CLOUD_Y + 6, CLOUD_Y + 40, top) * step(330, 240, r);
         tri(a, b, c, landColour(y + (hash(Math.round(a[0]), Math.round(c[2])) - 0.5) * 10, r));
+        crest = 0;
       };
       for (let i = 0; i < RINGS.length - 1; i++) for (let j = 0; j < SEG; j++) {
         const j1 = (j + 1) % SEG, a = grid[i][j], b = grid[i][j1], c = grid[i + 1][j], d = grid[i + 1][j1];
@@ -155,21 +158,22 @@
     }
 
     // --- 4. villages and trees on the islands -------------------------------------------------
-    const house = (x, y, z, w, d, h, roof, rot, wall, top) => {
+    const OWN = 0.38; // how much of a wall's own colour survives the baked light
+    const house = (x, y, z, w, d, h, roof, rot, wall, top, own = OWN) => {
       const c = Math.cos(rot), s = Math.sin(rot), P = (lx, ly, lz) => [x + lx * c - lz * s, y + ly, z + lx * s + lz * c];
       const x0 = -w / 2, x1 = w / 2, z0 = -d / 2, z1 = d / 2, y0 = -4; inside = [x, y + h * 0.5, z];
-      quad(P(x0, y0, z1), P(x1, y0, z1), P(x1, h, z1), P(x0, h, z1), wall); quad(P(x1, y0, z0), P(x0, y0, z0), P(x0, h, z0), P(x1, h, z0), wall);
-      quad(P(x1, y0, z1), P(x1, y0, z0), P(x1, h, z0), P(x1, h, z1), wall); quad(P(x0, y0, z0), P(x0, y0, z1), P(x0, h, z1), P(x0, h, z0), wall);
+      quad(P(x0, y0, z1), P(x1, y0, z1), P(x1, h, z1), P(x0, h, z1), wall, own); quad(P(x1, y0, z0), P(x0, y0, z0), P(x0, h, z0), P(x1, h, z0), wall, own);
+      quad(P(x1, y0, z1), P(x1, y0, z0), P(x1, h, z0), P(x1, h, z1), wall, own); quad(P(x0, y0, z0), P(x0, y0, z1), P(x0, h, z1), P(x0, h, z0), wall, own);
       const e = 0.6; // eaves
-      tri(P(x0, h, z1), P(x0, h, z0), P(x0, h + roof, 0), wall); tri(P(x1, h, z0), P(x1, h, z1), P(x1, h + roof, 0), wall);
+      tri(P(x0, h, z1), P(x0, h, z0), P(x0, h + roof, 0), wall, own); tri(P(x1, h, z0), P(x1, h, z1), P(x1, h + roof, 0), wall, own);
       quad(P(x0 - e, h - 0.3, z1 + e), P(x1 + e, h - 0.3, z1 + e), P(x1 + e, h + roof, 0), P(x0 - e, h + roof, 0), top);
       quad(P(x1 + e, h - 0.3, z0 - e), P(x0 - e, h - 0.3, z0 - e), P(x0 - e, h + roof, 0), P(x1 + e, h + roof, 0), top);
     };
-    const tower = (x, y, z, w, h, spire, wall, top, sides = 4) => {
+    const tower = (x, y, z, w, h, spire, wall, top, sides = 4, a0 = 0, own = OWN) => { // a0: direction one flat side faces
       inside = [x, y + h * 0.5, z];
-      const ring = yy => Array.from({ length: sides }, (_, k) => { const a = (k + 0.5) / sides * Math.PI * 2; return [x + Math.cos(a) * w * 0.7, yy, z + Math.sin(a) * w * 0.7]; });
-      const lo = ring(y - 4), hi = ring(y + h), eave = Array.from({ length: sides }, (_, k) => { const a = (k + 0.5) / sides * Math.PI * 2; return [x + Math.cos(a) * w * 0.86, y + h - 0.2, z + Math.sin(a) * w * 0.86]; }), tip = [x, y + h + spire, z];
-      for (let k = 0; k < sides; k++) { const k1 = (k + 1) % sides; quad(lo[k1], lo[k], hi[k], hi[k1], wall); tri(eave[k1], eave[k], tip, top); }
+      const ring = yy => Array.from({ length: sides }, (_, k) => { const a = a0 + (k + 0.5) / sides * Math.PI * 2; return [x + Math.cos(a) * w * 0.7, yy, z + Math.sin(a) * w * 0.7]; });
+      const lo = ring(y - 4), hi = ring(y + h), eave = Array.from({ length: sides }, (_, k) => { const a = a0 + (k + 0.5) / sides * Math.PI * 2; return [x + Math.cos(a) * w * 0.86, y + h - 0.2, z + Math.sin(a) * w * 0.86]; }), tip = [x, y + h + spire, z];
+      for (let k = 0; k < sides; k++) { const k1 = (k + 1) % sides; quad(lo[k1], lo[k], hi[k], hi[k1], wall, own); tri(eave[k1], eave[k], tip, top); }
     };
     const tree = (x, y, z, s, base) => {
       const top = [x, y + 4.6 * s, z], N = 5, ring = [], foot = []; inside = [x, y + 2 * s, z];
@@ -189,7 +193,7 @@
       for (let k = 0; k < count; k++) {
         const x = vx + (rand() - 0.5) * 52, z = vz + (rand() - 0.5) * 52, y = landY(x, z);
         if (y < CLOUD_Y + 4 || !flatEnough(x, z, y) || !lowEnough(x, z, y)) continue;
-        const s = 1 + r / 600; // a little larger far away so a village still reads as houses on a phone
+        const s = 1.3 + r / 420; // a little larger far away so a village still reads as houses on a phone
         house(x, y, z, (7 + rand() * 6) * s, (6 + rand() * 3) * s, (4.5 + rand() * 4) * s, (3 + rand() * 2.5) * s, rand() * Math.PI, C.walls[Math.floor(rand() * C.walls.length)], red ? C.roofRed : C.slate);
         houses++;
       }
@@ -202,20 +206,30 @@
       }
     }
 
-    // --- 5. the castle on the peak under the sun --------------------------------------------------
+    // --- 5. the castle on the peak under the sun (the landmark; drawn large so it reads on a phone) ---
     {
-      const y = Math.min(landY(peakX, peakZ), landY(peakX + 15, peakZ), landY(peakX - 15, peakZ), landY(peakX, peakZ + 15), landY(peakX, peakZ - 15)) + 1, ax = Math.cos(sunAz), az = Math.sin(sunAz), at = (f, s) => [peakX + ax * f - az * s, peakZ + az * f + ax * s]; // f: away from town, s: sideways
-      const rot = -sunAz + Math.PI / 2;
-      const wallR = 23, N = 8, ringAt = (rr, yy) => Array.from({ length: N }, (_, k) => { const a = (k + 0.5) / N * Math.PI * 2; return [peakX + Math.cos(a) * rr, yy, peakZ + Math.sin(a) * rr]; });
-      const w0 = ringAt(wallR, y - 8), w1 = ringAt(wallR, y + 6.5);
+      const y = Math.min(landY(peakX, peakZ), landY(peakX + 15, peakZ), landY(peakX - 15, peakZ), landY(peakX, peakZ + 15), landY(peakX, peakZ - 15)) + 1, ax = Math.cos(sunAz), az = Math.sin(sunAz);
+      const at = (f, s) => [peakX + ax * f - az * s, peakZ + az * f + ax * s]; // f: away from the town, s: sideways
+      const rot = Math.atan2(ax, -az), town = sunAz + Math.PI, CW = 0.2;        // the hall's long side and one side of each tower face the town
+      const faced = sides => town - Math.PI / sides;
+      const N = 8, wallR = 25, ringAt = (rr, yy) => Array.from({ length: N }, (_, k) => { const a = (k + 0.5) / N * Math.PI * 2; return [peakX + Math.cos(a) * rr, yy, peakZ + Math.sin(a) * rr]; });
+      const w0 = ringAt(wallR, y - 8), w1 = ringAt(wallR, y + 7);
       inside = [peakX, y, peakZ];
-      for (let k = 0; k < N; k++) { const k1 = (k + 1) % N; quad(w0[k1], w0[k], w1[k], w1[k1], C.stone); }
-      for (let k = 0; k < N; k += 2) tower(w1[k][0], y, w1[k][2], 4.2, 12, 7, C.stone, C.slate, 6);       // wall towers
-      let p = at(2, 0); house(p[0], y, p[1], 24, 15, 15, 8, rot, C.walls[0], C.slate);                    // the hall
-      p = at(-1, -9); tower(p[0], y, p[1], 7.5, 27, 14, C.stone, C.slate, 6);                             // the keep
-      p = at(4, 9); tower(p[0], y, p[1], 4.6, 36, 19, C.walls[0], C.slate, 6);                            // the tall spire
-      p = at(-8, 6); tower(p[0], y, p[1], 3.6, 20, 10, C.stone, C.roofRed, 6);
-      for (let k = 0; k < 9; k++) { const a = rand() * Math.PI * 2, rr = 30 + rand() * 22, x = peakX + Math.cos(a) * rr, z = peakZ + Math.sin(a) * rr; tree(x, landY(x, z), z, 1.2 + rand() * 0.9, rand() < 0.75 ? C.blossom : C.blossom2); trees++; }
+      for (let k = 0; k < N; k++) { const k1 = (k + 1) % N; quad(w0[k1], w0[k], w1[k], w1[k1], C.castle, CW); }
+      for (let k = 0; k < N; k++) tower(w1[k][0], y, w1[k][2], 4.4, 13, 9, C.castle, C.slate, 6, 0, CW);              // wall towers
+      const HALL = [5, 0, 30, 16, 20, 11], KEEP = [-3, -12, 9, 44, 22], TALL = [7, 12, 6.4, 62, 34], SMALL = [-11, 7, 4.2, 28, 15];
+      let p = at(HALL[0], HALL[1]); house(p[0], y, p[1], HALL[2], HALL[3], HALL[4], HALL[5], rot, C.castle, C.slate, CW);
+      p = at(KEEP[0], KEEP[1]); tower(p[0], y, p[1], KEEP[2], KEEP[3], KEEP[4], C.castle, C.slate, 4, faced(4), CW);
+      p = at(TALL[0], TALL[1]); tower(p[0], y, p[1], TALL[2], TALL[3], TALL[4], C.castle, C.roofRed, 6, faced(6), CW);
+      p = at(SMALL[0], SMALL[1]); tower(p[0], y, p[1], SMALL[2], SMALL[3], SMALL[4], C.castle, C.slate, 6, faced(6), CW);
+      // Lit windows on the sides that face the town: pale cream (never the yellow / orange of the route cues), unshaded.
+      const W = 2.4, H = 4.6, win = (f, sc, yy) => { const a = at(f, sc - W / 2), b = at(f, sc + W / 2); inside = [a[0] + ax * 9, y + yy, a[1] + az * 9]; quad([a[0], y + yy, a[1]], [b[0], y + yy, b[1]], [b[0], y + yy + H, b[1]], [a[0], y + yy + H, a[1]], C.window, 1); };
+      const front = (t, sides) => t[0] - t[2] * 0.7 * Math.cos(Math.PI / sides) - 0.35;
+      for (const sc of [-12, -6, 0, 6, 12]) for (const yy of [4, 12]) win(HALL[0] - HALL[3] / 2 - 0.35, sc, yy);
+      for (const yy of [24, 34]) win(front(KEEP, 4), KEEP[1], yy);
+      for (const yy of [36, 46, 55]) win(front(TALL, 6), TALL[1], yy);
+      win(front(SMALL, 6), SMALL[1], 19);
+      for (let k = 0; k < 12; k++) { const a = rand() * Math.PI * 2, rr = 31 + rand() * 20, x = peakX + Math.cos(a) * rr, z = peakZ + Math.sin(a) * rr; tree(x, landY(x, z), z, 1.3 + rand() * 0.9, rand() < 0.75 ? C.blossom : C.blossom2); trees++; }
     }
 
     const geometry = new BufferGeometry();

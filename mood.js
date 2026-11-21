@@ -26,7 +26,14 @@
       hemi: { sky: 0xb2bcf4, ground: 0xa8827e, ambient: 1.95 }, exposure: 1.42,
       glow: 0xffa466, skyline: [0xa4759a, 0xc795a8],
     },
+    // 11/21: deeper sky, less exposure, stronger sun -> light and dark separate (it was all one pale pink).
     dawn: {
+      haze: 0xf6b78e, skyMid: 0xe08d98, skyTop: 0x35488f, skyLow: 0x957a98,
+      sun: { dir: dir(13, 150), color: 0xffb47a, intensity: 2.8 },
+      hemi: { sky: 0xb4bdf4, ground: 0xa88a84, ambient: 1.95 }, exposure: 1.28,
+      glow: 0xffc890, skyline: [0x8a6f9c, 0xb48e9f],
+    },
+    dawnpale: { // the dawn before 11/21 (?mood=dawnpale), kept for comparison
       haze: 0xf3c19d, skyMid: 0xe3a5b6, skyTop: 0x6c88cc, skyLow: 0xc19aa0,
       sun: { dir: dir(13, 150), color: 0xffbd86, intensity: 2.3 },
       hemi: { sky: 0xc0c8f6, ground: 0xa88a84, ambient: 1.95 }, exposure: 1.4,
