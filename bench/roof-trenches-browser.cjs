@@ -17,7 +17,7 @@ const root = path.resolve(__dirname, '..'), PORT = 8796;
     const page = await context.newPage(), errors = []; page.on('pageerror', e => errors.push(e.message)); page.setDefaultTimeout(240000);
     await page.goto(`http://127.0.0.1:${PORT}/index.html?challengeDebug=1`);
     await page.waitForFunction(() => window.__game && window.skySwing && window.SKY_ROOF_TRENCHES);
-    const level = page.locator('[data-difficulty=normal]'); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
+    const level = page.locator('[data-difficulty=normal]').first(); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
     const out = await page.evaluate(async () => {
       const g = __game, s = __skyInternals, c = g.P, dt = 1 / 120, T = window.SKY_ROOF_TRENCHES, res = {};
       const key = (code, type) => dispatchEvent(new KeyboardEvent(type, { code }));
@@ -61,9 +61,9 @@ const root = path.resolve(__dirname, '..'), PORT = 8796;
       // 跳び損ねて底（6.2 m）にいる状態から、前へ進んでジャンプ → 屋上に戻る。
       const climb = run([10, T.FLOOR, 1.6], [0, 1], 0, null, 1.6, true);
       res.climb = { ...climb, ok: Math.abs(climb.y - 8) < .05 && climb.z > 4 && Math.abs(climb.minY - T.FLOOR) < .05 };
-      // 柵（西の縁 z=-2.5）を走って乗り越える。
+      // 西の縁の帯（柵があった z=-2.5 の所）を走り抜ける。柵は 11/22 に撤去（乗り越えるだけの物は置かない、map-prune.js）。
       const rail = run([-12.5, 8, -9], [0, 1], 6.25, .9, 2.2);
-      res.rail = { ...rail, ok: rail.z > -2.25 && Math.abs(rail.y - 8) < .05 };
+      res.rail = { ...rail, rails: s.jn.filter(b => b.roofRail).length, ok: rail.z > -2.25 && Math.abs(rail.y - 8) < .05 && !s.jn.some(b => b.roofRail) };
       // 経路グラフ: 溝の底に足場があり、追手は降りて登り直せる。
       const N = g.NAV, floorNodes = N.nodes.filter(n => Math.abs(n.y - T.FLOOR) < .01).length;
       const link = (kind, y0, y1) => N.E.filter(e => e.kind === kind && e.to != null && Math.abs(N.nodes[e.from].y - y0) < .01 && Math.abs(N.nodes[e.to].y - y1) < .01).length;
@@ -94,7 +94,7 @@ const root = path.resolve(__dirname, '..'), PORT = 8796;
     for (const j of out.jumps) check(j.name, j.ok, j);
     check('走るだけでは縁で止まる', out.edge.ok, out.edge);
     check('底からよじ登って出られる', out.climb.ok, out.climb);
-    check('柵を乗り越えられる', out.rail.ok, out.rail);
+    check('縁の帯を走り抜けられる（柵は撤去済み）', out.rail.ok, out.rail);
     check('経路グラフ', out.nav.ok, out.nav);
     for (const r of out.chase) check('追手が溝を越えて襲える（20秒以内）', r.hit !== null, r);
     check('溝の中は建物の中として扱わない', out.pit.ok, out.pit);

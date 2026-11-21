@@ -16,7 +16,7 @@ const root = path.resolve(__dirname, '..'), PORT = 8797;
     const page = await context.newPage(), errors = []; page.on('pageerror', e => errors.push(e.message)); page.setDefaultTimeout(240000);
     await page.goto(`http://127.0.0.1:${PORT}/index.html?challengeDebug=1`);
     await page.waitForFunction(() => window.__game && window.skySwing && window.SKY_RETURN_LINKS);
-    const level = page.locator('[data-difficulty=normal]'); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
+    const level = page.locator('[data-difficulty=normal]').first(); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
     const out = await page.evaluate(async () => {
       const g = __game, s = __skyInternals, c = g.P, dt = 1 / 120, res = {};
       const key = (code, type) => dispatchEvent(new KeyboardEvent(type, { code }));
