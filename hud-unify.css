@@ -46,6 +46,8 @@ html.touch .hud-tl .hud-detail:has(#hFlash){display:none}
 .unity-counter>small{font-size:11px;align-self:center;padding:0;color:var(--hud-sub)}
 .unity-counter>span{display:none}
 .unity-score>b{grid-column:auto;color:var(--hud-gold)}
+/* 得点だけはアイコンがないので、数字の列を22pxのアイコン列に入れない（「点」が数字に重なっていた） */
+.unity-score{grid-template-columns:max-content max-content 1fr}
 .unity-score>img{filter:sepia(1) saturate(2.5) drop-shadow(0 1px 1px #000)}
 .uc-hud-goal{font-size:10px;text-align:right;white-space:normal;line-height:1.4}
 #unityHudStars{display:none}

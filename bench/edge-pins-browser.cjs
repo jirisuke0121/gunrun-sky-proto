@@ -44,6 +44,7 @@ const base = 'http://127.0.0.1:8812/';
       assert.equal(await visible('#ammoEmptyNote'), 1, map + ': out-of-ammo note');
       assert.equal(await page.evaluate(() => document.getElementById('ammoEmptyNote').innerText.trim()), 'EMPTY', map + ': the note is just EMPTY (with a crossed-out gun)');
       assert.equal(await page.evaluate(() => document.getElementById('ammoBox').classList.contains('ammo-empty')), true, map + ': HUD gun icon is crossed out');
+      assert.equal(await visible('.edge-pin.ammo'), 0, map + ': no AMMO pin even when dry (removed 2026-11-21; ?ammoPin=1 brings it back)');
       assert.equal(clicks, 1, map + ': one empty click the moment it runs dry, none repeating for 1.5 s');
       // Infinite reserve never shows it.
       await page.evaluate(() => { const s = __skyInternals; s.U.reserveAmmo = 99; });

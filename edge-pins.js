@@ -9,6 +9,8 @@ if (game && hud) {
   const ARROW = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 28 27 16 21 4 27z"/></svg>';
   const make = (cls, html) => { const el = document.createElement('div'); el.className = 'edge-pin ' + cls; el.hidden = true; if (html) el.innerHTML = html; hud.append(el); return el; };
   const pursuerPins = [make('pursuer', ARROW), make('pursuer', ARROW), make('pursuer', ARROW)];
+  // 2026-11-21 弾補充の案内（AMMO）は画面端で見切れて紛らわしいので既定で出さない。?ammoPin=1 で従来どおり。
+  const AMMO_PIN = new URLSearchParams(location.search).get('ammoPin') === '1';
   const ammoPin = make('ammo', '<span class="edge-pin-arrow">' + ARROW + '</span><b>AMMO</b><i></i>');
   const note = document.createElement('div'); note.id = 'ammoEmptyNote'; note.hidden = true;
   note.innerHTML = '<svg viewBox="0 0 32 24" aria-hidden="true"><path class="g" d="M3 7h19l3 3v4h-8l-1 6h-5l1-6H6z"/><path class="x" d="M6 2l20 20M26 2 6 22"/></svg><b>EMPTY</b>'; hud.append(note);
@@ -83,7 +85,7 @@ if (game && hud) {
     const crates = window.skyWeaponDrops?.crates?.() || [];
     let best = null, bd = Infinity;
     for (const k of crates) { const d = Math.hypot(k.x - c.pos.x, k.z - c.pos.z); if (d < bd) { bd = d; best = k; } }
-    if ((low || dry) && best) {
+    if (AMMO_PIN && (low || dry) && best) {
       const visible = place(ammoPin, best.x, best.y + 1.2, best.z, 56, 140, 84);
       ammoPin.hidden = false; ammoPin.classList.toggle('on-screen', visible);
       ammoPin.querySelector('i').textContent = Math.round(bd) + 'm';
