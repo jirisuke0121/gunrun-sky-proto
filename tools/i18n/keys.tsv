@@ -951,6 +951,7 @@
 950	高精細・影なし（スマホ推奨）	High detail, no shadows (phone)
 951	高精細と同じ細かさで、影だけを省きます。スマホで続けて遊んでも重くなりにくくします。	Same detail as High, without shadows. Keeps phones smoother over repeated play.
 952	プライバシーポリシー	Privacy Policy
+953	屋根を跳び、ゾンビから2分間逃げ切れ。	Leap the rooftops. Outrun the zombies for 2 minutes.
 p0	^(\\d+)秒停止$	Stun $1s
 p1	^技あと(\\d+)$	$1 moves
 p2	^装填中 · あと([\\d.]+)秒$	Reloading · $1 s left

@@ -136,22 +136,22 @@
   // Always reachable from the home screen: the tips (the nickname is edited from the name chip).
   const guide = make('button', { id: 'homeGuide', type: 'button' }, 'コツ');
   guide.addEventListener('click', () => openDialog('again'));
-  hero.querySelector('.home-heading-actions')?.prepend(guide);
+  (hero.querySelector('.home-links') || hero.querySelector('.home-heading-actions'))?.prepend(guide);
 
   // ---- First visit: one start card, then straight into the intro run ----
   let splash;
   function showSplash() {
     splash = make('div', { id: 'onbSplash' });
     splash.setAttribute('role', 'dialog'); splash.setAttribute('aria-modal', 'true'); splash.setAttribute('aria-labelledby', 'onbSplashTitle');
-    splash.innerHTML = `<div class="onb-splash-card">
-      <p class="onb-kicker">GUNRUN · PARKOUR SURVIVAL</p>
+    // Same full-screen picture as the home (2026-11-21): the first thing a new player sees is the chase, not a text box.
+    splash.innerHTML = `<div class="onb-splash-scene" aria-hidden="true"></div><div class="onb-splash-card">
       <h1 id="onbSplashTitle">空中回廊<span>追跡</span></h1>
       <p class="onb-splash-intro">ゾンビから2分間逃げろ。</p>
       <p class="onb-splash-sub">銃・アイテム・地形を駆使して、とにかく逃げ切れ。</p>
-      <p class="onb-splash-note">入門は記録・ランキングに反映されません。</p>
-      <a class="onb-privacy" href="./privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>
       <button id="onbStart" type="button" class="onb-start"><span id="onbStartLabel">タップしてスタート</span><span aria-hidden="true">❯❯</span></button>
-    </div>`;
+      <p class="onb-splash-note">入門は記録・ランキングに反映されません。</p>
+    </div><a class="onb-privacy" href="./privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>`;
+    splash.querySelector('.onb-splash-scene').style.backgroundImage = location.pathname.endsWith('canyon.html') ? `url('./assets/lobby/canyon.svg')` : `url('./assets/lobby/old-town-chase.webp')`;
     ($('app') || document.body).append(splash); document.body.classList.add('onb-open');
     const start = $('onbStart');
     const sync = () => { const ready = !!intro && !intro.disabled; start.disabled = !ready; $('onbStartLabel').textContent = ready ? 'タップしてスタート' : '読み込み中…'; };

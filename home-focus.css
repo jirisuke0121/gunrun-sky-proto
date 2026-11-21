@@ -1,107 +1,153 @@
-/* One visual language for the lobby and the result: ink, warm white, orange. */
-.sky-lobby #ovStart{background:#090f18ed;padding:24px;align-items:safe center;color:#f4f0e8}
-.sky-lobby #ovStart>.plate{width:min(1060px,100%);padding:26px 30px 20px;background:#101a25;border:1px solid #3e4b56;border-top:3px solid #e98a61;box-shadow:0 24px 80px #0008;box-sizing:border-box}
-#homeHero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px 32px;font-variant-numeric:tabular-nums}
-.home-heading{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #3a4855;padding-bottom:18px}
-.home-kicker{color:#a8b6c1;letter-spacing:.18em;font-size:11px;margin:0 0 7px}
-.home-heading h1{font-size:36px;margin:0;line-height:1.15;letter-spacing:.06em;color:#f4f0e8}.home-heading h1 span{color:#ec9a73;font-size:.55em;margin-left:.6em}
-#homeHero button{border-radius:5px;font-family:inherit;cursor:pointer;text-shadow:none}
-#homeSettings,#homeRankingButton{min-height:44px;padding:8px 20px;border:1px solid #657380;background:transparent;color:#e0e6eb;font-size:14px}
-#homeRankingButton{border-color:#ec9a73;color:#ffd2b8}
-.home-scene{min-height:310px;position:relative;display:flex;align-items:flex-end;background-size:cover;background-position:46% center;border:1px solid #3a4855;border-radius:6px;overflow:hidden}
-.home-scene-copy{padding:24px}.home-map{font-size:14px;letter-spacing:.08em;color:#f4f0e8}.home-map small{display:block;font-size:10px;color:#b9c8d4;margin-top:5px;letter-spacing:.18em}
-.home-scene h2{font-size:48px;font-weight:900;letter-spacing:.04em;line-height:1.2;margin:16px 0 10px;color:#fff}.home-scene p{font-size:13px;color:#d6dfe4;margin:0;line-height:1.6}
-.home-play{display:flex;flex-direction:column;justify-content:center;gap:16px;min-width:0}
-.home-difficulty-heading{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}.home-difficulty-heading h2{font-size:18px;color:#f4f0e8;margin:0}.home-difficulty-heading>span{font-size:12px;color:#b1c0cb}
-.home-difficulty-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.home-difficulty-choices button{display:grid;gap:6px;justify-items:center;align-content:center;min-height:104px;padding:12px 4px;border:1px solid #536372;background:#162330;color:#c6d1db}
-.home-difficulty-choices button>small{font-size:11px;line-height:1.35;color:#b9c8d4;text-align:center}.home-difficulty-choices button>small>span{display:block;white-space:nowrap}.home-difficulty-choices button[aria-pressed=true]>small{color:#e8d6ca}.home-difficulty-choices button>span{font-size:14px}.home-difficulty-choices button>strong{display:flex;align-items:baseline;justify-content:center;gap:4px;font-size:27px;line-height:1;color:#f4f0e8}.home-difficulty-choices button>strong>em{font-style:normal;font-size:12px;font-weight:700;color:#ffb98e;letter-spacing:.02em}.home-difficulty-choices button>strong>b{font-weight:inherit}
-.home-difficulty-choices button[aria-pressed=true]{border:2px solid #ec9a73;background:#342b29;padding:11px 3px;color:#fff}.home-difficulty-choices button[aria-pressed=true]>strong{color:#ffb98e}
-.home-difficulty-choices button:hover{background:#263542}.home-difficulty-choices button:focus-visible,#homeHero button:focus-visible{outline:3px solid #fff1c4;outline-offset:3px}
-.home-run-facts{display:flex;justify-content:space-between;gap:16px;color:#b1c0cb;font-size:13px}.home-run-facts b{margin-left:8px;color:#f4f0e8;font-size:18px}
-#homeHero #bStart{margin:0;min-height:58px;padding:14px 10px;background:#e98258;border:1px solid #ffb18b;color:#15191d;font-size:19px;font-weight:800;box-shadow:0 4px 16px #0003}
-#homeHero #bStart:hover{background:#f39b74}#homeHero #bStart:disabled{background:#263542;border-color:#536372;color:#b1c0cb;box-shadow:none;cursor:wait}
+/* Home (2026-11-21): one full-screen picture. Title, one line, Start and difficulty at the bottom left;
+   Ranking and Settings at the top right; everything else small. Ink, warm white, orange. */
+.sky-lobby #ovStart{display:block;padding:0;background:#0a0f16;color:#f6f1e7;overflow-y:auto}
+.sky-lobby #ovStart[hidden]{display:none}
+.sky-lobby #ovStart>.plate{position:relative;width:100%;max-width:none;height:100%;margin:0;padding:0;background:none;border:0;box-shadow:none;box-sizing:border-box}
+#homeHero{position:relative;box-sizing:border-box;height:100%;min-height:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top top" ". ." "main foot";gap:0 28px;
+  padding:max(16px,env(safe-area-inset-top)) max(32px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(36px,env(safe-area-inset-left));overflow:hidden;isolation:isolate;font-variant-numeric:tabular-nums}
+#homeHero button{font-family:inherit;cursor:pointer;text-shadow:none}
+#homeHero button:focus-visible,#homeHero a:focus-visible,#homeHero select:focus-visible{outline:3px solid #fff1c4;outline-offset:3px}
+
+/* Picture and the shading that keeps the text readable (bottom left) without dimming the chase. */
+.home-scene{position:absolute;inset:0;z-index:-1;background-color:#0a0f16;background-repeat:no-repeat;background-size:cover;background-position:58% 38%}
+.home-scene::after{content:"";position:absolute;inset:0;background:
+  radial-gradient(115% 85% at 0% 100%,#0a0f16f2 0%,#0a0f16c4 32%,#0a0f1600 64%),
+  linear-gradient(0deg,#0a0f16b0 0%,#0a0f1600 24%),
+  linear-gradient(180deg,#0a0f1673 0%,#0a0f1600 15%)}
+#homeHero[data-map=canyon] .home-scene{background-position:center}
+#homeHero[data-map=canyon] .home-scene::after{background:linear-gradient(0deg,#0a0f16f5 0%,#0a0f16a0 40%,#0a0f1633 100%)}
+
+/* Top right */
+.home-top{grid-area:top;display:flex;justify-content:flex-end;align-items:center;min-width:0}
+.home-heading-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+#homeRankingButton,#homeSettings{min-height:44px;padding:8px 18px;border:1px solid #ffffff40;border-radius:6px;background:#0a0f1670;color:#f6f1e7;font-size:15px;font-weight:700;letter-spacing:.02em;white-space:nowrap;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#homeRankingButton:hover,#homeSettings:hover{background:#0a0f16b0;border-color:#ffffff80}
+
+/* Bottom left */
+.home-play{grid-area:main;align-self:end;display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-width:0;max-width:min(620px,100%)}
+.home-heading h1{margin:0;font-size:clamp(40px,6.2vw,82px);font-weight:900;line-height:1;letter-spacing:.05em;color:#fff;text-shadow:0 3px 26px #000b}
+.home-heading h1 span{margin-left:.32em;font-size:.52em;letter-spacing:.14em;color:#ff9f70;vertical-align:.1em}
+/* The English name in every other language: two lines, upper case, a little slant. */
+html:not([lang=ja]) .home-heading h1{font-style:italic;text-transform:uppercase;letter-spacing:0;line-height:.94}
+html:not([lang=ja]) .home-heading h1 span{display:block;margin:0;font-size:1em;letter-spacing:0;vertical-align:0}
+.home-scene-copy h2{margin:0;font-size:clamp(16px,1.75vw,23px);font-weight:800;line-height:1.35;color:#f6f1e7;text-shadow:0 2px 14px #000d}
+.home-scene-copy p{margin:5px 0 0;font-size:13px;line-height:1.5;color:#cfd8de;text-shadow:0 1px 8px #000d}
+#homeHero #bStart{width:auto;max-width:100%;margin:6px 0 0;min-width:min(340px,100%);min-height:62px;padding:12px 36px;border:0;border-radius:7px;background:#f08a5a;color:#1a0e08;font-size:22px;font-weight:900;letter-spacing:.04em;box-shadow:0 10px 30px #f08a5a3d,0 3px 0 #b6532c}
+#homeHero #bStart:hover{background:#f7a079}#homeHero #bStart:active{transform:translateY(2px);box-shadow:0 6px 18px #f08a5a3d,0 1px 0 #b6532c}
+#homeHero #bStart:disabled{background:#2a3743;color:#b7c3cc;box-shadow:none;cursor:wait;transform:none}
 #homeHero #startReadyStatus,#homeHero #introReadyStatus{margin:0;color:#f0c59b;font-size:12px;line-height:1.5}
-#homeHero #introEntry{margin:0!important;padding:12px 0 0!important;border:0!important;border-top:1px solid #3a4855!important;background:transparent!important;display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px}
-#homeHero #introEntry b{font-size:13px;color:#dbe3e9}#homeHero #introEntry small{display:block;margin-top:5px;font-size:12px;color:#a8b6c1}
-#homeHero #bIntro{width:auto;min-height:44px;max-width:230px;margin:0;padding:9px 12px;border:1px solid #657380;color:#e5ebef;background:transparent;font-size:12px;line-height:1.5}
-#homeHero #introEntry [role=status]{grid-column:1/-1}#homeHero #introEntry [hidden]{display:none}
-#homeHero #bestLine{margin:0;color:#b1c0cb;font-size:12px;line-height:1.5}#homeHero #bestLine[hidden]{display:none}
-.home-controls{grid-column:1/-1;margin:0;padding-top:12px;border-top:1px solid #3a4855;font-size:12px;line-height:1.6;color:#a8b6c1}.home-controls kbd{color:#dbe3e9;border-color:#536372;background:#1c2a37}
+#homeHero #introReadyStatus{display:none}
+#homeHero [data-retry-start]{margin:0}
+
+/* Difficulty: three text tabs (+ the small trial tier) and one line for the selected one. */
+#homeDifficulty{display:flex;flex-direction:column;gap:2px;margin-top:2px}
+.home-difficulty-choices{display:flex;flex-wrap:wrap;align-items:center;gap:0 24px}
+.home-difficulty-choices button{position:relative;min-height:42px;padding:6px 0;border:0;border-radius:0;background:none;color:#d7dfe4;font-size:17px;font-weight:800;letter-spacing:.03em;text-shadow:0 1px 8px #000c}
+.home-difficulty-choices button:hover{color:#fff}
+.home-difficulty-choices button[aria-pressed=true]{color:#ffb185}
+.home-difficulty-choices button[aria-pressed=true]::after{content:"";position:absolute;left:0;right:0;bottom:3px;height:3px;border-radius:2px;background:#f08a5a}
+.home-difficulty-choices button:disabled{opacity:.6;cursor:wait}
+.home-difficulty-choices button.home-difficulty-trial{font-size:12px;font-weight:700;color:#a8b6c0}
+.home-difficulty-choices button.home-difficulty-trial small{margin-left:5px;padding:0 4px;border:1px solid #a8b6c070;border-radius:3px;font-size:10px;font-weight:600}
+.home-difficulty-choices button.home-difficulty-trial[aria-pressed=true]{color:#ffb185}
+.home-difficulty-detail{margin:0;font-size:12.5px;line-height:1.5;color:#c6d0d7;text-shadow:0 1px 6px #000d}
+.home-difficulty-detail>span{display:flex;flex-wrap:wrap}.home-difficulty-detail>span[hidden]{display:none}
+.home-difficulty-detail>span>span+span::before{content:"·";margin:0 8px;color:#8696a2}
+.home-difficulty-detail em{margin-right:3px;font-style:normal}.home-difficulty-detail b{color:#ffb98e}
+
+/* Small links under the difficulty: tips, beginner (first visits only), best score. */
+.home-links{display:flex;flex-wrap:wrap;align-items:center;gap:0 20px;margin-top:-2px}
+#homeHero #homeGuide,#homeHero #bIntro{width:auto;max-width:none;min-height:36px;margin:0;padding:4px 0;border:0;background:none;color:#e9eef1;font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#e9eef180;text-shadow:0 1px 6px #000d}
+#homeHero #homeGuide:hover,#homeHero #bIntro:hover{text-decoration-color:#fff}
+#homeHero #bIntro:disabled{color:#a8b6c0;cursor:wait}
+#homeHero #introEntry{display:inline-flex;align-items:center;gap:8px;margin:0!important;padding:0!important;border:0!important;background:none!important}
+#homeHero #introEntry [hidden]{display:none}
+#homeHero #bestLine{margin:0;font-size:12px;line-height:1.5;color:#b9c5cd;text-shadow:0 1px 6px #000d}#homeHero #bestLine[hidden]{display:none}
+#homeHero #homeSendNotice{margin:0;font-size:11px;line-height:1.5;color:#c6d0d7}
+
+/* Bottom right: key guide (PC), credits, privacy, language, developer tab. */
+.home-foot{grid-area:foot;align-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:0;max-width:46vw;text-align:right}
+.home-controls{margin:0;font-size:11.5px;line-height:1.8;color:#cbd4da;text-shadow:0 1px 6px #000d}
+.home-controls kbd{color:#eef2f4;border-color:#ffffff40;background:#0a0f1699}
 .home-controls-touch{display:none}html.touch .home-controls-desktop{display:none}html.touch .home-controls-touch{display:inline}
+.home-foot-links{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:2px 16px}
+#homeFooter{display:flex;flex-wrap:wrap;gap:0 16px;margin:0}
+#homeFooter #homeCredits,#homeFooter #homePrivacy{margin:0;padding:8px 0;color:#c0cbd2;font-size:11.5px;text-shadow:0 1px 6px #000d}
+.home-foot-links #langToggle{position:static;z-index:auto;max-width:150px;min-height:34px;padding:4px 8px;border:1px solid #ffffff38;border-radius:5px;background:#0a0f1690;color:#e7ecef;font-size:12px}
+#homeDevelopment{margin:0;border:0;font-size:11px;color:#c0cbd2}
+#homeDevelopment summary{cursor:pointer;width:max-content;margin-left:auto;padding:4px 0}
+#homeDevelopment #bGuidedIntro{display:block;margin:6px 0 0 auto;min-height:44px;padding:8px 12px;border:1px solid #ffffff40;border-radius:5px;background:#0a0f1690;color:#e7ecef;font:inherit}
+html:not(.dev) #homeDevelopment:not([data-dev-url]){display:none}
+
+/* Phones held sideways (short frame) */
+#homeHero[data-compact=true]{gap:0 18px;padding:max(10px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left))}
+#homeHero[data-compact=true] .home-play{gap:7px;max-width:min(470px,100%)}
+#homeHero[data-compact=true] .home-heading h1{font-size:34px}
+html:not([lang=ja]) #homeHero[data-compact=true] .home-heading h1{font-size:30px}
+#homeHero[data-compact=true] .home-scene-copy h2{font-size:14px}
+#homeHero[data-compact=true] .home-scene-copy p{display:none}
+#homeHero[data-compact=true] #bStart{min-height:46px;min-width:min(260px,100%);padding:8px 24px;font-size:17px;margin-top:2px}
+#homeHero[data-compact=true] .home-difficulty-choices{gap:0 18px}
+#homeHero[data-compact=true] .home-difficulty-choices button{min-height:36px;padding:4px 0;font-size:14px}
+#homeHero[data-compact=true] .home-difficulty-choices button[aria-pressed=true]::after{bottom:2px}
+#homeHero[data-compact=true] .home-difficulty-choices button.home-difficulty-trial{font-size:11px}
+#homeHero[data-compact=true] .home-difficulty-detail{font-size:11px}
+#homeHero[data-compact=true] .home-links{gap:0 16px}
+#homeHero[data-compact=true] #homeGuide,#homeHero[data-compact=true] #bIntro{min-height:32px;font-size:12px}
+#homeHero[data-compact=true] #bestLine{font-size:11px}
+#homeHero[data-compact=true] .home-controls{display:none}
+#homeHero[data-compact=true] #homeRankingButton,#homeHero[data-compact=true] #homeSettings{min-height:38px;padding:6px 14px;font-size:13px}
+#homeHero[data-compact=true] #homeFooter #homeCredits,#homeHero[data-compact=true] #homeFooter #homePrivacy{padding:6px 0;font-size:10.5px}
+#homeHero[data-compact=true] .home-foot-links #langToggle{min-height:30px;font-size:11px}
+#homeHero[data-tiny=true] .home-heading h1{font-size:27px}
+html:not([lang=ja]) #homeHero[data-tiny=true] .home-heading h1{font-size:24px}
+#homeHero[data-tiny=true] .home-play{gap:5px}
+#homeHero[data-tiny=true] #bStart{min-height:40px;font-size:15px}
+#homeHero[data-tiny=true] #bestLine{display:none}
+/* Narrow windows: the footer drops under the main block. */
+#homeHero[data-narrow=true]{grid-template-columns:minmax(0,1fr);grid-template-areas:"top" "." "main" "foot"}
+#homeHero[data-narrow=true] .home-foot{align-items:flex-start;max-width:none;text-align:left;margin-top:8px}
+#homeHero[data-narrow=true] .home-foot-links{justify-content:flex-start}
+#homeHero[data-narrow=true] .home-controls{display:none}
+
 .home-sr-only{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%);white-space:nowrap}
-#homeMore{margin-top:14px;padding-top:10px;border-top:1px solid #3a4855}#homeMore>summary{color:#bdc9d2;cursor:pointer;font-size:13px;padding:5px 0;min-height:24px}
-#homeMore .homeMoreBody{display:grid;gap:12px;margin-top:12px;padding:18px;background:#eee6d3;color:#302c24;border-radius:6px}#homeMore .homeMoreBody h1,#homeMore .homeMoreBody>.eyebrow{display:none}
 html:not(.dev) .challenge-select details,html:not(.dev) .map-select{display:none}
 .keysBefore{display:none}body[data-sky-camera-mode=before] .keysBefore{display:inline}body[data-sky-camera-mode=before] .keysAfter{display:none}
-#homeHero[data-compact=true]{gap:10px 22px}#homeHero[data-compact=true] .home-heading{padding-bottom:10px}#homeHero[data-compact=true] .home-heading h1{font-size:28px}#homeHero[data-compact=true] .home-kicker{font-size:10px;margin-bottom:4px}
-#homeHero[data-compact=true] .home-scene{min-height:0}#homeHero[data-compact=true] .home-scene-copy{padding:18px}#homeHero[data-compact=true] .home-scene h2{font-size:38px;margin:10px 0}#homeHero[data-compact=true] .home-scene p{font-size:11px}
-#homeHero[data-compact=true] .home-play{gap:8px}#homeHero[data-compact=true] .home-difficulty-heading{margin-bottom:6px}#homeHero[data-compact=true] .home-difficulty-heading h2{font-size:15px}
-#homeHero[data-compact=true] .home-difficulty-choices button{min-height:66px;gap:6px;padding:8px 3px}#homeHero[data-compact=true] .home-difficulty-choices button[aria-pressed=true]{padding:7px 2px}#homeHero[data-compact=true] .home-difficulty-choices button>strong{font-size:23px}#homeHero[data-compact=true] .home-difficulty-choices button>span{font-size:12px}
-#homeHero[data-compact=true] #bStart{min-height:44px;padding:9px;font-size:16px}#homeHero[data-compact=true] #introEntry{padding-top:8px!important}#homeHero[data-compact=true] #introEntry>div{display:none}#homeHero[data-compact=true] #bIntro{grid-column:1/-1;width:100%;max-width:none;min-height:36px;padding:5px;font-size:12px}
-#homeHero[data-compact=true] .home-run-facts{font-size:12px}#homeHero[data-compact=true] .home-run-facts b{font-size:15px}#homeHero[data-compact=true] .home-controls{padding-top:7px;font-size:11px}
-.sky-lobby #ovStart:has(#homeHero[data-compact=true]){padding:12px}.sky-lobby #ovStart:has(#homeHero[data-compact=true])>.plate{padding:14px 20px 10px}#homeHero[data-compact=true]+#homeMore{margin-top:6px;padding-top:5px}
-#homeHero[data-narrow=true]:not([data-compact=true]){grid-template-columns:1fr}#homeHero[data-narrow=true]:not([data-compact=true]) .home-scene{min-height:150px}#homeHero[data-narrow=true]:not([data-compact=true]) .home-scene h2{font-size:32px}#homeHero[data-narrow=true]:not([data-compact=true]) .home-scene h2 br{display:none}#homeHero[data-narrow=true]:not([data-compact=true]) .home-heading h1{font-size:28px}
-#homeHero[data-tiny=true] .home-kicker,#homeHero[data-tiny=true] .home-controls,#homeHero[data-tiny=true] #bestLine{display:none}#homeHero[data-tiny=true] .home-heading{padding-bottom:7px}#homeHero[data-tiny=true] .home-heading h1{font-size:24px}#homeHero[data-tiny=true] .home-play{gap:6px}#homeHero[data-tiny=true] .home-difficulty-choices button{min-height:56px;padding-block:6px}#homeHero[data-tiny=true] .home-difficulty-choices button[aria-pressed=true]{padding-block:5px}#homeHero[data-tiny=true] .home-difficulty-choices button>strong{font-size:20px}
 .sky-lobby #bSettings,.guided-intro #bSettings{background:#162330;color:#dce3e8;border-color:#657380}
 /* The lobby has its own Settings action; the floating menu is for play. */
 .sky-lobby:has(#ovStart:not([hidden])) #bSettings{display:none}
-/* Language switch remains reachable outside the rotated game surface. */
-#langToggle{position:fixed;left:max(12px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));z-index:50;min-height:44px;padding:8px 14px;background:#162330;color:#dce3e8;border:1px solid #657380;border-radius:5px}
+/* Language switch outside the home layout (other pages) stays reachable. */
+#langToggle{position:fixed;left:max(12px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));z-index:50;min-height:44px;padding:8px 14px;background:#162330;color:#dce3e8;border:1px solid #657380;border-radius:5px;font:inherit;font-size:14px;color-scheme:dark;max-width:min(62vw,240px);text-overflow:ellipsis;cursor:pointer}
 #langToggle[hidden]{display:none}
-#langToggle{font:inherit;font-size:14px;color-scheme:dark;max-width:min(62vw,240px);text-overflow:ellipsis;cursor:pointer}
-html[lang=en] #homeHero[data-compact=true] .home-scene h2{font-size:28px}
-.home-heading-actions{display:flex;align-items:center;gap:8px;flex:none}.home-heading-actions #langToggle{position:static;z-index:auto;font-size:12px;padding:8px 12px;min-height:44px}
 
-/* Ranking sits right under the lobby, on the same ink background, not in the folded practice area. */
-#homeRanking{margin-top:14px;padding-top:14px;border-top:1px solid #3a4855}#homeRanking:empty{display:none}#homeRanking .rankbox{margin:0;max-width:780px}
-#homeHero #introReadyStatus{display:none}
-/* Short screens (phones held sideways): a narrower picture, no tagline, tighter header; Start and Beginner stay on the first screen. */
-#homeHero[data-compact=true]{grid-template-columns:minmax(0,.62fr) minmax(0,1fr)}
-#homeHero[data-compact=true] .home-kicker{display:none}#homeHero[data-compact=true] .home-heading h1{font-size:24px;white-space:nowrap}
-#homeHero[data-compact=true] .home-heading-actions{gap:6px}#homeHero[data-compact=true] .home-heading-actions button{min-height:40px;padding:6px 12px;font-size:12px}
-#homeHero[data-compact=true] .home-scene p{display:none}#homeHero[data-compact=true] .home-scene h2{font-size:30px;margin:8px 0 0}#homeHero[data-compact=true] .home-scene-copy{padding:14px}
-#homeHero[data-compact=true] .home-difficulty-choices button{min-height:64px;gap:2px;padding:6px 3px}#homeHero[data-compact=true] .home-difficulty-choices button[aria-pressed=true]{padding:5px 2px}#homeHero[data-compact=true] .home-difficulty-choices button>strong{font-size:20px}
-#homeHero[data-compact=true] #bIntro{min-height:40px}
-html[lang=en] #homeHero[data-compact=true] .home-scene h2{font-size:24px}
-
-/* ---- Player-facing lobby: tuning and unfinished features live behind ?dev=1; camera/graphics live in Settings only. ---- */
+/* ---- Developer fold: tuning and unfinished features live behind ?dev=1; camera/graphics live in Settings only. ---- */
+#homeMore{margin:0;padding:10px 24px 24px;border-top:1px solid #3a4855;background:#101a25}#homeMore>summary{color:#bdc9d2;cursor:pointer;font-size:13px;padding:5px 0;min-height:24px}
+#homeMore .homeMoreBody{display:grid;gap:12px;margin-top:12px;padding:18px;background:#eee6d3;color:#302c24;border-radius:6px}#homeMore .homeMoreBody h1,#homeMore .homeMoreBody>.eyebrow{display:none}
 html:not(.dev) #homeMore{display:none}
-/* The development tab: developer mode (index.html) or ?dev=1 in the URL (canyon.html does not load dev-mode.js). */
-html:not(.dev) #homeDevelopment:not([data-dev-url]){display:none}
-#homeFooter{margin:0}
-#homeDevelopment{margin:8px 0 0;border:0;font-size:11px;color:#a8b6c1}
-#homeDevelopment summary{cursor:pointer;width:max-content;padding:6px 0}
-#homeDevelopment #bGuidedIntro{display:block;margin:6px 0;min-height:44px;padding:8px 12px;border:1px solid #657380;background:transparent;color:#c9d1d8;font:inherit}
 #homeMore .follow-camera-home,#homeMore .sky-quality-control{display:none}
-#homeName{display:inline-flex;align-items:center;gap:7px;min-height:44px;max-width:210px;padding:6px 12px;border:1px solid #657380;background:#162330;color:#f4f0e8;font-size:13px}
-#homeName small{font-size:10px;color:#a8b6c1;letter-spacing:.08em;white-space:nowrap}#homeName b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}#homeName i{font-style:normal;color:#ec9a73}
-#homeHero #homeSendNotice{grid-column:1/-1;margin:0;font-size:11px;line-height:1.5;color:#a8b6c1}
-#homeHero[data-compact=true] #homeName{min-height:40px;padding:5px 10px;max-width:130px;font-size:12px}#homeHero[data-compact=true] #homeName small{display:none}
-/* 狭い画面（スマホ横）では未設定の案内を短くし、「Choose a nic…」のように切れないようにする（2026-11-21） */
-#homeName .home-name-short{display:none}#homeHero[data-compact=true] #homeName .home-name-long{display:none}#homeHero[data-compact=true] #homeName .home-name-short{display:inline}
-#homeHero[data-compact=true] #homeSendNotice{margin-top:-4px}
-/* Ranking overlay */
-#homeRanking{position:fixed;inset:0;z-index:70;display:grid;place-items:center;margin:0;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));border:0;background:#070c13f2;overflow:auto;box-sizing:border-box;align-content:center}
+
+/* Ranking overlay, with the nickname chip in its header */
+#homeRanking{position:fixed;inset:0;z-index:70;display:grid;place-items:center;align-content:center;margin:0;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));border:0;background:#070c13f2;overflow:auto;box-sizing:border-box}
 #homeRanking[hidden]{display:none}
 #homeRanking>*{width:min(820px,100%);box-sizing:border-box}
+#homeRanking .rankbox{margin:0;max-width:none}
 .home-ranking-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}.home-ranking-head h2{margin:0;font-size:20px;color:#f4f0e8}
+.home-ranking-tools{display:flex;align-items:center;gap:8px;min-width:0}
 #homeRankingClose{min-height:44px;min-width:88px;padding:8px 18px;border:1px solid #ec9a73;border-radius:5px;background:transparent;color:#ffd2b8;font-size:14px;font-family:inherit;cursor:pointer}
 #homeRankingClose:focus-visible,#homeName:focus-visible{outline:3px solid #fff1c4;outline-offset:3px}
+#homeName{display:inline-flex;align-items:center;gap:7px;min-height:44px;max-width:230px;padding:6px 12px;border:1px solid #657380;border-radius:5px;background:#162330;color:#f4f0e8;font-size:13px;font-family:inherit;cursor:pointer}
+#homeName small{font-size:10px;color:#a8b6c1;letter-spacing:.08em;white-space:nowrap}#homeName b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}#homeName i{font-style:normal;color:#ec9a73}
+#homeName .home-name-short{display:none}
+@media (max-width:620px){#homeName .home-name-long{display:none}#homeName .home-name-short{display:inline}#homeName small{display:none}}
 .onb-name .onb-send{color:#f0c59b}
-/* Short screens: the controls hint is in 遊び方 (header); the one-line send notice keeps its place and Start stays on the first screen. */
-#homeHero[data-compact=true] .home-controls{display:none}
-#homeHero[data-compact=true] #homeSendNotice{margin-top:0;border-top:1px solid #3a4855;padding-top:6px}
-#homeRanking .rankbox{max-width:none}
-/* Trial tier above Hard: one slim row under the three ranked choices. */
-.home-difficulty-choices button.home-difficulty-trial{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:center;align-items:center;min-height:34px;padding:5px 8px;border-style:dashed}
-.home-difficulty-choices button.home-difficulty-trial[aria-pressed=true]{padding:4px 7px;border-style:solid}
-.home-difficulty-choices button.home-difficulty-trial>span{font-size:13px}
-.home-difficulty-choices button.home-difficulty-trial>small{display:flex;gap:8px;font-size:10px}
-#homeHero[data-compact=true] .home-difficulty-choices button.home-difficulty-trial{min-height:28px;padding:3px 6px}
-#homeHero[data-compact=true] .home-difficulty-choices button.home-difficulty-trial[aria-pressed=true]{padding:2px 5px}
-/* Long labels (Thai, Portuguese, Vietnamese): the header actions drop to their own row when they do not fit beside the title. */
-.home-heading{gap:8px 12px;flex-wrap:wrap}.home-heading>div:first-child{min-width:0}
-.home-heading-actions{flex:0 1 auto;min-width:0;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
-.home-heading-actions button{white-space:nowrap}
-.home-heading-actions #langToggle{max-width:150px}
+/* The nickname dialog opens from the ranking overlay and sits above it. */
+body.sky-lobby #onboarding{z-index:72}
+/* Large screens: the bottom-left block grows with the picture. */
+@media (min-width:1500px) and (min-height:880px){
+  #homeHero:not([data-compact=true]) .home-play{max-width:720px;gap:14px}
+  #homeHero:not([data-compact=true]) #bStart{min-width:400px;min-height:70px;font-size:25px}
+  #homeHero:not([data-compact=true]) .home-difficulty-choices button{font-size:19px}
+  #homeHero:not([data-compact=true]) .home-difficulty-detail{font-size:14px}
+  #homeHero:not([data-compact=true]) .home-scene-copy p{font-size:14px}
+  #homeHero:not([data-compact=true]) #homeGuide,#homeHero:not([data-compact=true]) #bIntro{font-size:14px}
+}

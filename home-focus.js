@@ -1,4 +1,7 @@
 // Keep the existing game controls and listeners; only arrange the lobby.
+// 2026-11-21: the home is one full-screen picture (a chase over the rooftops) with the title, one line, the start button
+// and the difficulty tabs at the bottom left; only Ranking and Settings sit at the top right. Everything else is small
+// (tips, beginner, best score, key guide, credits, privacy, language) or lives elsewhere (nickname → ranking).
 (() => {
   if (window.skyPracticeMode || new URLSearchParams(location.search).has('practice')) return;
   const plate = document.querySelector('#ovStart .plate');
@@ -8,69 +11,75 @@
   const canyon = location.pathname.endsWith('canyon.html');
   const hero = make('div', { id: 'homeHero' });
   document.body.classList.add('sky-lobby');
-  const heading = make('header', { className: 'home-heading' }, '<div><p class="home-kicker">GUNRUN · PARKOUR SURVIVAL</p><h1>空中回廊<span>追跡</span></h1></div>');
-  const settings = make('button', { id: 'homeSettings', type: 'button' }, '設定');
-  settings.addEventListener('click', () => $('bSettings')?.click());
+  hero.dataset.map = canyon ? 'canyon' : 'old-town';
+
+  // Background picture. 旧市街: three zombies reach for a runner leaping off a roof edge (in-engine render, 2026-11-21).
+  const scene = make('div', { className: 'home-scene' });
+  scene.setAttribute('aria-hidden', 'true');
+  scene.style.backgroundImage = canyon ? `url('./assets/lobby/canyon.svg')` : `url('./assets/lobby/old-town-chase.webp')`;
+
+  // Top right: Ranking and Settings only.
+  const top = make('header', { className: 'home-top' });
   const actions = make('div', { className: 'home-heading-actions' });
-  if ($('langToggle')) actions.append($('langToggle'));
-  actions.append(settings);
   const rankButton = make('button', { id: 'homeRankingButton', type: 'button' }, 'ランキング');
   rankButton.setAttribute('aria-haspopup', 'dialog'); rankButton.setAttribute('aria-expanded', 'false');
-  // Nickname chip (like NIGHTLINE's racer chip): the name is always visible and one tap edits it.
-  const nameChip = make('button', { id: 'homeName', type: 'button' });
-  const syncName = () => {
-    const name = window.skyOnboarding?.name?.() || '';
-    nameChip.innerHTML = name ? `<small>ニックネーム</small><b></b><i aria-hidden="true">✎</i>` : '<b><span class="home-name-long">ニックネームを決める</span><span class="home-name-short">ニックネーム</span></b><i aria-hidden="true">✎</i>';
-    if (name) nameChip.querySelector('b').textContent = name;
-    nameChip.setAttribute('aria-label', name ? `ニックネーム ${name}（変更する）` : 'ニックネームを決める');
-  };
-  nameChip.addEventListener('click', () => window.skyOnboarding?.open('name'));
-  document.addEventListener('sky-name-change', syncName); syncName(); addEventListener('load', syncName);
-  actions.prepend(rankButton); actions.prepend(nameChip); heading.append(actions);
-  const scene = make('section', { className: 'home-scene', ariaLabel: canyon ? '岩壁渓谷のゲーム風景' : '旧市街のゲーム風景' }, `<div class="home-scene-copy"><span class="home-map">${canyon ? '岩壁渓谷' : '旧市街'}</span><h2>2分間、<br>逃げ切れ。</h2><p>跳ぶ。壁を走る。追跡を引き離す。</p></div>`);
-  // 旧市街：屋上から跳ぶ人間と、縁まで追ってくるゾンビ（ゲーム内のカメラで撮影、2026-11-21）。人物は上半分にあるので、
-  // 文字の下（下側）だけを暗くし、上は抜けたまま見せる。渓谷は従来の絵とグラデーション。
-  scene.style.backgroundImage = canyon
-    ? `linear-gradient(0deg,#0c1219f5 0%,#0c12191a 85%),url('./assets/lobby/canyon.svg')`
-    : `linear-gradient(0deg,#0c1219f2 0%,#0c1219c4 22%,#0c121940 46%,#0c121900 62%),url('./assets/lobby/old-town.webp')`;
-  if (!canyon) scene.style.backgroundPosition = '36% center';
+  const settings = make('button', { id: 'homeSettings', type: 'button' }, '設定');
+  settings.addEventListener('click', () => $('bSettings')?.click());
+  actions.append(rankButton, settings); top.append(actions);
+
+  // Bottom left: title, one line, start, difficulty, small links.
   const main = make('section', { className: 'home-play', ariaLabel: '逃走の準備' });
-  const difficulty = make('div', { id: 'homeDifficulty' }, '<div class="home-difficulty-heading"><h2>難易度を選ぶ</h2><span>難しいほど得点にボーナス</span></div>');
+  const heading = make('header', { className: 'home-heading' }, '<h1>空中回廊<span>追跡</span></h1>');
+  const copy = make('div', { className: 'home-scene-copy' }, '<h2>屋根を跳び、ゾンビから2分間逃げ切れ。</h2><p>跳ぶ。壁を走る。追跡を引き離す。</p>');
+  const difficulty = make('div', { id: 'homeDifficulty' });
   const selector = $('challengeDifficulty'); selector.hidden = true;
   const choices = make('div', { className: 'home-difficulty-choices', role: 'group', ariaLabel: '難易度' });
+  const details = make('p', { className: 'home-difficulty-detail' });
   const levels = window.skyChallenge.levels.filter(p => p.id !== 'legacy');
   for (const [index, p] of levels.entries()) {
-    // The trial tier is a slim row under the three ranked choices: it is not part of the shared ranking.
+    // The trial tier is a small muted tab after the three ranked ones: it is not part of the shared ranking.
     const button = p.trial
-      ? make('button', { type: 'button', className: 'home-difficulty-trial' }, `<span>${p.name}</span><small><span>試作</span><span>俊足と重装が混ざる</span><span>ランキング対象外</span></small>`)
-      : make('button', { type: 'button' }, `<span>${p.name}</span><strong><em>スコア</em><b>×${(1 + .1 * index).toFixed(1)}</b></strong><small><span>追手 最大${Math.max(...p.counts)}体</span><span>ライフ${p.lives}</span></small>`);
+      ? make('button', { type: 'button', className: 'home-difficulty-trial' }, `<span>${p.name}</span><small>試作</small>`)
+      : make('button', { type: 'button' }, `<span>${p.name}</span>`);
     button.dataset.difficulty = p.id;
     button.addEventListener('click', () => {
       if (selector.disabled || window.__game.mode !== 'menu') return;
       selector.value = p.id; selector.dispatchEvent(new Event('change', { bubbles: true }));
     }); choices.append(button);
+    // One line per level, built once (so the translator sees static text) and shown for the selected level.
+    const line = p.trial
+      ? make('span', {}, '<span>俊足と重装が混ざる</span><span>ランキング対象外</span>')
+      : make('span', {}, `<span>追手 最大${Math.max(...p.counts)}体</span><span>ライフ${p.lives}</span><span><em>スコア</em><b>×${(1 + .1 * index).toFixed(1)}</b></span>`);
+    line.dataset.difficulty = p.id; line.hidden = true; details.append(line);
   }
   const bonus = $('challengeScoreBonus'); bonus.classList.add('home-sr-only');
-  difficulty.append(choices, selector, bonus);
-  main.append(difficulty, $('bStart'), $('startReadyStatus'));
+  difficulty.append(choices, details, selector, bonus);
+  const links = make('div', { className: 'home-links' });
+  main.append(heading, copy, $('bStart'), $('startReadyStatus'));
   for (const button of [...plate.querySelectorAll(':scope > [data-retry-start]')]) main.append(button);
+  main.append(difficulty, links);
+  // Beginner: a text link (automated browsers and first visits without storage keep it; onboarding.js retires it after the first visit).
   const intro = $('introEntry');
   const introButton = $('bIntro'), introStatus = $('introReadyStatus'), introRetries = [...intro.querySelectorAll('[data-retry-start]')];
-  intro.replaceChildren(make('div', {}, '<b>はじめての方へ</b><small>ライフ無限で、操作を練習。</small>'), introButton, introStatus, ...introRetries);
+  intro.replaceChildren(introButton, introStatus, ...introRetries);
+  links.append(intro);
+  const best = $('bestLine'); links.append(best);
+
+  // Bottom right: key guide (PC), credits, privacy, language, and the developer tab (?dev=1).
+  const foot = make('footer', { className: 'home-foot' });
   // Keep the unfinished guided course in the collapsed development tab on the home screen.
-  // Players get the intro run from the first-visit card (onboarding.js) and from 遊び方.
+  // Players get the intro run from the first-visit card (onboarding.js) and from コツ.
   // The tab is shown only in developer mode (?dev=1, home-focus.css). The credits link must stay visible to players
   // (CC BY attribution), so it lives in its own footer slot instead of inside the tab (credits.js).
-  const development = make('details', { id:'homeDevelopment' });
-  const footer = make('div', { id:'homeFooter' });
+  const development = make('details', { id: 'homeDevelopment' });
+  const footer = make('div', { id: 'homeFooter' });
   if (new URLSearchParams(location.search).get('dev') === '1') development.dataset.devUrl = '1';
   development.append(make('summary', {}, '開発用'));
-  const developmentButton=make('button', { id:'bGuidedIntro', type:'button' }, '入門モードで遊ぶ');
+  const developmentButton = make('button', { id: 'bGuidedIntro', type: 'button' }, '入門モードで遊ぶ');
   development.append(developmentButton);
   const syncDevelopment = () => { developmentButton.disabled = introButton.disabled; };
-  new MutationObserver(syncDevelopment).observe(introButton,{attributes:true,attributeFilter:['disabled']});
-  syncDevelopment();main.append(intro);
-  const best = $('bestLine'); main.append(best);
+  new MutationObserver(syncDevelopment).observe(introButton, { attributes: true, attributeFilter: ['disabled'] });
+  syncDevelopment();
   const controls = make('p', { className: 'home-controls' }, '<span class="home-controls-desktop"><kbd>W A S D</kbd> 移動　<kbd>マウス</kbd> 視点　<kbd>Space</kbd> ジャンプ　<kbd>Q</kbd>/<kbd>右クリック</kbd> 技（フック・爆破）　<kbd>E</kbd> スライド</span><span class="home-controls-touch">左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ</span>');
   const trial = new URLSearchParams(location.search).get('cameraTrial');
   {
@@ -85,33 +94,50 @@
     new MutationObserver(syncTrialControls).observe(document.body, { attributes: true, attributeFilter: ['data-sky-camera-mode','data-sky-camera-look'] });
     syncTrialControls();
   }
+  const footLinks = make('div', { className: 'home-foot-links' });
+  footLinks.append(footer);
+  if ($('langToggle')) footLinks.append($('langToggle'));
+  foot.append(controls, footLinks, development);
   // Sending is always on and needs no notice. Only the comparison trials, which send nothing, say so.
   const notSent = ['hybrid','follow','follow-legacy','follow-turn'].includes(trial) || (trial && ['localhost', '127.0.0.1'].includes(location.hostname));
   if (notSent) {
     const notice = make('p', { id: 'homeSendNotice' });
     notice.textContent = 'ローカル比較用の試作です。ランキング・プレイ記録は送信しません。';
-    hero.append(heading, scene, main, controls, notice);
-  } else hero.append(heading, scene, main, controls);
+    main.append(notice);
+  }
+  hero.append(scene, top, main, foot);
   plate.prepend(hero);
+
+  // Ranking overlay (NIGHTLINE style); the nickname is edited from its header, next to the board it appears on.
   const rankSlot = make('section', { id: 'homeRanking', ariaLabel: 'ランキング' });
   const more = make('details', { id: 'homeMore' });
   more.append(make('summary', {}, '開発者向け（?dev=1）'));
   const body = make('div', { className: 'homeMoreBody' }); more.append(body);
-  const mainControls = new Set(main.children);
-  const rotFlip = $('rotFlip'); plate.insertBefore(rankSlot, rotFlip || null); plate.insertBefore(development, rotFlip || null); plate.insertBefore(footer, rotFlip || null); plate.insertBefore(more, rotFlip || null);
+  const mainControls = new Set(main.children), linkControls = new Set(links.children);
+  const rotFlip = $('rotFlip'); plate.insertBefore(rankSlot, rotFlip || null); plate.insertBefore(more, rotFlip || null);
   // The ranking module adds #titleRanking next to the (hidden) map switch, which sits in the fold: bring it out.
   const adoptRanking = () => { const box = $('titleRanking'); if (box && box.parentElement !== rankSlot) rankSlot.append(box); };
   const sweep = () => {
-    for (const child of [...plate.children]) if (![hero, rankSlot, development, footer, more, rotFlip].includes(child)) body.append(child);
+    for (const child of [...plate.children]) if (![hero, rankSlot, more, rotFlip].includes(child)) body.append(child);
     adoptRanking();
   };
   sweep(); new MutationObserver(sweep).observe(plate, { childList: true });
   new MutationObserver(adoptRanking).observe(body, { childList: true, subtree: true });
-  // Ranking is an overlay (NIGHTLINE style): the lobby stays one screen; Esc / close / backdrop return to it.
   rankSlot.setAttribute('role', 'dialog'); rankSlot.setAttribute('aria-modal', 'true'); rankSlot.setAttribute('aria-label', 'ランキング'); rankSlot.hidden = true;
   const rankClose = make('button', { id: 'homeRankingClose', type: 'button', ariaLabel: 'ランキングを閉じる' }, '閉じる');
-  rankSlot.prepend(make('div', { className: 'home-ranking-head' }, '<h2>ランキング</h2>'));
-  rankSlot.querySelector('.home-ranking-head').append(rankClose);
+  const rankHead = make('div', { className: 'home-ranking-head' }, '<h2>ランキング</h2>');
+  // Nickname chip (like NIGHTLINE's racer chip): the name is visible beside the board and one tap edits it.
+  const nameChip = make('button', { id: 'homeName', type: 'button' });
+  const syncName = () => {
+    const name = window.skyOnboarding?.name?.() || '';
+    nameChip.innerHTML = name ? `<small>ニックネーム</small><b></b><i aria-hidden="true">✎</i>` : '<b><span class="home-name-long">ニックネームを決める</span><span class="home-name-short">ニックネーム</span></b><i aria-hidden="true">✎</i>';
+    if (name) nameChip.querySelector('b').textContent = name;
+    nameChip.setAttribute('aria-label', name ? `ニックネーム ${name}（変更する）` : 'ニックネームを決める');
+  };
+  nameChip.addEventListener('click', () => window.skyOnboarding?.open('name'));
+  document.addEventListener('sky-name-change', syncName); syncName(); addEventListener('load', syncName);
+  const rankTools = make('div', { className: 'home-ranking-tools' }); rankTools.append(nameChip, rankClose);
+  rankHead.append(rankTools); rankSlot.prepend(rankHead);
   const openRanking = () => { rankSlot.hidden = false; rankButton.setAttribute('aria-expanded', 'true'); window.skyRanking?.refreshTitle?.(); rankClose.focus({ preventScroll: true }); };
   const closeRanking = () => { if (rankSlot.hidden) return; rankSlot.hidden = true; rankButton.setAttribute('aria-expanded', 'false'); rankButton.focus({ preventScroll: true }); };
   rankButton.addEventListener('click', openRanking); rankClose.addEventListener('click', closeRanking);
@@ -125,20 +151,24 @@
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   });
+  // The nickname dialog opens above the ranking; returning from it keeps the ranking open.
   new MutationObserver(() => { if ($('ovStart')?.hidden) closeRanking(); }).observe($('ovStart'), { attributes: true, attributeFilter: ['hidden'] });
   // Spot/ranking modules insert beside bestLine after the lobby has loaded.
   const adoptExtras = () => {
     for (const child of [...main.children]) if (!mainControls.has(child)) body.append(child);
+    for (const child of [...links.children]) if (!linkControls.has(child) && child.id !== 'homeGuide') body.append(child);
     adoptRanking();
   };
-  adoptExtras(); new MutationObserver(adoptExtras).observe(main, { childList: true });
+  adoptExtras(); new MutationObserver(adoptExtras).observe(main, { childList: true }); new MutationObserver(adoptExtras).observe(links, { childList: true });
   function updateDifficulty() {
     for (const button of choices.children) {
       button.setAttribute('aria-pressed', String(button.dataset.difficulty === selector.value && !selector.disabled));
       button.disabled = selector.disabled;
     }
+    for (const line of details.children) line.hidden = line.dataset.difficulty !== selector.value;
   }
   document.addEventListener('sky-difficulty-change', updateDifficulty);
+  selector.addEventListener('change', updateDifficulty);
   updateDifficulty();
   const fit = () => {
     hero.dataset.compact = String($('app').clientHeight < 500);
