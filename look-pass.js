@@ -352,8 +352,29 @@
             vec2 ground = vTownPos.xz;
             float broad = plasterNoise(ground * .30), fine = plasterNoise(ground * 1.7 + vTownPos.y) - .5;
             // The paving is close to white, so the variation only darkens (patches of worn, dirty stone).
-            float paving = smoothstep(.06, .32, dot(diffuseColor.rgb, vec3(.2126, .7152, .0722))); // dark floors (shade, wood) are left alone
+            float floorLuma = dot(diffuseColor.rgb, vec3(.2126, .7152, .0722));
+            float paving = smoothstep(.06, .32, floorLuma); // dark floors (shade, wood) are left alone
             diffuseColor.rgb *= mix(1.0, mix(.76, 1.0, smoothstep(.28, .72, broad)) * (1.0 + .10 * fine), paving);
+            #ifdef TOWN_MASONRY
+            vec2 groundFw = fwidth(ground) + 1e-4;
+            float groundLod = clamp(1.25 - max(groundFw.x, groundFw.y) * 14.0, 0., 1.);
+            #ifdef USE_MAP
+            // Flagstones (brightness only): every slab of the paving gets its own tone, and about a third are cut in two.
+            // The slabs are the tiles of the paving texture, so the tones line up with the joints that are already there.
+            vec2 slab = floor(vMapUv), inSlab = fract(vMapUv);
+            float slabTone = plasterHash(slab), slabCut = plasterHash(slab + 17.3);
+            float across = slabCut < .17 ? inSlab.x : inSlab.y, isCut = step(slabCut, .34);
+            float cutLine = isCut * (1.0 - smoothstep(.010, .010 + fwidth(across) * 1.2, abs(across - .5)));
+            float stoneTone = .90 + .20 * fract(slabTone + isCut * step(.5, across) * .41);
+            diffuseColor.rgb *= mix(1.0, stoneTone * (1.0 - .17 * cutLine * groundLod), paving);
+            #endif
+            // Floorboards on the dark warm floors (indoors): each board its own tone, thin joints. Brightness only.
+            float wood = (1.0 - smoothstep(.035, .075, floorLuma)) * step(diffuseColor.b * 1.3, diffuseColor.r) * step(diffuseColor.g * .9, diffuseColor.r); // only the really dark warm floors, never paving in shade
+            vec2 board = vec2(ground.x / 2.6 + floor(ground.y / .32) * .37, ground.y / .32);
+            vec2 toJoint = (.5 - abs(fract(board) - .5)) * vec2(2.6, .32);
+            float boardLine = max(1.0 - smoothstep(.012, .012 + groundFw.x, toJoint.x), 1.0 - smoothstep(.012, .012 + groundFw.y, toJoint.y));
+            diffuseColor.rgb *= mix(1.0, (.84 + .38 * plasterHash(floor(board))) * (1.0 - .34 * boardLine * groundLod), wood);
+            #endif
           }
           #ifdef TOWN_MASONRY
           else if (abs(floorNormal.y) < .3) {
@@ -372,7 +393,7 @@
         }`);
     };
     const keyBefore = material.customProgramCacheKey.bind(material);
-    clone.customProgramCacheKey = () => keyBefore() + '|town-palette-v9' + (MASONRY ? '-masonry' : '');
+    clone.customProgramCacheKey = () => keyBefore() + '|town-palette-v10' + (MASONRY ? '-masonry' : '');
   }
 
   // Colour is stored per vertex (the world is merged into a few big meshes), so the draw call
