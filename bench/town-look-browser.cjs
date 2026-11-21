@@ -47,6 +47,7 @@ async function dark(p,view){
   // masonry (11/21): painted stone base / string course / bare brick on the walls, cut-stone coursing on the big loose shafts
   assert.equal(info.info.masonry,true,'masonry is on by default');
   assert.ok(info.info.loose>=3,'the big unmerged shafts get the wall shader too: '+info.info.loose);
+  assert.ok(info.info.wood>=1,'the deck meshes (tint 0x8ea4bd) become timber: '+info.info.wood);
   assert.deepEqual(on.errors,[],'no shader or page errors with masonry on');
   assert.ok(info.hull&&info.hull.visible&&!info.hull.castShadow,'outline mesh exists and casts no shadow');
   assert.ok(info.hull.count>2000&&info.hull.count<30000,'outline triangle count is small: '+info.hull.count);

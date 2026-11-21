@@ -66,7 +66,14 @@
   // which box a vertex came from, so we look it up again: a vertex belongs to the collision box whose
   // face it lies on (game.jn). Colour goes into a per-vertex attribute and one fragment-shader line, so
   // there are no new meshes, lights or textures and draw calls stay the same.
-  const WALL_HEX = { rose: 0xc0635c, terracotta: 0xd58f50, ochre: 0xd9b765, sage: 0x93a672, teal: 0x74a3a4, stone: 0xd2c6a8 };
+  // One world (11/22): a fortress town above the clouds, built of three things - STONE (what has always stood: towers,
+  // bases, big walls), PLASTER between dark TIMBER frames (the houses) and WOOD (what people added later: decks and
+  // walkways). The plaster is one warm, light family; districts differ by a gentle shift, not by unrelated hues, so the
+  // yellow / orange route cues are the only saturated colours on screen. (Before: 0xc0635c 0xd58f50 0xd9b765 0x93a672 0x74a3a4 0xd2c6a8.)
+  const WALL_HEX = params.get('walls') === 'plain'
+    ? { rose: 0xc0635c, terracotta: 0xd58f50, ochre: 0xd9b765, sage: 0x93a672, teal: 0x74a3a4, stone: 0xd2c6a8 }
+    : { rose: 0xd2988c, terracotta: 0xd8aa7c, ochre: 0xdcc48c, sage: 0xc4c39a, teal: 0xe6dac4, stone: 0xcbbba6 }; // 'teal' is now a pale cream (the names are kept for the district table)
+  const WOOD_TINT = 0x8ea4bd, WOOD_HEX = 0x8f6a49; // the blue-grey decks and pads of the map data become timber
   // Plaster choices per district (first listed colour is the district's signature), centre mixes all.
   const DISTRICT_WALLS = {
     west: ['rose', 'terracotta', 'ochre', 'stone'], east: ['teal', 'stone', 'sage', 'ochre'],
@@ -292,6 +299,23 @@
       shader.vertexShader = 'attribute vec4 aTownPalette;\nattribute vec2 aTownBand;\nvarying vec4 vTownPalette;\nvarying vec2 vTownBand;\nvarying float vTownY;\nvarying vec3 vTownPos;\n' +
         shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvTownPalette = aTownPalette; vTownBand = aTownBand; vTownPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vTownY = vTownPos.y;');
       shader.fragmentShader = (MASONRY ? '#define TOWN_MASONRY\n' : '') + 'varying vec4 vTownPalette;\nvarying vec2 vTownBand;\nvarying float vTownY;\nvarying vec3 vTownPos;\nuniform float townLumaRef;\n' + PLASTER_GLSL + shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+        #ifdef TOWN_MASONRY
+        if (vTownPalette.a > 1.5) {
+          // WOOD: the decks and walkways people added. Boards run along x on the deck (0.26 m wide), and lie flat on the
+          // sides (the edge of the deck); every board has its own tone, with thin joints that fade out far away.
+          vec3 woodN = normalize(cross(dFdx(vTownPos), dFdy(vTownPos)));
+          float deck = step(.7, abs(woodN.y));
+          vec2 woodUv = deck > .5 ? vTownPos.xz : vec2(vTownPos.x + vTownPos.z, vTownPos.y);
+          vec2 boardSize = vec2(2.4, mix(.22, .26, deck)), woodFw = fwidth(woodUv) + 1e-4;
+          vec2 boardUv = vec2(woodUv.x / boardSize.x + floor(woodUv.y / boardSize.y) * .43, woodUv.y / boardSize.y);
+          vec2 toJoint = (.5 - abs(fract(boardUv) - .5)) * boardSize;
+          float joint = max(1.0 - smoothstep(.012, .012 + woodFw.x, toJoint.x), 1.0 - smoothstep(.012, .012 + woodFw.y, toJoint.y));
+          float woodLod = clamp(1.25 - max(woodFw.x, woodFw.y) * 14.0, 0., 1.);
+          float woodLuma = dot(diffuseColor.rgb, vec3(.2126, .7152, .0722));
+          vec3 woodColour = vTownPalette.rgb * mix(1.0, clamp(woodLuma / townLumaRef, .72, 1.28), .5) * (.82 + .36 * plasterHash(floor(boardUv)));
+          diffuseColor.rgb = woodColour * (1.0 - .36 * joint * woodLod) * mix(.76, 1.0, deck);
+        } else
+        #endif
         if (vTownPalette.a > .0) {
           float townLuma = dot(diffuseColor.rgb, vec3(.2126, .7152, .0722));
           vec3 townColour = vTownPalette.rgb * mix(1.0, clamp(townLuma / townLumaRef, .72, 1.28), .45);
@@ -300,7 +324,7 @@
             float cornice = smoothstep(vTownBand.y - .36, vTownBand.y - .32, vTownY);
             float shadow = smoothstep(vTownBand.y - .46, vTownBand.y - .42, vTownY) * (1.0 - cornice);
             #ifdef TOWN_MASONRY
-            plinth = 0.; // the cut-stone base below replaces the flat dark band
+            plinth = 0.; cornice = 0.; shadow = 0.; // the cut-stone base and the timber wall plate replace the flat bands
             #endif
             townColour *= (1.0 - .24 * plinth) * (1.0 + .16 * cornice) * (1.0 - .16 * shadow);
             // Plaster that is not one flat colour: patchy mottling, drip streaks, soft shade towards the ground
@@ -326,11 +350,22 @@
             vec3 brick = mix(townColour * .62, vec3(.36, .27, .24), .5) * (.86 + .28 * townBlock(wall, brickSize));
             brick = mix(brick, townColour * .92, townJoint(wall, brickSize, .022) * .75 * townLod);
             townColour = mix(townColour * (1.0 - .22 * lip), brick, patchMask);
-            // (2) string course: a pale band with a thin shadow under it, one per storey (walls taller than 4.6 m)
-            float storey = mod(townH, 2.9), tall = step(4.6, vTownBand.y - vTownBand.x) * step(2.8, townH) * step(1.3, townTop);
-            float course = tall * (1.0 - smoothstep(.13, .15, storey));
-            float under = tall * smoothstep(2.80, 2.82, storey);
-            townColour = mix(townColour, vTownPalette.rgb * 1.16, course) * (1.0 - .20 * under);
+            // (2) timber frame: dark posts, rails and a few braces painted on the plaster, and a wall plate under every
+            // roof edge. Panels are 2.9 m and start on top of the stone base. Far away the lines fade to a faint grid.
+            float bay = 2.9, wallHigh = vTownBand.y - vTownBand.x;
+            vec2 cellUv = vec2(wall.x / bay, (townH - .9) / bay), inCell = fract(cellUv), frameFw = townFw + 1e-4;
+            vec2 toEdge = (.5 - abs(inCell - .5)) * bay;
+            float post = 1.0 - smoothstep(.085, .085 + frameFw.x, toEdge.x);
+            float rail = 1.0 - smoothstep(.075, .075 + frameFw.y, toEdge.y);
+            float plate = 1.0 - smoothstep(.26, .26 + frameFw.y, townTop);
+            float braceRoll = plasterHash(floor(cellUv) + 3.7);
+            float diag = braceRoll < .11 ? abs(inCell.x - inCell.y) : (braceRoll < .22 ? abs(inCell.x + inCell.y - 1.0) : 1.0);
+            float brace = 1.0 - smoothstep(.03, .03 + (frameFw.x + frameFw.y) / bay, diag);
+            float framed = step(3.4, wallHigh) * step(.9, townH);
+            float timberMask = max(plate, framed * max(max(post, rail), brace));
+            float frameLod = clamp(1.6 - max(townFw.x, townFw.y) * 6.0, 0., 1.);
+            vec3 timber = vec3(.15, .097, .068) * (1.05 + .5 * grain + .25 * blotch);
+            townColour = mix(townColour, timber, timberMask * mix(.3, .93, frameLod));
             // (3) cut-stone base: two courses, greyer and darker than the wall, each block a little different
             float baseMask = 1.0 - smoothstep(.88, .90, townH);
             vec2 stoneUv = vec2(wall.x, townH), stoneSize = vec2(.95, .45);
@@ -373,7 +408,7 @@
             vec2 board = vec2(ground.x / 2.6 + floor(ground.y / .32) * .37, ground.y / .32);
             vec2 toJoint = (.5 - abs(fract(board) - .5)) * vec2(2.6, .32);
             float boardLine = max(1.0 - smoothstep(.012, .012 + groundFw.x, toJoint.x), 1.0 - smoothstep(.012, .012 + groundFw.y, toJoint.y));
-            diffuseColor.rgb *= mix(1.0, (.84 + .38 * plasterHash(floor(board))) * (1.0 - .34 * boardLine * groundLod), wood);
+            diffuseColor.rgb *= mix(1.0, (1.02 + .36 * plasterHash(floor(board))) * (1.0 - .22 * boardLine * groundLod), wood); // boards only brighten: a dark floor must not get darker (readability limit in bench/mood-browser.cjs)
             #endif
           }
           #ifdef TOWN_MASONRY
@@ -387,13 +422,22 @@
             float ashlarLod = clamp(1.25 - max(ashlarFw.x, ashlarFw.y) * 9.0, 0., 1.);
             float tone = (.93 + .14 * townBlock(ashlar, ashlarSize)) * (.94 + .12 * plasterNoise(ashlar * .35));
             tone *= 1.0 - .22 * townJoint(ashlar, ashlarSize, .035) * ashlarLod;
-            diffuseColor.rgb *= mix(tone, 1.0, cue);
+            // Never darken a face that is already dark (a shaded brown roof rim sat right on the readability limit).
+            float dimFace = 1.0 - smoothstep(.02, .07, dot(diffuseColor.rgb, vec3(.2126, .7152, .0722)));
+            diffuseColor.rgb *= mix(tone, mix(max(tone, 1.0), 1.0, cue), max(cue, dimFace));
           }
           #endif
         }`);
     };
     const keyBefore = material.customProgramCacheKey.bind(material);
-    clone.customProgramCacheKey = () => keyBefore() + '|town-palette-v10' + (MASONRY ? '-masonry' : '');
+    clone.customProgramCacheKey = () => keyBefore() + '|town-palette-v11' + (MASONRY ? '-masonry' : '');
+  }
+
+  // Every vertex of a deck mesh gets the wood colour; alpha 2 tells the shader "wood" (0 = untouched, 0..1 = plaster).
+  function woodPalette(geometry, Color) {
+    const count = geometry.attributes.position.count, c = new Color(WOOD_HEX), colours = new Float32Array(count * 4);
+    for (let i = 0; i < count; i++) { colours[i * 4] = c.r; colours[i * 4 + 1] = c.g; colours[i * 4 + 2] = c.b; colours[i * 4 + 3] = 2; }
+    return { colours, band: new Float32Array(count * 2) };
   }
 
   // Colour is stored per vertex (the world is merged into a few big meshes), so the draw call
@@ -425,14 +469,16 @@
       if (b.maxY - b.minY > 40 || (b.maxX - b.minX) * (b.maxZ - b.minZ) > 700) { loose.add(m); meshes.push(m); }
     }
     const clones = new Map(), replaced = [], hsl = { h: 0, s: 0, l: 0 };
-    let tinted = 0, recoloured = 0, tiles = 0;
+    let tinted = 0, recoloured = 0, tiles = 0, woodMeshes = 0;
     for (const mesh of meshes) {
       const material = mesh.material;
       if (!material || Array.isArray(material) || !material.color || material.transparent) continue;
       material.color.getHSL(hsl);
       const district = !loose.has(mesh) && !material.vertexColors && hsl.s <= .5; // bright accent colours (route cues) keep their colour
       const tile = town && material.map && isTerracottaTile(material);
-      const palette = !town || loose.has(mesh) ? null : tile ? tilePalette(town, mesh.geometry) : paletteFor(town, mesh.geometry, townMode === 'debug');
+      const isWood = !!town && MASONRY && !loose.has(mesh) && material.color.getHex() === WOOD_TINT;
+      if (isWood) { woodMeshes++; }
+      const palette = !town || loose.has(mesh) ? null : isWood ? woodPalette(mesh.geometry, material.color.constructor) : tile ? tilePalette(town, mesh.geometry) : paletteFor(town, mesh.geometry, townMode === 'debug');
       if (!district && !palette && !loose.has(mesh) && !(town && MASONRY)) continue;
       const original = mesh.geometry, position = original.attributes.position, Attribute = position.constructor;
       // Neutral meshes with no building in them (tower shafts, tall dividing walls) still get the wall shader, with an
@@ -470,7 +516,7 @@
       if (tile) tiles++;
     }
     for (const original of replaced) original.dispose(); // free the old GPU copies
-    return { tinted, recoloured, tiles, loose: loose.size, buildings: town?.clusters.length ?? 0, sameColour: town?.sameColour ?? 0 };
+    return { tinted, recoloured, tiles, loose: loose.size, wood: woodMeshes, buildings: town?.clusters.length ?? 0, sameColour: town?.sameColour ?? 0 };
   }
 
   let tries = 0;
@@ -483,7 +529,7 @@
       recolourSky(game);
       const world = window.skyLook === 'sky' ? { tinted: 0 }
         : tintWorld(game, window.skyLook === 'town' ? 'town' : window.skyLook === 'townDebug' ? 'debug' : null);
-      window.skyLookInfo = { tinted: world.tinted, recoloured: world.recoloured ?? 0, tileMeshes: world.tiles ?? 0, buildings: world.buildings ?? 0, loose: world.loose ?? 0, masonry: MASONRY, sameColourNeighbours: world.sameColour ?? 0 };
+      window.skyLookInfo = { tinted: world.tinted, recoloured: world.recoloured ?? 0, tileMeshes: world.tiles ?? 0, buildings: world.buildings ?? 0, loose: world.loose ?? 0, wood: world.wood ?? 0, masonry: MASONRY, sameColourNeighbours: world.sameColour ?? 0 };
       document.body.dataset.skyLook = window.skyLook;
     } catch (error) { console.warn('look pass skipped', error); }
   }, 200);
