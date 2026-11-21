@@ -11,6 +11,8 @@ const server=http.createServer(async(req,res)=>{try{const name=path.resolve(root
 const VIEWS=[null,[-20,60,70,-20,0,0,55],[-60,14,40,-40,3,0,60],[-31.4,5.5,2.9,-32.7,4.9,-7,70],[-33.6,5.5,1,-37.7,4.9,-8.2,70],[-38.3,9,-3.4,-33.5,8.4,-12.1,70],[2.3,2,5,-6.5,1.4,.3,70]];
 async function open(browser,base,query){
  const ctx=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true,locale:'ja-JP'});
+ // スマホの既定は影なし（2026-11-21）。描画回数と暗さは従来どおり影ありの高精細で測る。
+ await ctx.addInitScript(()=>{try{localStorage.setItem('gunrun-render-quality-v1','high')}catch{}});
  await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'}));
  const p=await ctx.newPage(),errors=[];p.setDefaultTimeout(120000);p.on('pageerror',e=>errors.push(e.message));
  await p.goto(base+`index.html?camera=after&lang=ja&controlpick=0&hookGuide=0&dev=1${query}`);

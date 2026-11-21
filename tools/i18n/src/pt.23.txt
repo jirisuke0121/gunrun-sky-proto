@@ -1,0 +1,2 @@
+950 Alto detalhe, sem sombras (recomendado no celular)
+951 Mesmo detalhe do Alto, sem sombras. Mantém o celular mais fluido em partidas seguidas.

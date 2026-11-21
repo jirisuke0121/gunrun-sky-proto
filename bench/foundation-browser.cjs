@@ -40,14 +40,14 @@ fs.mkdirSync(out,{recursive:true});
     if(touch)await page.locator(selector).tap();else await page.locator(selector).click();
    };
    const snapshot=()=>page.evaluate(()=>skyRenderQuality.snapshot());
-   assert.equal((await snapshot()).mode,'high');
+   assert.equal((await snapshot()).mode,touch?'phone':'high'); // スマホ既定は影なしの高精細（2026-11-21）
    if(await page.locator('#homeSettings').count()){
     await click('#homeSettings');
     assert.doesNotMatch(await page.locator('#unityScorePause').innerText(),/NaN|undefined/);
     await click('#bResume');
    }
    await click('#bStart');assert.equal(await page.evaluate(()=>__game.mode),'play');
-   const high=await snapshot();assert.equal(high.shadows,true);assert.equal(high.pixelRatio,touch?1.5:2);
+   const high=await snapshot();assert.equal(high.shadows,!touch);assert.equal(high.pixelRatio,touch?1.5:2);
    await click('#bSettings');await click('#pauseTab_display');await page.locator('#settingsRenderQuality').selectOption('performance');
    assert.equal((await snapshot()).pixelRatio,high.pixelRatio);assert.match(await page.locator('#settingsRenderQualityDescription').innerText(),/次のプレイ/);
    await page.setViewportSize(touch?{width:812,height:375}:{width:1200,height:700});assert.equal((await snapshot()).pixelRatio,high.pixelRatio);
@@ -70,7 +70,7 @@ fs.mkdirSync(out,{recursive:true});
    assert.equal(await page.evaluate(()=>localStorage.getItem('gunrun-quality-check-v1')),'done');
    await click('#bSettings');
    await click('#pauseTab_rules');
-   await click('#bReset');await click('#bResume');
+   await click('#bReset');await click('#bResume');assert.equal((await snapshot()).selectedMode,touch?'phone':'high');
    await page.evaluate(()=>document.getElementById('bIntro').click());assert.equal(await page.evaluate(()=>skyChallenge.isIntroRun),true);
    await page.evaluate(()=>{for(let i=0;i<=800;i++)skyFoundation.frame(i*25,true)});
    await click('#bSettings');await click('#bMenu');await page.waitForSelector('#qualitySuggestion[open]');
@@ -85,7 +85,7 @@ fs.mkdirSync(out,{recursive:true});
   await englishPage.goto(base+'/index.html');await englishPage.waitForFunction(()=>window.skyStartReadiness?.ready&&document.documentElement.lang==='en');
   assert.equal(await englishPage.locator('#homeMore').isVisible(),false);
   await englishPage.waitForFunction(()=>document.getElementById('homeRenderQuality').textContent.includes('Minimum (0.5×)'));
-  assert.deepEqual(await englishPage.locator('#homeRenderQuality option').allTextContents(),['Original detail','Standard (1.0×)','Light (0.75×)','Minimum (0.5×)']);
+  assert.deepEqual(await englishPage.locator('#homeRenderQuality option').allTextContents(),['Original detail','High detail, no shadows (phone)','Standard (1.0×)','Light (0.75×)','Minimum (0.5×)']);
   assert.doesNotMatch(await englishPage.locator('#homeRenderQualityDescription').innerText(),/[\u3040-\u30ff\u4e00-\u9fff]/);await english.close();
   const session=crypto.randomUUID(),run=crypto.randomUUID();
   const seed=async(event,extra={})=>{const r=await fetch(base+'/telemetry',{method:'POST',body:JSON.stringify({v:1,id:crypto.randomUUID(),session,event,build:'browser-fixture',map:'old-town',source:'github',device:'desktop',difficulty:'normal',run,...extra})});assert.equal(r.status,200)};

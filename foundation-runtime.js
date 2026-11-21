@@ -43,7 +43,8 @@ function send(event, extra = {}) {
 }
 function qualitySnapshot() {
   const snapshot = window.skyRenderQuality?.snapshot();
-  return snapshot ? { quality: snapshot.mode, ratio: snapshot.pixelRatio, nativeRatio: snapshot.nativePixelRatio,
+  // 'phone'（スマホ既定・影なし）は、Workerの受け付ける値を変えずに送るため 'high' として送る。影なしは shadows:false で分かる。
+  return snapshot ? { quality: snapshot.mode === 'phone' ? 'high' : snapshot.mode, ratio: snapshot.pixelRatio, nativeRatio: snapshot.nativePixelRatio,
     width: snapshot.buffer?.[0] ?? null, height: snapshot.buffer?.[1] ?? null,
     viewportWidth: publicGame?.debug.renderer.domElement.clientWidth || innerWidth,
     viewportHeight: publicGame?.debug.renderer.domElement.clientHeight || innerHeight, shadows: snapshot.shadows } : null;
@@ -55,7 +56,7 @@ function finishRound(reason) {
   if (finished) finished = { ...finished, ...qualitySnapshot() };
   send('finish', { run: value.id, difficulty: value.difficulty, reason, performance: finished });
   const quality = window.skyRenderQuality;
-  if (!qualityChecked && !value.excluded && value.quality === 'high' && quality?.revision === value.revision) {
+  if (!qualityChecked && !value.excluded && (value.quality === 'high' || value.quality === 'phone') && quality?.revision === value.revision) {
     if (value.monitor.shouldReduce) suggestion = { revision: value.revision };
     else if (value.monitor.evaluated) markQualityChecked();
   }

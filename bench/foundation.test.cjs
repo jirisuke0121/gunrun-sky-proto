@@ -1,11 +1,12 @@
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), vm = require('node:vm');
 const { DatabaseSync } = require('node:sqlite');
 
-function quality(saved, blocked = false) {
+function quality(saved, blocked = false, touch = false) {
   const values = new Map(saved ? [['gunrun-render-quality-v1', saved]] : []);
   const context = { document: { body: { dataset: {} }, getElementById() { return null; }, dispatchEvent() {} },
     devicePixelRatio: 2, localStorage: { getItem(k) { if (blocked) throw Error('blocked'); return values.get(k); },
-      setItem(k,v) { if (blocked) throw Error('quota'); values.set(k,v); } }, CustomEvent: class {} };
+      setItem(k,v) { if (blocked) throw Error('quota'); values.set(k,v); } }, CustomEvent: class {},
+    matchMedia: q => ({ matches: touch ? q === '(pointer: coarse)' : q !== '(pointer: coarse)' }) };
   context.window = context;
   vm.runInNewContext(fs.readFileSync('render-quality.js','utf8'), context);
   return context.skyRenderQuality;
@@ -23,6 +24,16 @@ test('high-quality default, saved manual choices, fixed active resolution and ne
   assert.equal(quality('invalid').mode,'high');
   const unavailable = quality(null,true); unavailable.select('performance'); unavailable.beginRound();
   assert.equal(unavailable.pixelRatio(),.75,'storage failure must retain session selection');
+});
+
+test('touch-first devices default to high detail without shadows; saved choices win; desktop stays high', () => {
+  const phone = quality(null, false, true);
+  assert.equal(phone.mode, 'phone'); assert.equal(phone.deviceDefault, 'phone');
+  assert.equal(phone.pixelRatio(.75, 2), 1.5, 'same resolution as high');
+  assert.equal(phone.presets.phone.shadows, false); assert.equal(phone.snapshot().shadows, false);
+  assert.equal(quality('high', false, true).mode, 'high', 'a saved choice is kept on phones');
+  assert.equal(quality(null, false, false).mode, 'high');
+  assert.equal(quality('phone').mode, 'phone');
 });
 
 test('frame counters exclude pauses and distinguish actual slow frames from skipped callbacks', async () => {

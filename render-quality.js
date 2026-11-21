@@ -3,17 +3,24 @@
   const storage = 'gunrun-render-quality-v1';
   const presets = {
     high: { name: '高精細（従来）', cap: Infinity, shadows: true, shadowSize: null, description: '従来の高精細表示と影を使います。端末と従来の描画設定に応じた倍率です。' },
+    // スマホ・タブレットの既定（2026-11-21）。高精細と同じ倍率で、影だけ省く。
+    // 実機の連続4周（docs/PERF_HANDOFF_2026-11-21.md）：解像度を下げても重さは変わらず、影を切ると各周2〜3.5ms速く、30fps未満が3〜7%→1〜2%。
+    phone: { name: '高精細・影なし（スマホ推奨）', cap: Infinity, shadows: false, shadowSize: null, description: '高精細と同じ細かさで、影だけを省きます。スマホで続けて遊んでも重くなりにくくします。' },
     balanced: { name: '標準（1.0倍）', cap: 1, shadows: true, shadowSize: 1024, description: '表示上の1ピクセルを3D描画の1ピクセルとして描き、影を表示します。' },
     performance: { name: '軽量（0.75倍）', cap: .75, shadows: false, shadowSize: 512, description: '3D描画を0.75倍にし、影を省きます。文字と操作はそのままです。' },
     minimum: { name: '最軽量（0.5倍）', cap: .5, shadows: false, shadowSize: 512, description: '3D描画を0.5倍にし、影を省きます。文字と操作はそのままです。' },
   };
-  let selected = 'high', revision = 0, active = null, internals, game;
+  // タッチが主の端末（スマホ・タブレット）は影なしの高精細を既定にする。保存済みの選択はそのまま使う。
+  const touchFirst = (() => { try { return matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches; } catch { return false; } })();
+  const deviceDefault = touchFirst ? 'phone' : 'high';
+  let selected = deviceDefault, revision = 0, active = null, internals, game;
   const originalShadowSizes = new WeakMap();
   try { const saved = localStorage.getItem(storage); if (Object.hasOwn(presets, saved)) selected = saved; } catch {}
   const nativeRatio = () => Math.min(2, devicePixelRatio || 1);
-  const nextRatio = (scale = 1, native = nativeRatio()) => selected === 'high'
+  const nativeScaled = id => presets[id].cap === Infinity; // 高精細と同じ「端末の倍率×従来の描画設定」
+  const nextRatio = (scale = 1, native = nativeRatio()) => nativeScaled(selected)
     ? Math.max(.25, native * (Number.isFinite(scale) ? scale : 1)) : presets[selected].cap;
-  const roundRatio = () => active.mode === 'high' ? Math.max(.25, nativeRatio() * active.scale) : presets[active.mode].cap;
+  const roundRatio = () => nativeScaled(active.mode) ? Math.max(.25, nativeRatio() * active.scale) : presets[active.mode].cap;
   const pixelRatio = (scale = 1, native = nativeRatio()) => active ? roundRatio() : nextRatio(scale, native);
   function sync() {
     document.body.dataset.skyRenderQuality = selected;
@@ -72,7 +79,7 @@
     box.append(label, selectElement, note); return box;
   }
   window.skyRenderQuality = {
-    presets, pixelRatio, apply, select,
+    presets, pixelRatio, apply, select, deviceDefault,
     get mode() { return selected; },
     get revision() { return revision; },
     beginRound() {
@@ -97,7 +104,7 @@
       document.head.append(style);
       document.getElementById('challengeDifficulty')?.closest('.challenge-select')?.before(control('homeRenderQuality', '描画品質'));
       document.getElementById('setGrid')?.before(control('settingsRenderQuality', '描画品質（設定）'));
-      document.getElementById('bReset')?.addEventListener('click', () => { select('high'); window.skyFoundation?.resetQualityCheck(); });
+      document.getElementById('bReset')?.addEventListener('click', () => { select(deviceDefault); window.skyFoundation?.resetQualityCheck(); });
       apply(); sync();
     },
   };

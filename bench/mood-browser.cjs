@@ -13,6 +13,8 @@ const VIEWS=[null,[-20,60,70,-20,0,0,55],[-60,14,40,-40,3,0,60],[-31.4,5.5,2.9,-
 const MOOD_MESHES=['Sun glow','Far skyline','Dust motes'];
 async function open(browser,base,query){
  const ctx=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true,locale:'ja-JP'});
+ // スマホの既定は影なし（2026-11-21）。暗さは影ありの高精細（いちばん暗くなる条件）で比べるので、画質を固定する。
+ await ctx.addInitScript(()=>{try{localStorage.setItem('gunrun-render-quality-v1','high')}catch{}});
  await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'}));
  const p=await ctx.newPage(),errors=[];p.setDefaultTimeout(120000);p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error'&&!/GL Driver|Ignored attempt/.test(m.text()))errors.push(m.text())});
  await p.goto(base+`index.html?camera=after&lang=ja&controlpick=0&hookGuide=0&dev=1${query}`);
