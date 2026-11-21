@@ -25,6 +25,8 @@ try{for(const [map,lang]of[['index.html','ja'],['index.html','en'],['canyon.html
  // Native movement advances the actual first lesson; no lesson-completion
  // counter or practice position is assigned by this harness.
  await p.keyboard.down('w');await p.evaluate(()=>{for(let i=0;i<180&&skyGuidedIntro.stage==='move';i++)__game.advance(1/60)});await p.keyboard.up('w');assert.equal(await p.evaluate(()=>skyGuidedIntro.stage),'vault');
- await p.locator('#bSettings').tap();await p.waitForFunction(()=>__game.mode==='pause');await p.locator('#learnSkip').click();await p.waitForURL(u=>u.pathname.endsWith(map)&&u.searchParams.get('learned')==='1');await ready();await p.waitForFunction(()=>__game.mode==='play');const returned=await check('tutorial return');
+ await p.locator('#bSettings').tap();await p.waitForFunction(()=>__game.mode==='pause');await p.locator('#learnSkip').click();await p.waitForURL(u=>u.pathname.endsWith(map)&&u.searchParams.get('learned')==='1');await ready();
+ // 入門のあとはホームに戻り、イージーが選ばれた状態で「本番をはじめる」を押してもらう（2026-11-13の仕様）。
+ await p.waitForFunction(()=>__game.mode==='menu'&&document.getElementById('challengeDifficulty').value==='easy');await p.locator('#bStart').tap();await p.waitForFunction(()=>__game.mode==='play');const returned=await check('tutorial return');
  await p.screenshot({path:`${out}/entry-${map}-${lang}.png`});assert.deepEqual(errors,[]);assert.equal(posts,0);rows.push({map,lang,normal,candidate,helpText,retry,tutorialChoice,returned,firstLesson:'vault',posts,errors});console.log('PASS auto-follow normal, bilingual help, retry, tutorial, native first lesson and return',map,lang);await ctx.close();
 }fs.writeFileSync(out+'/entry-results.json',JSON.stringify(rows,null,2));}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

@@ -163,14 +163,26 @@
       for (const id in nodes) { const n = nodes[id]; n.lock = 0; n.yaw = n.yaw0; n.draw(n.s.th0); n.mat.color.setHex(0xffa21f); }
     }
     function showGrip() { fill.style.width = Math.round(Math.max(0, grip) * 100) + '%'; fill.style.background = grip < .3 ? '#e24b4a' : '#ffb647'; bar.style.opacity = riding || base.active?.() || grip < .999 ? '1' : '0'; }
+    // ドカン・フックで飛ばされている間（爆破の打ち上げ／フックの引き寄せが終わってから、着地するか別の動作に移るまで）は、
+    // ロープの近くを通ってもつかまない。狙った着地点への軌道をロープが横取りしないため（2026-11-21）。
+    let assistFlight = false, prevState = c.state, prevBlasts = stats.blastLaunches || 0;
+    function trackAssistFlight() {
+      const blasts = stats.blastLaunches || 0;
+      const sequence = !!window.skyBlastBarrels?.sequence; // 缶へ走る・跳び乗る・狙う間（打ち上げ前）もつかまない
+      if (sequence || blasts > prevBlasts || (prevState === 'hook' && c.state === 'normal' && !c.onGround)) assistFlight = true;
+      if (sequence) { prevBlasts = blasts; prevState = c.state; return; }
+      if (!playing() || c.onGround || (c.state !== 'normal' && c.state !== 'hook')) assistFlight = false;
+      prevBlasts = blasts; prevState = c.state;
+    }
     function step(dt, input) {
+      trackAssistFlight();
       if (riding && (!playing() || game.z.t < riding.t0 || (riding.last && c.pos.distanceTo(riding.last) > 1))) cancel();
       if (!riding) {
         for (const id in nodes) { const n = nodes[id]; if (n.lock > 0) { // 空のロープが元の位置へ戻る
           n.lock = Math.max(0, n.lock - dt); const f = 1 - n.lock / RETURN_SECONDS, e = f * f * (3 - 2 * f); n.yaw = n.yaw0 + (((n.yawFrom - n.yaw0 + Math.PI * 3) % (Math.PI * 2)) - Math.PI) * (1 - e); n.draw(n.from + (n.s.th0 - n.from) * e); } }
         if (c.onGround && grip < 1) grip = Math.min(1, grip + GRIP_REGEN * dt);
         showGrip();
-        if (!playing() || c.state !== 'normal' || c.onGround || window.skyBite?.locked || grip < GRIP_MIN) return false;
+        if (!playing() || c.state !== 'normal' || c.onGround || assistFlight || window.skyBite?.locked || grip < GRIP_MIN) return false;
         for (const id in nodes) {
           const n = nodes[id], s = n.s;
           if (n.lock > 0 || !inGrab(s, c.pos) || c.vel.y < -GRAB.maxFall) continue;
@@ -223,7 +235,7 @@
     base.side = () => riding ? 'S' + riding.n.s.id : orig.side?.() || null;
     Object.assign(window.skyRopeStations, { step, cancel, active: () => !!riding, current: () => riding && { id: riding.n.s.id, th: riding.th, w: riding.w, e: riding.e },
       ready: id => nodes[id].lock <= 0, grip: () => grip,
-      canGrab: () => grip >= GRIP_MIN,
+      canGrab: () => grip >= GRIP_MIN && !assistFlight, assistFlight: () => assistFlight,
       spendGrip(dt) { grip = Math.max(0, grip - dt / GRIP_SECONDS); showGrip(); return grip > 0; },
       nodes, group });
   });

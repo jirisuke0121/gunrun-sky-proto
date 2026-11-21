@@ -52,7 +52,11 @@ const root = path.resolve(__dirname, '..'), PORT = 8797;
       const back = run([-8, 4, 12], [-1, 0], [], 1.4);
       res.back = { ...back, ok: back.x < -14.5 && Math.abs(back.y - 4.2) < .06 };
       // 西の街区からこのデッキまで、高所のまま来られる（既存の地形）: 4 mの台の端（x -34.5）で跳ぶと、4.6 mのデッキの縁（x -29.8）に届く。
+      // 途中で復帰ロープ4番（-31, 13）の近くを通り、空中でつかむことがある。復帰ロープは「どの状況でもつかめてよい」
+      // （2026-11-21の本人判断）ので、ここでは地形だけを確かめるため、この1回だけロープ4番を休ませる。
+      const rope4 = window.skyRopeStations?.nodes?.[4]; if (rope4) rope4.lock = 1e9;
       const feeder = run([-37.5, 4, 14.5], [1, 0], [2.9], 2.0);
+      if (rope4) rope4.lock = 0;
       res.feeder = { ...feeder, ok: feeder.x > -29.8 && Math.abs(feeder.y - 4.6) < .06 && feeder.minY > 2.7 };
       // 東端: デッキ（x 56）から西へ。端（x 51.5）で跳び、張り出し（x 46〜48）に落ちずに着く。
       const east = run([56, 3.6, 1.95], [-1, 0], [4.2], 1.9);

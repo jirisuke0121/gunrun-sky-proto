@@ -12,7 +12,7 @@ for (const file of ['canyon.html']) {
   const edges = [{ door }, { jamT: 0 }, {}];
   let searches = 0;
   const context = vm.createContext({
-    lt: { E: edges }, Vi: 4, ce: 0, oo: () => 1,
+    window: {}, lt: { E: edges }, Vi: 4, ce: 0, oo: () => 1,
     so: (starts, cost, limit, field) => {
       searches++;
       field.fill(starts[0] + searches);

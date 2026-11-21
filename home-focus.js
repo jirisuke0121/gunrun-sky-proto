@@ -20,7 +20,7 @@
   const nameChip = make('button', { id: 'homeName', type: 'button' });
   const syncName = () => {
     const name = window.skyOnboarding?.name?.() || '';
-    nameChip.innerHTML = name ? `<small>ニックネーム</small><b></b><i aria-hidden="true">✎</i>` : '<b>ニックネームを決める</b><i aria-hidden="true">✎</i>';
+    nameChip.innerHTML = name ? `<small>ニックネーム</small><b></b><i aria-hidden="true">✎</i>` : '<b><span class="home-name-long">ニックネームを決める</span><span class="home-name-short">ニックネーム</span></b><i aria-hidden="true">✎</i>';
     if (name) nameChip.querySelector('b').textContent = name;
     nameChip.setAttribute('aria-label', name ? `ニックネーム ${name}（変更する）` : 'ニックネームを決める');
   };
@@ -28,7 +28,7 @@
   document.addEventListener('sky-name-change', syncName); syncName(); addEventListener('load', syncName);
   actions.prepend(rankButton); actions.prepend(nameChip); heading.append(actions);
   const scene = make('section', { className: 'home-scene', ariaLabel: canyon ? '岩壁渓谷のゲーム風景' : '旧市街のゲーム風景' }, `<div class="home-scene-copy"><span class="home-map">${canyon ? '岩壁渓谷' : '旧市街'}</span><h2>2分間、<br>逃げ切れ。</h2><p>跳ぶ。壁を走る。追跡を引き離す。</p></div>`);
-  scene.style.backgroundImage = `linear-gradient(0deg,#0c1219f5 0%,#0c12191a 85%),url('./assets/lobby/${canyon ? 'canyon' : 'old-town'}.svg')`;
+  scene.style.backgroundImage = `linear-gradient(0deg,#0c1219f5 0%,#0c12191a 85%),url('./assets/lobby/${canyon ? 'canyon.svg' : 'old-town.webp'}')`;
   const main = make('section', { className: 'home-play', ariaLabel: '逃走の準備' });
   const difficulty = make('div', { id: 'homeDifficulty' }, '<div class="home-difficulty-heading"><h2>難易度を選ぶ</h2><span>難しいほど得点にボーナス</span></div>');
   const selector = $('challengeDifficulty'); selector.hidden = true;

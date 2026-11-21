@@ -19,7 +19,8 @@ async function verify(){
   status.textContent=`検証中：${map} / ${layout}`;
   const w=await load(map,layout),g=w.__game,s=w.__skyInternals,d=w.document;
   assert(w.__minimapLab,'requires isolated review server');
-  if(layout.startsWith('portrait')){assert(g.mode==='pause','portrait pauses play');assert(w.getComputedStyle(d.getElementById('rotate')).display!=='none','portrait shows rotation notice');results.push({map,layout,passed:true,portraitPaused:true});continue;}
+  // 縦持ちは止めず、横長の画面をそのまま収める（2026-11-17）。回転の案内は出さず、ミニマップも動き続ける。
+  if(layout.startsWith('portrait')){assert(g.mode==='play','portrait keeps playing');const rot=d.getElementById('rotate');assert(!rot||w.getComputedStyle(rot).display==='none','no rotation notice in portrait');const p=snapshot(w);assert(p.visible&&p.count===s.Jt.filter(e=>!e.dead&&e.hp!==0&&e.remove!==true).length,'portrait minimap shows live enemies');results.push({map,layout,passed:true,portraitPlaying:true});continue;}
   const initial=snapshot(w);assert(initial.count===s.Jt.filter(e=>!e.dead&&e.hp!==0&&e.remove!==true).length,'all live initial enemies');
   assert(initial.visible&&initial.boxes>100&&initial.cachedBytes>0,'cached terrain and live map');
   assert(initial.shape==='circle'&&initial.headingUp&&initial.playerLocal.yaw===0,'Unity-style circular heading-up radar');

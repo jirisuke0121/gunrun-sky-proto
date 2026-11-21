@@ -1,0 +1,59 @@
+name: Main regression
+# 他のワークフローは pull_request（変更したファイルに対応するもの）だけで動く。
+# main へ直接入れたときにも、全単体テストと、これまで抜けていた主要なブラウザ検査を回す（2026-11-21）。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: All unit tests
+        run: |
+          fail=0
+          for t in bench/*.test.cjs; do
+            node "$t" > /tmp/unit.log 2>&1 || { echo "FAIL $t"; tail -20 /tmp/unit.log; fail=1; }
+          done
+          exit $fail
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Static server for browser checks
+        run: python3 -m http.server 8899 --bind 127.0.0.1 > /tmp/regression-server.log 2>&1 &
+      - name: Blast barrels land on target, rope does not steal assisted flights
+        env:
+          RUNNING_QA_URL: http://127.0.0.1:8899/
+        run: |
+          node bench/blast-assist-browser.cjs
+          node bench/rope-assist-flight-browser.cjs
+          node bench/return-links-browser.cjs
+      - name: HUD, minimap and touch stick
+        env:
+          RUNNING_QA_URL: http://127.0.0.1:8899/
+        run: |
+          node bench/minimap-browser.cjs
+          node bench/player-clarity-browser.cjs
+          node bench/touch-stick-browser.cjs
+      - name: Tutorial exit returns to a playable home
+        env:
+          RUNNING_QA_URL: http://127.0.0.1:8899/
+        run: node bench/auto-follow-entry-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: main-regression-evidence
+          path: browser-evidence/
+          retention-days: 7

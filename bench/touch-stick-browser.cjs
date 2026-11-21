@@ -64,10 +64,10 @@ fs.mkdirSync(out, { recursive: true });
       });
       const idle = await snapshot();
       assert.ok(!idle.on && idle.opacity > 0 && idle.opacity < .5 && idle.pointer === 'none');
-      assert.equal(idle.status,'速度 +0%');assert.ok(idle.underLife);
+      assert.ok(idle.underLife); // 「速度 +0%」は出さない（2026-11-13）。加速中だけライフの下に出る
       assert.ok(idle.rect.x>=0&&idle.rect.y>=0&&idle.rect.x+idle.rect.width<=idle.vw&&idle.rect.y+idle.rect.height<=idle.vh,JSON.stringify(idle));
       await p.screenshot({path:`${out}/${id}-idle.png`});
-      assert.ok(await p.locator('#dashStatus').isVisible());
+      assert.ok(!(await p.locator('#dashStatus').isVisible()),'no speed badge at +0%');
       await p.evaluate(()=>{skyDash.rewardSwing();__game.cam(0);});
       const starts = [{x:95,y:215},{x:290,y:280},{x:350,y:175}], probes = [];
       for (const start of starts) {
@@ -102,7 +102,7 @@ fs.mkdirSync(out, { recursive: true });
       await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
       await p.evaluate(()=>__game.setMode('play'));
       assert.ok(!(await snapshot()).on,'pause returns the visual to its waiting marker');
-      await p.evaluate(()=>{skyDash.step(5);__game.cam(0);});assert.equal(await p.evaluate(()=>skyDash.swingRemaining),0);assert.ok(await p.locator('#dashStatus').isVisible());assert.equal(await p.locator('#dashStatus').innerText(),'速度 +0%');
+      await p.evaluate(()=>{skyDash.step(5);__game.cam(0);});assert.equal(await p.evaluate(()=>skyDash.swingRemaining),0);assert.ok(!(await p.locator('#dashStatus').isVisible()),'speed badge hides again at +0%');
       assert.deepEqual(errors,[]);results.push({id,idle,probes,errors});
       fs.writeFileSync(`${out}/results.json`,JSON.stringify(results,null,2));
       console.log('PASS',id,'three left-zone origins, movement, second-finger camera suppression/release, idle marker, pause, speed below life');

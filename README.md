@@ -6,6 +6,17 @@
 - 検査：`edge-pins-browser`（弾切れでもAMMOが出ないことを追加）、`start-readiness-browser`、`wall-readability-browser`、`combat-feedback-browser`、`survival-score-browser` が成功。
 - 未確認：iPhone実機での見た目。
 
+## 2026-11-21 全体の品質チェックの修正（ロープの横取り・古いテスト・CI・ホーム）
+
+- **復帰ロープの横取り**（`rope-stations.js`）：11/14の「どの位置・向きからでもつかめる」変更（4ef85d6）以降、ドカンの打ち上げ中にロープをつかみ、目標の屋根（4.2 m）から約14 m外れて地上に降りていた（`blast-assist-browser`が失敗）。ドカン（走る・跳び乗る・狙う・打ち上げ後）とフックの引き寄せが終わって着地するまでは、ロープをつかまない。普通のジャンプではこれまでどおりつかめる（本人判断：「どの状況でもつかめてよい」）。順位の版はv15のまま（本人判断）。新規 `bench/rope-assist-flight-browser.cjs`。
+- **古いテスト5本を今の仕様に合わせた**（ゲーム本体は変更なし）：`minimap-review.js`（縦持ちでも停止しない・11/17）、`player-clarity-browser`（閃光玉の0.8秒の連投防止・11/16）、`touch-stick-browser`（「速度+0%」を出さない・11/13）、`flank-path-cache.test`（`window`が無い環境）、`auto-follow-entry-browser`（入門のあとはホームへ戻り、イージーが選ばれた状態で本番を始める・11/13）。`return-links-browser`は、西の4 m台→南西デッキの地形確認の間だけロープ4番を休ませる。
+- **`canyon.html`・`index.html`の文字コード指定を`<head>`の先頭へ**（ブラウザが探す先頭1024バイト以内に入れる）。
+- **CI**：`.github/workflows/main-regression.yml`を追加。main へのpushでも、全単体テストと、どのワークフローにも入っていなかった`blast-assist`・`rope-assist-flight`・`return-links`・`minimap`・`player-clarity`・`touch-stick`・`auto-follow-entry`のブラウザ検査を回す。
+- **ホーム**：旧市街の絵を、箱が並んだSVGから実際のゲーム画面（朝焼けの屋上、28KB）に差し替え。スマホ（狭い画面）のニックネームのボタンは、未設定のとき「Nickname」「ニックネーム」と短くして切れないようにした。
+- **重さ**：11/21午後のコミット（スマホの既定画質を影なしにする）で対応済み。このコミットでは変更なし。
+- 確認：単体テスト87本すべて成功。ブラウザは上の変更に関わる9本が成功（`blast-assist`・`rope-assist-flight`・`return-links`・`minimap`・`player-clarity`・`touch-stick`・`auto-follow-entry`・`home-first-paint`・`i18n-screens`）。容量13.18 MB（20MB目安の66%／50MB上限の26%）。
+- 未確認・未対応：iPhone実機、残り約85本のブラウザ検査、ホームの絵に追手が映っていない点、`i18n-browser`（この環境では360秒で時間切れ）、プライバシーポリシーとポータルSDK。
+
 ## 2026-11-21 スマホの既定画質を「高精細・影なし」に（`render-quality.js`）
 
 - 実機（iPhone）の連続4周（`bench/soak-trajectory.html`）：解像度を1.5倍→1.0倍にしても重さは同じ（1周め20.4→20.5ms、4周め24.1→23.7ms）。影を切ると各周1.9〜3.5ms速く、30fps未満が3〜7%→1〜2%。重さは画素数ではなく影（影用にもう一度描く仕事）とゲーム処理・熱で決まる。

@@ -65,6 +65,7 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  for(const name of ['skyMinimap','tJump','tSlide'])if(rects[name].visible)assert.equal(overlaps(rects.tAutoFire,rects[name]),false,`${id}: fire control overlaps ${name}`);
  await p.evaluate(()=>{skyDecoy.clear();clarityPlace()});
  await press('#tFlash');const charges=await p.evaluate(()=>skyFlashbang.charges);assert.equal(charges,0);
+ await p.evaluate(()=>clarityTick(60)); // 投げた直後0.8秒は連投防止（2026-11-16）。過ぎてから押す
  await press('#tFlash');await p.evaluate(()=>skyPlayerClarity.render());const emptyFlash=await p.locator('#actionFeedback').innerText();assert.match(emptyFlash,lang==='ja'?/残り0個.*補充/:/No flashbangs.*refill/);assert.equal(await p.evaluate(()=>skyFlashbang.charges),0);
  await clearView();await p.screenshot({path:`${out}/${id}-flash.png`});
  // There is no higher platform 200m above the map; the failed rescue costs no charge.
