@@ -28,7 +28,12 @@
   document.addEventListener('sky-name-change', syncName); syncName(); addEventListener('load', syncName);
   actions.prepend(rankButton); actions.prepend(nameChip); heading.append(actions);
   const scene = make('section', { className: 'home-scene', ariaLabel: canyon ? '岩壁渓谷のゲーム風景' : '旧市街のゲーム風景' }, `<div class="home-scene-copy"><span class="home-map">${canyon ? '岩壁渓谷' : '旧市街'}</span><h2>2分間、<br>逃げ切れ。</h2><p>跳ぶ。壁を走る。追跡を引き離す。</p></div>`);
-  scene.style.backgroundImage = `linear-gradient(0deg,#0c1219f5 0%,#0c12191a 85%),url('./assets/lobby/${canyon ? 'canyon.svg' : 'old-town.webp'}')`;
+  // 旧市街：屋上から跳ぶ人間と、縁まで追ってくるゾンビ（ゲーム内のカメラで撮影、2026-11-21）。人物は上半分にあるので、
+  // 文字の下（下側）だけを暗くし、上は抜けたまま見せる。渓谷は従来の絵とグラデーション。
+  scene.style.backgroundImage = canyon
+    ? `linear-gradient(0deg,#0c1219f5 0%,#0c12191a 85%),url('./assets/lobby/canyon.svg')`
+    : `linear-gradient(0deg,#0c1219f2 0%,#0c1219c4 22%,#0c121940 46%,#0c121900 62%),url('./assets/lobby/old-town.webp')`;
+  if (!canyon) scene.style.backgroundPosition = '36% center';
   const main = make('section', { className: 'home-play', ariaLabel: '逃走の準備' });
   const difficulty = make('div', { id: 'homeDifficulty' }, '<div class="home-difficulty-heading"><h2>難易度を選ぶ</h2><span>難しいほど得点にボーナス</span></div>');
   const selector = $('challengeDifficulty'); selector.hidden = true;

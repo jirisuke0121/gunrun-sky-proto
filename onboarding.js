@@ -149,6 +149,7 @@
       <p class="onb-splash-intro">ゾンビから2分間逃げろ。</p>
       <p class="onb-splash-sub">銃・アイテム・地形を駆使して、とにかく逃げ切れ。</p>
       <p class="onb-splash-note">入門は記録・ランキングに反映されません。</p>
+      <a class="onb-privacy" href="./privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>
       <button id="onbStart" type="button" class="onb-start"><span id="onbStartLabel">タップしてスタート</span><span aria-hidden="true">❯❯</span></button>
     </div>`;
     ($('app') || document.body).append(splash); document.body.classList.add('onb-open');

@@ -83,3 +83,6 @@ body.onb-open{overflow:hidden}
 #app:not([data-fit=roomy]) .onb-splash-card .onb-kicker{display:none}
 
 .onb-name .onb-send{color:#f0c59b;font-size:11px}
+
+/* 初回カードのプライバシーポリシーへのリンク（CrazyGamesの新規プレイヤー向け表示、2026-11-21）。目立たせず、カードの最下段に置く */
+#onbSplash .onb-privacy{display:block;width:max-content;margin:12px auto 0;padding:4px 2px;color:#a8b6c1;font-size:11px;text-decoration:underline}

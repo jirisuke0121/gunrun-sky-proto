@@ -7,7 +7,7 @@
   if (!host || document.getElementById('homeCredits')) return;
   const make = (tag, props = {}, html = '') => Object.assign(document.createElement(tag), props, html ? { innerHTML: html } : {});
   const style = make('style', {}, `
-    #homeCredits{display:block;grid-column:1/-1;justify-self:start;margin:8px 0 0;padding:6px 0;border:0;background:none;color:#a8b6c1;font:inherit;font-size:11px;cursor:pointer;text-decoration:underline}
+    #homeCredits,#homePrivacy{display:inline-block;margin:8px 16px 0 0;padding:6px 0;border:0;background:none;color:#a8b6c1;font:inherit;font-size:11px;cursor:pointer;text-decoration:underline}
     #creditsDialog{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:12px;background:rgba(8,12,16,.78)}
     #creditsDialog[hidden]{display:none}
     #creditsDialog .credits-card{width:min(640px,100%);max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow:auto;padding:16px 18px;border:1px solid #3a4855;border-radius:10px;background:#101a22;color:#dbe3e9;font-size:13px;line-height:1.55;user-select:text;-webkit-user-select:text;touch-action:pan-y}
@@ -41,4 +41,8 @@
   dialog.addEventListener('click', event => { if (event.target === dialog) close(); });
   dialog.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
   host.append(open);
+  // Privacy policy (CrazyGames asks games that send play data beyond its SDK to show one to new players).
+  // A plain link, not a consent prompt: sending stays always on (2026-11-09).
+  const privacy = make('a', { id: 'homePrivacy', href: './privacy.html', target: '_blank', rel: 'noopener' }, 'プライバシーポリシー');
+  host.append(privacy);
 })();
