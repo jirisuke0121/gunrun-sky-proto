@@ -81,4 +81,4 @@ Claude Code・Codex など、どのAIでもこのファイルを最初に読む�
 - `server/` … Worker・D1（`server/README.md`）。`ranked-rules.js` … 順位の対象条件と版。
 - `hook-editor.html` … フック・壁ジャンプ候補のエディター（公開版には含めない）。
 - `tools/admin/` … 管理画面（地図・詰まり・プレイヤー）。`ADMIN_TOKEN` で既存のWorker APIを読む。`tools/heatmap/` はここへの転送。
-- `docs/` … 日付つきの検討・検証メモ。スコアは `docs/SCORE_BALANCE_2026-11-02.md`、プレイヤー管理は `docs/PLAYER_OWNER_CONSOLE.md`。
+- `docs/` … 日付つきの検討・検証メモ。重さ・見た目を扱う前に `docs/PERF_HANDOFF_2026-11-21.md` を読む。スコアは `docs/SCORE_BALANCE_2026-11-02.md`、プレイヤー管理は `docs/PLAYER_OWNER_CONSOLE.md`。
