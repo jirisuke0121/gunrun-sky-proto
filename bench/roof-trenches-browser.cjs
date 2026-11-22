@@ -50,20 +50,25 @@ const root = path.resolve(__dirname, '..'), PORT = 8796;
       // 東西の溝（z 1〜4）を x=-7 と x=7 で、南北の溝（x -2〜2）を z=7 と z=-3 で跳ぶ。
       const crossed = (p, test) => test(p) && Math.abs(p.y - 8) < .05 && p.minY > 7.9;
       res.jumps = [
-        ['東西の溝を南へ x=10', run([10, 8, -4], [0, 1], 5, .35, 1.7), p => crossed(p, p => p.z > 4)],
+        // 2026-11-22: x=10・z=-4 は石段2（map-links.js、x 7.8〜10）の上になったので、石段2と3の間（x=10.4）から走る。
+        ['東西の溝を南へ x=10.4', run([10.4, 8, -4], [0, 1], 5, .35, 1.7), p => crossed(p, p => p.z > 4)],
         ['東西の溝を北へ x=10', run([10, 8, 9], [0, -1], 5, .35, 1.7), p => crossed(p, p => p.z < 1)],
         ['南北の溝を東へ z=-1', run([-8, 8, -1], [1, 0], 6, .35, 1.8), p => crossed(p, p => p.x > 2)],
         ['南北の溝を西へ z=-4.5', run([7, 8, -4.5], [-1, 0], 5, .35, 1.8), p => crossed(p, p => p.x < -2)],
       ].map(([name, p, ok]) => ({ name, ...p, ok: ok(p) }));
       // 走るだけでは縁で止まり、落ちない（既存の縁の補助）。
-      const edge = run([10, 8, -4], [0, 1], 5, null, 1.6);
+      const edge = run([10.4, 8, -4], [0, 1], 5, null, 1.6);
       res.edge = { ...edge, ok: Math.abs(edge.y - 8) < .05 && edge.z < 1.4 };
       // 跳び損ねて底（6.2 m）にいる状態から、前へ進んでジャンプ → 屋上に戻る。
       const climb = run([10, T.FLOOR, 1.6], [0, 1], 0, null, 1.6, true);
       res.climb = { ...climb, ok: Math.abs(climb.y - 8) < .05 && climb.z > 4 && Math.abs(climb.minY - T.FLOOR) < .05 };
-      // 西の縁の帯（柵があった z=-2.5 の所）を走り抜ける。柵は 11/22 に撤去（乗り越えるだけの物は置かない、map-prune.js）。
+      // 柵（西の縁 z=-2.5）を走って乗り越える。柵は 11/22 に8本中6本を撤去し、開始位置を守る2本だけ残した（map-prune.js の KEEP_RAILS）。
       const rail = run([-12.5, 8, -9], [0, 1], 6.25, .9, 2.2);
-      res.rail = { ...rail, rails: s.jn.filter(b => b.roofRail).length, ok: rail.z > -2.25 && Math.abs(rail.y - 8) < .05 && !s.jn.some(b => b.roofRail) };
+      const rails = s.jn.filter(b => b.roofRail).map(b => b.roofRail).sort();
+      res.rail = { ...rail, rails, ok: rail.z > -2.25 && Math.abs(rail.y - 8) < .05 && rails.join() === 'north-east,west-north' };
+      // 撤去した柵の所（東の縁 z=2.5）は走り抜けられる。
+      const open = run([12.5, 8, -1.2], [0, 1], 99, null, 1.6); // 石段3（z -4.2〜-2）の南から
+      res.open = { ...open, ok: open.z > 4 && Math.abs(open.y - 8) < .05 && Math.abs(open.minY - 8) < .05 };
       // 経路グラフ: 溝の底に足場があり、追手は降りて登り直せる。
       const N = g.NAV, floorNodes = N.nodes.filter(n => Math.abs(n.y - T.FLOOR) < .01).length;
       const link = (kind, y0, y1) => N.E.filter(e => e.kind === kind && e.to != null && Math.abs(N.nodes[e.from].y - y0) < .01 && Math.abs(N.nodes[e.to].y - y1) < .01).length;
@@ -94,7 +99,8 @@ const root = path.resolve(__dirname, '..'), PORT = 8796;
     for (const j of out.jumps) check(j.name, j.ok, j);
     check('走るだけでは縁で止まる', out.edge.ok, out.edge);
     check('底からよじ登って出られる', out.climb.ok, out.climb);
-    check('縁の帯を走り抜けられる（柵は撤去済み）', out.rail.ok, out.rail);
+    check('残した柵（2本）を乗り越えられる', out.rail.ok, out.rail);
+    check('撤去した柵の所を走り抜けられる', out.open.ok, out.open);
     check('経路グラフ', out.nav.ok, out.nav);
     for (const r of out.chase) check('追手が溝を越えて襲える（20秒以内）', r.hit !== null, r);
     check('溝の中は建物の中として扱わない', out.pit.ok, out.pit);

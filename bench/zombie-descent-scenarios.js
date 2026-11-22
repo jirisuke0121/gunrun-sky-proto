@@ -13,7 +13,8 @@ const fixtures=window.__descentFixtures || (window.SKY_CANYON_MAP?[
 {id:'west-control',p:[-29,4.2,-9],e:[-31,11.9,-10]},
 {id:'roof-south',p:[1,4,15],e:[-3,8,12]},
 {id:'roof-west',p:[-16,0,0],e:[-12,8,0]},
-{id:'roof-east',p:[16,0,-3],e:[12,8,-3]},
+{id:'roof-east',p:[16,0,-0.5],e:[12,8,-0.5]}, // 2026-11-22: z -3 は石段3（map-links.js、x 12〜14・z -4.2〜-2）の中になったので、南へ2.5 mずらした
+
 ]);let seed=20261105;Math.random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
 const rows=[];for(const f of fixtures){g.startGame();window.skyBite?.reset();for(const key of Object.keys(g.keys))g.keys[key]=false;for(const e of g.zombies)s.ue.remove(e.m.root);g.zombies.length=0;g.GAME.spawnT=g.GAME.surgeT=1e9;g.SCR.off=g.PACE.off=g.MARK.off=true;g.STALK.spawned=true;Object.assign(g.S,{sendLog:false,autoFire:false,aimAuto:false,stalkerOn:false});
 c.pos.set(f.p[0],f.p[1]+.003,f.p[2]);c.vel.set(0,0,0);Object.assign(c,{onGround:true,state:'normal',h:1.75,invuln:0,ledge:null,ladder:null,hook:null,zip:null});c.lastGround.copy(c.pos);c.safe.copy(c.pos);c.node=g.nodeAt(c.pos.x,c.pos.y+.1,c.pos.z);g.updateField();const life=c.life;

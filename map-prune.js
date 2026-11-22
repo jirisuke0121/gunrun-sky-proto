@@ -28,6 +28,11 @@
     ['prop', -31.3, 0, -5.1, -30.7, .8, -2.1, '土のう：乗り越えるだけ'], ['prop', 36, 0, 4.9, 39, .8, 5.5, '土のう：乗り越えるだけ'],
     ['prop', -26.5, 0, -3.5, -25.5, 1, -2.5, '木箱：避けるだけ'], ['prop', -23.5, 0, 6, -22.5, 1, 7, '木箱：避けるだけ'], ['prop', 43.5, 4.4, 6.5, 44.5, 5.4, 7.5, '木箱：避けるだけ'],
   ];
+  // 残す柵（2026-11-22 追記）。8本とも外すと、開始位置の基準（最初の追手が触れるまで4.5秒以上、docs/START_SPOTS_2026-11-05.md）を
+  // ハードの north-roof が割る（乱数16通りで 4.2秒が1回。外す前は最短5.2秒）。効いているのはこの2本（実測、docs/MAP_LINKS_2026-11-22.md）:
+  //   west-north（西の縁の帯、z -2.5）… north-roof (-13, 8, -13) へ西の縁を北上してくる追手を遅らせる。
+  //   north-east（北の縁の帯、x 3.5）… north-mid (5, 8, -13) へ北の縁を東へ来る追手を遅らせる。
+  const KEEP_RAILS = ['west-north', 'north-east'];
   const near = (a, b) => Math.abs(a - b) < .03;
   function build({ jn }) {
     if (OFF) return null;
@@ -37,10 +42,10 @@
       if (i < 0) { missing.push([type, x0, y0, z0, x1, y1, z1]); continue; }
       jn.splice(i, 1); removed.push(why);
     }
-    // 中央屋上の柵（roof-trenches.js の RAILS、高さ1 m）：乗り越えるだけ。
+    // 中央屋上の柵（roof-trenches.js の RAILS、高さ1 m）：乗り越えるだけ。開始位置を守る2本（KEEP_RAILS）だけ残す。
     let rails = 0;
-    for (let i = jn.length - 1; i >= 0; i--) if (jn[i].roofRail) { jn.splice(i, 1); rails++; }
-    const result = { removed: removed.length, rails, missing };
+    for (let i = jn.length - 1; i >= 0; i--) if (jn[i].roofRail && !KEEP_RAILS.includes(jn[i].roofRail)) { jn.splice(i, 1); rails++; }
+    const result = { removed: removed.length, rails, keptRails: KEEP_RAILS.slice(), missing };
     window.SKY_MAP_PRUNE = result;
     if (missing.length) console.warn('map prune: not found', JSON.stringify(missing));
     return result;
