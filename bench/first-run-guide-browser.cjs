@@ -49,9 +49,10 @@ const port=Number(process.env.SKY_TEST_PORT||18811),base=`http://127.0.0.1:${por
    await page.waitForFunction(()=>window.skyFirstRunGuide.kind===null,null,{timeout:9000});
    await endRun(page);await dismissName(page);await page.click('#unityMenu');await page.waitForFunction(()=>__game.mode==='menu');
    await wait(page,'bonus');
-   const lit=await litBoxes(page);assert.equal(lit.length,3,`${tag}: Easy, Normal and Hard multipliers are lit`);
-   const texts=await page.evaluate(()=>['easy','normal','hard'].map(id=>document.querySelector(`#homeDifficulty button[data-difficulty="${id}"] strong b`).textContent));
-   assert.deepEqual(texts,['×1.0','×1.1','×1.2']);
+   const lit=await litBoxes(page);assert.equal(lit.length,4,`${tag}: the three ranked difficulty buttons and the selected level's multiplier are lit`);
+   const buttons=await page.evaluate(()=>['easy','normal','hard'].map(id=>{const r=document.querySelector(`#homeDifficulty button[data-difficulty="${id}"]`).getBoundingClientRect();return{x:r.x,y:r.y,w:r.width,h:r.height}}));
+   for(const r of buttons)assert.ok(lit.some(l=>l.x<=r.x&&l.y<=r.y&&l.x+l.w>=r.x+r.w&&l.y+l.h>=r.y+r.h),`${tag}: a ring surrounds each difficulty button`);
+   assert.match(await page.evaluate(()=>document.querySelector('#homeDifficulty .home-difficulty-detail > span:not([hidden]) b').textContent),/^×1\.[0-2]$/,`${tag}: the selected level's multiplier is shown`);
    assert.match(await page.textContent('#firstRunGuide h2'),/難しいほど/);
    const card=await page.evaluate(()=>{const r=document.querySelector('#firstRunGuide .fg-card').getBoundingClientRect(),a=document.getElementById('app').getBoundingClientRect();return{top:r.top-a.top,bottom:r.bottom-a.top,h:a.height}});
    assert.ok(card.top>=0&&card.bottom<=card.h,`${tag}: the card stays on screen (${JSON.stringify(card)})`);

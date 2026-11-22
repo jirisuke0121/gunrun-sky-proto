@@ -57,6 +57,15 @@ window.createSkyIndoorAccess = function (volumes) {
     const { x, y, z } = enemy.pos;
     enemy.update(dt);
     if (enemy.dead || enemy.remove || allowsMove({ x, y, z }, enemy.pos)) return;
+    // Walking or settling onto the top face of a closed building, where the true floor lies inside its box (the open entry pit
+    // of the tower slide: the floor is 0.1 m below the box's top). Reverting the whole step pinned the enemy a hair above the
+    // floor with onGround=false and vel=0 for the rest of the round: it never picked a route again, so a chase could never
+    // reach the human (bench/pursuit-audit region-0:-1:3-1). Keep the level part of the step and stand on the boundary.
+    // Only a plain walker: an action (leap, drop, ladder) or a spawn rise/fall still gets cleared below.
+    if (!enemy.act && !enemy.fall && !enemy.rise && enemy.pos.y < y && allowsMove({ x, y, z }, { x: enemy.pos.x, y, z: enemy.pos.z })) {
+      enemy.pos.set(enemy.pos.x, y, enemy.pos.z); enemy.vel.y = 0; enemy.onGround = true;
+      return;
+    }
     enemy.pos.set(x, y, z); enemy.vel.set(0, 0, 0);
     enemy.act = enemy.fall = enemy.rise = null;
     enemy.edge = -1; enemy.navT = 0;

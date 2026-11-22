@@ -74,3 +74,27 @@ test('facade recesses share the human entry boundary and do not cancel a reachab
   access.updateZombie(enemy,.1);
   assert.equal(enemy.atkT,0,'out-of-range attacks reset');
 });
+
+test('an enemy settling onto the top face of a closed building stands there instead of being pinned in the air', () => {
+  const access = fixture();
+  const vector = (x, y, z) => ({ x, y, z, set(x, y, z) { Object.assign(this, { x, y, z }); } });
+  // Level step plus a small drop that would end inside the box (y < maxY - .05 = 7.95): the level part is kept.
+  const walker = { pos: vector(5, 7.96, 5), vel: vector(1, -.2, 0), onGround: false, act: null, fall: null, rise: null,
+    update() { this.pos.set(5.05, 7.9, 5); }, anim() {} };
+  access.updateZombie(walker, .05);
+  assert.equal(walker.pos.x, 5.05, 'the level part of the step is kept');
+  assert.equal(walker.pos.y, 7.96, 'but it does not sink into the closed building');
+  assert.equal(walker.onGround, true);
+  assert.equal(walker.vel.y, 0);
+  // Moving sideways through the building at that height still goes through the box check, not this rescue.
+  const through = { pos: vector(-1, 3, 5), vel: vector(20, -.2, 0), onGround: true, act: null, fall: null, rise: null,
+    update() { this.pos.set(11, 2.9, 5); }, anim() {} };
+  access.updateZombie(through, .1);
+  assert.equal(through.pos.x, -1, 'a step that crosses the interior is still reverted');
+  // An action in progress is cleared as before.
+  const leaping = { pos: vector(5, 7.96, 5), vel: vector(0, -1, 0), onGround: false, act: {}, fall: null, rise: null,
+    update() { this.pos.set(5, 7.5, 5); }, anim() {} };
+  access.updateZombie(leaping, .1);
+  assert.equal(leaping.act, null);
+  assert.equal(leaping.pos.y, 7.96);
+});

@@ -98,11 +98,16 @@
   });
 
   // ---- 2. Home after the first real run: light up the score multipliers ----
-  const multipliers = () => ['easy', 'normal', 'hard'].map(id => document.querySelector(`#homeDifficulty button[data-difficulty="${id}"] strong`)).filter(Boolean);
+  // Since the 11/21 home the multiplier is shown only for the selected level (the line under the buttons), so the lit area is
+  // the three ranked difficulty buttons plus that visible line's score.
+  const multipliers = () => [
+    ...['easy', 'normal', 'hard'].map(id => document.querySelector(`#homeDifficulty button[data-difficulty="${id}"]`)),
+    document.querySelector('#homeDifficulty .home-difficulty-detail > span:not([hidden]) > span:last-child'),
+  ].filter(el => el && el.getBoundingClientRect().width > 0);
   const bonusSpec = () => ({
-    kind: 'bonus', blocking: true, place: 'below',
+    kind: 'bonus', blocking: true,
     title: '難しいほど、スコアボーナスが高い', body: '慣れたらノーマルに挑戦して、高得点を狙おう。',
-    targets: multipliers, avoid: () => document.querySelector('#homeDifficulty .home-difficulty-choices'),
+    targets: multipliers, avoid: () => document.getElementById('homeDifficulty'),
     after: () => save({ bonus: 1 }),
   });
 
