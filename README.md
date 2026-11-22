@@ -1,3 +1,9 @@
+## 2026-11-22 CI「Main regression」の修正：英語の小画面で行動通知が中央の視界に重なる（`player-clarity.css`）
+
+- 落ちていたのは `bench/player-clarity-browser.cjs` の `index-en-small`（640×320）だけ。「閃光玉は残り0個…」の英訳が狭い幅で4行に折り返し、`#actionFeedback` が高さ86pxで下端224px（上限は画面高の68%＝217.6px）を超えていた。
+- 直し：`@media(max-height:360px)` の中で `#actionFeedback`・`#supplyFeedback` を `padding:4px 6px`・`font-size:11px`・`line-height:1.35` に。4行に折り返しても約69pxで、下端は約207px。同じ文言の実測は 68px → 40px（640×320）。844×390 のスマホ・デスクトップは変わらない。マップ・ゲームの数値・ランキングの版（v15）は触っていない。
+- 検査：`player-clarity`（2マップ×ja/en×3レイアウト＝12）・`minimap`・`touch-stick`・`auto-follow-entry` がこの環境で成功。**未確認：** この環境ではCIより通知の折り返しが少なく（修正前でも通っていた）、CIの緑は push 後に確認する。
+
 ## 2026-11-22 意味のある物を足す：東の塔へ上がる石段3つ／柵2本を戻す（`map-links.js`・`map-prune.js`）
 
 - 基準は撤去と同じ「その物があることで次の行動が広がるか」。足場の高さの地図で調べると、中央屋上の床から届かない近くの高い足場は東の塔の上（12 m）だけだった。

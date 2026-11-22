@@ -23,5 +23,7 @@ html.touch #skillDock button [data-action-state],html.touch #skillDock #tFlash s
   html.touch #hud #skyMinimap{width:96px}
   html.touch #hud #tAutoFire{font-size:11px;line-height:1.2;min-height:54px;padding:4px 6px}
   html.touch #hud #gunState{font-size:10px;line-height:1.25}
+  /* 小画面：通知は中央の視界（画面高の68%）を超えない。英語の長文でも4行で収める。 */
+  #clarityRail #actionFeedback,#clarityRail #supplyFeedback{padding:4px 6px;font-size:11px;line-height:1.35}
   html.touch #skillDock button:has([data-action-state]) svg,html.touch #skillDock #tFlash svg{top:4px;width:20px;height:20px}
 }
