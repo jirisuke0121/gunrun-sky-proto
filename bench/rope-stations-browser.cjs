@@ -17,7 +17,7 @@ const root = path.resolve(__dirname, '..'), PORT = Number(process.env.PORT || 87
     const page = await context.newPage(), errors = [];  page.on('pageerror', e => errors.push(e.message)); page.setDefaultTimeout(600000);
     await page.goto(`http://127.0.0.1:${PORT}/index.html?challengeDebug=1`);
     await page.waitForFunction(() => window.__game && window.skyRopeStations?.step && window.skyRopeSwing?.step);
-    const level = page.locator('[data-difficulty=normal]'); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
+    const level = page.locator('[data-difficulty=normal]').first(); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
     const only = process.env.STATION ? Number(process.env.STATION) : 0, lo = Number(process.env.FROM || 0), hi = Number(process.env.TO || 1e9);
     const OLDJ0 = process.env.OLDJ === '1'; const out = await page.evaluate(async ([only, lo, hi, OLDJ]) => {
       if (OLDJ) window.SKY_ROPE_STATIONS.jumpLike = false;

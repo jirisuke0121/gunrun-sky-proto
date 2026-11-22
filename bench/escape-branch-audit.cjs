@@ -15,7 +15,7 @@ const {revealHomeControl}=require('./home-controls.cjs');
   await page.evaluate(()=>{let initialSeed=20261030;Math.random=()=>((initialSeed=(Math.imul(initialSeed,1664525)+1013904223)>>>0)/4294967296);});
   // This audits accessible terrain with pursuit pressure, not challenge completion.
   // Pin the beginner preset rather than inheriting the newly harder Normal.
-  const difficulty = page.locator('[data-difficulty=easy]');
+  const difficulty = page.locator('[data-difficulty=easy]').first();
   if (touch) await difficulty.tap(); else await difficulty.click();
   await page.locator('#bStart').click();
   const result=await page.evaluate(({map,touch})=>{

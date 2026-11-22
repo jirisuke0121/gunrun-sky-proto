@@ -28,7 +28,7 @@ const port = process.env.PATH_MEMO_PORT || '8872';
       const page = await context.newPage(); page.setDefaultTimeout(240000);
       await page.goto(`http://127.0.0.1:${port}/${map}`);
       await page.waitForFunction(() => window.__game && window.__skyInternals?.benchSo);
-      const level = page.locator('[data-difficulty=normal]'); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
+      const level = page.locator('[data-difficulty=normal]').first(); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
       await page.waitForTimeout(400);
       const result = await page.evaluate(() => {
         const { oo, Pd, so, lt, Vi, doors } = __skyInternals.benchSo();

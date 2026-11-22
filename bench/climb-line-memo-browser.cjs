@@ -18,7 +18,7 @@ const port = process.env.CLIMB_MEMO_PORT || '8873';
       const page = await context.newPage(); page.setDefaultTimeout(280000);
       await page.goto(`http://127.0.0.1:${port}/${map}`);
       await page.waitForFunction(() => window.__game && window.skyZombieClimb);
-      const lv = page.locator('[data-difficulty=hard]'); await revealHomeControl(page, lv); await lv.click(); await page.locator('#bStart').click(); await page.waitForTimeout(800);
+      const lv = page.locator('[data-difficulty=hard]').first(); await revealHomeControl(page, lv); await lv.click(); await page.locator('#bStart').click(); await page.waitForTimeout(800);
       const res = await page.evaluate(() => {
         const g = __game, c = g.P, climb = window.skyZombieClimb; g.GAME.over = false; g.setMode('play'); c.invuln = 1e9;
         for (const z of g.zombies) z.dead = true;

@@ -18,7 +18,7 @@ const root = path.resolve(__dirname, '..'), PORT = Number(process.env.PORT || 88
       const page = await context.newPage(), errors = []; page.on('pageerror', e => errors.push(e.message)); page.setDefaultTimeout(240000);
       await page.goto(`http://127.0.0.1:${PORT}/${map}?challengeDebug=1`);
       await page.waitForFunction(() => window.__game && window.skySwing && (location.pathname.endsWith('canyon.html') || window.skyRopeSwing?.step));
-      const level = page.locator('[data-difficulty=normal]'); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
+      const level = page.locator('[data-difficulty=normal]').first(); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
       const res = await page.evaluate(async ({ map }) => {
         const g = __game, s = __skyInternals, c = g.P, dt = 1 / 120, out = {};
         const key = (code, type) => dispatchEvent(new KeyboardEvent(type, { code }));

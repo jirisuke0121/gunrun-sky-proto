@@ -16,7 +16,7 @@ const root = path.resolve(__dirname, '..'), PORT = 8799;
     const page = await context.newPage(), errors = []; page.on('pageerror', e => errors.push(e.message)); page.setDefaultTimeout(240000);
     await page.goto(`http://127.0.0.1:${PORT}/index.html?challengeDebug=1`);
     await page.waitForFunction(() => window.__game && window.skyWind && window.skyRopeSwing?.step);
-    const level = page.locator('[data-difficulty=normal]'); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
+    const level = page.locator('[data-difficulty=normal]').first(); await revealHomeControl(page, level); await level.click(); await page.locator('#bStart').click();
     await page.waitForFunction(() => __game.mode === 'play');
     const out = await page.evaluate(async () => {
       const g = __game, s = __skyInternals, c = g.P, W = window.skyWind, res = {}, dt = 1 / 60; W.randomGusts = false;
@@ -93,7 +93,7 @@ const root = path.resolve(__dirname, '..'), PORT = 8799;
       await live.route('https://**/*', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"top":[],"total":0,"ok":true}' }));
       const lp = await live.newPage(); await lp.goto(`http://127.0.0.1:${PORT}/index.html?challengeDebug=1`);
       await lp.waitForFunction(() => window.__game && window.skyWind);
-      const lv = lp.locator('[data-difficulty=normal]'); await revealHomeControl(lp, lv); await lv.click(); await lp.locator('#bStart').click();
+      const lv = lp.locator('[data-difficulty=normal]').first(); await revealHomeControl(lp, lv); await lv.click(); await lp.locator('#bStart').click();
       await lp.waitForFunction(() => __game.mode === 'play');
       const calls = await lp.evaluate(async () => { let n = 0; const W = window.skyWind, f = W.frame; W.frame = d => { n++; return f(d); }; await new Promise(r => setTimeout(r, 1500)); W.frame = f; return n; });
       check('描画ループから毎フレーム呼ばれる（ソフトウェア描画では遅いので1回以上）', { calls, ok: calls >= 1 });

@@ -1,3 +1,9 @@
+## 2026-11-22 難易度ボタンの locator が曖昧だった検査8本を直す（テストのみ）
+
+- ホームに難易度ボタン群が2つあるため、`[data-difficulty=…]` が2つに当たって止まっていた。`window-dive`・`rope-swing` と同じく `.first()` を付けた：`climb-line-memo`・`path-search-memo`・`free-hook`・`jump-pad`・`rope-stations`・`swing-hook`・`wind-fx`（7本は成功）、`escape-branch-audit`（下）。ゲームのコード・マップ・ランキングの版（v15）は触っていない。
+- **`escape-branch-audit` は別の失敗が残る**：locator は通り、`index/desktop/east-lower-escape-with-pursuers`（東の低い逃げ道、x≈48〜56）が10秒で終点に着かず落ちる。`?prune=0&links=0`（改装前の地形）でも同じ位置（48.26, 3.0, 3.26）で落ちるので、11/22のマップ改装が原因ではない。CIの履歴でも11/16のPRブランチから失敗が続いている（直近6件）。マップが決まってから調べる。
+- `flow-feel-browser`（自動ジャンプの試作）は、マップが決まるまで保留（本人の判断）。
+
 ## 2026-11-22 CI「Main regression」の修正：英語の小画面で行動通知が中央の視界に重なる（`player-clarity.css`）
 
 - 落ちていたのは `bench/player-clarity-browser.cjs` の `index-en-small`（640×320）だけ。「閃光玉は残り0個…」の英訳が狭い幅で4行に折り返し、`#actionFeedback` が高さ86pxで下端224px（上限は画面高の68%＝217.6px）を超えていた。
