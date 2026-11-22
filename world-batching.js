@@ -1,13 +1,6 @@
 // Combine immutable, opaque material groups and explicitly marked decoration.
 // Doors, animated models and transparent sorting stay separate.
 export function mergeStaticMaterialGroups(game, cellSize = 32, { force = false } = {}) {
-  // Only the legacy fade comparison needs individual occluding surfaces.
-  // Opaque fixed views can batch scenery normally. The guided scene forces
-  // batching only for its separate decorative group.
-  const query=typeof location!=='undefined'?new URLSearchParams(location.search):null;
-  if (!force && query?.get('cameraTrial') === 'fixed' && (query.get('fixedOcclusion') === 'fade' || query.get('wallView') === 'classic')) {
-    return { revision: 'fixed-camera-trial-unbatched', objects: 0, taggedObjects: 0, groupsBefore: 0, groupsAfter: 0, triangles: 0, trianglesAfter: 0, cellSize };
-  }
   const { ue: scene, jn, Geom } = game;
   const { BufferGeometry, Float32Attribute, Mesh, Vector3 } = Geom;
   const interactive = new Set(jn.filter(box => box.type === 'door' || box.type === 'prop' || box.shape).map(box => box.mesh));

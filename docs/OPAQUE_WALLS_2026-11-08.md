@@ -1,3 +1,5 @@
+> **2026-11-22：壁を透かす旧案は外した**（`?fixedOcclusion=fade|zoom`・`?wallView=classic`、`bench/opaque-walls-review.html`）。以下の「変更前」の比較は当時の記録。今の固定カメラは壁を透かさない。
+
 # 不透明な壁・足場の縁・人物の遮蔽輪郭
 
 基点は `511e399`。塔のトンネル追加と風音の修正を取り込んだ作業ブランチ `codex/opaque-walls`。ユーザーの公開依頼に基づいて反映する。

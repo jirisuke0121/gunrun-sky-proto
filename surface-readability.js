@@ -1,7 +1,7 @@
 // Surface roles: calm grey vertical faces, pale two-metre paving, and coping
 // inside the existing walkable outline. No collision boxes are added.
 export function installSurfaceReadability(game) {
-  if(window.skyGuidedScene||new URLSearchParams(location.search).get('wallView')==='classic')return;
+  if(window.skyGuidedScene)return;
   const {CanvasTexture,Standard,BufferGeometry,Float32Attribute,Mesh}=game.Geom;
   const canvas=document.createElement('canvas');canvas.width=canvas.height=256;
   const ctx=canvas.getContext('2d');ctx.fillStyle='#aa9f89';ctx.fillRect(0,0,256,256);

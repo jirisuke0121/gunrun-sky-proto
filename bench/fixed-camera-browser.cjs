@@ -38,7 +38,7 @@ try{for(const map of ['index.html','canyon.html'])for(const preset of [{id:'near
    const check=(x,y,z)=>{const v=c.pos.clone().set(x,y,z),dx=x-cam.position.x,dy=y-cam.position.y,dz=z-cam.position.z,d=Math.hypot(dx,dy,dz);v.project(cam);return{at:[x,y,z],screen:[v.x,v.y,v.z],inFrame:Math.abs(v.x)<.95&&Math.abs(v.y)<.95&&v.z>-1&&v.z<1,blocked:!skyFixedCamera.visible(cam.position,{x,y,z})}};
    const near=nodes.filter(m=>Math.hypot(m.x-n.x,m.z-n.z)>3&&Math.hypot(m.x-n.x,m.z-n.z)<7&&Math.abs(m.y-n.y)<4);
    const samples=[];for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const candidates=near.filter(m=>(m.x-n.x)*dx+(m.z-n.z)*dz>2.5);if(candidates.length){const m=candidates.reduce((a,b)=>Math.abs((b.x-n.x)*dz-(b.z-n.z)*dx)<Math.abs((a.x-n.x)*dz-(a.z-n.z)*dx)?b:a);samples.push(check(m.x,m.y+.25,m.z))}}
-   return{position:c.pos.toArray(),camera:cam.position.toArray(),rotation:[cam.rotation.x,cam.rotation.y,cam.rotation.z],clearance:document.body.dataset.skyHumanCameraClearance,faded:skyFixedCamera.fadedCount,body:check(n.x,n.y+1,n.z),nearby:samples};
+   return{position:c.pos.toArray(),camera:cam.position.toArray(),rotation:[cam.rotation.x,cam.rotation.y,cam.rotation.z],clearance:document.body.dataset.skyHumanCameraClearance,body:check(n.x,n.y+1,n.z),nearby:samples};
   },{x,y,z});
   const name=map.split('.')[0]+'-'+preset.id+'-'+label;await p.screenshot({path:out+'/'+name+'.png'});scenes.push({label,...scene});
  }

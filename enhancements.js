@@ -22,9 +22,9 @@ import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261031-g
 import { createJumpPickups } from './jump-pickups.js?v=20261101-jump-stash-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261114-crate-pillar-v3';
 import { createDash } from './dash-boost.js?v=20261122-no-swing-boost-v1';
-import { mergeStaticMaterialGroups } from './world-batching.js?v=20261108-opaque-v1';
+import { mergeStaticMaterialGroups } from './world-batching.js?v=20261122-no-fade-v1';
 import { installWallReadability } from './wall-readability.js?v=20261106-south-v1';
-import { installSurfaceReadability } from './surface-readability.js?v=20261114-dim-top-v1';
+import { installSurfaceReadability } from './surface-readability.js?v=20261122-no-fade-v1';
 
 // Air-corridor equipment kit. The base game exposes only the objects used here.
 const game = window.__skyInternals;
@@ -936,9 +936,7 @@ window.__skyGhost = window.skyReplay;
     }
   });
   const mat = {
-    plaster: (new URLSearchParams(location.search).get('wallView')==='classic'
-      ? [0xe8d9bb,0xd9b98a,0xe2c6a8,0xcfae84].map(color=>new Standard({color,map:stoneTex,roughness:.97}))
-      : [0x90998f,0x96998d,0x8d9791,0x9b9c8e].map(color=>new Standard({color,roughness:1}))),
+    plaster: [0x90998f,0x96998d,0x8d9791,0x9b9c8e].map(color=>new Standard({color,roughness:1})),
     tile: new Standard({ color: 0xffffff, map: tileTex, roughness: 0.85 }),
     window: new Standard({ color: 0x1f1a16, roughness: 0.6 }),
     wood: new Standard({ color: 0x5a4130, roughness: 0.9 }),

@@ -12,50 +12,6 @@
   const { c, inputState: touch } = sky;
   const native = new Set(['ladder', 'zip', 'hook', 'swing', 'ledge', 'wallrun']);
   const active = () => fc.mode === 'after' && !sky.demoActive() && !['menu','replay'].includes(sky.modeRef());
-  // Keep the published fade available for a same-location comparison.
-  const fadeWalls = p.get('fixedOcclusion') === 'fade' || p.get('wallView') === 'classic';
-  const opaque = !fadeWalls && p.get('fixedOcclusion') !== 'zoom';
-  const faded = new Set(), originals = new Map(), translucent = new Map();
-  const footHeight = { value: 0 };
-  function fadeMaterial(material, bounds) {
-    const copy=material.clone();copy.transparent=true;copy.opacity=.13;copy.depthWrite=false;
-    const prepare=material.onBeforeCompile;
-    copy.customProgramCacheKey=()=>material.customProgramCacheKey()+'|fixed-outline-v1';
-    // A single static mesh can contain both a wall and the floor beneath us.
-    // Keep its surface below the feet opaque; fade only the part above it.
-    copy.onBeforeCompile=function(shader,renderer){
-      prepare.call(this,shader,renderer);shader.uniforms.skyFixedFoot=footHeight;
-      shader.uniforms.skyFixedMin={value:bounds.min};shader.uniforms.skyFixedMax={value:bounds.max};
-      shader.uniforms.skyFixedOutline={value:p.get('wallReadability')==='classic'?0:.62};
-      shader.vertexShader='varying vec3 vSkyFixedPosition;\n'+shader.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\nvSkyFixedPosition=(modelMatrix*vec4(transformed,1.0)).xyz;');
-      shader.fragmentShader='varying vec3 vSkyFixedPosition;\nuniform float skyFixedFoot;\nuniform vec3 skyFixedMin;\nuniform vec3 skyFixedMax;\nuniform float skyFixedOutline;\n'+shader.fragmentShader.replace('#include <alphatest_fragment>', `
-        vec3 edgeDistance=min(abs(vSkyFixedPosition-skyFixedMin),abs(vSkyFixedPosition-skyFixedMax));
-        vec3 edge=1.0-smoothstep(vec3(.025),vec3(.075),edgeDistance);
-        float outline=max(edge.x*edge.y,max(edge.y*edge.z,edge.z*edge.x));
-        diffuseColor.a=max(diffuseColor.a,skyFixedOutline*outline);
-        if(vSkyFixedPosition.y<=skyFixedFoot) diffuseColor.a=1.0;
-        #include <alphatest_fragment>`);
-    };
-    return copy;
-  }
-  let visuals;
-  function blockers() {
-    if (!visuals) {
-      visuals=[];
-      const physical=new Set(sky.jn.map(b=>b.mesh));
-      sky.ue.updateMatrixWorld(true);
-      sky.ue.traverse(mesh=>{
-        if(!mesh.isMesh||mesh.isSkinnedMesh||physical.has(mesh)||!mesh.geometry||!mesh.visible)return;
-        let tagged=!!mesh.userData.skyStaticBatch;
-        for(let q=mesh.parent;q&&q!==sky.ue;q=q.parent)if(q.userData.skyStaticBatch)tagged=true;
-        if(!tagged&&(mesh.parent!==sky.ue||mesh.matrixAutoUpdate))return;
-        if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();
-        const box=mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
-        visuals.push({mesh,minX:box.min.x,minY:box.min.y,minZ:box.min.z,maxX:box.max.x,maxY:box.max.y,maxZ:box.max.z});
-      });
-    }
-    return [...sky.jn,...visuals];
-  }
   let moving = false, pointer = null;
   function input(raw) {
     const magnitude = Math.min(1, Math.hypot(raw.strIn, raw.fwdIn));
@@ -94,32 +50,10 @@
   }
   function restore() {
     document.documentElement.dataset.cameraTrial='off';
-    for(const mesh of faded)mesh.material=originals.get(mesh);
-    faded.clear();
   }
-  function occlusion(pivot, wanted) {
-    if(!fadeWalls){restore();document.documentElement.dataset.cameraTrial='fixed';return opaque;}
-    footHeight.value=c.pos.y+.06;
-    const next=new Set();
-    const points=[pivot,{x:c.pos.x,y:c.pos.y+.3,z:c.pos.z},
-      {x:c.pos.x+2.5,y:c.pos.y+.5,z:c.pos.z},{x:c.pos.x-2.5,y:c.pos.y+.5,z:c.pos.z},
-      {x:c.pos.x,y:c.pos.y+.5,z:c.pos.z-2.5},{x:c.pos.x,y:c.pos.y+.5,z:c.pos.z+2.5}];
-    for(const box of blockers()){
-      if(box.off||!box.mesh||box.maxY<=c.pos.y+.6||!points.some(t=>intersects(wanted,t,box)))continue;
-      const mesh=box.mesh;if(!mesh.material)continue;
-      if(!originals.has(mesh)){
-        originals.set(mesh,mesh.material);
-        if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();
-        const bounds=mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
-        translucent.set(mesh,Array.isArray(mesh.material)?mesh.material.map(m=>fadeMaterial(m,bounds)):fadeMaterial(mesh.material,bounds));
-      }
-      mesh.material=translucent.get(mesh);next.add(mesh);
-    }
-    for(const mesh of faded)if(!next.has(mesh))mesh.material=originals.get(mesh);
-    faded.clear();for(const mesh of next)faded.add(mesh);
-    return true;
-  }
-  function visible(from,to){return opaque?!blocked(from,to):!blockers().some(b=>!b.off&&!faded.has(b.mesh)&&intersects(from,to,b));}
+  // 壁は透かさない（壁を透かす旧案 ?fixedOcclusion=fade|zoom・?wallView=classic は2026-11-22に外した）。
+  function occlusion() { restore(); document.documentElement.dataset.cameraTrial='fixed'; return true; }
+  function visible(from,to){return !blocked(from,to);}
   // Test actual collision boxes, not the bounding box of a whole merged city
   // mesh. A distant face in that mesh must not hide or move the camera here.
   function blocked(from,to) {
@@ -186,8 +120,8 @@
   }
   const reset = () => { moving = false; pointer = null; cameraAt=null;cameraFraction=1;cameraPitch=pose.pitch; };
   window.skyFixedCamera = { get active() { return active(); }, pose, chase, input, step, camera, reset,
-    occlusion, restore, visible, resolveCamera, bodyOccluded, cameraSafe, view: pose,
-    get pitch(){return cameraPitch}, get opaque(){return opaque}, get fadedCount(){return faded.size} };
+    occlusion, restore, visible, resolveCamera, bodyOccluded, cameraSafe, view: pose, opaque: true,
+    get pitch(){return cameraPitch} };
   document.documentElement.dataset.cameraTrial='fixed';
   const style=document.createElement('style');style.textContent='html[data-camera-trial=fixed] #lookNote{display:none!important}';document.head.append(style);
   window.addEventListener('blur', reset);

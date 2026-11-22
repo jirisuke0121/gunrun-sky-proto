@@ -1,4 +1,4 @@
-import { mergeStaticMaterialGroups } from './world-batching.js?v=20261106-rooftop-v2';
+import { mergeStaticMaterialGroups } from './world-batching.js?v=20261122-no-fade-v1';
 // Tutorial-only scene styling. Decorative objects never change the collision field.
 (() => {
   if (!window.skyGuidedScene) return;
