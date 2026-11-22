@@ -48,6 +48,10 @@ async function dark(p,view){
   assert.equal(info.info.masonry,true,'masonry is on by default');
   assert.ok(info.info.loose>=3,'the big unmerged shafts get the wall shader too: '+info.info.loose);
   assert.ok(info.info.wood>=1,'the deck meshes (tint 0x8ea4bd) become timber: '+info.info.wood);
+  // one world, second pass (11/22): the red-brown warehouse walls become plaster, the tinted cargo and board walls become wood
+  assert.ok(info.info.extraWalls>=4,'tinted warehouse walls become plaster: '+info.info.extraWalls);
+  assert.ok(info.info.extraWood>=13,'tinted cargo and board walls become wood: '+info.info.extraWood);
+  assert.ok(info.info.looseBoards>=1,'the unmerged board fence becomes wood: '+info.info.looseBoards);
   assert.deepEqual(on.errors,[],'no shader or page errors with masonry on');
   assert.ok(info.hull&&info.hull.visible&&!info.hull.castShadow,'outline mesh exists and casts no shadow');
   assert.ok(info.hull.count>2000&&info.hull.count<30000,'outline triangle count is small: '+info.hull.count);
