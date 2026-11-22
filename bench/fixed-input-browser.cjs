@@ -12,7 +12,7 @@ for(const map of ['index.html','canyon.html'])for(const startsPortrait of [false
  // This game supports landscape only. Verify the portrait guard, then the
  // supported transition into landscape rather than forcing past that guard.
  if(startsPortrait){await p.waitForFunction(()=>document.documentElement.dataset.skyPortrait==='true');await p.setViewportSize({width:844,height:390});await p.waitForFunction(()=>document.documentElement.dataset.skyPortrait==='false')}
- await p.evaluate(()=>document.getElementById('bIntro').click());
+ await p.evaluate(()=>{const d=document.getElementById('challengeDifficulty');d.value='easy';d.dispatchEvent(new Event('change'));document.getElementById('bStart').click()});
  await p.evaluate(()=>{const g=__game,c=g.P;g.S.sendLog=g.S.autoFire=false;c.invuln=Infinity;for(const z of g.zombies){z.dead=true;z.remove=true}g.GAME.spawnT=Infinity;
  window.fixedTick=n=>{for(let i=0;i<n;i++){c.onGround=false;c.pos.y=200;c.vel.y=0;g.playerStep(1/120);g.cam(1/120)}c.pos.y=200;g.frameOnce(0)};
  window.fixedReset=()=>{skySwing.reset();c.pos.set(0,200,0);c.vel.set(0,0,0);c.onGround=false;c.state='normal';c.yaw=.9;c.pitch=.2;skyFollowCamera.reset()};});

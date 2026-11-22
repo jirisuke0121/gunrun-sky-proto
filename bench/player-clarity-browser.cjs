@@ -26,7 +26,7 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  await p.waitForFunction(()=>skyStartReadiness?.ready&&window.skyPlayerClarity,null,{timeout:120000});
  const hasRescue=await p.evaluate(()=>!!window.skyRescue);assert.equal(hasRescue,map==='index.html','rescue remains available only on its existing map');
  const home=await p.locator('.home-scene-copy p').innerText();assert.match(home,lang==='ja'?/移動.*自動/:/You move.*automatically/);
- await p.evaluate(()=>document.getElementById('bIntro').click());
+ await p.evaluate(()=>{const d=document.getElementById('challengeDifficulty');d.value='normal';d.dispatchEvent(new Event('change'));document.getElementById('bStart').click()});
  await p.evaluate(()=>{const g=__game,s=__skyInternals,c=g.P;g.S.sendLog=false;c.invuln=Infinity;g.SCR.off=g.PACE.off=g.MARK.off=true;g.GAME.spawnT=Infinity;
   for(const z of g.zombies){z.dead=true;z.remove=true;z.m.root.visible=false}
   const n=g.NAV.nodes.find(n=>g.freeAt(n.x,n.y+.03,n.z,.3,1.75)&&g.solids.some(b=>b.solid&&!b.off&&b.type!=='mono'&&Math.abs(b.maxY-n.y)<.08&&n.x-.26>=b.minX&&n.x+.26<=b.maxX&&n.z-.26>=b.minZ&&n.z+.26<=b.maxZ));
@@ -92,9 +92,9 @@ try{for(const map of maps)for(const lang of ['ja','en'])for(const layout of [{id
  const marker=await p.evaluate(()=>{const g=__game,m=g.MARK,site=g.MARK_SITES.find(n=>g.freeAt(n[0],n[1]+.03,n[2],.3,1.75));m.off=false;m.i=g.MARK_SITES.indexOf(site);m.goal=null;g.P.pos.set(site[0],site[1]+.01,site[2]);g.P.onGround=true;const before=m.reached;clarityTick(2);return{before,after:m.reached,action:document.getElementById('markAction').textContent}});
  assert.ok(marker.after>marker.before);assert.match(marker.action,lang==='ja'?/逃げ道の候補/:/Suggested escape route/);
  await p.evaluate(()=>{__game.GAME.t=75;__game.endGame('caught');__game.advance(1.5)});await p.waitForFunction(()=>document.getElementById('unityResultCard').dataset.complete==='true');
- await p.screenshot({path:`${out}/${id}-intro-result.png`});
- await p.locator('#introNext').click();await p.waitForFunction(()=>__game.mode==='play'&&skyChallenge.id==='easy'&&!skyChallenge.isIntroRun);
- const next=await p.evaluate(()=>({mode:__game.mode,difficulty:skyChallenge.id,intro:skyChallenge.isIntroRun,life:__game.P.life}));assert.equal(next.life,8);
+ await p.screenshot({path:`${out}/${id}-result.png`});
+ await p.locator('#unityRetry').click();await p.waitForFunction(()=>__game.mode==='play'&&skyChallenge.id==='normal'&&__game.GAME.t<5);
+ const next=await p.evaluate(()=>({mode:__game.mode,difficulty:skyChallenge.id,life:__game.P.life}));assert.equal(next.life,5);
  if(lang==='en')for(const text of [active,cooldown,emptyFlash,rescue?.text||'',pickup.text,marker.action])assert.ok(!jp.test(text),text);
- assert.equal(posts,0);assert.deepEqual(errors,[]);results.push({id,home,shotReasons,active,cooldown,emptyFlash,rescue,rects,view,drops,pickup,marker,next,posts,errors});fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2));console.log('PASS',id,'roles, native shot blocks, skill denial/no spend, supplies, route marker, direct intro-to-Easy, clear central view and no uploads');await ctx.close();
+ assert.equal(posts,0);assert.deepEqual(errors,[]);results.push({id,home,shotReasons,active,cooldown,emptyFlash,rescue,rects,view,drops,pickup,marker,next,posts,errors});fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2));console.log('PASS',id,'roles, native shot blocks, skill denial/no spend, supplies, route marker, retry into a fresh Normal run, clear central view and no uploads');await ctx.close();
 }}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

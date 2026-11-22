@@ -30,7 +30,7 @@ jobs:
           else
             npx playwright install --with-deps chromium
           fi
-      - name: Cold loading, normal and intro starts, transitions and reload recovery
+      - name: Cold loading, normal starts, transitions and reload recovery
         run: node bench/start-readiness-browser.cjs
       - name: Desktop and touch spot start, audible effect, clear upload and result ranking
         run: node bench/ranked-spots-browser.cjs

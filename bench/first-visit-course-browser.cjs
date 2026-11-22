@@ -1,5 +1,5 @@
-// The first-visit card, 遊び方 and the home intro button all start the practice-map course (canyon.html?learn=1), on PC and phone alike.
-// navigator.webdriver is hidden so the page behaves like a real player's browser (automated browsers keep the old in-map intro).
+// The first-visit card, コツ and the developer tab's button all start the practice-map course (canyon.html?learn=1), on PC and phone alike.
+// navigator.webdriver is hidden so the page behaves like a real player's browser (automated browsers skip the first-visit card).
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 (async () => {
@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
     args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const base = process.env.RUNNING_QA_URL || 'http://127.0.0.1:8882/';
   try {
-    for (const [map, touch, how] of [['index.html', false, 'splash'], ['index.html', true, 'splash'], ['canyon.html', false, 'splash'], ['index.html', false, 'guide'], ['index.html', true, 'home']]) {
+    for (const [map, touch, how] of [['index.html', false, 'splash'], ['index.html', true, 'splash'], ['canyon.html', false, 'splash'], ['index.html', false, 'guide'], ['index.html', true, 'development']]) {
       const [width, height] = touch ? [844, 390] : [1280, 720], id = [map, touch ? 'touch' : 'pc', how].join(' ');
       const context = await browser.newContext({ viewport: { width, height }, hasTouch: touch, isMobile: touch });
       await context.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', { get: () => false }); });
@@ -24,12 +24,12 @@ const { chromium } = require('playwright');
         await page.locator('#homeGuide').click();
         await page.waitForFunction(() => document.getElementById('onbIntro') && !document.getElementById('onbIntro').disabled);
         await page.locator('#onbIntro').click();
-      } else {
+      } else { // the developer tab's button (hidden without ?dev=1, so it is clicked from script)
         await page.waitForFunction(() => window.skyStartReadiness?.ready);
-        await page.evaluate(() => document.getElementById('bIntro').click());
+        await page.evaluate(() => document.getElementById('bGuidedIntro').click());
       }
       await page.waitForURL(/canyon\.html\?.*learn=1/, { timeout: 60000 });
-      assert.ok(!(await page.evaluate(() => window.skyControlStyle?.dialogVisible)), id + ': no separate control popup before the course (the course asks once itself)');
+      assert.equal(await page.locator('#ctrlPick').count(), 0, id + ': no separate control popup before the course (the course asks once itself)');
       await page.waitForFunction(() => window.skyGuidedIntro?.choice === 'choose' && __game.mode === 'play', null, { timeout: 90000 });
       assert.deepEqual(errors, [], id);
       console.log('PASS first visit -> practice course', id);

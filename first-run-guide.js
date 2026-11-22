@@ -1,14 +1,13 @@
-// First-run guidance after the intro run. Three one-time lights, nothing else:
+// First-run guidance. Two one-time lights, nothing else:
 //   1. the first real run starts  -> the 2:00 clock is lit up: "survive for 2 minutes" is the mission;
 //   2. the home screen after that run -> the score multipliers (Easy x1.0 / Normal x1.1 / Hard x1.2) are lit up:
 //      the harder the difficulty, the bigger the score bonus (and Normal is the natural next step);
-//   3. a first-time player who goes home after the intro run without pressing 本番イージー finds Easy preselected.
 // Each light is shown once and remembered; a returning player (anyone who was not shown the first-visit card) never sees
 // them. It reads game state only: it changes no rule, score or ranking input.
 (() => {
   const params = new URLSearchParams(location.search);
   const $ = id => document.getElementById(id);
-  const STORE = 'gunrun-first-run-guide-v1', DIFFICULTY = 'gunrun-challenge-difficulty-v1';
+  const STORE = 'gunrun-first-run-guide-v1';
   if (params.get('onboarding') === 'reset') { try { localStorage.removeItem(STORE); } catch { /* storage unavailable */ } }
   const read = key => { try { return localStorage.getItem(key); } catch { return null; } };
   const write = (key, value) => { try { localStorage.setItem(key, value); } catch { /* storage unavailable */ } };
@@ -18,7 +17,7 @@
     // Only someone who got the first-visit card (onboarding.js) is a first-time player; everyone else is marked as done.
     // ?firstGuide=1 forces the guide (automated browsers never get the first-visit card on their own).
     const fresh = window.skyOnboarding?.first === true || params.get('firstGuide') === '1';
-    state = fresh ? {} : { mission: 1, bonus: 1, easy: 1 };
+    state = fresh ? {} : { mission: 1, bonus: 1 };
     write(STORE, JSON.stringify(state));
   }
   const save = patch => { Object.assign(state, patch); write(STORE, JSON.stringify(state)); };
@@ -107,19 +106,10 @@
     after: () => save({ bonus: 1 }),
   });
 
-  // ---- 3. First-timer who went home after the intro run: Easy is preselected (once, and only if nothing was ever chosen) ----
-  document.addEventListener('sky-intro-result', () => { if (!state.easy) save({ introDone: 1 }); });
-  function preselectEasy() {
-    const select = $('challengeDifficulty');
-    save({ easy: 1 });
-    if (!select || select.disabled || read(DIFFICULTY) || select.value === 'easy') return;
-    select.value = 'easy'; select.dispatchEvent(new Event('change', { bubbles: true }));
-  }
-
   function tick() {
     const g = window.__game, c = window.skyChallenge;
     if (!g || !c) return;
-    const mode = g.mode, real = !c.isIntroRun && !g.z?.mission && !window.skyGuidedMode;
+    const mode = g.mode, real = !g.z?.mission && !window.skyGuidedMode;
     if (current?.kind === 'mission' && mode !== 'play') hide();
     if (mode === 'play' && real && !current) {
       // The first real run of any difficulty (a first-timer normally gets here through 本番イージー).
@@ -127,7 +117,6 @@
       else if (!state.ran) save({ ran: 1 });
     }
     if (mode === 'menu' && !current && !$('ovStart')?.hidden && !window.skyOnboarding?.dialogVisible) {
-      if (state.introDone && !state.ran && !state.easy) preselectEasy();
       if (state.ran && state.mission && !state.bonus && multipliers().length && !document.body.classList.contains('onb-open')) show(bonusSpec());
     }
     if (finished() && !current) { clearInterval(poll); poll = 0; }

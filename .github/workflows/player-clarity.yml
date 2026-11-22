@@ -1,7 +1,7 @@
 name: Player roles and action explanations
 on:
   pull_request:
-    paths: ['player-clarity.*', 'player-skills.js', 'skill-decoy.js', 'flashbang.js', 'free-hook.js', 'auto-fire-controls.js', 'weapon-drops.js', 'challenge-score.js', 'next-step.js', 'onboarding.js', 'enhancements.js', 'i18n-en.js', 'index.html', 'canyon.html', 'bench/player-clarity-browser.cjs', '.github/workflows/player-clarity.yml']
+    paths: ['player-clarity.*', 'player-skills.js', 'skill-decoy.js', 'flashbang.js', 'free-hook.js', 'auto-fire-controls.js', 'weapon-drops.js', 'challenge-score.js', 'onboarding.js', 'enhancements.js', 'i18n-en.js', 'index.html', 'canyon.html', 'bench/player-clarity-browser.cjs', '.github/workflows/player-clarity.yml']
   workflow_dispatch:
 permissions:
   contents: read

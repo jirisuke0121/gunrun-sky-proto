@@ -71,7 +71,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
   function syncBest() {
     // 2026-11-14: the best-run ghost body during play looked like a stray zombie shadow to first-time players, so it is
     // off by default and the switch only exists in dev mode. Ranking replays (viewing someone's ghost) are unchanged.
-    const hidden=!!(!window.skyDevMode || !best || z.mission || window.skyChallenge.isIntro || active);
+    const hidden=!!(!window.skyDevMode || !best || z.mission || active);
     if(chip.hidden!==hidden)chip.hidden=hidden;
     const presentation=`${best?.total??0}|${showBest}`;
     if(presentation===bestPresentation)return;
@@ -103,7 +103,7 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
     samples.push([t, round(c.pos.x), round(c.pos.y), round(c.pos.z), round(c.yaw), round(c.pitch), Math.max(0, REPLAY_STATES.indexOf(state)), Math.max(0, c.life), cut]);
     detailRecorder.capture(force);
   }
-  function start() { loadBest(); samples = []; detailRecorder.reset(); recording = !z.mission && !window.skyChallenge.isIntroRun; capture(true); }
+  function start() { loadBest(); samples = []; detailRecorder.reset(); recording = !z.mission; capture(true); }
   function snapshot() {
     if (z.mission || !recording) return null;
     capture(true);

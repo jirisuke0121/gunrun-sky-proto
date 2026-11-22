@@ -4,6 +4,18 @@
 - **採用：町の下の雲海を、白から空の深い色へ。** 町の真下の雲がほぼ白で、明るい壁・敷石と重なって輪郭が消え、下が「未完成の空白」に見えていた。中心から30 mまでは空の深い色、260 mまでに前の明るい雲へ戻る。白い雲のこぶはそのままなので、暗い海の上に浮いて見える。色だけの変更（メッシュ・描画回数・容量は同じ）。`?sea=pale` で前の雲海。
 - 検査：`mood-browser`（遠景の決まり・暗さの上限）が成功。
 - 試作の結果・見送った4つ・「本当に大きく変えるなら」（走る面の形・人物・動きの手応え）は [docs/LOOK_LEVERS_2026-11-22.md](docs/LOOK_LEVERS_2026-11-22.md)。
+## 2026-11-22 体力無限の「入門ラン」（`intro` 難易度）を消す
+
+- 人は 11/14 から「初回カード・コツ → 入門コース（`canyon.html?learn=1`）→ イージー」で、本編の地図の中で体力無限で遊ぶ旧い入門ランは、自動操作のブラウザ（検査）と `?guidedEntry=0` だけが通っていた（棚卸しの D8。本人の了承済み）。
+- **消した物**：`challenge-difficulty.js` の `intro` 難易度（`isIntro`・`isIntroRun`・30秒ごとの案内・`unlimited`）、ホームの `#introEntry`・`#bIntro`、`intro-skip.js/.css`（「本番イージーを始める」ボタン）、`next-step.js`（入門ランの結果からの勧め）と結果画面の `#introNext`・`#unityAdvicePerf`、`?guidedEntry=0`（`guided-intro.js` の `legacyIntro`）。
+- **一緒に消した物（入門ランの中でしか出なかった）**：`context-tutorial.js/.css`・`hook-tutorial.js/.css`（どちらも `isIntroRun` のときだけ動く案内）、入門ランの前に出る操作タイプのポップアップ（`control-style.js` の `#ctrlPick`。操作の選択は入門コースの最初と設定画面に残る）、`first-run-guide.js` の「入門ランのあとホームへ戻るとイージーを選ぶ」（入門コースの戻り `?learned=1` が同じことをする）、`foundation-runtime.js` の `qualityAdvice`、ワークフロー `hook-tutorial.yml`。
+- **入口のつなぎ直し**：初回カードとコツの「入門モードで練習する」は、`#bIntro` を押す代わりに `window.skyGuidedCourse.open()`（`guided-intro.js`）で入門コースへ移る。自動操作のブラウザも人と同じ道を通る。開発用タブの `#bGuidedIntro` はそのまま。
+- **残した物**：入門コースの「ライフ無限」（`skyGuidedMode`）、練習場、`?guidedEntry=1`（ホームを開くと入門コースへ移る検査用の入口。`guided-preferences.js`）。Worker の `intro_not_recorded` と管理画面の `intro` の除外は触っていない（Worker は更新しない）。**順位対象の難易度（イージー・ノーマル・ハード）の数値・動きは変えていない。ランキングの版は v15 のまま。**
+- **検査**：先に、ゲームを始める手段として `#bIntro` を押していた検査を `#bStart` に置き換え、ゲーム側を消す前に通ることを確かめた（`fixed-camera`・`fixed-input`・`fixed-scene`・`player-clarity`・`indoor-access`・`foundation`・`minimap-review.js`）。`player-clarity` は分身ボタンを確かめるのでノーマル。そのあと、入門ランそのものを確かめていた検査を今の道に書き直した（`onboarding`・`first-run-guide`・`start-readiness`・`first-visit-course`・`easy-controls`・`development-entry`・`i18n`・`start-spots`・`zombie-ascent`・`zombie-descent`・`pursuit-audit`）。消した機能の検査6本（`intro-skip`・`next-step`・`context-tutorial` 2本・`hook-tutorial` 2本）は削除。
+- **引き継ぎメモとの違い**：`guidedEntry` を使う検査5本は `?guidedEntry=1`（入門コースへの入口）で、旧い入門ランは通っていなかったので書き換えていない。
+- **結果（この環境）**：単体は全部成功。ブラウザは43本中41本が成功（CI「Main regression」の12本を含む。`survival-score` は難易度ボタンの指定が2要素に当たって止まっていたので `.first()` を足した）。落ちた2本は変更前の版でも同じ場所で落ちる：`pursuit-audit`（旧市街の1か所 `region-0:-1:3-1` に追手が届かない）、`first-run-guide`（下の項）。
+- **見つけた既存の不具合（直していない）**：初回の本番ランのあとホームで倍率を光らせる案内（`first-run-guide.js` の2つ目）が出ない。11/21 のホームの作り直しで、難易度ボタンの中の `<strong>`（倍率）が無くなり、光らせる対象が見つからないため。ホームの今の形に合わせてどこを光らせるかは見た目の判断なので、そのままにしてある。
+- 変更したファイルの `?v=` を `20261122-no-intro-v1` に更新。翻訳の辞書（`i18n-*.js`）には消した文言の項目が残っている（害はない。次に辞書を作り直すときに落ちる）。容量：13.22 MB（20MB目安の66%）、318ファイル。
 
 ## 2026-11-22 マップの磨き：世界観から外れた色を直す／走りの引っかかりを実測（`look-pass.js`、`tools/run-snags.cjs`）
 

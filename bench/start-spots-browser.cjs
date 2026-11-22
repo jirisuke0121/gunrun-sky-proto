@@ -11,12 +11,12 @@ const dir=path.resolve(__dirname,'..'),port=process.argv[2]||'18841';
   await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'}));
   const page=await ctx.newPage();page.setDefaultTimeout(120000);await page.goto(`http://127.0.0.1:${port}/${url}`);
   await page.waitForFunction(()=>window.__game&&window.skyStartReadiness?.ready);
-  if(difficulty==='intro')await page.evaluate(()=>document.getElementById('bIntro').click());else{await page.locator(`#homeDifficulty [data-difficulty="${difficulty}"]`).first().click();await page.locator('#bStart').click()}
+  await page.locator(`#homeDifficulty [data-difficulty="${difficulty}"]`).first().click();await page.locator('#bStart').click();
   await page.waitForFunction(()=>__game.mode==='play');return{ctx,page}};
  const where=page=>page.evaluate(()=>({x:+__game.P.pos.x.toFixed(1),y:+__game.P.pos.y.toFixed(1),z:+__game.P.pos.z.toFixed(1)}));
  const isSpot=p=>SPOTS.find(s=>Math.hypot(s.x-p.x,s.z-p.z)<.6&&Math.abs(s.y-p.y)<.3);
- // 1. All difficulties incl. Beginner start on a listed high-ground spot and stay there (no fall, no clipping).
- for(const difficulty of ['easy','normal','hard','intro']){
+ // 1. All ranked difficulties start on a listed high-ground spot and stay there (no fall, no clipping).
+ for(const difficulty of ['easy','normal','hard']){
   const {ctx,page}=await open('index.html?random_start=1',{difficulty});
   const p0=await where(page);assert.ok(isSpot(p0),`${difficulty}: start ${JSON.stringify(p0)} is a listed spot`);assert.ok(p0.y>=4,`${difficulty}: high ground`);
   await page.evaluate(()=>{__game.P.invuln=1e9;for(let i=0;i<120;i++)__game.advance(1/60)});

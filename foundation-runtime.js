@@ -22,7 +22,7 @@ const ua = navigator.userAgent;
 const device = /iPhone|iPod/.test(ua) ? 'iphone' : /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? 'ipad' : /Android/.test(ua) ? 'android' : 'desktop';
 const environment = collectEnvironment(navigator, window.screen, window.devicePixelRatio);
 function allowed() {
-  if (window.skyOwnerReplay || dev || window.skyDevMode || window.skyPracticeMode || window.skyChallenge?.debug || window.skyChallenge?.isIntroRun || game?.z.mission) return false;
+  if (window.skyOwnerReplay || dev || window.skyDevMode || window.skyPracticeMode || window.skyChallenge?.debug || game?.z.mission) return false;
   if (game) return game.U.sendLog === true;
   try { return JSON.parse(localStorage.getItem('gunrun-sky-proto-v1') || '{}').sendLog !== false; } catch { return true; }
 }
@@ -111,14 +111,6 @@ window.skyFoundation = {
     if (mode === 'pause') { round?.metrics.sample(NaN, false); round?.monitor.sample(NaN, false, false); }
   },
   finishRound,
-  // The intro run's result screen asks the same question as the home dialog; one answer settles both.
-  qualityAdvice() { return { heavy: !!suggestion && window.skyRenderQuality?.revision === suggestion.revision }; },
-  answerQualityAdvice(accept) {
-    const value = suggestion; if (!value) return; suggestion = null;
-    if (window.skyRenderQuality?.revision !== value.revision) return;
-    if (accept) window.skyRenderQuality.select('performance');
-    markQualityChecked();
-  },
   resetQualityCheck() { qualityChecked = false; suggestion = null; try { localStorage.removeItem(CHECK_KEY); } catch {} },
   performance() { return finished ? { ...finished } : null; },
 };

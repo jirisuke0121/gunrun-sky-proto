@@ -71,14 +71,15 @@ fs.mkdirSync(out,{recursive:true});
    await click('#bSettings');
    await click('#pauseTab_rules');
    await click('#bReset');await click('#bResume');assert.equal((await snapshot()).selectedMode,touch?'phone':'high');
-   await page.evaluate(()=>document.getElementById('bIntro').click());assert.equal(await page.evaluate(()=>skyChallenge.isIntroRun),true);
+   // 設定を初期化すると記録の送信が有効に戻る。送信しないランでも、手元の診断だけで案内が出ることを確かめる。
+   await page.evaluate(()=>{__game.S.sendLog=false});await click('#bStart');assert.equal(await page.evaluate(()=>__game.mode),'play');
    await page.evaluate(()=>{for(let i=0;i<=800;i++)skyFoundation.frame(i*25,true)});
    await click('#bSettings');await click('#bMenu');await page.waitForSelector('#qualitySuggestion[open]');
    await click('#qualityAccept');assert.equal((await snapshot()).selectedMode,'performance');
    await click('#bStart');assert.equal((await snapshot()).pixelRatio,.75);
    assert.equal(externalPosts,0);assert.deepEqual(errors,[]);
-   results.push({map,touch,initial:high,final:await snapshot(),minimumHalfResolution:true,manualPending:true,decline:true,introAccept:true,externalPosts,errors});
-   console.log('PASS',map,'high default, pending manual change/resize, restart, home-only decline, intro local diagnosis and accept');await context.close();
+   results.push({map,touch,initial:high,final:await snapshot(),minimumHalfResolution:true,manualPending:true,decline:true,secondAccept:true,externalPosts,errors});
+   console.log('PASS',map,'high default, pending manual change/resize, restart, home-only decline, second local diagnosis and accept');await context.close();
   }
   const english=await browser.newContext({locale:'en-US'}),englishPage=await english.newPage();
   await english.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"ok":true,"top":[],"total":0}'}));

@@ -192,55 +192,8 @@ const difference = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
       await context.close();
     }
 
-    for (const map of ['index.html', 'canyon.html']) for (const lang of ['ja', 'en']) {
-      const { context, page, errors, posts } = await open(map, lang, true);
-      // Retain coverage of the legacy popup; the published development entry
-      // and live trial are covered by development-entry-browser.cjs.
-      await page.evaluate(()=>document.getElementById('bIntro').click());
-      await page.locator('#ctrlPick').waitFor({ state: 'visible' });
-      const fits = [];
-      for (const size of [{ width: 844, height: 390 }, { width: 640, height: 320 }]) {
-        await page.setViewportSize(size);
-        await page.waitForFunction(() => document.getElementById('app').clientHeight === innerHeight &&
-          document.getElementById('app').dataset.fit === (innerHeight < 360 ? 'tight' : innerHeight <= 520 ? 'normal' : 'roomy'));
-        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-        const fit = await page.evaluate(() => {
-          const rect = el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height }; };
-          return { viewport: [innerWidth, innerHeight], dialog: rect(document.querySelector('#ctrlPick .cs-dialog')),
-            cards: [...document.querySelectorAll('#ctrlPick .cs-card')].map(rect), go: rect(document.getElementById('csGo')),
-            helpRect: rect(document.querySelector('#ctrlPick .cs-touch-help')), slot: rect(document.querySelector('#ctrlPick .cs-slot')),
-            cardsHit: [...document.querySelectorAll('#ctrlPick .cs-card')].map(el => {
-              const r = el.getBoundingClientRect(); return document.elementFromPoint((r.left + r.right) / 2, (r.top + r.bottom) / 2)?.closest('.cs-card') === el;
-            }),
-            help: document.querySelector('#ctrlPick .cs-touch-help').textContent,
-            automatic: document.querySelector('#ctrlPick .cs-card[data-mode="after"]').textContent };
-        });
-        const id = `${map.split('.')[0]}-${lang}-${size.width}x${size.height}`;
-        await page.screenshot({ path: `${out}/${id}-chooser.png` });
-        for (const [name, r] of [['dialog', fit.dialog], ['start button', fit.go], ...fit.cards.map((r, i) => ['card ' + i, r])]) {
-          assert.ok(r.left >= -.5 && r.right <= size.width + .5 && r.top >= -.5 && r.bottom <= size.height + .5,
-            `${map} ${lang} ${size.width}x${size.height}: ${name} fits ${JSON.stringify(fit)}`);
-        }
-        assert.ok(fit.helpRect.left >= -.5 && fit.helpRect.right <= size.width + .5 &&
-          fit.helpRect.top >= fit.slot.top - .5 && fit.helpRect.bottom <= fit.slot.bottom + .5 &&
-          fit.helpRect.top >= -.5 && fit.helpRect.bottom <= size.height + .5,
-          `${map} ${lang} ${size.width}x${size.height}: shared left-thumb help is visible without clipping ${JSON.stringify(fit)}`);
-        assert.ok(fit.cards.every(r => r.bottom <= fit.slot.bottom + .5 && r.bottom <= fit.go.top + .5) &&
-          fit.helpRect.bottom <= fit.go.top + .5, 'cards and shared help do not overlap the footer');
-        assert.ok(fit.cardsHit.every(Boolean), 'both card centers receive input rather than an overlapping footer');
-        assert.match(fit.help, lang === 'en' ? /hold/i : /押したまま/);
-        assert.match(fit.automatic, lang === 'en' ? /automatic|camera/i : /カメラ/);
-        assert.doesNotMatch(fit.automatic, /Best for first timers|FPS未経験の方に/);
-        fits.push({ id, ...fit });
-      }
-      await page.locator('#csGo').tap();
-      await page.waitForFunction(() => __game.mode === 'play');
-      assert.equal(await page.evaluate(() => skyFollowCamera.mode), 'after', 'chooser keeps selected easy mode');
-      assert.deepEqual(errors, []); assert.equal(posts(), 0);
-      results.push({ map, lang, fits, errors });
-      fs.writeFileSync(resultFile, JSON.stringify(results, null, 2)); await context.close();
-      console.log('PASS', map, lang, 'phone chooser at 844x390 and 640x320, gesture wording, start');
-    }
+    // 入門ランの前に出ていた操作タイプのポップアップ（#ctrlPick）は、入門ランと一緒に 2026-11-22 に外した。
+    // 操作の選択は入門コース（development-entry-browser.cjs・guided-intro-browser.cjs）と設定画面で確かめる。
     fs.writeFileSync(resultFile, JSON.stringify(results, null, 2));
   } finally { await browser?.close(); server?.kill(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -21,7 +21,7 @@ fs.mkdirSync(out, { recursive: true });
       const context = await browser.newContext({ viewport: { width: 960, height: 540 } });
       await context.addInitScript(id => {
         window.__hold = true;
-        localStorage.setItem('gunrun-challenge-difficulty-v1', id === 'intro' ? 'normal' : id);
+        localStorage.setItem('gunrun-challenge-difficulty-v1', id);
         localStorage.setItem('gunrun-pc-camera-v1', 'before');
         localStorage.setItem('gunrun-sky-proto-v1', JSON.stringify({ sendLog: false }));
       }, difficulty);
@@ -44,7 +44,7 @@ fs.mkdirSync(out, { recursive: true });
       });
       await page.goto(base + map + '.html?verify=pursuit-20261106');
       await page.waitForFunction(() => window.skyStartReadiness?.ready && window.skyZombieDescent);
-      await page.evaluate(id=>document.querySelector(id).click(),difficulty === 'intro' ? '#bIntro' : '#bStart');
+      await page.evaluate(id=>document.querySelector(id).click(),'#bStart');
       assert.equal(await page.evaluate(() => skyChallenge.id), difficulty);
       const inventory = await page.evaluate(fs.readFileSync('bench/pursuit-audit-inventory.js', 'utf8'));
       fs.writeFileSync(out + '/' + map + '-inventory.json', JSON.stringify(inventory, null, 2));

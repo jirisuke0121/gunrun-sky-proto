@@ -12,7 +12,6 @@ export function traversalPoint(a, t) {
 // slowly and, now and then, falls short into the gap (no damage; it must find its way
 // back). Hard has neither. `slow` multiplies the flight time; `fail` is the chance per leap.
 export const LEAP_LOAD = Object.freeze({
-  intro: Object.freeze({ slow: 1.4, fail: .25 }),
   easy: Object.freeze({ slow: 1.35, fail: .2 }),
   normal: Object.freeze({ slow: 1.25, fail: .12 }),
 });

@@ -55,20 +55,16 @@
   const bonus = $('challengeScoreBonus'); bonus.classList.add('home-sr-only');
   difficulty.append(choices, details, selector, bonus);
   const links = make('div', { className: 'home-links' });
-  main.append(heading, copy, $('bStart'), $('startReadyStatus'));
+  const startButton = $('bStart');
+  main.append(heading, copy, startButton, $('startReadyStatus'));
   for (const button of [...plate.querySelectorAll(':scope > [data-retry-start]')]) main.append(button);
   main.append(difficulty, links);
-  // Beginner: a text link (automated browsers and first visits without storage keep it; onboarding.js retires it after the first visit).
-  const intro = $('introEntry');
-  const introButton = $('bIntro'), introStatus = $('introReadyStatus'), introRetries = [...intro.querySelectorAll('[data-retry-start]')];
-  intro.replaceChildren(introButton, introStatus, ...introRetries);
-  links.append(intro);
   const best = $('bestLine'); links.append(best);
 
   // Bottom right: key guide (PC), credits, privacy, language, and the developer tab (?dev=1).
   const foot = make('footer', { className: 'home-foot' });
   // Keep the unfinished guided course in the collapsed development tab on the home screen.
-  // Players get the intro run from the first-visit card (onboarding.js) and from コツ.
+  // Players reach the course from the first-visit card (onboarding.js) and from コツ.
   // The tab is shown only in developer mode (?dev=1, home-focus.css). The credits link must stay visible to players
   // (CC BY attribution), so it lives in its own footer slot instead of inside the tab (credits.js).
   const development = make('details', { id: 'homeDevelopment' });
@@ -77,8 +73,8 @@
   development.append(make('summary', {}, '開発用'));
   const developmentButton = make('button', { id: 'bGuidedIntro', type: 'button' }, '入門モードで遊ぶ');
   development.append(developmentButton);
-  const syncDevelopment = () => { developmentButton.disabled = introButton.disabled; };
-  new MutationObserver(syncDevelopment).observe(introButton, { attributes: true, attributeFilter: ['disabled'] });
+  const syncDevelopment = () => { developmentButton.disabled = startButton.disabled; };
+  new MutationObserver(syncDevelopment).observe(startButton, { attributes: true, attributeFilter: ['disabled'] });
   syncDevelopment();
   const controls = make('p', { className: 'home-controls' }, '<span class="home-controls-desktop"><kbd>W A S D</kbd> 移動　<kbd>マウス</kbd> 視点　<kbd>Space</kbd> ジャンプ　<kbd>Q</kbd>/<kbd>右クリック</kbd> 技（フック・爆破）　<kbd>E</kbd> スライド</span><span class="home-controls-touch">左ドラッグで移動 · 右ドラッグで視点 · ボタンでジャンプ</span>');
   const trial = new URLSearchParams(location.search).get('cameraTrial');

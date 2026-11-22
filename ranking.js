@@ -41,7 +41,7 @@ export function installRanking(game) {
   }
   async function refresh(state) {
     const token = ++state.token; controls(state);
-    state.box.hidden = !!policy.isIntro; if(policy.isIntro)return null;
+    state.box.hidden = false;
     const body = state.box.querySelector('.rank-body'); body.textContent = '記録を読み込み中…';
     const query = new URLSearchParams({ map, mode: state.mode, difficulty: state.difficulty, rules: policy.version });
     const me = player(); if (me) query.set('me', me);
@@ -71,7 +71,7 @@ export function installRanking(game) {
   let resultToken = 0, presentedRun;
   new MutationObserver(async () => {
     if ($('ovOver').hidden) { ++resultToken; ++over.token; return; }
-    if (game.z.mission || policy.isIntroRun || !game.z.final) return;
+    if (game.z.mission || !game.z.final) return;
     if (window.skyChallengeScore.enabled()) $('unityScoreRanking').append(over.box);
     else $('oStats').before(over.box);
     const token = ++resultToken;
