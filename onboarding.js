@@ -1,7 +1,7 @@
 // First visit, modelled on NIGHTLINE's "first drive": no home screen and no form up front.
-// A first-time player sees one short start card and is taken straight into the intro run,
-// where interactive instruction cards guide the player; the nickname is asked once after the
-// intro run ends (skippable). Returning players never see the card; "コツ" on the home
+// A first-time player sees one short start card and is taken straight into the 入門 course
+// (canyon.html?learn=1, guided-intro.js); the nickname is asked once after the first real run
+// that follows it (skippable). Returning players never see the card; "コツ" on the home
 // screen lists the moves with short demos (controls live in 操作設定). Nothing here awards score or changes the rules.
 (() => {
   const params = new URLSearchParams(location.search);
@@ -10,7 +10,7 @@
   const hero = $('homeHero');
   if (!hero || $('onboarding')) return;
   const STORE = 'gunrun-onboarding-v1', NAME = 'gunrun-name';
-  // Any of these means someone has played here before (the intro run alone leaves none of the first four).
+  // Any of these means someone has played here before.
   const TRACES = [STORE, NAME, 'gunrun-run-history-v1', 'gunrun-run-outbox-v1', 'gunrun-sky-ghost-v1', 'gunrun-sky-ghost-rock-canyon-v1',
     'gunrun-challenge-difficulty-v1', 'gunrun-follow-camera-v1', 'gunrun-render-quality-v1'];
   const SPECIAL = ['learned', 'practice', 'oldtown_swing', 'dev', 'replay', 'qa'];
@@ -24,18 +24,17 @@
   const automated = navigator.webdriver === true && params.get('onboarding') !== 'auto';
   const traced = () => TRACES.some(key => Boolean(read(key)));
   // Without working storage the visit can never be remembered (e.g. a blocked third-party iframe), so the card would
-  // reappear on every load: skip it there and leave the home intro block visible instead.
+  // reappear on every load: skip it there (the course stays reachable from コツ).
   const storageOk = (() => { try { localStorage.setItem('__sky_probe', '1'); localStorage.removeItem('__sky_probe'); return true; } catch { return false; } })();
   const first = forced || (!automated && storageOk && !SPECIAL.some(key => params.has(key)) && !window.skyDevMode && !traced());
   const make = (tag, props = {}, html = '') => Object.assign(document.createElement(tag), props, html ? { innerHTML: html } : {});
   const state = () => { try { return JSON.parse(read(STORE) || 'null') || {}; } catch { return {}; } };
   const saveState = patch => write(STORE, JSON.stringify({ at: new Date().toISOString(), ...state(), ...patch }));
   const savedName = () => { const value = read(NAME); return value ? names.normalize(value) : ''; };
-  // After the first visit the intro run is offered from 遊び方, so the home screen drops its own intro block.
-  // Automated browsers keep it (the existing bench scripts click it).
-  const retireIntroEntry = () => { if (!automated) document.body.classList.add('onb-no-intro'); };
-  if (!first && traced()) retireIntroEntry();
-  const intro = $('bIntro');
+  // The course opens once the game itself is ready to start (the same readiness as the home start button).
+  const startButton = $('bStart');
+  const courseReady = () => !!startButton && !startButton.disabled;
+  const openCourse = () => window.skyGuidedCourse?.open();
 
   // ---- Dialog: 遊び方 (reopened from home) and the one-time nickname prompt ----
   const root = make('div', { id: 'onboarding', hidden: true });
@@ -96,7 +95,7 @@
   }
   function stopTips() { tipPlayer?.destroy(); tipPlayer = null; $('onbTipStage').textContent = ''; }
   function syncIntro() {
-    const ready = !!intro && !intro.disabled;
+    const ready = courseReady();
     $('onbIntro').disabled = !ready;
     $('onbIntro').textContent = ready ? '入門モードで練習する' : '読み込み中…';
   }
@@ -113,6 +112,7 @@
     $('onbTouchLook').textContent = fixed ? 'カメラの向きは固定です。右側で視点を回す操作はありません' : window.skyFollowCamera?.mode === 'after'
       ? automatic ? 'カメラは進む向きへ自動で追従します。視点操作はありません' : 'カメラは進む向きへ自動で回ります。右側で見回した後は、左の指を離して進む向きを選び直せます'
       : '画面の右側に指を置き、横へ動かして見回します。左側の移動と一緒に使えます';
+    $('onbIntro').hidden = !window.skyGuidedCourse;
     root.hidden = false; document.body.classList.add('onb-open'); syncIntro();
     if (kind === 'name') input.focus({ preventScroll: true }); else buildTips();
   }
@@ -121,19 +121,19 @@
     if (!input.value.trim()) { error.textContent = '名前を入力してください'; input.focus(); return; }
     if (commitName()) closeDialog();
   });
-  $('onbIntro').addEventListener('click', () => { if (!commitName() || !intro || intro.disabled) return; closeDialog(); intro.click(); });
+  $('onbIntro').addEventListener('click', () => { if (!commitName() || !courseReady()) return; closeDialog(); openCourse(); });
   $('onbMain').addEventListener('click', () => { if (mode === 'name' && !input.value.trim()) { closeDialog(); return; } if (commitName()) closeDialog(); });
   $('onbSettings').addEventListener('click', () => { if (!commitName()) return; closeDialog(); $('bSettings')?.click(); });
   input.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); $(mode === 'name' ? 'onbSave' : 'onbIntro').click(); } });
   root.addEventListener('keydown', event => { if (event.key === 'Escape') $('onbMain').click(); });
-  if (intro) new MutationObserver(syncIntro).observe(intro, { attributes: true, attributeFilter: ['disabled'] });
+  if (startButton) new MutationObserver(syncIntro).observe(startButton, { attributes: true, attributeFilter: ['disabled'] });
 
   // Always reachable from the home screen: the tips (the nickname is edited from the name chip).
   const guide = make('button', { id: 'homeGuide', type: 'button' }, 'コツ');
   guide.addEventListener('click', () => openDialog('again'));
   (hero.querySelector('.home-links') || hero.querySelector('.home-heading-actions'))?.prepend(guide);
 
-  // ---- First visit: one start card, then straight into the intro run ----
+  // ---- First visit: one start card, then straight into the 入門 course ----
   let splash;
   function showSplash() {
     splash = make('div', { id: 'onbSplash' });
@@ -149,25 +149,18 @@
     splash.querySelector('.onb-splash-scene').style.backgroundImage = location.pathname.endsWith('canyon.html') ? `url('./assets/lobby/canyon.svg')` : `url('./assets/lobby/old-town-chase.webp')`;
     ($('app') || document.body).append(splash); document.body.classList.add('onb-open');
     const start = $('onbStart');
-    const sync = () => { const ready = !!intro && !intro.disabled; start.disabled = !ready; $('onbStartLabel').textContent = ready ? 'タップしてスタート' : '読み込み中…'; };
-    sync(); if (intro) new MutationObserver(sync).observe(intro, { attributes: true, attributeFilter: ['disabled'] });
+    const sync = () => { const ready = courseReady(); start.disabled = !ready; $('onbStartLabel').textContent = ready ? 'タップしてスタート' : '読み込み中…'; };
+    sync(); if (startButton) new MutationObserver(sync).observe(startButton, { attributes: true, attributeFilter: ['disabled'] });
     start.addEventListener('click', () => {
       if (start.disabled) return;
-      saveState({ phase: 'started' }); retireIntroEntry();
+      saveState({ phase: 'started' });
       splash.remove(); document.body.classList.remove('onb-open');
-      intro.click();
+      openCourse();
     });
     start.focus({ preventScroll: true });
   }
 
-  // ---- After the first intro run: ask for the nickname once ("あとで" skips it) ----
-  document.addEventListener('sky-intro-result', () => {
-    const current = state();
-    if (current.phase !== 'started' || current.namePrompted || savedName()) return;
-    saveState({ namePrompted: true });
-    setTimeout(() => { if (root.hidden) openDialog('name'); }, 1600);
-  });
-  // 2026-11-14: the first visit now starts with the 入門 course (canyon.html?learn=1), which ends in a real run
+  // 2026-11-14: the first visit starts with the 入門 course (canyon.html?learn=1), which ends in a real run
   // (index.html?learned=1). Ask for the nickname after that run's result instead (once; "あとで" skips it).
   document.addEventListener('sky-learned-result', () => {
     const current = state();

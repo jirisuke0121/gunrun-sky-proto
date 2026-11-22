@@ -32,7 +32,7 @@
   let thrownSeen = 0;
   const realRun = () => {
     const w = window, ch = w.skyChallenge;
-    return !w.skyPracticeMode && !w.skyOwnerReplay && !ch?.isIntroRun && !ch?.isIntro && !ch?.debug && !/canyon\.html$/i.test(location.pathname);
+    return !w.skyPracticeMode && !w.skyOwnerReplay && !ch?.debug && !/canyon\.html$/i.test(location.pathname);
   };
   window.skyTipUsage = {
     unused: store.unused, due: store.due, markShown: store.markShown, state: store.state,

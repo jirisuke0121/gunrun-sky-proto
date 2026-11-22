@@ -1,7 +1,7 @@
 name: Languages
 on:
   pull_request:
-    paths: ['i18n*.js', 'tools/i18n/**', 'bench/i18n-*', 'index.html', 'canyon.html', 'guided-*.js', 'minimap.js', 'hook-tutorial.js', 'context-tutorial.js', '.github/workflows/i18n.yml']
+    paths: ['i18n*.js', 'tools/i18n/**', 'bench/i18n-*', 'index.html', 'canyon.html', 'guided-*.js', 'minimap.js', '.github/workflows/i18n.yml']
 permissions:
   contents: read
 jobs:

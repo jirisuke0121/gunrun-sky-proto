@@ -1,8 +1,8 @@
-// One owner for the two home-screen start buttons. Assets may arrive in any order.
+// One owner for the home-screen start button. Assets may arrive in any order.
 (() => {
   window.installSkyStartReadiness = (game, win = window, doc = document) => {
-    const start = doc.getElementById('bStart'), intro = doc.getElementById('bIntro');
-    const statuses = ['startReadyStatus', 'introReadyStatus'].map(id => doc.getElementById(id));
+    const start = doc.getElementById('bStart');
+    const status = doc.getElementById('startReadyStatus');
     const retry = [...doc.querySelectorAll('[data-retry-start]')];
     let state, pageLoaded = doc.readyState === 'complete';
     function inspect() {
@@ -26,16 +26,11 @@
     function sync() {
       state = inspect();
       const ready = state.phase === 'ready';
-      for (const button of [start, intro]) {
-        button.disabled = !ready;
-        button.setAttribute('aria-busy', String(state.phase === 'loading'));
-      }
+      start.disabled = !ready;
+      start.setAttribute('aria-busy', String(state.phase === 'loading'));
       start.textContent = ready ? win.skyPracticeMode ? '練習をはじめる' : '本番をはじめる（2分）' : state.message;
-      intro.textContent = '入門モードで試す（ライフ無限）';
-      for (const status of statuses) {
-        status.hidden = ready;
-        status.textContent = state.message;
-      }
+      status.hidden = ready;
+      status.textContent = state.message;
       for (const button of retry) button.hidden = state.phase !== 'error';
       doc.body.dataset.skyStartReadiness = JSON.stringify(state);
       return ready;

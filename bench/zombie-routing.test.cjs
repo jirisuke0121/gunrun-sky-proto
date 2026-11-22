@@ -41,7 +41,7 @@ const assert=require('node:assert/strict');
  // Leap load: slower on every non-Hard difficulty, and now and then the jump falls short into a real gap.
  {
   const {LEAP_LOAD,leapLoad}=await import('../zombie-routing.js');
-  assert.deepEqual(Object.keys(LEAP_LOAD),['intro','easy','normal'],'Hard and the free-tuning preset have no leap load');
+  assert.deepEqual(Object.keys(LEAP_LOAD),['easy','normal'],'Hard and the free-tuning preset have no leap load');
   const withFloor=id=>{
    const t=setup();t.solids.push(box([-3,-6.4,-3],[8,-6,3],'slab'));// ground well below the gap
    global.window.skyChallenge={id};

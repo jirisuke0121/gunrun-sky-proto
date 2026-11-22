@@ -156,7 +156,7 @@ const LOCALES = { ja: 'ja-JP', en: 'en-US', th: 'th-TH', vi: 'vi-VN', pt: 'pt-BR
       const seen = new Set();
       for (let i = 0; i < 30; i++) {
         await page.waitForTimeout(100);
-        const t = await page.evaluate(() => [document.getElementById('bStart')?.textContent, document.getElementById('bIntro')?.textContent, document.getElementById('introReadyStatus')?.textContent].join('|')).catch(() => null);
+        const t = await page.evaluate(() => [document.getElementById('bStart')?.textContent, document.getElementById('startReadyStatus')?.textContent].join('|')).catch(() => null);
         if (t) seen.add(t);
       }
       await page.waitForFunction(() => window.__game && window.skyStartReadiness?.ready);

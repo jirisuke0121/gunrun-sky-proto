@@ -15,7 +15,7 @@ const port=Number(process.env.SKY_TEST_PORT||18798),base=`http://127.0.0.1:${por
   let posts=0;await context.route('https://**/*',r=>{if(r.request().method()==='POST')posts++;return r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'})});
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('PAGE',e.message)});page.setDefaultTimeout(90000);
   await page.goto(base+map);await page.waitForFunction(()=>window.__game&&window.skyStartReadiness?.ready);
-  await page.locator(`#homeDifficulty [data-difficulty="${difficulty}"]`).click();
+  await page.locator(`#homeDifficulty [data-difficulty="${difficulty}"]`).first().click();
   if(touch)await page.locator('#bStart').tap();else await page.locator('#bStart').click();
   const evidence=await page.evaluate(async()=>{
    const g=__game,s=__skyInternals,c=g.P,score=skyChallengeScore;

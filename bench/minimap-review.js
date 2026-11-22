@@ -7,7 +7,7 @@ async function load(map,layout){
  const [width,height,touch]=layouts[layout];frame.width=width;frame.height=height;
  frame.src=`../${map}?lang=ja&minimapLab=1&touch=${touch?1:0}&rotation=${layout==='portraitLeft'?-1:1}&load=${++loadID}`;
  const requested=frame.src;
- for(let i=0;i<900;i++){await wait(100);const w=frame.contentWindow;if(w.location.href===requested&&w.__minimapLab&&w.skyMinimap&&w.skyStartReadiness?.ready){w.document.getElementById('bIntro').click();w.__game.frameOnce(1/60);return w;}}
+ for(let i=0;i<900;i++){await wait(100);const w=frame.contentWindow;if(w.location.href===requested&&w.__minimapLab&&w.skyMinimap&&w.skyStartReadiness?.ready){{const d=w.document.getElementById('challengeDifficulty');d.value='easy';d.dispatchEvent(new w.Event('change'));w.document.getElementById('bStart').click();}w.__game.frameOnce(1/60);return w;}}
  throw new Error(`Not ready: ${map} ${layout}`);
 }
 function snapshot(w){w.skyMinimap.frame(performance.now(),true);return w.skyMinimap.snapshot()}

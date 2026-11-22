@@ -4,11 +4,11 @@
 // A spot is accepted when ALL of these held in the measurement (stationary invulnerable player, old town):
 //   - high ground: standing height >= 4 m above the street, on a navigation node with 4+ exits, outdoors, stable after 1.5 s;
 //   - the first chaser touches the player within 4.5-12 s on Normal and Hard (street start: 7.0-8.0 s Normal, 6.5-7.3 s Hard,
-//     median over all runs >= 5 s), and within 5-16 s on Beginner (street start: 11-12 s);
+//     median over all runs >= 5 s);
 //   - chasers do arrive (a spot nobody can reach is a safe island, not a start).
 (function (root) {
   const CENTER = Object.freeze({ x: 0, z: -4 });
-  const RULE = Object.freeze({ minY: 4, normalHard: [4.5, 12], intro: [5, 16], medianMin: 5 });
+  const RULE = Object.freeze({ minY: 4, normalHard: [4.5, 12], medianMin: 5 });
   // Engine XYZ, metres. Yaw faces the middle of the map so the first view shows the way down.
   const RAW = [
     { id: 'west-ledge', x: -37, y: 4.63, z: 0 },

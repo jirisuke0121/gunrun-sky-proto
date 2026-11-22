@@ -35,8 +35,7 @@ html:not([lang=ja]) .home-heading h1 span{display:block;margin:0;font-size:1em;l
 #homeHero #bStart{width:auto;max-width:100%;margin:6px 0 0;min-width:min(340px,100%);min-height:62px;padding:12px 36px;border:0;border-radius:7px;background:#f08a5a;color:#1a0e08;font-size:22px;font-weight:900;letter-spacing:.04em;box-shadow:0 10px 30px #f08a5a3d,0 3px 0 #b6532c}
 #homeHero #bStart:hover{background:#f7a079}#homeHero #bStart:active{transform:translateY(2px);box-shadow:0 6px 18px #f08a5a3d,0 1px 0 #b6532c}
 #homeHero #bStart:disabled{background:#2a3743;color:#b7c3cc;box-shadow:none;cursor:wait;transform:none}
-#homeHero #startReadyStatus,#homeHero #introReadyStatus{margin:0;color:#f0c59b;font-size:12px;line-height:1.5}
-#homeHero #introReadyStatus{display:none}
+#homeHero #startReadyStatus{margin:0;color:#f0c59b;font-size:12px;line-height:1.5}
 #homeHero [data-retry-start]{margin:0}
 
 /* Difficulty: three text tabs (+ the small trial tier) and one line for the selected one. */
@@ -57,11 +56,8 @@ html:not([lang=ja]) .home-heading h1 span{display:block;margin:0;font-size:1em;l
 
 /* Small links under the difficulty: tips, beginner (first visits only), best score. */
 .home-links{display:flex;flex-wrap:wrap;align-items:center;gap:0 20px;margin-top:-2px}
-#homeHero #homeGuide,#homeHero #bIntro{width:auto;max-width:none;min-height:36px;margin:0;padding:4px 0;border:0;background:none;color:#e9eef1;font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#e9eef180;text-shadow:0 1px 6px #000d}
-#homeHero #homeGuide:hover,#homeHero #bIntro:hover{text-decoration-color:#fff}
-#homeHero #bIntro:disabled{color:#a8b6c0;cursor:wait}
-#homeHero #introEntry{display:inline-flex;align-items:center;gap:8px;margin:0!important;padding:0!important;border:0!important;background:none!important}
-#homeHero #introEntry [hidden]{display:none}
+#homeHero #homeGuide{width:auto;max-width:none;min-height:36px;margin:0;padding:4px 0;border:0;background:none;color:#e9eef1;font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#e9eef180;text-shadow:0 1px 6px #000d}
+#homeHero #homeGuide:hover{text-decoration-color:#fff}
 #homeHero #bestLine{margin:0;font-size:12px;line-height:1.5;color:#b9c5cd;text-shadow:0 1px 6px #000d}#homeHero #bestLine[hidden]{display:none}
 #homeHero #homeSendNotice{margin:0;font-size:11px;line-height:1.5;color:#c6d0d7}
 
@@ -93,7 +89,7 @@ html:not([lang=ja]) #homeHero[data-compact=true] .home-heading h1{font-size:30px
 #homeHero[data-compact=true] .home-difficulty-choices button.home-difficulty-trial{font-size:11px}
 #homeHero[data-compact=true] .home-difficulty-detail{font-size:11px}
 #homeHero[data-compact=true] .home-links{gap:0 16px}
-#homeHero[data-compact=true] #homeGuide,#homeHero[data-compact=true] #bIntro{min-height:32px;font-size:12px}
+#homeHero[data-compact=true] #homeGuide{min-height:32px;font-size:12px}
 #homeHero[data-compact=true] #bestLine{font-size:11px}
 #homeHero[data-compact=true] .home-controls{display:none}
 #homeHero[data-compact=true] #homeRankingButton,#homeHero[data-compact=true] #homeSettings{min-height:38px;padding:6px 14px;font-size:13px}
@@ -149,5 +145,5 @@ body.sky-lobby #onboarding{z-index:72}
   #homeHero:not([data-compact=true]) .home-difficulty-choices button{font-size:19px}
   #homeHero:not([data-compact=true]) .home-difficulty-detail{font-size:14px}
   #homeHero:not([data-compact=true]) .home-scene-copy p{font-size:14px}
-  #homeHero:not([data-compact=true]) #homeGuide,#homeHero:not([data-compact=true]) #bIntro{font-size:14px}
+  #homeHero:not([data-compact=true]) #homeGuide{font-size:14px}
 }

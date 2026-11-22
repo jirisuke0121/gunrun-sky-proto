@@ -36,7 +36,7 @@ jobs:
           fi
       - name: Both maps and authenticated owner screen
         run: node bench/foundation-browser.cjs
-      - name: Cold loading and normal intro retry transitions
+      - name: Cold loading, normal start, retry and home transitions
         run: node bench/start-readiness-browser.cjs
       - name: Sound effects decode in the browser (FLAC)
         run: node bench/sfx-flac-browser.cjs

@@ -29,7 +29,7 @@ jobs:
           fi
       - name: Restore real audio in both maps with desktop and touch input
         run: node bench/audio-recovery-browser.cjs
-      - name: Bound rendered wind in manual starts and intro-to-Easy transitions
+      - name: Bound rendered wind in manual starts and course-to-Easy transitions
         env:
           RUNNING_QA_URL: http://127.0.0.1:8793/
         run: |

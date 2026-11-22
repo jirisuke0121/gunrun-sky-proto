@@ -5,7 +5,6 @@ const P = require('../spawn-profile.js');
 
 for (const id of ['easy', 'normal', 'hard']) assert.equal(P.forProfile({ id }), null, `${id} は従来どおり`);
 assert.equal(P.forProfile(null), null);
-assert.equal(P.forProfile({ id: 'intro' }), null);
 assert.equal(P.forProfile({ id: 'extreme' }).tight, true);
 assert.ok(P.forProfile({ id: 'extreme' }).ahead > .65, '前から来る割合は従来(65%)より多い');
 assert.ok(Object.isFrozen(P.table) && Object.isFrozen(P.table.extreme), '設定表は書き換えられない');

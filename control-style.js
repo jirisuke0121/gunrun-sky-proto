@@ -1,8 +1,7 @@
 // Control type chooser: two cards side by side so the difference is visible at a glance.
 //   FPS操作（従来）      : left stick moves, the right side is dragged to turn the camera yourself.
 //   かんたん操作（カメラおまかせ）: the stick selects movement; the camera follows that direction.
-// Shown in two places: a popup when the intro run starts on a touch device, and the 操作 tab of the
-// settings screen (pause-focus.js). It only switches window.skyFollowCamera's existing two modes
+// Shown in the 操作 tab of the settings screen (pause-focus.js). It only switches window.skyFollowCamera's existing two modes
 // ('before' = FPS操作, 'after' = かんたん操作); movement and camera code are untouched.
 // Also keeps #app's data-fit up to date: every screen is designed for a landscape frame, and when a
 // phone is held upright the whole app is rotated (see the inline script in index.html), so CSS
@@ -72,7 +71,6 @@
   }
 
   const live = [];
-  const cardName = mode => TYPES[mode].name;
   function chooser({ compact = false, onPick } = {}) {
     const box = make('div', { className: 'cs-chooser' + (compact ? ' is-compact' : ''), role: 'radiogroup' });
     box.setAttribute('aria-label', '操作タイプ');
@@ -99,47 +97,5 @@
   new MutationObserver(() => { for (const api of live) if (!api.manual) api.sync(fc.mode); })
     .observe(document.body, { attributes: true, attributeFilter: ['data-sky-camera-mode'] });
 
-  // ---- Popup: shown when the intro run starts on a touch device ----
-  let dialog, picked, onDone, ui;
-  function build() {
-    dialog = make('div', { id: 'ctrlPick', hidden: true });
-    dialog.setAttribute('role', 'dialog'); dialog.setAttribute('aria-modal', 'true'); dialog.setAttribute('aria-labelledby', 'csTitle');
-    dialog.innerHTML = `<div class="cs-dialog">
-      <header><h2 id="csTitle">操作のタイプを選ぼう</h2><p class="cs-lead">入門でも本番でも、ここで選んだ操作になります。</p></header>
-      <div class="cs-slot"></div>
-      <footer><button id="csGo" type="button" class="cs-go"></button><button id="csCancel" type="button" class="cs-cancel">やめる</button></footer>
-      <p class="cs-note">あとからメニューの「操作」でいつでも変えられます。</p></div>`;
-    (app || document.body).append(dialog);
-    ui = chooser({ onPick: mode => select(mode) });
-    ui.manual = true; // the popup keeps its own pending choice until "始める"
-    dialog.querySelector('.cs-slot').append(ui.box);
-    $('csGo').addEventListener('click', () => { const done = onDone, mode = picked; close(); fc.setMode(mode); window.skyControlsGuide ? window.skyControlsGuide.show(mode, done) : done?.(); });
-    $('csCancel').addEventListener('click', close);
-    dialog.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
-  }
-  function select(mode) {
-    picked = mode; ui.sync(mode);
-    $('csGo').textContent = `${cardName(mode)}で入門を始める`;
-  }
-  function close() { dialog.hidden = true; document.body.classList.remove('onb-open'); onDone = null; }
-  function open(done) {
-    if (!dialog) build();
-    onDone = done; select(fc.mode);
-    dialog.hidden = false; document.body.classList.add('onb-open');
-    ui.cards.find(el => el.dataset.mode === picked)?.focus({ preventScroll: true });
-  }
-
-  // Every way into the intro run (splash, 遊び方, the home button) clicks #bIntro; ask first (touch and PC).
-  // Automated browsers (the bench scripts) skip the popup unless ?controlpick=1.
-  const skip = window.skyOwnerReplay || params.has('ownerReplay') || window.skyPracticeMode || params.has('practice') || params.get('controlpick') === '0';
-  const ask = () => !window.skyGuidedEntry && !skip && (navigator.webdriver !== true || params.get('controlpick') === '1');
-  let passing = false;
-  document.addEventListener('click', event => {
-    const intro = event.target.closest?.('#bIntro');
-    if (!intro || passing || !ask()) return;
-    event.preventDefault(); event.stopImmediatePropagation();
-    open(() => { passing = true; try { intro.click(); } finally { passing = false; } });
-  }, true);
-
-  window.skyControlStyle = { chooser, open, get mode() { return fc.mode; }, get dialogVisible() { return !!dialog && !dialog.hidden; } };
+  window.skyControlStyle = { chooser, get mode() { return fc.mode; } };
 })();

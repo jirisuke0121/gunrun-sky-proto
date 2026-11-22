@@ -119,7 +119,6 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => random
     flights.set(id,flight); try { return await flight; } finally { flights.delete(id); }
   }
   async function submit(value) {
-    if (value?.challenge?.id === 'intro') return null;
     let a;
     try { a = copy(value); } catch { a = copy(resultOnly(value)); }
     const profile=globalThis.window?.skyFoundation?.profile?.();if(profile)Object.assign(a,profile);
@@ -147,7 +146,7 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => random
 
 export function installRunRecords(game, win = window, doc = document) {
   const panels = [];
-  const scope = () => win.skyChallenge.isIntro ? '入門モード：ランキング対象外・記録送信なし' : win.skyPracticeMode ? '練習場：ランキング対象外' : win.skyChallenge.debug ? '検証モード：ランキング対象外' : game.U.sendLog ? '' : '送信なし：結果はこの端末だけに保存';
+  const scope = () => win.skyPracticeMode ? '練習場：ランキング対象外' : win.skyChallenge.debug ? '検証モード：ランキング対象外' : game.U.sendLog ? '' : '送信なし：結果はこの端末だけに保存';
   let current;
   const message = row => {
     if (!row) return scope();
@@ -161,7 +160,7 @@ export function installRunRecords(game, win = window, doc = document) {
   function render(row) {
     if (row && (!current || row.clientRunId === current.clientRunId || row.clientRunId === store?.history[0]?.clientRunId)) current = row;
     for (const panel of panels) {
-      panel.querySelector('[data-record-status]').textContent = win.skyChallenge.isIntro ? scope() :
+      panel.querySelector('[data-record-status]').textContent = 
         (panel.id === 'recordDeliveryHome' && current ? '直近の結果：' : '') + message(current);
       panel.querySelector('button').hidden = !store?.pending;
       panel.querySelector('small').textContent = [scope(), store?.pending ? `未送信 ${store.pending}件` : ''].filter(Boolean).join(' ・ ');
@@ -172,14 +171,14 @@ export function installRunRecords(game, win = window, doc = document) {
         history.append(li);
       }
     }
-    const status = win.skyChallenge.isIntro ? scope() : message(current);
+    const status = message(current);
     const result = doc.getElementById('runRecordStatus'); if (result) result.textContent = status;
     if (win.__game?.RL) win.__game.RL.status = status;
     const legacy = doc.getElementById('oLog'); if (legacy && legacy.textContent !== status) legacy.textContent = status;
   }
   const storage = {getItem:key=>{try{return win.localStorage.getItem(key);}catch{return null;}},setItem:(key,value)=>win.localStorage.setItem(key,value)};
   store = createRunRecords({ storage,fetcher:(...args)=>win.fetch(...args),uuid:()=>randomUUID(win.crypto),
-    allowed:()=>!win.skyOwnerReplay&&!win.skyPracticeMode&&!win.skyChallenge.debug&&!win.skyChallenge.isIntro&&!!game.U.sendLog,
+    allowed:()=>!win.skyOwnerReplay&&!win.skyPracticeMode&&!win.skyChallenge.debug&&!!game.U.sendLog,
     announce:row=>render(row),emit:detail=>doc.dispatchEvent(new CustomEvent('sky-run-uploaded',{detail})) });
   for (const [id,target] of [['recordDeliveryHome',doc.getElementById('recNote')],['recordDeliveryResult',doc.getElementById('unityRecordStatus') || doc.getElementById('oLog')]]) {
     if (!target) continue;
@@ -192,10 +191,10 @@ export function installRunRecords(game, win = window, doc = document) {
   doc.getElementById('unityResultActions')?.before(live);
   const style = doc.createElement('style'); style.textContent = '.record-delivery{padding:12px;margin:12px 0;border:1px solid #8a98a6;border-radius:8px;font-size:13px;line-height:1.5}.record-delivery p{margin:6px 0}.record-delivery small{display:block}.record-delivery button{margin:8px 0;padding:8px}.record-delivery ol{padding-left:20px}.record-delivery em{display:block;font-style:normal}#runRecordStatus{font-size:12px;line-height:1.5}';doc.head.append(style);
   doc.getElementById('bReset')?.addEventListener('click',()=>render());
-  doc.addEventListener('sky-difficulty-change',()=>{render();if(!win.skyChallenge.isIntro)store.retry();});
+  doc.addEventListener('sky-difficulty-change',()=>{render();store.retry();});
   win.addEventListener('online',()=>store.retry());
   win.addEventListener('pageshow',()=>{render();store.retry();});
   render(store.history[0]); store.retry();
   return { ...store,submit:store.submit,retry:store.retry,newRunId:store.newRunId,
-    status:()=>win.skyChallenge.isIntro ? scope() : message(current),get player(){return store.player;},get history(){return store.history;},get pending(){return store.pending;} };
+    status:()=>message(current),get player(){return store.player;},get history(){return store.history;},get pending(){return store.pending;} };
 }

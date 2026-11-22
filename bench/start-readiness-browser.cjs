@@ -19,8 +19,8 @@ const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{p
   // Asset requests are deliberately pending; waiting for window.load is unnecessary.
   await page.goto(base+map,{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.skyStartReadiness&&window.skyHumanView&&document.body.dataset.skyGameExtensionsReady==='true');
-  const blocked=await page.evaluate(()=>({mode:__game.mode,phase:skyStartReadiness.state,normal:document.getElementById('bStart').disabled,intro:document.getElementById('bIntro').disabled}));
-  assert.equal(blocked.mode,'menu');assert.equal(blocked.normal,true);assert.equal(blocked.intro,true);assert.match(blocked.phase.message,/人物/);
+  const blocked=await page.evaluate(()=>({mode:__game.mode,phase:skyStartReadiness.state,normal:document.getElementById('bStart').disabled}));
+  assert.equal(blocked.mode,'menu');assert.equal(blocked.normal,true);assert.match(blocked.phase.message,/人物/);
   await page.evaluate(()=>document.getElementById('bStart').dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true})));
   assert.equal(await page.evaluate(()=>__game.mode),'menu','a queued click cannot start incomplete presentation');
   human.release();await page.waitForFunction(()=>document.body.dataset.skyHumanLoaded==='true');
@@ -45,25 +45,26 @@ const deferred=()=>{let release;const promise=new Promise(r=>release=r);return{p
   await click('#bSettings');await click('#bMenu');await page.waitForFunction(()=>__game.mode==='menu');
   // The settings panel opened before play must return to the home screen.
   await click('#bSettings');await click('#bResume');assert.equal((await state()).mode,'menu');
-  await page.evaluate(()=>document.getElementById('bIntro').click());const intro=await state();assert.equal(intro.mode,'play');assert.equal(intro.id,'intro');assert.equal(intro.hud,'∞');assert.equal(intro.view,'third');assert.equal(intro.model,true);assert.equal(intro.held,true);
-  assert.equal(await page.evaluate(()=>__skyInternals.Jt.filter(e=>!e.dead).length),3,'intro initially spawns three pursuers');
-  const introPopulation=await page.evaluate(()=>{
+  // 2回目のラン：群れの上限、時間切れのリザルト、「もう一度」、ホームへの戻り。
+  await click('#bStart');await page.evaluate(()=>{__game.S.sendLog=false});const second=await state();assert.equal(second.mode,'play');assert.equal(second.id,'normal');assert.equal(second.life,5);assert.equal(second.view,'third');assert.equal(second.model,true);assert.equal(second.held,true);
+  assert.equal(await page.evaluate(()=>__skyInternals.Jt.filter(e=>!e.dead).length),4,'normal initially spawns four pursuers');
+  const population=await page.evaluate(()=>{
    const g=__game,rows=[];
    for(const t of [0,40,80]){g.GAME.t=t;for(let i=0;i<20;i++)g.spawnZombie(12);rows.push({t,alive:__skyInternals.Jt.filter(e=>!e.dead).length,rendered:__skyInternals.Jt.length,cap:skyChallenge.cap(0)});}
    g.GAME.t=0;return rows;
   });
-  assert.deepEqual(introPopulation.map(r=>r.cap),[3,4,5]);assert.deepEqual(introPopulation.map(r=>r.alive),[3,4,5]);assert.ok(introPopulation.every(r=>r.rendered<=6));
-  await page.evaluate(()=>{__game.GAME.t=119.98;__game.advance(.04);__game.advance(.04);__game.advance(1.5)});
-  await page.waitForFunction(()=>__game.mode==='over');await click('#unityRetry');assert.equal((await state()).id,'intro');assert.equal((await state()).hud,'∞');assert.equal(await page.evaluate(()=>__skyInternals.Jt.filter(e=>!e.dead).length),3,'intro retry starts with three pursuers');
-  await click('#bSettings');await click('#bMenu');await page.waitForFunction(()=>__game.mode==='menu');await click('#bStart');const afterIntro=await state();assert.equal(afterIntro.id,'normal');assert.equal(afterIntro.life,5);
-  assert.equal(intro.history,afterIntro.history,'intro must not create a stored record');assert.equal(posts,0,'no test records go to the public endpoint');assert.deepEqual(errors,[]);
-  await page.screenshot({path:`${out}/${map}-${touch?'touch':'desktop'}.png`});results.push({map,touch,blocked,normal,intro,introPopulation,afterIntro,posts,errors});console.log('PASS',map,touch?'touch':'desktop','cold load, normal, pause/resume/restart, pre-run settings, intro/retry and normal return');await ctx.close();
+  assert.deepEqual(population.map(r=>r.cap),[4,5,6]);assert.deepEqual(population.map(r=>r.alive),[4,5,6]);assert.ok(population.every(r=>r.rendered<=6));
+  await page.evaluate(()=>{__game.P.invuln=Infinity;__game.GAME.t=119.98;__game.advance(.04);__game.advance(.04);__game.advance(1.5)});
+  await page.waitForFunction(()=>__game.mode==='over');await click('#unityRetry');assert.equal((await state()).id,'normal');assert.equal((await state()).life,5);assert.equal(await page.evaluate(()=>__skyInternals.Jt.filter(e=>!e.dead).length),4,'retry starts with four pursuers');
+  await click('#bSettings');await click('#bMenu');await page.waitForFunction(()=>__game.mode==='menu');await click('#bStart');const afterRetry=await state();assert.equal(afterRetry.id,'normal');assert.equal(afterRetry.life,5);
+  assert.equal(posts,0,'no test records go to the public endpoint');assert.deepEqual(errors,[]);
+  await page.screenshot({path:`${out}/${map}-${touch?'touch':'desktop'}.png`});results.push({map,touch,blocked,normal,second,population,afterRetry,posts,errors});console.log('PASS',map,touch?'touch':'desktop','cold load, normal, pause/resume/restart, pre-run settings, population, time-up result/retry and home return');await ctx.close();
  }
  // A failed gun request must offer recovery instead of a dead-looking Start button.
  const ctx=await browser.newContext({locale:'ja-JP'}),page=await ctx.newPage();await ctx.addInitScript(()=>window.__hold=true);let fail='gun';
  await ctx.route('**/*',route=>{const u=new URL(route.request().url());if(u.origin!==new URL(base).origin)return route.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'});if((fail==='gun'&&u.pathname.endsWith('hg-meshy-low.glb'))||(fail==='feedback'&&u.pathname.endsWith('/combat-feedback/Kill.flac')))return route.fulfill({status:404,body:'missing'});return route.continue()});
  await page.goto(base+'index.html');await page.waitForFunction(()=>window.skyStartReadiness?.state.phase==='error');assert.equal(await page.locator('#bStart').isDisabled(),true);assert.match(await page.locator('#startReadyStatus').innerText(),/銃/);fail=false;await page.locator('[data-retry-start]').first().click();await page.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:90000});await page.locator('#bStart').click();assert.equal(await page.evaluate(()=>__game.mode),'play');results.push({failure:'HG 404',reloadRecovered:true});
- fail='feedback';await page.reload();await page.waitForFunction(()=>window.skyStartReadiness?.state.phase==='error');assert.match(await page.locator('#startReadyStatus').innerText(),/演出/);assert.equal(await page.locator('#bIntro').isDisabled(),true);
+ fail='feedback';await page.reload();await page.waitForFunction(()=>window.skyStartReadiness?.state.phase==='error');assert.match(await page.locator('#startReadyStatus').innerText(),/演出/);assert.equal(await page.locator('#bStart').isDisabled(),true);
  fail=false;await page.locator('[data-retry-start]').first().click();await page.waitForFunction(()=>window.skyStartReadiness?.ready,null,{timeout:90000});await page.locator('#bStart').click();assert.equal(await page.evaluate(()=>__game.mode),'play');results.push({failure:'feedback sample 404',reloadRecovered:true});await ctx.close();
  fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2));
 }finally{await browser?.close();server?.kill()}})().catch(e=>{console.error(e);process.exitCode=1});
