@@ -1,7 +1,7 @@
 # 棚卸し：直下のJSとURLスイッチ（2026-11-22）
 
 「その物があることで次の行動が広がるか」をコードにも当てる。決着がついた試作・使われていないコードは、マップの「乗り越えるだけの壁」と同じノイズ。
-この文書は**仕分けだけ**。まだ何も消していない。`main` = `8230fdc` の時点。
+この文書は仕分けの記録。**同日（11/22）の続きで、C と D2・D3・D5・D6 を消した（下の「実施結果」）。** 仕分けの時点は `main` = `8230fdc`。
 
 ## 調べ方と限界
 
@@ -21,6 +21,21 @@
 | 未決（触らない） | 3件 | 下の E |
 
 159本のうち149本は公開の入口から読み込まれている。**まるごと使われていないファイルは少ない。ノイズの大半は、ファイルの中の「スイッチで切り替わる分岐」と、それに付いた検査・比較ページ**にある。
+
+## 実施結果（2026-11-22、本人の「消せる・消せそうなものは消していい」に沿って）
+
+| 項目 | 結果 |
+|---|---|
+| C：`zombie-search.js`・`zombie-search-motion.js`、`bench/zombie-search.test.cjs`、`running-browser.yml` の1行 | 消した。**訂正：`bench/zombie-search-browser.cjs` は残した**（`window.skyZombieSearch` は今の追跡 `zombie-pursuit.js` の名前で、これは生きた検査） |
+| C：AMMO の画面端ピン（`?ammoPin`）、追従カメラの調整つまみ3つ（値は定数に）、`?hookArc=0` | 消した（`skyHookArc.enabled` は検査が直接切り替える） |
+| D2：`camera-comparison.html`・`camera-trial.html`、`bench/fixed-launcher-browser.cjs` | 消した |
+| D3：固定カメラの壁を透かす旧案（`?fixedOcclusion=fade|zoom`・`?wallView=classic`）と `bench/opaque-walls-review.html` | 消した（`wallView=classic` は `enhancements.js`・`surface-readability.js`・`world-batching.js` からも）。検査から旧案の比較を外した |
+| D5：`swing-plan.html`・`swing-escape-evidence.json`、`hook-editor.html` のリンク | 消した。**`?oldtown_swing`（検査が使う）・`swingCourse`（入門の地形の印）・`?swing_route` は残した**。`OLD_TOWN_SWING_PLAN.md` は記録として残し注記した |
+| D6：`escape-replay-viewer.html` | 消した。動画・JSON・`tools/escape-replay*` は記録・生成用として残した |
+| **D1：カメラの比較試作 `follow`・`follow-legacy`・`follow-turn`** | **消さなかった（私の見立てが誤り）。** `follow-turn` は AGENTS.md §6「操作方式を変えるときは親指の模型で前後を比べる」の**「前」の基準線**で、`bench/screen-stick-browser.cjs`・`screen-stick.test.cjs`・`follow-camera.test.cjs` が使う。`follow-legacy` は `easy-controls-browser`・`auto-follow-browser`・`follow-camera.test` が、`follow` は `auto-follow-entry-browser` が使う。消すなら、比較の基準線を別の形で残す判断が先 |
+| D4・D7・D8・D9・D10 | 触っていない（後回し・要確認・未調査のまま） |
+
+教訓：**「URLに付けたときだけ動く」＝「使われていない」ではない。** 検査と AGENTS.md の手順が基準線として使っていることがある。消す前に `bench/` と AGENTS.md を引くこと。
 
 ## C. 消せる（決着済み・判断不要）
 

@@ -1,3 +1,10 @@
+## 2026-11-22 棚卸しの「消せる」を消した（C・D2・D3・D5・D6。D1 は消さなかった）
+
+- 消した：退役済みの `zombie-search.js`・`zombie-search-motion.js`（と単体テスト）、AMMO の画面端ピン（`?ammoPin`）、追従カメラの調整つまみ3つ（値は `follow-camera.js` の定数に）、`?hookArc=0`、公開されていた比較・計画・リプレイのページ（`camera-comparison.html`・`camera-trial.html`・`swing-plan.html`・`escape-replay-viewer.html`）、固定カメラの壁を透かす旧案（`?fixedOcclusion=fade|zoom`・`?wallView=classic`）。公開版は 13.29 → 13.26 MB（325ファイル）。ランキングの版は v15 のまま。
+- **消さなかった（見立ての誤り）**：カメラの比較試作 `follow`・`follow-legacy`・`follow-turn`。`follow-turn` は AGENTS.md §6 の「親指の模型で前後を比べる」の**基準線**で、複数の検査が使う。「URLに付けたときだけ動く」＝「使われていない」ではない。
+- 直前の見立ての訂正：`bench/zombie-search-browser.cjs` は退役済みの検査ではなく、今の追跡の検査（`window.skyZombieSearch` は `zombie-pursuit.js` の名前）。残した。
+- 範囲・根拠・残り（D4・D7〜D10）は [docs/INVENTORY_2026-11-22.md](docs/INVENTORY_2026-11-22.md)。
+
 ## 2026-11-22 棚卸し：直下のJSとURLスイッチを仕分けた一覧（まだ何も消していない）
 
 - [docs/INVENTORY_2026-11-22.md](docs/INVENTORY_2026-11-22.md)：直下のJS 159本とURLスイッチ54種類を「公開の遊びで使う／開発・運営用／消せる（決着済み）／要判断／未決」に仕分けた。159本のうち149本は公開の入口から読み込まれていて、まるごと不要なファイルは少ない（`zombie-search.js`・`zombie-search-motion.js` の2本）。ノイズの大半はスイッチで切り替わる分岐と、それに付いた検査・比較ページ。
