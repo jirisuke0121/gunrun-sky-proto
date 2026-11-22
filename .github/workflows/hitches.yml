@@ -16,7 +16,15 @@ jobs:
       - run: node bench/zombie-types.test.cjs
       - run: node bench/shared-score.test.cjs
       - run: node bench/spawn-profile.test.cjs
-      - run: npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2 && npx playwright install --with-deps chromium
+      # ubuntu-latest（26.04）では playwright 1.58.2 の chromium を入れられない。ほかのワークフローと同じく、あれば Chrome を使う。
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.58.2
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
       - name: Jump/drop edge validity matches a fresh sweep after doors, rooms and boxes change
         run: node bench/leap-validity-cache-browser.cjs
       - name: Squeeze forecast equals the previous implementation

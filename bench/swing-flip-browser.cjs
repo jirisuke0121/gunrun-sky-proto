@@ -88,7 +88,7 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
             const release = await p.evaluate(() => { window.flipCueAge = null; const frame = flipTick(); flipTrace.push(frame); return frame; });
             assert.ok(release.flight, JSON.stringify(release));
             assert.equal(release.flight.perfect, perfect);
-            assert.ok(perfect ? release.reward.remaining > 3.9 && Math.abs(release.reward.factor - 1.08) < 1e-8 && !release.reward.hidden && release.reward.status.includes('速度 +8% ↑') : release.reward.remaining === 0 && !release.reward.hidden && release.reward.status === '速度 +0%', 'only successful timing grants and displays the movement reward');
+            assert.ok(perfect ? release.reward.remaining > 3.9 && Math.abs(release.reward.factor - 1.08) < 1e-8 && !release.reward.hidden && release.reward.status.includes('速度 +8% ↑') : release.reward.remaining === 0 && release.reward.hidden && release.reward.status === '速度 +0%', 'only successful timing grants and displays the movement reward (+0% stays hidden outside practice)');
             assert.ok(!release.cue.visible && release.cue.buttonColor !== 'rgb(126, 240, 170)', 'cue clears on release');
             releases.push(release);
             console.log(id, perfect ? 'perfect' : 'ordinary', part.bar, 'duration', release.flight.flipDuration);

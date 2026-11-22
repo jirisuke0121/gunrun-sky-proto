@@ -1,11 +1,12 @@
-## 2026-11-22 検査の実態を調べ直す／難易度ボタンの検査8本と `escape-branch-audit` を直す（テストのみ）
+## 2026-11-22 壁キックの吸い戻しを修正（`wall-jump-spots.js`）／検査の実態を調べ直して古い検査を直す
 
-- **`main` への push で動くワークフローは `main-regression.yml` だけ**（残り約40本は PR のときだけ。11/17 から走っていない）。11/17 に赤かった14ワークフローで落ちていた検査を、今のコードで回して仕分けた：7ワークフロー分は通る、1つ（`hitches`）は環境の問題、**検査5本（6ワークフロー）は今も落ちる**（`north-wall`・`wallrun-permissions`・`development-entry`・`stable-camera`・`swing-flip`。どれも11/16〜17から。11/22のマップ改装より前）。一覧と見立ては [docs/CI_STATE_2026-11-22.md](docs/CI_STATE_2026-11-22.md)。5本は未修正。
+- **不具合の修正**：リング西壁（中央ブロックの西面）を壁走りして**窓の下で壁キックすると、壁へ吸い戻されていた**（0.44 m 瞬間移動して外向きの速さが消える。踏み切り範囲の北寄り約1/3）。11/11 の窓破りダイブで壁が3つの箱に分かれ、隣の箱を「別の壁」と見なして付き直していたのが原因。`run` のある経路では箱が違っても同じ壁面として扱う（`__skyWallFaceKey`）。11/11 より前の動きに戻す直しなので、**ランキングの版は v15 のまま**。
+- **`main` への push で動くワークフローは `main-regression.yml` だけ**（残り約40本は PR のときだけ。11/17 から走っていない）。11/17 に赤かった検査を今のコードで回して仕分けた。落ちていた検査5本のうち4本を直した：`north-wall`（上の不具合）、`wallrun-permissions`（箱の数ではなく壁面の数で数える）、`development-entry`（11/14 から PC にも操作選択が出る）、`swing-flip`（11/14 から「速度 +0%」は出さない）。**残りは試作カメラの `stable-camera` 1本**（既定では無効の比較用。要判断）。一覧は [docs/CI_STATE_2026-11-22.md](docs/CI_STATE_2026-11-22.md)。
 - ホームに難易度ボタン群が2つあるため `[data-difficulty=…]` が2つに当たって止まっていた検査8本に `.first()`：`climb-line-memo`・`path-search-memo`・`free-hook`・`jump-pad`・`rope-stations`・`swing-hook`・`wind-fx`・`escape-branch-audit`。8本とも成功。
-- **`escape-branch-audit`**：落ちていた `east-lower-escape-with-pursuers`（東端デッキから低い通路へ跳び降りる想定）は、検査の想定が古かった。11/10 に足した張り出し（`return-links.js` の `LIP`）に走りジャンプが必ず着くのが今の設計で、縁は歩いて降りられない。想定を `east-deck-escape-with-pursuers`（デッキ → 張り出し → 西の3 mの台、追手つき）に置き換えた。156件が成功。**東端デッキから低い通路（−1 m）へは直接降りられない**（意図どおりかは要判断）。
-- `main-regression.yml` に、地形を守る検査2本（`map-links-browser`・`escape-branch-audit`）を足した。`map-links-browser` はCIで一度も走っていなかった。
+- **`escape-branch-audit`**：落ちていた `east-lower-escape-with-pursuers`（東端デッキから低い通路へ跳び降りる想定）は、検査の想定が古かった。11/10 に足した張り出し（`return-links.js` の `LIP`）に走りジャンプが着くのが今の設計。`east-deck-escape-with-pursuers`（デッキ → 張り出し → 西の3 mの台、追手つき）に置き換えた。156件が成功。「歩くと降りられない・跳べば降りられる」は意図どおり（本人に確認）。
+- `main-regression.yml` に、地形と壁の検査4本（`map-links-browser`・`escape-branch-audit`・`north-wall-browser`・`wallrun-permissions-browser`）を足した。`hitches.yml` のブラウザの入れ方を直した（CIでは未確認）。
 - 行動通知（下の節）を7言語で測った。スペイン語だけ余裕が薄い（幅568で5pxはみ出す。640では収まる）。
-- `flow-feel-browser`（自動ジャンプの試作）は、マップが決まるまで保留（本人の判断）。ゲームのコード・マップ・ランキングの版（v15）は触っていない。
+- `flow-feel-browser`（自動ジャンプの試作）は、マップが決まるまで保留（本人の判断）。マップは触っていない。
 
 ## 2026-11-22 CI「Main regression」の修正：英語の小画面で行動通知が中央の視界に重なる（`player-clarity.css`）
 

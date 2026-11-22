@@ -82,20 +82,24 @@ async function boot(map){
         check(!entered,'非許可の壁面では発動しない #'+index+' '+n.x+','+n.z);denied++;
       }
     }
-    check(allowed.length===5,'許可する壁面はショートカット5面だけ');
+    // 窓で分かれた壁は箱が複数になる（リング西壁は3箱）。箱ではなく壁面の数で数える。
+    const faces=new Set(allowed.map(({index,b,n})=>w.__skyWallFaceKey?.(b,n)??index+':'+n.x+','+n.z));
+    check(faces.size===5,'許可する壁面はショートカット5面だけ');
     check(denied>=8,'複数の非許可壁面を実際の移動処理で確認');
-    check(w.skyWallRunGuides?.routes.length===allowed.length,'許可面すべてに目印を表示');
+    check(w.skyWallRunGuides?.routes.length===faces.size,'許可面すべてに目印を表示');
     for(const guide of w.skyWallRunGuides.routes){
       const b=guide.wall,{x:nx,z:nz}=guide.normal;
       const plane=nx?(nx>0?b.maxX:b.minX):(nz>0?b.maxZ:b.minZ);
       check(Math.abs(plane-(nx?guide.at[0]:guide.at[2]))<.05,'目印が地点と同じ壁面 '+guide.name);
+      // 窓で分かれた壁（リング西壁）は、目印の帯が同じ壁面の箱すべてにまたがる。
+      const faceKey=w.__skyWallFaceKey?.(b,guide.normal),parts=faceKey?g.solids.filter(part=>!part.off&&w.__skyWallFaceKey(part,guide.normal)===faceKey):[b];
       let inside=true;
       for(const mesh of [guide.band,guide.launch]){
         mesh.updateMatrixWorld(true);const vertices=mesh.geometry.getAttribute('position');
         for(let i=0;i<vertices.count;i++){
           const p=new sky.Geom.Vector3().fromBufferAttribute(vertices,i).applyMatrix4(mesh.matrixWorld);
           p.x-=nx*.1;p.z-=nz*.1;
-          inside&&=p.x>b.minX&&p.x<b.maxX&&p.y>b.minY&&p.y<b.maxY&&p.z>b.minZ&&p.z<b.maxZ;
+          inside&&=parts.some(part=>p.x>part.minX&&p.x<part.maxX&&p.y>part.minY&&p.y<part.maxY&&p.z>=part.minZ&&p.z<=part.maxZ);
         }
       }
       check(inside,'目印の全頂点が実際の壁面内 '+guide.name);

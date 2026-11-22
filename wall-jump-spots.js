@@ -79,6 +79,20 @@
     });
   };
 
+  // 窓で分かれた壁（run のある経路）は、箱が違っても同じ1枚の壁面として扱う。
+  // 壁キックの直後は「同じ壁にはすぐ付き直さない」決まりだが、箱ごとに別の壁と数えると、
+  // 窓の下で蹴った人が隣の箱へ吸い戻される（外向きの速さが消える）。2026-11-22。
+  window.__skyWallFaceKey = (wall, normal) => {
+    if (!wall || !normal || window.skyPracticeMode) return null;
+    const index = defaults.findIndex(({ at: [x, , z], normal: [nx, nz], run }) => {
+      if (!run || normal.x !== nx || normal.z !== nz) return false;
+      const plane = nx ? (nx > 0 ? wall.maxX : wall.minX) : (nz > 0 ? wall.maxZ : wall.minZ);
+      const low = nx ? wall.minZ : wall.minX, high = nx ? wall.maxZ : wall.maxX;
+      return Math.abs(plane - (nx ? x : z)) < .05 && low >= run[0] - .05 && high <= run[1] + .05;
+    });
+    return index < 0 ? null : 'run' + index + ':' + normal.x + ',' + normal.z;
+  };
+
   // A descending player may catch an approved face without already having
   // running speed. The capsule must actually touch that face; the ordinary
   // wider side probes must never turn a nearby fall into an automatic catch.
