@@ -62,7 +62,7 @@
 
 - `bench/town-look-browser.cjs`（色つきの倉庫の壁5・木16・単独の板の柵1、を追加）：成功。
 - `bench/wall-readability-browser.cjs`：成功。
-- `bench/mood-browser.cjs`（暗さの上限）：結果は README の同日の節。
+- `bench/mood-browser.cjs`（暗さの上限）：成功。
 - ゲームの動きは変えていない（`look-pass.js` の色だけ）ので、地形・追手の検査は回していない。
 
 ## 未確認
