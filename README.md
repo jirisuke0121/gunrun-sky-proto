@@ -1,3 +1,8 @@
+## 2026-11-22 棚卸し：直下のJSとURLスイッチを仕分けた一覧（まだ何も消していない）
+
+- [docs/INVENTORY_2026-11-22.md](docs/INVENTORY_2026-11-22.md)：直下のJS 159本とURLスイッチ54種類を「公開の遊びで使う／開発・運営用／消せる（決着済み）／要判断／未決」に仕分けた。159本のうち149本は公開の入口から読み込まれていて、まるごと不要なファイルは少ない（`zombie-search.js`・`zombie-search-motion.js` の2本）。ノイズの大半はスイッチで切り替わる分岐と、それに付いた検査・比較ページ。
+- 次にやることは [docs/HANDOFF_2026-11-22.md](docs/HANDOFF_2026-11-22.md)。
+
 ## 2026-11-22 鉄棒の速度ボーナスと区間カメラの試作を外す
 
 - **鉄棒の完璧な離しで4秒間 +8%** を廃止（本人の判断）。`dash-boost.js` から `rewardSwing`・`swingRemaining` などを外し、`parkour-swing.js` の呼び出し1行を削除。DASHリング（青、5秒・1.3倍）は残す。**順位対象の難易度の動きが少し変わるが、ランキングの版は v15 のまま**（本人の指示）。検査：`dash-boost.test.cjs`・`dash-browser`・`touch-stick-browser`・`swing-flip-browser`（完璧な離しでも速度は変わらない）。

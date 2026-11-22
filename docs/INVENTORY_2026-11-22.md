@@ -1,0 +1,91 @@
+# 棚卸し：直下のJSとURLスイッチ（2026-11-22）
+
+「その物があることで次の行動が広がるか」をコードにも当てる。決着がついた試作・使われていないコードは、マップの「乗り越えるだけの壁」と同じノイズ。
+この文書は**仕分けだけ**。まだ何も消していない。`main` = `8230fdc` の時点。
+
+## 調べ方と限界
+
+- 直下の `*.js` 159本について、`index.html`・`canyon.html` から script / import をたどって届くかを機械的に調べた（`届く`＝読み込まれる、であって「既定の遊びで働く」ではない。URLスイッチで止まっているものがある）。
+- URLスイッチは、直下の `*.js` の `get('…')`・`has('…')` から拾った54種類（管理画面の入力欄の名前を含む。`index.html`・`canyon.html` 本体の中のスイッチは数えていない）。前回「65種類」と言ったのは、URL以外の `get()` も混ざった数で、正しくは54。
+- 各ファイルの役割は先頭のコメントと参照元から判断した。**中身を全部読んだわけではない。**「消せる」は根拠つきの候補で、消す前に関連の検査を回すこと。
+- 数えていないもの：`bench/`（255）、`docs/`（105）、`.github/workflows/`（43）、`*.css`、`tools/`、`server/`、`pool/`。
+
+## 結果の要約
+
+| 区分 | 直下のJS | 備考 |
+|---|---|---|
+| 公開の遊びで使う | 約135本 | 下の A |
+| 開発・運営用に要る | 約12本 | 下の B（エディター・管理画面・診断・言語パック） |
+| **消せる（決着済み）** | **2本＋スイッチ数個** | 下の C。判断不要 |
+| **要判断（決着しているなら消せる）** | 約10本＋ページ4つ＋スイッチ約15個 | 下の D。本人が「採用／却下」を決める |
+| 未決（触らない） | 3件 | 下の E |
+
+159本のうち149本は公開の入口から読み込まれている。**まるごと使われていないファイルは少ない。ノイズの大半は、ファイルの中の「スイッチで切り替わる分岐」と、それに付いた検査・比較ページ**にある。
+
+## C. 消せる（決着済み・判断不要）
+
+| 物 | 根拠 | 一緒に消すもの |
+|---|---|---|
+| `zombie-search.js`（17 KB）・`zombie-search-motion.js`（4 KB） | どこからも読み込まれていない。先頭に「Retired module kept for historical checks」。AGENTS.md §3「ゾンビの見失い・徘徊（継続追跡にした）」 | `bench/zombie-search.test.cjs`・`bench/zombie-search-browser.cjs`、`running-browser.yml` の2行。`zombie-search.js` 内の localStorage キー移行は読み込まれていないので動いていない |
+| AMMO の画面端ピン（`edge-pins.js` の `?ammoPin=1`） | 11/21に「画面端で見切れて紛らわしいので既定で出さない」と決めた。スイッチでしか出ない | ピンの生成・更新のコード、`bench` の該当項目（1か所） |
+| 追従カメラの調整つまみ `?followRate`・`?followSoft`・`?followSqueeze`（`follow-camera.js`） | 検査では使われていない（文書1本に記載があるだけ）。数値を決めるときの一時的なつまみ。今の値（1.7／.28／1.5）を定数にする | なし |
+| `?hookArc=0`（`hook-arc.js`） | フックの弧は採用済み。切るスイッチは検査でも文書でも使われていない | なし |
+
+消すときの確認：単体テスト全部、`running-browser.yml` の残りの手順、`edge-pins` に関わる検査（`grep -l ammoPin bench/*`）。
+
+## D. 要判断（「もう使わない」なら消せる）
+
+本人が1行ずつ「残す／消す」を決めれば、消す分は次のセッションでまとめて外せる。
+
+| # | 物 | 今の状態 | 消す場合の範囲 |
+|---|---|---|---|
+| D1 | カメラの比較試作 `?cameraTrial=follow`・`follow-legacy`・`follow-turn` | 11/9〜11/10の操作の比較用。今の既定（画面の向きへ倒す）は決まっている。記録は送らない | `follow-camera.js` の分岐（`allowManualLook`・`turnCommit`）、`fixed-trial-bootstrap.js`・`home-focus.js`・`guided-intro.js`・`guided-preferences.js` の一覧、`bench/auto-follow-review.html`、`send-default-browser`・`auto-follow-routing.test` の該当項目 |
+| D2 | 比較ページ `camera-comparison.html`・`camera-trial.html`（直下＝公開される） | README からしか参照されていない（`camera-trial.html` は検査1本） | ページ2つと `bench/fixed-launcher-browser.cjs` |
+| D3 | 固定カメラの壁の見せ方の旧案 `?fixedOcclusion=fade|zoom`・`?wallView=classic` | 今の既定は「壁は実体を残し、カメラの距離と角度で補う」。旧案（壁を透かす）は比較用 | `fixed-camera-trial.js` の `fadeWalls` まわり（約50行）、`world-batching.js`・`surface-readability.js`・`enhancements.js` の分岐 |
+| D4 | 旧い見た目 `?look=classic`・`?wallReadability=classic` | 11/11以降の町の見た目の前。検査6本と文書4本が使っている | `look-pass.js`・`mood.js`・`contact-shadow.js`・`town-dress.js`・`wall-readability.js` の分岐と検査の項目。**範囲が広いので、急がない** |
+| D5 | 鉄棒の計画ページ `swing-plan.html`（14 KB、直下＝公開される）と `OLD_TOWN_SWING_PLAN.md`、`?oldtown_swing=1`・`?swing_route`・`?swingCourse` | 旧市街の鉄棒は公開済み。計画・下見用 | ページ、`hook-editor.html` からのリンク、`challenge-difficulty.js`・`foundation-runtime.js`・`old-town-swing.js` の分岐 |
+| D6 | `escape-replay-viewer.html`（直下＝公開される） | 10/30の脱出テストのリプレイを見るページ。`docs/escape-replays/` とセット | ページと `docs/escape-replays/` |
+| D7 | 練習モード（`practice.js`・`practice-world.js`・`practice.css`・`PRACTICE.md`、`?practice`） | ホームからの入口は見つからなかった（URLで直接開く）。`canyon.html` だけが読み込む。入門コース（`?learn=1`）は練習モードの地形の一部を使っている | 入門コースと絡むので、消すなら切り分けが要る。**使っているかどうかを先に教えてほしい** |
+| D8 | 旧い入門の入口 `?guidedEntry=0`（`legacyIntro`） | 自動操作（検査）のときだけ既定で旧い道を通る。人は通らない | 検査側を今の入口に合わせる必要がある（検査5本が使用） |
+| D9 | 一人称の表示（`first-person-weapons.js` 12 KB、`human-view.js` の `existing`） | AGENTS.md §2「三人称前提で、一人称の専用対応はしない」。ただし視点の選択肢として残っている可能性がある | 未調査。使っているなら残す |
+| D10 | `auto-resolution-monitor.js`（2 KB） | 先頭に「NIGHTLINE's rendered-frame policy」。AGENTS.md §3「NIGHTLINE の画質調整の仕様の取り込み」はやらない、と食い違って見える。`foundation-runtime.js` が読み込んでいる（測るだけで画質は変えていない可能性がある） | 未調査。測るだけなら残してよい |
+
+## E. 未決（触らない）
+
+| 物 | 理由 |
+|---|---|
+| ギャップ自動ジャンプ（`flow-feel.js` の `?autoJump=1`、`bench/flow-feel-browser.cjs` が落ちる） | マップが決まるまで保留（本人の判断、11/22） |
+| 街の形を足す試作（`town-dress.js` 12 KB、`?dress=1`） | AGENTS.md §5「ジオメトリを足す装飾は PlaytestCloud の結果を見てから」 |
+| 超ベリーハード（`challenge-difficulty.js` の `extreme`、`zombie-types.js`） | AGENTS.md §6「試作でランキング対象外」として残すと決めてある |
+
+## B. 開発・運営用に要る（残す）
+
+- **エディター**：`hook-editor.js`・`wall-jump-candidates.js`（`hook-editor.html`。公開版には含めない、AGENTS.md §8）。
+- **管理画面**：`owner.js`（`owner.html`・`owner-token.html`）。スイッチ `days`・`from`・`to`・`token`・`endpoint` は入力欄の名前。
+- **言語パック**：`i18n-es/pt/th/tr/vi.js`（`i18n.js` が選んだ言語だけ後から読み込む。生成物）。
+- **診断**（プレイ記録に入る・既定で動く）：`perf-trace.js`・`nav-watch.js`・`threat-trace.js`・`telemetry-probe.js`・`foundation-metrics.js`・`environment-profile.js`。
+- **前後を比べるスイッチ**（本人の実機確認・検査で使う。AGENTS.md に載っているもの）：`?mood`・`?walls=plain`・`?prune=0`・`?links=0`・`?scenery=0`・`?outline`・`?contact`・`?motes`・`?windFx=0`・`?flowFeel=0`・`?landAssist=0`。
+- **入口・状態のスイッチ**（遊びの流れで使う）：`?lang`・`?camera`・`?dev`・`?learn`・`?learned`・`?return`・`?onboarding`・`?ownerReplay`・`?replay`。
+- **検査のためのスイッチ**：`?controlpick=0`・`?hookGuide=0`・`?guides=0`・`?controlsGuide=0`・`?firstGuide=1`・`?challengeDebug=1`・`?start`・`?start_spot`・`?random_start`・`?perf`・`?threatHud`・`?boss`・`?section`。
+
+## A. 公開の遊びで使う（残す）
+
+読み込まれていて、先頭のコメントと参照元から「既定の遊びで働く」と判断したもの。まとまりごとに：
+
+- **地形（旧市街）**：`town-heights`・`roof-trenches`・`return-links`・`window-dive`・`tower-tunnel`・`rope-swing`・`rope-stations`・`old-town-swing`・`jump-pads`・`map-prune`・`map-links`・`start-spots`・`indoor-access`・`indoor-feedback`。渓谷：`canyon-world`・`parkour-course`。入門：`guided-world`・`guided-art`。
+- **動き**：`edge-assist`・`stair-walk`・`slope-slide`・`landing-roll`・`parkour-swing`・`swing-fatigue`・`swing-flip`・`hook-arc`・`hook-landing`・`hook-targeting`・`free-hook`・`wall-jump-spots`・`wallrun-guides`・`dash-boost`・`jump-pickups`・`jump-gun`・`blast-barrels`・`flashbang`・`skill-decoy`・`bite-shove`・`player-skills`・`context-click`・`touch-rescue`・`escape-routes`。
+- **追手**：`zombie-pursuit`・`zombie-routing`・`zombie-climb`・`zombie-descent`・`zombie-ladders`・`zombie-fall`・`zombie-near`・`zombie-types`・`boss-zombie`・`opening-wave`・`spawn-profile`・`spawn-reach`・`challenge-difficulty`。
+- **カメラ・操作**：`follow-camera`・`fixed-camera-trial`（公開の固定カメラ）・`fixed-trial-bootstrap`・`control-style`・`controls-guide`・`desktop-look-fallback`・`auto-fire-controls`・`gun-recoil`・`viewport-runtime`。
+- **見た目**：`look-pass`・`far-scenery`・`ink-outline`・`mood`・`contact-shadow`・`wall-readability`・`surface-readability`・`world-batching`・`render-quality`・`wind-fx`・`flow-feel`・`unity-explosion-fx`・`human-view`・`human-actions`・`human-running`・`human-aim`・`human-wallrun`・`human-occlusion`・`first-person-weapons`・`easy-weapon-port`・`weapon-drops`。
+- **画面・案内**：`home-focus`・`onboarding`・`first-run-guide`・`next-step`・`intro-skip`・`game-menu`・`pause-focus`・`player-clarity`・`hud-declutter`・`weapon-hud`・`minimap`・`minimap-model`・`edge-pins`・`threat-edge`・`threat-math`・`combat-feedback`・`tip-cards`・`tip-usage`・`tips-demos`・`credits`・`dev-mode`・`i18n`・`i18n-en`・`i18n-en-extra`。
+- **入門**：`guided-intro`・`guided-choice`・`guided-coach`・`guided-defense`・`guided-lessons`・`guided-prompts`・`guided-preferences`・`context-tutorial`・`hook-tutorial`。
+- **スコア・記録・ランキング**：`challenge-score`・`survival-score`・`ranked-rules`・`ranking`・`run-records`・`player-name`・`random-uuid`・`ghost-replay`・`replay-data`・`replay-detail`・`replay-scene`・`replay-audio`・`replay-time`・`foundation-runtime`・`start-readiness`。
+- **音**：`audio-recovery`・`decoy-audio`・`gear-audio`・`tension-music`・`voice-sfx`。
+- `enhancements.js`（111 KB）は多くの機能の束ね役。中に古い分岐が残っている可能性は高いが、今回は開けていない。
+
+## 次にやる順（提案）
+
+1. **C を消す**（判断不要。半日もかからない）。
+2. **D を本人が仕分ける**（表の # ごとに「残す／消す」）。おすすめの初手は D1・D2・D3・D5・D6（比較用・計画用で、遊びに出ない。直下のページ4つは公開もされている）。
+3. D4（旧い見た目）と D8（旧い入門の入口）は、検査の書き換えが多いので後回し。
+4. その後に、数えていない `bench/`（255）と `docs/`（105）、PR のときしか動かないワークフロー（約40本）の棚卸し。消した機能の検査・文書が残っていないかを見る。
