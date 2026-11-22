@@ -71,8 +71,9 @@ let choice = 'unity';
 const FIRST_PERSON_KEY = 'gunrun-first-person-v1';
 let firstPerson = false, firstPersonRun = false;
 try { firstPerson = localStorage.getItem(FIRST_PERSON_KEY) === '1'; } catch {}
-// 入門コース（skyGuidedMode）は三人称の操作説明なので、設定にかかわらず三人称のまま。人物を読み込めなかったときの代替表示は一人称。
-const desiredView = () => choice === 'unity' ? (firstPerson && !window.skyGuidedMode ? 'first' : 'third') : 'first';
+// 入門コース（skyGuidedMode）は三人称の操作説明なので、設定にかかわらず三人称のまま。固定カメラ（?cameraTrial=fixed）も、
+// 見下ろしの固定の向きと「画面の向きへ倒す」操作が組なので三人称のまま。人物を読み込めなかったときの代替表示は一人称。
+const desiredView = () => choice === 'unity' ? (firstPerson && !window.skyGuidedMode && !(window.skyFixedCamera && window.skyFollowCamera?.mode === 'after') ? 'first' : 'third') : 'first';
 view = desiredView();
 
 function readBounds(object) {

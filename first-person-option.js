@@ -18,9 +18,10 @@
   const sync = () => { input.checked = !!(window.skyHumanView?.firstPerson ?? saved); };
   input.addEventListener('change', () => { window.skyHumanView?.setFirstPerson(input.checked); sync(); });
   document.addEventListener('sky-first-person-change', sync);
-  // 人物を読み込めず代替表示（一人称）になっているとき・入門コースでは、切り替えても変わらないので出さない。
-  const visible = () => { box.hidden = window.skyHumanView?.choice === 'existing' || !!window.skyGuidedMode; };
-  new MutationObserver(visible).observe(document.body, { attributes: true, attributeFilter: ['data-sky-human-trial'] });
+  // 人物を読み込めず代替表示（一人称）になっているとき・入門コース・固定カメラでは、切り替えても変わらないので出さない。
+  const visible = () => { box.hidden = window.skyHumanView?.choice === 'existing' || !!window.skyGuidedMode || !!(window.skyFixedCamera && window.skyFollowCamera?.mode === 'after'); };
+  new MutationObserver(visible).observe(document.body, { attributes: true, attributeFilter: ['data-sky-human-trial', 'data-sky-camera-mode'] });
+  document.addEventListener('click', () => setTimeout(visible, 0), true);
   visible();
   window.skyFirstPersonOption = { box, input, sync };
   // pause-focus.js が操作タブへ移すまでは置き場（#app の直下）に隠れている（pause-focus.css）。

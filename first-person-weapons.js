@@ -46,6 +46,7 @@ export function createFirstPersonWeapons(game, prototypes, loaded, excludedHandP
   flash.add(flashCore,flashTip); rig.add(flash); flash.visible=false;
   const muzzle = new Vector3(), point = new Vector3(), direction = new Vector3();
   const up = new Vector3(0,1,0);
+  const gripElbowR=new Vector3(),gripElbowL=new Vector3();
   const rightGrip=new Vector3(),leftGrip=new Vector3(),rightElbow=new Vector3(.40,-.46,-.06),leftElbow=new Vector3(-.45,-.42,-.12);
   let signature='', model=null, animatedParts=[], hands=[], kick=0, flashT=0, shotClock=1;
   let lastShots=0, active=false, gloveLoaded=false, unityHands=null;
@@ -137,22 +138,57 @@ export function createFirstPersonWeapons(game, prototypes, loaded, excludedHandP
     }
     lastShots=shots;shotClock+=dt;
     kick*=Math.exp(-dt*(weapon===1||weapon>=9?10:16));flashT=Math.max(0,flashT-dt);
-    const freeHands=['ladder','ledge','zip','hook','swing'].includes(c.state) || !!c.swingFall || game.nn.t>0;
-    active=!!model && (!!U.gunOn || !!door) && !!U.showBody && game.modeRef()!=='menu' && !window.skySettings?.beforeRun && !thirdPerson && !freeHands;
-    rig.visible=active;
+    const climbing=['ladder','ledge','zip','hook','swing'].includes(c.state) || !!c.swingFall;
+    const freeHands=climbing || game.nn.t>0;
+    const shown=!!model && !!U.showBody && game.modeRef()!=='menu' && !window.skySettings?.beforeRun && !thirdPerson;
+    active=shown && (!!U.gunOn || !!door) && !freeHands;
+    // 手を使う技（はしご・縁・ジップ・フック・鉄棒）：銃をしまい、一人称の両手で掴む形を見せる（2026-11-22）。
+    // 以前は古い腕のアニメーション（ナイフを持った手）が出て、銃が刃物の断面のように見えていた。ナイフの一撃（nn.t）は従来どおり。
+    const gripping=shown && climbing && game.nn.t<=0;
+    rig.visible=active || gripping;
     for(const prototype of prototypes) prototype.visible=false;
+    if(gripping) {
+      for(const hand of mr) hand.root.visible=false;
+      weaponRoot.visible=false;flash.visible=false;
+      rig.scale.setScalar(camera.aspect<1.2?.86:1);rig.position.set(0,0,0);rig.rotation.set(0,0,0);
+      const t=performance.now()/1000;
+      let pose='overhead';
+      if(c.state==='ladder') {
+        // 交互に段を掴む。体の高さで手が入れ替わる。
+        const phase=Math.sin(c.pos.y*3.2);
+        rightGrip.set(.18,-.05+.09*phase,-.46);leftGrip.set(-.18,-.05-.09*phase,-.46);pose='ladder';
+      } else if(c.state==='ledge') {
+        // 縁に両手を掛ける（画面の下寄り）。
+        rightGrip.set(.24,-.21,-.46);leftGrip.set(-.24,-.21,-.46);pose='ledge';
+      } else {
+        // フック・ジップ・鉄棒：頭上の綱や棒を両手で握る。少し揺らす。
+        const sway=c.state==='swing'||c.swingFall?Math.sin(t*5)*.015:0;
+        rightGrip.set(.12,.13+sway,-.48);leftGrip.set(-.12,.13-sway,-.48);
+      }
+      const lift=pose==='ledge'?0:-1.1;
+      // 掴む形では、肘を手の真下より少し手前に置く（カメラの横の固定の肘まで袖を伸ばすと、画面いっぱいの筒に見える）。
+      const elbowDrop=pose==='ledge'?[.05,-.20,.16]:[.07,-.30,.12];
+      gripElbowR.set(rightGrip.x+elbowDrop[0],rightGrip.y+elbowDrop[1],rightGrip.z+elbowDrop[2]);
+      gripElbowL.set(leftGrip.x-elbowDrop[0],leftGrip.y+elbowDrop[1],leftGrip.z+elbowDrop[2]);
+      placeHand(hands[1],rightGrip,gripElbowR,[lift,0,-Math.PI/2]);
+      placeHand(hands[0],leftGrip,gripElbowL,[lift,0,Math.PI/2]);
+      for(const hand of hands){hand.sleeve.scale.x=hand.sleeve.scale.z=.6;hand.wrist.scale.setScalar(1.25);}
+      document.body.dataset.skyFirstPerson=JSON.stringify({weapon,revision:'weapon-framing-v2',visible:true,grip:pose,weaponVisible:false,state:c.state,thirdPerson});
+      return;
+    }
     if(!active) {
       // With a gun equipped the knife is held by the left hand. Keep the idle
       // right arm out of the strike so its forearm cannot cover the blade.
       if(game.nn.t>0 && U.gunOn) mr[1].root.visible=false;
       flash.visible=false;
-      document.body.dataset.skyFirstPerson=JSON.stringify({weapon,revision:'weapon-framing-v1',visible:false,state:c.state,thirdPerson});
+      document.body.dataset.skyFirstPerson=JSON.stringify({weapon,revision:'weapon-framing-v2',visible:false,state:c.state,thirdPerson});
       return;
     }
     // The original arm animation is retained for knife and parkour states.
     for(const hand of mr) hand.root.visible=false;
     weaponRoot.visible = !door;
     if (door) {
+      for(const hand of hands){hand.sleeve.scale.x=hand.sleeve.scale.z=1;hand.wrist.scale.setScalar(1);}
       rig.scale.setScalar(1); rig.position.set(0,0,0); rig.rotation.set(0,0,0);
       point.set(door.contact.x,door.contact.y,door.contact.z).applyMatrix4(game.Se.matrixWorldInverse);
       const w=door.weight;
@@ -173,8 +209,10 @@ export function createFirstPersonWeapons(game, prototypes, loaded, excludedHandP
     const bob=moving?Math.sin(c.bob)*Math.min(.008,speed*.0013):0;
     const slide=c.state==='slide'?1:0, airborne=!c.onGround?.025:0;
     const aspect=camera.aspect, narrow=Math.min(1,aspect/1.45);
+    // スマホ（タッチ）は画面の下中央に技ボタンが並ぶので、銃と手を右へ寄せて少し上げる（2026-11-22、一人称のおまけ）。
+    const touchShift=document.documentElement.classList.contains('touch')?1:0;
     rig.scale.setScalar(aspect<1.2?.86:1);
-    rig.position.set(profile.position[0]*narrow+bob,profile.position[1]-.045*reload-.055*slide-airborne,profile.position[2]+profile.kick*kick);
+    rig.position.set(profile.position[0]*narrow+.09*touchShift+bob,profile.position[1]+.025*touchShift-.045*reload-.055*slide-airborne,profile.position[2]+profile.kick*kick);
     rig.rotation.set(.025+profile.pitch*kick+.10*reload,.10+.16*reload,.08*slide-.25*reload+(c.state==='wallrun'?.12*c.wallSide:0));
     for(const {target,original} of animatedParts) {target.position.copy(original.position);target.quaternion.copy(original.quaternion);}
     const right=rightGrip.set(...profile.grip),left=leftGrip.set(...profile.support);
@@ -188,6 +226,7 @@ export function createFirstPersonWeapons(game, prototypes, loaded, excludedHandP
     left.z+=reach*.13;
     if(profile.reload==='rocket') {left.z+=reach*.22;left.x-=reach*.08;}
     if(weapon===1 && shotClock<.42) left.z+=Math.sin(Math.PI*shotClock/.42)*.08;
+    for(const hand of hands){hand.sleeve.scale.x=hand.sleeve.scale.z=1;hand.wrist.scale.setScalar(1);}
     placeHand(hands[1],right,rightElbow,[0,0,-Math.PI/2]);
     placeHand(hands[0],left,leftElbow,pistol?[0,.10,Math.PI/2]:[0,-Math.PI/2,0]);
     flash.position.set(0,-.035,-profile.length-.025);
@@ -195,7 +234,7 @@ export function createFirstPersonWeapons(game, prototypes, loaded, excludedHandP
     flash.scale.setScalar(weapon===8?.5:weapon>=9?1.8:1);
     rig.updateMatrixWorld(true);
     muzzle.copy(flash.position);rig.localToWorld(muzzle);point.copy(muzzle).project(camera);
-    document.body.dataset.skyFirstPerson=JSON.stringify({weapon,name:game.WP[weapon].n,revision:'weapon-framing-v1',visible:true,state:c.state,length:profile.length,muzzle:[+point.x.toFixed(3),+point.y.toFixed(3)],kick:+kick.toFixed(3),reload:+progress.toFixed(3),flash:flash.visible,hands:hands.length});
+    document.body.dataset.skyFirstPerson=JSON.stringify({weapon,name:game.WP[weapon].n,revision:'weapon-framing-v2',visible:true,state:c.state,length:profile.length,muzzle:[+point.x.toFixed(3),+point.y.toFixed(3)],kick:+kick.toFixed(3),reload:+progress.toFixed(3),flash:flash.visible,hands:hands.length});
   }
   function getMuzzleWorld() {
     if(!active) return null;

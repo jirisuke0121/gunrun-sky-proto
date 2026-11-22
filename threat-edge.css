@@ -16,3 +16,9 @@ body:has(#ovPause:not([hidden])) #threatEdge,body:has(#ovOver:not([hidden])) #th
 #threatEdge i[data-tier='3'][data-side=l],#threatEdge i[data-tier='3'][data-side=r]{animation:threatPulseX .6s ease-in-out infinite}
 #threatEdge i[data-tier='3'][data-side=b],#threatEdge i[data-tier='3'][data-side=t]{animation:threatPulseY .6s ease-in-out infinite}
 }
+/* 一人称視点（おまけ）：背後がまったく見えないので、背後と左右の光を太く、下の光を横に広くする（2026-11-22） */
+body[data-sky-human-view=first] #threatEdge i{--w:34px}
+body[data-sky-human-view=first] #threatEdge i[data-tier='far']{--w:16px}
+body[data-sky-human-view=first] #threatEdge i[data-tier='2']{--w:52px}
+body[data-sky-human-view=first] #threatEdge i[data-tier='3']{--w:72px}
+body[data-sky-human-view=first] #threatEdge i[data-side=b]{left:6%;right:6%}

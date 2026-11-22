@@ -112,7 +112,8 @@ body.sky-replaying #hud,body.sky-replaying #touch,body.sky-replaying #bSettings,
   }
   function finish() {
     const ghost = snapshot();
-    if (ghost && z.final && z.final.total > 0) {
+    // 一人称視点（おまけ）で遊んだランは、自己ベストのゴーストにしない（ランキング・記録と同じ扱い）。
+    if (ghost && z.final && z.final.total > 0 && !window.skyHumanView?.firstPersonRun) {
       const cleared = z.reason === 'time';
       if (!best || (window.skyChallengeScore?.enabled() ? z.final.total > best.total : Number(cleared) > Number(best.cleared) || (cleared === best.cleared && z.final.total > best.total))) {
         best = { total: z.final.total, cleared, ghost };
