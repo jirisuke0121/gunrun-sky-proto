@@ -42,6 +42,7 @@
     const scale = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
     const sunLen = Math.hypot(...mood.sun.dir), SUN = mood.sun.dir.map(v => v / sunLen), sunAz = Math.atan2(SUN[2], SUN[0]);
     const HAZE = lin(mood.haze), WARM = lin(mood.glow), LOW = lin(mood.skyLow), MID = lin(mood.skyMid), COOL = lin(0x9fa6e6);
+    const DEEP = mix(lin(mood.skyTop), LOW, 0.4), PALE_SEA = params.get('sea') === 'pale';
     const C = {
       cloud: lin(0xfff1ea), cloudShade: mix(lin(mood.skyLow), lin(0xfff1ea), 0.5), alpen: lin(0xffb7a3), snow: lin(0xfff0f2),
       ridge: [lin(0x57528c), lin(0x8676ad), lin(0xb394ba)],                    // near -> far: deep violet, lavender, pale rose
@@ -55,7 +56,10 @@
     // with a broad path of light toward the sun. The billows and the feet of the mountains take their colour from it.
     const seaColour = (x, z) => {
       const dx = x - CX, dz = z - CZ, r = Math.hypot(dx, dz), da = angleGap(Math.atan2(dz, dx), sunAz);
-      let c = mix(mix(LOW, C.cloud, 0.42), HAZE, step(40, 520, r));
+      // 11/22: the cloud right under the town was almost white, so the pale walls and paving had nothing to stand out
+      // against and the gap below read as an unfinished blank. Under the town the sea is now the deep colour of the sky
+      // (DEEP), lifting to the old pale cloud by 260 m; the white billows on it then read as clouds. ?sea=pale = before.
+      let c = PALE_SEA ? mix(mix(LOW, C.cloud, 0.42), HAZE, step(40, 520, r)) : mix(mix(DEEP, C.cloud, 0.08 + 0.42 * step(30, 260, r)), HAZE, step(120, 520, r));
       c = mix(c, mix(C.cloud, WARM, 0.35), Math.exp(-(da * da) / (2 * 0.3 * 0.3)) * step(50, 300, r) * 0.6);
       return scale(c, 0.965 + 0.07 * noise(x / 70 + 3.1, z / 70 - 8.2));
     };
