@@ -156,7 +156,6 @@ export function createSwing(sky, game, course) {
     c.vel.set(...(exhausted ? [c.vel.x*.3,Math.min(-1,c.vel.y),c.vel.z*.3] : drop ? [a.direction[0] * 2, -1, a.direction[1] * 2] : launch));
     c.swingFlight = drop ? null : { age: 0, angle: a.angle, direction: [...a.direction], perfect,
       flipDuration: perfect ? flipDuration(c.pos.toArray(), launch, U.gravity, sky.oe, bars, a.bar.id, c.r) : 0 };
-    if (perfect) window.skyDash?.rewardSwing();
     if (perfect && U.autoFire && sky.Et) sky.Et.trigger = 0;
     event(exhausted ? 'barExhausted' : drop ? 'barDrop' : 'barJump', { bar: a.bar.id, chain, turns:a.turns, heldSeconds:+a.heldSeconds.toFixed(3), angle: +a.angle.toFixed(3), omega: +a.omega.toFixed(3), perfect });
     if (!drop) { window.skyTelemetryProbe?.jumpAccepted(z.t, 'bar_release'); game.stats.barJumps = (game.stats.barJumps || 0) + 1; sky.Tt.jump?.(); }

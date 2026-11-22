@@ -18,7 +18,7 @@ export function installGuidedChoice({game,sky,english,clearInput,adopt,reset,exi
       a.querySelector('h3').textContent=title;
       const preview=a.querySelector('.learn-preview');preview.setAttribute('aria-label',title+tr('を試す',' — try'));preview.querySelector('img').alt=title+tr('の実際のゲーム画面',' in the actual game');
       a.querySelector('.mini-jump').textContent=tr('ジャンプ','Jump');
-      const fixedView=['fixed','hybrid'].includes(new URLSearchParams(location.search).get('cameraTrial'));
+      const fixedView=new URLSearchParams(location.search).get('cameraTrial')==='fixed';
       a.querySelector('.mini-fixed').textContent=fixedView?tr('視点は固定','View stays fixed'):tr('視点は自動','Automatic view');
       a.querySelector('.mini-look small').textContent=tr(touch?'右で見回す':'マウスで見回す',touch?'Drag to look':'Mouse to look');
       a.querySelector('.mini-try').textContent=tr('画面をタップして試す','Tap the picture to try');

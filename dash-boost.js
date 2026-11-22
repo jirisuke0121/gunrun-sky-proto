@@ -2,8 +2,6 @@
 export const DASH_SECONDS = 5;
 export const DASH_MULTIPLIER = 1.3;
 export const DASH_RESPAWN = 36;
-export const SWING_BOOST_SECONDS = 4;
-export const SWING_BOOST_MULTIPLIER = 1.08;
 const clamp = x => Math.max(0, Math.min(1, x));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 const ease = (from, to, dt, rate) => from + (to - from) * (1 - Math.exp(-dt * rate));
@@ -91,14 +89,13 @@ export function createDash(sky, game) {
   if (life) life.after(status); else (document.getElementById('hud') || document.body).appendChild(status);
   const rule = document.querySelector('#ovStart .rules .keys');
   if (rule) { const li = document.createElement('li'); li.textContent = '青いDASHリングを取ると5秒間、速度が1.3倍。再出現は36秒後'; rule.appendChild(li); }
-  let swingRemaining = 0;
   let remaining = 0, age = 0, time = 0, pulse = 0, run = 0, boost = 0, aimTime = 0, shots = game.stats.shots || 0;
   let previous = null, previousFactor = 1, swingView = 0;
   const trail = [], forward = new Vector3(), right = new Vector3(), centre = new Vector3();
   const camera = { distance: 3.6, shoulder: .62, height: .18 };
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false;
   function reset(round = false) {
-    swingRemaining = remaining = age = pulse = boost = aimTime = 0; previousFactor = 1; previous = null; trail.length = 0;
+    remaining = age = pulse = boost = aimTime = 0; previousFactor = 1; previous = null; trail.length = 0;
     streak.visible = burst.visible = false; echoes.forEach(m => { m.visible = false; });
     lines.style.opacity = flash.style.opacity = '0'; status.hidden = true;
     if (round) { items.forEach(i => { i.cooldown = 0; }); game.stats.dashPickups = 0; }
@@ -115,15 +112,11 @@ export function createDash(sky, game) {
     burst.position.set(c.pos.x, c.pos.y + .2, c.pos.z); trail.length = 0;
     sky.Tt.mark?.(); document.body.dataset.skyDashCollected = String(game.stats.dashPickups);
   }
-  // A successful release refreshes a small reward; it never stacks with itself.
-  function rewardSwing() { swingRemaining = SWING_BOOST_SECONDS; }
   function factor(sprinting = true) {
-    return (1 + (sprinting ? (DASH_MULTIPLIER - 1) * boostEnvelope(remaining, age) : 0)) *
-      (1 + (SWING_BOOST_MULTIPLIER - 1) * smooth(0, .4, swingRemaining));
+    return 1 + (sprinting ? (DASH_MULTIPLIER - 1) * boostEnvelope(remaining, age) : 0);
   }
   function step(dt) {
     if (sky.modeRef() !== 'play' || z.over) return;
-    swingRemaining = Math.max(0, swingRemaining - dt);
     remaining = Math.max(0, remaining - dt); age = remaining > 0 ? age + dt : 0; pulse = Math.max(0, pulse - dt); aimTime = Math.max(0, aimTime - dt);
     if ((game.stats.shots || 0) !== shots) { shots = game.stats.shots || 0; aimTime = .28; }
     const from = previous || c.pos.toArray(), to = c.pos.toArray();
@@ -205,11 +198,10 @@ export function createDash(sky, game) {
     });
     burst.visible = pulse > 0 && !reduced;
     burst.scale.setScalar(1 + (1 - pulse / .42) * 5); burst.material.opacity = pulse / .42 * .65;
-    document.body.dataset.skyDash = JSON.stringify({ remaining: +remaining.toFixed(3), factor: +factor().toFixed(3), swingRemaining: +swingRemaining.toFixed(3), run: +run.toFixed(3), boost: +boost.toFixed(3), distance: +camera.distance.toFixed(3), pickups: items.filter(i => i.node && i.cooldown <= 0).length });
+    document.body.dataset.skyDash = JSON.stringify({ remaining: +remaining.toFixed(3), factor: +factor().toFixed(3), run: +run.toFixed(3), boost: +boost.toFixed(3), distance: +camera.distance.toFixed(3), pickups: items.filter(i => i.node && i.cooldown <= 0).length });
   }
-  return { step, frame, reset, placePickups, camera, rewardSwing,
+  return { step, frame, reset, placePickups, camera,
     speed: (base, sprinting = true) => base * factor(sprinting),
-    get swingRemaining() { return swingRemaining; },
     fov: original => {
       const normal=Math.min(122,Math.max(original,U.fov+U.fovKick*.8*run+7*boost*run));
       return normal+(Math.min(normal,94)-normal)*swingView;

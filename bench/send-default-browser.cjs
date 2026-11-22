@@ -62,7 +62,7 @@ const port = process.env.SEND_DEFAULT_PORT || '8875';
       assert.ok(hits.some(h=>h.includes('workers.dev')),`${map}: explicit published fixed controls retain communication`);
       await saved.close();
       // 明示した比較用の試作は通信を止める。
-      for(const reviewTrial of ['hybrid','follow','follow-legacy']){
+      for(const reviewTrial of ['follow','follow-legacy']){
       const hy = await browser.newContext({ viewport: { width: 480, height: 270 } }); const hyHits = [];
       await hy.addInitScript(() => { window.__hold = true; });
       await hy.route('**/*', async route => { const u = new URL(route.request().url());

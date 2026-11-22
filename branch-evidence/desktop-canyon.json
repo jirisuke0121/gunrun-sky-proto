@@ -1,0 +1,8762 @@
+{
+  "map": "canyon",
+  "touch": false,
+  "ladderExits": [
+    {
+      "i": 0,
+      "x": 0,
+      "z": -12,
+      "y0": 4,
+      "y1": 8,
+      "canExit": true
+    },
+    {
+      "i": 1,
+      "x": -12,
+      "z": 13,
+      "y0": 4,
+      "y1": 8,
+      "canExit": true
+    },
+    {
+      "i": 2,
+      "x": 12,
+      "z": 13,
+      "y0": 4,
+      "y1": 8,
+      "canExit": true
+    }
+  ],
+  "settings": {
+    "sprint": 6,
+    "jump": 7.2,
+    "gravity": 20,
+    "difficulty": "easy"
+  },
+  "results": [
+    {
+      "id": "middle-west-to-east",
+      "kind": "walk",
+      "at": [
+        -19,
+        4,
+        0
+      ],
+      "waypoints": [
+        [
+          19,
+          4,
+          0
+        ]
+      ],
+      "start": {
+        "t": 0.09999999999999999,
+        "p": [
+          -19,
+          4.0001,
+          0
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": null
+      },
+      "end": {
+        "t": 6.341666666666772,
+        "p": [
+          18.809335259331867,
+          4.0001,
+          -1.077375681001274e-17
+        ],
+        "v": [
+          7.800000000000001,
+          0,
+          -4.776122516674678e-16
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": null
+      },
+      "waypointsReached": 1,
+      "complete": true,
+      "fixtureInvalid": false,
+      "states": [
+        "normal"
+      ],
+      "jumped": false,
+      "minNearest": null,
+      "trail": [
+        {
+          "t": 0.10833333333333332,
+          "p": [
+            -18.990277777777777,
+            4.0001,
+            -5.953144162521856e-19
+          ],
+          "v": [
+            1.1666666666666667,
+            0,
+            -7.143772995026227e-17
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.20833333333333331,
+          "p": [
+            -18.454166666666662,
+            4.0001,
+            -3.342265222672984e-17
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.30833333333333346,
+          "p": [
+            -17.854166666666654,
+            4.0001,
+            -7.016205620115046e-17
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.40833333333333377,
+          "p": [
+            -17.254166666666645,
+            4.0001,
+            -1.0690146017557112e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.508333333333334,
+          "p": [
+            -16.654166666666637,
+            4.0001,
+            -1.4364086414999177e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.6083333333333336,
+          "p": [
+            -16.054166666666628,
+            4.0001,
+            -1.8038026812441243e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.7083333333333333,
+          "p": [
+            -15.45416666666662,
+            4.0001,
+            -2.171196720988331e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.8083333333333329,
+          "p": [
+            -14.854166666666611,
+            4.0001,
+            -2.5385907607325376e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.9083333333333325,
+          "p": [
+            -14.254166666666602,
+            4.0001,
+            -2.905984800476744e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.0083333333333322,
+          "p": [
+            -13.654166666666594,
+            4.0001,
+            -3.273378840220951e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.1083333333333318,
+          "p": [
+            -13.054166666666585,
+            4.0001,
+            -3.6407728799651575e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.2083333333333315,
+          "p": [
+            -12.454166666666577,
+            4.0001,
+            -4.008166919709364e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.3083333333333311,
+          "p": [
+            -11.854166666666568,
+            4.0001,
+            -4.3755609594535707e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.4083333333333308,
+          "p": [
+            -11.25416666666656,
+            4.0001,
+            -4.742954999197772e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.5083333333333304,
+          "p": [
+            -10.654166666666551,
+            4.0001,
+            -5.110349038941973e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.60833333333333,
+          "p": [
+            -10.054166666666543,
+            4.0001,
+            -5.477743078686174e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.7083333333333297,
+          "p": [
+            -9.454166666666534,
+            4.0001,
+            -5.845137118430375e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.8083333333333294,
+          "p": [
+            -8.854166666666526,
+            4.0001,
+            -6.212531158174575e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.908333333333329,
+          "p": [
+            -8.254166666666517,
+            4.0001,
+            -6.579925197918776e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.008333333333329,
+          "p": [
+            -7.654166666666515,
+            4.0001,
+            -6.947319237662977e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.1083333333333285,
+          "p": [
+            -7.054166666666517,
+            4.0001,
+            -7.314713277407177e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.208333333333328,
+          "p": [
+            -6.454166666666519,
+            4.0001,
+            -7.682107317151378e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.308333333333328,
+          "p": [
+            -5.854166666666521,
+            4.0001,
+            -8.049501356895579e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.4083333333333274,
+          "p": [
+            -5.254166666666523,
+            4.0001,
+            -8.41689539663978e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.508333333333327,
+          "p": [
+            -4.654166666666526,
+            4.0001,
+            -8.78428943638398e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.6083333333333267,
+          "p": [
+            -4.054166666666528,
+            4.0001,
+            -9.15168347612818e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.7083333333333264,
+          "p": [
+            -3.45416666666653,
+            4.0001,
+            -9.519077515872382e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.808333333333326,
+          "p": [
+            -2.854166666666532,
+            4.0001,
+            -9.886471555616582e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.9083333333333257,
+          "p": [
+            -2.254166666666534,
+            4.0001,
+            -1.0253865595360783e-15
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420594e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.0083333333333253,
+          "p": [
+            -1.6541666666665347,
+            4.0001,
+            -1.0288192727717438e-15
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.108333333333325,
+          "p": [
+            -1.0541666666665341,
+            4.0001,
+            -9.989452952686547e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.2083333333333246,
+          "p": [
+            -0.45416666666653366,
+            4.0001,
+            -9.690713177655656e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.3083333333333242,
+          "p": [
+            0.1458333333334663,
+            4.0001,
+            -9.391973402624765e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.408333333333324,
+          "p": [
+            0.7458333333334665,
+            4.0001,
+            -9.093233627593875e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.5083333333333235,
+          "p": [
+            1.3458333333334669,
+            4.0001,
+            -8.794493852562984e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.608333333333323,
+          "p": [
+            1.9458333333334674,
+            4.0001,
+            -8.495754077532093e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.708333333333323,
+          "p": [
+            2.5458333333334657,
+            4.0001,
+            -8.197014302501202e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.8083333333333225,
+          "p": [
+            3.1458333333334636,
+            4.0001,
+            -7.898274527470311e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.908333333333322,
+          "p": [
+            3.7458333333334615,
+            4.0001,
+            -7.59953475243942e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.008333333333322,
+          "p": [
+            4.345833333333459,
+            4.0001,
+            -7.30079497740853e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.108333333333327,
+          "p": [
+            4.945833333333457,
+            4.0001,
+            -7.002055202377639e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.208333333333332,
+          "p": [
+            5.545833333333455,
+            4.0001,
+            -6.703315427346748e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.308333333333337,
+          "p": [
+            6.145833333333453,
+            4.0001,
+            -6.404575652315857e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.408333333333342,
+          "p": [
+            6.745833333333451,
+            4.0001,
+            -6.105835877284966e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.508333333333347,
+          "p": [
+            7.345833333333449,
+            4.0001,
+            -5.807096102254075e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.608333333333352,
+          "p": [
+            7.9458333333334465,
+            4.0001,
+            -5.508356327223184e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.708333333333357,
+          "p": [
+            8.545833333333453,
+            4.0001,
+            -5.209616552192294e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.808333333333362,
+          "p": [
+            9.145833333333462,
+            4.0001,
+            -4.910876777161403e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.908333333333367,
+          "p": [
+            9.74583333333347,
+            4.0001,
+            -4.612137002130512e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.008333333333372,
+          "p": [
+            10.345833333333479,
+            4.0001,
+            -4.3133972270996226e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.108333333333377,
+          "p": [
+            10.945833333333487,
+            4.0001,
+            -4.0146574520687347e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.208333333333382,
+          "p": [
+            11.545833333333496,
+            4.0001,
+            -3.715917677037847e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.308333333333387,
+          "p": [
+            12.145833333333504,
+            4.0001,
+            -3.417177902006959e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.408333333333392,
+          "p": [
+            12.745833333333513,
+            4.0001,
+            -3.118438126976071e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.508333333333397,
+          "p": [
+            13.345833333333522,
+            4.0001,
+            -2.819698351945183e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.608333333333402,
+          "p": [
+            13.94583333333353,
+            4.0001,
+            -2.520958576914295e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.708333333333407,
+          "p": [
+            14.545833333333539,
+            4.0001,
+            -2.2222188018834074e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.808333333333412,
+          "p": [
+            15.145833333333547,
+            4.0001,
+            -1.9234790268525195e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.908333333333417,
+          "p": [
+            15.745833333333556,
+            4.0001,
+            -1.6247392518216316e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.008333333333422,
+          "p": [
+            16.345833333333562,
+            4.0001,
+            -1.3259994767907437e-16
+          ],
+          "v": [
+            6,
+            0,
+            -3.6739403974420584e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.108333333333427,
+          "p": [
+            16.999391682942946,
+            4.0001,
+            -1.0065900128375324e-16
+          ],
+          "v": [
+            7.23046875,
+            0,
+            -4.427385205511231e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.208333333333432,
+          "p": [
+            17.769335259331847,
+            4.0001,
+            -6.255531781536669e-17
+          ],
+          "v": [
+            7.800000000000001,
+            0,
+            -4.776122516674678e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.308333333333437,
+          "p": [
+            18.549335259331862,
+            4.0001,
+            -2.371914706135122e-17
+          ],
+          "v": [
+            7.800000000000001,
+            0,
+            -4.776122516674678e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        }
+      ]
+    },
+    {
+      "id": "ground-west-ramp",
+      "kind": "walk",
+      "at": [
+        -25,
+        0.342857142857,
+        -6
+      ],
+      "waypoints": [
+        [
+          -28,
+          1.6,
+          6
+        ],
+        [
+          -25,
+          3.65,
+          16
+        ],
+        [
+          -20,
+          4,
+          13
+        ]
+      ],
+      "start": {
+        "t": 0.09999999999999999,
+        "p": [
+          -25,
+          0.34295714285714285,
+          -6
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": null
+      },
+      "end": {
+        "t": 10.100000000000067,
+        "p": [
+          -28.00811546052003,
+          2.0534333333333334,
+          6.032461842080257
+        ],
+        "v": [
+          0.24253562503539766,
+          0,
+          -0.9701425001455737
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": null
+      },
+      "waypointsReached": 0,
+      "complete": false,
+      "fixtureInvalid": false,
+      "states": [
+        "normal"
+      ],
+      "jumped": false,
+      "minNearest": null,
+      "trail": [
+        {
+          "t": 0.10833333333333332,
+          "p": [
+            -25.00235798524341,
+            0.34295714285714285,
+            -5.990568059026365
+          ],
+          "v": [
+            -0.28295822920905533,
+            0,
+            1.1318329168362204
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.20833333333333331,
+          "p": [
+            -25.13238402866566,
+            0.4572428571428571,
+            -5.470463885337339
+          ],
+          "v": [
+            -1.4552137502180016,
+            0,
+            5.82085500087199
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.30833333333333346,
+          "p": [
+            -25.277905403687445,
+            0.4572428571428571,
+            -4.88837838525014
+          ],
+          "v": [
+            -1.455213750218007,
+            0,
+            5.8208550008719895
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.40833333333333377,
+          "p": [
+            -25.42342677870923,
+            0.5715285714285715,
+            -4.30629288516294
+          ],
+          "v": [
+            -1.4552137502180145,
+            0,
+            5.820855000871987
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.508333333333334,
+          "p": [
+            -25.568948153731018,
+            0.6858142857142857,
+            -3.724207385075741
+          ],
+          "v": [
+            -1.4552137502180222,
+            0,
+            5.820855000871985
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.6083333333333336,
+          "p": [
+            -25.714469528752804,
+            0.6858142857142857,
+            -3.1421218849885415
+          ],
+          "v": [
+            -1.4552137502180327,
+            0,
+            5.820855000871982
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.7083333333333333,
+          "p": [
+            -25.85999090377459,
+            0.8001,
+            -2.560036384901342
+          ],
+          "v": [
+            -1.455213750218043,
+            0,
+            5.82085500087198
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.8083333333333329,
+          "p": [
+            -26.005512278796378,
+            0.9143857142857142,
+            -1.977950884814143
+          ],
+          "v": [
+            -1.4552137502180558,
+            0,
+            5.820855000871976
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.9083333333333325,
+          "p": [
+            -26.151033653818164,
+            0.9143857142857142,
+            -1.3958653847269462
+          ],
+          "v": [
+            -1.455213750218071,
+            0,
+            5.820855000871972
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.0083333333333322,
+          "p": [
+            -26.296555028839965,
+            1.0286714285714287,
+            -0.8137798846397495
+          ],
+          "v": [
+            -1.455213750218079,
+            0,
+            5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.1083333333333318,
+          "p": [
+            -26.442076403861773,
+            1.142957142857143,
+            -0.23169438455255256
+          ],
+          "v": [
+            -1.455213750218079,
+            0,
+            5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.2083333333333315,
+          "p": [
+            -26.58759777888358,
+            1.142957142857143,
+            0.3503911155346445
+          ],
+          "v": [
+            -1.455213750218079,
+            0,
+            5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.3083333333333311,
+          "p": [
+            -26.733119153905385,
+            1.257242857142857,
+            0.9324766156218414
+          ],
+          "v": [
+            -1.4552137502180766,
+            0,
+            5.820855000871973
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.4083333333333308,
+          "p": [
+            -26.878640528927193,
+            1.3715285714285714,
+            1.514562115709038
+          ],
+          "v": [
+            -1.4552137502180766,
+            0,
+            5.820855000871973
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.5083333333333304,
+          "p": [
+            -27.024161903949,
+            1.3715285714285714,
+            2.0966476157962353
+          ],
+          "v": [
+            -1.4552137502180766,
+            0,
+            5.820855000871973
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.60833333333333,
+          "p": [
+            -27.169683278970812,
+            1.4858142857142858,
+            2.6787331158834347
+          ],
+          "v": [
+            -1.455213750218079,
+            0,
+            5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.7083333333333297,
+          "p": [
+            -27.31520465399262,
+            1.6001,
+            3.260818615970634
+          ],
+          "v": [
+            -1.455213750218079,
+            0,
+            5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.8083333333333294,
+          "p": [
+            -27.460726029014427,
+            1.6001,
+            3.8429041160578334
+          ],
+          "v": [
+            -1.455213750218082,
+            0,
+            5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.908333333333329,
+          "p": [
+            -27.606247404036235,
+            1.7134333333333334,
+            4.424989616145033
+          ],
+          "v": [
+            -1.4552137502180842,
+            0,
+            5.82085500087197
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.008333333333329,
+          "p": [
+            -27.751768779058043,
+            1.8267666666666666,
+            5.007075116232232
+          ],
+          "v": [
+            -1.455213750218071,
+            0,
+            5.820855000871972
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.1083333333333285,
+          "p": [
+            -27.89729015407985,
+            1.9401,
+            5.589160616319432
+          ],
+          "v": [
+            -1.455213750218066,
+            0,
+            5.8208550008719735
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.208333333333328,
+          "p": [
+            -28.02866361764121,
+            2.0534333333333334,
+            6.114654470564817
+          ],
+          "v": [
+            -0.6063390625910234,
+            0,
+            2.42535625036328
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.308333333333328,
+          "p": [
+            -27.97611423221666,
+            2.0534333333333334,
+            5.904456928866665
+          ],
+          "v": [
+            -0.040422604172765275,
+            0,
+            0.1616904166908777
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.4083333333333274,
+          "p": [
+            -27.99430440409439,
+            2.0534333333333334,
+            5.977217616377562
+          ],
+          "v": [
+            1.0914103126634953,
+            0,
+            -4.3656412506539946
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.508333333333327,
+          "p": [
+            -28.021926516945747,
+            2.0534333333333334,
+            6.087706067783002
+          ],
+          "v": [
+            -0.04042260417274879,
+            0,
+            0.16169041669088324
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.6083333333333267,
+          "p": [
+            -28.007104895415747,
+            2.0534333333333334,
+            6.028419581663011
+          ],
+          "v": [
+            -0.6063390625904499,
+            0,
+            2.425356250363427
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.7083333333333264,
+          "p": [
+            -28.011147155833015,
+            2.0534333333333334,
+            6.0445886233321
+          ],
+          "v": [
+            -0.606339062590369,
+            0,
+            2.4253562503634467
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.808333333333326,
+          "p": [
+            -27.986893593329402,
+            2.0534333333333334,
+            5.947574373317561
+          ],
+          "v": [
+            -0.6063390625902276,
+            0,
+            2.425356250363482
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.9083333333333257,
+          "p": [
+            -27.986219883259853,
+            2.0534333333333334,
+            5.944879533039379
+          ],
+          "v": [
+            0.5254938542449474,
+            0,
+            -2.101975416981663
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.0083333333333253,
+          "p": [
+            -28.01855796659805,
+            2.0534333333333334,
+            6.074231866392086
+          ],
+          "v": [
+            0.5254938542461067,
+            0,
+            -2.101975416981374
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.108333333333325,
+          "p": [
+            -27.994304404094382,
+            2.0534333333333334,
+            5.977217616377562
+          ],
+          "v": [
+            -1.172255521010644,
+            0,
+            4.6890220840353445
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.2083333333333246,
+          "p": [
+            -27.988914723538013,
+            2.0534333333333334,
+            5.955658894152109
+          ],
+          "v": [
+            1.091410312664809,
+            0,
+            -4.365641250653669
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.3083333333333242,
+          "p": [
+            -28.0165368363894,
+            2.0534333333333334,
+            6.066147345557544
+          ],
+          "v": [
+            -0.04042260417265209,
+            0,
+            0.16169041669090434
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.408333333333324,
+          "p": [
+            -28.00643118534621,
+            2.0534333333333334,
+            6.025724741384823
+          ],
+          "v": [
+            -1.1722555210094905,
+            0,
+            4.689022084035632
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.5083333333333235,
+          "p": [
+            -27.98689359332938,
+            2.0534333333333334,
+            5.947574373317562
+          ],
+          "v": [
+            -0.040422604172700216,
+            0,
+            0.16169041669089235
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.608333333333323,
+          "p": [
+            -27.99093585374666,
+            2.0534333333333334,
+            5.963743414986649
+          ],
+          "v": [
+            -0.04042260417291438,
+            0,
+            0.16169041669083928
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.708333333333323,
+          "p": [
+            -27.980830202703523,
+            2.0534333333333334,
+            5.923320810813915
+          ],
+          "v": [
+            0.525493854244194,
+            0,
+            -2.1019754169818525
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.8083333333333225,
+          "p": [
+            -28.013168286041626,
+            2.0534333333333334,
+            6.052673144166645
+          ],
+          "v": [
+            0.525493854244039,
+            0,
+            -2.101975416981892
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.908333333333322,
+          "p": [
+            -28.02192651694571,
+            2.0534333333333334,
+            6.087706067783006
+          ],
+          "v": [
+            -0.6063390625897764,
+            0,
+            2.425356250363593
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.008333333333322,
+          "p": [
+            -27.969377131521266,
+            1.9401,
+            5.877508526084825
+          ],
+          "v": [
+            -0.04042260417265042,
+            0,
+            0.16169041669090545
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.108333333333327,
+          "p": [
+            -28.025295067293424,
+            2.0534333333333334,
+            6.101180269173915
+          ],
+          "v": [
+            0.5254938542443044,
+            0,
+            -2.1019754169818254
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.208333333333332,
+          "p": [
+            -28.00104150478984,
+            2.0534333333333334,
+            6.004166019159369
+          ],
+          "v": [
+            -1.1722555210062497,
+            0,
+            4.689022084036442
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.308333333333337,
+          "p": [
+            -27.981503912773068,
+            2.0534333333333334,
+            5.926015651092093
+          ],
+          "v": [
+            -0.0404226041726467,
+            0,
+            0.16169041669090567
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.408333333333342,
+          "p": [
+            -27.999694084650752,
+            2.0534333333333334,
+            5.998776338603002
+          ],
+          "v": [
+            1.0914103126611674,
+            0,
+            -4.365641250654578
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.508333333333347,
+          "p": [
+            -28.003736345068017,
+            2.0534333333333334,
+            6.01494538027209
+          ],
+          "v": [
+            0.5254938542446901,
+            0,
+            -2.10197541698173
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.608333333333352,
+          "p": [
+            -28.007778605485274,
+            2.0534333333333334,
+            6.031114421941181
+          ],
+          "v": [
+            0.5254938542440863,
+            0,
+            -2.10197541698188
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.708333333333357,
+          "p": [
+            -28.016536836389353,
+            2.0534333333333334,
+            6.0661473455575425
+          ],
+          "v": [
+            -0.6063390625897753,
+            0,
+            2.4253562503635924
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.808333333333362,
+          "p": [
+            -27.992283273885764,
+            2.0534333333333334,
+            5.969133095542997
+          ],
+          "v": [
+            -0.60633906258975,
+            0,
+            2.4253562503635995
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.908333333333367,
+          "p": [
+            -27.98217762284256,
+            2.0534333333333334,
+            5.92871049137028
+          ],
+          "v": [
+            1.0914103126638868,
+            0,
+            -4.3656412506538995
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.008333333333372,
+          "p": [
+            -28.0286636176412,
+            2.0534333333333334,
+            6.114654470564799
+          ],
+          "v": [
+            -0.6063390625908585,
+            0,
+            2.425356250363321
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.108333333333377,
+          "p": [
+            -27.976114232216663,
+            2.0534333333333334,
+            5.904456928866642
+          ],
+          "v": [
+            -0.040422604172775434,
+            0,
+            0.16169041669087414
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.208333333333382,
+          "p": [
+            -27.994304404094386,
+            2.0534333333333334,
+            5.9772176163775415
+          ],
+          "v": [
+            1.091410312662978,
+            0,
+            -4.365641250654125
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.308333333333387,
+          "p": [
+            -28.021926516945733,
+            2.0534333333333334,
+            6.087706067782985
+          ],
+          "v": [
+            -0.0404226041726482,
+            0,
+            0.1616904166909061
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.408333333333392,
+          "p": [
+            -28.00710489541574,
+            2.0534333333333334,
+            6.028419581662992
+          ],
+          "v": [
+            -0.6063390625902311,
+            0,
+            2.42535625036348
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.508333333333397,
+          "p": [
+            -28.01114715583303,
+            2.0534333333333334,
+            6.044588623332079
+          ],
+          "v": [
+            -0.6063390625912612,
+            0,
+            2.4253562503632216
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.608333333333402,
+          "p": [
+            -27.986893593329388,
+            2.0534333333333334,
+            5.947574373317548
+          ],
+          "v": [
+            -0.6063390625907287,
+            0,
+            2.425356250363354
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.708333333333407,
+          "p": [
+            -27.986219883259842,
+            2.0534333333333334,
+            5.944879533039365
+          ],
+          "v": [
+            0.5254938542454037,
+            0,
+            -2.1019754169815505
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.808333333333412,
+          "p": [
+            -28.018557966598017,
+            2.0534333333333334,
+            6.074231866392075
+          ],
+          "v": [
+            0.5254938542454097,
+            0,
+            -2.101975416981549
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.908333333333417,
+          "p": [
+            -27.994304404094386,
+            2.0534333333333334,
+            5.97721761637754
+          ],
+          "v": [
+            -1.1722555210083958,
+            0,
+            4.689022084035907
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.008333333333422,
+          "p": [
+            -27.988914723538024,
+            2.0534333333333334,
+            5.955658894152087
+          ],
+          "v": [
+            1.0914103126631463,
+            0,
+            -4.365641250654083
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.108333333333427,
+          "p": [
+            -28.016536836389374,
+            2.0534333333333334,
+            6.066147345557531
+          ],
+          "v": [
+            -0.04042260417268534,
+            0,
+            0.16169041669089568
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.208333333333432,
+          "p": [
+            -28.006431185346198,
+            2.0534333333333334,
+            6.025724741384809
+          ],
+          "v": [
+            -1.1722555210081707,
+            0,
+            4.689022084035963
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.308333333333437,
+          "p": [
+            -27.9868935933294,
+            2.0534333333333334,
+            5.947574373317542
+          ],
+          "v": [
+            -0.04042260417272786,
+            0,
+            0.16169041669088546
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.408333333333442,
+          "p": [
+            -27.990935853746667,
+            2.0534333333333334,
+            5.963743414986631
+          ],
+          "v": [
+            -0.04042260417274074,
+            0,
+            0.16169041669088235
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.5083333333334465,
+          "p": [
+            -27.98083020270352,
+            2.0534333333333334,
+            5.923320810813899
+          ],
+          "v": [
+            0.525493854244202,
+            0,
+            -2.1019754169818503
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.6083333333334515,
+          "p": [
+            -28.01316828604162,
+            2.0534333333333334,
+            6.05267314416663
+          ],
+          "v": [
+            0.5254938542440843,
+            0,
+            -2.1019754169818796
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.7083333333334565,
+          "p": [
+            -28.021926516945683,
+            2.0534333333333334,
+            6.087706067782995
+          ],
+          "v": [
+            -0.6063390625891661,
+            0,
+            2.425356250363744
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.8083333333334615,
+          "p": [
+            -27.969377131521295,
+            1.9401,
+            5.8775085260848
+          ],
+          "v": [
+            -0.04042260417263299,
+            0,
+            0.1616904166909079
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 6.908333333333466,
+          "p": [
+            -28.0252950672934,
+            2.0534333333333334,
+            6.101180269173903
+          ],
+          "v": [
+            0.5254938542439236,
+            0,
+            -2.1019754169819223
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 7.008333333333471,
+          "p": [
+            -28.001041504789836,
+            2.0534333333333334,
+            6.004166019159353
+          ],
+          "v": [
+            -1.1722555210056502,
+            0,
+            4.689022084036591
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 7.108333333333476,
+          "p": [
+            -27.98150391277308,
+            2.0534333333333334,
+            5.926015651092073
+          ],
+          "v": [
+            -0.04042260417268989,
+            0,
+            0.1616904166908939
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 7.208333333333481,
+          "p": [
+            -27.99969408465075,
+            2.0534333333333334,
+            5.998776338602985
+          ],
+          "v": [
+            1.0914103126599308,
+            0,
+            -4.365641250654889
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 7.308333333333486,
+          "p": [
+            -28.00373634506801,
+            2.0534333333333334,
+            6.014945380272075
+          ],
+          "v": [
+            0.5254938542442069,
+            0,
+            -2.101975416981851
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 7.408333333333491,
+          "p": [
+            -28.00777860548527,
+            2.0534333333333334,
+            6.031114421941167
+          ],
+          "v": [
+            0.5254938542439718,
+            0,
+            -2.1019754169819103
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 7.508333333333496,
+          "p": [
+            -28.01653683638935,
+            2.0534333333333334,
+            6.06614734555753
+          ],
+          "v": [
+            -0.6063390625897629,
+            0,
+            2.4253562503635937
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 7.608333333333501,
+          "p": [
+            -27.99228327388576,
+            2.0534333333333334,
+            5.969133095542984
+          ],
+          "v": [
+            -0.6063390625896663,
+            0,
+            2.425356250363618
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 7.708333333333506,
+          "p": [
+            -27.98217762284254,
+            2.0534333333333334,
+            5.928710491370272
+          ],
+          "v": [
+            1.0914103126651158,
+            0,
+            -4.365641250653593
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 7.808333333333511,
+          "p": [
+            -28.028663617641236,
+            2.0534333333333334,
+            6.114654470564777
+          ],
+          "v": [
+            -0.6063390625916717,
+            0,
+            2.4253562503631163
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 7.908333333333516,
+          "p": [
+            -27.976114232216624,
+            2.0534333333333334,
+            5.904456928866641
+          ],
+          "v": [
+            -0.04042260417280902,
+            0,
+            0.16169041669086393
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 8.00833333333352,
+          "p": [
+            -27.994304404094375,
+            2.0534333333333334,
+            5.9772176163775335
+          ],
+          "v": [
+            1.0914103126648595,
+            0,
+            -4.365641250653656
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 8.108333333333514,
+          "p": [
+            -28.021926516945765,
+            2.0534333333333334,
+            6.087706067782967
+          ],
+          "v": [
+            -0.040422604172786814,
+            0,
+            0.16169041669086903
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 8.208333333333508,
+          "p": [
+            -28.007104895415747,
+            2.0534333333333334,
+            6.028419581662978
+          ],
+          "v": [
+            -0.6063390625911569,
+            0,
+            2.4253562503632446
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 8.308333333333502,
+          "p": [
+            -28.01114715583303,
+            2.0534333333333334,
+            6.044588623332063
+          ],
+          "v": [
+            -0.6063390625915528,
+            0,
+            2.4253562503631456
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 8.408333333333497,
+          "p": [
+            -27.986893593329356,
+            2.0534333333333334,
+            5.947574373317542
+          ],
+          "v": [
+            -0.6063390625920719,
+            0,
+            2.4253562503630155
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 8.508333333333491,
+          "p": [
+            -27.986219883259803,
+            2.0534333333333334,
+            5.944879533039361
+          ],
+          "v": [
+            0.5254938542466754,
+            0,
+            -2.1019754169812357
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 8.608333333333485,
+          "p": [
+            -28.018557966598056,
+            2.0534333333333334,
+            6.074231866392055
+          ],
+          "v": [
+            0.5254938542466269,
+            0,
+            -2.101975416981248
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 8.70833333333348,
+          "p": [
+            -27.99430440409437,
+            2.0534333333333334,
+            5.977217616377535
+          ],
+          "v": [
+            -1.1722555210120458,
+            0,
+            4.68902208403499
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 8.808333333333474,
+          "p": [
+            -27.98891472353799,
+            2.0534333333333334,
+            5.955658894152087
+          ],
+          "v": [
+            1.0914103126662924,
+            0,
+            -4.365641250653301
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 8.908333333333468,
+          "p": [
+            -28.016536836389424,
+            2.0534333333333334,
+            6.06614734555751
+          ],
+          "v": [
+            -0.040422604172859256,
+            0,
+            0.16169041669084905
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 9.008333333333463,
+          "p": [
+            -28.00643118534622,
+            2.0534333333333334,
+            6.025724741384794
+          ],
+          "v": [
+            -1.1722555210124321,
+            0,
+            4.689022084034893
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 9.108333333333457,
+          "p": [
+            -27.986893593329352,
+            2.0534333333333334,
+            5.947574373317545
+          ],
+          "v": [
+            -0.04042260417281934,
+            0,
+            0.16169041669085837
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 9.208333333333451,
+          "p": [
+            -27.990935853746635,
+            2.0534333333333334,
+            5.963743414986629
+          ],
+          "v": [
+            -0.040422604172870635,
+            0,
+            0.16169041669084527
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 9.308333333333445,
+          "p": [
+            -27.980830202703437,
+            2.0534333333333334,
+            5.923320810813913
+          ],
+          "v": [
+            0.5254938542465959,
+            0,
+            -2.101975416981256
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 9.40833333333344,
+          "p": [
+            -28.013168286041683,
+            2.0534333333333334,
+            6.052673144166608
+          ],
+          "v": [
+            0.5254938542466239,
+            0,
+            -2.101975416981249
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 9.508333333333434,
+          "p": [
+            -28.02192651694569,
+            2.0534333333333334,
+            6.087706067782991
+          ],
+          "v": [
+            -0.6063390625891854,
+            0,
+            2.4253562503637367
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 9.608333333333428,
+          "p": [
+            -27.969377131521288,
+            1.9401,
+            5.8775085260847995
+          ],
+          "v": [
+            -0.04042260417258137,
+            0,
+            0.16169041669091944
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 9.708333333333423,
+          "p": [
+            -28.02529506729341,
+            2.0534333333333334,
+            6.101180269173896
+          ],
+          "v": [
+            0.5254938542440453,
+            0,
+            -2.101975416981893
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 9.808333333333417,
+          "p": [
+            -28.001041504789836,
+            2.0534333333333334,
+            6.004166019159348
+          ],
+          "v": [
+            -1.1722555210063204,
+            0,
+            4.689022084036421
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 9.908333333333411,
+          "p": [
+            -27.98150391277306,
+            2.0534333333333334,
+            5.926015651092074
+          ],
+          "v": [
+            -0.04042260417259491,
+            0,
+            0.16169041669091389
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 10.008333333333406,
+          "p": [
+            -27.999694084650745,
+            2.0534333333333334,
+            5.998776338602982
+          ],
+          "v": [
+            1.0914103126608712,
+            0,
+            -4.365641250654658
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        }
+      ]
+    },
+    {
+      "id": "ground-east-ramp",
+      "kind": "walk",
+      "at": [
+        25,
+        0.342857142857,
+        8
+      ],
+      "waypoints": [
+        [
+          28,
+          1.94,
+          -4
+        ],
+        [
+          25,
+          3.65,
+          -16
+        ],
+        [
+          20,
+          4,
+          -13
+        ]
+      ],
+      "start": {
+        "t": 0.09999999999999999,
+        "p": [
+          25,
+          0.34295714285714285,
+          8
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": null
+      },
+      "end": {
+        "t": 5.175000000000047,
+        "p": [
+          20.18351251879958,
+          4.0001,
+          -13.110401188849698
+        ],
+        "v": [
+          -5.141324116220969,
+          0,
+          3.0930222003672516
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": null
+      },
+      "waypointsReached": 3,
+      "complete": true,
+      "fixtureInvalid": false,
+      "states": [
+        "normal"
+      ],
+      "jumped": false,
+      "minNearest": null,
+      "trail": [
+        {
+          "t": 0.10833333333333332,
+          "p": [
+            25.00235798524341,
+            0.34295714285714285,
+            7.990568059026365
+          ],
+          "v": [
+            0.2829582292090551,
+            0,
+            -1.1318329168362204
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.20833333333333331,
+          "p": [
+            25.13238402866566,
+            0.4572428571428571,
+            7.470463885337339
+          ],
+          "v": [
+            1.4552137502180007,
+            0,
+            -5.820855000871991
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.30833333333333346,
+          "p": [
+            25.277905403687445,
+            0.4572428571428571,
+            6.88837838525014
+          ],
+          "v": [
+            1.4552137502180074,
+            0,
+            -5.8208550008719895
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.40833333333333377,
+          "p": [
+            25.42342677870923,
+            0.5715285714285715,
+            6.30629288516294
+          ],
+          "v": [
+            1.4552137502180151,
+            0,
+            -5.820855000871987
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.508333333333334,
+          "p": [
+            25.568948153731018,
+            0.6858142857142857,
+            5.724207385075741
+          ],
+          "v": [
+            1.4552137502180233,
+            0,
+            -5.820855000871985
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.6083333333333336,
+          "p": [
+            25.714469528752804,
+            0.6858142857142857,
+            5.1421218849885415
+          ],
+          "v": [
+            1.455213750218033,
+            0,
+            -5.820855000871982
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.7083333333333333,
+          "p": [
+            25.85999090377459,
+            0.8001,
+            4.560036384901342
+          ],
+          "v": [
+            1.455213750218044,
+            0,
+            -5.82085500087198
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.8083333333333329,
+          "p": [
+            26.005512278796378,
+            0.9143857142857142,
+            3.9779508848141427
+          ],
+          "v": [
+            1.4552137502180562,
+            0,
+            -5.820855000871976
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.9083333333333325,
+          "p": [
+            26.151033653818164,
+            0.9143857142857142,
+            3.3958653847269433
+          ],
+          "v": [
+            1.4552137502180702,
+            0,
+            -5.820855000871972
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.0083333333333322,
+          "p": [
+            26.296555028839965,
+            1.0286714285714287,
+            2.813779884639744
+          ],
+          "v": [
+            1.455213750218079,
+            0,
+            -5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.1083333333333318,
+          "p": [
+            26.442076403861773,
+            1.142957142857143,
+            2.2316943845525445
+          ],
+          "v": [
+            1.4552137502180795,
+            0,
+            -5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.2083333333333315,
+          "p": [
+            26.58759777888358,
+            1.142957142857143,
+            1.649608884465347
+          ],
+          "v": [
+            1.4552137502180802,
+            0,
+            -5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.3083333333333311,
+          "p": [
+            26.73311915390539,
+            1.257242857142857,
+            1.0675233843781502
+          ],
+          "v": [
+            1.4552137502180802,
+            0,
+            -5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.4083333333333308,
+          "p": [
+            26.878640528927196,
+            1.3715285714285714,
+            0.48543788429095347
+          ],
+          "v": [
+            1.4552137502180802,
+            0,
+            -5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.5083333333333304,
+          "p": [
+            27.024161903949004,
+            1.3715285714285714,
+            -0.09664761579624348
+          ],
+          "v": [
+            1.4552137502180804,
+            0,
+            -5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.60833333333333,
+          "p": [
+            27.169683278970812,
+            1.4858142857142858,
+            -0.6787331158834403
+          ],
+          "v": [
+            1.4552137502180806,
+            0,
+            -5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.7083333333333297,
+          "p": [
+            27.31520465399262,
+            1.6001,
+            -1.2608186159706372
+          ],
+          "v": [
+            1.4552137502180809,
+            0,
+            -5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.8083333333333294,
+          "p": [
+            27.460726029014427,
+            1.6001,
+            -1.8429041160578339
+          ],
+          "v": [
+            1.4552137502180813,
+            0,
+            -5.820855000871971
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.908333333333329,
+          "p": [
+            27.606247404036235,
+            1.7134333333333334,
+            -2.4249896161450324
+          ],
+          "v": [
+            1.4552137502180829,
+            0,
+            -5.82085500087197
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.008333333333329,
+          "p": [
+            27.751768779058043,
+            1.8267666666666666,
+            -3.007075116232232
+          ],
+          "v": [
+            1.4552137502180693,
+            0,
+            -5.820855000871972
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.1083333333333285,
+          "p": [
+            27.89729015407985,
+            1.9401,
+            -3.589160616319431
+          ],
+          "v": [
+            1.4552137502180649,
+            0,
+            -5.8208550008719735
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.199999999999995,
+          "p": [
+            27.905485958159943,
+            1.9401,
+            -4.1230678860448995
+          ],
+          "v": [
+            -1.4257538310922602,
+            0,
+            -5.828140871077649
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.2999999999999945,
+          "p": [
+            27.762910575050704,
+            2.0534333333333334,
+            -4.7058819731526595
+          ],
+          "v": [
+            -1.4257538310922508,
+            0,
+            -5.82814087107765
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.399999999999994,
+          "p": [
+            27.62033519194148,
+            2.1667666666666667,
+            -5.28869606026042
+          ],
+          "v": [
+            -1.4257538310922524,
+            0,
+            -5.828140871077651
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.499999999999994,
+          "p": [
+            27.477759808832253,
+            2.1667666666666667,
+            -5.87151014736818
+          ],
+          "v": [
+            -1.425753831092252,
+            0,
+            -5.828140871077651
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.5999999999999934,
+          "p": [
+            27.335184425723032,
+            2.2801000000000005,
+            -6.45432423447594
+          ],
+          "v": [
+            -1.4257538310922508,
+            0,
+            -5.82814087107765
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.699999999999993,
+          "p": [
+            27.192609042613807,
+            2.3934333333333337,
+            -7.0371383215837
+          ],
+          "v": [
+            -1.4257538310922526,
+            0,
+            -5.828140871077651
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.7999999999999927,
+          "p": [
+            27.05003365950458,
+            2.506766666666667,
+            -7.61995240869146
+          ],
+          "v": [
+            -1.425753831092252,
+            0,
+            -5.828140871077651
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.8999999999999924,
+          "p": [
+            26.90745827639536,
+            2.506766666666667,
+            -8.202766495799224
+          ],
+          "v": [
+            -1.4257538310922513,
+            0,
+            -5.82814087107765
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.999999999999992,
+          "p": [
+            26.76488289328613,
+            2.6201000000000003,
+            -8.785580582906995
+          ],
+          "v": [
+            -1.4257538310922528,
+            0,
+            -5.828140871077651
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.0999999999999917,
+          "p": [
+            26.622307510176906,
+            2.7334333333333336,
+            -9.368394670014766
+          ],
+          "v": [
+            -1.4257538310922508,
+            0,
+            -5.82814087107765
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.1999999999999913,
+          "p": [
+            26.479732127067678,
+            2.846766666666667,
+            -9.951208757122536
+          ],
+          "v": [
+            -1.4257538310922522,
+            0,
+            -5.828140871077651
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.299999999999991,
+          "p": [
+            26.337156743958452,
+            2.846766666666667,
+            -10.534022844230307
+          ],
+          "v": [
+            -1.4257538310922497,
+            0,
+            -5.82814087107765
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.3999999999999906,
+          "p": [
+            26.194581360849227,
+            2.9601,
+            -11.116836931338078
+          ],
+          "v": [
+            -1.4257538310922513,
+            0,
+            -5.82814087107765
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.4999999999999902,
+          "p": [
+            26.05200597774,
+            3.0734333333333335,
+            -11.699651018445849
+          ],
+          "v": [
+            -1.4257538310922533,
+            0,
+            -5.828140871077651
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.59999999999999,
+          "p": [
+            25.909430594630773,
+            3.1867666666666667,
+            -12.28246510555362
+          ],
+          "v": [
+            -1.4257538310922502,
+            0,
+            -5.82814087107765
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.6999999999999895,
+          "p": [
+            25.766855211521545,
+            3.1867666666666667,
+            -12.86527919266139
+          ],
+          "v": [
+            -1.4257538310922526,
+            0,
+            -5.828140871077651
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.799999999999989,
+          "p": [
+            25.62427982841232,
+            3.5334333333333334,
+            -13.44809327976916
+          ],
+          "v": [
+            -1.4257538310922482,
+            0,
+            -5.828140871077652
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.899999999999989,
+          "p": [
+            25.481704445303095,
+            3.5334333333333334,
+            -14.030907366876932
+          ],
+          "v": [
+            -1.4257538310922508,
+            0,
+            -5.82814087107765
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.9999999999999885,
+          "p": [
+            25.339129062193866,
+            3.6501,
+            -14.613721453984702
+          ],
+          "v": [
+            -1.4257538310922562,
+            0,
+            -5.82814087107765
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.099999999999993,
+          "p": [
+            25.19655367908464,
+            3.6501,
+            -15.196535541092473
+          ],
+          "v": [
+            -1.425753831092245,
+            0,
+            -5.828140871077652
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.199999999999998,
+          "p": [
+            25.053978295975412,
+            3.6501,
+            -15.779349628200244
+          ],
+          "v": [
+            -1.4257538310922606,
+            0,
+            -5.828140871077649
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.29166666666667,
+          "p": [
+            24.725015488128257,
+            3.6501,
+            -15.842570799174046
+          ],
+          "v": [
+            -5.141324116221042,
+            0,
+            3.0930222003671313
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.391666666666675,
+          "p": [
+            24.210883076506143,
+            3.766766666666667,
+            -15.533268579137333
+          ],
+          "v": [
+            -5.141324116221037,
+            0,
+            3.0930222003671375
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.49166666666668,
+          "p": [
+            23.69675066488403,
+            3.8834333333333335,
+            -15.22396635910062
+          ],
+          "v": [
+            -5.141324116221034,
+            0,
+            3.0930222003671446
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.5916666666666845,
+          "p": [
+            23.182618253261914,
+            3.8834333333333335,
+            -14.914664139063907
+          ],
+          "v": [
+            -5.1413241162210275,
+            0,
+            3.0930222003671535
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.6916666666666895,
+          "p": [
+            22.6684858416398,
+            4.0001,
+            -14.605361919027194
+          ],
+          "v": [
+            -5.1413241162210195,
+            0,
+            3.0930222003671677
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.7916666666666945,
+          "p": [
+            22.154353430017686,
+            4.0001,
+            -14.296059698990481
+          ],
+          "v": [
+            -5.141324116221009,
+            0,
+            3.0930222003671863
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.8916666666666995,
+          "p": [
+            21.64022101839557,
+            4.0001,
+            -13.986757478953768
+          ],
+          "v": [
+            -5.141324116220991,
+            0,
+            3.0930222003672156
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 4.991666666666704,
+          "p": [
+            21.126088606773457,
+            4.0001,
+            -13.677455258917043
+          ],
+          "v": [
+            -5.141324116220977,
+            0,
+            3.0930222003672383
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 5.091666666666709,
+          "p": [
+            20.611956195151343,
+            4.0001,
+            -13.36815303888031
+          ],
+          "v": [
+            -5.141324116220973,
+            0,
+            3.093022200367245
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        }
+      ]
+    },
+    {
+      "id": "upper-spine",
+      "kind": "walk",
+      "at": [
+        0,
+        8,
+        12
+      ],
+      "waypoints": [
+        [
+          0,
+          8,
+          -11
+        ]
+      ],
+      "start": {
+        "t": 0.09999999999999999,
+        "p": [
+          0,
+          8.0001,
+          12
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": null
+      },
+      "end": {
+        "t": 3.2666666666666577,
+        "p": [
+          0,
+          8.0001,
+          -10.8019795797797
+        ],
+        "v": [
+          0,
+          0,
+          -6.974246875849328
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": null
+      },
+      "waypointsReached": 1,
+      "complete": true,
+      "fixtureInvalid": false,
+      "states": [
+        "normal"
+      ],
+      "jumped": false,
+      "minNearest": null,
+      "trail": [
+        {
+          "t": 0.10833333333333332,
+          "p": [
+            0,
+            8.0001,
+            11.990277777777777
+          ],
+          "v": [
+            0,
+            0,
+            -1.1666666666666667
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.20833333333333331,
+          "p": [
+            0,
+            8.0001,
+            11.45416666666666
+          ],
+          "v": [
+            0,
+            0,
+            -6
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.30833333333333346,
+          "p": [
+            0,
+            8.0001,
+            10.854166666666652
+          ],
+          "v": [
+            0,
+            0,
+            -6
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.40833333333333377,
+          "p": [
+            0,
+            8.0001,
+            10.254166666666643
+          ],
+          "v": [
+            0,
+            0,
+            -6
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.508333333333334,
+          "p": [
+            0,
+            8.0001,
+            9.654166666666635
+          ],
+          "v": [
+            0,
+            0,
+            -6
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.6083333333333336,
+          "p": [
+            0,
+            8.0001,
+            9.054166666666626
+          ],
+          "v": [
+            0,
+            0,
+            -6
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.7083333333333333,
+          "p": [
+            0,
+            8.0001,
+            8.454166666666618
+          ],
+          "v": [
+            0,
+            0,
+            -6
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.8083333333333329,
+          "p": [
+            0,
+            8.0001,
+            7.854166666666612
+          ],
+          "v": [
+            0,
+            0,
+            -6
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.9083333333333325,
+          "p": [
+            0,
+            8.0001,
+            7.254166666666614
+          ],
+          "v": [
+            0,
+            0,
+            -6
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.0083333333333322,
+          "p": [
+            0,
+            8.0001,
+            6.654166666666616
+          ],
+          "v": [
+            0,
+            0,
+            -6
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.1083333333333318,
+          "p": [
+            0,
+            8.0001,
+            6.00060831705724
+          ],
+          "v": [
+            0,
+            0,
+            -7.23046875
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.2083333333333315,
+          "p": [
+            0,
+            8.0001,
+            5.230664740668348
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.3083333333333311,
+          "p": [
+            0,
+            8.0001,
+            4.450664740668343
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.4083333333333308,
+          "p": [
+            0,
+            8.0001,
+            3.6706647406683413
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.5083333333333304,
+          "p": [
+            0,
+            8.0001,
+            2.890664740668342
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.60833333333333,
+          "p": [
+            0,
+            8.0001,
+            2.1106647406683425
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.7083333333333297,
+          "p": [
+            0,
+            8.0001,
+            1.3306647406683432
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.8083333333333294,
+          "p": [
+            0,
+            8.0001,
+            0.5506647406683438
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 1.908333333333329,
+          "p": [
+            0,
+            8.0001,
+            -0.22933525933165622
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.008333333333329,
+          "p": [
+            0,
+            8.0001,
+            -1.0093352593316558
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.1083333333333285,
+          "p": [
+            0,
+            8.0001,
+            -1.7893352593316552
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.208333333333328,
+          "p": [
+            0,
+            8.0001,
+            -2.5693352593316545
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.308333333333328,
+          "p": [
+            0,
+            8.0001,
+            -3.349335259331654
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.4083333333333274,
+          "p": [
+            0,
+            8.0001,
+            -4.129335259331654
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.508333333333327,
+          "p": [
+            0,
+            8.0001,
+            -4.909335259331659
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.6083333333333267,
+          "p": [
+            0,
+            8.0001,
+            -5.6893352593316635
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.7083333333333264,
+          "p": [
+            0,
+            8.0001,
+            -6.469335259331668
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.808333333333326,
+          "p": [
+            0,
+            8.0001,
+            -7.249335259331673
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 2.9083333333333257,
+          "p": [
+            0,
+            8.0001,
+            -8.029335259331678
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.0083333333333253,
+          "p": [
+            0,
+            8.0001,
+            -8.809335259331672
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.108333333333325,
+          "p": [
+            0,
+            8.0001,
+            -9.589335259331666
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 3.2083333333333246,
+          "p": [
+            0,
+            8.0001,
+            -10.36933525933166
+          ],
+          "v": [
+            0,
+            0,
+            -7.800000000000001
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        }
+      ]
+    },
+    {
+      "id": "ladder-0-up",
+      "kind": "walk",
+      "at": [
+        0,
+        4,
+        -13
+      ],
+      "waypoints": [
+        [
+          0,
+          8,
+          -11.1
+        ]
+      ],
+      "start": {
+        "t": 0.09999999999999999,
+        "p": [
+          0,
+          4.0001,
+          -13
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": null
+      },
+      "end": {
+        "t": 1.2333333333333314,
+        "p": [
+          4.1473959331854323e-19,
+          8.0001,
+          -11.301666666666664
+        ],
+        "v": [
+          7.347880794884119e-16,
+          0,
+          6
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 0,
+          "z": -12,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "waypointsReached": 1,
+      "complete": true,
+      "fixtureInvalid": false,
+      "states": [
+        "normal",
+        "ladder",
+        "ledge"
+      ],
+      "jumped": false,
+      "minNearest": null,
+      "trail": [
+        {
+          "t": 0.10833333333333332,
+          "p": [
+            1.1906288325043712e-18,
+            4.0001,
+            -12.990277777777777
+          ],
+          "v": [
+            1.4287545990052454e-16,
+            0,
+            1.1666666666666667
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": null,
+          "enemies": []
+        },
+        {
+          "t": 0.20833333333333331,
+          "p": [
+            0,
+            4.1751000000000005,
+            -12.54
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.30833333333333346,
+          "p": [
+            0,
+            4.595100000000002,
+            -12.54
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.40833333333333377,
+          "p": [
+            0,
+            5.015100000000004,
+            -12.54
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.508333333333334,
+          "p": [
+            0,
+            5.435100000000006,
+            -12.54
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.6083333333333336,
+          "p": [
+            0,
+            5.855100000000007,
+            -12.54
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.7083333333333333,
+          "p": [
+            0,
+            6.275100000000009,
+            -12.54
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.8083333333333329,
+          "p": [
+            0,
+            6.695100000000011,
+            -12.54
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.9083333333333325,
+          "p": [
+            0,
+            7.173886443125985,
+            -12.54
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ledge",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 1.0083333333333322,
+          "p": [
+            0,
+            7.936534989736327,
+            -12.525978465517214
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ledge",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 1.1083333333333318,
+          "p": [
+            0,
+            8.002,
+            -11.902124088978887
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ledge",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 1.2083333333333315,
+          "p": [
+            1.9843813875072853e-18,
+            8.0001,
+            -11.440277777777776
+          ],
+          "v": [
+            2.3812576650087424e-16,
+            0,
+            3.5666666666666673
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        }
+      ]
+    },
+    {
+      "id": "ladder-0-from-top",
+      "kind": "walk",
+      "at": [
+        0,
+        8,
+        -11.2
+      ],
+      "waypoints": [
+        [
+          0,
+          4,
+          -12.9
+        ]
+      ],
+      "start": {
+        "t": 0.09999999999999999,
+        "p": [
+          0,
+          8.0001,
+          -11.2
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 0,
+          "z": -12,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "end": {
+        "t": 1.083333333333332,
+        "p": [
+          0,
+          4.0001,
+          -12.691666666666665
+        ],
+        "v": [
+          0,
+          0,
+          -5.950000000000001
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 0,
+          "z": -12,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "waypointsReached": 1,
+      "complete": true,
+      "fixtureInvalid": false,
+      "states": [
+        "ladder",
+        "normal"
+      ],
+      "jumped": false,
+      "minNearest": null,
+      "trail": [
+        {
+          "t": 0.10833333333333332,
+          "p": [
+            0,
+            8.002,
+            -11.269791666666666
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.20833333333333331,
+          "p": [
+            0,
+            8.002,
+            -12.107291666666665
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.30833333333333346,
+          "p": [
+            0,
+            7.714416666666668,
+            -12.54
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.40833333333333377,
+          "p": [
+            0,
+            7.119416666666666,
+            -12.54
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.508333333333334,
+          "p": [
+            0,
+            6.630000000000002,
+            -12.54
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.6083333333333336,
+          "p": [
+            0,
+            6.126000000000004,
+            -12.54
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.7083333333333333,
+          "p": [
+            0,
+            5.622000000000006,
+            -12.54
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.8083333333333329,
+          "p": [
+            0,
+            5.118000000000008,
+            -12.54
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.9083333333333325,
+          "p": [
+            0,
+            4.6140000000000105,
+            -12.54
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 1.0083333333333322,
+          "p": [
+            0,
+            4.110000000000013,
+            -12.54
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        }
+      ]
+    },
+    {
+      "id": "ladder-1-up",
+      "kind": "walk",
+      "at": [
+        -13,
+        4,
+        13
+      ],
+      "waypoints": [
+        [
+          -11.1,
+          8,
+          13
+        ]
+      ],
+      "start": {
+        "t": 0.09999999999999999,
+        "p": [
+          -13,
+          4.0001,
+          13
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 0,
+          "z": -12,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "end": {
+        "t": 1.2333333333333314,
+        "p": [
+          -11.301666666666664,
+          8.0001,
+          13
+        ],
+        "v": [
+          6,
+          0,
+          -3.6739403974420594e-16
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": -12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "waypointsReached": 1,
+      "complete": true,
+      "fixtureInvalid": false,
+      "states": [
+        "normal",
+        "ladder",
+        "ledge"
+      ],
+      "jumped": false,
+      "minNearest": null,
+      "trail": [
+        {
+          "t": 0.10833333333333332,
+          "p": [
+            -12.990277777777777,
+            4.0001,
+            13
+          ],
+          "v": [
+            1.1666666666666667,
+            0,
+            -7.143772995026227e-17
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 0,
+            "z": -12,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.20833333333333331,
+          "p": [
+            -12.54,
+            4.1751000000000005,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.30833333333333346,
+          "p": [
+            -12.54,
+            4.595100000000002,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.40833333333333377,
+          "p": [
+            -12.54,
+            5.015100000000004,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.508333333333334,
+          "p": [
+            -12.54,
+            5.435100000000006,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.6083333333333336,
+          "p": [
+            -12.54,
+            5.855100000000007,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.7083333333333333,
+          "p": [
+            -12.54,
+            6.275100000000009,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.8083333333333329,
+          "p": [
+            -12.54,
+            6.695100000000011,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.9083333333333325,
+          "p": [
+            -12.54,
+            7.173886443125985,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ledge",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 1.0083333333333322,
+          "p": [
+            -12.525978465517214,
+            7.936534989736327,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ledge",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 1.1083333333333318,
+          "p": [
+            -11.902124088978887,
+            8.002,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ledge",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 1.2083333333333315,
+          "p": [
+            -11.440277777777776,
+            8.0001,
+            13
+          ],
+          "v": [
+            3.5666666666666673,
+            0,
+            -1.1906288325043712e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        }
+      ]
+    },
+    {
+      "id": "ladder-1-from-top",
+      "kind": "walk",
+      "at": [
+        -11.2,
+        8,
+        13
+      ],
+      "waypoints": [
+        [
+          -12.9,
+          4,
+          13
+        ]
+      ],
+      "start": {
+        "t": 0.09999999999999999,
+        "p": [
+          -11.2,
+          8.0001,
+          13
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": -12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "end": {
+        "t": 1.083333333333332,
+        "p": [
+          -12.691666666666665,
+          4.0001,
+          13
+        ],
+        "v": [
+          -5.950000000000001,
+          0,
+          -3.643324227463376e-16
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": -12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "waypointsReached": 1,
+      "complete": true,
+      "fixtureInvalid": false,
+      "states": [
+        "ladder",
+        "normal"
+      ],
+      "jumped": false,
+      "minNearest": null,
+      "trail": [
+        {
+          "t": 0.10833333333333332,
+          "p": [
+            -11.269791666666666,
+            8.002,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.20833333333333331,
+          "p": [
+            -12.107291666666665,
+            8.002,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.30833333333333346,
+          "p": [
+            -12.54,
+            7.714416666666668,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.40833333333333377,
+          "p": [
+            -12.54,
+            7.119416666666666,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.508333333333334,
+          "p": [
+            -12.54,
+            6.630000000000002,
+            13
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.6083333333333336,
+          "p": [
+            -12.54,
+            6.126000000000004,
+            13
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.7083333333333333,
+          "p": [
+            -12.54,
+            5.622000000000006,
+            13
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.8083333333333329,
+          "p": [
+            -12.54,
+            5.118000000000008,
+            13
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.9083333333333325,
+          "p": [
+            -12.54,
+            4.6140000000000105,
+            13
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 1.0083333333333322,
+          "p": [
+            -12.54,
+            4.110000000000013,
+            13
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        }
+      ]
+    },
+    {
+      "id": "ladder-2-up",
+      "kind": "walk",
+      "at": [
+        13,
+        4,
+        13
+      ],
+      "waypoints": [
+        [
+          11.1,
+          8,
+          13
+        ]
+      ],
+      "start": {
+        "t": 0.09999999999999999,
+        "p": [
+          13,
+          4.0001,
+          13
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": -12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "end": {
+        "t": 1.2333333333333314,
+        "p": [
+          11.301666666666664,
+          8.0001,
+          13
+        ],
+        "v": [
+          -6,
+          0,
+          -3.6739403974420594e-16
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "waypointsReached": 1,
+      "complete": true,
+      "fixtureInvalid": false,
+      "states": [
+        "normal",
+        "ladder",
+        "ledge"
+      ],
+      "jumped": false,
+      "minNearest": null,
+      "trail": [
+        {
+          "t": 0.10833333333333332,
+          "p": [
+            12.990277777777777,
+            4.0001,
+            13
+          ],
+          "v": [
+            -1.1666666666666667,
+            0,
+            -7.143772995026227e-17
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": -12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.20833333333333331,
+          "p": [
+            12.54,
+            4.1751000000000005,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.30833333333333346,
+          "p": [
+            12.54,
+            4.595100000000002,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.40833333333333377,
+          "p": [
+            12.54,
+            5.015100000000004,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.508333333333334,
+          "p": [
+            12.54,
+            5.435100000000006,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.6083333333333336,
+          "p": [
+            12.54,
+            5.855100000000007,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.7083333333333333,
+          "p": [
+            12.54,
+            6.275100000000009,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.8083333333333329,
+          "p": [
+            12.54,
+            6.695100000000011,
+            13
+          ],
+          "v": [
+            0,
+            4.2,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.9083333333333325,
+          "p": [
+            12.54,
+            7.173886443125985,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ledge",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 1.0083333333333322,
+          "p": [
+            12.525978465517214,
+            7.936534989736327,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ledge",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 1.1083333333333318,
+          "p": [
+            11.902124088978887,
+            8.002,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ledge",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 1.2083333333333315,
+          "p": [
+            11.440277777777776,
+            8.0001,
+            13
+          ],
+          "v": [
+            -3.5666666666666673,
+            0,
+            -1.1906288325043712e-16
+          ],
+          "state": "normal",
+          "ground": true,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        }
+      ]
+    },
+    {
+      "id": "ladder-2-from-top",
+      "kind": "walk",
+      "at": [
+        11.2,
+        8,
+        13
+      ],
+      "waypoints": [
+        [
+          12.9,
+          4,
+          13
+        ]
+      ],
+      "start": {
+        "t": 0.09999999999999999,
+        "p": [
+          11.2,
+          8.0001,
+          13
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "end": {
+        "t": 1.083333333333332,
+        "p": [
+          12.691666666666665,
+          4.0001,
+          13
+        ],
+        "v": [
+          5.950000000000001,
+          0,
+          -3.643324227463376e-16
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "waypointsReached": 1,
+      "complete": true,
+      "fixtureInvalid": false,
+      "states": [
+        "ladder",
+        "normal"
+      ],
+      "jumped": false,
+      "minNearest": null,
+      "trail": [
+        {
+          "t": 0.10833333333333332,
+          "p": [
+            11.269791666666666,
+            8.002,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.20833333333333331,
+          "p": [
+            12.107291666666665,
+            8.002,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.30833333333333346,
+          "p": [
+            12.54,
+            7.714416666666668,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.40833333333333377,
+          "p": [
+            12.54,
+            7.119416666666666,
+            13
+          ],
+          "v": [
+            0,
+            0,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.508333333333334,
+          "p": [
+            12.54,
+            6.630000000000002,
+            13
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.6083333333333336,
+          "p": [
+            12.54,
+            6.126000000000004,
+            13
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.7083333333333333,
+          "p": [
+            12.54,
+            5.622000000000006,
+            13
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.8083333333333329,
+          "p": [
+            12.54,
+            5.118000000000008,
+            13
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 0.9083333333333325,
+          "p": [
+            12.54,
+            4.6140000000000105,
+            13
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        },
+        {
+          "t": 1.0083333333333322,
+          "p": [
+            12.54,
+            4.110000000000013,
+            13
+          ],
+          "v": [
+            0,
+            -5.04,
+            0
+          ],
+          "state": "ladder",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          },
+          "enemies": []
+        }
+      ]
+    },
+    {
+      "id": "bar-drop-west-bar-1",
+      "kind": "bar-drop",
+      "attached": "west-bar-1",
+      "fell": false,
+      "minY": 0.0001,
+      "end": {
+        "t": 0.8499999999999994,
+        "p": [
+          -11.330454801942908,
+          0.0001,
+          -6
+        ],
+        "v": [
+          2,
+          0,
+          0
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "trail": [
+        {
+          "t": 0.11666666666666665,
+          "p": [
+            -12.797121468609648,
+            6.070629474964198,
+            -6
+          ],
+          "v": [
+            2,
+            -1,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.21666666666666665,
+          "p": [
+            -12.597121468609638,
+            5.862296141630864,
+            -6
+          ],
+          "v": [
+            2,
+            -2.9999999999999996,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.3166666666666668,
+          "p": [
+            -12.397121468609628,
+            5.453962808297531,
+            -6
+          ],
+          "v": [
+            2,
+            -5,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.41666666666666713,
+          "p": [
+            -12.197121468609618,
+            4.845629474964198,
+            -6
+          ],
+          "v": [
+            2,
+            -7.0000000000000036,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.5166666666666673,
+          "p": [
+            -11.997121468609608,
+            4.037296141630864,
+            -6
+          ],
+          "v": [
+            2,
+            -9.000000000000002,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.6166666666666669,
+          "p": [
+            -11.797121468609598,
+            3.02896280829753,
+            -6
+          ],
+          "v": [
+            2,
+            -10.999999999999995,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.7166666666666666,
+          "p": [
+            -11.597121468609588,
+            1.8206294749641974,
+            -6
+          ],
+          "v": [
+            2,
+            -12.999999999999988,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.8166666666666662,
+          "p": [
+            -11.397121468609578,
+            0.4122961416308663,
+            -6
+          ],
+          "v": [
+            2,
+            -14.99999999999998,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "bar-drop-west-bar-2",
+      "kind": "bar-drop",
+      "attached": "west-bar-2",
+      "fell": false,
+      "minY": 0.0001,
+      "end": {
+        "t": 0.9249999999999992,
+        "p": [
+          -6.680454801942972,
+          0.0001,
+          -6
+        ],
+        "v": [
+          2,
+          0,
+          0
+        ],
+        "state": "normal",
+        "ground": true,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      },
+      "trail": [
+        {
+          "t": 0.11666666666666665,
+          "p": [
+            -8.297121468609648,
+            7.270629474964199,
+            -6
+          ],
+          "v": [
+            2,
+            -1,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.21666666666666665,
+          "p": [
+            -8.097121468609638,
+            7.062296141630865,
+            -6
+          ],
+          "v": [
+            2,
+            -2.9999999999999996,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.3166666666666668,
+          "p": [
+            -7.897121468609634,
+            6.653962808297532,
+            -6
+          ],
+          "v": [
+            2,
+            -5,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.41666666666666713,
+          "p": [
+            -7.697121468609635,
+            6.0456294749641994,
+            -6
+          ],
+          "v": [
+            2,
+            -7.0000000000000036,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.5166666666666673,
+          "p": [
+            -7.4971214686096355,
+            5.237296141630865,
+            -6
+          ],
+          "v": [
+            2,
+            -9.000000000000002,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.6166666666666669,
+          "p": [
+            -7.297121468609636,
+            4.228962808297531,
+            -6
+          ],
+          "v": [
+            2,
+            -10.999999999999995,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.7166666666666666,
+          "p": [
+            -7.097121468609637,
+            3.020629474964198,
+            -6
+          ],
+          "v": [
+            2,
+            -12.999999999999988,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.8166666666666662,
+          "p": [
+            -6.897121468609638,
+            1.6122961416308663,
+            -6
+          ],
+          "v": [
+            2,
+            -14.99999999999998,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        },
+        {
+          "t": 0.9166666666666659,
+          "p": [
+            -6.697121468609638,
+            0.003962808297535453,
+            -6
+          ],
+          "v": [
+            2,
+            -16.999999999999982,
+            0
+          ],
+          "state": "normal",
+          "ground": false,
+          "life": 8,
+          "over": false,
+          "reason": "",
+          "hookCD": 0,
+          "bodyFree": true,
+          "ladder": {
+            "x": 12,
+            "z": 13,
+            "y0": 4,
+            "y1": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "zip-heading-0",
+      "kind": "zip-choice",
+      "yaw": 0,
+      "attached": {
+        "a": [
+          0,
+          10.3,
+          -12
+        ],
+        "b": [
+          -20,
+          6.3,
+          0
+        ]
+      },
+      "end": {
+        "t": 0.10833333333333332,
+        "p": [
+          0,
+          8.0001,
+          -12
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "zip",
+        "ground": false,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      }
+    },
+    {
+      "id": "zip-heading--0.25",
+      "kind": "zip-choice",
+      "yaw": -0.25,
+      "attached": {
+        "a": [
+          0,
+          10.3,
+          -12
+        ],
+        "b": [
+          20,
+          6.3,
+          0
+        ]
+      },
+      "end": {
+        "t": 0.10833333333333332,
+        "p": [
+          0,
+          8.0001,
+          -12
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "zip",
+        "ground": false,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      }
+    },
+    {
+      "id": "zip-heading-0.25",
+      "kind": "zip-choice",
+      "yaw": 0.25,
+      "attached": {
+        "a": [
+          0,
+          10.3,
+          -12
+        ],
+        "b": [
+          -20,
+          6.3,
+          0
+        ]
+      },
+      "end": {
+        "t": 0.10833333333333332,
+        "p": [
+          0,
+          8.0001,
+          -12
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "zip",
+        "ground": false,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      }
+    },
+    {
+      "id": "zip-heading--1.5707963267948966",
+      "kind": "zip-choice",
+      "yaw": -1.5707963267948966,
+      "attached": {
+        "a": [
+          0,
+          10.3,
+          -12
+        ],
+        "b": [
+          20,
+          6.3,
+          0
+        ]
+      },
+      "end": {
+        "t": 0.10833333333333332,
+        "p": [
+          0,
+          8.0001,
+          -12
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "zip",
+        "ground": false,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      }
+    },
+    {
+      "id": "zip-heading-1.5707963267948966",
+      "kind": "zip-choice",
+      "yaw": 1.5707963267948966,
+      "attached": {
+        "a": [
+          0,
+          10.3,
+          -12
+        ],
+        "b": [
+          -20,
+          6.3,
+          0
+        ]
+      },
+      "end": {
+        "t": 0.10833333333333332,
+        "p": [
+          0,
+          8.0001,
+          -12
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "zip",
+        "ground": false,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      }
+    },
+    {
+      "id": "zip-heading-3.141592653589793",
+      "kind": "zip-choice",
+      "yaw": 3.141592653589793,
+      "attached": {
+        "a": [
+          0,
+          10.3,
+          -12
+        ],
+        "b": [
+          -20,
+          6.3,
+          0
+        ]
+      },
+      "end": {
+        "t": 0.10833333333333332,
+        "p": [
+          0,
+          8.0001,
+          -12
+        ],
+        "v": [
+          0,
+          0,
+          0
+        ],
+        "state": "zip",
+        "ground": false,
+        "life": 8,
+        "over": false,
+        "reason": "",
+        "hookCD": 0,
+        "bodyFree": true,
+        "ladder": {
+          "x": 12,
+          "z": 13,
+          "y0": 4,
+          "y1": 8
+        }
+      }
+    }
+  ],
+  "errors": []
+}

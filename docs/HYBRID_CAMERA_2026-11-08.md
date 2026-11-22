@@ -1,3 +1,5 @@
+> **2026-11-22：この試作（区間カメラ（hybrid））は外した**（`hybrid-camera.js`・`stable-camera.js`・`camera-cutaway.js` と検査を削除。`?cameraTrial=hybrid` はもう効かない）。公開の固定カメラ（`?cameraTrial=fixed`）は残している。以下は当時の記録。
+
 # 見通しが悪い区間だけ切り替えるカメラ
 
 基点 `f5a14a4`。作業ブランチ `codex/hybrid-camera-20261108`。ユーザーの公開依頼に基づいて反映する。試作は `?camera=after&cameraTrial=hybrid`、比較画面は `bench/hybrid-camera-review.html`。

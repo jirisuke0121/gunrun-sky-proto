@@ -10,13 +10,13 @@ for(const touch of[false,true])for(const mode of['before','after']){
  const r=route('',saved,touch);assert.equal(new URL(r.location.href).searchParams.has('cameraTrial'),false);
  assert.equal(r.store.has('gunrun-fixed-controls-v1'),false);assert.equal(r.store.get('gunrun-follow-camera-v1'),mode);assert.equal(r.store.get('gunrun-pc-camera-v1'),mode);
 }
-for(const trial of['','follow','follow-legacy','fixed','hybrid'])for(const map of['index.html','canyon.html']){
+for(const trial of['','follow','follow-legacy','fixed'])for(const map of['index.html','canyon.html']){
  const r=route('?guidedEntry=1&onboarding=reset&camera=after'+(trial?'&cameraTrial='+trial:''),{},true,map);
  assert.equal(r.next.pathname,'/canyon.html');assert.equal(r.next.searchParams.get('cameraTrial'),trial||null);
  assert.equal(r.next.searchParams.get('camera'),'after');assert.equal(r.next.searchParams.get('return'),map==='index.html'?'town':'canyon');
 }
 const source=fs.readFileSync('guided-intro.js','utf8').replace(/^import .*;\n/gm,'');
-for(const trial of['','follow','follow-legacy','fixed','hybrid']){
+for(const trial of['','follow','follow-legacy','fixed']){
  let clicked;const location={href:'https://fixture.test/index.html?camera=after'+(trial?'&cameraTrial='+trial:''),get search(){return new URL(this.href).search},get pathname(){return new URL(this.href).pathname},assign(url){this.next=String(url)}};
  const window={skyFollowCamera:{mode:'after'}},document={addEventListener(type,fn){if(type==='click')clicked=fn},getElementById(){return null}};
  vm.runInNewContext(source,{window,document,location,URL,URLSearchParams,navigator:{webdriver:false},localStorage:{getItem(){return null}},});

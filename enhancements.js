@@ -1,7 +1,7 @@
 import { installMinimap } from './minimap.js?v=20261114-big-enemies-v1';
 import { installRunRecords } from './run-records.js?v=20261109-no-send-notice-v1';
 import { createGunRecoil } from './gun-recoil.js?v=20261101-recoil-v1';
-import { createSwing } from './parkour-swing.js?v=20261114-hook-v1';
+import { createSwing } from './parkour-swing.js?v=20261122-no-swing-boost-v1';
 import { installRanking } from './ranking.js?v=20261108-send-always-v1';
 import { createFlashbang } from './flashbang.js?v=20261116-cooldown-v1';
 import { installSkillDock } from './player-skills.js?v=20261113-viewport-v1';
@@ -21,7 +21,7 @@ import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261031-no-po
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261031-grip-v1';
 import { createJumpPickups } from './jump-pickups.js?v=20261101-jump-stash-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261114-crate-pillar-v3';
-import { createDash } from './dash-boost.js?v=20261113-hud-v1';
+import { createDash } from './dash-boost.js?v=20261122-no-swing-boost-v1';
 import { mergeStaticMaterialGroups } from './world-batching.js?v=20261108-opaque-v1';
 import { installWallReadability } from './wall-readability.js?v=20261106-south-v1';
 import { installSurfaceReadability } from './surface-readability.js?v=20261114-dim-top-v1';

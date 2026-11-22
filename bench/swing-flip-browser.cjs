@@ -36,7 +36,7 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
             cameraBodyTurn: cameraBeforeBody.angleTo(s.Se.quaternion),
             cameraForward: new s.Geom.Vector3(0, 0, -1).applyQuaternion(s.Se.quaternion)
               .dot(new s.Geom.Vector3(-Math.sin(c.yaw), 0, -Math.cos(c.yaw))),
-            reward: { remaining: skyDash.swingRemaining, factor: skyDash.speed(1), status: document.getElementById('dashStatus').textContent, hidden: document.getElementById('dashStatus').hidden },
+            reward: { remaining: 0, factor: skyDash.speed(1), status: document.getElementById('dashStatus').textContent, hidden: document.getElementById('dashStatus').hidden },
             heading: c.yaw, clip: document.body.dataset.skyHumanClip,
             cue: { text: document.getElementById('swingHint').textContent, jumpText: document.getElementById('tJump').textContent, ready: document.getElementById('swingHint').dataset.ready === 'true',
               visible: !document.getElementById('swingHint').hidden,
@@ -88,7 +88,8 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
             const release = await p.evaluate(() => { window.flipCueAge = null; const frame = flipTick(); flipTrace.push(frame); return frame; });
             assert.ok(release.flight, JSON.stringify(release));
             assert.equal(release.flight.perfect, perfect);
-            assert.ok(perfect ? release.reward.remaining > 3.9 && Math.abs(release.reward.factor - 1.08) < 1e-8 && !release.reward.hidden && release.reward.status.includes('速度 +8% ↑') : release.reward.remaining === 0 && release.reward.hidden && release.reward.status === '速度 +0%', 'only successful timing grants and displays the movement reward (+0% stays hidden outside practice)');
+            // 完璧な離しでも速度は変わらない（2026-11-22に鉄棒の速度ボーナスを廃止）。札は出ない。
+            assert.ok(release.reward.factor === 1 && release.reward.hidden && release.reward.status === '速度 +0%', 'a perfect release grants no movement reward');
             assert.ok(!release.cue.visible && release.cue.buttonColor !== 'rgb(126, 240, 170)', 'cue clears on release');
             releases.push(release);
             console.log(id, perfect ? 'perfect' : 'ordinary', part.bar, 'duration', release.flight.flipDuration);
@@ -128,25 +129,9 @@ const out = 'browser-evidence/swing-flip'; fs.mkdirSync(out, { recursive: true }
         const stride = await p.evaluate(() => { for (let i = 0; i < 10; i++) flipTick(); return { state: __game.P.state }; });
         cases.push({ perfect, bars: [...bars], releases, landing: last, immediateJump: repeat, stride, trace });
       }
-      const statusLayout = async name => {
-        const layout = await p.evaluate(() => {
-          __game.cam(0); flipRender();
-          const r = document.getElementById('dashStatus').getBoundingClientRect();
-          const overlaps = ['tFlash','tDecoy','tJump','tAutoFire'].filter(id => {
-            const e = document.getElementById(id), q = e.getBoundingClientRect();
-            return getComputedStyle(e).display !== 'none' && r.left < q.right && r.right > q.left && r.top < q.bottom && r.bottom > q.top;
-          });
-          return { x:r.x, y:r.y, width:r.width, height:r.height, vw:innerWidth, vh:innerHeight, overlaps,
-            underLife: document.getElementById('dashStatus').previousElementSibling?.classList.contains('life'),
-            text: document.getElementById('dashStatus').textContent, hidden: document.getElementById('dashStatus').hidden };
-        });
-        assert.ok(!layout.hidden && layout.x >= 0 && layout.y >= 0 && layout.x + layout.width <= layout.vw && layout.y + layout.height <= layout.vh, JSON.stringify(layout));
-        assert.deepEqual(layout.overlaps, []); assert.ok(layout.underLife); assert.match(layout.text, /^速度 \+\d+% ↑$/); await p.screenshot({ path: `${out}/${id}-${name}.png` }); return layout;
-      };
-      const layouts = [await statusLayout('speed-status')];
-      if (touch) { await p.setViewportSize({width:390,height:844}); await p.waitForTimeout(150); layouts.push(await statusLayout('speed-status-portrait')); }
+      // 速度の札の位置は鉄棒ではなくDASHリングの検査（dash-browser・touch-stick-browser）で見る。2026-11-22に鉄棒のボーナスを廃止した。
       const gl = await p.evaluate(() => __game.debug.renderer.getContext().getError());
-      assert.equal(gl, 0); assert.deepEqual(errors, []); results.push({ id, cases, layouts, gl, errors });
+      assert.equal(gl, 0); assert.deepEqual(errors, []); results.push({ id, cases, gl, errors });
       fs.writeFileSync(`${out}/results.json`, JSON.stringify(results, null, 2));
       console.log('PASS', id, 'ordinary/perfect routes, full turn before regrip/touchdown, level camera, momentum, immediate next jump');
       await ctx.close();

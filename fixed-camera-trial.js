@@ -1,12 +1,7 @@
-import { createHybridCamera } from './hybrid-camera.js?v=20261108-hybrid-v1';
-import { createStableCamera } from './stable-camera.js?v=20261108-stable-v1';
-import { createCameraCutaway } from './camera-cutaway.js?v=20261108-stable-v1';
-// Local prototype, opt-in only. No saved preferences or ranked rules change.
+// 固定カメラ（?cameraTrial=fixed）。区間カメラ（hybrid）の試作は2026-11-22に外した。
 (() => {
   const p = new URLSearchParams(location.search);
-  if (!['fixed','hybrid'].includes(p.get('cameraTrial'))) return;
-  const hybrid = p.get('cameraTrial') === 'hybrid';
-  const stable = hybrid && p.get('cameraControl') !== 'legacy';
+  if (p.get('cameraTrial') !== 'fixed') return;
   const sky = window.__skyInternals, fc = window.skyFollowCamera;
   if (!sky || !fc) return;
   const bounded = (key, fallback, lo, hi) => p.has(key) && Number.isFinite(+p.get(key))
@@ -18,8 +13,8 @@ import { createCameraCutaway } from './camera-cutaway.js?v=20261108-stable-v1';
   const native = new Set(['ladder', 'zip', 'hook', 'swing', 'ledge', 'wallrun']);
   const active = () => fc.mode === 'after' && !sky.demoActive() && !['menu','replay'].includes(sky.modeRef());
   // Keep the published fade available for a same-location comparison.
-  const fadeWalls = !hybrid && (p.get('fixedOcclusion') === 'fade' || p.get('wallView') === 'classic');
-  const opaque = hybrid || !fadeWalls && p.get('fixedOcclusion') !== 'zoom';
+  const fadeWalls = p.get('fixedOcclusion') === 'fade' || p.get('wallView') === 'classic';
+  const opaque = !fadeWalls && p.get('fixedOcclusion') !== 'zoom';
   const faded = new Set(), originals = new Map(), translucent = new Map();
   const footHeight = { value: 0 };
   function fadeMaterial(material, bounds) {
@@ -61,36 +56,20 @@ import { createCameraCutaway } from './camera-cutaway.js?v=20261108-stable-v1';
     }
     return [...sky.jn,...visuals];
   }
-  let moving = false, pointer = null, inputYaw = pose.yaw, fromAction=false;
+  let moving = false, pointer = null;
   function input(raw) {
     const magnitude = Math.min(1, Math.hypot(raw.strIn, raw.fwdIn));
-    if(stable){
-      const held=magnitude>(touch.on?.18:0),stick=Math.atan2(raw.strIn,raw.fwdIn);
-      adaptive.setMoving(held);inputYaw=adaptive.view.yaw;
-      // Native parkour keeps its own forward/action semantics. Returning to
-      // normal movement uses the same displayed axes without a neutral rebase.
-      if(native.has(c.state))return raw;
-      return {...raw,fwdIn:held?magnitude:0,strIn:0,steer:0,fixed:true,
-        heading:inputYaw-stick,precise:true,motionScale:held?(touch.on?Math.max(0,(magnitude-.12)/.88):1):0};
-    }
     const same = touch.on ? pointer === touch.id : pointer === 'keys';
     if (native.has(c.state)) {
       if (magnitude <= .18 || !same) moving = false;
-      fromAction=hybrid;
-      if(c.state==='wallrun'){const delta=inputYaw-Math.atan2(raw.strIn,raw.fwdIn)-c.yaw;return {...raw,fwdIn:magnitude*Math.cos(delta),strIn:-magnitude*Math.sin(delta)};}
+      if(c.state==='wallrun'){const delta=pose.yaw-Math.atan2(raw.strIn,raw.fwdIn)-c.yaw;return {...raw,fwdIn:magnitude*Math.cos(delta),strIn:-magnitude*Math.sin(delta)};}
       return c.state === 'ladder' && moving ? { ...raw, fwdIn: magnitude } : raw;
     }
-    const wasMoving=moving, stick=Math.atan2(raw.strIn,raw.fwdIn);
-    if(hybrid&&magnitude>(touch.on ? .18 : 0)){
-      if(fromAction&&same&&wasMoving){
-        const speed=Math.hypot(c.vel.x,c.vel.z);
-        inputYaw=(speed>.1?Math.atan2(-c.vel.x,-c.vel.z):c.yaw)+stick;
-      }else if(!wasMoving||!same)inputYaw=adaptive.view.yaw;
-    }
-    fromAction=false;pointer = touch.on ? touch.id : 'keys';
+    const stick=Math.atan2(raw.strIn,raw.fwdIn);
+    pointer = touch.on ? touch.id : 'keys';
     moving = magnitude > (touch.on ? .18 : 0);
     return { ...raw, fwdIn: moving ? magnitude : 0, strIn: 0, steer: 0,
-      fixed: true, heading: (hybrid?inputYaw:pose.yaw) - stick,
+      fixed: true, heading: pose.yaw - stick,
       precise: true, motionScale: moving ? (touch.on ? Math.max(0, (magnitude - .12) / .88) : 1) : 0 };
   }
   function step(_dt, raw) {
@@ -98,8 +77,7 @@ import { createCameraCutaway } from './camera-cutaway.js?v=20261108-stable-v1';
   }
   function camera(camera) {
     document.documentElement.dataset.cameraTrial='fixed';
-    const view=hybrid?adaptive.view:pose;
-    camera.rotation.set(view.pitch, view.yaw, 0);
+    camera.rotation.set(pose.pitch, pose.yaw, 0);
     if (camera.fov !== 65) { camera.fov = 65; camera.updateProjectionMatrix(); }
     camera.updateMatrixWorld();
   }
@@ -115,7 +93,6 @@ import { createCameraCutaway } from './camera-cutaway.js?v=20261108-stable-v1';
     return hi>.001&&lo<.995;
   }
   function restore() {
-    cutaway?.disable();
     document.documentElement.dataset.cameraTrial='off';
     for(const mesh of faded)mesh.material=originals.get(mesh);
     faded.clear();
@@ -153,37 +130,7 @@ import { createCameraCutaway } from './camera-cutaway.js?v=20261108-stable-v1';
   let cameraFraction=1, cameraAt=null, cameraPitch=pose.pitch;
   function cameraSafe(q){return sky.oe(q.x,q.y-.16,q.z,.16,.32)&&!(window.skyCameraVolumes||[]).some(b=>
     q.x>b.minX-.16&&q.x<b.maxX+.16&&q.z>b.minZ-.16&&q.z<b.maxZ+.16&&q.y>b.minY-.16&&q.y<b.maxY+.16);}
-  // Hollow/open houses have real doorway walls in the physical field. Only
-  // their roof/plaster cap is an additional visual blocker for an inside view.
-  let volumeSource,volumeCache=[];
-  function hybridVolumes(){if(volumeSource!==window.skyCameraVolumes){volumeSource=window.skyCameraVolumes;
-    volumeCache=(volumeSource||[]).map(b=>({...b,minY:b.kind==='hollow'?2.3:b.kind==='open'?b.maxY-.16:b.minY}));}return volumeCache;}
-  const hybridSafe=q=>sky.oe(q.x,q.y-.16,q.z,.16,.32)&&!hybridVolumes().some(b=>
-    q.x>b.minX-.16&&q.x<b.maxX+.16&&q.z>b.minZ-.16&&q.z<b.maxZ+.16&&q.y>b.minY-.16&&q.y<b.maxY+.16);
-  function hybridBlocked(a,b){return sky.near(Math.min(a.x,b.x),Math.min(a.z,b.z),Math.max(a.x,b.x),Math.max(a.z,b.z))
-    .some(q=>q.solid&&!q.off&&q.maxY>c.pos.y+.04&&intersects(a,b,q))||hybridVolumes().some(q=>intersects(a,b,q));}
-  function regionCamera(usable){
-    if(window.SKY_CANYON_MAP||window.skyGuidedScene)return null;
-    // The real west hall is two metres wide. A camera that alternates between
-    // the outside of its doorway and its inner wall cannot make a stable shot.
-    // Keep the camera on the hall centreline through the entire doorway.
-    const at=c.pos, hall=at.x>-13.1&&at.x<-10.9&&at.z>-10.7&&at.z<10.7;
-    const doorway=at.x>-19.5&&at.x<=-10.9&&Math.abs(at.z)<1.25;
-    if((!hall&&!doorway)||at.y<-.1||at.y>6.1)return null;
-    const floor=(c.onGround?at.y:c.lastGround?.y??at.y)>=3.5?4:0;
-    for(const d of[6,4.5,3,2.5,2,1.5,1]){
-      const q={x:-12,y:floor+2.15,z:Math.min(10.5,at.z+d)};
-      if(Math.hypot(q.x-at.x,q.y-at.y-1.3,q.z-at.z)<2.6)continue;
-      if(usable(q,at))return{id:'central-west-'+floor,axisYaw:0,q};
-    }
-    return null;
-  }
-  const adaptive=(stable?createStableCamera:createHybridCamera)({player:c,pose,safe:hybridSafe,blocked:hybridBlocked,regionCamera,canTurn:()=>!window.skyBite?.biting});
-  const cutaway=stable?createCameraCutaway(sky):null;
   function resolveCamera(pivot,wanted,dt) {
-    if(hybrid){const state=adaptive.resolve(pivot,wanted,dt);cameraPitch=state.pitch;
-      document.body.dataset.skyCameraSection=state.section;document.body.dataset.skyOpaqueFootHidden=String(!state.clear);
-      return 1;}
     const foot={x:c.pos.x,y:c.pos.y+.18,z:c.pos.z};
     const head={x:c.pos.x,y:c.pos.y+1.35,z:c.pos.z};
     const delta=wanted.clone().sub(pivot), length=delta.length();
@@ -237,10 +184,9 @@ import { createCameraCutaway } from './camera-cutaway.js?v=20261108-stable-v1';
     return [[0,.8,0],[0,1.45,0],[0,.05,0],[.5,.05,0],[-.5,.05,0],[0,.05,.5],[0,.05,-.5]]
       .some(([x,y,z])=>blocked(camera,{x:c.pos.x+x,y:c.pos.y+y,z:c.pos.z+z}));
   }
-  const reset = () => { moving = false; pointer = null; fromAction=false;inputYaw=pose.yaw;cameraAt=null;cameraFraction=1;cameraPitch=pose.pitch;adaptive.reset(); };
+  const reset = () => { moving = false; pointer = null; cameraAt=null;cameraFraction=1;cameraPitch=pose.pitch; };
   window.skyFixedCamera = { get active() { return active(); }, pose, chase, input, step, camera, reset,
-    occlusion, restore, visible, resolveCamera,updateCutaway:camera=>cutaway?.update(camera),bodyOccluded:camera=>stable?false:hybrid?hybridBlocked(camera,{x:c.pos.x,y:c.pos.y+.1,z:c.pos.z})||hybridBlocked(camera,{x:c.pos.x,y:c.pos.y+1.5,z:c.pos.z}):bodyOccluded(camera),
-    cameraSafe:q=>hybrid?hybridSafe(q):cameraSafe(q),get view(){return hybrid?adaptive.view:pose},get hybridState(){return hybrid?{...adaptive.state,inputYaw}:null},
+    occlusion, restore, visible, resolveCamera, bodyOccluded, cameraSafe, view: pose,
     get pitch(){return cameraPitch}, get opaque(){return opaque}, get fadedCount(){return faded.size} };
   document.documentElement.dataset.cameraTrial='fixed';
   const style=document.createElement('style');style.textContent='html[data-camera-trial=fixed] #lookNote{display:none!important}';document.head.append(style);

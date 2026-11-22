@@ -1,3 +1,5 @@
+> **2026-11-22：この試作（安定カメラ・屋根の切り欠き（stable））は外した**（`hybrid-camera.js`・`stable-camera.js`・`camera-cutaway.js` と検査を削除。`?cameraTrial=hybrid` はもう効かない）。公開の固定カメラ（`?cameraTrial=fixed`）は残している。以下は当時の記録。
+
 # 2026-11-08 移動中のカメラと入力を同じ方向に保つ試作
 
 ## 問題と完了条件

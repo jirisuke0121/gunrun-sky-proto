@@ -68,7 +68,8 @@ fs.mkdirSync(out, { recursive: true });
       assert.ok(idle.rect.x>=0&&idle.rect.y>=0&&idle.rect.x+idle.rect.width<=idle.vw&&idle.rect.y+idle.rect.height<=idle.vh,JSON.stringify(idle));
       await p.screenshot({path:`${out}/${id}-idle.png`});
       assert.ok(!(await p.locator('#dashStatus').isVisible()),'no speed badge at +0%');
-      await p.evaluate(()=>{skyDash.rewardSwing();__game.cam(0);});
+      // 鉄棒の完璧な離しの加速は2026-11-22に廃止。速度の札を出すため、DASHリングを1つ取る。
+      await p.evaluate(()=>{const d=skyDash.pickups[0];__game.P.pos.fromArray(d.position);skyDash.step(0);__game.cam(0);});
       const starts = [{x:95,y:215},{x:290,y:280},{x:350,y:175}], probes = [];
       for (const start of starts) {
         await p.evaluate(()=>stickReset());
@@ -102,7 +103,7 @@ fs.mkdirSync(out, { recursive: true });
       await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
       await p.evaluate(()=>__game.setMode('play'));
       assert.ok(!(await snapshot()).on,'pause returns the visual to its waiting marker');
-      await p.evaluate(()=>{skyDash.step(5);__game.cam(0);});assert.equal(await p.evaluate(()=>skyDash.swingRemaining),0);assert.ok(!(await p.locator('#dashStatus').isVisible()),'speed badge hides again at +0%');
+      await p.evaluate(()=>{skyDash.step(5);__game.cam(0);});assert.equal(await p.evaluate(()=>skyDash.remaining),0);assert.ok(!(await p.locator('#dashStatus').isVisible()),'speed badge hides again at +0%');
       assert.deepEqual(errors,[]);results.push({id,idle,probes,errors});
       fs.writeFileSync(`${out}/results.json`,JSON.stringify(results,null,2));
       console.log('PASS',id,'three left-zone origins, movement, second-finger camera suppression/release, idle marker, pause, speed below life');

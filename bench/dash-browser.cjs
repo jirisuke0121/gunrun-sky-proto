@@ -107,25 +107,14 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     await page.keyboard.down('w');
     const normal=await page.evaluate(()=>window.__dashFrames(35));await page.keyboard.up('w');
     assert.ok(Math.abs(normal.speed-6)<.05&&normal.fov>98&&normal.distance>3.8,JSON.stringify(normal));await capture('sprint');
-    await page.evaluate(l=>{window.__dashPlaceLane(l);window.skyDash.rewardSwing();},lane);
-    await page.keyboard.down('w');const swing=await page.evaluate(()=>window.__dashFrames(35));await page.keyboard.up('w');
-    assert.ok(Math.abs(swing.speed-6.48)<.05&&swing.swingRemaining>3,JSON.stringify(swing));
-    assert.match(await page.locator('#dashStatus').innerText(),/速度 \+8% ↑/);await capture('swing-reward');
-    await page.evaluate(l=>__dashPlaceLane(l),lane);await page.keyboard.down('Shift');await page.keyboard.down('w');
-    const swingWalk=await page.evaluate(()=>__dashFrames(35));await page.keyboard.up('w');await page.keyboard.up('Shift');
-    assert.ok(Math.abs(swingWalk.speed-4.968)<.05,JSON.stringify(swingWalk));
-    const refresh=await page.evaluate(()=>{skyDash.rewardSwing();return{remaining:skyDash.swingRemaining,speed:skyDash.speed(6)};});
-    assert.equal(refresh.remaining,4);assert.equal(refresh.speed,6.48);
-    const pauseSwing=await page.evaluate(()=>{__game.setMode('pause');const before=skyDash.swingRemaining;__dashFrames(30);const after=skyDash.swingRemaining;__game.setMode('play');return{before,after};});
-    assert.equal(pauseSwing.before,pauseSwing.after);
-    await page.evaluate(()=>{__game.P.vel.set(0,0,0);__dashFrames(250);});
-    assert.equal(await page.evaluate(()=>skyDash.swingRemaining),0);assert.equal(await page.locator('#dashStatus').isVisible(),false,'"+0%" is hidden in normal play');
+    assert.equal(await page.evaluate(()=>typeof skyDash.rewardSwing),'undefined','a perfect bar release grants no speed reward (2026-11-22)');
+    assert.equal(await page.locator('#dashStatus').isVisible(),false,'"+0%" is hidden in normal play');
     await page.evaluate(l=>__dashPlaceLane(l),lane);await page.keyboard.down('w');
     const afterSwing=await page.evaluate(()=>__dashFrames(35));await page.keyboard.up('w');assert.ok(Math.abs(afterSwing.speed-6)<.05);
     await page.evaluate(()=>window.skyHumanView.select('existing'));await page.evaluate(()=>window.__game.frameOnce(1/60));assert.equal(await page.evaluate(()=>document.body.dataset.skyHumanView),'first');
     await page.evaluate(()=>window.__game.startGame());
     assert.equal(await page.evaluate(()=>window.skyDash.remaining),0);assert.ok(await page.evaluate(()=>window.skyDash.pickups.every(p=>p.cooldown===0)));
-    assert.deepEqual(errors,[]);results.push({id,placements,lane,baseline,boost:running,normal,swing,swingWalk,refresh,pauseSwing,afterSwing,paused,ended,status:'passed'});
+    assert.deepEqual(errors,[]);results.push({id,placements,lane,baseline,boost:running,normal,afterSwing,paused,ended,status:'passed'});
     console.log(`PASS ${id}: connected real-map pickups, keyboard collection, ${running.speed.toFixed(2)}m/s boost → ${normal.speed.toFixed(2)}m/s normal, camera/FOV, dash morph, expiry/pause/reset, first person, WebGL`);
    }catch(e){await capture('failure').catch(()=>{});results.push({id,status:'failed',error:e.message,errors});throw e;}finally{await context.close();}
   }

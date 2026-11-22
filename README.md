@@ -1,3 +1,10 @@
+## 2026-11-22 鉄棒の速度ボーナスと区間カメラの試作を外す
+
+- **鉄棒の完璧な離しで4秒間 +8%** を廃止（本人の判断）。`dash-boost.js` から `rewardSwing`・`swingRemaining` などを外し、`parkour-swing.js` の呼び出し1行を削除。DASHリング（青、5秒・1.3倍）は残す。**順位対象の難易度の動きが少し変わるが、ランキングの版は v15 のまま**（本人の指示）。検査：`dash-boost.test.cjs`・`dash-browser`・`touch-stick-browser`・`swing-flip-browser`（完璧な離しでも速度は変わらない）。
+- **区間カメラ（`?cameraTrial=hybrid`）と屋根の切り欠きの試作を削除**（公開の遊びでは使われていなかった。本人の判断）。`hybrid-camera.js`・`stable-camera.js`・`camera-cutaway.js`・それらの検査・`foundation.yml` の3ジョブ・各ファイルの `hybrid` の分岐を外した。**公開の固定カメラ（`?cameraTrial=fixed`）は残し、動きは変えていない**（`fixed-camera-browser`・`auto-follow-entry`・`guided-intro`・`guided-intro-parity`・`development-entry`・`onboarding`・`send-default` ほかが成功）。
+- キャッシュ対策に、変更したファイルの `?v=` を更新（`20261122-…`）。
+- これで、11/17 から落ちていた検査5本はすべて片づいた（`stable-camera` は試作ごと外した）。一覧は [docs/CI_STATE_2026-11-22.md](docs/CI_STATE_2026-11-22.md)。
+
 ## 2026-11-22 壁キックの吸い戻しを修正（`wall-jump-spots.js`）／検査の実態を調べ直して古い検査を直す
 
 - **不具合の修正**：リング西壁（中央ブロックの西面）を壁走りして**窓の下で壁キックすると、壁へ吸い戻されていた**（0.44 m 瞬間移動して外向きの速さが消える。踏み切り範囲の北寄り約1/3）。11/11 の窓破りダイブで壁が3つの箱に分かれ、隣の箱を「別の壁」と見なして付き直していたのが原因。`run` のある経路では箱が違っても同じ壁面として扱う（`__skyWallFaceKey`）。11/11 より前の動きに戻す直しなので、**ランキングの版は v15 のまま**。

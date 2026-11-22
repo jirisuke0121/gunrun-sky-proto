@@ -1,4 +1,4 @@
-import { installGuidedChoice } from './guided-choice.js?v=20261114-controls-guide-v1';
+import { installGuidedChoice } from './guided-choice.js?v=20261122-no-hybrid-v1';
 import { installGuidedCoach } from './guided-coach.js?v=20261117-no-rotation-v1';
 import { describeLesson } from './guided-prompts.js?v=20261114-no-shoot-lesson-v1';
 import { createLessons } from './guided-lessons.js?v=20261114-no-shoot-lesson-v1';
@@ -9,7 +9,7 @@ import { createPursuit, approachingPursuer } from './guided-defense.js?v=2026111
  const en=()=>window.skyI18n?.lang==='en'||params.get('lang')==='en';
  const text=(ja,english)=>en()?english:ja;
  const storage={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
- const carryTrial=u=>{const trial=params.get('cameraTrial');if(['fixed','hybrid','follow','follow-legacy','follow-turn'].includes(trial))u.searchParams.set('cameraTrial',trial);return u;};
+ const carryTrial=u=>{const trial=params.get('cameraTrial');if(['fixed','follow','follow-legacy','follow-turn'].includes(trial))u.searchParams.set('cameraTrial',trial);return u;};
  const courseURL=()=>{const u=new URL('canyon.html',location.href);u.search=new URLSearchParams({learn:'1',camera:window.skyFollowCamera?.mode||'after',controlpick:'0',hookGuide:'0',guides:'0',lang:window.skyI18n?.pref||(en()?'en':'ja'),return:location.pathname.endsWith('canyon.html')?'canyon':'town'});return carryTrial(u).href;};
  if(!window.skyGuidedMode){
   if(window.skyPracticeMode||window.skyOwnerReplay||params.has('replay'))return;
