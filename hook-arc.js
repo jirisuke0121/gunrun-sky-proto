@@ -3,12 +3,11 @@
 //   横へ ±28° まで膨らんで戻り、さらに少し沈んでから上がる（遠いフックほど大きく、7 m 以下は直線のまま）。
 //   進み具合 τ（0→1）に対して sin(2πτ) で振る。τ=0 と τ=1 では曲がり0なので、到着の向きと勢いは直線のときと同じ。
 // 引く直前に、直線の通り道が空いているときだけ、弧の通り道を 1 度模擬して、体が地形に1点も重ならない弧を選ぶ。
-// 選べなければ（狭い所・壁ぎわ）従来どおりの直線。?hookArc=0 で無効。
+// 選べなければ（狭い所・壁ぎわ）従来どおりの直線。（URLで切る ?hookArc=0 は2026-11-22に廃止。検査は skyHookArc.enabled を直接切り替える）
 (() => {
   const D2R = Math.PI / 180;
   const CFG = Object.freeze({ lateral: 28, sag: 12, minRange: 7, fullRange: 16, step: 1 / 60, from: .04, to: .97, margin: .12, reach: 1.6, maxSeconds: 3 });
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-  const off = new URLSearchParams(location.search).get('hookArc') === '0';
   const swing = tau => Math.sin(2 * Math.PI * tau);
 
   // 目標までのベクトル（e,i,s）と進み具合から、速さ o の速度を返す（曲がり0なら直線と同じ）。
@@ -64,7 +63,7 @@
     },
     last: () => state,
     velocity,
-    enabled: !off,
+    enabled: true,
     CFG,
   };
 })();

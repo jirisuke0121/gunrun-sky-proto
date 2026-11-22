@@ -1,7 +1,7 @@
 // Direction pins at the screen edge (2026-11-14, from a first-time PC playtest):
 //  - pursuers that are off screen get a pinpoint arrow (nearest three, red) instead of relying on the soft red edge alone;
-//  - when ammo is nearly gone, the nearest landed supply crate gets a pin (cyan/white, never yellow/orange: those are marker colours)
-//    and, once the gun is completely empty, a crossed-out gun + "EMPTY" and one click sound (not a repeating click).
+//  - once the gun is completely empty, a crossed-out gun + "EMPTY" and one click sound (not a repeating click).
+//    (The AMMO supply-crate pin was removed 2026-11-22: it was cut off at the screen edge and read as noise.)
 // It reads state only: scores, pursuit, input and ammunition are untouched.
 const game = window.__skyInternals, hud = document.getElementById('hud');
 if (game && hud) {
@@ -9,9 +9,6 @@ if (game && hud) {
   const ARROW = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 28 27 16 21 4 27z"/></svg>';
   const make = (cls, html) => { const el = document.createElement('div'); el.className = 'edge-pin ' + cls; el.hidden = true; if (html) el.innerHTML = html; hud.append(el); return el; };
   const pursuerPins = [make('pursuer', ARROW), make('pursuer', ARROW), make('pursuer', ARROW)];
-  // 2026-11-21 弾補充の案内（AMMO）は画面端で見切れて紛らわしいので既定で出さない。?ammoPin=1 で従来どおり。
-  const AMMO_PIN = new URLSearchParams(location.search).get('ammoPin') === '1';
-  const ammoPin = make('ammo', '<span class="edge-pin-arrow">' + ARROW + '</span><b>AMMO</b><i></i>');
   const note = document.createElement('div'); note.id = 'ammoEmptyNote'; note.hidden = true;
   note.innerHTML = '<svg viewBox="0 0 32 24" aria-hidden="true"><path class="g" d="M3 7h19l3 3v4h-8l-1 6h-5l1-6H6z"/><path class="x" d="M6 2l20 20M26 2 6 22"/></svg><b>EMPTY</b>'; hud.append(note);
   // The game clicks on every auto-fire attempt while the gun is dry (every 0.3 s). Keep one click per empty spell, plus one per real trigger press.
@@ -57,7 +54,7 @@ if (game && hud) {
     const on = playing();
     if (!on) {
       for (const el of pursuerPins) el.hidden = true;
-      ammoPin.hidden = note.hidden = true; ammoBox?.classList.remove('ammo-empty'); wasDry = false;
+      note.hidden = true; ammoBox?.classList.remove('ammo-empty'); wasDry = false;
       requestAnimationFrame(frame); return;
     }
     // ---- pursuers: nearest three that are off screen ----
@@ -78,18 +75,9 @@ if (game && hud) {
       el.dataset.tier = d < 6 ? '3' : d < 12 ? '2' : '1';
     }
     for (let i = used; i < pursuerPins.length; i++) pursuerPins[i].hidden = true;
-    // ---- ammo: low (one magazine or less in total) or empty ----
+    // ---- empty ----
     const left = Et.ammo + Math.max(0, Et.reserve || 0);
-    const low = U.gunOn && finite() && !game.wpc().jumpGun && left <= Math.max(3, Et.mag || 8);
     const dry = U.gunOn && finite() && Et.ammo <= 0 && (Et.reserve || 0) <= 0 && Et.reloadT <= 0;
-    const crates = window.skyWeaponDrops?.crates?.() || [];
-    let best = null, bd = Infinity;
-    for (const k of crates) { const d = Math.hypot(k.x - c.pos.x, k.z - c.pos.z); if (d < bd) { bd = d; best = k; } }
-    if (AMMO_PIN && (low || dry) && best) {
-      const visible = place(ammoPin, best.x, best.y + 1.2, best.z, 56, 140, 84);
-      ammoPin.hidden = false; ammoPin.classList.toggle('on-screen', visible);
-      ammoPin.querySelector('i').textContent = Math.round(bd) + 'm';
-    } else ammoPin.hidden = true;
     // ---- empty: click + note, only while an enemy is close enough that auto-fire would have fired ----
     note.hidden = !dry;
     if (dry && ammoBox) {                                                  // sits right above the ammo counter, not in the middle of the view
@@ -105,5 +93,5 @@ if (game && hud) {
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-  window.skyEdgePins = { pursuerPins, ammoPin, note };
+  window.skyEdgePins = { pursuerPins, note };
 }

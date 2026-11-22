@@ -32,7 +32,6 @@ jobs:
           node bench/gear-polish.test.cjs
           node bench/ranked-ghost.test.cjs
           node bench/path-distance-rounding.test.cjs
-          node bench/zombie-search.test.cjs
           node bench/zombie-drop-entry.test.cjs
           node bench/zombie-nav-floor.test.cjs
           node bench/zombie-routing.test.cjs

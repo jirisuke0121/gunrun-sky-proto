@@ -20,11 +20,11 @@
   // Near straight-up the thumb steers more gently (half the angle at 5 degrees, full from 16),
   // so tremor on a straight run does not swing the runner; there is no flat dead zone, so
   // a small correction still arrives.
-  const SOFT = Number(new URLSearchParams(location.search).get('followSoft') ?? .28);
+  const SOFT = .28;
   const magnet = a => SOFT > 0 && Math.abs(a) < SOFT ? a * Math.pow(Math.abs(a) / SOFT, .6) : a;
   let carry = 0, screenUsed = false, idle = 0, exitHold = false, exitYaw = 0, exitStick = 0;
-  const TURN_RATE = Number(new URLSearchParams(location.search).get('followRate')) || 1.7;
-  const SQUEEZE_RATE = Number(new URLSearchParams(location.search).get('followSqueeze') ?? 1.5);
+  const TURN_RATE = 1.7;
+  const SQUEEZE_RATE = 1.5;
   let savedMode;
   try { savedMode = localStorage.getItem(storageKey); } catch {}
   // PC defaults to WASD + mouse; a PC player who picked the easy (auto camera) type keeps it via the PC-only key above.
