@@ -1,8 +1,11 @@
-## 2026-11-22 難易度ボタンの locator が曖昧だった検査8本を直す（テストのみ）
+## 2026-11-22 検査の実態を調べ直す／難易度ボタンの検査8本と `escape-branch-audit` を直す（テストのみ）
 
-- ホームに難易度ボタン群が2つあるため、`[data-difficulty=…]` が2つに当たって止まっていた。`window-dive`・`rope-swing` と同じく `.first()` を付けた：`climb-line-memo`・`path-search-memo`・`free-hook`・`jump-pad`・`rope-stations`・`swing-hook`・`wind-fx`（7本は成功）、`escape-branch-audit`（下）。ゲームのコード・マップ・ランキングの版（v15）は触っていない。
-- **`escape-branch-audit` は別の失敗が残る**：locator は通り、`index/desktop/east-lower-escape-with-pursuers`（東の低い逃げ道、x≈48〜56）が10秒で終点に着かず落ちる。`?prune=0&links=0`（改装前の地形）でも同じ位置（48.26, 3.0, 3.26）で落ちるので、11/22のマップ改装が原因ではない。CIの履歴でも11/16のPRブランチから失敗が続いている（直近6件）。マップが決まってから調べる。
-- `flow-feel-browser`（自動ジャンプの試作）は、マップが決まるまで保留（本人の判断）。
+- **`main` への push で動くワークフローは `main-regression.yml` だけ**（残り約40本は PR のときだけ。11/17 から走っていない）。11/17 に赤かった14ワークフローで落ちていた検査を、今のコードで回して仕分けた：7ワークフロー分は通る、1つ（`hitches`）は環境の問題、**検査5本（6ワークフロー）は今も落ちる**（`north-wall`・`wallrun-permissions`・`development-entry`・`stable-camera`・`swing-flip`。どれも11/16〜17から。11/22のマップ改装より前）。一覧と見立ては [docs/CI_STATE_2026-11-22.md](docs/CI_STATE_2026-11-22.md)。5本は未修正。
+- ホームに難易度ボタン群が2つあるため `[data-difficulty=…]` が2つに当たって止まっていた検査8本に `.first()`：`climb-line-memo`・`path-search-memo`・`free-hook`・`jump-pad`・`rope-stations`・`swing-hook`・`wind-fx`・`escape-branch-audit`。8本とも成功。
+- **`escape-branch-audit`**：落ちていた `east-lower-escape-with-pursuers`（東端デッキから低い通路へ跳び降りる想定）は、検査の想定が古かった。11/10 に足した張り出し（`return-links.js` の `LIP`）に走りジャンプが必ず着くのが今の設計で、縁は歩いて降りられない。想定を `east-deck-escape-with-pursuers`（デッキ → 張り出し → 西の3 mの台、追手つき）に置き換えた。156件が成功。**東端デッキから低い通路（−1 m）へは直接降りられない**（意図どおりかは要判断）。
+- `main-regression.yml` に、地形を守る検査2本（`map-links-browser`・`escape-branch-audit`）を足した。`map-links-browser` はCIで一度も走っていなかった。
+- 行動通知（下の節）を7言語で測った。スペイン語だけ余裕が薄い（幅568で5pxはみ出す。640では収まる）。
+- `flow-feel-browser`（自動ジャンプの試作）は、マップが決まるまで保留（本人の判断）。ゲームのコード・マップ・ランキングの版（v15）は触っていない。
 
 ## 2026-11-22 CI「Main regression」の修正：英語の小画面で行動通知が中央の視界に重なる（`player-clarity.css`）
 

@@ -51,6 +51,11 @@ jobs:
         env:
           RUNNING_QA_URL: http://127.0.0.1:8899/
         run: node bench/auto-follow-entry-browser.cjs
+      # 地形を変えている間、石段と逃げ道が通れることを main でも確かめる（2026-11-22。どちらも自前でサーバーを立てる）。
+      - name: Map links and escape branches
+        run: |
+          node bench/map-links-browser.cjs
+          node bench/escape-branch-audit.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
