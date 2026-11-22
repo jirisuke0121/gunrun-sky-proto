@@ -1,5 +1,7 @@
 # 脱出テストのリプレイ
 
+> **2026-11-22：本編のリプレイ画面（`escape-replay-viewer.html`）は外した**（使われていなかった。本人の判断）。動画（`escape-*.mp4`）と JSON は記録として残す。以下の「本編のリプレイ画面」の項は当時のもの。
+
 `node tools/escape-replay.cjs` で、`docs/escape-graph` の経路を実ゲーム（本編のAIのゾンビ4体）の中で再生して記録する。
 
 ## 見方

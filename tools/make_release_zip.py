@@ -14,10 +14,9 @@ out = Path(sys.argv[1]) if len(sys.argv) > 1 else root / "sky-corridor-web.zip"
 EXCLUDE = {
     "canyon.html", "canyon-world.js",                       # white-box map (developer only)
     "hook-editor.html", "hook-editor.js", "wall-jump-candidates.js",  # editors
-    "swing-plan.html", "camera-comparison.html", "swing-escape-evidence.json",
     "size_check.sh",
     # owner / admin and review pages: never ship them to a portal
-    "owner.html", "owner-token.html", "owner.js", "owner.css", "escape-replay-viewer.html", "camera-trial.html",
+    "owner.html", "owner-token.html", "owner.js", "owner.css",
 }
 files = []
 for pattern in ("*.html", "*.js", "*.css", "*.svg"):
