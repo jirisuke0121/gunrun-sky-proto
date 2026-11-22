@@ -33,7 +33,9 @@
 | D5：`swing-plan.html`・`swing-escape-evidence.json`、`hook-editor.html` のリンク | 消した。**`?oldtown_swing`（検査が使う）・`swingCourse`（入門の地形の印）・`?swing_route` は残した**。`OLD_TOWN_SWING_PLAN.md` は記録として残し注記した |
 | D6：`escape-replay-viewer.html` | 消した。動画・JSON・`tools/escape-replay*` は記録・生成用として残した |
 | **D1：カメラの比較試作 `follow`・`follow-legacy`・`follow-turn`** | **消さなかった（私の見立てが誤り）。** `follow-turn` は AGENTS.md §6「操作方式を変えるときは親指の模型で前後を比べる」の**「前」の基準線**で、`bench/screen-stick-browser.cjs`・`screen-stick.test.cjs`・`follow-camera.test.cjs` が使う。`follow-legacy` は `easy-controls-browser`・`auto-follow-browser`・`follow-camera.test` が、`follow` は `auto-follow-entry-browser` が使う。消すなら、比較の基準線を別の形で残す判断が先 |
-| D4・D7・D8・D9・D10 | 触っていない（後回し・要確認・未調査のまま） |
+| D7：練習モード（`practice.js`・`practice-world.js`） | **残す（本人と確認、11/22）。** 入門コース（`?learn=1`）が練習場の地形と仕組み（`window.skyPractice`）の上に作られている。入口のリンクは `#homeMore`（折りたたみ）の中にあり、普通は見えない |
+| D8：旧い入門の入口 `?guidedEntry=0`・体力無限の入門ラン（`intro` 難易度） | **消すことに決まった（本人の了承、11/22）。次の作業。** 人は11/14から入門コース（`?learn=1`）→イージーで、旧い入門ランは検査だけが通る。範囲と順序は `docs/HANDOFF_2026-11-22.md` の1 |
+| D4・D9・D10 | 触っていない（後回し・未調査のまま） |
 
 教訓：**「URLに付けたときだけ動く」＝「使われていない」ではない。** 検査と AGENTS.md の手順が基準線として使っていることがある。消す前に `bench/` と AGENTS.md を引くこと。
 
