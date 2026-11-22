@@ -522,6 +522,14 @@
       if (b.maxY - b.minY > 40 || (b.maxX - b.minX) * (b.maxZ - b.minZ) > 700) { loose.add(m); meshes.push(m); }
     }
     const clones = new Map(), replaced = [], hsl = { h: 0, s: 0, l: 0 };
+    // A tinted board wall that was never merged (the long fence of the far-east deck) has a mesh of its own: it only
+    // gets the wood colour (a material clone; no shader change, same draw call).
+    let looseBoards = 0;
+    if (town && MASONRY) for (const b of game.jn) {
+      const m = b.mesh;
+      if (!m?.isMesh || m.parent !== scene || b.hidden || b.shape || NAMES.has(m.name) || Array.isArray(m.material) || boxRole(b) !== 'board' || m.material.color?.getHex() !== b.tint) continue;
+      m.material = m.material.clone(); m.material.color.set(BOARD_WOOD); looseBoards++;
+    }
     let tinted = 0, recoloured = 0, tiles = 0, woodMeshes = 0;
     for (const mesh of meshes) {
       const material = mesh.material;
@@ -569,7 +577,7 @@
       if (tile) tiles++;
     }
     for (const original of replaced) original.dispose(); // free the old GPU copies
-    return { tinted, recoloured, tiles, loose: loose.size, wood: woodMeshes, extraWalls: town?.extraWalls ?? 0, extraWood: town?.extraWood ?? 0, buildings: town?.clusters.length ?? 0, sameColour: town?.sameColour ?? 0 };
+    return { tinted, recoloured, tiles, loose: loose.size, wood: woodMeshes, extraWalls: town?.extraWalls ?? 0, extraWood: town?.extraWood ?? 0, looseBoards, buildings: town?.clusters.length ?? 0, sameColour: town?.sameColour ?? 0 };
   }
 
   let tries = 0;
@@ -582,7 +590,7 @@
       recolourSky(game);
       const world = window.skyLook === 'sky' ? { tinted: 0 }
         : tintWorld(game, window.skyLook === 'town' ? 'town' : window.skyLook === 'townDebug' ? 'debug' : null);
-      window.skyLookInfo = { tinted: world.tinted, recoloured: world.recoloured ?? 0, tileMeshes: world.tiles ?? 0, buildings: world.buildings ?? 0, loose: world.loose ?? 0, wood: world.wood ?? 0, extraWalls: world.extraWalls ?? 0, extraWood: world.extraWood ?? 0, masonry: MASONRY, sameColourNeighbours: world.sameColour ?? 0 };
+      window.skyLookInfo = { tinted: world.tinted, recoloured: world.recoloured ?? 0, tileMeshes: world.tiles ?? 0, buildings: world.buildings ?? 0, loose: world.loose ?? 0, wood: world.wood ?? 0, extraWalls: world.extraWalls ?? 0, extraWood: world.extraWood ?? 0, looseBoards: world.looseBoards ?? 0, masonry: MASONRY, sameColourNeighbours: world.sameColour ?? 0 };
       document.body.dataset.skyLook = window.skyLook;
     } catch (error) { console.warn('look pass skipped', error); }
   }, 200);
