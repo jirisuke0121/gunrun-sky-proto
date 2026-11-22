@@ -1,0 +1,4 @@
+954 Góc nhìn thứ nhất (phụ, thử nghiệm)
+955 Chơi bằng chính đôi mắt của bạn. Sẽ khó thấy chân và những kẻ truy đuổi phía sau hơn. Các lượt chơi với tùy chọn này không được gửi lên bảng xếp hạng hay hồ sơ chơi.
+956 Góc nhìn thứ nhất (phụ): không tính xếp hạng, không gửi gì
+957 Không gửi: chế độ luyện tập, thử nghiệm hoặc góc nhìn thứ nhất (phụ)

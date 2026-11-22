@@ -130,7 +130,7 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => random
     if (!existing) history.unshift({ clientRunId:a.clientRunId,at:a.at,map:a.mapKey,difficulty:a.challenge?.id || 'legacy',reason:a.reason,t:a.t,score:a.score?.total ?? null,state:'local',ranking:null });
     history = history.slice(0,50);
     // Local result history remains available even when sending is disabled.
-    if (!allowed()) { update(a.clientRunId,{state:'excluded',error:'練習・検証モードのため送信しません'}); return null; }
+    if (!allowed()) { update(a.clientRunId,{state:'excluded',error:'練習・検証・一人称（おまけ）のため送信しません'}); return null; }
     if (JSON.stringify(a).length > 550000) a = resultOnly(a);
     queue[a.clientRunId] = a;
     update(a.clientRunId,{state:'pending',localStored:persist()});
@@ -146,7 +146,7 @@ export function createRunRecords({ storage, fetcher = fetch, uuid = () => random
 
 export function installRunRecords(game, win = window, doc = document) {
   const panels = [];
-  const scope = () => win.skyPracticeMode ? '練習場：ランキング対象外' : win.skyChallenge.debug ? '検証モード：ランキング対象外' : game.U.sendLog ? '' : '送信なし：結果はこの端末だけに保存';
+  const scope = () => win.skyHumanView?.firstPersonRun ? '一人称視点（おまけ）：ランキング対象外・記録送信なし' : win.skyPracticeMode ? '練習場：ランキング対象外' : win.skyChallenge.debug ? '検証モード：ランキング対象外' : game.U.sendLog ? '' : '送信なし：結果はこの端末だけに保存';
   let current;
   const message = row => {
     if (!row) return scope();
@@ -178,7 +178,7 @@ export function installRunRecords(game, win = window, doc = document) {
   }
   const storage = {getItem:key=>{try{return win.localStorage.getItem(key);}catch{return null;}},setItem:(key,value)=>win.localStorage.setItem(key,value)};
   store = createRunRecords({ storage,fetcher:(...args)=>win.fetch(...args),uuid:()=>randomUUID(win.crypto),
-    allowed:()=>!win.skyOwnerReplay&&!win.skyPracticeMode&&!win.skyChallenge.debug&&!!game.U.sendLog,
+    allowed:()=>!win.skyOwnerReplay&&!win.skyPracticeMode&&!win.skyChallenge.debug&&!win.skyHumanView?.firstPersonRun&&!!game.U.sendLog,
     announce:row=>render(row),emit:detail=>doc.dispatchEvent(new CustomEvent('sky-run-uploaded',{detail})) });
   for (const [id,target] of [['recordDeliveryHome',doc.getElementById('recNote')],['recordDeliveryResult',doc.getElementById('unityRecordStatus') || doc.getElementById('oLog')]]) {
     if (!target) continue;

@@ -22,7 +22,7 @@ const ua = navigator.userAgent;
 const device = /iPhone|iPod/.test(ua) ? 'iphone' : /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? 'ipad' : /Android/.test(ua) ? 'android' : 'desktop';
 const environment = collectEnvironment(navigator, window.screen, window.devicePixelRatio);
 function allowed() {
-  if (window.skyOwnerReplay || dev || window.skyDevMode || window.skyPracticeMode || window.skyChallenge?.debug || game?.z.mission) return false;
+  if (window.skyOwnerReplay || dev || window.skyDevMode || window.skyPracticeMode || window.skyChallenge?.debug || window.skyHumanView?.firstPersonRun || game?.z.mission) return false;
   if (game) return game.U.sendLog === true;
   try { return JSON.parse(localStorage.getItem('gunrun-sky-proto-v1') || '{}').sendLog !== false; } catch { return true; }
 }

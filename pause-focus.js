@@ -76,6 +76,7 @@
       $('t_aimAuto')?.closest('label.tg'),
       $('t_autoFire')?.closest('label.tg'),
       document.querySelector('.follow-camera-settings'), // the plain <select>; hidden by CSS, kept in sync by follow-camera.js
+      $('firstPersonOption'), // 一人称視点のおまけ（first-person-option.js）
     ]);
     place(panes.display, [
       $('s_volume')?.closest('.sl'),

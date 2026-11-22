@@ -47,6 +47,9 @@ jobs:
           node bench/minimap-browser.cjs
           node bench/player-clarity-browser.cjs
           node bench/touch-stick-browser.cjs
+      # 一人称視点のおまけ（2026-11-22）：選べる・保存される・一人称のランは記録を送らない・入門コースは三人称のまま（自前でサーバーを立てる）。
+      - name: First-person bonus option
+        run: node bench/first-person-option-browser.cjs
       - name: Tutorial exit returns to a playable home
         env:
           RUNNING_QA_URL: http://127.0.0.1:8899/

@@ -1,5 +1,5 @@
 import { installMinimap } from './minimap.js?v=20261114-big-enemies-v1';
-import { installRunRecords } from './run-records.js?v=20261122-no-intro-v1';
+import { installRunRecords } from './run-records.js?v=20261122-first-person-v1';
 import { createGunRecoil } from './gun-recoil.js?v=20261101-recoil-v1';
 import { createSwing } from './parkour-swing.js?v=20261122-no-swing-boost-v1';
 import { installRanking } from './ranking.js?v=20261122-no-intro-v1';

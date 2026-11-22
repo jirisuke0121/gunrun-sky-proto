@@ -35,7 +35,7 @@
 | **D1：カメラの比較試作 `follow`・`follow-legacy`・`follow-turn`** | **消さなかった（私の見立てが誤り）。** `follow-turn` は AGENTS.md §6「操作方式を変えるときは親指の模型で前後を比べる」の**「前」の基準線**で、`bench/screen-stick-browser.cjs`・`screen-stick.test.cjs`・`follow-camera.test.cjs` が使う。`follow-legacy` は `easy-controls-browser`・`auto-follow-browser`・`follow-camera.test` が、`follow` は `auto-follow-entry-browser` が使う。消すなら、比較の基準線を別の形で残す判断が先 |
 | D7：練習モード（`practice.js`・`practice-world.js`） | **残す（本人と確認、11/22）。** 入門コース（`?learn=1`）が練習場の地形と仕組み（`window.skyPractice`）の上に作られている。入口のリンクは `#homeMore`（折りたたみ）の中にあり、普通は見えない |
 | D8：旧い入門の入口 `?guidedEntry=0`・体力無限の入門ラン（`intro` 難易度） | **消した（11/22、3つ目のセッション）。** 人は11/14から入門コース（`?learn=1`）→イージー。一緒に、入門ランの中でしか出なかった案内（`context-tutorial`・`hook-tutorial`）、操作タイプのポップアップ（`#ctrlPick`）、スキップボタン（`intro-skip`）、結果からの勧め（`next-step`）も消した。詳細は README の先頭の節 |
-| D4・D9・D10 | 触っていない（後回し・未調査のまま） |
+| D4・D10（D9 は11/22に決着） | 触っていない（後回し・未調査のまま） |
 
 教訓：**「URLに付けたときだけ動く」＝「使われていない」ではない。** 検査と AGENTS.md の手順が基準線として使っていることがある。消す前に `bench/` と AGENTS.md を引くこと。
 
@@ -64,7 +64,7 @@
 | D6 | `escape-replay-viewer.html`（直下＝公開される） | 10/30の脱出テストのリプレイを見るページ。`docs/escape-replays/` とセット | ページと `docs/escape-replays/` |
 | D7 | 練習モード（`practice.js`・`practice-world.js`・`practice.css`・`PRACTICE.md`、`?practice`） | ホームからの入口は見つからなかった（URLで直接開く）。`canyon.html` だけが読み込む。入門コース（`?learn=1`）は練習モードの地形の一部を使っている | 入門コースと絡むので、消すなら切り分けが要る。**使っているかどうかを先に教えてほしい** |
 | D8 | 旧い入門の入口 `?guidedEntry=0`（`legacyIntro`） | **消した（11/22）。** 自動操作のブラウザも人と同じ道（初回カード・コツ → 入門コース）を通る。`?guidedEntry=1`（ホームを開くと入門コースへ移る、検査用の入口。`guided-preferences.js`）は別物で残している | — |
-| D9 | 一人称の表示（`first-person-weapons.js` 12 KB、`human-view.js` の `existing`） | AGENTS.md §2「三人称前提で、一人称の専用対応はしない」。ただし視点の選択肢として残っている可能性がある | 未調査。使っているなら残す |
+| D9 | 一人称の表示（`first-person-weapons.js` 12 KB、`human-view.js` の `existing`） | **残す・活かすことに決まった（本人の判断、11/22）。** 操作設定の末尾に任意で選べる「一人称視点（おまけ・試作）」として出した（`first-person-option.js`）。人物の読み込み失敗時の代替表示としても使う | — |
 | D10 | `auto-resolution-monitor.js`（2 KB） | 先頭に「NIGHTLINE's rendered-frame policy」。AGENTS.md §3「NIGHTLINE の画質調整の仕様の取り込み」はやらない、と食い違って見える。`foundation-runtime.js` が読み込んでいる（測るだけで画質は変えていない可能性がある） | 未調査。測るだけなら残してよい |
 
 ## E. 未決（触らない）

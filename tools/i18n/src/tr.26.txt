@@ -1,0 +1,4 @@
+954 Birinci şahıs görünümü (ek, deneysel)
+955 Kendi gözlerinle oyna. Ayaklarını ve arkandaki takipçileri görmek zorlaşır. Bu ayarla oynanan oyunlar sıralamaya ve oyun kayıtlarına gönderilmez.
+956 Birinci şahıs görünümü (ek): sıralamaya girmez, hiçbir şey gönderilmez
+957 Gönderilmedi: alıştırma, test veya birinci şahıs (ek) modu

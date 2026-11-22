@@ -311,3 +311,7 @@ Wを押し続ける	Keep holding W
 高精細と同じ細かさで、影だけを省きます。スマホで続けて遊んでも重くなりにくくします。	Same detail as High, without shadows. Keeps phones smoother over repeated play.
 プライバシーポリシー	Privacy Policy
 屋根を跳び、ゾンビから2分間逃げ切れ。	Leap the rooftops. Outrun the zombies for 2 minutes.
+一人称視点（おまけ・試作）	First-person view (bonus, experimental)
+自分の目線で遊びます。足元や背後の追手が見えにくくなります。この設定で遊んだランは、ランキング・プレイ記録に送信されません。	Play through your own eyes. Your feet and pursuers behind you are harder to see. Runs played with this on are not sent to the ranking or play records.
+一人称視点（おまけ）：ランキング対象外・記録送信なし	First-person view (bonus): not ranked, nothing sent
+練習・検証・一人称（おまけ）のため送信しません	Not sent: practice, test or first-person (bonus) mode

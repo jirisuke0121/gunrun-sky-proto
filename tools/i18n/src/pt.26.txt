@@ -1,0 +1,4 @@
+954 Visão em primeira pessoa (extra, experimental)
+955 Jogue pelos seus próprios olhos. Seus pés e os perseguidores atrás de você ficam mais difíceis de ver. As partidas jogadas com isto ativado não são enviadas ao ranking nem aos registros de jogo.
+956 Primeira pessoa (extra): fora do ranking, nada é enviado
+957 Não enviado: modo de prática, teste ou primeira pessoa (extra)

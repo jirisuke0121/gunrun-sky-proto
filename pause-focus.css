@@ -87,3 +87,8 @@ html.touch #ovPause .pauseKeysTouch{display:block}
 /* Practice mode puts its own panel above the settings; keep it short so the tabs stay in view. */
 #app:not([data-fit=roomy]) #ovPause #practicePanel #practiceHint{display:none}
 #app:not([data-fit=roomy]) #ovPause #practicePanel{padding:4px 8px}
+
+/* 一人称視点のおまけ（first-person-option.js）：操作タブの末尾に小さく。タブへ並べられるまでは隠す */
+#app>.first-person-option,.first-person-option[hidden]{display:none}
+#ovPause .first-person-option{margin-top:10px;padding-top:8px;border-top:1px solid #ffffff22}
+#ovPause .first-person-option .note{margin:2px 0 0 30px;font-size:11px;line-height:1.4;color:#9fb0bd}

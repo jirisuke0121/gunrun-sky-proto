@@ -66,7 +66,14 @@ let aimRig = null, heldWeapon = null, aimBlend = 0, shotTarget = null;
 const contactOffset = new Vector3(), contactWorld = new Vector3();
 // The conventional first-person body is kept only as a load-failure fallback.
 let choice = 'unity';
-if (choice === 'unity') view = 'third';
+// 一人称視点は設定の「おまけ」（first-person-option.js）。人物モデルは三人称のまま読み込み、視点だけを切り替える。
+// 一人称で遊んだランは、ランキング・プレイ記録に送らない（firstPersonRun。次のラン開始で戻る）。
+const FIRST_PERSON_KEY = 'gunrun-first-person-v1';
+let firstPerson = false, firstPersonRun = false;
+try { firstPerson = localStorage.getItem(FIRST_PERSON_KEY) === '1'; } catch {}
+// 入門コース（skyGuidedMode）は三人称の操作説明なので、設定にかかわらず三人称のまま。人物を読み込めなかったときの代替表示は一人称。
+const desiredView = () => choice === 'unity' ? (firstPerson && !window.skyGuidedMode ? 'first' : 'third') : 'first';
+view = desiredView();
 
 function readBounds(object) {
   object.updateMatrixWorld(true);
@@ -153,7 +160,7 @@ function sync() {
 }
 function select(next) {
   choice = next;
-  view = next === 'unity' ? 'third' : 'first';
+  view = desiredView();
   try { sessionStorage.setItem('gunrun-human-trial', next); } catch {}
   sync();
   if (next === 'unity') loadHuman();
@@ -527,6 +534,8 @@ function update(dt, preparingShot = false) {
     delete document.body.dataset.skyHumanDoorReachError;
   }
   const third = choice === 'unity' && view === 'third' && !!holder && sky.modeRef() !== 'menu' && sky.modeRef() !== 'replay' && !window.skySettings?.beforeRun;
+  if (view !== desiredView()) { view = desiredView(); sync(); }
+  if (choice === 'unity' && view === 'first' && sky.modeRef() === 'play') firstPersonRun = true;
   updateCombatTurn(dt, third, preparingShot);
   if (holder) {
     holder.visible = third;
@@ -715,6 +724,16 @@ window.skyHumanView = { update, select, getMuzzleWorld, prepareShot, createDecoy
     return holder?.visible && aimBlend > .96 && Math.abs(wrapAngle(direction - holder.rotation.y)) < 1.12;
   },
   get choice() { return choice; }, get view() { return view; },
+  get firstPerson() { return firstPerson; },
+  setFirstPerson(on) {
+    firstPerson = !!on;
+    try { localStorage.setItem(FIRST_PERSON_KEY, firstPerson ? '1' : '0'); } catch {}
+    view = desiredView();
+    sync();
+    document.dispatchEvent(new CustomEvent('sky-first-person-change'));
+  },
+  get firstPersonRun() { return firstPersonRun; },
+  resetRun() { firstPersonRun = false; },
   get isFiring() { return shotTime < .28; },
   get runStyle() { return parkourRunEnabled ? 'parkour' : 'existing'; },
   set runStyle(value) { parkourRunEnabled = value !== 'existing'; } };

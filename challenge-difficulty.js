@@ -195,6 +195,7 @@
     active = selected;
     lastObservation = -1;
     window.skyBossZombie?.begin();
+    window.skyHumanView?.resetRun?.();
     game.z.challenge = { id: active, version, rankingScope: rankingDifficulty(active) };
     applySettings();
     if (active !== 'legacy') game.z.challenge.fixedSettings = snapshotSettings(game.U);

@@ -952,6 +952,10 @@
 951	高精細と同じ細かさで、影だけを省きます。スマホで続けて遊んでも重くなりにくくします。	Same detail as High, without shadows. Keeps phones smoother over repeated play.
 952	プライバシーポリシー	Privacy Policy
 953	屋根を跳び、ゾンビから2分間逃げ切れ。	Leap the rooftops. Outrun the zombies for 2 minutes.
+954	一人称視点（おまけ・試作）	First-person view (bonus, experimental)
+955	自分の目線で遊びます。足元や背後の追手が見えにくくなります。この設定で遊んだランは、ランキング・プレイ記録に送信されません。	Play through your own eyes. Your feet and pursuers behind you are harder to see. Runs played with this on are not sent to the ranking or play records.
+956	一人称視点（おまけ）：ランキング対象外・記録送信なし	First-person view (bonus): not ranked, nothing sent
+957	練習・検証・一人称（おまけ）のため送信しません	Not sent: practice, test or first-person (bonus) mode
 p0	^(\\d+)秒停止$	Stun $1s
 p1	^技あと(\\d+)$	$1 moves
 p2	^装填中 · あと([\\d.]+)秒$	Reloading · $1 s left
