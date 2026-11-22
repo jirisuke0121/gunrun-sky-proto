@@ -133,12 +133,12 @@ const out = 'outputs/indoor-entry'; fs.mkdirSync(out, { recursive: true });
       await page.waitForFunction(() => __game.mode === 'pause');
       if (touch) await page.locator('#bMenu').tap(); else await page.locator('#bMenu').click();
       await page.waitForFunction(() => __game.mode === 'menu');
-      await page.evaluate(()=>document.getElementById('bIntro').click());
+      await page.evaluate(()=>{const d=document.getElementById('challengeDifficulty');d.value='easy';d.dispatchEvent(new Event('change'));document.getElementById('bStart').click()});
       await page.waitForTimeout(350);
-      const intro = await page.evaluate(() => { __game.frameOnce(.01); return { mode: __game.mode, id: skyChallenge.id, hint: document.getElementById('hint').classList.contains('on'), toast: document.getElementById('toast').classList.contains('on') }; });
-      assert.equal(intro.mode, 'play'); assert.equal(intro.id, 'intro'); assert.equal(intro.hint, false); assert.equal(intro.toast, false);
+      const again = await page.evaluate(() => { __game.frameOnce(.01); return { mode: __game.mode, id: skyChallenge.id, hint: document.getElementById('hint').classList.contains('on'), toast: document.getElementById('toast').classList.contains('on') }; });
+      assert.equal(again.mode, 'play'); assert.equal(again.id, 'easy'); assert.equal(again.hint, false); assert.equal(again.toast, false);
       assert.deepEqual(errors, []);
-      results.push({ map, touch, start, indoor, intro, errors });
+      results.push({ map, touch, start, indoor, again, errors });
       console.log('PASS', map, touch ? 'touch' : 'desktop', indoor ? 'doors, open entries, spawning, rooftops, human crossing and pursuit' : 'clear start');
       await context.close();
     }
