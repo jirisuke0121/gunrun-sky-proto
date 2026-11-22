@@ -51,12 +51,17 @@
 
   // West: warm brick. East: cool slate-teal. North: moss. South: dusty rose. Centre stays sand.
   // u, v in [-1, 1] across the playable area; the colour changes smoothly with position.
+  // One world (11/22, second pass): the surfaces this tint still reaches are STONE (paving, bases, tower shafts, the
+  // blocks under the town). Stone is one material, so the district shift is kept at DISTRICT_SHIFT of what it was:
+  // a warm / cool lean of the same stone instead of teal blocks in the north-east and pink paving in the south.
+  // ?walls=plain keeps the previous full-strength tint for comparison.
+  const DISTRICT_SHIFT = params.get('walls') === 'plain' ? 1 : .3;
   function districtTint(u, v) {
-    const w = Math.max(0, -u), e = Math.max(0, u), n = Math.max(0, -v), s = Math.max(0, v);
+    const w = Math.max(0, -u), e = Math.max(0, u), n = Math.max(0, -v), s = Math.max(0, v), k = DISTRICT_SHIFT;
     return [
-      clamp(1 + 0.18 * w - 0.40 * e - 0.22 * n + 0.06 * s, 0.45, 1.35),
-      clamp(1 - 0.24 * w - 0.12 * e + 0.08 * n - 0.20 * s, 0.45, 1.35),
-      clamp(1 - 0.48 * w + 0.20 * e - 0.42 * n - 0.12 * s, 0.45, 1.35),
+      1 + k * (clamp(1 + 0.18 * w - 0.40 * e - 0.22 * n + 0.06 * s, 0.45, 1.35) - 1),
+      1 + k * (clamp(1 - 0.24 * w - 0.12 * e + 0.08 * n - 0.20 * s, 0.45, 1.35) - 1),
+      1 + k * (clamp(1 - 0.48 * w + 0.20 * e - 0.42 * n - 0.12 * s, 0.45, 1.35) - 1),
     ];
   }
 
@@ -82,6 +87,13 @@
   };
   const SLATE_TOP = 0x5a6975, SLATE_SIDE = 0x424f5a;
   const ROOF_TINT = 0xe39a4a; // tint of the stepped roof boxes in the map data
+  // The last unrelated colours of the map data (11/22, second pass): the red-brown warehouse walls of the west become
+  // plaster like every other house, and the green / red / navy cargo stacked beside them (steps of 2.7 / 4.0 / 4.4 m),
+  // the thin red board walls and their canopy become WOOD - three tones, so the three step heights still read apart.
+  // The yellow crates (the first step of each stack) stay yellow: that is the cue colour. ?walls=plain keeps the old colours.
+  const HOUSE_TINTS = params.get('walls') === 'plain' ? new Set() : new Set([0xb5604a, 0x8f4a3a]);
+  const CRATE_WOOD = params.get('walls') === 'plain' ? {} : { 0x5f9c6c: 0xa5805a, 0xc2624e: 0x8f6a49, 0x5b88c2: 0x74573f };
+  const BOARD_WOOD = 0x8f6a49, HOUSE_TOP = 0xc9bda4; // thin tinted panels (under 0.35 m); the flat top of a recoloured wall (pale stone)
   const hash = (n) => { n = Math.imul(n ^ (n >>> 15), 0x2c1b3c6d); n = Math.imul(n ^ (n >>> 12), 0x297a2d39); return ((n ^ (n >>> 15)) >>> 0) / 4294967296; };
   const sizeOf = (b) => [b.maxX - b.minX, b.maxY - b.minY, b.maxZ - b.minZ];
 
@@ -89,7 +101,12 @@
   function boxRole(b) {
     if (b.hidden || b.shape || !b.mesh?.isMesh || !['slab', 'mono', 'beam'].includes(b.type)) return 'skip';
     if (b.tint === ROOF_TINT) return 'roof';
-    if (b.tint != null) return 'skip'; // accents: brick faces, awnings, crates, route cues
+    if (b.tint != null) {
+      const [w, h, d] = sizeOf(b), thin = Math.min(w, h, d) < .35;
+      if (CRATE_WOOD[b.tint] != null && !thin) return 'crate';
+      if (HOUSE_TINTS.has(b.tint)) return thin ? 'board' : 'house';
+      return 'skip'; // route cues, rails, door frames
+    }
     const [w, h, d] = sizeOf(b);
     if (h > 40 || w * d > 700) return 'skip'; // sky pillars and the ground
     return 'wall';
@@ -172,13 +189,43 @@
       cluster.colour = colour(WALL_HEX[cluster.name]);
       cluster.debug = colour(0xffffff).setHSL(hash(cluster.id * 31 + 5), .8, .5);
     }
+    // Recoloured boxes of the map data. They are not part of the building grouping above (so no building changes its
+    // colour): a warehouse wall takes a plaster of its district that the buildings next to it do not use, and all the
+    // warehouse boxes that touch share it; cargo and board walls carry a wood colour.
+    const houses = boxes.filter(entry => entry.role === 'house'), houseGroup = new Map(houses.map(entry => [entry, entry]));
+    const groupOf = (x) => { while (houseGroup.get(x) !== x) x = houseGroup.get(x); return x; };
+    for (const entry of houses) for (const other of near(entry, .1)) if (houseGroup.has(other)) {
+      const a = entry.box, b = other.box;
+      if (overlap(a.minX, a.maxX, b.minX, b.maxX) > -.06 && overlap(a.minY, a.maxY, b.minY, b.maxY) > -.06 && overlap(a.minZ, a.maxZ, b.minZ, b.maxZ) > -.06) { const x = groupOf(entry), y = groupOf(other); if (x !== y) houseGroup.set(y, x); }
+    }
+    const extra = new Map();
+    for (const entry of houses) {
+      const root = groupOf(entry);
+      if (!extra.has(root)) extra.set(root, { id: clusters.length + extra.size, boxes: [], minY: 1e9, taken: new Set(), sumX: 0, sumZ: 0 });
+      const cluster = extra.get(root); cluster.boxes.push(entry); entry.cluster = cluster; cluster.minY = Math.min(cluster.minY, entry.box.minY);
+      cluster.sumX += (entry.box.minX + entry.box.maxX) / 2; cluster.sumZ += (entry.box.minZ + entry.box.maxZ) / 2;
+      for (const other of near(entry, .3)) if (other.cluster?.name && other.cluster !== cluster) cluster.taken.add(other.cluster.name);
+    }
+    for (const cluster of extra.values()) {
+      const n = cluster.boxes.length, u = clamp((cluster.sumX / n - cx) / hx, -1, 1), v = clamp((cluster.sumZ / n - cz) / hz, -1, 1);
+      const choices = DISTRICT_WALLS[districtOf(u, v)];
+      cluster.name = choices.find(name => !cluster.taken.has(name)) || choices[0];
+      cluster.colour = cluster.debug = colour(WALL_HEX[cluster.name]);
+    }
+    for (const entry of boxes) {
+      if (entry.role === 'crate') entry.wood = colour(CRATE_WOOD[entry.box.tint]);
+      else if (entry.role === 'board') entry.wood = colour(BOARD_WOOD);
+    }
+    const houseTop = colour(HOUSE_TOP);
     let sameColour = 0;
     for (const cluster of clusters) for (const other of cluster.neighbours) if (other.id > cluster.id && other.name === cluster.name) sameColour++;
-    return { entries: boxes, grid, key, cell, clusters, sameColour, slateTop: colour(SLATE_TOP), slateSide: colour(SLATE_SIDE), cx, cz, hx, hz };
+    return { entries: boxes, grid, key, cell, clusters, sameColour, houseTop, extraWalls: houses.length, extraWood: boxes.filter(entry => entry.wood).length, slateTop: colour(SLATE_TOP), slateSide: colour(SLATE_SIDE), cx, cz, hx, hz };
   }
 
   // The box whose face the vertex lies on (first match), or null when the vertex belongs to something else.
-  function ownerOf(town, x, y, z, nx, ny, nz) {
+  // A recoloured tinted box (crate, board wall, warehouse wall) only owns the vertices of its own mesh (meshTint = the
+  // colour of the mesh's material = the tint of the boxes merged into it), so it can never take a face from a wall beside it.
+  function ownerOf(town, x, y, z, nx, ny, nz, meshTint) {
     const list = town.grid.get(town.key(Math.floor(x / town.cell), Math.floor(z / town.cell)));
     if (!list) return null;
     const eps = .035, ax = Math.abs(nx), ay = Math.abs(ny), az = Math.abs(nz);
@@ -189,6 +236,7 @@
       const onFace = ax >= ay && ax >= az ? Math.abs(x - (nx > 0 ? b.maxX : b.minX)) < eps
         : ay >= az ? Math.abs(y - (ny > 0 ? b.maxY : b.minY)) < eps : Math.abs(z - (nz > 0 ? b.maxZ : b.minZ)) < eps;
       if (!onFace) continue;
+      if (entry.box.tint != null && entry.role !== 'roof') { if (entry.box.tint === meshTint) return entry; continue; }
       if (!found || entry.role === 'roof' || (found.role !== 'roof' && entry.cluster && !found.cluster)) found = entry;
     }
     return found;
@@ -197,15 +245,16 @@
   // Palette for one mesh: Float32Array(count*4) rgb + strength, or null when no vertex is recoloured.
   // A face is only recoloured when all three of its corners lie on the same building (or roof box): a
   // cliff side that merely shares a corner with a house wall must not get a colour gradient.
-  function paletteFor(town, geometry, debug) {
+  function paletteFor(town, geometry, debug, meshTint) {
     const position = geometry.attributes.position, normal = geometry.attributes.normal;
     if (!position || !normal) return null;
     const count = position.count, owners = new Array(count).fill(null), groups = new Array(count).fill(null);
     for (let i = 0; i < count; i++) {
       const nx = normal.getX(i), ny = normal.getY(i), nz = normal.getZ(i);
-      const entry = ownerOf(town, position.getX(i), position.getY(i), position.getZ(i), nx, ny, nz);
+      const entry = ownerOf(town, position.getX(i), position.getY(i), position.getZ(i), nx, ny, nz, meshTint);
       if (!entry) continue;
       if (entry.role === 'roof') groups[i] = 'roof'; // stepped roof boxes are stacked and coplanar: any roof box will do
+      else if (entry.wood) groups[i] = 'w' + entry.box.tint; // boxes of one tint share a colour, so a corner shared by two stacked crates is fine
       else if (entry.cluster) groups[i] = 'c' + entry.cluster.id;
       else continue;
       owners[i] = entry;
@@ -222,6 +271,10 @@
       const up = normal.getY(i);
       let c, shade;
       if (entry.role === 'roof') { c = up > .5 ? town.slateTop : town.slateSide; shade = .92 + .16 * hash(entry.index * 17 + 3); }
+      else if (entry.wood) { // every face of a crate or a board wall; alpha 2 = the wood shader
+        out[i * 4] = entry.wood.r; out[i * 4 + 1] = entry.wood.g; out[i * 4 + 2] = entry.wood.b; out[i * 4 + 3] = 2; hits++; continue;
+      }
+      else if (entry.role === 'house' && up > .5) { c = town.houseTop; shade = .96 + .08 * hash(entry.index * 29 + 7); } // the top of a recoloured wall would keep the red of its material
       else if (Math.abs(up) < .5) {
         c = debug ? entry.cluster.debug : entry.cluster.colour; shade = .96 + .08 * hash(entry.index * 29 + 7);
         // painted plinth and cornice bands (colour only) on walls taller than a storey
@@ -478,7 +531,7 @@
       const tile = town && material.map && isTerracottaTile(material);
       const isWood = !!town && MASONRY && !loose.has(mesh) && material.color.getHex() === WOOD_TINT;
       if (isWood) { woodMeshes++; }
-      const palette = !town || loose.has(mesh) ? null : isWood ? woodPalette(mesh.geometry, material.color.constructor) : tile ? tilePalette(town, mesh.geometry) : paletteFor(town, mesh.geometry, townMode === 'debug');
+      const palette = !town || loose.has(mesh) ? null : isWood ? woodPalette(mesh.geometry, material.color.constructor) : tile ? tilePalette(town, mesh.geometry) : paletteFor(town, mesh.geometry, townMode === 'debug', material.color.getHex());
       if (!district && !palette && !loose.has(mesh) && !(town && MASONRY)) continue;
       const original = mesh.geometry, position = original.attributes.position, Attribute = position.constructor;
       // Neutral meshes with no building in them (tower shafts, tall dividing walls) still get the wall shader, with an
@@ -516,7 +569,7 @@
       if (tile) tiles++;
     }
     for (const original of replaced) original.dispose(); // free the old GPU copies
-    return { tinted, recoloured, tiles, loose: loose.size, wood: woodMeshes, buildings: town?.clusters.length ?? 0, sameColour: town?.sameColour ?? 0 };
+    return { tinted, recoloured, tiles, loose: loose.size, wood: woodMeshes, extraWalls: town?.extraWalls ?? 0, extraWood: town?.extraWood ?? 0, buildings: town?.clusters.length ?? 0, sameColour: town?.sameColour ?? 0 };
   }
 
   let tries = 0;
@@ -529,7 +582,7 @@
       recolourSky(game);
       const world = window.skyLook === 'sky' ? { tinted: 0 }
         : tintWorld(game, window.skyLook === 'town' ? 'town' : window.skyLook === 'townDebug' ? 'debug' : null);
-      window.skyLookInfo = { tinted: world.tinted, recoloured: world.recoloured ?? 0, tileMeshes: world.tiles ?? 0, buildings: world.buildings ?? 0, loose: world.loose ?? 0, wood: world.wood ?? 0, masonry: MASONRY, sameColourNeighbours: world.sameColour ?? 0 };
+      window.skyLookInfo = { tinted: world.tinted, recoloured: world.recoloured ?? 0, tileMeshes: world.tiles ?? 0, buildings: world.buildings ?? 0, loose: world.loose ?? 0, wood: world.wood ?? 0, extraWalls: world.extraWalls ?? 0, extraWood: world.extraWood ?? 0, masonry: MASONRY, sameColourNeighbours: world.sameColour ?? 0 };
       document.body.dataset.skyLook = window.skyLook;
     } catch (error) { console.warn('look pass skipped', error); }
   }, 200);
