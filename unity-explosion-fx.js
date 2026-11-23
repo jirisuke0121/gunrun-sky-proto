@@ -40,7 +40,7 @@ function particleTexture(THREE, seed, core) {
 }
 
 export function createUnityExplosionFx(THREE, scene, player) {
-  document.body.dataset.skyExplosionRevision = 'unity-blast-v10';
+  document.body.dataset.skyExplosionRevision = 'unity-blast-v11';   // v11 (2026-11-24): a white flash, a solid fireball, dark smoke that rolls outward, more debris
   const flameTexture = particleTexture(THREE, 3, true);
   const smokeTexture = particleTexture(THREE, 11, false);
   const debrisGeometry = new THREE.Box(0.12, 0.12, 0.24);
@@ -66,13 +66,14 @@ export function createUnityExplosionFx(THREE, scene, player) {
       sprite: makeSprite(smokeTexture, 0x999183, true),
       velocity: new THREE.Vector3(), offset: new THREE.Vector3(), size: 1, delay: 0,
     }));
-    const smokingBall = Array.from({ length: 5 }, () => ({
-      sprite: makeSprite(smokeTexture, 0x343536, true),
+    const flash = makeSprite(flameTexture, 0xfff6d8, true); flash.material.blending = 2;   // additive
+    const smokingBall = Array.from({ length: 10 }, () => ({
+      sprite: makeSprite(smokeTexture, 0x2b2729, true),
       velocity: new THREE.Vector3(), offset: new THREE.Vector3(), size: 1, delay: 0,
     }));
-    const debris = Array.from({ length: 12 }, (_, index) => {
+    const debris = Array.from({ length: 16 }, (_, index) => {
       const mesh = new THREE.Mesh(debrisGeometry, new THREE.Basic({
-        color: index % 3 === 0 ? 0xffae4d : 0x534d45,
+        color: index % 3 === 0 ? 0xffc65a : 0x4a433d,
       }));
       mesh.visible = false;
       scene.add(mesh);
@@ -81,7 +82,7 @@ export function createUnityExplosionFx(THREE, scene, player) {
     const light = new THREE.PointLight(0xffd661, 0, 10);
     light.layers.disableAll(); // Flame and smoke sprites remain visible.
     scene.add(light);
-    return { flames, dust, smokingBall, debris, light,
+    return { flames, dust, smokingBall, debris, light, flash,
       origin: new THREE.Vector3(), t: 5, scale: 1 };
   });
   let next = 0;
@@ -114,9 +115,10 @@ export function createUnityExplosionFx(THREE, scene, player) {
     };
     effect.flames.forEach((item, index) => scatter(item, 2.1, 0.38, index % 5 * 0.018));
     effect.dust.forEach((item, index) => scatter(item, 0.55, 0.8, 0.22 + index % 4 * 0.04));
-    effect.smokingBall.forEach((item, index) => scatter(item, 0.7, 0.4, 0.08 + index * 0.07));
-    effect.debris.forEach((item, index) => scatter(item, 6 + Math.random() * 6, 0,
-      index < 6 ? 0 : index < 8 ? 0.1 : 0.18));
+    effect.smokingBall.forEach((item, index) => { scatter(item, 2.6, 0.5, 0.05 + index * 0.035); item.velocity.y = Math.abs(item.velocity.y) + 1.1; });
+    effect.flash.position.copy(effect.origin);
+    effect.debris.forEach((item, index) => scatter(item, 8 + Math.random() * 7, 0,
+      index < 9 ? 0 : index < 12 ? 0.08 : 0.16));
     origin.copy(effect.origin);
     const distance = origin.distanceTo(player.pos);
     if (distance < 13) player.shake = Math.max(player.shake || 0, 0.48 * (1 - distance / 16));
@@ -132,6 +134,8 @@ export function createUnityExplosionFx(THREE, scene, player) {
       effect.t = Math.min(4.6, effect.t + dt);
       const t = effect.t, s = effect.scale;
       effect.light.intensity = 0.8 * Math.max(0, 1 - t / 0.1);
+      effect.flash.visible = t < 0.16;
+      if (effect.flash.visible) { const size = (2.4 + 26 * t) * s; effect.flash.scale.set(size, size, 1); effect.flash.material.opacity = 0.95 * (1 - t / 0.16); }
       for (const item of effect.flames) {
         const age = t - item.delay;
         item.sprite.visible = age >= 0 && age < 0.95;
@@ -142,7 +146,7 @@ export function createUnityExplosionFx(THREE, scene, player) {
         const size = (1.5 + 3.1 * k) * item.size * s;
         item.sprite.scale.set(size, size, 1);
         item.sprite.material.color.setHex(k < 0.18 ? 0xffffff : k < 0.38 ? 0xffed8b : k < 0.65 ? 0xffa51f : 0xbb3410);
-        item.sprite.material.opacity = 0.42 * (1 - k) ** 1.1;
+        item.sprite.material.opacity = 0.9 * Math.min(1, 1.7 * (1 - k));
       }
       for (const item of effect.dust) {
         const age = t - item.delay;
@@ -154,7 +158,7 @@ export function createUnityExplosionFx(THREE, scene, player) {
         const size = (2.2 + 4.5 * k) * item.size * s;
         item.sprite.scale.set(size, size, 1);
         item.sprite.material.color.setHex(k < 0.35 ? 0x8b887f : k < 0.7 ? 0xb2a697 : 0xd3c7ae);
-        item.sprite.material.opacity = 0.12 * Math.min(1, age / 0.35) * (1 - k) ** 1.1;
+        item.sprite.material.opacity = 0.2 * Math.min(1, age / 0.35) * (1 - k) ** 1.1;
       }
       for (const item of effect.smokingBall) {
         const age = t - item.delay;
@@ -162,9 +166,10 @@ export function createUnityExplosionFx(THREE, scene, player) {
         if (!item.sprite.visible) continue;
         const k = age / 1.8;
         item.sprite.position.copy(effect.origin).add(item.offset).addScaledVector(item.velocity, age);
-        const size = (0.45 + 1.25 * k) * item.size * s;
+        item.sprite.position.addScaledVector(item.velocity, -0.26 * age * age);   // the puffs slow down as they spread
+        const size = (1.0 + 2.9 * k) * item.size * s;
         item.sprite.scale.set(size, size, 1);
-        item.sprite.material.opacity = 0.34 * (1 - k);
+        item.sprite.material.opacity = 0.74 * Math.min(1, age / 0.08) * (1 - k) ** 0.8;
       }
       for (const item of effect.debris) {
         const age = t - item.delay;

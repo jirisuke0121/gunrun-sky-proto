@@ -1,4 +1,4 @@
-// 人とゾンビの見た目（character-look.js）：既定で入る／`?chars=plain` で全部外れる／輪郭線はPCだけ（タッチ端末では作らない、
+// 人とゾンビの見た目（character-look.js）：既定で入る／`?chars=plain` で全部外れる／ゾンビの頭が人を追う／影のない端末では足元に影／輪郭線はPCだけ（タッチ端末では作らない、
 // `?charOutline=1` で強制）／ゾンビごとに違う見た目になる／重なった2体は描画だけずれる（ゲーム上の位置は動かない）／
 // ゲームの乱数（Math.random）を使わない。両マップ。ページのエラー0。
 const assert = require('node:assert/strict'), { spawn } = require('node:child_process');
@@ -45,7 +45,11 @@ const port = Number(process.env.SKY_TEST_PORT || 18817), base = `http://127.0.0.
         const [a, b] = pair, hulls = z => { let n = 0; z.m.root.traverse(o => { if (o.userData?.skyInkHull) n++; }); return n; };
         const materials = new Set(); for (const z of I.Jt) z.m?.root?.traverse(o => { if (o.isSkinnedMesh && !o.userData?.skyInkHull) materials.add(o.material.uuid); });
         return { pair: true, look: window.skyCharacterLook ? { enabled: window.skyCharacterLook.enabled, stats: window.skyCharacterLook.stats, outline: window.skyCharacterLook.outline?.() } : null,
-          gameGap: Math.hypot(a.pos.x - b.pos.x, a.pos.z - b.pos.z), drawnGap: Math.hypot(a.m.root.position.x - b.m.root.position.x, a.m.root.position.z - b.m.root.position.z),
+          gameGap: Math.hypot(a.pos.x - b.pos.x, a.pos.z - b.pos.z),
+          // What is drawn: the matrix the renderer used this frame (not just the position, which the game resets every step).
+          drawnGap: Math.hypot(a.m.root.matrixWorld.elements[12] - b.m.root.matrixWorld.elements[12], a.m.root.matrixWorld.elements[14] - b.m.root.matrixWorld.elements[14]),
+          life: !!a.m.skyLife, headTurned: !!a.m.skyBones?.head?.userData.skyOut && !a.m.skyBones.head.userData.skyOut.equals(a.m.skyBones.head.userData.skyBase),
+          foot: (() => { let v = null; I.ue.traverse(o => { if (o.name === 'Foot shadows') v = o.visible; }); return v; })(), shadowMap: g.debug.renderer.shadowMap.enabled,
           hulls: hulls(a) + hulls(b), materials: materials.size, redress, bodies: I.Jt.filter(z => z.m?.meshy).length, touch: document.documentElement.classList.contains('touch') };
       });
       // The game's own random numbers are not consumed by the look: drawing frames between two seeded draws leaves the sequence alone.
@@ -68,17 +72,21 @@ const port = Number(process.env.SKY_TEST_PORT || 18817), base = `http://127.0.0.
       assert.ok(pc.gameGap < .01, map + ' pc: the game keeps both on the same spot ' + pc.gameGap);
       assert.ok(pc.drawnGap > .2 && pc.drawnGap < .7, map + ' pc: the picture parts them ' + pc.drawnGap.toFixed(3));
       assert.equal(pc.random, 0, map + ' pc: the look takes no number from the game\'s Math.random');
+      assert.ok(pc.life && pc.headTurned, map + ' pc: zombies carry their own pose on top of the clip (head turned to the runner)');
       assert.equal(pc.redress, true, map + ' pc: a material copied by the hit flash gets the look back');
       const phone = await run(map, '', true);
       assert.deepEqual(phone.errors, [], map + ' phone: no page errors');
       assert.ok(phone.pair && phone.touch, map + ' phone: touch run');
       assert.equal(phone.look.outline, false, 'outline stays off on touch devices'); assert.equal(phone.hulls, 0, map + ' phone: no ink hull is built');
       assert.ok(phone.look.stats.dressed >= 2, map + ' phone: bodies still get their look');
+      if (!phone.shadowMap) assert.equal(phone.foot, true, map + ' phone: foot shadows are drawn where the device draws no shadows');
+      if (pc.shadowMap) assert.ok(!pc.foot, map + ' pc: no foot shadows where real shadows are drawn');
       const forced = await run(map, '&charOutline=1', true);
       assert.ok(forced.hulls >= 2, map + ' phone with ?charOutline=1: hulls ' + forced.hulls);
       const plain = await run(map, '&chars=plain', false);
       assert.deepEqual(plain.errors, [], map + ' plain: no page errors');
       assert.equal(plain.look.enabled, false); assert.equal(plain.hulls, 0); assert.ok(plain.drawnGap < .01, map + ' plain: nothing is moved');
+      assert.ok(!plain.life && !plain.foot, map + ' plain: no bone turns, no foot shadows');
       console.log(`PASS ${map}: pc hulls ${pc.hulls}, drawn gap ${pc.drawnGap.toFixed(2)} m (game ${pc.gameGap.toFixed(3)}), materials ${pc.materials}; phone hulls ${phone.hulls}; ?charOutline=1 ${forced.hulls}; ?chars=plain off`);
     }
   } finally { await browser?.close(); server?.kill(); }

@@ -207,7 +207,7 @@
         new Basic({ color: 0xfff3bd, transparent: true, opacity: 1, depthWrite: false }),
         new Basic({ color: 0xff711b, transparent: true, opacity: 0.62, depthWrite: false }),
         new Basic({ color: 0xff8a35, transparent: true, opacity: 0.85, depthWrite: false }),
-        new Basic({ color: 0x6e6258, transparent: true, opacity: 0.38, depthWrite: false }),
+        new Basic({ color: 0x453d40, transparent: true, opacity: 0.5, depthWrite: false }),   // smoke (2026-11-24: darker and longer; it was a faint grey)
         new Basic({ color: 0xff9b38, transparent: true, opacity: 1, depthWrite: false }),
         new Basic({ color: 0xa42b1d, transparent: true, opacity: 1, depthWrite: false }),
         new Basic({ color: 0xffc943, transparent: true, opacity: 1, depthWrite: false }),
@@ -263,27 +263,27 @@
       const tick = now => {
         const seconds = Math.max(0, (now - start) / 1000);
         const hit = Math.min(1, seconds / 0.12);
-        core.scale.setScalar(0.32 + 0.88 * hit);
-        materials[0].opacity = Math.max(0, 1 - seconds / 0.15);
-        fire.scale.setScalar(0.25 + Math.min(1, seconds / 0.22) * 0.95);
-        materials[1].opacity = Math.max(0, 0.62 * (1 - seconds / 0.38));
+        core.scale.setScalar(0.4 + 1.25 * hit);
+        materials[0].opacity = Math.max(0, 1 - seconds / 0.24);
+        fire.scale.setScalar(0.3 + Math.min(1, seconds / 0.22) * 1.2);
+        materials[1].opacity = Math.max(0, 0.95 * Math.min(1, 1.6 * (1 - seconds / 0.56)));
         const wave = Math.min(1, seconds / 0.24);
         ring.scale.setScalar(0.45 + (BLAST_RADIUS - 0.45) * (1 - (1 - wave) ** 2));
         materials[2].opacity = 0.85 * Math.max(0, 1 - seconds / 0.36);
-        materials[3].opacity = Math.max(0, 0.26 * (1 - seconds / 1.05));
+        materials[3].opacity = Math.max(0, 0.5 * Math.min(1, seconds / 0.12) * (1 - seconds / 1.4));
         materials[4].opacity = Math.max(0, 1 - seconds / 0.72);
         materials[5].opacity = materials[6].opacity = Math.max(0, 1 - seconds / 0.95);
         for (const tongue of flames) {
           tongue.mesh.position.set(tongue.x * (0.3 + seconds * 6),
                                    tongue.lift * 0.15 + seconds * 3,
                                    tongue.z * (0.3 + seconds * 6));
-          tongue.mesh.scale.set(0.28 + seconds * 1.1, 0.55 + seconds * 2,
-                                0.28 + seconds * 1.1);
+          tongue.mesh.scale.set(0.4 + seconds * 1.5, 0.7 + seconds * 2.6,
+                                0.4 + seconds * 1.5);
         }
         for (const puff of smoke) {
-          puff.mesh.position.set(puff.x * seconds * 2.5, seconds * (1.15 + puff.size),
-                                 puff.z * seconds * 2.5);
-          puff.mesh.scale.setScalar(puff.size + seconds * 1.35);
+          const out = 2.6 * (1 - Math.exp(-seconds * 2.6));          // fast at first, then it hangs
+          puff.mesh.position.set(puff.x * out, 0.2 + seconds * (1.4 + puff.size * 1.4), puff.z * out);
+          puff.mesh.scale.setScalar(puff.size * 1.25 + seconds * 1.0);
         }
         for (const spark of sparks) {
           const spread = 0.35 + seconds * (8 + spark.lift);
@@ -301,7 +301,7 @@
           part.mesh.rotation.y += 0.09;
         }
         if (screen) screen.style.opacity = String(0.15 * feedback * Math.max(0, 1 - seconds / 0.16));
-        if (seconds < 1.2) requestAnimationFrame(tick);
+        if (seconds < 1.45) requestAnimationFrame(tick);
         else {
           game.ue.remove(root);
           screen?.remove();

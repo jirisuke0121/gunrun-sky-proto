@@ -53,6 +53,9 @@ jobs:
       # 人とゾンビの見た目（2026-11-23）：既定で入る・`?chars=plain` で外れる・輪郭線はPCだけ・重なりは描画だけずらす・ゲームの乱数を使わない（自前でサーバーを立てる）。
       - name: Character look
         run: node bench/character-look-browser.cjs
+      # フックとジップラインで手がロープ／滑車を掴む、ロープは手から出る、立ち止まると呼吸と重心の揺れ（2026-11-24、自前でサーバーを立てる）。
+      - name: Grip poses (hook, zipline) and body feel
+        run: node bench/grip-pose-browser.cjs
       - name: Tutorial exit returns to a playable home
         env:
           RUNNING_QA_URL: http://127.0.0.1:8899/

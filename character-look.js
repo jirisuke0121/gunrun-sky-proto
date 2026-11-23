@@ -14,6 +14,9 @@
 //      only; the game's own position, pathing and hit box do not move, so ranked behaviour is unchanged).
 //   5. The grapple-anchor ring was a pure-metal material with nothing to reflect, so it rendered black ("a tyre").
 //      It now reads as dark iron.
+//   6. Zombies that look alive: head and neck follow the runner, jaw, each body's own arm carriage, chest roll
+//      (?zombieLife=0 off).   7. Soft foot shadows where the device draws no shadows (?footShadow=0|1).
+//   The runner's own body feel (stretch, lean, squash, breathing) lives in human-view.js (?bodyFeel=0).
 //   ?chars=plain   everything above off (comparison).
 (() => {
   const query = new URLSearchParams(location.search);
@@ -161,34 +164,98 @@
       at.x += o.x; at.z += o.z; o.ax = o.x; o.az = o.z; o.px = at.x; o.pz = at.z; }
   }
 
-  // ---- the runner's body: stretch at take-off, lean in the air, squash on landing --------------------------
-  // Drawn only (the holder of the model; position, speed, camera and collision are untouched). `?bodyFeel=0` turns it off.
-  const bodyFeelOn = query.get('bodyFeel') !== '0' && !(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
-  const body = { holder: null, base: 0, ground: true, vy: 0, kick: 0, kickAge: 9, lean: 0, lastX: NaN, lastLean: 0, last: 0 };
-  function bodyFeel() {
-    const c = sky.c; if (!c?.vel) return;
-    if (!body.holder?.parent) { body.holder = scene.getObjectByName('Unity challenge human') || null; if (!body.holder) return; body.base = body.holder.scale.y; }
-    const holder = body.holder, now = performance.now(), dt = Math.min(.05, Math.max(0, (now - body.last) / 1000)); body.last = now;
-    const plain = c.state === 'normal' && !c.swingFlight && !c.swingFall && holder.visible;
-    const ground = !!c.onGround;
-    if (plain && ground !== body.ground) {
-      if (!ground && c.vel.y > 2) { body.kick = .07; body.kickAge = 0; }                                  // take-off: stretch
-      else if (ground && body.vy < -3) { body.kick = -Math.min(.13, .035 + (-body.vy - 3) * .011); body.kickAge = 0; } // landing: squash
-    }
-    body.ground = ground; body.vy = c.vel.y; body.kickAge += dt;
-    const spring = body.kick * Math.exp(-body.kickAge * 9) * Math.cos(body.kickAge * 15);
-    const tall = plain ? 1 + spring : 1, wide = 1 / Math.sqrt(tall);
-    holder.scale.set(body.base * wide, body.base * tall, body.base * wide);
-    const speed = Math.hypot(c.vel.x, c.vel.z), want = plain && !ground ? Math.min(1, speed / 7) * (c.vel.y > 0 ? .13 : -.05) : 0;
-    body.lean += (want - body.lean) * (1 - Math.exp(-dt * 9));
-    if (holder.rotation.x === body.lastX) holder.rotation.x -= body.lastLean;   // the game did not step since the last draw
-    holder.rotation.x += body.lean * LEAN_SIGN; body.lastLean = body.lean * LEAN_SIGN; body.lastX = holder.rotation.x;
-    stats.lean = +body.lean.toFixed(3); stats.tall = +tall.toFixed(3);
+  // ---- 6. zombies that look alive (2026-11-24) -----------------------------------------------------------------
+  // Every zombie played the same clip the same way: arms out level, head locked forward, mouth shut. On top of the
+  // clip (bones, after the animation, before the draw): the head and neck follow the runner, with a twitch now and
+  // then; the jaw hangs open and snaps when close; each body carries its arms its own way (one low, one reaching)
+  // and reaches further when close; the chest rolls with the steps. Drawn only. `?zombieLife=0` turns it off.
+  const lifeOn = query.get('zombieLife') !== '0';
+  const Vec = sky.Geom.Vector3, Quat = scene.quaternion.constructor;
+  const UP = new Vec(0, 1, 0), rightAxis = new Vec(), frontAxis = new Vec(), headAt = new Vec(), parentTurn = new Quat(), worldTurn = new Quat(), localTurn = new Quat();
+  const wrap = angle => Math.atan2(Math.sin(angle), Math.cos(angle)), clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const BONES = { head: /HumanHead$/, neck: /HumanNeck$/, jaw: /HeadJaw$/, chest: /HumanRibcage$/, lArm: /LArmUpperarm$/, rArm: /RArmUpperarm$/, lFore: /LArmForearm$/, rFore: /RArmForearm$/ };
+  function bonesOf(body) {
+    if (body.skyBones) return body.skyBones;
+    const found = {}; body.root.traverse(node => { if (node.isBone) for (const key in BONES) if (BONES[key].test(node.name)) found[key] = node; });
+    return body.skyBones = found;
   }
-  const LEAN_SIGN = 1;
+  // The animation writes each bone every game step. When it did not (pause, hit-stop, a second draw of the same
+  // step) the bone still holds what was written here last time: start again from the animation's own value.
+  function fresh(bone) {
+    const data = bone.userData;
+    if (!data.skyOut) { data.skyOut = bone.quaternion.clone(); data.skyBase = bone.quaternion.clone(); }
+    else if (bone.quaternion.equals(data.skyOut)) bone.quaternion.copy(data.skyBase); else data.skyBase.copy(bone.quaternion);
+  }
+  // Turn a bone about an axis given in world space (the rig's own bone axes differ from bone to bone).
+  function turn(bone, axis, angle) {
+    if (!bone || Math.abs(angle) < .0005) return;
+    bone.parent.getWorldQuaternion(parentTurn); worldTurn.setFromAxisAngle(axis, angle);
+    localTurn.copy(parentTurn).invert().multiply(worldTurn).multiply(parentTurn); bone.quaternion.premultiply(localTurn);
+  }
+  function enliven(zombie, dt, time) {
+    const body = zombie.m, bones = bonesOf(body); if (!bones.head) return;
+    const life = body.skyLife || (body.skyLife = { yaw: 0, pitch: 0, twitch: 0, twitchNow: 0, twitchIn: roll() * 2, tilt: (roll() - .5) * .36, jaw: .12 + roll() * .3, jawRate: 5 + roll() * 6,
+      armL: -.6 + roll() * .7, armR: -.6 + roll() * .7, reachL: .1 + roll() * .55, reachR: .1 + roll() * .55, foreL: roll() * .4, foreR: roll() * .4, sway: .05 + roll() * .07, swayRate: 6 + roll() * 3, phase: roll() * 6.28 });
+    for (const key in bones) fresh(bones[key]);
+    const yaw = zombie.yaw || 0; frontAxis.set(-Math.sin(yaw), 0, -Math.cos(yaw)); rightAxis.set(Math.cos(yaw), 0, -Math.sin(yaw));
+    bones.head.getWorldPosition(headAt);
+    const c = sky.c, dx = c.pos.x - headAt.x, dy = c.pos.y + 1.45 - headAt.y, dz = c.pos.z - headAt.z, flat = Math.hypot(dx, dz), near = clamp(1 - flat / 4.5, 0, 1);
+    const wantYaw = flat > .25 ? clamp(wrap(Math.atan2(-dx, -dz) - yaw), -1.2, 1.2) : 0, wantPitch = clamp(Math.atan2(dy, flat + .3), -.55, .7);
+    const ease = 1 - Math.exp(-dt * 7); life.yaw += (wantYaw - life.yaw) * ease; life.pitch += (wantPitch - life.pitch) * ease;
+    life.twitchIn -= dt; if (life.twitchIn < 0) { life.twitch = (roll() - .5) * .7; life.twitchIn = .5 + roll() * 2.4; }
+    life.twitchNow += (life.twitch - life.twitchNow) * (1 - Math.exp(-dt * 22)); life.twitch *= Math.exp(-dt * 5);
+    turn(bones.chest, UP, life.yaw * .16); turn(bones.chest, frontAxis, life.sway * Math.sin(time * life.swayRate + life.phase));
+    turn(bones.neck, UP, life.yaw * .32); turn(bones.neck, rightAxis, life.pitch * .4);
+    turn(bones.head, UP, life.yaw * .5 + life.twitchNow * .5); turn(bones.head, rightAxis, life.pitch * .6); turn(bones.head, frontAxis, life.tilt + life.twitchNow * .4);
+    turn(bones.jaw, rightAxis, -(life.jaw + near * .3 + (.06 + near * .14) * Math.sin(time * life.jawRate + life.phase)));
+    if (!zombie.act && !zombie.crawl) {     // not while it climbs, jumps or crawls: those clips place the arms themselves
+      // The clip holds both arms out to the sides. Bring each one forward by its own amount (more when close), and
+      // carry it lower or higher; close to the runner both come up to chest height.
+      turn(bones.lArm, UP, -(life.reachL + near * .45)); turn(bones.rArm, UP, life.reachR + near * .45);
+      turn(bones.lArm, rightAxis, life.armL + near * (.12 - life.armL * .7)); turn(bones.rArm, rightAxis, life.armR + near * (.12 - life.armR * .7));
+      turn(bones.lFore, rightAxis, life.foreL * (1 - near * .6)); turn(bones.rFore, rightAxis, life.foreR * (1 - near * .6));
+    }
+    for (const key in bones) bones[key].userData.skyOut.copy(bones[key].quaternion);
+    stats.alive = (stats.alive || 0) + 1;
+  }
+
+  // ---- 7. a soft shadow under each body when the device draws no shadows (phones by default) -------------------
+  // Without one the runner and the zombies float over the roofs. One quad per body in a single draw call; the ground
+  // height comes from the game's own ray test, three bodies per frame. `?footShadow=0` off, `=1` forces it on.
+  const footMode = query.get('footShadow');
+  const FEET = 10, foot = { mesh: null, at: new Float32Array(FEET * 12), ground: new Float32Array(FEET).fill(NaN), turn: 0, needed: false, checked: -999 };
+  function footShadows(renderer, bodies) {
+    if (footMode === '0') return;
+    if (frame - foot.checked > 90) {       // do the lights cast shadows on this device?
+      foot.checked = frame; let cast = false; if (renderer.shadowMap?.enabled) scene.traverse(node => { if (node.isLight && node.castShadow) cast = true; });
+      foot.needed = footMode === '1' || !cast;
+    }
+    if (!foot.needed) { if (foot.mesh) foot.mesh.visible = false; return; }
+    if (!foot.mesh) {
+      const G = sky.Geom, canvas = document.createElement('canvas'); canvas.width = canvas.height = 64; const ctx = canvas.getContext('2d');
+      const fade = ctx.createRadialGradient(32, 32, 2, 32, 32, 31); fade.addColorStop(0, 'rgba(20,16,22,.5)'); fade.addColorStop(.55, 'rgba(20,16,22,.3)'); fade.addColorStop(1, 'rgba(20,16,22,0)');
+      ctx.fillStyle = fade; ctx.fillRect(0, 0, 64, 64);
+      const shape = new G.BufferGeometry(), uv = new Float32Array(FEET * 8), index = [];
+      for (let k = 0; k < FEET; k++) { uv.set([0, 0, 1, 0, 1, 1, 0, 1], k * 8); index.push(k * 4, k * 4 + 2, k * 4 + 1, k * 4, k * 4 + 3, k * 4 + 2); }
+      shape.setAttribute('position', new G.Float32Attribute(foot.at, 3)); shape.setAttribute('uv', new G.Float32Attribute(uv, 2)); shape.setIndex(index);
+      foot.mesh = new G.Mesh(shape, new G.Basic({ map: new G.CanvasTexture(canvas), transparent: true, depthWrite: false, fog: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+      foot.mesh.name = 'Foot shadows'; foot.mesh.frustumCulled = false; foot.mesh.renderOrder = 1; scene.add(foot.mesh);
+    }
+    foot.mesh.visible = true; foot.turn = (foot.turn + 1) % 3;
+    for (let k = 0; k < FEET; k++) {
+      const pos = bodies[k], o = k * 12;
+      if (!pos) { foot.at.fill(0, o, o + 12); foot.ground[k] = NaN; continue; }
+      if (k % 3 === foot.turn || Number.isNaN(foot.ground[k])) { const hit = sky.raycast(pos.x, pos.y + .6, pos.z, 0, -1, 0, 7); foot.ground[k] = hit ? pos.y + .6 - hit.t : -9999; }
+      const y = foot.ground[k], up = pos.y - y; if (y < -9000 || up > 6) { foot.at.fill(0, o, o + 12); continue; }
+      const r = .46 * Math.max(.35, 1 - Math.max(0, up) / 7), yy = y + .035;
+      foot.at.set([pos.x - r, yy, pos.z - r, pos.x + r, yy, pos.z - r, pos.x + r, yy, pos.z + r, pos.x - r, yy, pos.z + r], o);
+    }
+    foot.mesh.geometry.attributes.position.needsUpdate = true;
+  }
 
   // ---- per frame, just before the scene is drawn ------------------------------------------------------------
-  let humanDone = false, anchorsDone = false, evolvedAsked = false, frame = 0;
+  let humanDone = false, anchorsDone = false, evolvedAsked = false, frame = 0, lastDraw = 0, runner = null;
+  const playerShown = () => { if (!runner?.parent) runner = scene.getObjectByName('Unity challenge human') || null; return !!runner?.visible; };
   const hookBefore = scene.onBeforeRender;
   scene.onBeforeRender = function (renderer, s, camera, target) {
     hookBefore?.call(this, renderer, s, camera, target);
@@ -228,7 +295,17 @@
       if (!zombie.dead && body.root.visible && !zombie.rise && !zombie.fall) live.push(zombie);
     }
     if (live.length > 1) separate(live);
-    if (bodyFeelOn) bodyFeel();
+    const now = performance.now(), dt = Math.min(.05, Math.max(0, (now - lastDraw) / 1000)); lastDraw = now;
+    const cam = sky.Se.position, bodies = [sky.modeRef?.() === 'play' && playerShown() ? sky.c.pos : null];
+    for (const zombie of live) {
+      const near = (zombie.pos.x - cam.x) ** 2 + (zombie.pos.z - cam.z) ** 2 < 900;
+      if (lifeOn && near) enliven(zombie, dt, now / 1000);
+      // The renderer has already worked out this frame's matrices: bring the moved root and bones up to date,
+      // or the drawn-apart offset and the bone turns would only show one frame late (and never, in normal play).
+      zombie.m.root.updateMatrixWorld(true);
+      if (bodies.length < FEET) bodies.push(zombie.pos);
+    }
+    footShadows(renderer, bodies);
   };
   const inkScratch = new sky.Geom.Vector3(); // stands in for the Vector2 the renderer fills (x, y only)
   window.skyCharacterLook = { enabled: true, stats, outline: outlineOn, variants: VARIANTS.length, styled: material => hooks.has(material) };

@@ -53,20 +53,32 @@
     mark(.14, PAD.maxZ - PAD.minZ, PAD.maxX - .1, zc);
     for (const x of [-20, -19.1, -18.2]) for (const side of [-1, 1]) { const s = mark(.6, .09, x, zc + side * .2); s.rotation.y = side * .62; }
     // 破片（使い回し）。
-    const shardMat = new Basic({ color: 0xd4eeff, transparent: true, opacity: .8, depthWrite: false });
-    const shards = Array.from({ length: 18 }, (_, i) => { const m = new Mesh(new Box(.03, .1 + .14 * ((i * 7) % 5) / 4, .08 + .12 * ((i * 3) % 4) / 3), shardMat); m.visible = false; group.add(m); return { m, v: [0, 0, 0], spin: 0 }; });
+    // 2026-11-24: 18 thick blocks -> 40 thin pointed shards in two tones (some catch the light), and jagged glass left in the frame.
+    const { BufferGeometry, Float32Attribute } = game.Geom;
+    const shardMat = new Basic({ color: 0xcfeaff, transparent: true, opacity: .72, depthWrite: false, side: 2 }), glintMat = new Basic({ color: 0xffffff, transparent: true, opacity: .95, depthWrite: false, side: 2 });
+    const triangle = (a, b, c2) => { const g = new BufferGeometry(); g.setAttribute('position', new Float32Attribute(new Float32Array([0, -a, -b, 0, a, -b * .3, 0, -a * .2, c2]), 3)); return g; };
+    const shapes = [triangle(.07, .05, .16), triangle(.11, .07, .24), triangle(.05, .09, .12), triangle(.14, .05, .30)];
+    const shards = Array.from({ length: 40 }, (_, i) => { const m = new Mesh(shapes[i % 4], i % 3 === 0 ? glintMat : shardMat); m.visible = false; m.frustumCulled = false; group.add(m); return { m, v: [0, 0, 0], spin: 0 }; });
+    // What stays in the frame after the break: teeth of glass along the four edges (one mesh).
+    const teeth = (() => { const at = [];
+      const across = (y, z, dy, dz, wide) => at.push(0, y, z - wide, 0, y, z + wide, 0, y + dy, z + dz);     // on the top and bottom edges
+      const along = (y, z, dz, dy, wide) => at.push(0, y - wide, z, 0, y + wide, z, 0, y + dy, z + dz);      // on the two side edges
+      for (let k = 0; k < 9; k++) { const u = (k + .5) / 9, zz = PANE.minZ + u * w, yy = PANE.minY + u * h, len = .12 + .2 * ((k * 5) % 4) / 3, lean = .05 * (k % 3 - 1);
+        across(PANE.maxY, zz, -len, lean, .08); across(PANE.minY, zz, len * .7, lean, .07); along(yy, PANE.minZ, len * .8, lean, .08); along(yy, PANE.maxZ, -len * .8, lean, .08); }
+      const g = new BufferGeometry(); g.setAttribute('position', new Float32Attribute(new Float32Array(at), 3)); const m = new Mesh(g, shardMat); m.position.x = PANE.x; m.visible = false; m.frustumCulled = false; group.add(m); return m; })();
     game.ue.add(group);
 
-    let broken = false, flying = 0, prevX = null, lastT = 0;
+    let broken = false, flying = 0, prevX = null, lastT = 0, diveT = 0;
     const playing = () => game.modeRef() === 'play' && !game.z.over;
-    function restore() { broken = false; flying = 0; pane.visible = true; for (const s of streaks) s.visible = true; for (const s of shards) s.m.visible = false; }
+    function restore() { broken = false; flying = 0; diveT = 0; pane.visible = true; teeth.visible = false; for (const s of streaks) s.visible = true; for (const s of shards) s.m.visible = false; }
     function smash(dir, y, z, speed, dive) {
-      broken = true; flying = .9; pane.visible = false; for (const s of streaks) s.visible = false;
+      broken = true; flying = 1.3; pane.visible = false; teeth.visible = true; for (const s of streaks) s.visible = false;
       shards.forEach((s, i) => {
-        const a = i * 2.399, r = .15 + .55 * ((i * 5) % 7) / 6;
-        s.m.position.set(PANE.x, Math.min(PANE.maxY - .1, Math.max(PANE.minY + .1, y + .9 + Math.sin(a) * r)), Math.min(PANE.maxZ - .1, Math.max(PANE.minZ + .1, z + Math.cos(a) * r * .8)));
-        s.v = [dir * (1.5 + speed * (.25 + .5 * ((i * 3) % 5) / 4)), 1.2 + 2.2 * ((i * 7) % 6) / 5, Math.cos(a) * 1.8];
-        s.spin = 6 + i % 5 * 3; s.m.visible = true;
+        // From around the body outward: the nearest pieces go with the runner, the outer ones burst sideways.
+        const a = i * 2.399, r = .12 + .85 * ((i * 5) % 9) / 8;
+        s.m.position.set(PANE.x, Math.min(PANE.maxY - .05, Math.max(PANE.minY + .05, y + .9 + Math.sin(a) * r)), Math.min(PANE.maxZ - .05, Math.max(PANE.minZ + .05, z + Math.cos(a) * r * .8)));
+        s.v = [dir * (1.2 + speed * (.3 + .75 * ((i * 3) % 7) / 6)), .6 + 3.2 * ((i * 7) % 8) / 7 + Math.sin(a) * 1.2, Math.cos(a) * (1.2 + 2.6 * ((i * 11) % 5) / 4)];
+        s.spin = 5 + i % 7 * 3; s.m.rotation.set(a, a * 1.7, a * .6); s.m.scale.setScalar(.8 + ((i * 13) % 6) / 5 * 1.1); s.m.visible = true;
       });
       game.Mn?.(.22, 5200, 1.1, .3, 'highpass'); game.Mn?.(.12, 2300, 3, .12, 'bandpass'); // 合成の割れる音
       c.shake = Math.max(c.shake || 0, dive ? .3 : .12);
@@ -81,6 +93,9 @@
         for (const s of shards) { if (!s.m.visible) continue; s.v[1] -= U.gravity * dt; s.m.position.x += s.v[0] * dt; s.m.position.y += s.v[1] * dt; s.m.position.z += s.v[2] * dt; s.m.rotation.x += s.spin * dt; s.m.rotation.z += s.spin * .7 * dt; if (flying <= 0 || s.m.position.y < 3.9) s.m.visible = false; }
       }
       const p = c.pos;
+      // The dive pose (human-view.js, drawn only): from the jump at the pane until just after going through it.
+      const toward = playing() && !broken && !c.onGround && c.vel.x > 3 && p.x > PANE.x - 3.4 && p.x < PANE.x + .2 && p.z > PANE.minZ - .2 && p.z < PANE.maxZ + .2 && p.y > PANE.minY - 1.3 && p.y < PANE.maxY;
+      diveT = toward ? .3 : c.onGround || !playing() ? 0 : Math.max(0, diveT - dt);
       if (playing() && !broken && prevX !== null && (prevX - PANE.x) * (p.x - PANE.x) < 0 && Math.abs(p.x - prevX) < 1.5 &&
           p.z > PANE.minZ - .1 && p.z < PANE.maxZ + .1 && p.y > PANE.minY - .5 && p.y < PANE.maxY) {
         // 飛び込み = 外から、空中で入った。
@@ -89,6 +104,6 @@
       prevX = p.x;
       return false;
     }
-    Object.assign(window.skyWindowDive, { step, restore, broken: () => broken, group });
+    Object.assign(window.skyWindowDive, { step, restore, broken: () => broken, diving: () => diveT > 0, group });
   });
 })();
