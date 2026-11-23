@@ -76,7 +76,7 @@
     { skin: [.8, .95, .78], cloth: [.045, .06, .12], clothAmt: 1 },
     { skin: [.88, .78, .7], cloth: [.085, .1, .055], clothAmt: 1 },
     { skin: [.74, .82, .96], cloth: [.06, .06, .07], clothAmt: 1 },
-    { skin: [1, .95, .8], cloth: [.14, .055, .04], clothAmt: 1 },
+    { skin: [1, .95, .8], cloth: [.15, .035, .05], clothAmt: 1 },
   ];
   const variantCache = new Map(); // source material -> [materials]
   function variantOf(source, index) {
@@ -129,7 +129,10 @@
   const offsets = new WeakMap();
   function dress(zombie) {
     const body = zombie.m; body.skyLook = true; stats.dressed++;
-    const index = Math.floor(roll() * VARIANTS.length), tall = .95 + roll() * .1, wide = .93 + roll() * .16;
+    // The variant the living pack has least of (ties by chance), so a pack never comes out all alike.
+    const used = VARIANTS.map(() => 0); for (const other of sky.Jt) if (!other.dead && other !== zombie && other.m?.skyVariant !== undefined) used[other.m.skyVariant]++;
+    const least = Math.min(...used), free = used.map((count, k) => count === least ? k : -1).filter(k => k >= 0);
+    const index = free[Math.floor(roll() * free.length)], tall = .95 + roll() * .1, wide = .93 + roll() * .16;
     const plainKind = zombie.kind && zombie.kind !== 'walker';
     body.skyVariant = index; body.skyMeshes = []; body.skyOwnLook = plainKind ? ZOMBIE_LOOK : { ...ZOMBIE_LOOK, ...VARIANTS[index] };
     body.inner.scale.set(body.inner.scale.x * wide, body.inner.scale.y * tall, body.inner.scale.z * wide);
