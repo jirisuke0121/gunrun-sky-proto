@@ -9,10 +9,10 @@
 #homeHero button:focus-visible,#homeHero a:focus-visible,#homeHero select:focus-visible{outline:3px solid #fff1c4;outline-offset:3px}
 
 /* Picture and the shading that keeps the text readable (bottom left) without dimming the chase. */
-.home-scene{position:absolute;inset:0;z-index:-1;background-color:#0a0f16;background-repeat:no-repeat;background-size:cover;background-position:58% 38%}
+.home-scene{position:absolute;inset:0;z-index:-1;background-color:#0a0f16;background-repeat:no-repeat;background-size:cover;background-position:46% 34%}
 .home-scene::after{content:"";position:absolute;inset:0;background:
-  radial-gradient(115% 85% at 0% 100%,#0a0f16f2 0%,#0a0f16c4 32%,#0a0f1600 64%),
-  linear-gradient(0deg,#0a0f16b0 0%,#0a0f1600 24%),
+  radial-gradient(95% 78% at 0% 100%,#0a0f16f5 0%,#0a0f16d0 30%,#0a0f1666 50%,#0a0f1600 68%),
+  linear-gradient(0deg,#0a0f16c0 0%,#0a0f1600 28%),
   linear-gradient(180deg,#0a0f1673 0%,#0a0f1600 15%)}
 #homeHero[data-map=canyon] .home-scene{background-position:center}
 #homeHero[data-map=canyon] .home-scene::after{background:linear-gradient(0deg,#0a0f16f5 0%,#0a0f16a0 40%,#0a0f1633 100%)}
@@ -20,8 +20,8 @@
 /* Top right */
 .home-top{grid-area:top;display:flex;justify-content:flex-end;align-items:center;min-width:0}
 .home-heading-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-#homeRankingButton,#homeSettings{min-height:44px;padding:8px 18px;border:1px solid #ffffff40;border-radius:6px;background:#0a0f1670;color:#f6f1e7;font-size:15px;font-weight:700;letter-spacing:.02em;white-space:nowrap;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-#homeRankingButton:hover,#homeSettings:hover{background:#0a0f16b0;border-color:#ffffff80}
+#homeRankingButton,#homeSettings,#homeHero .home-top #homeGuide{min-height:44px;padding:8px 18px;border:1px solid #ffffff40;border-radius:6px;background:#0a0f1670;color:#f6f1e7;font-size:15px;font-weight:700;letter-spacing:.02em;white-space:nowrap;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#homeRankingButton:hover,#homeSettings:hover,#homeHero .home-top #homeGuide:hover{background:#0a0f16b0;border-color:#ffffff80}
 
 /* Bottom left */
 .home-play{grid-area:main;align-self:end;display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-width:0;max-width:min(620px,100%)}
@@ -32,9 +32,10 @@ html:not([lang=ja]) .home-heading h1{font-style:italic;text-transform:uppercase;
 html:not([lang=ja]) .home-heading h1 span{display:block;margin:0;font-size:1em;letter-spacing:0;vertical-align:0}
 .home-scene-copy h2{margin:0;font-size:clamp(16px,1.75vw,23px);font-weight:800;line-height:1.35;color:#f6f1e7;text-shadow:0 2px 14px #000d}
 .home-scene-copy p{margin:5px 0 0;font-size:13px;line-height:1.5;color:#cfd8de;text-shadow:0 1px 8px #000d}
-#homeHero #bStart{width:auto;max-width:100%;margin:6px 0 0;min-width:min(340px,100%);min-height:62px;padding:12px 36px;border:0;border-radius:7px;background:#f08a5a;color:#1a0e08;font-size:22px;font-weight:900;letter-spacing:.04em;box-shadow:0 10px 30px #f08a5a3d,0 3px 0 #b6532c}
-#homeHero #bStart:hover{background:#f7a079}#homeHero #bStart:active{transform:translateY(2px);box-shadow:0 6px 18px #f08a5a3d,0 1px 0 #b6532c}
-#homeHero #bStart:disabled{background:#2a3743;color:#b7c3cc;box-shadow:none;cursor:wait;transform:none}
+/* 2026-11-23: one short, heavy, slanted plate (the tallest thing in the block) so it reads as the button to press. */
+#homeHero #bStart{--cut:18px;width:auto;max-width:100%;margin:8px 0 2px;min-width:min(330px,100%);min-height:68px;padding:12px calc(36px + var(--cut));border:0;border-radius:0;background:linear-gradient(180deg,#ffb36b 0%,#f08a3c 100%);color:#1a0e08;font-size:24px;font-weight:900;font-style:italic;letter-spacing:.04em;clip-path:polygon(var(--cut) 0,100% 0,calc(100% - var(--cut)) 100%,0 100%);filter:drop-shadow(0 8px 18px #000a)}
+#homeHero #bStart:hover{background:linear-gradient(180deg,#ffc386 0%,#f79a52 100%)}#homeHero #bStart:active{transform:translateY(2px)}
+#homeHero #bStart:disabled{background:#2a3743;color:#b7c3cc;cursor:wait;transform:none}
 #homeHero #startReadyStatus{margin:0;color:#f0c59b;font-size:12px;line-height:1.5}
 #homeHero [data-retry-start]{margin:0}
 
@@ -55,15 +56,18 @@ html:not([lang=ja]) .home-heading h1 span{display:block;margin:0;font-size:1em;l
 .home-difficulty-detail em{margin-right:3px;font-style:normal}.home-difficulty-detail b{color:#ffb98e}
 
 /* Small links under the difficulty: tips, beginner (first visits only), best score. */
-.home-links{display:flex;flex-wrap:wrap;align-items:center;gap:0 20px;margin-top:-2px}
-#homeHero #homeGuide{width:auto;max-width:none;min-height:36px;margin:0;padding:4px 0;border:0;background:none;color:#e9eef1;font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#e9eef180;text-shadow:0 1px 6px #000d}
-#homeHero #homeGuide:hover{text-decoration-color:#fff}
-#homeHero #bestLine{margin:0;font-size:12px;line-height:1.5;color:#b9c5cd;text-shadow:0 1px 6px #000d}#homeHero #bestLine[hidden]{display:none}
+.home-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 10px}
+.home-meta>.home-difficulty-detail+.home-links:not(:empty)::before{content:"·";color:#8696a2}
+.home-meta>.home-links{gap:0 10px}
+.home-links{display:flex;flex-wrap:wrap;align-items:center;gap:0 20px}
+/* Tips: a third button at the top right (2026-11-23). The key guide lives there and in Settings, not on the home picture. */
+#homeHero .home-top #homeGuide{width:auto;max-width:none;margin:0}
+#homeHero #bestLine{margin:0;font-size:12.5px;line-height:1.5;color:#b9c5cd;text-shadow:0 1px 6px #000d}#homeHero #bestLine[hidden]{display:none}
 #homeHero #homeSendNotice{margin:0;font-size:11px;line-height:1.5;color:#c6d0d7}
 
 /* Bottom right: key guide (PC), credits, privacy, language, developer tab. */
 .home-foot{grid-area:foot;align-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:0;max-width:46vw;text-align:right}
-.home-controls{margin:0;font-size:11.5px;line-height:1.8;color:#cbd4da;text-shadow:0 1px 6px #000d}
+.home-controls{display:none;margin:0;font-size:11.5px;line-height:1.8;color:#cbd4da;text-shadow:0 1px 6px #000d}
 .home-controls kbd{color:#eef2f4;border-color:#ffffff40;background:#0a0f1699}
 .home-controls-touch{display:none}html.touch .home-controls-desktop{display:none}html.touch .home-controls-touch{display:inline}
 .home-foot-links{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:2px 16px}
@@ -82,14 +86,14 @@ html:not(.dev) #homeDevelopment:not([data-dev-url]){display:none}
 html:not([lang=ja]) #homeHero[data-compact=true] .home-heading h1{font-size:30px}
 #homeHero[data-compact=true] .home-scene-copy h2{font-size:14px}
 #homeHero[data-compact=true] .home-scene-copy p{display:none}
-#homeHero[data-compact=true] #bStart{min-height:46px;min-width:min(260px,100%);padding:8px 24px;font-size:17px;margin-top:2px}
+#homeHero[data-compact=true] #bStart{--cut:13px;min-height:48px;min-width:min(250px,100%);padding:8px calc(24px + var(--cut));font-size:18px;margin-top:3px}
 #homeHero[data-compact=true] .home-difficulty-choices{gap:0 18px}
 #homeHero[data-compact=true] .home-difficulty-choices button{min-height:36px;padding:4px 0;font-size:14px}
 #homeHero[data-compact=true] .home-difficulty-choices button[aria-pressed=true]::after{bottom:2px}
 #homeHero[data-compact=true] .home-difficulty-choices button.home-difficulty-trial{font-size:11px}
 #homeHero[data-compact=true] .home-difficulty-detail{font-size:11px}
 #homeHero[data-compact=true] .home-links{gap:0 16px}
-#homeHero[data-compact=true] #homeGuide{min-height:32px;font-size:12px}
+#homeHero[data-compact=true] .home-top #homeGuide{min-height:38px;padding:6px 14px;font-size:13px}
 #homeHero[data-compact=true] #bestLine{font-size:11px}
 #homeHero[data-compact=true] .home-controls{display:none}
 #homeHero[data-compact=true] #homeRankingButton,#homeHero[data-compact=true] #homeSettings{min-height:38px;padding:6px 14px;font-size:13px}
@@ -141,9 +145,8 @@ body.sky-lobby #onboarding{z-index:72}
 /* Large screens: the bottom-left block grows with the picture. */
 @media (min-width:1500px) and (min-height:880px){
   #homeHero:not([data-compact=true]) .home-play{max-width:720px;gap:14px}
-  #homeHero:not([data-compact=true]) #bStart{min-width:400px;min-height:70px;font-size:25px}
+  #homeHero:not([data-compact=true]) #bStart{min-width:400px;min-height:76px;font-size:27px}
   #homeHero:not([data-compact=true]) .home-difficulty-choices button{font-size:19px}
   #homeHero:not([data-compact=true]) .home-difficulty-detail{font-size:14px}
   #homeHero:not([data-compact=true]) .home-scene-copy p{font-size:14px}
-  #homeHero:not([data-compact=true]) #homeGuide{font-size:14px}
 }

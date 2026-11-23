@@ -131,7 +131,7 @@
   // Always reachable from the home screen: the tips (the nickname is edited from the name chip).
   const guide = make('button', { id: 'homeGuide', type: 'button' }, 'コツ');
   guide.addEventListener('click', () => openDialog('again'));
-  (hero.querySelector('.home-links') || hero.querySelector('.home-heading-actions'))?.prepend(guide);
+  (hero.querySelector('.home-heading-actions') || hero.querySelector('.home-links'))?.prepend(guide);
 
   // ---- First visit: one start card, then straight into the 入門 course ----
   let splash;

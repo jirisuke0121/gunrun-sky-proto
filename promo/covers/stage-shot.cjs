@@ -7,7 +7,7 @@ const CAMS = JSON.parse(process.env.CAMS || 'null');
 const SLOTS = JSON.parse(process.env.SLOTS || 'null');
 const out = process.env.OUT || '/home/claude/hero/v3/s'; fs.mkdirSync(out, { recursive: true });
 (async () => {
-  const b = await chromium.launch({ headless: true, args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+  const b = await chromium.launch({ headless: true, executablePath: process.env.CHROME || '/usr/bin/google-chrome', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } });
   await ctx.addInitScript(() => { try { localStorage.setItem('gunrun-onboarding-v1', JSON.stringify({ phase: 'complete' })); localStorage.setItem('gunrun-quality-check-v1', 'done'); } catch {} });
   await ctx.route('https://**/*', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"top":[],"total":0,"ok":true}' }));
@@ -34,10 +34,10 @@ const out = process.env.OUT || '/home/claude/hero/v3/s'; fs.mkdirSync(out, { rec
         let s = 0;
         for (const z of live) {
           while (s < slots.length) {
-            const [d, l] = slots[s++], x = jx - dx * d + rx * l, zz = jz - dz * d + rz * l;
+            const [d, l, yo = 0, sc = 1] = slots[s++], x = jx - dx * d + rx * l, zz = jz - dz * d + rz * l;
             if (Math.abs(top(x, zz, y0 + 1.5) - y0) > .25) continue;
             Object.assign(z, { act: null, spawnT: 0, rise: null, stun: 0, atkT: 0, fall: null, biteHold: false, reach: true, navT: 0, onGround: true });
-            z.pos.set(x - dx * 1.5, y0, zz - dz * 1.5); z.vel.set(0, 0, 0); z.yaw = yawFor; z.__desync = .1 + .29 * s; z.__slot = s; z.__pin = [x, zz]; break;
+            z.pos.set(x - dx * 1.5, y0, zz - dz * 1.5); z.vel.set(0, 0, 0); z.yaw = yawFor + yo; z.__yo = yo; z.__sc = sc; z.__desync = .1 + .29 * s; z.__slot = s; z.__pin = [x, zz]; break;
           }
           if (s >= slots.length) break;
         }
@@ -52,11 +52,18 @@ const out = process.env.OUT || '/home/claude/hero/v3/s'; fs.mkdirSync(out, { rec
       keys.KeyW = false; keys.ShiftLeft = false;
       // Pin the chasers where the slots put them (their AI kept running during the leap frames), then sync the meshes.
       for (const z of I.Jt) if (z.__slot && z.__pin) { z.pos.set(z.__pin[0], y0, z.__pin[1]); z.vel.set(dx * 5, 0, dz * 5); z.yaw = yawFor; z.onGround = true; }
+      // Optional: put the runner exactly where the picture wants it (spec.runner = [metres past the edge, metres up, metres sideways]).
+      if (spec.runner) c.pos.set(jx + dx * spec.runner[0] + rx * (spec.runner[2] || 0), y0 + spec.runner[1], jz + dz * spec.runner[0] + rz * (spec.runner[2] || 0));
       { const pp = c.pos.clone(), pv = c.vel.clone(); g.frameOnce(1e-4); c.pos.copy(pp); c.vel.copy(pv); }
-      for (const z of I.Jt) if (z.__slot && z.__pin) { z.pos.set(z.__pin[0], y0, z.__pin[1]); if (z.m?.root) { z.m.root.position.x = z.__pin[0]; z.m.root.position.z = z.__pin[1]; } }
+      for (const z of I.Jt) if (z.__slot && z.__pin) { z.pos.set(z.__pin[0], y0, z.__pin[1]); if (z.m?.root) { z.m.root.position.x = z.__pin[0]; z.m.root.position.z = z.__pin[1]; if (z.__yo) z.m.root.rotation.y += z.__yo; if (z.__sc && z.__sc !== 1) z.m.root.scale.multiplyScalar(z.__sc); } }
+      // Screen-space effects parented to the camera (speed streaks, dust planes) and the leap's afterimage trail are not part of the scene.
+      window.__camKids = C.children.map(o => [o.type, o.name, o.geometry?.type, o.material?.type, o.scale?.x?.toFixed?.(2)]);
+      for (const o of C.children) if (o.geometry?.type === 'BoxGeometry') o.visible = false;
+      S.traverse(o => { const gt = o.geometry?.type || '', gp = o.geometry?.parameters || {}; if (/Circle|Octahedron|Icosahedron|Dodecahedron|Tetrahedron/.test(gt) || (gt === 'CylinderGeometry' && gp.radialSegments <= 8 && gp.height < .4)) o.visible = false; }); // pickups and floating markers // a thin white bar parented to the camera
+      S.traverse(o => { if (/trail|streak|speed|afterimage|whoosh|flow/i.test((o.name || '') + ' ' + (o.material?.name || ''))) o.visible = false; });
       for (const z of I.Jt) if (z.__slot && z.m?.mx) z.m.mx.update(z.__desync);
       const grid = []; for (let d = 0; d <= 3.01; d += .5) { let row = ''; for (let l = -2.5; l <= 2.51; l += .5) { const x = jx - dx * d + rx * l, zz = jz - dz * d + rz * l, f = top(x, zz, y0 + 1.5) - y0; row += Math.abs(f) <= .25 ? '.' : f > 0 ? '#' : '_'; } grid.push(d.toFixed(1) + ' ' + row); }
-      const info = { grid, id: spec.id, live: live.length, all: I.Jt.length, jumped, past: +(((c.pos.x - jx) * dx + (c.pos.z - jz) * dz)).toFixed(2), up: +(c.pos.y - y0).toFixed(2), state: c.state, n: I.Jt.filter(z => z.__slot).length };
+      const info = { camKids: window.__camKids, grid, id: spec.id, live: live.length, all: I.Jt.length, jumped, past: +(((c.pos.x - jx) * dx + (c.pos.z - jz) * dz)).toFixed(2), up: +(c.pos.y - y0).toFixed(2), state: c.state, n: I.Jt.filter(z => z.__slot).length };
       if (!window.__cleaned) {
         window.__cleaned = true;
         S.traverse(o => { if (/Rope stations|Rope swing|grapple anchor/i.test(o.name || '')) o.visible = false;

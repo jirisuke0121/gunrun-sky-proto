@@ -77,3 +77,5 @@ html:not(.touch) #learnKeys{display:block}
 #learnDoneGo{margin-top:12px;min-height:46px;padding:0 22px;border-radius:9px;border:0;background:#e9c77c;color:#1c1a12;font:800 16px var(--font);cursor:pointer}
 body[data-learn-stage=complete] #learnHeader,body[data-learn-stage=complete] #learnMoveCue,body[data-learn-stage=complete] #learnPressCue,body[data-learn-stage=complete] #learnTarget{visibility:hidden}
 @media(max-height:420px){#learnDone .card{padding:10px 16px}#learnDone .mark{width:34px;height:34px;font-size:20px;margin-bottom:2px}#learnDone h2{font-size:18px}#learnDone p:not(.mark){font-size:12px;margin-top:3px}#learnDoneChapters{margin-top:6px}#learnDoneGo{margin-top:8px;min-height:42px}}
+/* 2026-11-23: PC has no stick or jump button, so its control previews show neither (the line under each picture names the keys). */
+html:not(.touch) .learn-preview .mini-stick,html:not(.touch) .learn-preview .mini-jump{display:none}

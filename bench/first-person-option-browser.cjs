@@ -50,7 +50,9 @@ const port=Number(process.env.SKY_TEST_PORT||18815),base=`http://127.0.0.1:${por
   if(muzzle){if(touch)assert.ok(muzzle[0]>.19,`${tag}: スマホは銃を右へ寄せる（変更前は0.15） ${muzzle}`);else assert.ok(muzzle[0]<.2,`${tag}: PCは従来の位置 ${muzzle}`);}
   // 背後の追手：一人称では下の光を太くする
   const edge=await p.evaluate(()=>{const g=__game,c=g.P,yaw=c.yaw,e=new g.Zombie(c.pos.x+Math.sin(yaw)*4,c.pos.y+.003,c.pos.z+Math.cos(yaw)*4);Object.assign(e,{spawnT:0,onGround:true,stun:99});g.zombies.push(e);
-    const bar=document.querySelector('#threatEdge i[data-side=b]');return new Promise(res=>setTimeout(()=>{res({tier:bar.dataset.tier,w:getComputedStyle(bar).getPropertyValue('--w').trim()});const s=__skyInternals;s.ue.remove(e.m.root);g.zombies.splice(g.zombies.indexOf(e),1)},700))});
+    // 光は描画のたびに更新される（threat-edge.js、最短0.1秒ごと）。CIのソフトウェア描画では0.7秒に1枚も描かれないことがあるので、最大15秒待つ。
+    const bar=document.querySelector('#threatEdge i[data-side=b]'),t0=performance.now();return new Promise(res=>{const poll=()=>{if(bar.dataset.tier!=='3'&&performance.now()-t0<15000)return setTimeout(poll,100);
+      res({tier:bar.dataset.tier,w:getComputedStyle(bar).getPropertyValue('--w').trim()});const s=__skyInternals;s.ue.remove(e.m.root);g.zombies.splice(g.zombies.indexOf(e),1)};setTimeout(poll,100)})});
   assert.equal(edge.tier,'3',`${tag}: 背後4 mの追手で下の光が最大 ${JSON.stringify(edge)}`);assert.equal(edge.w,'72px',`${tag}: 一人称では太い光`);
   // 自己ベストとゴーストは保存しない（時間切れまで逃げ切って点が入っても）
   const saved=()=>p.evaluate(()=>JSON.stringify(Object.keys(localStorage).filter(k=>/best|ghost/i.test(k)).sort().map(k=>[k,localStorage.getItem(k)])));

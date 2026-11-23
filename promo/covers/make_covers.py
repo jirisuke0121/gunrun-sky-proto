@@ -37,12 +37,12 @@ def title(im, x, y, size, lines=('ZOMBIE','PARKOUR','ESCAPE'), align='left'):
         d.text((tx,cy),t,font=f,fill=(255,159,112) if t=='ESCAPE' else (255,255,255))
     return im
 # Landscape 1920x1080: full frame, title bottom left
-L=grade(RAW.resize((1920,1080),Image.LANCZOS)); L=shade(L,'bl'); L=title(L,92,560,150)
+L=grade(RAW.resize((1920,1080),Image.LANCZOS)); L=shade(L,'bl'); L=title(L,84,650,124)
 L.save('cover-landscape-1920x1080.jpg',quality=90)
 # Square 800x800: crop around the chase, title top left over the sky
-S=grade(RAW.crop((1150,0,2950,1800)).resize((800,800),Image.LANCZOS)); S=shade(S,'top'); S=title(S,40,34,70)
+S=grade(RAW.crop((760,0,2560,1800)).resize((800,800),Image.LANCZOS)); S=shade(S,'top'); S=title(S,40,34,70)
 S.save('cover-square-800x800.jpg',quality=90)
 # Portrait 800x1200: lead zombie and runner, title top centre
-P=grade(RAW.crop((1700,0,2900,1800)).resize((800,1200),Image.LANCZOS)); P=shade(P,'bottom'); P=title(P,400,880,98,align='center')
+P=grade(RAW.crop((1160,0,2360,1800)).resize((800,1200),Image.LANCZOS)); P=shade(P,'bottom'); P=title(P,400,880,98,align='center')
 P.save('cover-portrait-800x1200.jpg',quality=90)
 for n,im in [('L',L),('S',S),('P',P)]: print(n,im.size)

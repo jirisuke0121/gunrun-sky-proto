@@ -1,7 +1,7 @@
 // Keep the existing game controls and listeners; only arrange the lobby.
 // 2026-11-21: the home is one full-screen picture (a chase over the rooftops) with the title, one line, the start button
-// and the difficulty tabs at the bottom left; only Ranking and Settings sit at the top right. Everything else is small
-// (tips, beginner, best score, key guide, credits, privacy, language) or lives elsewhere (nickname → ranking).
+// and the difficulty tabs at the bottom left; Tips, Ranking and Settings sit at the top right. Everything else is small
+// (best score, credits, privacy, language) or lives elsewhere (nickname → ranking, key guide → Tips and Settings).
 (() => {
   if (window.skyPracticeMode || new URLSearchParams(location.search).has('practice')) return;
   const plate = document.querySelector('#ovStart .plate');
@@ -13,7 +13,8 @@
   document.body.classList.add('sky-lobby');
   hero.dataset.map = canyon ? 'canyon' : 'old-town';
 
-  // Background picture. 旧市街: three zombies reach for a runner leaping off a roof edge (in-engine render, 2026-11-21).
+  // Background picture. 旧市街: four zombies reach from a high roof edge for a runner leaping out over the cloud sea toward
+  // the castle (in-engine render of the current town, 2026-11-23; promo/README.md).
   const scene = make('div', { className: 'home-scene' });
   scene.setAttribute('aria-hidden', 'true');
   scene.style.backgroundImage = canyon ? `url('./assets/lobby/canyon.svg')` : `url('./assets/lobby/old-town-chase.webp')`;
@@ -53,12 +54,15 @@
     line.dataset.difficulty = p.id; line.hidden = true; details.append(line);
   }
   const bonus = $('challengeScoreBonus'); bonus.classList.add('home-sr-only');
-  difficulty.append(choices, details, selector, bonus);
+  // 2026-11-23: the selected level's line and the best score share one row (the bottom-left block is five rows:
+  // title, one line, start, difficulty, this row). Tips moved to the top right next to Ranking and Settings.
   const links = make('div', { className: 'home-links' });
+  const meta = make('div', { className: 'home-meta' }); meta.append(details, links);
+  difficulty.append(choices, meta, selector, bonus);
   const startButton = $('bStart');
   main.append(heading, copy, startButton, $('startReadyStatus'));
   for (const button of [...plate.querySelectorAll(':scope > [data-retry-start]')]) main.append(button);
-  main.append(difficulty, links);
+  main.append(difficulty);
   const best = $('bestLine'); links.append(best);
 
   // Bottom right: key guide (PC), credits, privacy, language, and the developer tab (?dev=1).
