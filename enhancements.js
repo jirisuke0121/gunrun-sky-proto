@@ -1787,7 +1787,7 @@ window.__skyGhost = window.skyReplay;
           if (!list.every((m) => m.emissive && m.clone)) return;
           const cloned = list.map((m) => m.clone());
           o.material = Array.isArray(o.material) ? cloned : cloned[0];
-          for (const m of cloned) { m.userData._e = m.emissive.getHex(); zom._fxMats.push(m); }
+          for (const m of cloned) { m.userData._e = m.emissive.getHex(); m.userData._ei = m.emissiveIntensity; zom._fxMats.push(m); }
         });
       }
       for (const m of zom._fxMats) { m.emissive.setHex(0xff3a1a); m.emissiveIntensity = 1.4; }
@@ -1977,7 +1977,7 @@ window.__skyGhost = window.skyReplay;
       const zom = flashing[i];
       zom._fxFlash -= dt;
       if (zom._fxFlash <= 0) {
-        for (const m of zom._fxMats) { m.emissive.setHex(m.userData._e || 0); m.emissiveIntensity = 1; }
+        for (const m of zom._fxMats) { m.emissive.setHex(m.userData._e || 0); m.emissiveIntensity = m.userData._ei ?? 1; }
         flashing.splice(i, 1);
       }
     }

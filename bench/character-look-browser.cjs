@@ -35,11 +35,18 @@ const port = Number(process.env.SKY_TEST_PORT || 18817), base = `http://127.0.0.
           await frame();
         }
         if (!pair) return { pair: false, look: window.skyCharacterLook || null };
+        // On a bullet hit the game swaps in its own copy of each material (enhancements.js flashZombie); the copy must get the look back.
+        let redress = true;
+        if (window.skyCharacterLook?.enabled) {
+          const body = pair[0].m; for (const mesh of body.skyMeshes) mesh.material = mesh.material.clone();
+          const before = body.skyMeshes.every(mesh => !window.skyCharacterLook.styled(mesh.material)); await frame(); await frame();
+          redress = before && body.skyMeshes.length > 0 && body.skyMeshes.every(mesh => window.skyCharacterLook.styled(mesh.material));
+        }
         const [a, b] = pair, hulls = z => { let n = 0; z.m.root.traverse(o => { if (o.userData?.skyInkHull) n++; }); return n; };
         const materials = new Set(); for (const z of I.Jt) z.m?.root?.traverse(o => { if (o.isSkinnedMesh && !o.userData?.skyInkHull) materials.add(o.material.uuid); });
         return { pair: true, look: window.skyCharacterLook ? { enabled: window.skyCharacterLook.enabled, stats: window.skyCharacterLook.stats, outline: window.skyCharacterLook.outline?.() } : null,
           gameGap: Math.hypot(a.pos.x - b.pos.x, a.pos.z - b.pos.z), drawnGap: Math.hypot(a.m.root.position.x - b.m.root.position.x, a.m.root.position.z - b.m.root.position.z),
-          hulls: hulls(a) + hulls(b), materials: materials.size, bodies: I.Jt.filter(z => z.m?.meshy).length, touch: document.documentElement.classList.contains('touch') };
+          hulls: hulls(a) + hulls(b), materials: materials.size, redress, bodies: I.Jt.filter(z => z.m?.meshy).length, touch: document.documentElement.classList.contains('touch') };
       });
       // The game's own random numbers are not consumed by the look: drawing frames between two seeded draws leaves the sequence alone.
       const random = await p.evaluate(async () => {
@@ -61,6 +68,7 @@ const port = Number(process.env.SKY_TEST_PORT || 18817), base = `http://127.0.0.
       assert.ok(pc.gameGap < .01, map + ' pc: the game keeps both on the same spot ' + pc.gameGap);
       assert.ok(pc.drawnGap > .2 && pc.drawnGap < .7, map + ' pc: the picture parts them ' + pc.drawnGap.toFixed(3));
       assert.equal(pc.random, 0, map + ' pc: the look takes no number from the game\'s Math.random');
+      assert.equal(pc.redress, true, map + ' pc: a material copied by the hit flash gets the look back');
       const phone = await run(map, '', true);
       assert.deepEqual(phone.errors, [], map + ' phone: no page errors');
       assert.ok(phone.pair && phone.touch, map + ' phone: touch run');

@@ -130,13 +130,15 @@
   function dress(zombie) {
     const body = zombie.m; body.skyLook = true; stats.dressed++;
     const index = Math.floor(roll() * VARIANTS.length), tall = .95 + roll() * .1, wide = .93 + roll() * .16;
+    const plainKind = zombie.kind && zombie.kind !== 'walker';
+    body.skyVariant = index; body.skyMeshes = []; body.skyOwnLook = plainKind ? ZOMBIE_LOOK : { ...ZOMBIE_LOOK, ...VARIANTS[index] };
     body.inner.scale.set(body.inner.scale.x * wide, body.inner.scale.y * tall, body.inner.scale.z * wide);
     body.root.traverse(node => {
       if (!node.isSkinnedMesh) return;
       if (node.userData.skyInkHull) { node.visible = outlineOn(); return; }
-      if (zombie.kind && zombie.kind !== 'walker') { stylize(node.material, ZOMBIE_LOOK); return; } // the trial tier's own tints keep their meaning
+      if (plainKind) { stylize(node.material, ZOMBIE_LOOK); body.skyMeshes.push(node); return; } // the trial tier's own tints keep their meaning
       const base = variantCache.has(node.material) ? node.material : (stylize(node.material, ZOMBIE_LOOK), node.material);
-      node.material = variantOf(base, index);
+      node.material = variantOf(base, index); body.skyMeshes.push(node);
     });
     if (outlineOn()) addHull(body.root);
   }
@@ -214,6 +216,10 @@
     for (const zombie of sky.Jt) {
       const body = zombie.m; if (!body?.meshy || !body.root) continue;
       if (!body.skyLook) dress(zombie);
+      // A body is reused after its zombie dies, and the game puts the model's own material back: give it its look again.
+      // On the first bullet hit the game gives the zombie its own copies of the materials (so only that body flashes);
+      // a copy does not carry the shader patch, so the body would fall back to the raw texture. Give the copy its look.
+      else for (const mesh of body.skyMeshes) { const material = mesh.material; if (material && !hooks.has(material) && material.isMeshStandardMaterial) { material.userData.skyLook = 0; stylize(material, body.skyOwnLook); } }
       // Looping walk and run cycles start at a different point for each body, so a pack does not step in unison (drawn only).
       const action = body.curA; if (action && action !== body.skyPhased) { body.skyPhased = action; const length = action.getClip?.().duration; if (action.loop === 2201 && length > .2) action.time = (action.time + roll() * length) % length; }
       if (!zombie.dead && body.root.visible && !zombie.rise && !zombie.fall) live.push(zombie);
@@ -222,5 +228,5 @@
     if (bodyFeelOn) bodyFeel();
   };
   const inkScratch = new sky.Geom.Vector3(); // stands in for the Vector2 the renderer fills (x, y only)
-  window.skyCharacterLook = { enabled: true, stats, outline: outlineOn, variants: VARIANTS.length };
+  window.skyCharacterLook = { enabled: true, stats, outline: outlineOn, variants: VARIANTS.length, styled: material => hooks.has(material) };
 })();
