@@ -76,7 +76,9 @@
   const hideZ = () => { for (const z of I.Jt) z.pos.set(0, -150, 0); };
   const lerp = (a, b, u) => a + (b - a) * u, ease = u => u * u * (3 - 2 * u), cl = u => Math.max(0, Math.min(1, u));
   const mix3 = (a, b, u) => [lerp(a[0], b[0], u), lerp(a[1], b[1], u), lerp(a[2], b[2], u)];
-  const cineShot = (name, o) => { SH[name] = { canvas: true, ...o, tick(i) { o.tick(i); watch(i); if (o.cam) H.pose(...o.cam(i)); }, grab(i) { return H.cine(...o.cam(i * (window.__SUB || 2))); } }; };
+  // gamecam: the take's logic reads the game camera (hook aim), so the cine camera is used for the picture only and put back.
+  const cineShot = (name, o) => { SH[name] = { canvas: true, ...o, tick(i) { o.tick(i); watch(i); if (o.cam && !o.gamecam) H.pose(...o.cam(i)); },
+    grab(i) { const keep = o.gamecam && [C.position.clone(), C.quaternion.clone(), C.fov]; const url = H.cine(...o.cam(i * (window.__SUB || 2))); if (keep) { C.position.copy(keep[0]); C.quaternion.copy(keep[1]); C.fov = keep[2]; C.updateProjectionMatrix(); C.updateMatrixWorld(); } return url; } }; };
   const gameShot = (name, o) => { SH[name] = { ...o, tick(i) { o.tick(i); watch(i); } }; };
   const P = {};
   // CHASE: north sky-bridge, heading east. Reverse camera (cine) and the player's own camera (HUD).
@@ -136,4 +138,29 @@
   cineShot('gun_c', { frames: 90, pre: 6, diff: 'normal', setup() { U.gunOn = true; quiet(); H.place(33.6, -3.7, H.yawTo(1, 0), 12); H.pack([[6.5, 0], [7.6, 1.2], [8.6, -1.1], [9.8, .4], [11, -.8], [12.2, .9]], 12); c.yaw = H.yawTo(-1, 0); for (const z of I.Jt) { z.hp = Math.min(z.hp, 3); z.yaw = H.yawTo(1, 0); } },
     tick(i) { c.invuln = 0; c.life = 9; c.yaw = H.yawTo(-1, 0); c.pitch = .02; H.keys({}); },
     cam(i) { const u = ease(cl(i / 180)); if (H.aspect) return [[lerp(36.3, 35.9, u), 14.5, -4.0], [28.5, 12.6, -3.6], 36]; return [[lerp(35.9, 35.5, u), 13.55, lerp(-5.0, -4.9, u)], [27.5, 13.0, -3.5], 36]; } });
+
+  // =================== v2: close cine cameras on the same takes ===================
+  // Smoothed runner position (the camera's aim lags a little behind, like an operator following).
+  const F = { x: 0, y: 0, z: 0, on: false };
+  const follow = (k = .18) => { if (!F.on) { F.x = c.pos.x; F.y = c.pos.y; F.z = c.pos.z; F.on = true; } F.x += (c.pos.x - F.x) * k; F.y += (c.pos.y - F.y) * k; F.z += (c.pos.z - F.z) * k; };
+  const X = n => window['__' + n];   // X_<name>= overrides from the command line, for finding a camera
+  const V = (n, d) => X(n) ?? d;
+  const base = name => SH[name];
+  const recam = (name, from, o) => { const b = base(from); cineShot(name, { frames: b.frames, pre: b.pre || 0, diff: b.diff, ...o, setup() { F.on = false; b.setup(); o.setup?.(); }, tick(i) { (o.take || b.tick)(i); follow(o.lag ?? .18); } }); };
+  // DIVE: inside the corridor behind the window; the runner crashes through the glass at the lens.
+  recam('dive_c', 'dive', { setup() { U.gunOn = false; },
+    cam(i) { return [[V('cx', -11.3), V('cy', 4.62), V('cz', -11.72)], [lerp(-17, F.x, .5), lerp(5.2, F.y + 1.0, .6), -12.05], V('fov', 58)]; } });
+  // ZIP: travelling beside and a little ahead of the runner, low, the town streaming underneath.
+  recam('zip_c', 'zip', { setup() { U.gunOn = false; }, lag: .3,
+    cam(i) { return [[F.x + V('dx', -3.4), F.y + V('dy', .5), F.z + V('dz', 2.7)], [F.x + .3, F.y + 1.0, F.z], V('fov', 60)]; } });
+  // HOOK: from out over the gap, low; the runner is pulled across and up to the tower.
+  recam('hook_c', 'hook', { gamecam: true, setup() { U.gunOn = false; },
+    cam(i) { return [[V('cx', 38.9), V('cy', 12.4), V('cz', .2)], [lerp(37, F.x, .85), F.y + 1.05, lerp(-4, F.z, .85)], V('fov', 50)]; } });
+  // BLAST: low in the gap beyond the barrel; the blast throws the runner up and across the frame.
+  recam('blast_c', 'blast', { setup() { U.gunOn = false; },
+    cam(i) { for (const b of window.skyBlastBarrels.barrels) if (b.badge) b.badge.visible = false; return [[V('cx', 15.9), V('cy', 8.25), V('cz', -9.5)], [lerp(11.5, F.x, .75), lerp(8.7, F.y + .9, .8), lerp(-6.5, F.z, .75)], V('fov', 58)]; } });
+  // TUNNEL a: low at the lip of the U; the runner slides down the slope at the lens and is thrown up.
+  recam('tunnel_a', 'tunnel', { cam(i) { return [[V('cx', -3.4), V('cy', 5.0), V('cz', -5.4)], [F.x, F.y + .8, F.z], V('fov', 58)]; } });
+  // TUNNEL b: high over the town; the runner rises to the lens at the top of the arc.
+  recam('tunnel_b', 'tunnel', { cam(i) { return [[V('cx', -13.6), V('cy', 24.2), V('cz', -3.6)], [F.x, F.y + .9, F.z], V('fov', 56)]; } });
 })();

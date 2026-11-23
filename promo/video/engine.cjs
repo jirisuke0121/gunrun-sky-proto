@@ -2,7 +2,7 @@
 // env/args: W,H (viewport), FPS (output, 30|60), MAP, LANG, HUD(1|0), OUT dir, Q(query extra), EVERY (save every Nth for previews)
 const { chromium } = require('/home/claude/pw/node_modules/playwright');
 const fs = require('fs'), path = require('path');
-const args = Object.fromEntries(process.argv.slice(3).map(a => a.split('=')));
+const args = Object.fromEntries(process.argv.slice(3).map(a => { const i = a.indexOf('='); return [a.slice(0, i), a.slice(i + 1)]; }));
 const shot = process.argv[2];
 const W = +(args.W || 960), H = +(args.H || 540), FPS = +(args.FPS || 30), SUB = 60 / FPS, EVERY = +(args.EVERY || 1);
 const LANG = args.LANG || 'en', MAP = args.MAP || 'index.html', OUT = args.OUT || `/home/claude/video/out/${shot}`;
@@ -69,7 +69,7 @@ const LANG = args.LANG || 'en', MAP = args.MAP || 'index.html', OUT = args.OUT |
     }
     if (f < pre) continue;
     const i = f - pre;
-    const post = await p.evaluate(([n, i]) => { window.__anim(); return window.SHOTS[n].post?.(i) || null; }, [shot, i]);
+    const post = await p.evaluate(([n, i]) => { window.__anim(); return window.SHOTS[n].post?.(i) || (window.__TRACE && i % window.__TRACE === 0 ? window.SH.info() : null); }, [shot, i]);
     if (post) log.push([i, post]);
     if (i % EVERY) continue;
     const file = `${OUT}/f${String(i / EVERY | 0).padStart(5, '0')}.jpg`;
