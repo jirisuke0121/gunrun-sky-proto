@@ -1730,7 +1730,7 @@ window.__skyGhost = window.skyReplay;
 
   const boltGeo = new Box(1, 1, 1);
   // Normal blending: the old additive pale streak vanished against the bright sand.
-  const boltMat = new Basic({ color: 0xff7a10 });
+  const boltMat = new Basic({ color: 0xffb648 });
   const bolts = mkPool(14, boltGeo, boltMat).map((p) => Object.assign(p, { s: new V3(), e: new V3(), d: 0, T: 0, lf: 0, w: 0.05 }));
 
   const shellGeo = new Box(1, 1, 1);
@@ -1742,7 +1742,8 @@ window.__skyGhost = window.skyReplay;
   const smokeMat = new Basic({ color: 0xb8b8b8, transparent: true, opacity: 0.3, depthWrite: false });
   const puffs = mkPool(10, smokeGeo, smokeMat).map((p) => Object.assign(p, { v: new V3() }));
 
-  const goreGeo = new Box(1, 1, 1);
+  // 2026-11-23: drops instead of cubes (a low sphere, stretched along its flight and shrinking as it falls). Count and colours unchanged.
+  const goreGeo = new Sphere(0.5, 5, 3);
   const bloodMat = new Basic({ color: 0x9a1010 });
   const bloodHotMat = new Basic({ color: 0xe01818 });
   const gore = mkPool(140, goreGeo, bloodMat).map((p) => Object.assign(p, { v: new V3(), size: 0.1 }));
@@ -1836,13 +1837,15 @@ window.__skyGhost = window.skyReplay;
     p.m.scale.setScalar(0.04);
     p.m.visible = true; p.t = 0; p.life = 0.6;
   };
+  const goreAim = new V3();
   const spray = (pt, dir, n, mat, speed, size) => {
     for (let i = 0; i < n; i++) {
       const p = take(gore);
       p.m.material = mat;
       p.m.position.copy(pt);
       p.size = size * rnd(0.6, 1.4);
-      p.m.scale.set(p.size, p.size, p.size * rnd(1, 2.2));
+      p.stretch = rnd(1.8, 3.4);
+      p.m.scale.set(p.size * 0.6, p.size * 0.6, p.size * p.stretch);
       p.v.set(rnd(-1.5, 1.5), rnd(0.8, 2.8), rnd(-1.5, 1.5)).addScaledVector(dir, rnd(0.4, 1) * speed);
       p.m.visible = true; p.t = 0; p.life = rnd(0.5, 0.85);
     }
@@ -1932,7 +1935,7 @@ window.__skyGhost = window.skyReplay;
       const head = p.d * Math.min(1, pr), tail = p.d * Math.max(0, pr - p.lf);
       tmp.copy(p.e).sub(p.s).normalize();
       p.m.position.copy(p.s).addScaledVector(tmp, (head + tail) * 0.5);
-      const w = Math.max(p.w, 0.02 * p.m.position.distanceTo(Se.position));
+      const w = Math.max(p.w * 0.5, 0.0075 * p.m.position.distanceTo(Se.position)); // 2026-11-23: a thin streak, not a bar
       p.m.scale.set(w, w, Math.max(0.05, head - tail));
       p.m.lookAt(p.e);
       p.m.visible = true;
@@ -1960,6 +1963,9 @@ window.__skyGhost = window.skyReplay;
       if (p.t >= p.life) { p.life = 0; p.m.visible = false; continue; }
       p.v.y -= 12 * dt;
       p.m.position.addScaledVector(p.v, dt);
+      goreAim.copy(p.m.position).add(p.v); p.m.lookAt(goreAim);
+      const fade = 1 - 0.55 * (p.t / p.life);
+      p.m.scale.set(p.size * 0.6 * fade, p.size * 0.6 * fade, p.size * (p.stretch || 2) * fade);
     }
     for (const p of pops) {
       if (p.life <= 0) continue;

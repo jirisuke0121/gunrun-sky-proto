@@ -84,7 +84,7 @@ Claude Code・Codex など、どのAIでもこのファイルを最初に読む�
 
 ## 8. 主なファイルと詳細
 
-- `index.html`（旧市街）、`canyon.html`（渓谷）がゲーム本体。機能ごとに直下の `*.js` に分割。旧市街の地形の足し引きは `map-prune.js`（撤去）と `map-links.js`（追加）。見た目は `look-pass.js`（空・霧・壁の色・屋根）、`far-scenery.js`（遠景）、`ink-outline.js`（輪郭線）、`mood.js`（時間帯の光）、`contact-shadow.js`（壁の足元の接地影）。
+- `index.html`（旧市街）、`canyon.html`（渓谷）がゲーム本体。機能ごとに直下の `*.js` に分割。旧市街の地形の足し引きは `map-prune.js`（撤去）と `map-links.js`（追加）。見た目は `look-pass.js`（空・霧・壁の色・屋根）、`far-scenery.js`（遠景）、`ink-outline.js`（輪郭線）、`mood.js`（時間帯の光）、`contact-shadow.js`（壁の足元の接地影）。人とゾンビの見た目は `character-look.js`（塗り・ゾンビの輪郭線はPCだけ・1体ごとの色と体格・重なりを描画だけずらす・跳びと着地の体の動き。`?chars=plain` で全部外す、`?charOutline=0|1`、`?bodyFeel=0`。ゲームの位置・乱数・スコアには触らない）。
 - `server/` … Worker・D1（`server/README.md`）。`ranked-rules.js` … 順位の対象条件と版。
 - `hook-editor.html` … フック・壁ジャンプ候補のエディター（公開版には含めない）。
 - `tools/admin/` … 管理画面（地図・詰まり・プレイヤー）。`ADMIN_TOKEN` で既存のWorker APIを読む。`tools/heatmap/` はここへの転送。
