@@ -604,7 +604,9 @@ function previewAim() {
   const depth = Math.max(0, (c.pos.x - camera.position.x) * aimDirection.x + (c.pos.y + c.eye - camera.position.y) * aimDirection.y + (c.pos.z - camera.position.z) * aimDirection.z);
   aimOrigin.copy(camera.position).addScaledVector(aimDirection, depth);
   const hit = sky.raycast?.(aimOrigin.x, aimOrigin.y, aimOrigin.z, aimDirection.x, aimDirection.y, aimDirection.z, range);
-  return aimPoint.copy(aimOrigin).addScaledVector(aimDirection, hit ? hit.t : range);
+  // 11/25: during a wall run the player is against the wall, and the ray can hit it at once; a point that close lies
+  // behind the muzzle and turned the held gun around (wallrun-permissions check). Look past such a hit.
+  return aimPoint.copy(aimOrigin).addScaledVector(aimDirection, hit && hit.t > 1.2 ? hit.t : range);
 }
 function aimWeaponAt(target) {
   const carryPosition=worldWeapon.position.clone(),carryRotation=worldWeapon.quaternion.clone();
