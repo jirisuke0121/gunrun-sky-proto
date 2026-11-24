@@ -4,15 +4,15 @@
 #   handheld shake and impact jolts on the cine shots, grade + glow + grain, animated captions and title.
 #   CrazyGames (19.5 s, 60 fps, silent): straight cuts at real speed, grade only (their rules: no fast-forward,
 #   no promotional text, no black bars), cover as the opening frame.
-# Source frames are the 60 fps captures in out2/<L|J|P>/<shot>/f%05d.jpg (engine.cjs).
+# Source frames are the 60 fps captures in out3/<L|J|P>/<shot>/f%05d.jpg (engine.cjs).
 import sys, os, json, math, subprocess, glob
 import numpy as np, cv2
 V = sys.argv[1]; PREVIEW = len(sys.argv) > 2 and sys.argv[2] == 'preview'
-ROOT = '/home/claude/video'; A = ROOT + '/assets'; OUT = ROOT + '/final2'; os.makedirs(OUT, exist_ok=True)
+ROOT = '/home/claude/video'; A = ROOT + '/assets'; OUT = ROOT + '/final3'; os.makedirs(OUT, exist_ok=True)
 YT = V.startswith('yt'); lang = {'yt_ja': 'ja', 'yt_en': 'en'}.get(V); port = V == 'cg_port'
 W, H = (1080, 1620) if port else (1920, 1080)
 FPS = 30 if YT else 60; BEAT = .375
-SRC = ROOT + '/out2/' + ('P' if port else 'L'); SRCJ = ROOT + '/out2/J'
+SRC = ROOT + '/out3/' + ('P' if port else 'L'); SRCJ = ROOT + '/out3/J'
 cv2.setNumThreads(2); rng = np.random.default_rng(7)
 
 # ---------------------------------------------------------------- edit list
@@ -103,12 +103,12 @@ def positions(c):
     return out
 
 # ---------------------------------------------------------------- shake
-def shake(img, t, amp, hits, seed):
+def shake(img, t, amp, hits, seed, push=0.0):
     if amp <= 0 and not hits: return img
     ph = np.random.default_rng(seed).uniform(0, 6.283, 9); k = H / 1080
     dx = amp * (3.4 * math.sin(5.6 * t + ph[0]) + 1.9 * math.sin(14.5 * t + ph[1]) + .9 * math.sin(31 * t + ph[2])) * k
     dy = amp * (2.8 * math.sin(6.9 * t + ph[3]) + 1.7 * math.sin(17.3 * t + ph[4]) + .8 * math.sin(36 * t + ph[5])) * k
-    rot = amp * (.16 * math.sin(4.3 * t + ph[6]) + .08 * math.sin(12.1 * t + ph[7])); zoom = 1.035
+    rot = amp * (.16 * math.sin(4.3 * t + ph[6]) + .08 * math.sin(12.1 * t + ph[7])); zoom = 1.035 + push   # push: a slow move in over the clip
     for th, s in hits or []:
         if t >= th:
             e = math.exp(-(t - th) * 9) * s * k; dx += e * math.sin((t - th) * 58 + 1.3); dy += e * math.cos((t - th) * 49); rot += e * .012 * math.sin((t - th) * 40); zoom += e * .0009
@@ -220,7 +220,7 @@ for ci, c in enumerate(clips):
                 if c.get('hud'): img = cv2.addWeighted(read(d, math.floor(p)), .5, read(d, math.floor(p) + 1), .5, 0)   # frame blend keeps the HUD crisp
                 else: img = mblur(at(d, p), flow(d, math.floor(p)), adv / 2)
                 img = grade(img)
-                if not c.get('hud'): img = shake(img, k / FPS, c.get('shake', 0), c.get('hits'), 100 + ci)
+                if not c.get('hud'): img = shake(img, k / FPS, c.get('shake', 0), c.get('hits'), 100 + ci, .035 * k / max(1, c['n'] - 1))
         elif c['kind'] == 'still':
             base = f"{A}/{'cover_port' if port else ('cover_land' if c['name'] == 'cover' else 'hero_big')}.png"
             img = still(base, c['n'], k, 1.0, 1.06 if YT else 1.04)
@@ -228,7 +228,7 @@ for ci, c in enumerate(clips):
             else: img = img if k == 0 else img      # the cover itself is the first frame
         else:
             a = k / FPS; img = still(f"{A}/hero_big.png", c['n'], k, 1.12, 1.0, 0)
-            img = cv2.GaussianBlur(img, (0, 0), 2.2); img = grade(img, dark=.5 + .12 * math.exp(-a * 5))
+            img = cv2.GaussianBlur(img, (0, 0), 2.2); img = grade(img, dark=.36 + .14 * math.exp(-a * 5))
             hit = .12
             if a < hit: img = (img * (a / hit) ** 2).astype(np.uint8)                                 # out of black
             else:

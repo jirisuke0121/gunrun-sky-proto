@@ -7,7 +7,7 @@ import sys, json, subprocess, os, re
 import numpy as np
 from scipy.io import wavfile
 from scipy.signal import butter, sosfilt
-V = sys.argv[1]; OUT = '/home/claude/video/final2'; SRC = '/home/claude/video/out2/L'; M = '/home/claude/video/music/determined_pursuit_loop.wav'
+V = sys.argv[1]; OUT = '/home/claude/video/final3'; SRC = '/home/claude/video/out3/L'; M = '/home/claude/video/music/determined_pursuit_loop.wav'
 SR = 48000; meta = json.load(open(f'{OUT}/{V}_clips.json')); clips = meta['clips']; TOTAL = meta['total']; N = int(round(TOTAL * SR))
 rng = np.random.default_rng(11)
 def load(path):

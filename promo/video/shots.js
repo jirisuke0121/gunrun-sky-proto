@@ -123,17 +123,19 @@
     tick(i) { c.invuln = 0; c.life = 9; calm(); c.yaw = H.yawTo(-1, 0); H.keys({}); },
     cam(i) { const u = ease(cl(i / 140)); return [[lerp(45.6, 45.9, u), lerp(15.9, 16.1, u), -7.2], [36, 13.6, -8.2], 46]; } });
   // SWING: the big rope, west pad -> central roof. Camera on the landing side, the runner swings toward it.
-  cineShot('swing', { frames: 95, pre: 14, setup() { U.gunOn = false; quiet(); hideZ(); H.place(-28.4, .1, H.yawTo(1, 0), 6.4); P.j = 0; P.g = -1; P.rel = 0; },
+  cineShot('swing', { frames: 95, pre: 14, setup() { U.gunOn = false; quiet(); hideZ(); H.place(-28.4, .1, H.yawTo(1, 0), 6.4); P.j = 0; P.g = -1; P.rel = 0; P.sx = 0; },
     tick(i) { H.safe(); const j = i + 28, rope = window.skyRopeSwing.active(); if (!rope) c.yaw = H.yawTo(1, 0); H.keys({ KeyW: true });
       if (!P.j && c.pos.x + 28.4 >= 3.9 && c.onGround) { H.key('Space'); P.j = j; } if (P.j && j === P.j + 4) H.key('Space', 'keyup');
       if (rope && P.g < 0) P.g = j; if (rope && !P.rel && j - P.g >= 70) { H.key('Space'); P.rel = j; ev(i, 'release'); } if (P.rel && j === P.rel + 4) H.key('Space', 'keyup'); },
-    cam(i) { const u = cl((c.pos.x + 26) / 16); return [[-10.6, 9.5, lerp(3.2, 2.6, u)], [lerp(-20, c.pos.x, .8), lerp(9.5, c.pos.y + 1.1, .7), .1], 60]; } });
+    // v3: travels with the swing from the south side, close enough to read the hands on the rope.
+    cam(i) { if (!P.sx) { P.sx = c.pos.x; P.sy = c.pos.y; } P.sx += (c.pos.x - P.sx) * .12; P.sy += (c.pos.y - P.sy) * .1;
+      return [[P.sx + V('ax', 1.6), P.sy + V('ay', 1.1), V('az', 3.5)], [P.sx + .4, P.sy + 1.5, .1], V('fov', 56)]; } });
   // GUN: zombies charge along the east block roof; the pistol aims and fires by itself.
   gameShot('gun', { frames: 90, pre: 6, diff: 'normal', setup() { U.gunOn = true; quiet(); H.place(33.6, -3.7, H.yawTo(1, 0), 12); H.pack([[6.5, 0], [7.6, 1.2], [8.6, -1.1], [9.8, .4], [11, -.8], [12.2, .9]], 12); c.yaw = H.yawTo(-1, 0); for (const z of I.Jt) { z.hp = Math.min(z.hp, 2); z.yaw = H.yawTo(1, 0); } },
     tick(i) { c.invuln = 0; c.life = 9; c.yaw = H.yawTo(-1, 0); c.pitch = .02; H.keys({}); } });
   // WALLRUN: the same take as the chase, later on: the north wall, seen from out over the drop.
   cineShot('wallrun', { frames: 50, pre: 86, diff: 'hard', setup: chaseSetup, tick: chaseTick,
-    cam(i) { return [[c.pos.x + 5.4, 2.7, -22.3], [c.pos.x - 1.2, 1.5, -24.8], 52]; } });
+    cam(i) { return [[c.pos.x + V('ax', 2.7), V('ay', 1.2), V('az', -23.25)], [c.pos.x - .6, c.pos.y + 1.15, -24.9], V('fov', 60)]; } });   // v3: low, close and wide
   // GUN (cine): over the shoulder with a long lens, so the charging pack reads at trailer size.
   cineShot('gun_c', { frames: 90, pre: 6, diff: 'normal', setup() { U.gunOn = true; quiet(); H.place(33.6, -3.7, H.yawTo(1, 0), 12); H.pack([[6.5, 0], [7.6, 1.2], [8.6, -1.1], [9.8, .4], [11, -.8], [12.2, .9]], 12); c.yaw = H.yawTo(-1, 0); for (const z of I.Jt) { z.hp = Math.min(z.hp, 3); z.yaw = H.yawTo(1, 0); } },
     tick(i) { c.invuln = 0; c.life = 9; c.yaw = H.yawTo(-1, 0); c.pitch = .02; H.keys({}); },
@@ -163,4 +165,21 @@
   recam('tunnel_a', 'tunnel', { cam(i) { return [[V('cx', -3.4), V('cy', 5.0), V('cz', -5.4)], [F.x, F.y + .8, F.z], V('fov', 58)]; } });
   // TUNNEL b: high over the town; the runner rises to the lens at the top of the arc.
   recam('tunnel_b', 'tunnel', { cam(i) { return [[V('cx', -13.6), V('cy', 24.2), V('cz', -3.6)], [F.x, F.y + .9, F.z], V('fov', 56)]; } });
+
+  // =================== look-dev: close on the body, to judge the animation itself ===================
+  const near = (ahead = 2.6, side = 1.9, up = 1.1, fov = 42) => () => { const [fx, fz] = H.fwd(c.yaw); return [[F.x + fx * ahead - fz * side, F.y + up, F.z + fz * ahead + fx * side], [F.x, F.y + 1.0, F.z], fov]; };
+  for (const [name, from] of [['n_zip', 'zip'], ['n_hook', 'hook'], ['n_swing', 'swing'], ['n_dive', 'dive'], ['n_tunnel', 'tunnel'], ['n_blast', 'blast']])
+    recam(name, from, { gamecam: true, lag: .5, setup() { U.gunOn = false; }, cam: near() });
+  cineShot('n_idle', { frames: 90, pre: 10, gamecam: true, setup() { U.gunOn = false; quiet(); hideZ(); F.on = false; H.place(33.6, -3.7, H.yawTo(1, 0), 12); },
+    tick(i) { H.safe(); H.keys({}); follow(.5); }, cam: near(2.4, 1.2, 1.2, 40) });
+  cineShot('n_run', { frames: 110, pre: 6, gamecam: true, setup() { U.gunOn = false; quiet(); hideZ(); F.on = false; H.place(0, -24, H.yawTo(1, 0), 0); st.path = [{ x: 26.5, z: -24 }, { x: 60, z: -24 }]; st.k = 0; },
+    tick(i) { H.safe(); H.drive(st); follow(.5); }, cam: near(3.0, 2.2, 1.0, 44) });
+  // Zombies up close: a pack running at the lens, and one reaching the (standing) player.
+  cineShot('n_zrun', { frames: 80, pre: 16, diff: 'hard', setup() { U.gunOn = false; quiet(); F.on = false; H.place(33.6, -3.7, H.yawTo(1, 0), 12); H.pack([[7.5, 0], [8.4, 1.1], [9.3, -1.0], [10.4, .4]], 12); c.yaw = H.yawTo(-1, 0); for (const z of I.Jt) z.yaw = H.yawTo(1, 0); },
+    tick(i) { c.invuln = 0; c.life = 9; calm(); c.yaw = H.yawTo(-1, 0); H.keys({}); follow(.5); },
+    cam() { return [[V('cx', 33.2), 13.2, V('cz', -1.9)], [27.5, 13.0, -3.7], V('fov', 34)]; } });
+
+  cineShot('n_ladder', { frames: 80, pre: 4, gamecam: true, setup() { U.gunOn = false; quiet(); hideZ(); F.on = false; const L = g.LADDERS[+(X('L') ?? 0)]; P.L = L; H.place(L.x + L.nx * .9, L.z + L.nz * .9, H.yawTo(-L.nx, -L.nz), L.y0 + .05); },
+    tick(i) { H.safe(); const L = P.L; if (c.state !== 'ladder') c.yaw = H.yawTo(-L.nx, -L.nz); H.keys({ KeyW: true }); follow(.5); },
+    cam() { const L = P.L; return [[F.x + L.nx * 2.6 - L.nz * 1.6, F.y + 1.3, F.z + L.nz * 2.6 + L.nx * 1.6], [F.x, F.y + 1.0, F.z], 44]; } });
 })();
