@@ -17,6 +17,8 @@
 //   6. Zombies that look alive: head and neck follow the runner, jaw, each body's own arm carriage, chest roll
 //      (?zombieLife=0 off).   7. Soft foot shadows where the device draws no shadows (?footShadow=0|1).
 //   The runner's own body feel (stretch, lean, squash, breathing) lives in human-view.js (?bodyFeel=0).
+//   8. Zombies wear something: shirts, hair, blood and dirt, two-tone shading, all painted in the shader from the
+//      rest pose (?zombieWear=0 off). 9. Twisted strands on the ropes.
 //   ?chars=plain   everything above off (comparison).
 (() => {
   const query = new URLSearchParams(location.search);
@@ -29,7 +31,20 @@
   const outlineOn = () => outlineQuery === '1' || (outlineQuery !== '0' && !touch());
 
   // ---- 1. painted look -------------------------------------------------------------------------------------
-  const HEAD = 'uniform float uLookFlat;uniform float uLookBias;uniform float uLookSat;uniform vec3 uLookSkin;uniform vec3 uLookCloth;uniform float uLookClothAmt;uniform vec3 uLookRim;uniform float uLookRimPow;\n';
+  // 2026-11-24 (zombies only, uLookBody = 1): every zombie was the same bald, bare-chested body in one flat tone.
+  // Painted on in the shader, from where a point sits on the body in its rest pose (no textures, no extra draws):
+  //   a shirt (none / sleeveless / short / long sleeves, whole or torn), hair or none, blood at the mouth, chest and
+  //   hands, dirt on the legs, and two-tone shading from the sun so the body has a lit side and a shadow side.
+  // Rest pose of both zombie models (metres): Y up, +Z front, arms out along X; waist .93, collar 1.50, top 1.80,
+  // shoulder |x| .18, elbow .38, wrist .60.
+  const HEAD = `uniform float uLookFlat;uniform float uLookBias;uniform float uLookSat;uniform vec3 uLookSkin;uniform vec3 uLookCloth;uniform float uLookClothAmt;uniform vec3 uLookRim;uniform float uLookRimPow;
+uniform float uLookBody;uniform vec4 uLookShirt;uniform vec2 uLookSleeve;uniform vec4 uLookHair;uniform float uLookBlood;
+varying vec3 vLookBind;
+float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3. - 2. * f );
+  float a = fract( sin( dot( i, vec2( 127.1, 311.7 ) ) ) * 43758.5453 ), b = fract( sin( dot( i + vec2( 1., 0. ), vec2( 127.1, 311.7 ) ) ) * 43758.5453 );
+  float c = fract( sin( dot( i + vec2( 0., 1. ), vec2( 127.1, 311.7 ) ) ) * 43758.5453 ), d = fract( sin( dot( i + vec2( 1., 1. ), vec2( 127.1, 311.7 ) ) ) * 43758.5453 );
+  return mix( mix( a, b, f.x ), mix( c, d, f.x ), f.y ); }
+`;
   const MAP = `#ifdef USE_MAP
   vec4 sampledDiffuseColor = mix( texture2D( map, vMapUv ), texture2D( map, vMapUv, uLookBias ), uLookFlat );
   {
@@ -38,6 +53,35 @@
     sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb * uLookSkin, uLookCloth * ( lookL * 14. ), lookCloth );
     lookL = dot( sampledDiffuseColor.rgb, vec3( .299, .587, .114 ) );
     sampledDiffuseColor.rgb = mix( vec3( lookL ), sampledDiffuseColor.rgb, uLookSat );
+    if ( uLookBody > .5 ) {
+      vec3 b = vLookBind; float ax = abs( b.x );
+      float coarse = lookNoise( b.xy * 13. + b.z * 9. ), fine = lookNoise( b.yx * 41. + b.z * 27. );
+      // shirt: waist to collar on the trunk, and out along the arm as far as the sleeve goes; torn shirts have holes
+      float torn = uLookSleeve.y, rag = lookNoise( vec2( b.x * 9. + b.z * 5., 2.3 ) );     // rag: one value per strip of cloth, so the hem hangs in tatters
+      float hem = .90 + coarse * .05 + torn * ( .03 + .20 * rag );
+      float trunk = ( 1. - smoothstep( .195, .215, ax ) ) * smoothstep( hem, hem + .012, b.y );
+      float neckline = 1.50 - .055 * ( 1. - smoothstep( 0., .075, ax ) ) * step( 0., b.z );
+      trunk *= 1. - smoothstep( neckline - .012, neckline + .012, b.y );
+      float cuff = uLookSleeve.x + coarse * .04 - torn * .09 * rag;
+      float sleeve = smoothstep( .195, .215, ax ) * ( 1. - smoothstep( cuff - .012, cuff + .012, ax ) ) * step( 1.02, b.y );   // arms only: the feet are also wide of the trunk
+      float holes = lookNoise( b.xy * 17. + b.z * 11. + 3.7 );                              // a few small holes, not a missing half
+      float shirt = uLookShirt.a * max( trunk, sleeve ) * smoothstep( torn * .24, torn * .24 + .05, holes );
+      float fold = lookNoise( vec2( b.x * 24. + b.z * 14., b.y * 5. ) );                   // long folds down the cloth; little of the muscle painted on the skin shows through
+      sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, uLookShirt.rgb * ( .74 + fold * .3 ) * ( .8 + lookL * .35 ), shirt );
+      sampledDiffuseColor.rgb *= 1. - shirt * ( 1. - shirt ) * 2.2;                         // a dark line where the cloth ends: it has an edge
+      // hair: the top of the head, further down at the back, the hairline higher at the front
+      float scalp = b.y + max( 0., -b.z ) * .9 - max( 0., b.z ) * .35 + fine * .012 + coarse * .022 - .011;
+      float hair = uLookHair.a * smoothstep( 1.688, 1.704, scalp ) * step( ax, .13 );
+      sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, uLookHair.rgb * ( .55 + lookL * .9 ), hair );
+      // blood: mouth and chin, a run down the chest, the hands; dirt up the shins and on the forearms
+      float mouth = smoothstep( .015, .05, b.z ) * ( 1. - smoothstep( .045, .075, ax ) ) * smoothstep( 1.545, 1.57, b.y ) * ( 1. - smoothstep( 1.62, 1.645, b.y ) );
+      float chest = step( 0., b.z ) * ( 1. - smoothstep( .03 + coarse * .07, .06 + coarse * .07, ax ) ) * smoothstep( 1.26 + fine * .2, 1.34 + fine * .2, b.y ) * ( 1. - smoothstep( 1.52, 1.56, b.y ) );
+      float hands = smoothstep( .575 + fine * .05, .62 + fine * .05, ax );
+      float blood = uLookBlood * clamp( mouth + chest * .8 + hands * .85, 0., 1. ) * ( .55 + fine * .45 );
+      sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, vec3( .30, .035, .03 ) * ( .6 + lookL * .7 ), blood );
+      float dirt = ( 1. - smoothstep( .05, .42, b.y ) ) * .38 + smoothstep( .40, .58, ax ) * .10;
+      sampledDiffuseColor.rgb *= 1. - dirt * ( .55 + coarse * .45 );
+    }
   }
   diffuseColor *= sampledDiffuseColor;
 #endif`;
@@ -51,35 +95,50 @@
   const RIM = `{
     float lookRim = pow( 1. - clamp( dot( normalize( normal ), normalize( vViewPosition ) ), 0., 1. ), uLookRimPow );
     gl_FragColor.rgb += uLookRim * lookRim;
+    #if NUM_DIR_LIGHTS > 0
+    if ( uLookBody > .5 ) {      // two tones from the sun: a lit side and a cool shadow side, with a firm edge between
+      float lookBand = smoothstep( -.10, .14, dot( normalize( normal ), directionalLights[ 0 ].direction ) );
+      gl_FragColor.rgb *= mix( vec3( .68, .65, .78 ), vec3( 1.07, 1.03, .97 ), lookBand );
+    }
+    #endif
   }
   #include <tonemapping_fragment>`;
   const hooks = new WeakMap(); // material -> the callbacks it had before this file touched it
   function stylize(material, look) {
     if (!material || material.userData.skyLook || !material.isMeshStandardMaterial) return material;
     material.userData.skyLook = 1;
+    if (look.body && material.emissiveIntensity > .3) material.emissiveIntensity = .3;   // the evolved model was fully self-lit: no shading at all
     const own = hooks.get(material) || { before: material.onBeforeCompile, key: material.customProgramCacheKey }; hooks.set(material, own);
     const before = own.before, key = own.key;
     material.onBeforeCompile = (shader, renderer) => {
       before?.call(material, shader, renderer);
       if (!shader.fragmentShader.includes('#include <map_fragment>') || !shader.fragmentShader.includes('#include <tonemapping_fragment>')) return;
       Object.assign(shader.uniforms, { uLookFlat: { value: look.flat }, uLookBias: { value: look.bias }, uLookSat: { value: look.sat }, uLookSkin: { value: look.skin },
-        uLookCloth: { value: look.cloth }, uLookClothAmt: { value: look.clothAmt }, uLookRim: { value: look.rim }, uLookRimPow: { value: look.rimPow } });
+        uLookCloth: { value: look.cloth }, uLookClothAmt: { value: look.clothAmt }, uLookRim: { value: look.rim }, uLookRimPow: { value: look.rimPow },
+        uLookBody: { value: look.body ? 1 : 0 }, uLookShirt: { value: look.shirt || [0, 0, 0, 0] }, uLookSleeve: { value: [look.sleeve ?? .2, look.torn ?? 0] }, uLookHair: { value: look.hair || [0, 0, 0, 0] }, uLookBlood: { value: look.blood ?? 0 } });
+      shader.vertexShader = 'varying vec3 vLookBind;\n' + shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLookBind = position;');
       shader.fragmentShader = HEAD + shader.fragmentShader.replace('#include <map_fragment>', MAP).replace('#include <emissivemap_fragment>', EMISSIVE).replace('#include <tonemapping_fragment>', RIM);
     };
-    material.customProgramCacheKey = () => (key ? key.call(material) : '') + '|sky-character-look-1';
+    material.customProgramCacheKey = () => (key ? key.call(material) : '') + '|sky-character-look-3';
     material.needsUpdate = true; stats.styled++;
     return material;
   }
   const RIM_COLOUR = [.11, .08, .1];
-  const ZOMBIE_LOOK = { flat: .6, bias: 3.5, sat: .82, skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, rim: RIM_COLOUR, rimPow: 2.6 };
+  // `?zombieWear=0`: no shirts, hair, blood or two-tone shading (the 11/23 look), for comparison or if a device struggles.
+  const ZOMBIE_LOOK = { flat: .42, bias: 3.5, sat: .8, skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, rim: RIM_COLOUR, rimPow: 2.6, body: query.get('zombieWear') !== '0', blood: .55 };
   const HUMAN_LOOK = { flat: .5, bias: 4, sat: .9, skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, rim: [.1, .075, .09], rimPow: 3 };
   // Skin tone (multiplied) and cloth colour (replaces the dark trousers) per variant. Variant 0 keeps the original.
+  // skin = tone (multiplied), cloth = trousers (replaces the dark cloth of the texture), shirt = [r, g, b, 1] or none,
+  // sleeve = how far out along the arm it reaches (.2 none, .38 elbow, .6 wrist), torn 0..1, hair = [r, g, b, 1] or none.
   const VARIANTS = [
-    { skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0 },
-    { skin: [.8, .95, .78], cloth: [.045, .06, .12], clothAmt: 1 },
-    { skin: [.88, .78, .7], cloth: [.085, .1, .055], clothAmt: 1 },
-    { skin: [.74, .82, .96], cloth: [.06, .06, .07], clothAmt: 1 },
-    { skin: [1, .95, .8], cloth: [.15, .035, .05], clothAmt: 1 },
+    { skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, blood: .9 },                                                                    // the original: bare chest, bald
+    { skin: [.8, .95, .78], cloth: [.045, .06, .12], clothAmt: 1, shirt: [.17, .22, .30, 1], sleeve: .37, torn: .25, hair: [.06, .05, .05, 1], blood: .5 },   // grey-blue tee
+    { skin: [.88, .78, .7], cloth: [.085, .1, .055], clothAmt: 1, shirt: [.20, .21, .12, 1], sleeve: .215, torn: .1, blood: .7 },                               // olive vest, bald
+    { skin: [.74, .82, .96], cloth: [.06, .06, .07], clothAmt: 1, shirt: [.40, .37, .31, 1], sleeve: .60, torn: .6, hair: [.42, .40, .38, 1], blood: .7 },     // torn linen long sleeves, grey hair
+    { skin: [1, .95, .8], cloth: [.15, .035, .05], clothAmt: 1, hair: [.07, .05, .04, 1], blood: .8 },                                                         // bare chest, dark hair
+    { skin: [.92, .9, .84], cloth: [.11, .08, .06], clothAmt: 1, shirt: [.17, .115, .08, 1], sleeve: .36, torn: 1, blood: 1 },                                 // brown wool in rags, bald
+    { skin: [.82, .84, .9], cloth: [.045, .06, .12], clothAmt: 1, shirt: [.075, .075, .09, 1], sleeve: .60, torn: .15, hair: [.05, .04, .04, 1], blood: .4 },   // dark long sleeves
+    { skin: [.86, .92, .84], cloth: [0, 0, 0], clothAmt: 0, shirt: [.15, .21, .21, 1], sleeve: .38, torn: .4, hair: [.36, .35, .34, 1], blood: .6 },            // teal tee, grey hair
   ];
   const variantCache = new Map(); // source material -> [materials]
   function variantOf(source, index) {
@@ -253,6 +312,26 @@
     foot.mesh.geometry.attributes.position.needsUpdate = true;
   }
 
+  // ---- 8. ropes that read as rope (2026-11-24) -----------------------------------------------------------------
+  // The swing ropes were plain cream square bars and the hook's rope a plain brown tube. One small twisted-strand
+  // texture (16 x 16, drawn here) is laid along them; the material's own colour still tints it.
+  let ropeSource = null;
+  function ropeMap(turns) {
+    if (!ropeSource) { ropeSource = document.createElement('canvas'); ropeSource.width = ropeSource.height = 16; const ctx = ropeSource.getContext('2d');
+      ctx.fillStyle = '#f2f2f2'; ctx.fillRect(0, 0, 16, 16); ctx.strokeStyle = '#7d7d7d'; ctx.lineWidth = 2.2;
+      for (let k = -2; k < 4; k++) { ctx.beginPath(); ctx.moveTo(-2, k * 8 + 10); ctx.lineTo(18, k * 8 - 2); ctx.stroke(); } }
+    const map = new sky.Geom.CanvasTexture(ropeSource); map.wrapS = map.wrapT = 1000; map.colorSpace = 'srgb'; map.repeat.set(1, turns); map.needsUpdate = true; return map;
+  }
+  window.skyRopeMap = ropeMap;
+  let ropesDone = false;
+  function dressRopes() {
+    for (const name of ['Rope swing', 'Rope stations']) scene.getObjectByName(name)?.traverse(mesh => {
+      const size = mesh.geometry?.parameters; if (!mesh.isMesh || mesh.userData.skyRope || !size || size.width !== .05 || size.depth !== .05 || size.height !== 1) return;
+      mesh.userData.skyRope = true; const material = mesh.material.clone(); material.map = ropeMap(Math.max(4, Math.round(mesh.scale.y * 7))); material.needsUpdate = true; mesh.material = material;
+      mesh.scale.x = mesh.scale.z = 1.3; ropesDone = true;     // 5 cm -> 6.5 cm: it was hard to see against the sky
+    });
+  }
+
   // ---- per frame, just before the scene is drawn ------------------------------------------------------------
   let humanDone = false, anchorsDone = false, evolvedAsked = false, frame = 0, lastDraw = 0, runner = null;
   const playerShown = () => { if (!runner?.parent) runner = scene.getObjectByName('Unity challenge human') || null; return !!runner?.visible; };
@@ -279,6 +358,7 @@
         node.traverse(mesh => { if (mesh.isMesh && mesh.material?.map && !mesh.material.userData.skyLook) { stylize(mesh.material, HUMAN_LOOK); if (mesh.material.emissiveIntensity > .6) mesh.material.emissiveIntensity = .6; humanDone = true; } });
       });
     }
+    if (!ropesDone || frame % 240 === 0) dressRopes();
     if (!anchorsDone || frame % 240 === 0) {
       scene.traverse(node => { if (node.name === 'Meshy grapple anchor mobile LOD') node.traverse(mesh => { const m = mesh.material; if (mesh.isMesh && m && !m.userData.skyIron) { m.userData.skyIron = true; m.metalness = .3; m.roughness = .62; m.color?.setRGB(.62, .58, .56); m.emissive?.setRGB(.2, .175, .165); m.emissiveMap = null; m.needsUpdate = true; anchorsDone = true; } }); });
     }

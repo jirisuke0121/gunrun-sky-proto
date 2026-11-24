@@ -541,7 +541,11 @@ function updateHookRope(third) {
   if (!hookRope) return;
   const length = Math.hypot(c.hook[0] - hold.hand.x, c.hook[1] - hold.hand.y, c.hook[2] - hold.hand.z);
   hookRope.visible = length > .05; hookRope.position.copy(hold.hand); hookRope.lookAt(c.hook[0], c.hook[1], c.hook[2]);
-  hookRope.scale.set(.016, .016, length); hookRope.updateMatrixWorld(true);
+  hookRope.scale.set(.02, .02, length);
+  // Twisted strands along the rope (character-look.js draws the small texture); the count follows the length.
+  if (!hookRope.material.map && window.skyRopeMap) { hookRope.material.map = window.skyRopeMap(8); hookRope.material.color.setHex(0x8a735e); hookRope.material.needsUpdate = true; }
+  if (hookRope.material.map) hookRope.material.map.repeat.set(1, Math.max(2, Math.round(length * 9)));
+  hookRope.updateMatrixWorld(true);
   document.body.dataset.skyHookRope = JSON.stringify({ from: hold.hand.toArray().map(v => +v.toFixed(2)), length: +length.toFixed(2) });
 }
 // Stretch at take-off, lean in the air, squash on landing; breathing and a slow weight shift while standing still.
