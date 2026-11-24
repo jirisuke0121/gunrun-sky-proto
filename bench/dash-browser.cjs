@@ -87,7 +87,7 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     const running=await page.evaluate(()=>window.__dashFrames(35));
     assert.ok(Math.abs(running.speed-7.8)<.05,JSON.stringify(running));
     assert.match(await page.locator('#dashStatus').innerText(),/速度 \+30% ↑/);
-    assert.equal(running.clip,'parkourDash');assert.ok(running.distance>4.05&&running.fov>106,JSON.stringify(running));assert.equal(running.gl,0);
+    assert.equal(running.clip,'parkourDash');assert.ok(running.distance>3.75&&running.fov>80,JSON.stringify(running));assert.equal(running.gl,0);
     await capture('boost');
     if(!touch&&map==='index.html'){
      fs.mkdirSync('browser-evidence/dash-motion',{recursive:true});
@@ -100,13 +100,13 @@ fs.mkdirSync('browser-evidence',{recursive:true});
     const paused=await page.evaluate(()=>{window.__game.setMode('pause');const t=window.skyDash.remaining;window.__dashFrames(30);return{before:t,after:window.skyDash.remaining};});
     assert.equal(paused.after,paused.before,'pause freezes boost duration');
     await page.evaluate(()=>{window.__game.setMode('play');window.__game.P.vel.set(0,0,0);window.__dashFrames(420);});
-    const ended=await page.evaluate(()=>window.__dashState());assert.equal(ended.remaining,0);assert.equal(ended.boost,0);assert.ok(ended.fov<105,JSON.stringify(ended));assert.equal(ended.gl,0);
+    const ended=await page.evaluate(()=>window.__dashState());assert.equal(ended.remaining,0);assert.equal(ended.boost,0);assert.ok(ended.fov<80,JSON.stringify(ended));assert.equal(ended.gl,0);
     await capture('ended');
     // The same lane returns to the configured sprint speed after expiry.
     await page.evaluate(l=>window.__dashPlaceLane(l),lane);
     await page.keyboard.down('w');
     const normal=await page.evaluate(()=>window.__dashFrames(35));await page.keyboard.up('w');
-    assert.ok(Math.abs(normal.speed-6)<.05&&normal.fov>98&&normal.distance>3.8,JSON.stringify(normal));await capture('sprint');
+    assert.ok(Math.abs(normal.speed-6)<.05&&normal.fov>74&&normal.distance>3.5,JSON.stringify(normal));await capture('sprint');
     assert.equal(await page.evaluate(()=>typeof skyDash.rewardSwing),'undefined','a perfect bar release grants no speed reward (2026-11-22)');
     assert.equal(await page.locator('#dashStatus').isVisible(),false,'"+0%" is hidden in normal play');
     await page.evaluate(l=>__dashPlaceLane(l),lane);await page.keyboard.down('w');

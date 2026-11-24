@@ -92,7 +92,11 @@ export function createDash(sky, game) {
   let remaining = 0, age = 0, time = 0, pulse = 0, run = 0, boost = 0, aimTime = 0, shots = game.stats.shots || 0;
   let previous = null, previousFactor = 1, swingView = 0;
   const trail = [], forward = new Vector3(), right = new Vector3(), centre = new Vector3();
-  const camera = { distance: 3.6, shoulder: .62, height: .18 };
+  // 2026-11-24 三人称のカメラを近く・低く（camera-fov.js と同じ回の変更）。前は距離3.6・高さ+0.18（走ると-0.12）。
+  // 低くすると人物が画面の上へ寄り、画面下中央のスキル欄に脚が隠れない。`?cam=old` で前の位置と視野角。
+  const oldCam = typeof location !== 'undefined' && new URLSearchParams(location.search).get('cam') === 'old';
+  const CAM = oldCam ? { d: 3.6, h: .18, hRun: .3, hSwing: .28 } : { d: 3.3, h: -.1, hRun: .4, hSwing: .4 };
+  const camera = { distance: CAM.d, shoulder: .62, height: CAM.h };
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false;
   function reset(round = false) {
     remaining = age = pulse = boost = aimTime = 0; previousFactor = 1; previous = null; trail.length = 0;
@@ -154,9 +158,9 @@ export function createDash(sky, game) {
     run = ease(run, strength, dt, 7); boost = ease(boost, remaining > 0 ? boostEnvelope(remaining, age) : 0, dt, 12);
     const swingTarget=window.skySwing?.active || window.skyRopeSwing?.active?.() ? 1 : c.swingFlight ? Math.exp(-c.swingFlight.age*2.5) : 0;
     swingView = ease(swingView, swingTarget, dt, reduced ? 5 : 9);
-    camera.distance = 3.6 + run * .25 + boost * run * .3 + .25 * swingView;
+    camera.distance = CAM.d + run * .25 + boost * run * .3 + .25 * swingView;
     camera.shoulder = .62 - run * .28 - boost * run * .1 + 1.4 * swingView;
-    camera.height = .18 - run * .3 - boost * run * .07 + .28 * swingView;
+    camera.height = CAM.h - run * CAM.hRun - boost * run * .07 + CAM.hSwing * swingView;
     const moving = smooth(.7, U.sprintSpeed, speed), ringsOn = boost * moving;
     // Normal sprint draws thin side streaks too; the DASH ring still adds the full trail and echo rings.
     const trailOn = Math.max(boost, reduced ? 0 : (window.skyWind?.cssScale ? .25 : .55) * run) * moving; // 走るだけのときの帯は、世界側の風（wind-fx.js）があるので控えめ

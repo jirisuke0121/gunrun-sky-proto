@@ -1,0 +1,7 @@
+/* 2026-11-24 画面の四隅だけを少し暗くする（映画のような枠どり。参考リールの見え方）。CSS だけで、WebGL の描画は増えない。
+   中央の約6割には掛からない。追手の赤い縁（threat-edge.css、左右の12〜88%）より下に重ね、赤は弱めない。
+   ホーム・一時停止・結果の画面では消す。`?vignette=0` で外す（camera-fov.js が html に .no-vignette を付ける）。 */
+#vignette{position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 78% 82% at 50% 46%,transparent 58%,rgba(24,14,36,.16) 80%,rgba(16,8,26,.34) 100%)}
+body:has(#hud[hidden]) #vignette,html.no-vignette #vignette,
+body:has(#ovPause:not([hidden])) #vignette,body:has(#ovOver:not([hidden])) #vignette{display:none}

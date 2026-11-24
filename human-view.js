@@ -444,7 +444,7 @@ function updateMotion(dt, speed) {
   document.body.dataset.skyHumanRollPhase = rolling ? landingRoll.phase.toFixed(3) : '';
   document.body.dataset.skyHumanLandingPhase = next === 'landing' ? (1 - landTime / LANDING_SECONDS).toFixed(3) : '';
 }
-const aimPoint = new Vector3(), aimDirection = new Vector3(), aimHand = new Vector3(), aimSupport = new Vector3(), aimPalm = new Vector3();
+const aimPoint = new Vector3(), aimOrigin = new Vector3(), aimDirection = new Vector3(), aimHand = new Vector3(), aimSupport = new Vector3(), aimPalm = new Vector3();
 const bore = new Vector3(), gunMuzzle = new Vector3(), actualDirection = new Vector3();
 const doorTarget = new Vector3(), doorLean = new Vector3();
 // The two swing ropes (rope-swing.js, rope-stations.js) keep the player in the normal airborne state; ask them.
@@ -598,8 +598,13 @@ function previewAim() {
   const range = sky.wpc().range || 90;
   const lock = sky.U.aimAuto && !sky.wpc().jumpGun && !window.skyBlastBarrels?.aimedAt(camera, sky.raycast) ? sky.aimTarget?.() : null;
   if (lock) return aimPoint.set(lock.pos.x, lock.pos.y + 1.1, lock.pos.z);
-  const hit = sky.raycast?.(camera.position.x, camera.position.y, camera.position.z, aimDirection.x, aimDirection.y, aimDirection.z, range);
-  return aimPoint.copy(camera.position).addScaledVector(aimDirection, hit ? hit.t : range);
+  // Start the look ray level with the player, not at the camera: with the closer, lower chase camera (11/24) a wall
+  // beside the camera could be hit first, which put the aim point behind the gun and turned the held gun around.
+  // Only the drawn gun uses this point; the game's own shot is unchanged.
+  const depth = Math.max(0, (c.pos.x - camera.position.x) * aimDirection.x + (c.pos.y + c.eye - camera.position.y) * aimDirection.y + (c.pos.z - camera.position.z) * aimDirection.z);
+  aimOrigin.copy(camera.position).addScaledVector(aimDirection, depth);
+  const hit = sky.raycast?.(aimOrigin.x, aimOrigin.y, aimOrigin.z, aimDirection.x, aimDirection.y, aimDirection.z, range);
+  return aimPoint.copy(aimOrigin).addScaledVector(aimDirection, hit ? hit.t : range);
 }
 function aimWeaponAt(target) {
   const carryPosition=worldWeapon.position.clone(),carryRotation=worldWeapon.quaternion.clone();
