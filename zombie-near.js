@@ -2,7 +2,7 @@
 const sky=window.__skyInternals;
 // The reduced-triangle index data covers the four Meshy townsfolk (back since 2026-11-24). The Unity zombies ship with
 // their own LOD and have no record here, so they keep their geometry.
-const data=fetch('./assets/zombie-near-indices.json').then(r=>r.ok?r.json():null).catch(()=>null);
+const data=fetch('./assets/zombie-near-indices.json.gz?v=20261124-gz-v1').then(r=>{if(!r.ok||!window.DecompressionStream)return null;return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).json()}).catch(()=>null);   // shipped gzipped
 const results={};
 async function attach(ent){
  if(ent.nearAttached)return;ent.nearAttached=true;

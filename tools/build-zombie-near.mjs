@@ -6,7 +6,7 @@ const {MeshoptSimplifier:S}=await import(pathToFileURL(process.env.MESHOPT_PACKA
 const files=['zombie-decayed-man.glb','zombie-decayed-woman.glb','zombie-hoodie.glb','zombie-old-worker.glb'];
 const output={version:1,generator:'meshoptimizer 1.3.0; attributes + skin influence; original vertices retained',models:{}};
 for(const file of files){
- const bytes=fs.readFileSync('assets/'+file),len=bytes.readUInt32LE(12),doc=JSON.parse(bytes.subarray(20,20+len)),bin=bytes.subarray(28+len),prim=doc.meshes[0].primitives[0];
+ const bytes=fs.readFileSync('pool/assets/'+file)   /* plain originals; assets/ ships them gzipped */,len=bytes.readUInt32LE(12),doc=JSON.parse(bytes.subarray(20,20+len)),bin=bytes.subarray(28+len),prim=doc.meshes[0].primitives[0];
  function read(id){const a=doc.accessors[id],v=doc.bufferViews[a.bufferView],n={SCALAR:1,VEC2:2,VEC3:3,VEC4:4}[a.type],sizes={5120:1,5121:1,5122:2,5123:2,5125:4,5126:4},size=sizes[a.componentType],out=[];
   for(let i=0;i<a.count;i++)for(let k=0;k<n;k++){const o=(v.byteOffset||0)+(a.byteOffset||0)+i*(v.byteStride||size*n)+k*size;let x=({5120:()=>bin.readInt8(o),5121:()=>bin.readUInt8(o),5122:()=>bin.readInt16LE(o),5123:()=>bin.readUInt16LE(o),5125:()=>bin.readUInt32LE(o),5126:()=>bin.readFloatLE(o)})[a.componentType]();if(a.normalized)x=Math.max(-1,x/({5120:127,5121:255,5122:32767,5123:65535}[a.componentType]));out.push(x);}return out;}
  const p=Float32Array.from(read(prim.attributes.POSITION)),norm=read(prim.attributes.NORMAL),uv=read(prim.attributes.TEXCOORD_0),joints=read(prim.attributes.JOINTS_0),weights=read(prim.attributes.WEIGHTS_0),idx=Uint32Array.from(read(prim.indices)),vertices=p.length/3;
@@ -21,4 +21,4 @@ for(const file of files){
  output.models[file]={vertices,originalTriangles:idx.length/3,triangles:reduced.length/3,error,indices:packed.toString('base64')};
  console.log(file,idx.length/3,'->',reduced.length/3,'error',error);
 }
-fs.writeFileSync('assets/zombie-near-indices.json',JSON.stringify(output));
+fs.writeFileSync('pool/assets/zombie-near-indices.json',JSON.stringify(output));   // then: gzip -9 -n -c pool/assets/zombie-near-indices.json > assets/zombie-near-indices.json.gz

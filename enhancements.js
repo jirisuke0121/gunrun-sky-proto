@@ -1734,8 +1734,10 @@ window.__skyGhost = window.skyReplay;
   const boltMat = new Basic({ color: 0xffb648 });
   const bolts = mkPool(14, boltGeo, boltMat).map((p) => Object.assign(p, { s: new V3(), e: new V3(), d: 0, T: 0, lf: 0, w: 0.05 }));
 
-  const shellGeo = new Box(1, 1, 1);
-  const brassMat = new Basic({ color: 0xe0a830 });
+  // 2026-11-24: the casings were unlit yellow cubes, close to the camera they read as yellow cards (and yellow is the
+  // marker colour). A short round case, lit, darker brass.
+  const shellGeo = new Cylinder(0.5, 0.5, 1, 8); shellGeo.rotateX(Math.PI / 2);
+  const brassMat = new Standard({ color: 0x9a7a3a, metalness: 0.55, roughness: 0.38, emissive: 0x2a1e08 });
   const redMat = new Basic({ color: 0xd03030 });
   const shells = mkPool(16, shellGeo, brassMat).map((p) => Object.assign(p, { v: new V3(), spin: new V3() }));
 
@@ -1744,7 +1746,7 @@ window.__skyGhost = window.skyReplay;
   const puffs = mkPool(10, smokeGeo, smokeMat).map((p) => Object.assign(p, { v: new V3() }));
 
   // 2026-11-23: drops instead of cubes (a low sphere, stretched along its flight and shrinking as it falls). Count and colours unchanged.
-  const goreGeo = new Sphere(0.5, 5, 3);
+  const goreGeo = new Sphere(0.5, 9, 6);   // 2026-11-24: 5 x 3 segments drew as squares and pentagons at this size
   const bloodMat = new Basic({ color: 0x9a1010 });
   const bloodHotMat = new Basic({ color: 0xe01818 });
   const gore = mkPool(140, goreGeo, bloodMat).map((p) => Object.assign(p, { v: new V3(), size: 0.1 }));

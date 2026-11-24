@@ -21,4 +21,5 @@ git mv pool/assets/zombie-hoodie.glb assets/zombie-hoodie.glb
 
 - Easy Weaponsの武器：`enhancements.js`のモデル読み込みと`EASY_FIRE`を再接続する必要がある。SG・SMG・MGは2026-10-28に`assets/`へ復帰済み。`weapon-drops.js`によるステージ内補給で取得し、ホームの武器選択は追加しない。
 - 旧Meshyゾンビ4種は 2026-11-24 に `assets/` へ戻した（町の人ゾンビとして Unity ゾンビと混ぜて出す）。
+- 2026-11-24 から、大きいゾンビのモデル（Unity標準・町の人4種と遠景用）と近距離の索引は `assets/` に gzip（`*.glb.gz`・`zombie-near-indices.json.gz`）で置き、ゲームが展開して読む（`index.html`／`canyon.html` の `zGz`、`zombie-near.js`）。元のファイルはここ（`pool/assets/`）にある。作り直したら `gzip -9 -n -c pool/assets/X.glb > assets/X.glb.gz`。`tools/build-zombie-near.mjs`・`tools/export-unity-zombie-lod.py` はここの元ファイルを使う。
 - 以前のホーム画面は git の履歴（この変更の1つ前のコミット）で確認できます。

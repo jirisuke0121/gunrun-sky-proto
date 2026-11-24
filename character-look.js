@@ -270,10 +270,10 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
       const push = Math.min(.3, (SPACE - d) / 2), oa = offsets.get(a), ob = offsets.get(b);
       oa.tx -= dx * push; oa.tz -= dz * push; ob.tx += dx * push; ob.tz += dz * push; stats.apart++;
     }
-    for (const zombie of list) { const o = offsets.get(zombie); o.x += (o.tx - o.x) * .2; o.z += (o.tz - o.z) * .2; const at = zombie.m.root.position;
+    for (const zombie of list) { const o = offsets.get(zombie); o.x += (o.tx - o.x) * .2; o.z += (o.tz - o.z) * .2; const at = zombie.m.root.position, ox = o.x + (o.lx || 0), oz = o.z + (o.lz || 0);
       // The game sets the position every step; when it did not (paused, hit-stop), take the last offset back first.
       if (at.x === o.px && at.z === o.pz) { at.x -= o.ax; at.z -= o.az; }
-      at.x += o.x; at.z += o.z; o.ax = o.x; o.az = o.z; o.px = at.x; o.pz = at.z; }
+      at.x += ox; at.z += oz; o.ax = ox; o.az = oz; o.px = at.x; o.pz = at.z; }
   }
 
   // ---- 6. zombies that look alive (2026-11-24) -----------------------------------------------------------------
@@ -287,7 +287,8 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
   const wrap = angle => Math.atan2(Math.sin(angle), Math.cos(angle)), clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   // Unity rig (Base_Human*) or the townsfolk's Mixamo rig (mixamorig* — the loader drops the colon; no jaw bone, Spine2 is the chest).
   const BONES = { head: /(HumanHead|mixamorig:?Head)$/, neck: /(HumanNeck|mixamorig:?Neck)$/, jaw: /HeadJaw$/, chest: /(HumanRibcage|mixamorig:?Spine2)$/, spine1: /(HumanSpine1|mixamorig:?Spine)$/, spine2: /(HumanSpine2|mixamorig:?Spine1)$/,
-    lCollar: /(LArmCollarbone|mixamorig:?LeftShoulder)$/, rCollar: /(RArmCollarbone|mixamorig:?RightShoulder)$/, lArm: /(LArmUpperarm|mixamorig:?LeftArm)$/, rArm: /(RArmUpperarm|mixamorig:?RightArm)$/, lFore: /(LArmForearm|mixamorig:?LeftForeArm)$/, rFore: /(RArmForearm|mixamorig:?RightForeArm)$/ };
+    lCollar: /(LArmCollarbone|mixamorig:?LeftShoulder)$/, rCollar: /(RArmCollarbone|mixamorig:?RightShoulder)$/, lArm: /(LArmUpperarm|mixamorig:?LeftArm)$/, rArm: /(RArmUpperarm|mixamorig:?RightArm)$/, lFore: /(LArmForearm|mixamorig:?LeftForeArm)$/, rFore: /(RArmForearm|mixamorig:?RightForeArm)$/,
+    lThigh: /(LLegThigh|mixamorig:?LeftUpLeg)$/, rThigh: /(RThigh|mixamorig:?RightUpLeg)$/, lCalf: /(LLegCalf|mixamorig:?LeftLeg)$/, rCalf: /(RCalf|mixamorig:?RightLeg)$/ };
   function bonesOf(body) {
     if (body.skyBones) return body.skyBones;
     const found = {}; body.root.traverse(node => { if (node.isBone) for (const key in BONES) if (BONES[key].test(node.name)) found[key] = node; });
@@ -317,6 +318,68 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
   function sideSign(collar, arm, axis, toward) {
     collar.getWorldPosition(lateral); arm.getWorldPosition(armAt); lateral.subVectors(armAt, lateral);
     return Math.sign(lateral.crossVectors(axis, lateral).dot(toward)) || 1;
+  }
+  // Point `bone` so that its `child` lies along the line to `target` (world space).
+  const aimA = new Vec(), aimB = new Vec(), aimTo = new Vec(), aimSwing = new Quat(), aimWorld = new Quat(), aimParent = new Quat(), grip = new Vec();
+  function point(bone, child, target) {
+    bone.getWorldPosition(aimA); child.getWorldPosition(aimB); aimB.sub(aimA).normalize(); aimTo.copy(target).sub(aimA).normalize();
+    aimSwing.setFromUnitVectors(aimB, aimTo); bone.getWorldQuaternion(aimWorld); bone.parent.getWorldQuaternion(aimParent);
+    bone.quaternion.copy(aimParent.invert().multiply(aimWorld.premultiply(aimSwing))); bone.updateWorldMatrix(false, true);
+  }
+  // On a ladder (2026-11-24): the townsfolk have no climbing clip and ran up the rungs with their arms swinging; the Unity
+  // body loops a one-metre mantle. Hand over hand instead: each hand holds a rung fixed in the world while the body rises
+  // past it, then lets go and takes the next, the two hands half a step apart; the chest leans in to the ladder.
+  // Two-bone reach: upper and lower bone so the end lands on `target`, the middle joint bent towards `bend`.
+  const ikA = new Vec(), ikB = new Vec(), ikE = new Vec(), ikDir = new Vec(), ikBend = new Vec(), ikMid = new Vec();
+  function reach(upper, lower, end, target, bend) {
+    upper.getWorldPosition(ikA); lower.getWorldPosition(ikB); end.getWorldPosition(ikE);
+    const l1 = ikA.distanceTo(ikB), l2 = ikB.distanceTo(ikE); ikDir.copy(target).sub(ikA);
+    const d = clamp(ikDir.length(), Math.abs(l1 - l2) + .001, l1 + l2 - .001); ikDir.normalize();
+    const along = (l1 * l1 - l2 * l2 + d * d) / (2 * d), off = Math.sqrt(Math.max(0, l1 * l1 - along * along));
+    ikBend.copy(bend).addScaledVector(ikDir, -bend.dot(ikDir)).normalize();
+    ikMid.copy(ikA).addScaledVector(ikDir, along).addScaledVector(ikBend, off);
+    point(upper, lower, ikMid); point(lower, end, target);
+  }
+  const elbowOut = new Vec(), kneeIn = new Vec();
+  function ladderPose(zombie, bones) {
+    const action = zombie.act, L = action?.L; if (!L || action.kind !== 'ladder' || !bones.lFore || !bones.rFore) return;
+    const handL = bones.lFore.children.find(node => node.isBone), handR = bones.rFore.children.find(node => node.isBone); if (!handL || !handR) return;
+    let nx = L.nx, nz = L.nz; if (!Number.isFinite(nx) || !Number.isFinite(nz)) { nx = Math.sin(zombie.yaw || 0); nz = Math.cos(zombie.yaw || 0); }
+    const n = Math.hypot(nx, nz) || 1; nx /= n; nz /= n;
+    turn(bones.chest, rightAxis, .22);
+    zombie.m.root.updateMatrixWorld(true);
+    const STEP = .7, tall = zombie.m.root.scale.y || 1;
+    elbowOut.set(nx * .6, -.5, nz * .6); kneeIn.set(-nx, .35, -nz);
+    // Hands: each holds a rung fixed in the world while the body rises past it. Feet: the same, on the opposite beat.
+    for (const [arm, fore, hand, thigh, calf, side, offset] of [[bones.lArm, bones.lFore, handL, bones.lThigh, bones.lCalf, -1, 0], [bones.rArm, bones.rFore, handR, bones.rThigh, bones.rCalf, 1, STEP / 2]]) {
+      if (arm) {
+        const rungY = Math.floor((zombie.pos.y + offset) / STEP) * STEP - offset + 1.78 * tall;
+        grip.set(zombie.pos.x - nx * .3 - nz * side * .17, rungY, zombie.pos.z - nz * .3 + nx * side * .17);
+        reach(arm, fore, hand, grip, elbowOut);
+      }
+      const foot = calf?.children.find(node => node.isBone);
+      if (thigh && foot) {
+        const stepOff = (offset + STEP / 2) % STEP, stepY = Math.floor((zombie.pos.y + stepOff) / STEP) * STEP - stepOff + .38 * tall;
+        grip.set(zombie.pos.x - nx * .26 - nz * side * .12, stepY, zombie.pos.z - nz * .26 + nx * side * .12);
+        reach(thigh, calf, foot, grip, kneeIn);
+      }
+    }
+  }
+  // Keep the drawn head over the game's head box (2026-11-24). The box stands on the zombie's position (+-0.17 m), but
+  // the run leans the head up to 0.37 m forward, so a shot at the head that was seen could miss. Slide the drawn body
+  // back by what sticks out past 0.12 m (at most 0.28 m, on the ground only); the lean itself stays. Applied next frame.
+  const headNow = new Vec();
+  function keepHead(zombie) {
+    const bones = bonesOf(zombie.m), o = offsets.get(zombie); if (!bones.head || !o) return;
+    let wantX = 0, wantZ = 0;
+    if (!zombie.act && !zombie.fall && !zombie.crawl) {
+      bones.head.getWorldPosition(headNow);
+      // Only along the way it faces (the lean); a sideways tilt or twitch is left alone.
+      const fx = -Math.sin(zombie.yaw || 0), fz = -Math.cos(zombie.yaw || 0);
+      const ahead = (headNow.x - (o.lx || 0) - o.x - zombie.pos.x) * fx + (headNow.z - (o.lz || 0) - o.z - zombie.pos.z) * fz;
+      if (ahead > .12) { const back = Math.min(.28, ahead - .12); wantX = -fx * back; wantZ = -fz * back; }
+    }
+    o.lx = (o.lx || 0) + (wantX - (o.lx || 0)) * .35; o.lz = (o.lz || 0) + (wantZ - (o.lz || 0)) * .35;
   }
   function enliven(zombie, dt, time) {
     const body = zombie.m, bones = bonesOf(body); if (!bones.head) return;
@@ -352,6 +415,7 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
       turn(bones.lArm, rightAxis, life.armL + near * (.12 - life.armL * .7)); turn(bones.rArm, rightAxis, life.armR + near * (.12 - life.armR * .7));
       turn(bones.lFore, rightAxis, life.foreL * (1 - near * .6)); turn(bones.rFore, rightAxis, life.foreR * (1 - near * .6));
     }
+    ladderPose(zombie, bones);
     for (const key in bones) bones[key].userData.skyOut.copy(bones[key].quaternion);
     stats.alive = (stats.alive || 0) + 1;
   }
@@ -454,7 +518,7 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
       const action = body.curA; if (action && action !== body.skyPhased) { body.skyPhased = action; const length = action.getClip?.().duration; if (action.loop === 2201 && length > .2) action.time = (action.time + roll() * length) % length; }
       if (!zombie.dead && body.root.visible && !zombie.rise && !zombie.fall) live.push(zombie);
     }
-    if (live.length > 1) separate(live);
+    separate(live);
     const now = performance.now(), dt = Math.min(.05, Math.max(0, (now - lastDraw) / 1000)); lastDraw = now;
     const cam = sky.Se.position, bodies = [sky.modeRef?.() === 'play' && playerShown() ? sky.c.pos : null];
     for (const zombie of live) {
@@ -464,6 +528,7 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
       // The renderer has already worked out this frame's matrices: bring the moved root and bones up to date,
       // or the drawn-apart offset and the bone turns would only show one frame late (and never, in normal play).
       zombie.m.root.updateMatrixWorld(true);
+      if (near) keepHead(zombie);
       // The game swaps each body's geometry by distance (near / far); the outline follows, or it would draw the full mesh.
       // The townsfolk's near mesh is cut to about half its triangles, which shows as sharp facets within a few metres:
       // the full mesh (same vertices, skin and clips) within 4 m of the camera. The far mesh is left alone. `?townFull=0` off.

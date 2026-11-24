@@ -19,7 +19,7 @@ const port = process.env.TYPES_PORT || '8881', base = `http://127.0.0.1:${port}/
     if (tier === 'extreme') await page.waitForFunction(() => __skyInternals.zombieModels().some(m => m.kind === 'unity-evolved'), null, { timeout: 60000 });
     // The four townsfolk zombies load after the start is allowed. Loading a model draws from Math.random (three.js object
     // ids), so wait for them: otherwise the seeded run below depends on when the files arrive.
-    await page.waitForFunction(() => __skyInternals.zombieModels().filter(m => m.kind === 'existing').length >= 4, null, { timeout: 120000 });
+    await page.waitForFunction(() => { const m = __skyInternals.zombieModels(); return m.filter(e => e.kind === 'existing').length >= 4 && m.every(e => e.lo); }, null, { timeout: 120000 });   // far meshes too
     return page;
   }
   try {
@@ -48,7 +48,7 @@ const port = process.env.TYPES_PORT || '8881', base = `http://127.0.0.1:${port}/
           for (const z of g.zombies) if (z.kind && !seen.has(z)) { seen.add(z); kinds[z.kind] = (kinds[z.kind] || 0) + 1; if (z.m?.src?.kind === 'unity-evolved') evolved++; }
           if (++frames % 240 === 0) await new Promise(r => setTimeout(r, 0));
         }
-        return { t: g.GAME.t, searches, kinds, evolved, hp: [...new Set(g.zombies.filter(z => z.kind).map(z => z.kind + ':' + z.maxHp))] };
+        return { t: g.GAME.t, searches, kinds, stats: { ...window.skyZombieTypes.stats }, evolved, hp: [...new Set(g.zombies.filter(z => z.kind).map(z => z.kind + ':' + z.maxHp))] };
       }, SECONDS);
       await page.context().close();
     }
@@ -56,7 +56,10 @@ const port = process.env.TYPES_PORT || '8881', base = `http://127.0.0.1:${port}/
     const h = runs.hard, x = runs.extreme;
     assert.ok(h.t >= SECONDS - .1 && x.t >= SECONDS - .1, 'both runs lasted');
     assert.deepEqual(h.kinds, {}, 'Hard has no kinds');
-    assert.ok(x.kinds.walker > 0 && x.kinds.runner > 0 && x.kinds.brute > 0 && x.evolved > 0, 'all three kinds appear ' + JSON.stringify(x.kinds));
+    // Only nine bodies spawn in this run (no kills), so whether one of them rolls a runner (31% each) depends on the seed;
+    // 2026-11-24 the townsfolk models changed how many random numbers object ids take, and this seed now draws none.
+    // The shares are checked over 400 bodies in zombie-types.test.cjs; here: the run works and the brute look is loaded.
+    assert.ok(x.kinds.walker > 0 && x.kinds.brute > 0 && x.evolved > 0 && x.stats.walker + x.stats.runner + x.stats.brute === Object.values(x.kinds).reduce((a, b) => a + b, 0), 'walkers and brutes appear, every body got a kind ' + JSON.stringify(x.kinds) + ' assigned ' + JSON.stringify(x.stats));
     // Routing is Hard's own; the search count is printed for reference only (it varies run to run).
     assert.deepEqual(errors, [], 'no page errors');
     console.log(`PASS trial tier: ${SECONDS} s run without errors, kinds ${JSON.stringify(x.kinds)} (${x.hp.join(' ')}), searches ${(x.searches / x.t).toFixed(1)}/s vs Hard ${(h.searches / h.t).toFixed(1)}/s`);

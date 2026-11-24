@@ -1,7 +1,7 @@
 """Blender: decimate the Unity zombie while preserving the runtime skin frame.
 
 Run with blender --background --python tools/export-unity-zombie-lod.py --
-assets/zombie-gunrun-standard.glb assets/zombie-gunrun-lo.glb [triangle_target].
+pool/assets/zombie-gunrun-standard.glb (plain original; assets/ ships it gzipped) assets/zombie-gunrun-lo.glb [triangle_target].
 Standard and evolved have identical geometry, UVs and weights, so share this LOD.
 The output contains geometry and the original skin only; the runtime reuses its
 already-loaded texture, skeleton and animations.

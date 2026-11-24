@@ -180,6 +180,15 @@
   cineShot('n_zface', { frames: 40, pre: 16, diff: 'hard', setup() { U.gunOn = false; quiet(); F.on = false; H.place(33.6, -3.7, H.yawTo(1, 0), 12); H.pack([[3.2, -.55], [3.6, .55], [4.4, -1.4], [4.6, 1.3]], 12); c.yaw = H.yawTo(-1, 0); for (const z of I.Jt) z.yaw = H.yawTo(1, 0); },
     tick(i) { c.invuln = 0; c.life = 9; calm(); c.yaw = H.yawTo(-1, 0); H.keys({}); follow(.5); },
     cam() { return [[V('cx', 31.4), 13.35, V('cz', -3.7)], [V('tx', 30.0), V('ty', 13.25), -3.7], V('fov', 40)]; } });
+  cineShot('n_zladder', { frames: 200, pre: 4, diff: 'hard', setup() { U.gunOn = false; quiet(); F.on = false; const L = g.LADDERS[+(X('L') ?? 0)]; P.L = L;
+      H.place(L.x - L.nx * 1.6, L.z - L.nz * 1.6, H.yawTo(L.nx, L.nz), L.y1 + .05); const live = I.Jt.filter(z => !z.dead); let k = 0;
+      for (const z of live) { const lat = (k % 3 - 1) * .8, back = 1.4 + Math.floor(k / 3) * .9, x = L.x + L.nx * back - L.nz * lat, zz = L.z + L.nz * back + L.nx * lat; k++;
+        Object.assign(z, { act: null, spawnT: 0, rise: null, stun: 0, atkT: 0, fall: null, biteHold: false, navT: 0, onGround: true, hideT: 0 }); z.pos.set(x, L.y0, zz); z.vel.set(0, 0, 0); } },
+    tick(i) { H.safe(); calm(); const L = P.L; c.yaw = H.yawTo(L.nx, L.nz); H.keys({}); },
+    cam() { const L = P.L, m = (L.y0 + L.y1) / 2; return [[L.x + L.nx * V('n', 3.2) - L.nz * V('s', 3.4), m + V('up', .6), L.z + L.nz * V('n', 3.2) + L.nx * V('s', 3.4)], [L.x + L.nx * .5, m + .3, L.z + L.nz * .5], V('fov', 50)]; } });
+  cineShot('n_bite', { frames: 90, pre: 2, diff: 'hard', setup() { U.gunOn = false; quiet(); F.on = false; H.place(33.6, -3.7, H.yawTo(1, 0), 12); H.pack([[1.6, .3], [2.2, -.5], [3.0, .6]], 12); c.yaw = H.yawTo(-1, 0); for (const z of I.Jt) { z.yaw = H.yawTo(1, 0); z.atkCD = 0; } c.life = 1; },
+    tick(i) { c.invuln = 0; c.yaw = H.yawTo(-1, 0); H.keys({}); },
+    cam() { return [[33.6 + V('d', 1.2), 13.4, -3.7 + V('s', 2.6)], [32.6, 13.0, -3.7], V('fov', 46)]; } });
   cineShot('n_zline', { frames: 60, pre: 16, diff: 'hard', setup() { U.gunOn = false; quiet(); F.on = false; H.place(33.6, -3.7, H.yawTo(1, 0), 12); H.pack([[7.2, -2.1], [7.5, -1.2], [7.9, -.3], [8.3, .6], [8.7, 1.5], [9.1, 2.3], [9.6, -1.6], [10, .2]], 12); c.yaw = H.yawTo(-1, 0); for (const z of I.Jt) z.yaw = H.yawTo(1, 0); },
     tick(i) { c.invuln = 0; c.life = 9; calm(); c.yaw = H.yawTo(-1, 0); H.keys({}); follow(.5); },
     cam() { return [[V('cx', 34.2), 13.3, V('cz', -3.7)], [27.0, 13.0, -3.7], V('fov', 38)]; } });
