@@ -152,6 +152,24 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
   const wearOn = query.get('zombieWear') !== '0';
   // Builds: [lower back, upper back, chest, head] scale (each relative to the whole body) and a stoop (radians).
   // Uniform scales only (no shearing in the bent joints). Normal, gaunt, heavy, broad-chested, stooped.
+  // The townsfolk's limping walk carries its hips 0.93 m forward over each loop and then jumps back (root motion; the
+  // game moves the body itself), so a limping zombie slid ahead of where it is and snapped back every step cycle, its head
+  // up to 1.5 m from its hit box. Take the forward drift out of that clip (the bob stays) and halve the attack lunge.
+  // The clips are shared by all four models; each is changed once.
+  function holdHips(clips) {
+    for (const [name, keep] of [['Limping_Walk_1', 0], ['Attack', .5]]) {
+      const clip = clips?.[name]; if (!clip || clip.userData?.skyHeld) continue;
+      clip.userData = { ...clip.userData, skyHeld: true };
+      const track = clip.tracks.find(t => /Hips\.position$/.test(t.name)); if (!track) continue;
+      const v = track.values, t = track.times, n = t.length, span = t[n - 1] - t[0] || 1, x0 = v[0], z0 = v[2], dx = v[(n - 1) * 3] - x0, dz = v[(n - 1) * 3 + 2] - z0;
+      for (let i = 0; i < n; i++) {
+        const k = (t[i] - t[0]) / span;
+        if (keep === 0) { v[i * 3] -= dx * k; v[i * 3 + 2] -= dz * k; }                     // remove the straight-line drift
+        else { v[i * 3] = x0 + (v[i * 3] - x0) * keep; v[i * 3 + 2] = z0 + (v[i * 3 + 2] - z0) * keep; }
+      }
+      stats.heldClips = (stats.heldClips || 0) + 1;
+    }
+  }
   const BUILDS = [[1, 1, 1, .97, .08], [.94, .94, .95, 1.02, .11], [1.08, 1.08, 1.02, .95, .06], [1, 1.03, 1.1, .93, .04], [.97, .97, .98, .99, .16]];   // stoops kept small: the head must stay in the game's head box
   const ZOMBIE_LOOK = { flat: .42, bias: 3.5, sat: .8, skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, rim: RIM_COLOUR, rimPow: 2.6, body: wearOn, blood: .55 };
   // The four Meshy townsfolk (2026-11-24, back from pool/): their own clothes, hair and faces are modelled and painted,
@@ -369,8 +387,9 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
   // the run leans the head up to 0.37 m forward, so a shot at the head that was seen could miss. Slide the drawn body
   // back by what sticks out past 0.12 m (at most 0.28 m, on the ground only); the lean itself stays. Applied next frame.
   const headNow = new Vec();
+  const headKeepOn = query.get('headKeep') !== '0';   // `?headKeep=0` off, for comparison
   function keepHead(zombie) {
-    const bones = bonesOf(zombie.m), o = offsets.get(zombie); if (!bones.head || !o) return;
+    const bones = bonesOf(zombie.m), o = offsets.get(zombie); if (!bones.head || !o || !headKeepOn) return;
     let wantX = 0, wantZ = 0;
     if (!zombie.act && !zombie.fall && !zombie.crawl) {
       bones.head.getWorldPosition(headNow);
@@ -492,6 +511,7 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
     for (const model of sky.zombieModels?.() || []) {
       if (model.skyLook) continue; model.skyLook = true;
       const look = model.kind === 'existing' ? TOWN_LOOK : ZOMBIE_LOOK;
+      if (model.kind === 'existing') holdHips(model.clips);
       model.scene.traverse(node => { if (node.isSkinnedMesh && node.material?.map) stylize(node.material, look); });
     }
     if (!evolvedAsked && frame > 30) { evolvedAsked = true; try { window.__skyWantEvolved = true; window.__skyLoadEvolved?.(); } catch {} }

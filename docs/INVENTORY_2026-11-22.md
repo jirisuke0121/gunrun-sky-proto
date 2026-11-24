@@ -65,7 +65,7 @@
 | D7 | 練習モード（`practice.js`・`practice-world.js`・`practice.css`・`PRACTICE.md`、`?practice`） | ホームからの入口は見つからなかった（URLで直接開く）。`canyon.html` だけが読み込む。入門コース（`?learn=1`）は練習モードの地形の一部を使っている | 入門コースと絡むので、消すなら切り分けが要る。**使っているかどうかを先に教えてほしい** |
 | D8 | 旧い入門の入口 `?guidedEntry=0`（`legacyIntro`） | **消した（11/22）。** 自動操作のブラウザも人と同じ道（初回カード・コツ → 入門コース）を通る。`?guidedEntry=1`（ホームを開くと入門コースへ移る、検査用の入口。`guided-preferences.js`）は別物で残している | — |
 | D9 | 一人称の表示（`first-person-weapons.js` 12 KB、`human-view.js` の `existing`） | **残す・活かすことに決まった（本人の判断、11/22）。** 操作設定の末尾に任意で選べる「一人称視点（おまけ・試作）」として出した（`first-person-option.js`）。人物の読み込み失敗時の代替表示としても使う | — |
-| D10 | `auto-resolution-monitor.js`（2 KB） | 先頭に「NIGHTLINE's rendered-frame policy」。AGENTS.md §3「NIGHTLINE の画質調整の仕様の取り込み」はやらない、と食い違って見える。`foundation-runtime.js` が読み込んでいる（測るだけで画質は変えていない可能性がある） | 未調査。測るだけなら残してよい |
+| D10 | `auto-resolution-monitor.js`（2 KB） | 先頭に「NIGHTLINE's rendered-frame policy」。AGENTS.md §3「NIGHTLINE の画質調整の仕様の取り込み」はやらない、と食い違って見える。`foundation-runtime.js` が読み込んでいる（測るだけで画質は変えていない可能性がある） | **11/25 調べた：自動では何も変えない。** 最初の本番ラン（品質「高」か「スマホ」）の間だけ1秒ごとのフレーム数を数え、10窓のうち6窓以上が45 fps未満なら、ランの後に1回だけ「描画を軽くしますか？」を出す（`foundation-runtime.js` の `showQualitySuggestion`）。はいで品質「軽量」（細かさを抑え影を省く）、いいえでそのまま。どちらでも二度と出ない。NIGHTLINE から借りたのは「45 fps・10窓中6窓」の判定の数字だけで、解像度を勝手に上げ下げする仕組み（NIGHTLINE の画質調整）は入っていない。残してよいと考える（実機で重い人への唯一の案内）。消すかどうかは本人の判断 |
 
 ## E. 未決（触らない）
 
