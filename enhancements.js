@@ -17,7 +17,7 @@ import { createNavWatch } from './nav-watch.js?v=20261103-nav-watch-v1';
 import { createZombiePursuit } from './zombie-pursuit.js?v=20261106-ascent-v1';
 import { createGhostReplay } from './ghost-replay.js?v=20261122-first-person-v2';
 import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapon-port.js?v=20261108-skill-tap-v1';
-import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261124-blast-v11';
+import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261124-blast-v12';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261122-first-person-v2';
 import { createJumpPickups } from './jump-pickups.js?v=20261101-jump-stash-v1';
 import { createWeaponDrops } from './weapon-drops.js?v=20261114-crate-pillar-v3';
@@ -1139,7 +1139,7 @@ window.__skyGhost = window.skyReplay;
   const dustMat = new Basic({ color: 0xd8c7a4, transparent: true, opacity: 0.5, depthWrite: false });
   const dust = [];
   for (let i = 0; i < 28; i++) {
-    const m = new Mesh(new Geom.Sphere(0.18, 6, 4), dustMat.clone());
+    const m = new Mesh(new Geom.Sphere(0.18, 12, 7), dustMat.clone());   // 2026-11-24: round (6 x 4 segments read as hexagons)
     m.visible = false; ue.add(m); dust.push({ m, t: 0, vx: 0, vy: 0, vz: 0 });
   }
   let dustI = 0;
@@ -1757,6 +1757,8 @@ window.__skyGhost = window.skyReplay;
     unityExplosionFx.burst(point, radius, direction, weapon);
     return playExplosionSound();
   };
+  // The same soft fire, smoke and debris for the blast barrels, which play their own sound (blast-barrels.js).
+  window.__skyBlastLook = (point, radius, size) => unityExplosionFx.burst(point, radius, [0, -1, 0], 'barrel', { size });
 
   // The muzzle flash material is additive too; make it a solid warm yellow.
   try {

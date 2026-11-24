@@ -76,7 +76,7 @@
   const pool = (n, make) => Array.from({ length: n }, () => { const m = make(); m.visible = false; scene.add(m); return { m, t: 0, life: 1, vx: 0, vy: 0, vz: 0, s0: 1, s1: 1, a: 0 }; });
   const mat = (color, opacity) => new Basic({ color, transparent: true, opacity, depthWrite: false });
   const rings = pool(4, () => { const m = new Mesh(new Torus(1, .05, 4, 24), mat(0xe9dcc0, .5)); m.rotation.x = Math.PI / 2; return m; });
-  const puffs = pool(16, () => new Mesh(new Sphere(.16, 6, 4), mat(0xd8c7a4, .5)));
+  const puffs = pool(16, () => new Mesh(new Sphere(.16, 12, 7), mat(0xd8c7a4, .5)));
   const streaks = pool(14, () => new Mesh(new Box(.055, .055, 1), mat(0xd6fbff, .5)));
   let ringI = 0, puffI = 0, streakI = 0, trailT = 0, wasGround = true, airT = 0, minVy = 0;
   const take = (list, idx) => list[idx % list.length];

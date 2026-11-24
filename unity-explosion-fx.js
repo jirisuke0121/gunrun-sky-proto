@@ -87,7 +87,7 @@ export function createUnityExplosionFx(THREE, scene, player) {
   });
   let next = 0;
 
-  function burst(point, radius, direction, weapon) {
+  function burst(point, radius, direction, weapon, options = {}) {
     const effect = pool[next++ % pool.length];
     effect.t = 0;
     effect.scale = clamp((radius || 4) / 4, 0.75, 1.25);
@@ -95,7 +95,8 @@ export function createUnityExplosionFx(THREE, scene, player) {
     effect.origin.set(...point).addScaledVector(backward, -0.8);
     // The opening corridor wall is close enough that an unscaled burst covers
     // the entire camera. Preserve the silhouette without hiding the route.
-    effect.scale *= clamp(effect.origin.distanceTo(player.pos) / 6, 0.45, 1);
+    // (A barrel blast under the runner's feet asks for a set size instead: the camera is well behind him.)
+    effect.scale = options.size ? options.size : effect.scale * clamp(effect.origin.distanceTo(player.pos) / 6, 0.45, 1);
     effect.light.position.copy(effect.origin);
     effect.light.intensity = 0.8;
     const scatter = (item, speed, spread, delay = 0) => {

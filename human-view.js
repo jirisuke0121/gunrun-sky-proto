@@ -65,7 +65,8 @@ let contactFrame = null, trackedLedge = null, handAnchor = null;
 let aimRig = null, heldWeapon = null, aimBlend = 0, shotTarget = null;
 const contactOffset = new Vector3(), contactWorld = new Vector3();
 // Hook and zipline (2026-11-24): the runner holds the rope / the trolley instead of floating beside it in the jump pose.
-//   hold.kind  'hook' | 'zip' | 'rope' (the swing ropes) | 'dive' (through the window: body only, no hand goals) | null      hold.blend  eased 0..1 for the body's turn, lean and drop
+//   hold.kind  'hook' | 'zip' | 'rope' (the swing ropes) | 'ladder' (hand over hand on the rungs) |
+//              'dive' (through the window) | 'blast' (thrown by a barrel): body only, no hand goals | null      hold.blend  eased 0..1 for the body's turn, lean and drop
 //   Left hand = rope hand, right hand = gun hand (both hands grip when the gun is put away). Drawn only: position,
 //   speed, the camera and the hit box are not touched. `?gripPose=0` turns it off (the old jump pose and camera rope).
 const viewQuery = (() => { try { return new URLSearchParams(location.search); } catch { return { get: () => null }; } })();
@@ -73,7 +74,8 @@ const gripPoseOn = viewQuery.get('gripPose') !== '0';
 const hold = { kind: null, last: null, blend: 0, yaw: 0, pitch: 0, drop: 0, age: 0, sign: 1, swing: 0, target: new Vector3(), hand: new Vector3(), handValid: false };
 const gripLocal = new Vector3(), gripRoot = new Vector3(), gripDir = new Vector3(), gripLeft = new Vector3(), gripRight = new Vector3();
 let hookRope = null, cameraRope = null;
-const holdsOn = () => !!hold.kind && hold.kind !== 'dive';     // the hands have something to hold
+const holdsOn = () => !!hold.kind && hold.kind !== 'dive' && hold.kind !== 'blast';     // the hands have something to hold
+const rungs = { left: null, right: null };     // where each hand is on the ladder (world height), hand over hand
 // Body feel (2026-11-24, moved here from character-look.js so that the gun and the hand contacts follow it):
 // stretch at take-off, lean in the air, squash on landing, breathing and a slow weight shift while standing.
 const bodyFeelOn = viewQuery.get('bodyFeel') !== '0' && !reducedMotion;
@@ -273,6 +275,7 @@ function updateMotion(dt, speed) {
   else if (gripPoseOn && c.state === 'zip' && c.zip) next = 'zip';
   else if (gripPoseOn && c.state === 'normal' && !grounded && ropeRide()) next = 'rope';
   else if (gripPoseOn && c.state === 'normal' && !grounded && window.skyWindowDive?.diving?.()) next = 'dive';
+  else if (gripPoseOn && c.state === 'normal' && !grounded && hold.kind === 'blast') next = 'blast';
   else if (!grounded || c.state === 'ledge') next = 'jump';
   else if (landTime > 0 && parkourRunEnabled && motion.clips.parkourLand) next = 'landing';
   else if (speed > .2) next = groundClip;
@@ -287,12 +290,12 @@ function updateMotion(dt, speed) {
     if (next === 'ladder') document.body.dataset.skyHumanLadderSeen = 'true';
   }
   const special = next === 'wallrun' ? (wallFrame.side < 0 ? 'parkourWallLeft' : 'parkourWallRight')
-    : { roll: 'parkourRoll', landing: 'parkourLand', vault: 'parkourVault', mantle: 'parkourMantle', catch: 'parkourCatch', jump: 'parkourJump', hook: 'parkourJump', zip: 'parkourJump', rope: 'parkourSwing', dive: 'parkourSwing', swing: 'parkourSwing', gripSlip:'parkourGripSlip',swingFall:'parkourGripSlip',swingFlight: 'parkourSwingFlight' }[next];
+    : { roll: 'parkourRoll', landing: 'parkourLand', vault: 'parkourVault', mantle: 'parkourMantle', catch: 'parkourCatch', jump: 'parkourJump', hook: 'parkourJump', zip: 'parkourJump', rope: 'parkourSwing', dive: 'parkourSwing', blast: 'parkourSwing', swing: 'parkourSwing', gripSlip:'parkourGripSlip',swingFall:'parkourGripSlip',swingFlight: 'parkourSwingFlight' }[next];
   const flipping = next === 'swingFlight' && c.swingFlight.perfect && c.swingFlight.flipDuration > 0;
   let selected = flipping ? 'parkourRoll' : (next === 'roll' || next === 'swing' || next==='gripSlip'||next==='swingFall'||next === 'swingFlight' || parkourRunEnabled) && motion.clips[special] ? special : next;
-  if ((next === 'hook' || next === 'zip' || next === 'rope' || next === 'dive') && !motion.clips[selected]) selected = 'jump';
+  if ((next === 'hook' || next === 'zip' || next === 'rope' || next === 'dive' || next === 'blast') && !motion.clips[selected]) selected = 'jump';
   const ledgeAction = next === 'swing' || next==='gripSlip'||next === 'vault' || next === 'mantle' || next === 'catch';
-  if (next === 'hook' || next === 'zip' || next === 'rope' || next === 'dive') { runPose = 0; bodyYawOffset = 0; turnBank = 0; }
+  if (next === 'hook' || next === 'zip' || next === 'rope' || next === 'dive' || next === 'blast') { runPose = 0; bodyYawOffset = 0; turnBank = 0; }
   if (rolling) { runPose = 0; bodyYawOffset = 0; turnBank = 0; landTime = 0; }
   // A supported grip has its own contact frame. Ground-turn banking would
   // rotate the two wrists away from a level bar even with a correct midpoint.
@@ -313,6 +316,7 @@ function updateMotion(dt, speed) {
   else if (next === 'hook') clipTime = info.duration * (selected === 'parkourJump' ? .66 : .5);
   else if (next === 'zip') clipTime = info.duration * (selected === 'parkourJump' ? .43 : .45);
   // The bar-swing clip: legs gather at the bottom and drive out ahead on the way up.
+  else if (next === 'blast') clipTime = selected === 'parkourSwing' ? info.duration * .88 : info.duration * .3;
   else if (next === 'dive') clipTime = selected === 'parkourSwing' ? 0 : info.duration * .3;
   else if (next === 'rope') clipTime = info.duration * (selected === 'parkourSwing' ? Math.max(0, Math.min(1, (hold.swing + 1.15) / 2.3)) : .45);
   else if (next === 'jump') {
@@ -464,6 +468,17 @@ function updateGripFrame(dt, third) {
       hold.yaw = Math.atan2(ride.ex * hold.sign, ride.ez * hold.sign); hold.swing = ride.th * hold.sign;
       hold.pitch = Math.max(-1.2, Math.min(1.2, -hold.swing)); hold.drop = .06;
       hold.target.set(c.pos.x, c.pos.y + 1.9, c.pos.z);
+    } else if (c.state === 'ladder' && c.ladder) {
+      // Each hand keeps its rung while the body climbs past it, then reaches for the next one (0.7 m apart, the two
+      // hands half a step out of phase). The ladder clip (a walk) still moves the legs.
+      kind = 'ladder'; const L = c.ladder; hold.yaw = Math.atan2(-L.nx, -L.nz); hold.pitch = 0; hold.drop = 0;
+      hold.target.set(c.pos.x - L.nx * .34, c.pos.y, c.pos.z - L.nz * .34);     // the ladder's plane, at the feet's height
+      const snap = (offset) => Math.ceil((c.pos.y + 1.22 - offset) / .7) * .7 + offset, ease = 1 - Math.exp(-dt * 20);
+      const wantL = snap(0), wantR = snap(.35);
+      rungs.left = rungs.left === null ? wantL : rungs.left + (wantL - rungs.left) * ease; rungs.right = rungs.right === null ? wantR : rungs.right + (wantR - rungs.right) * ease;
+    } else if (c.state === 'normal' && !c.onGround && (window.skyBlastBarrels?.flightAge?.() ?? -1) >= 0 && window.skyBlastBarrels.flightAge() < .55) {
+      // Thrown by a barrel: arms flung up, legs kicked out ahead, body arched back; then the ordinary jump takes over.
+      kind = 'blast'; if (Math.hypot(c.vel.x, c.vel.z) > 1) hold.yaw = Math.atan2(c.vel.x, c.vel.z); hold.pitch = -.42; hold.drop = 0;
     } else if (c.state === 'normal' && !c.onGround && window.skyWindowDive?.diving?.()) {
       // Head first through the window: arms out ahead, legs trailing (the bar-swing clip's stretched frame, laid forward).
       kind = 'dive'; if (Math.hypot(c.vel.x, c.vel.z) > 1) hold.yaw = Math.atan2(c.vel.x, c.vel.z); hold.pitch = 1.0; hold.drop = 0;
@@ -480,6 +495,7 @@ function updateGripFrame(dt, third) {
   hold.blend += ((kind ? 1 : 0) - hold.blend) * (1 - Math.exp(-dt * (kind ? 16 : 11)));
   if (!kind && hold.blend < .002) { hold.blend = 0; hold.last = null; }
   if (!kind) hold.handValid = false;
+  if (kind !== 'ladder') rungs.left = rungs.right = null;
 }
 // Hand goals in the model's own space (after the chest has turned): gripLeft, gripRight.
 function gripTargets(inverse) {
@@ -489,6 +505,10 @@ function gripTargets(inverse) {
     gripRoot.set(...roots[1]); gripDir.copy(gripLocal).sub(gripRoot).normalize();
     gripLeft.copy(gripRoot).addScaledVector(gripDir, .74);                   // left arm almost straight along the rope
     gripRight.copy(gripLeft).addScaledVector(gripDir, -.2);                   // right hand below it on the same rope
+  } else if (hold.kind === 'ladder') {
+    // Rails 0.17 m either side of the ladder's centre line (the model's own X is its left).
+    gripLeft.copy(gripLocal); gripLeft.x += .2; gripRight.copy(gripLocal); gripRight.x -= .2;
+    const scale = holder.scale.y || .77; gripLeft.y += (rungs.left - c.pos.y) / scale; gripRight.y += (rungs.right - c.pos.y) / scale;
   } else if (hold.kind === 'rope') {
     gripLeft.copy(gripLocal); gripLeft.x += .03; gripRight.copy(gripLocal); gripRight.x -= .03; gripRight.y -= .2;   // one hand above the other
   } else {
@@ -707,7 +727,7 @@ function update(dt, preparingShot = false) {
     holder.rotation.set(rolling ? rollTurn(landingRoll.phase) : c.state === 'ladder' ? .09 : swingLean, rolling ? landingRoll.yaw : c.state === 'ladder' ? ladderYaw : swingYaw ?? ledgeYaw ?? c.yaw + Math.PI + bodyYawOffset + combatTurn + 1.25 * slidePose, ledgeYaw === null ? turnBank : 0, 'YXZ');
     if(swinging&&c.swing.fatigue){const shake=(Math.sin(c.swing.age*34)*.012+Math.sin(c.swing.age*19)*.006)*c.swing.fatigue*(reducedMotion?.15:1);holder.rotation.z+=shake;}
     updateGripFrame(dt, third);
-    if (hold.blend > .001) {
+    if (hold.blend > .001 && hold.last !== 'ladder') {
       // Turn to the rope, lean along it around the hips (not the feet), hang a little lower under the trolley.
       const turn = Math.atan2(Math.sin(hold.yaw - holder.rotation.y), Math.cos(hold.yaw - holder.rotation.y));
       holder.rotation.y += turn * hold.blend;

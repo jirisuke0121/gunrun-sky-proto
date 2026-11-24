@@ -199,6 +199,7 @@
                            distance - 0.2);
     }
 
+    let launchedAt = -1;
     function flash(barrel, feedback) {
       const root = new Group();
       root.position.set(barrel.x, barrel.y + 0.65, barrel.z);
@@ -208,15 +209,18 @@
         new Basic({ color: 0xff711b, transparent: true, opacity: 0.62, depthWrite: false }),
         new Basic({ color: 0xff8a35, transparent: true, opacity: 0.85, depthWrite: false }),
         new Basic({ color: 0x453d40, transparent: true, opacity: 0.5, depthWrite: false }),   // smoke (2026-11-24: darker and longer; it was a faint grey)
-        new Basic({ color: 0xff9b38, transparent: true, opacity: 1, depthWrite: false }),
+        new Basic({ color: 0xffe9a6, transparent: true, opacity: 1, depthWrite: false, blending: 2 }),   // sparks: bright streaks
         new Basic({ color: 0xa42b1d, transparent: true, opacity: 1, depthWrite: false }),
         new Basic({ color: 0xffc943, transparent: true, opacity: 1, depthWrite: false }),
       ];
-      const coreGeo = new Sphere(1, 12, 8);
-      const flameGeo = new Sphere(1, 6, 5);
+      // 2026-11-24: the fire was one flat orange in six-sided balls, the smoke the same balls in grey. Now: a yellow
+      // heart inside orange lobes with a dark red rim (round), sparks that streak, and the soft sprite smoke and
+      // flame of unity-explosion-fx.js on top. Drawn only: the blast's force, radius and timing are unchanged.
+      const coreGeo = new Sphere(1, 18, 12);
+      const flameGeo = new Sphere(1, 14, 9);
       const smokeGeo = new Sphere(1, 7, 5);
       const ringGeo = new Torus(1, 0.022, 6, 40);
-      const sparkGeo = new Box(0.1, 0.1, 0.28);
+      const sparkGeo = new Box(0.045, 0.045, 0.85);
       const debrisGeo = new Box(0.28, 0.1, 0.35);
       const core = new Mesh(coreGeo, materials[0]);
       const fire = new Mesh(coreGeo, materials[1]);
@@ -225,13 +229,17 @@
       ring.position.y = -0.56;
       root.add(fire, core, ring);
       const flames = [], smoke = [], sparks = [], debris = [];
-      for (let i = 0; i < 7; i++) {
-        const a = i * 2.39996;
-        const tongue = new Mesh(flameGeo, materials[1]);
-        root.add(tongue);
-        flames.push({ mesh: tongue, x: Math.cos(a), z: Math.sin(a), lift: i % 3 });
+      const heart = new Basic({ color: 0xffd955, transparent: true, opacity: 1, depthWrite: false });
+      const rim = new Basic({ color: 0xc23a18, transparent: true, opacity: 0.9, depthWrite: false });
+      materials.push(heart, rim);
+      for (let i = 0; i < 12; i++) {
+        const a = i * 2.39996, layer = i % 3;          // 0 = yellow heart (close in), 1 = orange, 2 = dark red (furthest out)
+        const tongue = new Mesh(flameGeo, layer === 0 ? heart : layer === 1 ? materials[1] : rim);
+        tongue.renderOrder = 3 - layer; root.add(tongue);
+        flames.push({ mesh: tongue, x: Math.cos(a), z: Math.sin(a), lift: i % 4, layer });
       }
-      for (let i = 0; i < 9; i++) {
+      window.__skyBlastLook?.([barrel.x, barrel.y + 0.2, barrel.z], BLAST_RADIUS, 1.0);
+      for (let i = 0; i < 0; i++) {       // the old ball smoke is replaced by the sprite smoke above
         const a = i * 2.39996;
         const puff = new Mesh(smokeGeo, materials[3]);
         root.add(puff);
@@ -271,14 +279,15 @@
         ring.scale.setScalar(0.45 + (BLAST_RADIUS - 0.45) * (1 - (1 - wave) ** 2));
         materials[2].opacity = 0.85 * Math.max(0, 1 - seconds / 0.36);
         materials[3].opacity = Math.max(0, 0.5 * Math.min(1, seconds / 0.12) * (1 - seconds / 1.4));
-        materials[4].opacity = Math.max(0, 1 - seconds / 0.72);
+        materials[4].opacity = Math.max(0, 1 - seconds / 0.6);
+        heart.opacity = Math.max(0, Math.min(1, 1.8 * (1 - seconds / 0.36)));
+        rim.opacity = Math.max(0, 0.9 * Math.min(1, 1.5 * (1 - seconds / 0.62)));
         materials[5].opacity = materials[6].opacity = Math.max(0, 1 - seconds / 0.95);
         for (const tongue of flames) {
-          tongue.mesh.position.set(tongue.x * (0.3 + seconds * 6),
-                                   tongue.lift * 0.15 + seconds * 3,
-                                   tongue.z * (0.3 + seconds * 6));
-          tongue.mesh.scale.set(0.4 + seconds * 1.5, 0.7 + seconds * 2.6,
-                                0.4 + seconds * 1.5);
+          const reach = (0.25 + tongue.layer * 0.22) * (1 - Math.exp(-seconds * 9)) * 2.6 + seconds * 1.2;   // bursts out, then drifts
+          const grow = (1 - Math.exp(-seconds * 11)) * (1.25 - tongue.layer * 0.22) + seconds * 0.5;
+          tongue.mesh.position.set(tongue.x * reach, 0.2 + tongue.lift * 0.22 + seconds * (2.2 + tongue.layer * 0.5), tongue.z * reach);
+          tongue.mesh.scale.set(0.25 + grow * 0.8, 0.3 + grow, 0.25 + grow * 0.8);
         }
         for (const puff of smoke) {
           const out = 2.6 * (1 - Math.exp(-seconds * 2.6));          // fast at first, then it hangs
@@ -287,11 +296,13 @@
         }
         for (const spark of sparks) {
           const spread = 0.35 + seconds * (8 + spark.lift);
+          const before = spark.mesh.position.clone();
           spark.mesh.position.set(spark.x * spread,
                                   spark.lift * seconds * 6 - 8 * seconds * seconds,
                                   spark.z * spread);
-          spark.mesh.rotation.x += 0.08;
-          spark.mesh.rotation.z += 0.05;
+          // Each spark lies along its own path, and shortens as it dies.
+          if (seconds > 0.01) spark.mesh.lookAt(root.position.x + spark.mesh.position.x * 2 - before.x, root.position.y + spark.mesh.position.y * 2 - before.y, root.position.z + spark.mesh.position.z * 2 - before.z);
+          spark.mesh.scale.z = Math.max(0.15, 1 - seconds / 0.6);
         }
         for (const part of debris) {
           part.mesh.position.set(part.x * seconds * 3.5,
@@ -432,6 +443,7 @@
         player.airT = 0;
         const launch = blastArc(player.pos, barrel.land);
         player.vel.set(launch.x, launch.y, launch.z);
+        launchedAt = game.z.t;
         stats.blastLaunches = (stats.blastLaunches || 0) + 1;
         game.rn('爆破ジャンプ！ 空中で進路を調整');
       } else if (distance <= 4.6 && playerVisible) {
@@ -660,6 +672,8 @@
     });
 
     window.skyBlastBarrels = { barrels, pickShot, aimedAt, detonate, reset, tapAt,
+                               // Seconds since a blast threw the runner, while still in the air (-1 otherwise): the thrown pose (human-view.js).
+                               flightAge() { const p = game.c; if (launchedAt < 0) return -1; const age = game.z.t - launchedAt; if (age < 0 || age > 2.5 || p.state !== 'normal' || (p.onGround && age > 0.2)) { launchedAt = -1; return -1; } return age; },
                                step, assistTarget, startAuto, blastArc, fov: value => value + fovKick,
                                get sequence() { return autoBlast; } };
   });
