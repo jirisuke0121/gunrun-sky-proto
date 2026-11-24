@@ -851,7 +851,11 @@ function prepareShot(origin,direction,distance) {
   // A practice warp/respawn can be noticed during this same update. Keep the
   // in-flight shot's aim point even when the previous movement pose resets.
   const target=origin.clone().addScaledVector(direction,distance);
-  shotTarget=target;shotTime=0;update(0,true);
+  // 11/25: against a wall (wall run, the closer camera) the shot's hit can lie level with the runner, behind the gun,
+  // which turned the drawn gun around. Only then does the drawn gun look 1.2 m past the runner along the same line;
+  // an ordinary hit in front of the gun is untouched, and the shot itself (muzzle to the real hit, below) never changes.
+  const past=(c.pos.x-origin.x)*direction.x+(c.pos.y+c.eye-origin.y)*direction.y+(c.pos.z-origin.z)*direction.z;
+  shotTarget=distance<past+.6?origin.clone().addScaledVector(direction,past+1.2):target;shotTime=0;update(0,true);
   const muzzle=getMuzzleWorld();if(!muzzle)return null;
   const corrected=target.clone().sub(muzzle).normalize();
   document.body.dataset.skyHumanShot=JSON.stringify({origin:muzzle.toArray(),direction:corrected.toArray(),target:target.toArray(),gripError:+document.body.dataset.skyHumanGripError,aimError:+document.body.dataset.skyHumanAimError});
