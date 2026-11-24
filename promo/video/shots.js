@@ -172,6 +172,8 @@
     recam(name, from, { gamecam: true, lag: .5, setup() { U.gunOn = false; }, cam: near() });
   cineShot('n_idle', { frames: 90, pre: 10, gamecam: true, setup() { U.gunOn = false; quiet(); hideZ(); F.on = false; H.place(33.6, -3.7, H.yawTo(1, 0), 12); },
     tick(i) { H.safe(); H.keys({}); follow(.5); }, cam: near(2.4, 1.2, 1.2, 40) });
+  cineShot('n_hface', { frames: 40, pre: 10, gamecam: true, setup() { U.gunOn = V('gun', 0) > 0; quiet(); hideZ(); F.on = false; H.place(33.6, -3.7, H.yawTo(1, 0), 12); },
+    tick(i) { H.safe(); H.keys({}); follow(.5); }, cam() { return [[33.6 + V('d', 2.2), 13.35, -3.7 + V('s', .9)], [33.6, 13.0, -3.7], V('fov', 40)]; } });
   cineShot('n_run', { frames: 110, pre: 6, gamecam: true, setup() { U.gunOn = false; quiet(); hideZ(); F.on = false; H.place(0, -24, H.yawTo(1, 0), 0); st.path = [{ x: 26.5, z: -24 }, { x: 60, z: -24 }]; st.k = 0; },
     tick(i) { H.safe(); H.drive(st); follow(.5); }, cam: near(3.0, 2.2, 1.0, 44) });
   // Zombies up close: a pack running at the lens, and one reaching the (standing) player.

@@ -1143,10 +1143,10 @@ window.__skyGhost = window.skyReplay;
     m.visible = false; ue.add(m); dust.push({ m, t: 0, vx: 0, vy: 0, vz: 0 });
   }
   let dustI = 0;
-  const puff = (n, spread, up) => {
+  const puff = (n, spread, up, small = false) => {
     for (let i = 0; i < n; i++) {
       const p = dust[dustI++ % dust.length], a = Math.random() * Math.PI * 2;
-      p.t = 0.55; p.m.visible = true;
+      p.t = 0.55; p.m.visible = true; p.small = small;
       p.m.position.set(c.pos.x + Math.cos(a) * 0.3, c.pos.y + 0.1, c.pos.z + Math.sin(a) * 0.3);
       p.vx = Math.cos(a) * spread * (0.5 + Math.random()); p.vz = Math.sin(a) * spread * (0.5 + Math.random()); p.vy = up * Math.random();
     }
@@ -1168,8 +1168,9 @@ window.__skyGhost = window.skyReplay;
       if (p.t <= 0) continue;
       p.t -= dt;
       p.m.position.x += p.vx * dt; p.m.position.y += p.vy * dt; p.m.position.z += p.vz * dt;
-      p.m.scale.setScalar(1 + (0.55 - p.t) * 4);
-      p.m.material.opacity = Math.max(0, p.t) * 0.8;
+      // 2026-11-24: the running puffs grew to 0.6 m and read as pale bubbles behind the runner. They stay small, faint and low.
+      if (p.small) { const k = 1 + (0.55 - p.t) * 1.6; p.m.scale.set(k, k * 0.55, k); p.m.material.opacity = Math.max(0, p.t) * 0.45; }
+      else { p.m.scale.setScalar(1 + (0.55 - p.t) * 4); p.m.material.opacity = Math.max(0, p.t) * 0.8; }
       if (p.t <= 0) p.m.visible = false;
     }
     if (!playing) { prevY = c.pos.y; return; }
@@ -1178,7 +1179,7 @@ window.__skyGhost = window.skyReplay;
       if (!wasGround && airMinVy < -7) { puff(8, 2.4, 0.8); c.landDip = Math.min(0.5, (c.landDip || 0) + 0.12); }
       kickUsed = false; airMinVy = 0;
       sprintDustT -= dt;
-      if (sp > U.sprintSpeed - 0.5 && sprintDustT <= 0) { sprintDustT = 0.12; puff(1, 0.6, 0.4); }
+      if (sp > U.sprintSpeed - 0.5 && sprintDustT <= 0) { sprintDustT = 0.12; puff(1, 0.6, 0.25, true); }
     } else airMinVy = Math.min(airMinVy, c.vel.y);
     wasGround = c.onGround;
 

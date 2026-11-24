@@ -159,7 +159,9 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
   const TOWN_LOOK = { flat: .15, bias: 2, sat: .9, skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, rim: RIM_COLOUR, rimPow: 2.6, body: false, tone: wearOn ? .45 : 0 };
   const townsfolk = body => body?.src?.kind === 'existing';
   const townFull = query.get('townFull') !== '0';
-  const HUMAN_LOOK = { flat: .5, bias: 4, sat: .9, skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, rim: [.1, .075, .09], rimPow: 3 };
+  // The runner (2026-11-24): was lit at .6 of its own texture with no light-and-shadow side, so it read as a pale flat
+  // figure next to the zombies. Same two tones as the zombies (a little softer), self-light .38, more of the texture's detail.
+  const HUMAN_LOOK = { flat: .3, bias: 3, sat: .95, skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, rim: [.13, .1, .11], rimPow: 3, tone: wearOn ? .7 : 0 };
   // Skin tone (multiplied) and cloth colour (replaces the dark trousers) per variant. Variant 0 keeps the original.
   // skin = tone (multiplied), cloth = trousers (replaces the dark cloth of the texture), shirt = [r, g, b, 1] or none,
   // sleeve = how far out along the arm it reaches (.2 none, .38 elbow, .6 wrist), torn 0..1, hair = [r, g, b, 1] or none.
@@ -208,6 +210,20 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
   }
   // One hull per body, added when the body is first drawn (not to the source model: the game clones that for every
   // new zombie, and extra objects there would shift the game's own random-number order).
+  // The runner's outline (PC, 2026-11-24): the zombies had one and the runner did not, so the hero was the flattest
+  // figure on screen. Its meshes pose by morph targets: the hull shares the influence array, so it follows every pose.
+  const humanHulls = [];
+  function addHumanHull(root) {
+    const meshes = []; root.traverse(node => { if (node.isMesh && node.material?.map && !node.userData.skyInkHull) meshes.push(node); });
+    for (const mesh of meshes) {
+      const hull = new mesh.constructor(mesh.geometry, ink());
+      hull.name = 'Character ink hull'; hull.userData.skyInkHull = true; hull.userData.skyOf = mesh; hull.frustumCulled = false; hull.receiveShadow = false;
+      const own = ink(); Object.defineProperty(hull, 'castShadow', { get: () => false, set() {} }); Object.defineProperty(hull, 'material', { get: () => own, set() {} });
+      hull.morphTargetInfluences = mesh.morphTargetInfluences; hull.morphTargetDictionary = mesh.morphTargetDictionary;
+      hull.position.copy(mesh.position); hull.quaternion.copy(mesh.quaternion); hull.scale.copy(mesh.scale);
+      mesh.parent.add(hull); if (mesh.isSkinnedMesh) hull.bind(mesh.skeleton, mesh.bindMatrix); humanHulls.push(hull); stats.hulls++;
+    }
+  }
   function addHull(root) {
     const meshes = []; root.traverse(node => { if (node.isSkinnedMesh && !node.userData.skyInkHull) meshes.push(node); });
     for (const mesh of meshes) {
@@ -269,9 +285,9 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
   const Vec = sky.Geom.Vector3, Quat = scene.quaternion.constructor;
   const UP = new Vec(0, 1, 0), DOWN = new Vec(0, -1, 0), rightAxis = new Vec(), frontAxis = new Vec(), headAt = new Vec(), parentTurn = new Quat(), worldTurn = new Quat(), localTurn = new Quat();
   const wrap = angle => Math.atan2(Math.sin(angle), Math.cos(angle)), clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-  // Unity rig (Base_Human*) or the townsfolk's Mixamo rig (mixamorig:*; no jaw bone, Spine2 is the chest).
-  const BONES = { head: /(HumanHead|mixamorig:Head)$/, neck: /(HumanNeck|mixamorig:Neck)$/, jaw: /HeadJaw$/, chest: /(HumanRibcage|mixamorig:Spine2)$/, spine1: /(HumanSpine1|mixamorig:Spine)$/, spine2: /(HumanSpine2|mixamorig:Spine1)$/,
-    lCollar: /(LArmCollarbone|mixamorig:LeftShoulder)$/, rCollar: /(RArmCollarbone|mixamorig:RightShoulder)$/, lArm: /(LArmUpperarm|mixamorig:LeftArm)$/, rArm: /(RArmUpperarm|mixamorig:RightArm)$/, lFore: /(LArmForearm|mixamorig:LeftForeArm)$/, rFore: /(RArmForearm|mixamorig:RightForeArm)$/ };
+  // Unity rig (Base_Human*) or the townsfolk's Mixamo rig (mixamorig* — the loader drops the colon; no jaw bone, Spine2 is the chest).
+  const BONES = { head: /(HumanHead|mixamorig:?Head)$/, neck: /(HumanNeck|mixamorig:?Neck)$/, jaw: /HeadJaw$/, chest: /(HumanRibcage|mixamorig:?Spine2)$/, spine1: /(HumanSpine1|mixamorig:?Spine)$/, spine2: /(HumanSpine2|mixamorig:?Spine1)$/,
+    lCollar: /(LArmCollarbone|mixamorig:?LeftShoulder)$/, rCollar: /(RArmCollarbone|mixamorig:?RightShoulder)$/, lArm: /(LArmUpperarm|mixamorig:?LeftArm)$/, rArm: /(RArmUpperarm|mixamorig:?RightArm)$/, lFore: /(LArmForearm|mixamorig:?LeftForeArm)$/, rFore: /(RArmForearm|mixamorig:?RightForeArm)$/ };
   function bonesOf(body) {
     if (body.skyBones) return body.skyBones;
     const found = {}; body.root.traverse(node => { if (node.isBone) for (const key in BONES) if (BONES[key].test(node.name)) found[key] = node; });
@@ -418,7 +434,8 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
     if (!humanDone || frame % 240 === 0) {
       scene.traverse(node => {
         if (node.name !== 'Unity challenge human') return;
-        node.traverse(mesh => { if (mesh.isMesh && mesh.material?.map && !mesh.material.userData.skyLook) { stylize(mesh.material, HUMAN_LOOK); if (mesh.material.emissiveIntensity > .6) mesh.material.emissiveIntensity = .6; humanDone = true; } });
+        if (outlineOn() && wearOn && !node.userData.skyInked) { node.userData.skyInked = true; addHumanHull(node); }
+        node.traverse(mesh => { if (mesh.isMesh && mesh.material?.map && !mesh.material.userData.skyLook) { stylize(mesh.material, HUMAN_LOOK); const cap = wearOn ? .38 : .6; if (mesh.material.emissiveIntensity > cap) mesh.material.emissiveIntensity = cap; humanDone = true; } });
       });
     }
     if (!ropesDone || frame % 240 === 0) dressRopes();
@@ -458,6 +475,8 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
       for (const hull of zombie.m.skyHulls) if (hull.geometry !== hull.userData.skyOf.geometry) hull.geometry = hull.userData.skyOf.geometry;
       if (bodies.length < FEET) bodies.push(zombie.pos);
     }
+    for (const hull of humanHulls) { const of = hull.userData.skyOf; hull.visible = of.visible && outlineOn(); if (hull.geometry !== of.geometry) hull.geometry = of.geometry;
+      hull.position.copy(of.position); hull.quaternion.copy(of.quaternion); hull.scale.copy(of.scale); }
     footShadows(renderer, bodies);
   };
   const inkScratch = new sky.Geom.Vector3(); // stands in for the Vector2 the renderer fills (x, y only)
