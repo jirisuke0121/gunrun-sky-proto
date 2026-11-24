@@ -8,11 +8,11 @@
 import sys, os, json, math, subprocess, glob
 import numpy as np, cv2
 V = sys.argv[1]; PREVIEW = len(sys.argv) > 2 and sys.argv[2] == 'preview'
-ROOT = '/home/claude/video'; A = ROOT + '/assets'; OUT = ROOT + '/final3'; os.makedirs(OUT, exist_ok=True)
+ROOT = '/home/claude/video'; A = ROOT + '/assets'; OUT = ROOT + '/' + os.environ.get('FINAL', 'final3'); os.makedirs(OUT, exist_ok=True)
 YT = V.startswith('yt'); lang = {'yt_ja': 'ja', 'yt_en': 'en'}.get(V); port = V == 'cg_port'
 W, H = (1080, 1620) if port else (1920, 1080)
 FPS = 30 if YT else 60; BEAT = .375
-SRC = ROOT + '/out3/' + ('P' if port else 'L'); SRCJ = ROOT + '/out3/J'
+SRC = ROOT + '/' + os.environ.get('TAKE', 'out3') + '/' + ('P' if port else 'L'); SRCJ = ROOT + '/' + os.environ.get('TAKE', 'out3') + '/J'
 cv2.setNumThreads(2); rng = np.random.default_rng(7)
 
 # ---------------------------------------------------------------- edit list

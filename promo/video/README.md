@@ -52,3 +52,15 @@ https://opengameart.org/content/determined-pursuit-epic-orchestra-loop
 ## 守ること
 - 映すのは実際のゲームの画面だけ（描き足さない）。追手の位置と体力、プレイヤーの入力は台本で決めている。
 - ライフ制なので「1回噛まれたら終わり」とは書かない。
+
+## v5（2026-11-24）：町の人ゾンビ・人の陰影と輪郭線・近いカメラで全部撮り直し
+
+途中でこの環境が再起動しても続きから撮れるように `resume.sh`（終わったカットは飛ばす。撮る前にローカルのサーバーを確かめる）。撮った物は `out4/`、仕上げは `final4/`（`TAKE`・`FINAL` で指定）。
+
+```
+./resume.sh L "<v3 と同じカット>" W=1920 H=1080 FPS=60 LANG=en     # J・P も v3 と同じ引数
+TAKE=out4 FINAL=final4 python3 build2.py yt_en && TAKE=out4 FINAL=final4 python3 audio2.py yt_en   # yt_ja も同じ
+TAKE=out4 FINAL=final4 python3 build2.py cg_land ; TAKE=out4 FINAL=final4 python3 build2.py cg_port
+```
+
+撮影は横15カット・日本語2カット・縦14カットで約2時間半（1コマ1〜3秒）。近くから見る用のカットに `n_zladder`（はしごを登るゾンビ）・`n_bite`（噛まれる瞬間）・`n_hface`（人の正面／背中）を足した。
