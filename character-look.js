@@ -545,5 +545,7 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
     footShadows(renderer, bodies);
   };
   const inkScratch = new sky.Geom.Vector3(); // stands in for the Vector2 the renderer fills (x, y only)
-  window.skyCharacterLook = { enabled: true, stats, outline: outlineOn, variants: VARIANTS.length, styled: material => hooks.has(material) };
+  window.skyCharacterLook = { enabled: true, stats, outline: outlineOn, variants: VARIANTS.length, styled: material => hooks.has(material),
+    // For checks: the drawn offsets of one body — `apart` (parting overlapping bodies) and `head` (keeping the head over its box).
+    offset: zombie => { const o = offsets.get(zombie); return o ? { apart: [o.x, o.z], head: [o.lx || 0, o.lz || 0] } : null; } };
 })();

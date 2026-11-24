@@ -1795,7 +1795,9 @@ window.__skyGhost = window.skyReplay;
           for (const m of cloned) { m.userData._e = m.emissive.getHex(); m.userData._ei = m.emissiveIntensity; zom._fxMats.push(m); }
         });
       }
-      for (const m of zom._fxMats) { m.emissive.setHex(0xff3a1a); m.emissiveIntensity = 1.4; }
+      // 2026-11-24: was 0xff3a1a at 1.4 (the emissive map is the body's own texture): the whole body went solid red for
+      // three frames. A short warm light flash instead; the blood says it was a hit.
+      for (const m of zom._fxMats) { m.emissive.setHex(0xffb49a); m.emissiveIntensity = 0.85; }
       zom._fxFlash = 0.1;
       if (!flashing.includes(zom)) flashing.push(zom);
     } catch (e) { /* cosmetic only */ }

@@ -48,6 +48,8 @@ const port = Number(process.env.SKY_TEST_PORT || 18817), base = `http://127.0.0.
           gameGap: Math.hypot(a.pos.x - b.pos.x, a.pos.z - b.pos.z),
           // What is drawn: the matrix the renderer used this frame (not just the position, which the game resets every step).
           drawnGap: Math.hypot(a.m.root.matrixWorld.elements[12] - b.m.root.matrixWorld.elements[12], a.m.root.matrixWorld.elements[14] - b.m.root.matrixWorld.elements[14]),
+          // The parting alone (the drawn body also slides back when the run leans the head past its hit box; that differs per body).
+          apartGap: (() => { const f = window.skyCharacterLook?.offset, oa = f?.(a), ob = f?.(b); return oa && ob ? Math.hypot(oa.apart[0] - ob.apart[0], oa.apart[1] - ob.apart[1]) : 0; })(),
           life: !!a.m.skyLife, headTurned: !!a.m.skyBones?.head?.userData.skyOut && !a.m.skyBones.head.userData.skyOut.equals(a.m.skyBones.head.userData.skyBase),
           foot: (() => { let v = null; I.ue.traverse(o => { if (o.name === 'Foot shadows') v = o.visible; }); return v; })(), shadowMap: g.debug.renderer.shadowMap.enabled,
           hulls: hulls(a) + hulls(b), materials: materials.size, redress, bodies: I.Jt.filter(z => z.m?.meshy).length, touch: document.documentElement.classList.contains('touch') };
@@ -70,7 +72,7 @@ const port = Number(process.env.SKY_TEST_PORT || 18817), base = `http://127.0.0.
       assert.ok(pc.hulls >= 2, map + ' pc: each body has its ink hull ' + pc.hulls);
       assert.ok(pc.look.stats.dressed >= 2 && pc.look.stats.styled >= 1, map + ' pc: bodies were dressed ' + JSON.stringify(pc.look.stats));
       assert.ok(pc.gameGap < .01, map + ' pc: the game keeps both on the same spot ' + pc.gameGap);
-      assert.ok(pc.drawnGap > .2 && pc.drawnGap < .7, map + ' pc: the picture parts them ' + pc.drawnGap.toFixed(3));
+      assert.ok(pc.drawnGap > .2 && pc.apartGap > .2 && pc.apartGap < .7, map + ' pc: the picture parts them ' + pc.drawnGap.toFixed(3) + ' (parting ' + pc.apartGap.toFixed(3) + ')');
       assert.equal(pc.random, 0, map + ' pc: the look takes no number from the game\'s Math.random');
       assert.ok(pc.life && pc.headTurned, map + ' pc: zombies carry their own pose on top of the clip (head turned to the runner)');
       assert.equal(pc.redress, true, map + ' pc: a material copied by the hit flash gets the look back');

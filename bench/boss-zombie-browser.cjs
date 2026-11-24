@@ -71,7 +71,9 @@ const port = Number(process.env.SKY_TEST_PORT || 18811), base = `http://127.0.0.
       // Replacement spawning resumes after the kill and the boss does not come back.
       await page.evaluate(() => stepFor(8));
       assert.equal(await page.evaluate(() => skyBossZombie.spawns), 2, 'two bosses per run');
-      await page.evaluate(() => { __skyInternals.z.t = 80; stepFor(12); });
+      // From 97 s: past the last scripted squeeze (90 s), which holds new bodies back until it resolves (about 96 s), so the
+      // count and the refill below measure the ordinary spawning (kill lull 0 on Hard), not the squeeze.
+      await page.evaluate(() => { __skyInternals.z.t = 97; stepFor(12); });
       const population = await page.evaluate(() => ({ cap: skyChallenge.cap(0), count: __game.zombies.filter(z => !z.dead && !z.boss).length, interval: skyChallenge.interval(9), lull: skyChallenge.value('killLull', 9) }));
       assert.equal(population.cap, 8); assert.equal(population.interval, .25); assert.equal(population.lull, 0);
       assert.equal(population.count, 8, 'ordinary population reaches eight: ' + JSON.stringify(population));

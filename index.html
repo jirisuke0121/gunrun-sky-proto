@@ -7711,7 +7711,7 @@ var zSK=null;(()=>{try{if(!window.T2||!window.__ZGLB)return;let b=Uint8Array.fro
   if(src.kind==="existing")inner.scale.multiplyScalar(1.13);
   inner.rotation.y=Math.PI;root.add(inner);
   inner.traverse(o=>{if(o.isSkinnedMesh){o.castShadow=!0;o.frustumCulled=!1}});
-  let bn=[];inner.traverse(o=>{if(o.isBone){let m=/(Spine|Spine1|Spine2|Neck)$/.exec(o.name);if(m)bn.push([o,m[1]=="Spine"?.22:m[1]=="Spine1"?.3:m[1]=="Spine2"?.34:.14])}});if(!src.lit){src.lit=1;src.scene.traverse(o=>{if(o.isSkinnedMesh&&o.material&&o.material.map){o.material.emissive.set(16777215);o.material.emissiveMap=o.material.map;o.material.emissiveIntensity=.3;o.material.needsUpdate=!0}})}return{root,inner,sk:!0,meshy:!0,src,mx:new T2.AnimationMixer(inner),acts:{},cur:null,curA:null,rk:1.8,tsJ:.88+Math.random()*.24,limp:Math.random()<.5,bn,rec:0,hitT:-1,acc:0,fr:Math.random()*8|0}
+  let bn=[];inner.traverse(o=>{if(o.isBone){let m=/(Spine|Spine1|Spine2|Neck)$/.exec(o.name);if(m)bn.push([o,m[1]=="Spine"?.22:m[1]=="Spine1"?.3:m[1]=="Spine2"?.34:.14])}});if(!src.lit){src.lit=1;src.scene.traverse(o=>{if(o.isSkinnedMesh&&o.material&&o.material.map){o.material.emissive.set(16777215);o.material.emissiveMap=o.material.map;o.material.emissiveIntensity=.3;o.material.needsUpdate=!0}})}return{root,inner,sk:!0,meshy:!0,src,mx:new T2.AnimationMixer(inner),acts:{},cur:null,curA:null,rk:src.kind==="existing"?1:1.8/* 2026-11-24: the townsfolk bend through four spine bones (the Unity body three); 1.8 threw them back ~100 degrees */,tsJ:.88+Math.random()*.24,limp:Math.random()<.5,bn,rec:0,hitT:-1,acc:0,fr:Math.random()*8|0}
 }
 function zSkinBuild(n){let st=()=>new En,inner=T2.clone(zSK.scene);inner.rotation.y=Math.PI;let root=new En;root.add(inner);let h=x=>x.color.getHex(),hs=Math.random()<.15?0:Math.random()<.45?1:2+(Math.random()*3|0),hcol=zHair[Math.random()*zHair.length|0],mat=zRegMat([h(n.skin),h(n.short?n.skin:n.top),h(n.top),h(n.pants),h(n.boots)],[Math.random()*100,.25+Math.random()*.75,.4+Math.random()*.6,0],[n.short?1:0,hs,Math.random()<.5?1:0,0],h(hcol)),bones={};inner.traverse(o=>{o.isSkinnedMesh&&(o.material=mat,o.castShadow=!0),o.isBone&&(bones[o.name]=o)});root.updateMatrixWorld(!0);let px=(b,y,s)=>{let g=new En;return g.position.set(0,y,0),g.scale.setScalar(s),root.add(g),root.updateMatrixWorld(!0),bones[b].attach(g),g},neck=px("Head",1.555,1.08),hipP=px("pelvis",.92,1),hd=px("Head",1.7,1);if(hs>=2){let hm=new ze({color:hcol.color.getHex(),roughness:.95,side:Ln}),add=(g,x,y,z,rx)=>{let q=new se(g,hm);q.position.set(x,y,z),rx&&(q.rotation.x=rx),q.castShadow=!0,hd.add(q)};add(zqG.hc||(zqG.hc=new nr(.118,14,4,0,Math.PI*2,0,.75)),0,.012,0);let bt=hs===2?1.9:hs===3?1.75:1.6;add(new nr(.118,14,6,Math.PI*11/6,Math.PI*4/3,.75,bt-.75),0,.012,0);hs===3&&add(zqG.hl||(zqG.hl=new is(.112,.14,.3,12,1,!0,Math.PI*4/3,Math.PI*4/3)),0,-.16,0);hs===4&&add(zqG.hp||(zqG.hp=new is(.028,.045,.2,8)),0,-.07,.13,-.5)}return{root:root,body:st(),hip:st(),hipP:hipP,torso:st(),neck:neck,legL:{leg:st(),shin:st()},legR:{leg:st(),shin:st()},armL:{arm:st(),fore:st()},armR:{arm:st(),fore:st()},pose:{},sk:!0,mx:new T2.AnimationMixer(inner),acts:{},cur:null,curA:null,tsJ:.88+Math.random()*.24,bite:Math.random()<.4,hitT:-1}}var zAP=null;
 function zAim(b,child,dir,w){
@@ -7869,7 +7869,7 @@ window.skyFoundation?.attach(window.__skyInternals,window.__game);
 <script src="./desktop-look-fallback.js?v=20261120-trackpad-look-v1"></script>
 <script type="module" src="./zombie-near.js?v=20261124-gz-v1"></script>
 <script src="./blast-barrels.js?v=20261124-fire-v2"></script><script src="./jump-pads.js?v=20261103-pad-v1"></script><script src="./free-hook.js?v=20261114-hook-swing-v1"></script><script src="./bite-shove.js?v=20261104-bite-traversal"></script><script src="./voice-sfx.js?v=20261105-voice-v4"></script><script src="./tension-music.js?v=20261105-tension-v1"></script>
-<script type="module" src="./enhancements.js?v=20261124-bits-v4"></script>
+<script type="module" src="./enhancements.js?v=20261125-flash-v5"></script>
 <script type="module" src="./flow-feel.js?v=20261124-round-dust-v1"></script><script type="module" src="./wind-fx.js?v=20261113-wind-v1"></script>
 <script type="module" src="./human-view.js?v=20261124-aim-ray-v1"></script>
 <script type="module" src="./auto-fire-controls.js?v=20261114-no-toggle-v2"></script>
@@ -7896,7 +7896,7 @@ window.skyFoundation?.attach(window.__skyInternals,window.__game);
 <script type="module" src="./mood.js?v=20261121-scenery-v2"></script>
 <script type="module" src="./far-scenery.js?v=20261122-sea-v1"></script>
 <script type="module" src="./town-foundation.js?v=20261124-footing-v2"></script>
-<script type="module" src="./character-look.js?v=20261124-ladder-v8"></script>
+<script type="module" src="./character-look.js?v=20261125-offset-v9"></script>
 <script type="module" src="./look-pass.js?v=20261122-world-v2"></script>
 <script type="module" src="./ink-outline.js?v=20261111-ink-v1"></script>
 <script type="module" src="./contact-shadow.js?v=20261112-contact-v1"></script>
