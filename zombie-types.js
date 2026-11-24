@@ -24,7 +24,7 @@ export function createZombieTypes(game, runtime) {
   // Asked by the model builder for every new body: which look should it get? null keeps the page's own choice.
   function modelChoice() {
     if (!enabled()) return null;
-    return evolvedLoaded() && Math.random() < KINDS.brute.share ? 'unity-evolved' : 'unity-standard';
+    return evolvedLoaded() && Math.random() < KINDS.brute.share ? 'unity-evolved' : null;   // null: the page's own mix (Unity and the townsfolk)
   }
   // The trial tier is selected on the home screen: fetch the evolved look then, not during a run.
   function prepare() {

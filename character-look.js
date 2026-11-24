@@ -38,7 +38,7 @@
   // Rest pose of both zombie models (metres): Y up, +Z front, arms out along X; waist .93, collar 1.50, top 1.80,
   // shoulder |x| .18, elbow .38, wrist .60.
   const HEAD = `uniform float uLookFlat;uniform float uLookBias;uniform float uLookSat;uniform vec3 uLookSkin;uniform vec3 uLookCloth;uniform float uLookClothAmt;uniform vec3 uLookRim;uniform float uLookRimPow;
-uniform float uLookBody;uniform vec4 uLookShirt;uniform vec2 uLookSleeve;uniform vec4 uLookHair;uniform float uLookBlood;
+uniform float uLookBody;uniform float uLookTone;uniform vec4 uLookShirt;uniform vec2 uLookSleeve;uniform vec4 uLookHair;uniform float uLookBlood;uniform vec2 uLookRot;uniform vec4 uLookWoundA;uniform vec4 uLookWoundB;uniform vec4 uLookShoe;
 varying vec3 vLookBind;
 float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3. - 2. * f );
   float a = fract( sin( dot( i, vec2( 127.1, 311.7 ) ) ) * 43758.5453 ), b = fract( sin( dot( i + vec2( 1., 0. ), vec2( 127.1, 311.7 ) ) ) * 43758.5453 );
@@ -64,8 +64,8 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
       trunk *= 1. - smoothstep( neckline - .012, neckline + .012, b.y );
       float cuff = uLookSleeve.x + coarse * .04 - torn * .09 * rag;
       float sleeve = smoothstep( .195, .215, ax ) * ( 1. - smoothstep( cuff - .012, cuff + .012, ax ) ) * step( 1.02, b.y );   // arms only: the feet are also wide of the trunk
-      float holes = lookNoise( b.xy * 17. + b.z * 11. + 3.7 );                              // a few small holes, not a missing half
-      float shirt = uLookShirt.a * max( trunk, sleeve ) * smoothstep( torn * .24, torn * .24 + .05, holes );
+      float holes = lookNoise( vec2( b.x * 34. + b.z * 21., b.y * 8. + 3.7 ) ) * .75 + fine * .25;   // a few long rips down the cloth, not round holes
+      float shirt = uLookShirt.a * max( trunk, sleeve ) * smoothstep( torn * .17, torn * .17 + .03, holes );
       float fold = lookNoise( vec2( b.x * 24. + b.z * 14., b.y * 5. ) );                   // long folds down the cloth; little of the muscle painted on the skin shows through
       sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, uLookShirt.rgb * ( .74 + fold * .3 ) * ( .8 + lookL * .35 ), shirt );
       sampledDiffuseColor.rgb *= 1. - shirt * ( 1. - shirt ) * 2.2;                         // a dark line where the cloth ends: it has an edge
@@ -81,6 +81,28 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
       sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, vec3( .30, .035, .03 ) * ( .6 + lookL * .7 ), blood );
       float dirt = ( 1. - smoothstep( .05, .42, b.y ) ) * .38 + smoothstep( .40, .58, ax ) * .10;
       sampledDiffuseColor.rgb *= 1. - dirt * ( .55 + coarse * .45 );
+      // skin that has gone off: blotches (green-grey or bruised purple), dark veins at the neck, chest and forearms,
+      // sunken eyes. Skin only (not cloth or hair).
+      float skinM = ( 1. - lookCloth ) * ( 1. - shirt ) * ( 1. - hair ) * smoothstep( .13, .16, b.y );
+      float mottle = lookNoise( b.xy * 7. + b.z * 5. + uLookRot.y * 13. ) * .65 + coarse * .35;
+      vec3 rot = mix( vec3( .70, .80, .60 ), vec3( .72, .56, .74 ), lookNoise( b.yz * 3. + b.x * 2. + uLookRot.y * 7. ) );
+      sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, sampledDiffuseColor.rgb * rot, skinM * uLookRot.x * smoothstep( .38, .72, mottle ) );
+      float vein = 1. - smoothstep( 0., .04, abs( lookNoise( b.xy * 21. + b.z * 15. + 9.1 ) - .5 ) );
+      float veinZone = clamp( smoothstep( 1.30, 1.42, b.y ) * ( 1. - smoothstep( 1.58, 1.62, b.y ) ) + smoothstep( .27, .38, ax ) * step( 1.05, b.y ), 0., 1. );
+      sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, vec3( .22, .18, .30 ) * ( .6 + lookL ), skinM * uLookRot.x * vein * veinZone * .6 );
+      float eyeD = length( vec2( ax - .034, ( b.y - 1.681 ) * 1.2 ) ) + fine * .006;
+      float socket = step( .06, b.z ) * smoothstep( .011, .02, eyeD ) * ( 1. - smoothstep( .03, .05, eyeD ) );
+      sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, sampledDiffuseColor.rgb * vec3( .42, .34, .40 ), socket * ( 1. - hair ) * .85 );
+      // a bite or a gash or two: wet red, a dark hole in the middle, ragged edge
+      float wa = length( b - uLookWoundA.xyz ) / max( uLookWoundA.w, .001 ) + ( fine - .5 ) * .55, wb = length( b - uLookWoundB.xyz ) / max( uLookWoundB.w, .001 ) + ( fine - .5 ) * .55;
+      float wound = max( step( .001, uLookWoundA.w ) * ( 1. - smoothstep( .78, 1., wa ) ), step( .001, uLookWoundB.w ) * ( 1. - smoothstep( .78, 1., wb ) ) ) * ( 1. - hair );
+      float hole = max( step( .001, uLookWoundA.w ) * ( 1. - smoothstep( .28, .5, wa ) ), step( .001, uLookWoundB.w ) * ( 1. - smoothstep( .28, .5, wb ) ) );
+      float onCloth = max( lookCloth, shirt );   // through cloth it is a dark soaked stain, on skin wet flesh
+      sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, mix( vec3( .34, .05, .04 ) * ( .75 + lookL * .4 ), sampledDiffuseColor.rgb * vec3( .45, .16, .14 ), onCloth ), wound * .9 );
+      sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, vec3( .07, .012, .018 ), hole * wound * ( 1. - onCloth * .7 ) );
+      // shoes on some: below the ankle, where the trousers end
+      float shoe = uLookShoe.a * ( 1. - lookCloth ) * ( 1. - smoothstep( .125, .14, b.y + fine * .006 ) );
+      sampledDiffuseColor.rgb = mix( sampledDiffuseColor.rgb, uLookShoe.rgb * ( .55 + lookL * .8 ), shoe );
     }
   }
   diffuseColor *= sampledDiffuseColor;
@@ -96,9 +118,10 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
     float lookRim = pow( 1. - clamp( dot( normalize( normal ), normalize( vViewPosition ) ), 0., 1. ), uLookRimPow );
     gl_FragColor.rgb += uLookRim * lookRim;
     #if NUM_DIR_LIGHTS > 0
-    if ( uLookBody > .5 ) {      // two tones from the sun: a lit side and a cool shadow side, with a firm edge between
-      float lookBand = smoothstep( -.10, .14, dot( normalize( normal ), directionalLights[ 0 ].direction ) );
-      gl_FragColor.rgb *= mix( vec3( .68, .65, .78 ), vec3( 1.07, 1.03, .97 ), lookBand );
+    if ( uLookTone > .01 ) {     // two tones from the sun: a lit side and a cool shadow side. 1 = a firm edge (the Unity body);
+      float lookSoft = ( 1. - uLookTone ) * .55;   // lower = a softer edge and a lighter shadow (the townsfolk's many small faces)
+      float lookBand = smoothstep( -.10 - lookSoft, .14 + lookSoft, dot( normalize( normal ), directionalLights[ 0 ].direction ) );
+      gl_FragColor.rgb *= mix( mix( vec3( .68, .65, .78 ), vec3( .86, .84, .9 ), 1. - uLookTone ), vec3( 1.07, 1.03, .97 ), lookBand );
     }
     #endif
   }
@@ -107,7 +130,7 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
   function stylize(material, look) {
     if (!material || material.userData.skyLook || !material.isMeshStandardMaterial) return material;
     material.userData.skyLook = 1;
-    if (look.body && material.emissiveIntensity > .3) material.emissiveIntensity = .3;   // the evolved model was fully self-lit: no shading at all
+    if ((look.body || look.tone) && material.emissiveIntensity > .3) material.emissiveIntensity = .3;   // the evolved model was fully self-lit: no shading at all
     const own = hooks.get(material) || { before: material.onBeforeCompile, key: material.customProgramCacheKey }; hooks.set(material, own);
     const before = own.before, key = own.key;
     material.onBeforeCompile = (shader, renderer) => {
@@ -115,30 +138,42 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
       if (!shader.fragmentShader.includes('#include <map_fragment>') || !shader.fragmentShader.includes('#include <tonemapping_fragment>')) return;
       Object.assign(shader.uniforms, { uLookFlat: { value: look.flat }, uLookBias: { value: look.bias }, uLookSat: { value: look.sat }, uLookSkin: { value: look.skin },
         uLookCloth: { value: look.cloth }, uLookClothAmt: { value: look.clothAmt }, uLookRim: { value: look.rim }, uLookRimPow: { value: look.rimPow },
-        uLookBody: { value: look.body ? 1 : 0 }, uLookShirt: { value: look.shirt || [0, 0, 0, 0] }, uLookSleeve: { value: [look.sleeve ?? .2, look.torn ?? 0] }, uLookHair: { value: look.hair || [0, 0, 0, 0] }, uLookBlood: { value: look.blood ?? 0 } });
+        uLookBody: { value: look.body ? 1 : 0 }, uLookTone: { value: look.tone ?? (look.body ? 1 : 0) }, uLookShirt: { value: look.shirt || [0, 0, 0, 0] }, uLookSleeve: { value: [look.sleeve ?? .2, look.torn ?? 0] }, uLookHair: { value: look.hair || [0, 0, 0, 0] }, uLookBlood: { value: look.blood ?? 0 },
+        uLookRot: { value: [look.rot ?? 0, look.rotSeed ?? 0] }, uLookWoundA: { value: look.woundA || [0, 0, 0, 0] }, uLookWoundB: { value: look.woundB || [0, 0, 0, 0] }, uLookShoe: { value: look.shoe || [0, 0, 0, 0] } });
       shader.vertexShader = 'varying vec3 vLookBind;\n' + shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLookBind = position;');
       shader.fragmentShader = HEAD + shader.fragmentShader.replace('#include <map_fragment>', MAP).replace('#include <emissivemap_fragment>', EMISSIVE).replace('#include <tonemapping_fragment>', RIM);
     };
-    material.customProgramCacheKey = () => (key ? key.call(material) : '') + '|sky-character-look-3';
+    material.customProgramCacheKey = () => (key ? key.call(material) : '') + '|sky-character-look-5';
     material.needsUpdate = true; stats.styled++;
     return material;
   }
   const RIM_COLOUR = [.11, .08, .1];
   // `?zombieWear=0`: no shirts, hair, blood or two-tone shading (the 11/23 look), for comparison or if a device struggles.
-  const ZOMBIE_LOOK = { flat: .42, bias: 3.5, sat: .8, skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, rim: RIM_COLOUR, rimPow: 2.6, body: query.get('zombieWear') !== '0', blood: .55 };
+  const wearOn = query.get('zombieWear') !== '0';
+  // Builds: [lower back, upper back, chest, head] scale (each relative to the whole body) and a stoop (radians).
+  // Uniform scales only (no shearing in the bent joints). Normal, gaunt, heavy, broad-chested, stooped.
+  const BUILDS = [[1, 1, 1, .97, .08], [.94, .94, .95, 1.02, .11], [1.08, 1.08, 1.02, .95, .06], [1, 1.03, 1.1, .93, .04], [.97, .97, .98, .99, .16]];   // stoops kept small: the head must stay in the game's head box
+  const ZOMBIE_LOOK = { flat: .42, bias: 3.5, sat: .8, skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, rim: RIM_COLOUR, rimPow: 2.6, body: wearOn, blood: .55 };
+  // The four Meshy townsfolk (2026-11-24, back from pool/): their own clothes, hair and faces are modelled and painted,
+  // so they get only the shared treatment (flatter texture, rim, two tones from the sun) and none of the painted wear.
+  const TOWN_LOOK = { flat: .15, bias: 2, sat: .9, skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, rim: RIM_COLOUR, rimPow: 2.6, body: false, tone: wearOn ? .45 : 0 };
+  const townsfolk = body => body?.src?.kind === 'existing';
+  const townFull = query.get('townFull') !== '0';
   const HUMAN_LOOK = { flat: .5, bias: 4, sat: .9, skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, rim: [.1, .075, .09], rimPow: 3 };
   // Skin tone (multiplied) and cloth colour (replaces the dark trousers) per variant. Variant 0 keeps the original.
   // skin = tone (multiplied), cloth = trousers (replaces the dark cloth of the texture), shirt = [r, g, b, 1] or none,
   // sleeve = how far out along the arm it reaches (.2 none, .38 elbow, .6 wrist), torn 0..1, hair = [r, g, b, 1] or none.
+  // Wound spots on the rest pose: [x, y, z, radius]. Neck, forearm, shoulder, cheek, ribs, thigh.
+  const W = { neck: [.065, 1.50, .02, .045], fore: [.47, 1.235, .0, .05], shoulder: [-.17, 1.43, .05, .055], cheek: [-.058, 1.615, .075, .03], ribs: [.12, 1.17, .10, .055], thigh: [-.09, .62, .085, .045] };
   const VARIANTS = [
-    { skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, blood: .9 },                                                                    // the original: bare chest, bald
-    { skin: [.8, .95, .78], cloth: [.045, .06, .12], clothAmt: 1, shirt: [.17, .22, .30, 1], sleeve: .37, torn: .25, hair: [.06, .05, .05, 1], blood: .5 },   // grey-blue tee
-    { skin: [.88, .78, .7], cloth: [.085, .1, .055], clothAmt: 1, shirt: [.20, .21, .12, 1], sleeve: .215, torn: .1, blood: .7 },                               // olive vest, bald
-    { skin: [.74, .82, .96], cloth: [.06, .06, .07], clothAmt: 1, shirt: [.40, .37, .31, 1], sleeve: .60, torn: .6, hair: [.42, .40, .38, 1], blood: .7 },     // torn linen long sleeves, grey hair
-    { skin: [1, .95, .8], cloth: [.15, .035, .05], clothAmt: 1, hair: [.07, .05, .04, 1], blood: .8 },                                                         // bare chest, dark hair
-    { skin: [.92, .9, .84], cloth: [.11, .08, .06], clothAmt: 1, shirt: [.17, .115, .08, 1], sleeve: .36, torn: 1, blood: 1 },                                 // brown wool in rags, bald
-    { skin: [.82, .84, .9], cloth: [.045, .06, .12], clothAmt: 1, shirt: [.075, .075, .09, 1], sleeve: .60, torn: .15, hair: [.05, .04, .04, 1], blood: .4 },   // dark long sleeves
-    { skin: [.86, .92, .84], cloth: [0, 0, 0], clothAmt: 0, shirt: [.15, .21, .21, 1], sleeve: .38, torn: .4, hair: [.36, .35, .34, 1], blood: .6 },            // teal tee, grey hair
+    { skin: [1, 1, 1], cloth: [0, 0, 0], clothAmt: 0, blood: .9, rot: .5, rotSeed: 1, woundA: W.neck, woundB: W.fore },                                                                    // the original: bare chest, bald
+    { skin: [.8, .95, .78], cloth: [.045, .06, .12], clothAmt: 1, shirt: [.17, .22, .30, 1], sleeve: .37, torn: .25, hair: [.06, .05, .05, 1], blood: .5, rot: .35, rotSeed: 2, woundA: W.ribs, shoe: [.10, .08, .07, 1] },   // grey-blue tee
+    { skin: [.88, .78, .7], cloth: [.085, .1, .055], clothAmt: 1, shirt: [.20, .21, .12, 1], sleeve: .215, torn: .1, blood: .7, rot: .7, rotSeed: 3, woundA: W.shoulder, woundB: W.thigh },                               // olive vest, bald
+    { skin: [.74, .82, .96], cloth: [.06, .06, .07], clothAmt: 1, shirt: [.40, .37, .31, 1], sleeve: .60, torn: .6, hair: [.42, .40, .38, 1], blood: .7, rot: .45, rotSeed: 4, woundA: W.fore, shoe: [.08, .06, .05, 1] },     // torn linen long sleeves, grey hair
+    { skin: [1, .95, .8], cloth: [.15, .035, .05], clothAmt: 1, hair: [.07, .05, .04, 1], blood: .8, rot: .8, rotSeed: 5, woundA: W.cheek, woundB: W.ribs },                                                         // bare chest, dark hair
+    { skin: [.92, .9, .84], cloth: [.11, .08, .06], clothAmt: 1, shirt: [.17, .115, .08, 1], sleeve: .36, torn: 1, blood: 1, rot: .6, rotSeed: 6, woundA: W.neck },                                 // brown wool in rags, bald
+    { skin: [.82, .84, .9], cloth: [.045, .06, .12], clothAmt: 1, shirt: [.075, .075, .09, 1], sleeve: .60, torn: .15, hair: [.05, .04, .04, 1], blood: .4, rot: .3, rotSeed: 7, woundA: W.thigh, shoe: [.06, .06, .07, 1] },   // dark long sleeves
+    { skin: [.86, .92, .84], cloth: [0, 0, 0], clothAmt: 0, shirt: [.15, .21, .21, 1], sleeve: .38, torn: .4, hair: [.36, .35, .34, 1], blood: .6, rot: .55, rotSeed: 8, woundA: W.shoulder, woundB: W.fore, shoe: [.20, .17, .14, 1] },            // teal tee, grey hair
   ];
   const variantCache = new Map(); // source material -> [materials]
   function variantOf(source, index) {
@@ -181,7 +216,7 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
       // The game walks every skinned mesh of a body to switch shadows and tints; the hull keeps its own.
       const own = ink(); Object.defineProperty(hull, 'castShadow', { get: () => false, set() {} }); Object.defineProperty(hull, 'material', { get: () => own, set() {} });
       hull.position.copy(mesh.position); hull.quaternion.copy(mesh.quaternion); hull.scale.copy(mesh.scale);
-      mesh.parent.add(hull); hull.bind(mesh.skeleton, mesh.bindMatrix); stats.hulls++;
+      hull.userData.skyOf = mesh; mesh.parent.add(hull); hull.bind(mesh.skeleton, mesh.bindMatrix); stats.hulls++;
     }
   }
 
@@ -195,13 +230,15 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
     const used = VARIANTS.map(() => 0); for (const other of sky.Jt) if (!other.dead && other !== zombie && other.m?.skyVariant !== undefined) used[other.m.skyVariant]++;
     const least = Math.min(...used), free = used.map((count, k) => count === least ? k : -1).filter(k => k >= 0);
     const index = free[Math.floor(roll() * free.length)], tall = .95 + roll() * .1, wide = .93 + roll() * .16;
-    const plainKind = zombie.kind && zombie.kind !== 'walker';
-    body.skyVariant = index; body.skyMeshes = []; body.skyOwnLook = plainKind ? ZOMBIE_LOOK : { ...ZOMBIE_LOOK, ...VARIANTS[index] };
+    const plainKind = zombie.kind && zombie.kind !== 'walker', town = townsfolk(body);
+    body.skyBuild = wearOn && !plainKind && !town ? BUILDS[Math.floor(roll() * BUILDS.length)] : null;
+    if (!town) body.skyVariant = index;
+    body.skyMeshes = []; body.skyOwnLook = town ? TOWN_LOOK : plainKind ? ZOMBIE_LOOK : { ...ZOMBIE_LOOK, ...VARIANTS[index] };
     body.inner.scale.set(body.inner.scale.x * wide, body.inner.scale.y * tall, body.inner.scale.z * wide);
     body.root.traverse(node => {
       if (!node.isSkinnedMesh) return;
       if (node.userData.skyInkHull) { node.visible = outlineOn(); return; }
-      if (plainKind) { stylize(node.material, ZOMBIE_LOOK); body.skyMeshes.push(node); return; } // the trial tier's own tints keep their meaning
+      if (plainKind || town) { stylize(node.material, town ? TOWN_LOOK : ZOMBIE_LOOK); body.skyMeshes.push(node); return; } // the trial tier's own tints keep their meaning
       const base = variantCache.has(node.material) ? node.material : (stylize(node.material, ZOMBIE_LOOK), node.material);
       node.material = variantOf(base, index); body.skyMeshes.push(node);
     });
@@ -230,9 +267,11 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
   // and reaches further when close; the chest rolls with the steps. Drawn only. `?zombieLife=0` turns it off.
   const lifeOn = query.get('zombieLife') !== '0';
   const Vec = sky.Geom.Vector3, Quat = scene.quaternion.constructor;
-  const UP = new Vec(0, 1, 0), rightAxis = new Vec(), frontAxis = new Vec(), headAt = new Vec(), parentTurn = new Quat(), worldTurn = new Quat(), localTurn = new Quat();
+  const UP = new Vec(0, 1, 0), DOWN = new Vec(0, -1, 0), rightAxis = new Vec(), frontAxis = new Vec(), headAt = new Vec(), parentTurn = new Quat(), worldTurn = new Quat(), localTurn = new Quat();
   const wrap = angle => Math.atan2(Math.sin(angle), Math.cos(angle)), clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-  const BONES = { head: /HumanHead$/, neck: /HumanNeck$/, jaw: /HeadJaw$/, chest: /HumanRibcage$/, lArm: /LArmUpperarm$/, rArm: /RArmUpperarm$/, lFore: /LArmForearm$/, rFore: /RArmForearm$/ };
+  // Unity rig (Base_Human*) or the townsfolk's Mixamo rig (mixamorig:*; no jaw bone, Spine2 is the chest).
+  const BONES = { head: /(HumanHead|mixamorig:Head)$/, neck: /(HumanNeck|mixamorig:Neck)$/, jaw: /HeadJaw$/, chest: /(HumanRibcage|mixamorig:Spine2)$/, spine1: /(HumanSpine1|mixamorig:Spine)$/, spine2: /(HumanSpine2|mixamorig:Spine1)$/,
+    lCollar: /(LArmCollarbone|mixamorig:LeftShoulder)$/, rCollar: /(RArmCollarbone|mixamorig:RightShoulder)$/, lArm: /(LArmUpperarm|mixamorig:LeftArm)$/, rArm: /(RArmUpperarm|mixamorig:RightArm)$/, lFore: /(LArmForearm|mixamorig:LeftForeArm)$/, rFore: /(RArmForearm|mixamorig:RightForeArm)$/ };
   function bonesOf(body) {
     if (body.skyBones) return body.skyBones;
     const found = {}; body.root.traverse(node => { if (node.isBone) for (const key in BONES) if (BONES[key].test(node.name)) found[key] = node; });
@@ -251,10 +290,23 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
     bone.parent.getWorldQuaternion(parentTurn); worldTurn.setFromAxisAngle(axis, angle);
     localTurn.copy(parentTurn).invert().multiply(worldTurn).multiply(parentTurn); bone.quaternion.premultiply(localTurn);
   }
+  // The build: uniform scales down the spine, each undone on the next bone so the arms and the head keep their own size.
+  function shape(zombie) {
+    const body = zombie.m, k = body.skyBuild; if (!k) return; const bones = bonesOf(body); if (!bones.spine1 || !bones.spine2 || !bones.chest || !bones.neck) return;
+    bones.spine1.scale.setScalar(k[0]); bones.spine2.scale.setScalar(k[1] / k[0]); bones.chest.scale.setScalar(k[2] / k[1]); bones.neck.scale.setScalar(k[3] / k[2]);
+    bones.lCollar?.scale.setScalar(1 / k[2]); bones.rCollar?.scale.setScalar(1 / k[2]);
+  }
+  const lateral = new Vec(), armAt = new Vec();
+  // Which way to turn a collarbone (about `axis`) to move its arm towards `toward`.
+  function sideSign(collar, arm, axis, toward) {
+    collar.getWorldPosition(lateral); arm.getWorldPosition(armAt); lateral.subVectors(armAt, lateral);
+    return Math.sign(lateral.crossVectors(axis, lateral).dot(toward)) || 1;
+  }
   function enliven(zombie, dt, time) {
     const body = zombie.m, bones = bonesOf(body); if (!bones.head) return;
     const life = body.skyLife || (body.skyLife = { yaw: 0, pitch: 0, twitch: 0, twitchNow: 0, twitchIn: roll() * 2, tilt: (roll() - .5) * .36, jaw: .12 + roll() * .3, jawRate: 5 + roll() * 6,
-      armL: -.6 + roll() * .7, armR: -.6 + roll() * .7, reachL: .1 + roll() * .55, reachR: .1 + roll() * .55, foreL: roll() * .4, foreR: roll() * .4, sway: .05 + roll() * .07, swayRate: 6 + roll() * 3, phase: roll() * 6.28 });
+      armL: -.6 + roll() * .7, armR: -.6 + roll() * .7, reachL: .1 + roll() * .55, reachR: .1 + roll() * .55, foreL: roll() * .4, foreR: roll() * .4, sway: .05 + roll() * .07, swayRate: 6 + roll() * 3, phase: roll() * 6.28,
+      stoop: (body.skyBuild?.[4] || 0) * (.8 + roll() * .4), roll: .08 + roll() * .16, dropL: roll() * .16, dropR: roll() * .16 });
     for (const key in bones) fresh(bones[key]);
     const yaw = zombie.yaw || 0; frontAxis.set(-Math.sin(yaw), 0, -Math.cos(yaw)); rightAxis.set(Math.cos(yaw), 0, -Math.sin(yaw));
     bones.head.getWorldPosition(headAt);
@@ -263,11 +315,21 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
     const ease = 1 - Math.exp(-dt * 7); life.yaw += (wantYaw - life.yaw) * ease; life.pitch += (wantPitch - life.pitch) * ease;
     life.twitchIn -= dt; if (life.twitchIn < 0) { life.twitch = (roll() - .5) * .7; life.twitchIn = .5 + roll() * 2.4; }
     life.twitchNow += (life.twitch - life.twitchNow) * (1 - Math.exp(-dt * 22)); life.twitch *= Math.exp(-dt * 5);
+    // A stoop from the upper back, shoulders rolled forward, one hanging lower; the head comes back up to look ahead.
+    if (body.skyBuild && !zombie.crawl) {
+      turn(bones.spine2, rightAxis, -life.stoop * .6); turn(bones.chest, rightAxis, -life.stoop * .4); turn(bones.neck, rightAxis, life.stoop * .5); turn(bones.head, rightAxis, life.stoop * .4);
+      for (const [collar, arm, drop] of [[bones.lCollar, bones.lArm, life.dropL], [bones.rCollar, bones.rArm, life.dropR]]) {
+        if (!collar || !arm) continue;
+        turn(collar, UP, life.roll * sideSign(collar, arm, UP, frontAxis));
+        turn(collar, frontAxis, drop * sideSign(collar, arm, frontAxis, DOWN));
+      }
+    }
     turn(bones.chest, UP, life.yaw * .16); turn(bones.chest, frontAxis, life.sway * Math.sin(time * life.swayRate + life.phase));
     turn(bones.neck, UP, life.yaw * .32); turn(bones.neck, rightAxis, life.pitch * .4);
     turn(bones.head, UP, life.yaw * .5 + life.twitchNow * .5); turn(bones.head, rightAxis, life.pitch * .6); turn(bones.head, frontAxis, life.tilt + life.twitchNow * .4);
     turn(bones.jaw, rightAxis, -(life.jaw + near * .3 + (.06 + near * .14) * Math.sin(time * life.jawRate + life.phase)));
-    if (!zombie.act && !zombie.crawl) {     // not while it climbs, jumps or crawls: those clips place the arms themselves
+    // Not while it climbs, jumps or crawls (those clips place the arms), and not on the townsfolk, whose walk swings them.
+    if (!zombie.act && !zombie.crawl && !townsfolk(body)) {
       // The clip holds both arms out to the sides. Bring each one forward by its own amount (more when close), and
       // carry it lower or higher; close to the runner both come up to chest height.
       turn(bones.lArm, UP, -(life.reachL + near * .45)); turn(bones.rArm, UP, life.reachR + near * .45);
@@ -349,7 +411,8 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
     inkSize.value[0] = 3.2 * ratio / Math.max(1, size.x); inkSize.value[1] = 3.2 * ratio / Math.max(1, size.y);
     for (const model of sky.zombieModels?.() || []) {
       if (model.skyLook) continue; model.skyLook = true;
-      model.scene.traverse(node => { if (node.isSkinnedMesh && node.material?.map) stylize(node.material, ZOMBIE_LOOK); });
+      const look = model.kind === 'existing' ? TOWN_LOOK : ZOMBIE_LOOK;
+      model.scene.traverse(node => { if (node.isSkinnedMesh && node.material?.map) stylize(node.material, look); });
     }
     if (!evolvedAsked && frame > 30) { evolvedAsked = true; try { window.__skyWantEvolved = true; window.__skyLoadEvolved?.(); } catch {} }
     if (!humanDone || frame % 240 === 0) {
@@ -379,10 +442,20 @@ float lookNoise( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3
     const cam = sky.Se.position, bodies = [sky.modeRef?.() === 'play' && playerShown() ? sky.c.pos : null];
     for (const zombie of live) {
       const near = (zombie.pos.x - cam.x) ** 2 + (zombie.pos.z - cam.z) ** 2 < 900;
+      shape(zombie);
       if (lifeOn && near) enliven(zombie, dt, now / 1000);
       // The renderer has already worked out this frame's matrices: bring the moved root and bones up to date,
       // or the drawn-apart offset and the bone turns would only show one frame late (and never, in normal play).
       zombie.m.root.updateMatrixWorld(true);
+      // The game swaps each body's geometry by distance (near / far); the outline follows, or it would draw the full mesh.
+      // The townsfolk's near mesh is cut to about half its triangles, which shows as sharp facets within a few metres:
+      // the full mesh (same vertices, skin and clips) within 4 m of the camera. The far mesh is left alone. `?townFull=0` off.
+      const ent = zombie.m.src;
+      if (townFull && ent?.originalHi && ent.nearHi) { const d2 = (zombie.pos.x - cam.x) ** 2 + (zombie.pos.z - cam.z) ** 2 + (zombie.pos.y + 1 - cam.y) ** 2;
+        zombie.m.root.traverse(node => { if (!node.isSkinnedMesh || node.userData.skyInkHull) return;
+          if (d2 < 16 && node.geometry === ent.nearHi) node.geometry = ent.originalHi; else if (d2 > 22 && node.geometry === ent.originalHi) node.geometry = ent.nearHi; }); }
+      if (zombie.m.skyHulls === undefined) { zombie.m.skyHulls = []; zombie.m.root.traverse(node => { if (node.userData.skyInkHull) zombie.m.skyHulls.push(node); }); }
+      for (const hull of zombie.m.skyHulls) if (hull.geometry !== hull.userData.skyOf.geometry) hull.geometry = hull.userData.skyOf.geometry;
       if (bodies.length < FEET) bodies.push(zombie.pos);
     }
     footShadows(renderer, bodies);

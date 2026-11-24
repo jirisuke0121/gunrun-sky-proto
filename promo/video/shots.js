@@ -175,6 +175,9 @@
   cineShot('n_run', { frames: 110, pre: 6, gamecam: true, setup() { U.gunOn = false; quiet(); hideZ(); F.on = false; H.place(0, -24, H.yawTo(1, 0), 0); st.path = [{ x: 26.5, z: -24 }, { x: 60, z: -24 }]; st.k = 0; },
     tick(i) { H.safe(); H.drive(st); follow(.5); }, cam: near(3.0, 2.2, 1.0, 44) });
   // Zombies up close: a pack running at the lens, and one reaching the (standing) player.
+  cineShot('n_zface', { frames: 40, pre: 16, diff: 'hard', setup() { U.gunOn = false; quiet(); F.on = false; H.place(33.6, -3.7, H.yawTo(1, 0), 12); H.pack([[3.2, -.55], [3.6, .55], [4.4, -1.4], [4.6, 1.3]], 12); c.yaw = H.yawTo(-1, 0); for (const z of I.Jt) z.yaw = H.yawTo(1, 0); },
+    tick(i) { c.invuln = 0; c.life = 9; calm(); c.yaw = H.yawTo(-1, 0); H.keys({}); follow(.5); },
+    cam() { return [[V('cx', 31.4), 13.35, V('cz', -3.7)], [V('tx', 30.0), V('ty', 13.25), -3.7], V('fov', 40)]; } });
   cineShot('n_zline', { frames: 60, pre: 16, diff: 'hard', setup() { U.gunOn = false; quiet(); F.on = false; H.place(33.6, -3.7, H.yawTo(1, 0), 12); H.pack([[7.2, -2.1], [7.5, -1.2], [7.9, -.3], [8.3, .6], [8.7, 1.5], [9.1, 2.3], [9.6, -1.6], [10, .2]], 12); c.yaw = H.yawTo(-1, 0); for (const z of I.Jt) z.yaw = H.yawTo(1, 0); },
     tick(i) { c.invuln = 0; c.life = 9; calm(); c.yaw = H.yawTo(-1, 0); H.keys({}); follow(.5); },
     cam() { return [[V('cx', 34.2), 13.3, V('cz', -3.7)], [27.0, 13.0, -3.7], V('fov', 38)]; } });

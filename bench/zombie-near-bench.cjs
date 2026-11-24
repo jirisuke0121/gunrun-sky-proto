@@ -6,14 +6,14 @@ const map=process.env.BENCH_MAP||'index.html',density=process.env.BENCH_DENSITY|
  for(let i=0;i<100;i++){if(await fetch('http://127.0.0.1:8774/').then(r=>r.ok,()=>false))break;await new Promise(r=>setTimeout(r,100));}
  browser=await chromium.launch({headless:true,channel:'chrome',args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const context=await browser.newContext({viewport:{width:844,height:390},deviceScaleFactor:1});await context.addInitScript(()=>{window.__hold=true;});
- await context.route('**/*',route=>{const u=route.request().url();if(!u.startsWith('http://127.0.0.1:8774/'))return route.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'});if(u.endsWith('/'+map)){
+ await context.route('**/*',route=>{const u=route.request().url();if(!u.startsWith('http://127.0.0.1:8774/'))return route.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'});if(u.split('?')[0].endsWith('/'+map)){
   let s=fs.readFileSync(map,'utf8');s=s.replace('window.__skyInternals={','window.__skyInternals={benchModels:()=>zMeshy,');
   const a=s.indexOf('function so(n,t,e,i){'),b=s.indexOf('var c={pos:',a),fn=s.slice(a,b).replace('function so(','function benchSearch(');
   s=s.slice(0,a)+fn+'function so(...args){const p=performance.now();try{return benchSearch(...args)}finally{window.__navMs=(window.__navMs||0)+performance.now()-p}}'+s.slice(b);
   return route.fulfill({status:200,contentType:'text/html',body:s});}return route.continue();});
- const page=await context.newPage();page.setDefaultTimeout(60000);await page.goto('http://127.0.0.1:8774/'+map);
- await page.waitForFunction(()=>window.__skyInternals?.benchModels().length>=4&&(window.__skyEnsureWeaponDetail?.('mg'), window.__skyUpgrade?.loaded?.mg));
- await page.locator('#humanSel [data-human="unity"]').click();await page.waitForFunction(()=>document.body.dataset.skyHumanLoaded==='true');await page.locator('#bStart').click();await page.waitForFunction(()=>Object.keys(window.skyZombieNear?.results||{}).length===4&&window.__skyInternals.zombieModels().every(e=>e.lo));
+ const page=await context.newPage();page.setDefaultTimeout(60000);await page.goto('http://127.0.0.1:8774/'+map+'?townFull=0');   // measure the near mesh itself, without the full mesh up close (character-look.js)
+ await page.waitForFunction(()=>window.__skyInternals?.benchModels().filter(e=>e.kind==='existing').length>=4&&(window.__skyEnsureWeaponDetail?.('mg'), window.__skyUpgrade?.loaded?.mg));
+ await page.waitForFunction(()=>window.skyStartReadiness?.ready);await page.locator('#bStart').click();await page.waitForFunction(()=>Object.keys(window.skyZombieNear?.results||{}).length===4&&window.__skyInternals.zombieModels().every(e=>e.lo));
  const result=await page.evaluate(async({density,map})=>{
   const g=window.__game,s=window.__skyInternals,c=g.P,r=g.debug.renderer,T=s.Geom;
   Object.assign(g.S,{sendLog:false,stalkerOn:false,stalker2:false,dropShare:0,gunOn:true,autoFire:false,aimAuto:false});

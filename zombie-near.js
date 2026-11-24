@@ -1,8 +1,8 @@
 // Reuse the original vertices, UVs, skin weights, rig and animation clips.
 const sky=window.__skyInternals;
-// The reduced-triangle index data only covered the old Meshy zombies, which now live in pool/.
-// The Unity zombies ship with their own LOD, so nothing is fetched here.
-const data=Promise.resolve(null);
+// The reduced-triangle index data covers the four Meshy townsfolk (back since 2026-11-24). The Unity zombies ship with
+// their own LOD and have no record here, so they keep their geometry.
+const data=fetch('./assets/zombie-near-indices.json').then(r=>r.ok?r.json():null).catch(()=>null);
 const results={};
 async function attach(ent){
  if(ent.nearAttached)return;ent.nearAttached=true;

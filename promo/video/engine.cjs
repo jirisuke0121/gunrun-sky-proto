@@ -32,6 +32,8 @@ const LANG = args.LANG || 'en', MAP = args.MAP || 'index.html', OUT = args.OUT |
   await p.clock.install();
   await p.goto(`http://127.0.0.1:8899/${MAP}?lang=${LANG}&q=high${args.Q ? '&' + args.Q.replace(/,/g, '&') : ''}`);
   await p.waitForFunction(() => window.skyStartReadiness?.ready && window.__game);
+  // The four townsfolk zombies load after the Unity body; wait for them so a shot's pack is the real mix.
+  await p.waitForFunction(() => (window.__skyInternals?.zombieModels?.() || []).filter(m => m.kind === 'existing').length >= 4, null, { timeout: 90000 }).catch(() => console.log('townsfolk not loaded'));
   await p.addScriptTag({ path: path.join(__dirname, 'shots.js') });
   const MUL = FPS / 30, PORTRAIT = args.P === '1';
   const S = await p.evaluate(n => { const s = window.SHOTS[n]; if (!s) throw new Error('no shot ' + n); return { frames: s.frames, diff: s.diff || 'normal', canvas: !!s.canvas }; }, shot);

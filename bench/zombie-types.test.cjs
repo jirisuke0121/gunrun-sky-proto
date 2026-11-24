@@ -27,7 +27,7 @@ const assert = require('node:assert/strict');
 
   // Trial tier without the evolved look loaded: runners and walkers only.
   profile = { id: 'extreme', types: true };
-  assert.equal(types.modelChoice(), 'unity-standard');
+  assert.equal(types.modelChoice(), null, 'no brute look: the page mixes Unity and the townsfolk');
   game.Jt = Array.from({ length: 400 }, () => body()); types.tick();
   const count = kind => game.Jt.filter(z => z.kind === kind).length;
   assert.equal(count('brute'), 0); assert.ok(Math.abs(count('runner') / 400 - .25) < .06, 'about a quarter are runners: ' + count('runner'));

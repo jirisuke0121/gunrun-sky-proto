@@ -12,7 +12,7 @@ Made by jirisuke0121. The in-game list (home screen → クレジット / Credit
 
 | What | Source | License / note |
 |---|---|---|
-| `assets/*-meshy-low.glb` (HG, MG, SMG, SG, knife, ladder, zipline trolley, hook launcher, grapple anchor, smoke grenade), `assets/glove-meshy-fitted.glb` | Generated with Meshy | Free plan = CC BY 4.0 (credit required), paid plan = owned. **The credit line "Models created with Meshy – CC BY 4.0 License" is always shown**, so it is correct on either plan. |
+| `assets/*-meshy-low.glb` (HG, MG, SMG, SG, knife, ladder, zipline trolley, hook launcher, grapple anchor, smoke grenade), `assets/glove-meshy-fitted.glb`, `assets/zombie-decayed-man*.glb`, `assets/zombie-decayed-woman*.glb`, `assets/zombie-old-worker*.glb`, `assets/zombie-hoodie*.glb` (townsfolk zombies) | Generated with Meshy | Free plan = CC BY 4.0 (credit required), paid plan = owned. **The credit line "Models created with Meshy – CC BY 4.0 License" is always shown**, so it is correct on either plan. |
 | `assets/human-gunrun*.glb`, `assets/human-first-person-hands.glb`, `assets/zombie-gunrun-*.glb` | Converted from the Unity Asset Store pack "Apocalypse (pack)" (`Character_Apocalypse`) through the author's Unity project GunRun | Unity Asset Store license. The Asset Store page of the pack must say "Standard" EULA (or its own EULA must allow this use) — see "Open checks". |
 
 ## Sound

@@ -45,7 +45,7 @@ Claude Code・Codex など、どのAIでもこのファイルを最初に読む�
 ## 4. 素材・容量
 
 - 音・画像・モデルは **CC0** だけ使う（CC-BY-SA は条件がゲーム全体に及ぶので使わない）。出典は `CREDITS.md` に残し、ゲーム内の「クレジット」（`credits.js`）も合わせる。
-- Unity の人間素材以外は、ビルドとホームの選択肢から外して `pool/` に置く。`pool/` は容量集計の対象外。戻し方は `pool/README.md`。
+- Unity の人間素材以外は、ビルドとホームの選択肢から外して `pool/` に置く（例外：Meshy の町の人ゾンビ4種は 11/24 に戻し、Unity ゾンビと半分ずつ混ぜて出す。+4.2 MB）。`pool/` は容量集計の対象外。戻し方は `pool/README.md`。
 - MG/SG/SMG の銃声WAV（`assets/sfx`）は `pool/` に移さない。HG以外の武器も拾って使う前提。
 - 効果音は **FLAC（可逆）** で出荷（`assets/` にWAVを置かない）。音を作り直したら `python3 tools/wav_to_flac.py`（PCM一致のときだけWAVを消す）。`docs/AUDIO_FLAC_2026-11-13.md`。
 - 公開先の目安：CrazyGames の初回ダウンロード 50MB 以内、スマホのトップ掲載 20MB 以内。Y8 の上限は提出画面で確認する。
@@ -84,7 +84,7 @@ Claude Code・Codex など、どのAIでもこのファイルを最初に読む�
 
 ## 8. 主なファイルと詳細
 
-- `index.html`（旧市街）、`canyon.html`（渓谷）がゲーム本体。機能ごとに直下の `*.js` に分割。旧市街の地形の足し引きは `map-prune.js`（撤去）と `map-links.js`（追加）。見た目は `look-pass.js`（空・霧・壁の色・屋根）、`far-scenery.js`（遠景）、`ink-outline.js`（輪郭線）、`mood.js`（時間帯の光）、`contact-shadow.js`（壁の足元の接地影）。人とゾンビの見た目は `character-look.js`（塗り・ゾンビの輪郭線はPCだけ・1体ごとの色と体格・重なりを描画だけずらす・ゾンビの頭・顎・腕の上乗せ・影のない端末の足元の影。ゾンビの服・髪・血・2色の陰影は絵やモデルを足さずシェーダーで塗る（立ち姿の位置で決める。8通り）・綱の縄模様。`?chars=plain` で全部外す、`?charOutline=0|1`、`?zombieLife=0`、`?zombieWear=0`、`?footShadow=0|1`。ゲームの位置・乱数・スコアには触らない）。人がロープ・滑車を掴む姿勢、手から出るフックの綱、窓破りの飛び込み、伸び・沈み・呼吸は `human-view.js`（`?gripPose=0`、`?bodyFeel=0`。人はモーフのモデルで 256 層を使い切っているので、姿勢は足さず実行時の腕の IK `human-aim.js` で手を届かせる）。見た目を直すときは、先に近くから連続写真を撮って原因を見る（`promo/video/shots.js` の `n_*`）。
+- `index.html`（旧市街）、`canyon.html`（渓谷）がゲーム本体。機能ごとに直下の `*.js` に分割。旧市街の地形の足し引きは `map-prune.js`（撤去）と `map-links.js`（追加）。見た目は `look-pass.js`（空・霧・壁の色・屋根）、`far-scenery.js`（遠景）、`ink-outline.js`（輪郭線）、`mood.js`（時間帯の光）、`contact-shadow.js`（壁の足元の接地影）。人とゾンビの見た目は `character-look.js`（塗り・ゾンビの輪郭線はPCだけ・1体ごとの色と体格・重なりを描画だけずらす・ゾンビの頭・顎・腕の上乗せ・影のない端末の足元の影。Unity ゾンビの服・髪・血・傷・目のくぼみ・靴・2色の陰影は絵やモデルを足さずシェーダーで塗る（立ち姿の位置で決める。8通り）・体格5通りと猫背（背骨の一様な拡大縮小と骨の回転。頭の当たり判定の箱からはみ出さない範囲）・町の人ゾンビ（Meshy）は陰影と輪郭線だけ揃え、約5.5 m 以内は軽量化前の形・綱の縄模様。`?chars=plain` で全部外す、`?charOutline=0|1`、`?zombieLife=0`、`?zombieWear=0`、`?footShadow=0|1`。ゲームの位置・乱数・スコアには触らない）。人がロープ・滑車を掴む姿勢、手から出るフックの綱、窓破りの飛び込み、伸び・沈み・呼吸は `human-view.js`（`?gripPose=0`、`?bodyFeel=0`。人はモーフのモデルで 256 層を使い切っているので、姿勢は足さず実行時の腕の IK `human-aim.js` で手を届かせる）。見た目を直すときは、先に近くから連続写真を撮って原因を見る（`promo/video/shots.js` の `n_*`）。
 - `server/` … Worker・D1（`server/README.md`）。`ranked-rules.js` … 順位の対象条件と版。
 - `hook-editor.html` … フック・壁ジャンプ候補のエディター（公開版には含めない）。
 - `tools/admin/` … 管理画面（地図・詰まり・プレイヤー）。`ADMIN_TOKEN` で既存のWorker APIを読む。`tools/heatmap/` はここへの転送。

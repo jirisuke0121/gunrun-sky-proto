@@ -25,7 +25,7 @@
     <p>Zombie Parkour Escape (空中回廊 追跡) — made by jirisuke0121.</p>
     <dl>
       <dt>Engine</dt><dd>three.js (MIT License).</dd>
-      <dt>3D models</dt><dd>Models created with Meshy – CC BY 4.0 License (weapons, ladder, zipline trolley, hook launcher, grapple anchor, smoke grenade, glove).
+      <dt>3D models</dt><dd>Models created with Meshy – CC BY 4.0 License (weapons, ladder, zipline trolley, hook launcher, grapple anchor, smoke grenade, glove, four townsfolk zombies).
         Characters from the Apocalypse (pack) and the Easy Weapons explosion sound, via the Unity Asset Store.</dd>
       <dt>Sound</dt><dd>CC0 recordings from OpenGameArt.org: The Free Firearm Sound Library (Ben Jaszczak and others); RPG Sound Pack, Zombies Sound Pack and Swishes Sound Pack (artisticdude); Squish Sounds Effects (EZduzziteh); 80 CC0 creature SFX and 100 CC0 metal and wood SFX (rubberduck); Punch and 15 vocal male strain/hurt/pain/jump sounds (qubodup); Breathing Tired (mikeask); Fantozzi's Footsteps (Fantozzi); 50 RPG sound effects (Kenney); and other CC0 contributors.</dd>
       <dt>Font</dt><dd>Noto Sans JP (SIL Open Font License 1.1).</dd>

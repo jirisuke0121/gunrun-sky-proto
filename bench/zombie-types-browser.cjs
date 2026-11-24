@@ -17,6 +17,9 @@ const port = process.env.TYPES_PORT || '8881', base = `http://127.0.0.1:${port}/
     await page.waitForFunction(() => window.__game && window.skyZombieTypes && !document.getElementById('bStart').disabled, null, { timeout: 180000 });
     await page.evaluate(tier => { const s = document.getElementById('challengeDifficulty'); s.value = tier; s.dispatchEvent(new Event('change', { bubbles: true })); }, tier);
     if (tier === 'extreme') await page.waitForFunction(() => __skyInternals.zombieModels().some(m => m.kind === 'unity-evolved'), null, { timeout: 60000 });
+    // The four townsfolk zombies load after the start is allowed. Loading a model draws from Math.random (three.js object
+    // ids), so wait for them: otherwise the seeded run below depends on when the files arrive.
+    await page.waitForFunction(() => __skyInternals.zombieModels().filter(m => m.kind === 'existing').length >= 4, null, { timeout: 120000 });
     return page;
   }
   try {
