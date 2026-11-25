@@ -5,7 +5,6 @@
 //   (default)        sky + haze + district colours + town palette (plaster walls per building, slate roofs)
 //   ?look=district   sky + haze + district colours only (the previous default)
 //   ?look=sky        sky + haze only
-//   ?look=classic    the previous all-beige look, for comparison
 //   ?look=townDebug  town palette with a random colour per building, to check how buildings were grouped
 //
 // Why the world gets NEW geometry objects instead of a new attribute on the existing ones:
@@ -18,7 +17,6 @@
 // always gets its buffers before its first draw, so we hand the renderer fresh geometry objects.
 (() => {
   const params = new URLSearchParams(location.search), mode = params.get('look');
-  if (mode === 'classic') { window.skyLook = 'classic'; return; }
   window.skyLook = mode === 'sky' ? 'sky' : mode === 'district' ? 'district' : mode === 'townDebug' ? 'townDebug' : 'town';
 
   const MOOD = window.skyMood; // set by mood.js (?mood=dusk|dawn); null = the noon look

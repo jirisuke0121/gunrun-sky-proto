@@ -12,7 +12,6 @@
 (() => {
   const params = new URLSearchParams(location.search);
   const name = params.get('mood') || 'dawn'; // ?mood=noon is the previous look
-  const mode = params.get('look');
   // Horizontal heading of the original sun (-.45, .35); the mood only lowers it (elevation) or swings it (azimuth).
   const HEAD = Math.atan2(.35, -.45);
   const dir = (elevationDeg, swing = 0) => {
@@ -40,7 +39,7 @@
       glow: 0xffc890, skyline: [0xb48e9f, 0xd2a8ac],
     },
   };
-  const mood = mode === 'classic' ? null : MOODS[name] || null;
+  const mood = MOODS[name] || null;
   window.skyMoodName = mood ? name : 'noon';
   window.skyMood = mood;
   if (!mood) return;

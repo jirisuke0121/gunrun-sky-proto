@@ -1,5 +1,7 @@
 # 見た目の重さ A/B計測 #2：11/10の見た目に全部戻す（2026-11-20）
 
+> 11/26：`?look=classic` を外したので、`bench/ab-look-classic.html`・`bench/ab-look-bisect.html` は消した（git の履歴にある）。下の結果は記録として残す。
+
 ## なぜ作ったか
 
 `bench/ab-glow-outline.html`（太陽グロー・輪郭線・塵・接地影・遠景を1つずつ消す）をiPhoneで測った結果（`docs/AB_GLOW_OUTLINE_2026-11-20.md`）：

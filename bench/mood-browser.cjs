@@ -2,8 +2,8 @@
 //  1. ?mood=noon is the look before mood.js existed: no mood meshes, the original high sun. The default (no parameter) is dawn.
 //  2. dusk: low warm sun, sun glow + far scenery + dust motes, each costs at most one draw call; the scenery stays under 12000 triangles
 //  2b. far scenery (far-scenery.js) keeps the "can I go there?" rules: only cloud near the map, nothing near reaches the fall line; ?scenery=0 brings the old skyline back
-//  3. ?look=classic ignores the mood; the lowest render quality hides the motes
-//  3b. contact shadow: one cheap mesh, off with ?contact=0, ?look=classic and the lowest quality
+//  3. the lowest render quality hides the motes
+//  3b. contact shadow: one cheap mesh, off with ?contact=0 and the lowest quality
 //  4. the fixed views do not become dark enough to hide the player: near-black share stays small
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium}=require('playwright');
@@ -19,7 +19,7 @@ async function open(browser,base,query){
  await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'}));
  const p=await ctx.newPage(),errors=[];p.setDefaultTimeout(120000);p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error'&&!/GL Driver|Ignored attempt/.test(m.text()))errors.push(m.text())});
  await p.goto(base+`index.html?camera=after&lang=ja&controlpick=0&hookGuide=0&dev=1${query}`);
- await p.waitForFunction(()=>window.skyStartReadiness?.ready&&document.body.dataset.skyHumanLoaded==='true'&&(window.skyLookInfo||window.skyLook==='classic'));
+ await p.waitForFunction(()=>window.skyStartReadiness?.ready&&document.body.dataset.skyHumanLoaded==='true'&&window.skyLookInfo);
  await p.locator('#bStart').tap();await p.waitForTimeout(2500);
  return{ctx,p,errors};
 }
@@ -79,7 +79,7 @@ async function dark(p,view){
   assert.ok(!rules.texture&&!rules.shadow&&!rules.collision&&!rules.fog,'colour only: no texture, shadow, collision or scene fog');
   assert.ok(rules.hidden>0&&rules.floating===0,'the floating domes are hidden: '+JSON.stringify([rules.hidden,rules.floating]));
   assert.ok(rules.villages===3&&rules.houses>=30&&rules.ridges===3,'three village islands, three ridge layers: '+JSON.stringify([rules.villages,rules.houses,rules.ridges]));
-  // 3. classic ignores the mood; the lowest quality hides the motes
+  // 3. the lowest quality hides the motes
   const quality=await dusk.p.evaluate(()=>new Promise(resolve=>{const m=window.__skyInternals.ue.children.find(c=>c.name==='Dust motes'),a=m.visible;window.skyRenderQuality.select('minimum');setTimeout(()=>{const b=m.visible;window.skyRenderQuality.select('high');setTimeout(()=>resolve([a,b,m.visible]),50)},50)}));
   assert.deepEqual(quality,[true,false,true],'motes are hidden in the lowest render quality: '+JSON.stringify(quality));
   // 3b. contact shadow (contact-shadow.js): one cheap transparent mesh at the foot of walls
@@ -100,10 +100,6 @@ async function dark(p,view){
   for(const o of [noon,dusk,dawn])assert.deepEqual(o.errors,[],'no page errors');
   // switches that remove things, checked one page at a time at the end (five live pages at once starve the software GPU)
   for(const o of [noon,dusk,dawn])await o.ctx.close();
-  const classic=await open(browser,base,'&mood=dusk&look=classic');
-  await classic.p.waitForTimeout(1500);assert.deepEqual(await has(classic.p),[false,false,false],'?look=classic ignores the mood');
-  assert.equal(await classic.p.evaluate(()=>window.__skyInternals.ue.children.some(c=>c.name==='Contact shadow')),false,'?look=classic has no contact shadow');
-  assert.deepEqual(classic.errors,[],'no page errors (classic)');await classic.ctx.close();
   const nocontact=await open(browser,base,'&contact=0');
   assert.equal(await nocontact.p.evaluate(()=>window.__skyInternals.ue.children.some(c=>c.name==='Contact shadow')),false,'?contact=0 removes the contact shadow');
   assert.deepEqual(nocontact.errors,[],'no page errors (contact=0)');await nocontact.ctx.close();

@@ -35,7 +35,7 @@
 | **D1：カメラの比較試作 `follow`・`follow-legacy`・`follow-turn`** | **消さなかった（私の見立てが誤り）。** `follow-turn` は AGENTS.md §6「操作方式を変えるときは親指の模型で前後を比べる」の**「前」の基準線**で、`bench/screen-stick-browser.cjs`・`screen-stick.test.cjs`・`follow-camera.test.cjs` が使う。`follow-legacy` は `easy-controls-browser`・`auto-follow-browser`・`follow-camera.test` が、`follow` は `auto-follow-entry-browser` が使う。消すなら、比較の基準線を別の形で残す判断が先 |
 | D7：練習モード（`practice.js`・`practice-world.js`） | **残す（本人と確認、11/22）。** 入門コース（`?learn=1`）が練習場の地形と仕組み（`window.skyPractice`）の上に作られている。入口のリンクは `#homeMore`（折りたたみ）の中にあり、普通は見えない |
 | D8：旧い入門の入口 `?guidedEntry=0`・体力無限の入門ラン（`intro` 難易度） | **消した（11/22、3つ目のセッション）。** 人は11/14から入門コース（`?learn=1`）→イージー。一緒に、入門ランの中でしか出なかった案内（`context-tutorial`・`hook-tutorial`）、操作タイプのポップアップ（`#ctrlPick`）、スキップボタン（`intro-skip`）、結果からの勧め（`next-step`）も消した。詳細は README の先頭の節 |
-| D4・D10（D9 は11/22に決着） | 触っていない（後回し・未調査のまま） |
+| D4・D10（D9 は11/22に決着） | 11/26：D4 の `?look=classic` は外し、D10 は残すと決めた |
 
 教訓：**「URLに付けたときだけ動く」＝「使われていない」ではない。** 検査と AGENTS.md の手順が基準線として使っていることがある。消す前に `bench/` と AGENTS.md を引くこと。
 
@@ -59,13 +59,13 @@
 | D1 | カメラの比較試作 `?cameraTrial=follow`・`follow-legacy`・`follow-turn` | 11/9〜11/10の操作の比較用。今の既定（画面の向きへ倒す）は決まっている。記録は送らない | `follow-camera.js` の分岐（`allowManualLook`・`turnCommit`）、`fixed-trial-bootstrap.js`・`home-focus.js`・`guided-intro.js`・`guided-preferences.js` の一覧、`bench/auto-follow-review.html`、`send-default-browser`・`auto-follow-routing.test` の該当項目 |
 | D2 | 比較ページ `camera-comparison.html`・`camera-trial.html`（直下＝公開される） | README からしか参照されていない（`camera-trial.html` は検査1本） | ページ2つと `bench/fixed-launcher-browser.cjs` |
 | D3 | 固定カメラの壁の見せ方の旧案 `?fixedOcclusion=fade|zoom`・`?wallView=classic` | 今の既定は「壁は実体を残し、カメラの距離と角度で補う」。旧案（壁を透かす）は比較用 | `fixed-camera-trial.js` の `fadeWalls` まわり（約50行）、`world-batching.js`・`surface-readability.js`・`enhancements.js` の分岐 |
-| D4 | 旧い見た目 `?look=classic`・`?wallReadability=classic` | 11/11以降の町の見た目の前。検査6本と文書4本が使っている | `look-pass.js`・`mood.js`・`contact-shadow.js`・`town-dress.js`・`wall-readability.js` の分岐と検査の項目。**範囲が広いので、急がない** |
+| D4 | 旧い見た目 `?look=classic`・`?wallReadability=classic`（**11/26：`?look=classic` は外した。`?wallReadability=classic` は残す**） | 11/11以降の町の見た目の前。検査6本と文書4本が使っている | `look-pass.js`・`mood.js`・`contact-shadow.js`・`town-dress.js`・`wall-readability.js` の分岐と検査の項目。**範囲が広いので、急がない** |
 | D5 | 鉄棒の計画ページ `swing-plan.html`（14 KB、直下＝公開される）と `OLD_TOWN_SWING_PLAN.md`、`?oldtown_swing=1`・`?swing_route`・`?swingCourse` | 旧市街の鉄棒は公開済み。計画・下見用 | ページ、`hook-editor.html` からのリンク、`challenge-difficulty.js`・`foundation-runtime.js`・`old-town-swing.js` の分岐 |
 | D6 | `escape-replay-viewer.html`（直下＝公開される） | 10/30の脱出テストのリプレイを見るページ。`docs/escape-replays/` とセット | ページと `docs/escape-replays/` |
 | D7 | 練習モード（`practice.js`・`practice-world.js`・`practice.css`・`PRACTICE.md`、`?practice`） | ホームからの入口は見つからなかった（URLで直接開く）。`canyon.html` だけが読み込む。入門コース（`?learn=1`）は練習モードの地形の一部を使っている | 入門コースと絡むので、消すなら切り分けが要る。**使っているかどうかを先に教えてほしい** |
 | D8 | 旧い入門の入口 `?guidedEntry=0`（`legacyIntro`） | **消した（11/22）。** 自動操作のブラウザも人と同じ道（初回カード・コツ → 入門コース）を通る。`?guidedEntry=1`（ホームを開くと入門コースへ移る、検査用の入口。`guided-preferences.js`）は別物で残している | — |
 | D9 | 一人称の表示（`first-person-weapons.js` 12 KB、`human-view.js` の `existing`） | **残す・活かすことに決まった（本人の判断、11/22）。** 操作設定の末尾に任意で選べる「一人称視点（おまけ・試作）」として出した（`first-person-option.js`）。人物の読み込み失敗時の代替表示としても使う | — |
-| D10 | `auto-resolution-monitor.js`（2 KB） | 先頭に「NIGHTLINE's rendered-frame policy」。AGENTS.md §3「NIGHTLINE の画質調整の仕様の取り込み」はやらない、と食い違って見える。`foundation-runtime.js` が読み込んでいる（測るだけで画質は変えていない可能性がある） | **11/25 調べた：自動では何も変えない。** 最初の本番ラン（品質「高」か「スマホ」）の間だけ1秒ごとのフレーム数を数え、10窓のうち6窓以上が45 fps未満なら、ランの後に1回だけ「描画を軽くしますか？」を出す（`foundation-runtime.js` の `showQualitySuggestion`）。はいで品質「軽量」（細かさを抑え影を省く）、いいえでそのまま。どちらでも二度と出ない。NIGHTLINE から借りたのは「45 fps・10窓中6窓」の判定の数字だけで、解像度を勝手に上げ下げする仕組み（NIGHTLINE の画質調整）は入っていない。残してよいと考える（実機で重い人への唯一の案内）。消すかどうかは本人の判断 |
+| D10 | `auto-resolution-monitor.js`（2 KB） | 先頭に「NIGHTLINE's rendered-frame policy」。AGENTS.md §3「NIGHTLINE の画質調整の仕様の取り込み」はやらない、と食い違って見える。`foundation-runtime.js` が読み込んでいる（測るだけで画質は変えていない可能性がある） | **11/25 調べた：自動では何も変えない。** 最初の本番ラン（品質「高」か「スマホ」）の間だけ1秒ごとのフレーム数を数え、10窓のうち6窓以上が45 fps未満なら、ランの後に1回だけ「描画を軽くしますか？」を出す（`foundation-runtime.js` の `showQualitySuggestion`）。はいで品質「軽量」（細かさを抑え影を省く）、いいえでそのまま。どちらでも二度と出ない。NIGHTLINE から借りたのは「45 fps・10窓中6窓」の判定の数字だけで、解像度を勝手に上げ下げする仕組み（NIGHTLINE の画質調整）は入っていない。残してよいと考える（実機で重い人への唯一の案内）。消すかどうかは本人の判断  **11/26：残すと決めた（本人）。** |
 
 ## E. 未決（触らない）
 

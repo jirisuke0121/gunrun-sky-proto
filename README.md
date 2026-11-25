@@ -1,3 +1,14 @@
+## 2026-11-26 旧い見た目 `?look=classic` を外す／使われていない検査・計測ページ4本を消す（本人の判断）
+
+- **`?look=classic`（11/11 より前のベージュの見た目）を外した**：`look-pass.js`・`mood.js`・`contact-shadow.js`・`town-dress.js` の分岐を消した（`town-foundation.js`・`far-scenery.js` はコメントだけ）。古いURLで `?look=classic` を付けても、今の見た目で開く。`?look=district`・`?look=sky`・`?look=townDebug`・`?mood=noon`・`?wallReadability=classic` は残す。
+- **残すと決めたもの**：描画を軽くする案内（`auto-resolution-monitor.js`。最初の本番ランが重いときに1回だけ聞く。自動では変えない）。
+- **消した**：
+  - `bench/ab-look-classic.html`・`bench/ab-look-bisect.html`：`?look=classic` を比べる基準にしていた iPhone 計測ページ。11/20 に測り終え、結果は `docs/AB_LOOK_CLASSIC_2026-11-20.md`。`ab-walls.html`・`ab-scenery.html`・`ab-glow-outline.html` は残し、古い説明だけ直した。
+  - `bench/fixed-scene-browser.cjs`：固定カメラの壁の見せ方の旧案（透かす・寄る、11/22 に外した）を比べる台本。比べる相手がない。
+  - `bench/survival-score-load.cjs`：どこからも呼ばれない任意のGPU計測。
+- **11/24 の棚卸しの訂正**：「文書にも名前がない7本」のうち4本は使われていた。`bite-sfx.test`・`boss-zombie.test` は Main regression が `bench/*.test.cjs` を全部回すので毎回実行されている。`home-controls` は検査20本以上が読み込む部品。`minimap-review-server` は `minimap-browser` が起動する。`fixed-camera-browser`（公開の固定カメラを8方向で確かめる）は今も通るので残す。
+- 検査：`mood-browser`（`?look=classic` の項目を外した）・`town-look-browser`・`wall-readability-browser`・`eye-views`・`fixed-camera-browser`・単体全部。STEP 5（PCの影側の色）は、実機の感想を待つまま。
+
 ## 2026-11-25 被弾ののけぞりと赤い光を控えめに／落ちていた検査3本を今の仕様に合わせる
 
 - **町の人ゾンビの被弾（`index.html`/`canyon.html` の `rk`）**：背骨4本で計1.8ラジアン近く反り、頭が0.6〜0.9 m後ろへ飛んでいた（Unity は3本で約1.4）。町の人は1.0に。見た目だけ。確認用：`promo/video/shots.js` の `n_zhit`。

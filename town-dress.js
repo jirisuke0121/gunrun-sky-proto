@@ -13,7 +13,7 @@
 // this size change the picture very little (docs/TOWN_DRESS_2026-11-22.md), so it is not part of the default look.
 (() => {
   const params = new URLSearchParams(location.search), mode = params.get('dress');
-  if (!mode || mode === '0' || params.get('look') === 'classic') return; // a trial: off unless asked for (?dress=1)
+  if (!mode || mode === '0') return; // a trial: off unless asked for (?dress=1)
   const REGION = mode && mode.includes(',') ? mode.split(',').map(Number) : null;
   const HEAD = 2.3;            // nothing lower than this above a floor
   const PIER = { every: 5.2, width: 0.85, top: 0.42, foot: 0.62, below: 0.65, minLen: 1.9, maxLen: 20 };

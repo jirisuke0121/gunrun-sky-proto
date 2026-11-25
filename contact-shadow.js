@@ -3,10 +3,10 @@
 // collision boxes at load: for every wall box (>= 1.4 m high) and each of its four sides, runs of 0.5 m
 // samples are kept only where a floor top lies at the wall's foot and no other box stands in the way.
 // Colour only: no texture, no collision, no shadow casting. +1 draw call, a few hundred triangles.
-//   ?contact=0   off      (also off with ?look=classic; hidden in the lowest render quality unless ?contact=1)
+//   ?contact=0   off      (hidden in the lowest render quality unless ?contact=1)
 (() => {
   const params = new URLSearchParams(location.search);
-  if (params.get('contact') === '0' || params.get('look') === 'classic') return;
+  if (params.get('contact') === '0') return;
   const WIDTH = 1.0, LIFT = .014, STEP = .5, INK = 0x2a1a28, STRENGTH = .62;
 
   function build(game) {

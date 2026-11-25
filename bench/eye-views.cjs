@@ -23,7 +23,7 @@ const server = http.createServer(async (req, res) => { try { const name = path.r
     await ctx.route('https://**/*', r => r.fulfill({status: 200, contentType: 'application/json', body: '{"top":[],"total":0,"ok":true}'}));
     const p = await ctx.newPage(); p.setDefaultTimeout(180000); p.on('pageerror', e => console.log('PAGEERR', e.message));
     await p.goto(base + `index.html?camera=after&lang=ja&controlpick=0&hookGuide=0&dev=1${query}`);
-    await p.waitForFunction(() => window.skyStartReadiness?.ready && document.body.dataset.skyHumanLoaded === 'true' && (window.skyLookInfo || window.skyLook === 'classic'));
+    await p.waitForFunction(() => window.skyStartReadiness?.ready && document.body.dataset.skyHumanLoaded === 'true' && window.skyLookInfo);
     await p.locator('#bStart').tap(); await p.waitForTimeout(2500);
     await p.evaluate(() => { const g = window.__skyInternals, r = window.__game.debug.renderer, orig = r.render.bind(r); r.render = (s, c) => { const w = window.__v; if (w && c === g.Se) { c.position.set(w[0], w[1], w[2]); c.lookAt(w[3], w[4], w[5]); c.fov = w[6]; c.updateProjectionMatrix(); } orig(s, c); }; });
     await p.addStyleTag({content: 'body>*:not(canvas){visibility:hidden!important}canvas{visibility:visible!important}'});

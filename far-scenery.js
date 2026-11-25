@@ -1,6 +1,6 @@
 // Far scenery: what lies beyond (and far below) the old town. Look only: ONE merged mesh, vertex colours,
 // no texture, no collision, no shadow, no outline, no light. Off with ?scenery=0 (the previous ring of
-// silhouettes and the floating domes come back) and whenever the mood is off (?mood=noon, ?look=classic).
+// silhouettes and the floating domes come back) and whenever the mood is off (?mood=noon).
 //
 // The town stands on its pillars above a SEA OF CLOUDS. Second version (11/21 evening): the first one was a
 // noise terrain of huge random facets ("crumpled paper"), slab clouds that read as snow, and oversized houses.
@@ -243,7 +243,7 @@
   let tries = 0;
   const timer = setInterval(() => {
     const game = window.__skyInternals, mood = window.skyMood;
-    if (window.skyMood === null || window.SKY_CANYON_MAP || ++tries > 400) return clearInterval(timer); // noon / classic / other maps: no scenery
+    if (window.skyMood === null || window.SKY_CANYON_MAP || ++tries > 400) return clearInterval(timer); // noon / other maps: no scenery
     if (!game?.ue || !game.Geom || !mood || !document.body.dataset.skyMood) return;  // wait until mood.js has set the light
     clearInterval(timer);
     try { build(game, mood); } catch (error) { console.warn('far scenery skipped', error); }

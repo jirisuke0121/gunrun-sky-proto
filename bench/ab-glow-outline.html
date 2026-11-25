@@ -63,7 +63,7 @@ async function run() {
   const W = frame.contentWindow, G = W.__game, I = W.__skyInternals, rd = G.debug.renderer, scene = I.ue, cam = I.Se;
   const groups = Object.fromEntries(FACTORS.map(([k, , name]) => [k, named(scene, cam, name)]));
   const present = FACTORS.filter(([k]) => groups[k].length), absent = FACTORS.filter(([k]) => !groups[k].length);
-  if (!present.length) { out.textContent = '対象が1つも見つかりません。mood=noon や look=classic では使えません。'; running = false; go.disabled = false; return; }
+  if (!present.length) { out.textContent = '対象が1つも見つかりません。mood=noon では使えません。'; running = false; go.disabled = false; return; }
   const COMBOS = [{ key: 'base', label: '現状(すべてあり)', off: [], res: 1 },
     ...present.map(([k, label]) => ({ key: 'no_' + k, label: label + 'なし', off: [k], res: 1 })),
     { key: 'no_all', label: `${present.length}つとも なし`, off: present.map(f => f[0]), res: 1 },

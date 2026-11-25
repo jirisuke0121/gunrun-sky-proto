@@ -4,7 +4,7 @@
 // tapering piers that drop through the sea of clouds. Stone = what has always stood (towers, footings, high walls).
 //
 // Look only: ONE merged mesh, vertex colours, no texture, no collision, no shadow, no outline, no light.
-// Off with ?foundation=0 (and whenever far-scenery is off: ?scenery=0, ?mood=noon, ?look=classic, the canyon map).
+// Off with ?foundation=0 (and whenever far-scenery is off: ?scenery=0, ?mood=noon, the canyon map).
 //
 // "Can I go there?" rules (same as far-scenery.js / AGENTS.md):
 //   - everything is BELOW the paving: the top of the wall sits 0.6 m under the floor it hangs from

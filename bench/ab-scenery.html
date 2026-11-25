@@ -9,13 +9,11 @@ pre{white-space:pre-wrap;margin:8px 0 0;font:12px/1.55 ui-monospace,Menlo,monosp
 </style>
 <div id="panel"><b>遠景の重さ A/B計測（開くだけで自動）</b><div style="margin-top:6px"><button id="go">開始</button><button id="copy" hidden>結果をコピー</button></div><pre id="out">準備中…</pre></div>
 <script>
-// 遠景(far-scenery.js: 雲海・丘・村・城・山)あり／なし(?scenery=0)の比較。計測の仕組みは ab-look-classic.html と同じ。
+// 遠景(far-scenery.js: 雲海・丘・村・城・山)あり／なし(?scenery=0)の比較。計測の仕組みは 11/20 の ab-look-classic.html（docs/AB_LOOK_CLASSIC_2026-11-20.md、11/26に削除）と同じ。
 // 「遠景」の確認欄は 旧い遠景の数/新しい遠景の数（あり=0/1、なし=1/0 が正しい）。
 // 小さな見た目の部品を1つずつ消す計測(ab-glow-outline.html)は、ばらつき(±1ms前後)に埋もれて判定できなかった。
-// そこで「11/10の見た目に全部戻す」を1条件として、遠景ありと交互に測る。
 //   A = 遠景あり      : ../index.html
-//   B = 11/10相当       : ../index.html?look=classic&mood=noon&outline=0&windFx=0
-//       (look=classic: 漆喰シェーダー・建物の色・床のむら・接地影が従来。mood=noon: 低い朝日・太陽グロー・遠景・塵なし。outline=0: 輪郭線なし。windFx=0: 風の筋なし)
+//   B = 遠景なし     : ../index.html?scenery=0
 // 条件を変えるにはゲームの読み込み直しが要る。毎ラウンド A→B / B→A を入れ替え、時間経過・発熱の偏りを相殺する。
 // 1回の読み込みの中では、同じ場面で「描画解像度を約0.6倍」にした対照も測る(確実に効く変更を、この精度で検出できるかの目安)。
 // 差が60fps上限に隠れないよう、1フレームに K 回ぶん余計に描画して差を (K+1) 倍に増幅し、結果は (K+1) で割って1回あたりに戻す。
