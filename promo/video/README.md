@@ -75,3 +75,12 @@ TAKE=out4 FINAL=final4 python3 build2.py cg_land ; TAKE=out4 FINAL=final4 python
 - 地図の高さは `hm1`（`assets/hm.npy` に保存）。字幕は `make_text3.py`（`assets3/`）。
 - 仕上げ：`python3 build3.py && python3 audio3.py` → `final5/run_ja.mp4`（30秒・1080p30・音あり、約80MB）。
 - 撮影で見つかったゲーム側の問題（撃ち落とし・救済・閃光玉）は `docs/KNOCK_RESCUE_FLASH_2026-11-26.md`。
+
+## 映画風版（2026-11-26 午後）：参考画像・Geminiの動画のカメラを取り入れた30秒（日本語）
+
+参考にしたのはカメラと詰め込み方だけ（手前に追手・真ん中に主人公・奥に城、下から見上げる、1カットに複数のこと）。絵はすべて実際のゲーム画面。画面の表示は消し、題名の直前の2秒だけプレイ画面（表示あり）。AIの絵は表紙・サムネイル用で動画には入れない（本人の判断）。
+
+- 台本は `shots2.js` の `k_*`（既存の撮影の動きを `recK` で再利用し、カメラだけ変える）。撮る引数（out7）：
+  `flash`: k_flash FPS=60 FRAMES=150 ／ `beam0`: k_beam FPS=60 X_sd=1.1 X_cy=1.35 FRAMES=70 ／ `beam1`: k_beam FPS=60 X_CAM=1 FRAMES=90 ／ `blast0`: k_blast FPS=60 FRAMES=60 ／ `blast1`: k_blast FPS=60 X_CAM=1 PRE=55 FRAMES=70 ／ `dive0`: k_dive FPS=60 FRAMES=60 ／ `dive1`: k_dive FPS=60 X_CAM=1 FRAMES=60 ／ `hook`: k_hook FPS=60 FRAMES=60 ／ `rope`: k_rope FPS=60 FRAMES=50 ／ `tunnel2`: k_tunnel FPS=60 FRAMES=112 ／ `play`: chase_g FPS=30 FRAMES=96
+  （`k_tunnel` は先頭の負のコマでしゃがみを押すので `PRE=` を付けない。）
+- 編集の表は `edl4.json`、字幕は `caps4.json`（`make_text3.py` の `k1`・`c2`・`k3`）。仕上げ：`python3 build4.py && python3 audio4.py` → `final7/cine_ja.mp4`。

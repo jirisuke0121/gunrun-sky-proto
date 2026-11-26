@@ -161,4 +161,41 @@
     setup() { U.gunOn = true; H.place(V('px', 20.5), V('pz', -2.4), H.yawTo(-.2, -1), 12); zput([[18.2, -5.9, 0, 12], [20.6, -6.0, 0, 12], [22.6, -5.9, 0, 12], [17.4, -8.1, 0], [19.6, -8.0, 0], [21.4, -8.0, 0], [15.6, -8.1, 0], [13.8, -8, 0]]); I.Jt.forEach((z, k) => { z.yaw = H.yawTo(0, 1); if (k < 3) z.spawnT = .25 + .35 * k; }); },
     tick(i) { c.life = 9; c.invuln = 0; calm(2); H.keys({}); c.yaw = H.yawTo(-.2, -1); c.pitch = -.2; if (i % 30 === 0) ev(i, 'fall ' + JSON.stringify(window.skyZombieFall.stats)); },
     cams: [i => { const u = ease(cl(i / 240)); return [[V('cx', 22.6) - .4 * u, V('cy', 14.3), V('cz', .6) - .6 * u], [V('tx', 19.2), V('ty', 10.6), V('tz', -7.6)], V('fov', 54)]; }] });
+
+  // =================== cinematic cut (11/26 pm): foreground pursuers, low angles, several things at once ===================
+  // rec(name, from, cams, extra): the take of an existing shot (its setup/tick), extra setup after it, cine cameras.
+  const recK = (name, from, o) => { const b = SH[from]; SH[name] = { canvas: true, diff: o.diff || b.diff || 'normal', pre: o.pre ?? (b.pre || 0), frames: o.frames || b.frames,
+    setup() { F.on = false; F.i = 0; for (const k in P) delete P[k]; b.setup(); o.setup?.(); },
+    tick(i) { F.i = i; (o.take || b.tick)(i); o.after?.(i); follow(o.lag ?? .2); },
+    grab(i) { const cam = o.cams[Math.min(o.cams.length - 1, V('CAM', 0))]; return H.cine(...cam(F.i)); }, post: rec0 }; };
+  const rec0 = () => ({ p: [+c.pos.x.toFixed(2), +c.pos.y.toFixed(2), +c.pos.z.toFixed(2)], s: c.state, z: I.Jt.filter(z => !z.dead && z.pos.y > -30).map(z => [+z.pos.x.toFixed(1), +z.pos.y.toFixed(1), +z.pos.z.toFixed(1)]) });
+  const keepPack = () => { c.life = 9; c.invuln = 0; calm(2); };
+  // A. window dive with the pack right behind; 0 = low behind the pack, 1 = inside the corridor (glass at the lens)
+  recK('k_dive', 'dive', { frames: 60, pre: 0,
+    setup() { U.gunOn = false; zput([[-23.6, -12.3, 0], [-24.4, -11.4, 0], [-25.1, -12.8, 0], [-26, -11.9, 0], [-26.8, -12.6, 0], [-27.6, -11.6, 0]]); for (const z of I.Jt) z.yaw = H.yawTo(1, 0); },
+    after(i) { c.invuln = 9; calm(2); },
+    cams: [i => [[F.x - V('bk', 6.2), V('cy', 5.5), -12.1 + V('sd', .6)], [F.x + 2.5, V('ty', 5.2), -12.05], V('fov', 52)],
+           i => [[-11.3, 4.62, -11.72], [lerp(-17, F.x, .5), lerp(5.2, F.y + 1.0, .6), -12.05], 58]] });
+  // B. the north sky-bridge: over the pack's shoulders, the runner ahead
+  recK('k_beam', 'chase', { frames: 90, pre: 20,
+    cams: [i => [[F.x - V('bk', 7.4), V('cy', 1.55), -24 + V('sd', -.9)], [F.x + 3, V('ty', 1.1), -24], V('fov', 48)],
+           i => [[F.x + 5, .55, -22.6], [F.x - 1.5, 1.3, -24], 56]] });
+  // C. blast jump with the pack on his heels, then landing on the east block and shooting the climbers off its west lip
+  recK('k_blast', 'blast', { frames: 150, pre: 0,
+    setup() { U.gunOn = true; zput([[5.9, -6.1, 0], [5.0, -7.0, 0], [4.4, -5.9, 0], [17.7, -2.6, 0, 12], [17.6, -3.6, 0, 12], [17.8, -1.8, 0, 12], [16.4, -3.3, 0, 0]]); I.Jt.forEach((z, k) => { z.yaw = H.yawTo(1, 0); if (k >= 3 && k < 6) z.spawnT = 1.6 + .25 * (k - 3); }); },
+    after(i) { c.life = 9; c.invuln = 0; calm(2); },
+    cams: [i => { for (const b of window.skyBlastBarrels.barrels) if (b.badge) b.badge.visible = false; return [[V('cx', 15.9), V('cy', 8.25), V('cz', -9.5)], [lerp(11.5, F.x, .75), lerp(8.7, F.y + .9, .8), lerp(-6.5, F.z, .75)], V('fov', 58)]; },
+           i => [[V('cx', 14.2), V('cy', 9.6), V('cz', .2)], [lerp(17.5, F.x, .5), lerp(12.4, F.y + 1.1, .5), lerp(-3, F.z, .5)], V('fov', 56)]] });
+  // D. hook up to the east tower, from below against the sky
+  recK('k_hook', 'hook', { frames: 60, pre: 0,
+    cams: [i => [[V('cx', 31.5), V('cy', 11.2), V('cz', 1.8)], [F.x + .5, F.y + 1.2, F.z], V('fov', 40)]] });
+  // E. the big rope: from below and behind, toward the east sky (castle)
+  recK('k_rope', 'swing', { frames: 95, pre: 14,
+    cams: [i => [[F.x - V('bk', 4.6), F.y - V('dn', .8), V('cz', 2.6)], [F.x + 2, F.y + 1.6, 0], V('fov', 62)]], lag: .14 });
+  // F. tunnel: rising over the town to the lens
+  recK('k_tunnel', 'tunnel', { frames: 115, pre: 62,
+    cams: [i => [[V('cx', -13.6), V('cy', 24.2), V('cz', -3.6)], [F.x, F.y + .9, F.z], V('fov', 56)]] });
+  // G. flash: low among the frozen pack, the runner comes through toward the lens
+  recK('k_flash', 'r_flash', { frames: 200, pre: 0,
+    cams: [i => [[V('cx', 5.8), V('cy', 8.95), V('cz', -4.4)], [lerp(-2, F.x, .55), 9.0, lerp(-6.8, F.z, .5)], V('fov', 54)]] });
 })();
