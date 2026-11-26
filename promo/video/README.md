@@ -64,3 +64,14 @@ TAKE=out4 FINAL=final4 python3 build2.py cg_land ; TAKE=out4 FINAL=final4 python
 ```
 
 撮影は横15カット・日本語2カット・縦14カットで約2時間半（1コマ1〜3秒）。近くから見る用のカットに `n_zladder`（はしごを登るゾンビ）・`n_bite`（噛まれる瞬間）・`n_hface`（人の正面／背中）を足した。
+
+## 逃走劇版（2026-11-26）：1ランでマップ全体を逃げ回る30秒（日本語）
+
+技ごとの紹介とは別に、閃光玉→爆破ジャンプ→高台から撃ち落とし→分身→ジップライン→救済→ロープ連続スイング→リザルトを、残り時間と俯瞰の地図（撮影時のゲーム内の主人公・ゾンビの位置から描く）でつないだ版。
+
+- 台本は `shots2.js`（`r_*`。`engine.cjs` が `shots.js` のあとに読み込む）。`X_CAM=n` でカメラを選ぶ。`PRE=` は保存しない先頭のコマ数（30fps換算）で、台本の時間は先頭から数える。
+- 撮る：`node engine.cjs <台本> OUT=/home/claude/video/out5/<名前> W=1920 H=1080 LANG=ja FPS=60 FRAMES=…`。使った引数は `build3.py` の先頭の表（`out5`＝最初の撮影、`out6`（名前に `6:`）＝11/26 のゲーム修正のあと撮り直した閃光玉・爆破・撃ち落とし・救済）。
+  - `open`: r_open FPS=30 FRAMES=104 ／ `6:flash`: r_flash FPS=60 FRAMES=175 ／ `6:blast`: r_flash FPS=60 X_CAM=1 PRE=102 FRAMES=66 ／ `6:gun`: r_gun2 FPS=30 FRAMES=80 ／ `decoy`: r_decoy FPS=30 FRAMES=108 ／ `zip`: r_decoy FPS=30 X_CAM=1 PRE=90 FRAMES=56 ／ `6:rescue2`: r_rescue FPS=60 X_CAM=2 X_ax=-5 X_ay=4.6 X_az=-6 FRAMES=82 ／ `chainA`: r_chain FPS=60 X_CAM=1 PRE=18 FRAMES=56 ／ `chainB`: r_chain FPS=60 X_CAM=1 PRE=120 FRAMES=82 ／ `card`: r_card FPS=30 PRE=150 FRAMES=45 AUDIO=0
+- 地図の高さは `hm1`（`assets/hm.npy` に保存）。字幕は `make_text3.py`（`assets3/`）。
+- 仕上げ：`python3 build3.py && python3 audio3.py` → `final5/run_ja.mp4`（30秒・1080p30・音あり、約80MB）。
+- 撮影で見つかったゲーム側の問題（撃ち落とし・救済・閃光玉）は `docs/KNOCK_RESCUE_FLASH_2026-11-26.md`。

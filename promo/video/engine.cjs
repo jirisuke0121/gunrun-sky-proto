@@ -34,7 +34,7 @@ const LANG = args.LANG || 'en', MAP = args.MAP || 'index.html', OUT = args.OUT |
   await p.waitForFunction(() => window.skyStartReadiness?.ready && window.__game);
   // The four townsfolk zombies load after the Unity body; wait for them so a shot's pack is the real mix.
   await p.waitForFunction(() => (window.__skyInternals?.zombieModels?.() || []).filter(m => m.kind === 'existing').length >= 4, null, { timeout: 90000 }).catch(() => console.log('townsfolk not loaded'));
-  await p.addScriptTag({ path: path.join(__dirname, 'shots.js') });
+  await p.addScriptTag({ path: path.join(__dirname, 'shots.js') }); await p.addScriptTag({ path: path.join(__dirname, 'shots2.js') });
   const MUL = FPS / 30, PORTRAIT = args.P === '1';
   const S = await p.evaluate(n => { const s = window.SHOTS[n]; if (!s) throw new Error('no shot ' + n); return { frames: s.frames, diff: s.diff || 'normal', canvas: !!s.canvas }; }, shot);
   S.frames = Math.round((+args.FRAMES || S.frames) * MUL); if (PORTRAIT) S.canvas = true;
@@ -59,12 +59,12 @@ const LANG = args.LANG || 'en', MAP = args.MAP || 'index.html', OUT = args.OUT |
   await p.addStyleTag({ content: '#runResponsibility{display:none!important}' });
   if (PORTRAIT) await p.evaluate(([w, h]) => window.SH.portrait(w, h), [+(args.PW || 1080), +(args.PH || 1620)]);
   let ms = 0, k = 0; const t0 = Date.now(), log = [];
-  const pre = Math.round(+(await p.evaluate(n => window.SHOTS[n].pre || 0, shot)) * MUL);
+  const pre = Math.round(+(args.PRE ?? await p.evaluate(n => window.SHOTS[n].pre || 0, shot)) * MUL);
   const total = pre + S.frames;
   for (let f = 0; f < total; f++) {
     for (let s = 0; s < SUB; s++) {
       k++; const target = Math.round(k * 1000 / 60);
-      await p.evaluate(([n, i]) => window.SHOTS[n].tick?.(i), [shot, (f - pre) * SUB + s]);
+      await p.evaluate(([n, i]) => window.SHOTS[n].tick?.(i), [shot, (args.PRE != null ? f : f - pre) * SUB + s]);
       await p.clock.runFor(target - ms); ms = target;
       await p.evaluate(() => window.__raf());
       if (AUDIO) await p.evaluate(t => window.__audio?.advance(t), k / 60);
