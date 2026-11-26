@@ -55,7 +55,7 @@ const LANG = args.LANG || 'en', MAP = args.MAP || 'index.html', OUT = args.OUT |
   await p.evaluate(([sub, x]) => { window.__SUB = sub; for (const [k, v] of Object.entries(x)) if (/^X_/.test(k)) window['__' + k.slice(2)] = +v; }, [SUB, args]);
   await p.evaluate(n => window.SHOTS[n].setup(), shot);
   const hud = args.HUD !== '0';
-  if (!hud) await p.addStyleTag({ content: '#hud,#touch,#bSettings,#skillDock{visibility:hidden!important}' });
+  if (!hud) await p.addStyleTag({ content: '#hud,#touch,#bSettings,#skillDock,#flowTag,#flowEdge,#blastMark,#escapeRouteHint,#escapeRouteActions,body>div[style*="position: fixed"]{visibility:hidden!important}' });
   await p.addStyleTag({ content: '#runResponsibility{display:none!important}' });
   if (PORTRAIT) await p.evaluate(([w, h]) => window.SH.portrait(w, h), [+(args.PW || 1080), +(args.PH || 1620)]);
   let ms = 0, k = 0; const t0 = Date.now(), log = [];

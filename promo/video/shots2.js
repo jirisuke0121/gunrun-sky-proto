@@ -198,4 +198,18 @@
   // G. flash: low among the frozen pack, the runner comes through toward the lens
   recK('k_flash', 'r_flash', { frames: 200, pre: 0,
     cams: [i => [[V('cx', 5.8), V('cy', 8.95), V('cz', -4.4)], [lerp(-2, F.x, .55), 9.0, lerp(-6.8, F.z, .5)], V('fov', 54)]] });
+
+  // =================== cinematic cut v2 (11/26 evening): each move whole, the skill only when boxed in ===================
+  // Boxed in on the central roof (pack from the east and the south-west), Decoy, the pack bends after it, out on the zip.
+  // The player's own camera with the HUD: this is also the "real play screen" of the cut.
+  SH.g_decoy = { frames: 190, pre: 0, diff: 'normal',
+    setup() { U.gunOn = false; quiet(); for (const k in P) delete P[k]; H.place(-7.5, 9.5, H.yawTo(1, -.2), 8);
+      zput([[1.5, 7.4, 0], [2.6, 9.6, 0], [3.4, 6.2, 0], [4.4, 8.4, 0], [-12.6, 4.6, 0], [-11.4, 3.8, 0], [-13.2, 3.4, 0]]); },
+    tick(i) { c.life = 9; calm(1.5); const t0 = V('DT', 66);
+      if (i < t0 - 16) { H.keys({}); H.turn(H.yawTo(1, -.2), .1); } else if (i < t0) { H.keys({}); H.turn(H.yawTo(0, -1), .16); }
+      if (i === t0) { c.yaw = H.yawTo(0, -1); H.key('Digit2'); ev(i, 'decoy'); } if (i === t0 + 3) H.key('Digit2', 'keyup');
+      if (i > t0 && i < t0 + 30) { H.keys({}); H.turn(H.yawTo(-1, .6), .1); }
+      if (i >= t0 + 30) { if (c.state === 'normal') { if (c.pos.x > -8.5 && Math.abs(c.pos.z - 12) > .3) H.turn(H.yawTo(-6.5 - c.pos.x, 12 - c.pos.z), .12); else H.turn(H.yawTo(-1, 0), .12); } H.keys({ KeyW: true }); if (!P.j && c.pos.x < -10.6 && c.onGround) { H.jump(); P.j = 1; ev(i, 'jump'); } }
+      if (c.state === 'zip' && !P.z) { P.z = 1; ev(i, 'zip'); } if (P.z && c.state === 'normal' && c.onGround && !P.l) { P.l = 1; ev(i, 'landed'); } },
+    post: info };
 })();

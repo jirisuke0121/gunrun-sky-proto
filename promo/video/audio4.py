@@ -88,7 +88,7 @@ import itertools
 for c, pan in zip([c for c in clips if c['kind'] == 'shot'][1:], itertools.cycle([.3, -.3])):
     put(made, stereo(whoosh(), pan), c['t0'] - .55 * .42, .2)
 put(made, stereo(whoosh(1.6, 300, 1500, .5)), 0.05, .16)
-for name, g in [('beam0', .28), ('blast1', .28)]: put(made, stereo(thump()), T[name]['t0'] + .3 - .01, g)
+for name, g in [('open', .3), ('blast1', .28), ('decoy', .26)]: put(made, stereo(thump()), T[name]['t0'] + .3 - .01, g)
 end = T['hero_end']['t0']; hit = end + .12; card = end
 put(made, stereo(riser(1.1)), end - 1.1, .4)
 put(made, stereo(boom(2.4, 78, 30, .5)), hit - .012, .95); put(made, stereo(whoosh(.9, 200, 900, .2)), hit, .2)

@@ -53,7 +53,7 @@ CAP={'c1':[[('2分間、',ORANGE)],[('街じゅうを逃げ回れ。',WHITE)]],
      'c3':[[('残り',WHITE),('5秒',ORANGE),('。',WHITE)]]}
 LAB={'flash':'閃光玉','blast':'爆破ジャンプ','decoy':'分身','zip':'ジップライン','rescue':'救済','chain':'ロープ連続スイング'}
 for k,v in CAP.items(): caption('ja',f'{k}_ja',v)
-for k,v in {'k1':[[('ゾンビから',WHITE),('2分間',ORANGE),('、',WHITE)],[('逃げ切れ。',WHITE)]],'k3':[[('振り切れ。',WHITE)]]}.items(): caption('ja',f'{k}_ja',v)
+for k,v in {'k1':[[('ゾンビから',WHITE),('2分間',ORANGE),('、',WHITE)],[('逃げ切れ。',WHITE)]],'k3':[[('振り切れ。',WHITE)]],'k2':[[('囲まれたら、',WHITE)],[('分身',ORANGE),('で欺け。',WHITE)]]}.items(): caption('ja',f'{k}_ja',v)
 for k,v in LAB.items(): label('ja',f'l_{k}_ja',v)
 W,H=1920,1080
 j1,q1=line_img('ja',[('空中回廊 ',WHITE),('追跡',ORANGE)],150); j2,q2=line_img('en',[('ZOMBIE PARKOUR ESCAPE',WHITE)],58,track=3)

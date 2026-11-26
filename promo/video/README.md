@@ -84,3 +84,8 @@ TAKE=out4 FINAL=final4 python3 build2.py cg_land ; TAKE=out4 FINAL=final4 python
   `flash`: k_flash FPS=60 FRAMES=150 ／ `beam0`: k_beam FPS=60 X_sd=1.1 X_cy=1.35 FRAMES=70 ／ `beam1`: k_beam FPS=60 X_CAM=1 FRAMES=90 ／ `blast0`: k_blast FPS=60 FRAMES=60 ／ `blast1`: k_blast FPS=60 X_CAM=1 PRE=55 FRAMES=70 ／ `dive0`: k_dive FPS=60 FRAMES=60 ／ `dive1`: k_dive FPS=60 X_CAM=1 FRAMES=60 ／ `hook`: k_hook FPS=60 FRAMES=60 ／ `rope`: k_rope FPS=60 FRAMES=50 ／ `tunnel2`: k_tunnel FPS=60 FRAMES=112 ／ `play`: chase_g FPS=30 FRAMES=96
   （`k_tunnel` は先頭の負のコマでしゃがみを押すので `PRE=` を付けない。）
 - 編集の表は `edl4.json`、字幕は `caps4.json`（`make_text3.py` の `k1`・`c2`・`k3`）。仕上げ：`python3 build4.py && python3 audio4.py` → `final7/cine_ja.mp4`。
+
+### 映画風版 v2（11/26 夕方）：技は使う理由から結果まで切らずに見せる
+- 本人の指摘で組み直した：スライディング→トンネル→大ジャンプ→着地は等速の1カット（プレイヤーのカメラ・表示なし、`tunnelG`: tunnel FPS=60 HUD=0 FRAMES=145）。道具は分身だけにし、前後から挟まれた場面で使う（`g_decoy`：プレイヤーのカメラ・表示あり。これがプレイ画面を兼ねる。`decoyG`: g_decoy FPS=30 FRAMES=190）。フック・ロープ・閃光玉の切れ端は外した。
+- 流れ：町の俯瞰（`out5/open` を `out7/open` に繋ぐ）→渡り廊下→窓破り→爆破→着地して撃ち落とし→挟まれて分身→ジップライン→トンネルから大ジャンプ→題名。表は `edl4.json`。
+- `HUD=0` のとき、FLOWの表示・ドラム缶などの案内（画面に固定の要素）も隠す（`engine.cjs`）。
