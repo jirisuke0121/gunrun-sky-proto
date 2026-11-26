@@ -212,4 +212,7 @@
       if (i >= t0 + 30) { if (c.state === 'normal') { if (c.pos.x > -8.5 && Math.abs(c.pos.z - 12) > .3) H.turn(H.yawTo(-6.5 - c.pos.x, 12 - c.pos.z), .12); else H.turn(H.yawTo(-1, 0), .12); } H.keys({ KeyW: true }); if (!P.j && c.pos.x < -10.6 && c.onGround) { H.jump(); P.j = 1; ev(i, 'jump'); } }
       if (c.state === 'zip' && !P.z) { P.z = 1; ev(i, 'zip'); } if (P.z && c.state === 'normal' && c.onGround && !P.l) { P.l = 1; ev(i, 'landed'); } },
     post: info };
+
+  // =================== Y8 gameplay video (11/26 night): the same takes in the player's own camera, English HUD ===================
+  for (const n of ['k_beam', 'r_gun2', 'k_blast', 'k_dive']) { const b = SH[n]; SH['y_' + n.slice(2)] = { ...b, canvas: false, grab: undefined }; }
 })();

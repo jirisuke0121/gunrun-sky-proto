@@ -89,3 +89,7 @@ TAKE=out4 FINAL=final4 python3 build2.py cg_land ; TAKE=out4 FINAL=final4 python
 - 本人の指摘で組み直した：スライディング→トンネル→大ジャンプ→着地は等速の1カット（プレイヤーのカメラ・表示なし、`tunnelG`: tunnel FPS=60 HUD=0 FRAMES=145）。道具は分身だけにし、前後から挟まれた場面で使う（`g_decoy`：プレイヤーのカメラ・表示あり。これがプレイ画面を兼ねる。`decoyG`: g_decoy FPS=30 FRAMES=190）。フック・ロープ・閃光玉の切れ端は外した。
 - 流れ：町の俯瞰（`out5/open` を `out7/open` に繋ぐ）→渡り廊下→窓破り→爆破→着地して撃ち落とし→挟まれて分身→ジップライン→トンネルから大ジャンプ→題名。表は `edl4.json`。
 - `HUD=0` のとき、FLOWの表示・ドラム缶などの案内（画面に固定の要素）も隠す（`engine.cjs`）。
+
+## Y8 用のプレイ動画（2026-11-26 夜）
+これまでの台本を、プレイヤーのカメラ・英語の表示（`LANG=en`）・1280x720 で撮り直し、等速のまま切ってつないだ21秒（スロー・揺れ・字幕・題名なし、音楽は控えめ）。
+`shots2.js` の `y_*`（`k_beam`・`r_gun2`・`k_blast`・`k_dive` をプレイヤーのカメラで撮る版）と `g_decoy`・`tunnel`。撮る引数は `build_y8.py` の表の順に：y_beam FRAMES=90 ／ y_dive 60 ／ y_blast 120 ／ y_gun2 80 ／ g_decoy 190 ／ tunnel 150（すべて W=1280 H=720 FPS=30 LANG=en、out8）。仕上げ：`python3 build_y8.py`。
