@@ -1,4 +1,4 @@
-import { FLASHBANG, flashCanReach } from './flashbang.js?v=20261115-declutter-v1';
+import { FLASHBANG, flashCanReach } from './flashbang.js?v=20261126-soft-v1';
 
 // Teach Flash only after a real pursuer has moved toward the player, close
 // enough for the native forward throw to stop it even when it is behind us.

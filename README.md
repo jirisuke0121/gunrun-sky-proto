@@ -1,3 +1,10 @@
+## 2026-11-26 撃ち落とし・救済・閃光玉の見直し（紹介動画で見つかった仕様側の問題）
+
+- **撃ち落とし（`zombie-fall.js` の `EDGE`）**：HGの1発の押しは約1.9 m で、縁から1.5 m以内でないと落ちなかった。押す向き2.6 m以内に1.5 m以上の段差があり壁がなければ、縁を越えるまで押しを強める（最大2倍）。高台54か所・各20秒で、当たって落ちた数 35 → 50、落下で倒した数 26 → 30（`tools/high-ground-knockoff.cjs`）。
+- **救済（`free-hook.js`）**：飛ぶ線全体を「ゾンビから3 m」で判定していたので、3 m以内に1体いるだけで行き先が無かった（追い詰められた瞬間の83%）。最初の2.5 mは判定しない・線が高いところは塞がない・試す数48・無ければ一段ゆるめて再検索、で 25% に（`tools/rescue-trapped.cjs`）。
+- **閃光玉（`flashbang.js`）**：画面の白を 0.84・0.8秒 → 0.5・0.5秒。止まったゾンビの「停止 N秒」の札をやめ、棒と星だけ。
+- ランキングの版は v15 のまま（Worker を更新できなかった）。詳細・数字・残りは `docs/KNOCK_RESCUE_FLASH_2026-11-26.md`。
+
 ## 2026-11-26 旧い見た目 `?look=classic` を外す／使われていない検査・計測ページ4本を消す（本人の判断）
 
 - **`?look=classic`（11/11 より前のベージュの見た目）を外した**：`look-pass.js`・`mood.js`・`contact-shadow.js`・`town-dress.js` の分岐を消した（`town-foundation.js`・`far-scenery.js` はコメントだけ）。古いURLで `?look=classic` を付けても、今の見た目で開く。`?look=district`・`?look=sky`・`?look=townDebug`・`?mood=noon`・`?wallReadability=classic` は残す。

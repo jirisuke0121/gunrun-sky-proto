@@ -2,7 +2,10 @@ import { playGearSound } from './gear-audio.js?v=20261026-gear-polish-v1';
 import { FLASH_ICON, bindSkillPress } from './player-skills.js?v=20261113-viewport-v1';
 // Defensive flashbang. Simulation time owns the fuse, cooldown and stun, including pause.
 // The 0.8s input guard matches the existing full-screen fade and absorbs accidental repeat taps.
-export const FLASHBANG = Object.freeze({ radius: 8, duration: 4, fuse: 0.22, cooldown: 0.8, maxCharges: 2, burstDuration: 1, screenDuration: 0.8, reducedScreenDuration: 0.4 });
+export const FLASHBANG = Object.freeze({ radius: 8, duration: 4, fuse: 0.22, cooldown: 0.8, maxCharges: 2, burstDuration: 1, screenDuration: 0.5, reducedScreenDuration: 0.4 });
+// 11/26: the full-screen flash was 0.84 white for 0.8 s and hid the very moment the pack freezes; now a 0.5 peak over 0.5 s.
+// The per-zombie "停止 3.2秒" boards are gone (one board per zombie cluttered a pack); the shrinking bar and stars stay,
+// and the count is in the one-line notice ("閃光！ N体が4秒停止").
 
 // One bright pulse, then a smooth afterglow across the entire screen.
 export function flashScreenOpacity(age, reducedMotion = false) {
@@ -10,7 +13,7 @@ export function flashScreenOpacity(age, reducedMotion = false) {
   const duration = reducedMotion ? FLASHBANG.reducedScreenDuration : FLASHBANG.screenDuration;
   const hold = reducedMotion ? 0 : 0.065;
   const fade = Math.max(0, 1 - Math.max(0, age - hold) / (duration - hold));
-  return (reducedMotion ? 0.22 : 0.84) * Math.pow(fade, 1.35);
+  return (reducedMotion ? 0.22 : 0.5) * Math.pow(fade, 1.35);
 }
 
 export function flashCanReach(origin, enemy, raycast) {
@@ -94,7 +97,7 @@ export function createFlashbang(game) {
   }
   function clear() {
     cancelPress();
-    for (const state of affected.values()) { restorePose(state); removeEffect(state); state.texture.dispose(); }
+    for (const state of affected.values()) { restorePose(state); removeEffect(state); }
     affected.clear();
     for (const effect of [...grenades, ...bursts]) removeEffect(effect);
     grenades.length = bursts.length = 0;
@@ -103,10 +106,6 @@ export function createFlashbang(game) {
   function reset() { clear(); charges = 1; skills = 0; cooldown = 0; previousSkill = 'none'; hud(); }
   function marker(enemy) {
     const model = new Group(); model.name = 'Flash stunned zombie'; root.add(model);
-    const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 80;
-    const texture = new CanvasTexture(canvas), mat = new SpriteMaterial({ map: texture, depthWrite: false, fog: false, toneMapped: false });
-    texture.generateMipmaps = false; texture.minFilter = 1006; // THREE.LinearFilter
-    const label = new Sprite(mat); label.scale.set(1.1, 0.344, 1); label.position.y = 0.4; model.add(label);
     const bar = new Mesh(box, materials.yellow); bar.scale.set(1.2, 0.07, 0.06); model.add(bar);
     const stars = [];
     for (let i = 0; i < 4; i++) {
@@ -115,7 +114,7 @@ export function createFlashbang(game) {
     const halo = new Mesh(ring, materials.yellow); halo.scale.setScalar(0.46); halo.rotation.x = Math.PI / 2; model.add(halo);
     const auraMaterial = haloMaterial.clone(); auraMaterial.opacity = 0.2;
     const aura = new Sprite(auraMaterial); aura.scale.set(1.25, enemy.h * 1.4, 1); root.add(aura);
-    return { model, canvas, texture, bar, stars, halo, aura, remaining: FLASHBANG.duration, labelTime: -1, pose: [], ownedMaterials: [mat, auraMaterial], auraMaterial };
+    return { model, bar, stars, halo, aura, remaining: FLASHBANG.duration, pose: [], ownedMaterials: [auraMaterial], auraMaterial };
   }
 
   function updateMarker(enemy, state) {
@@ -129,15 +128,6 @@ export function createFlashbang(game) {
     state.bar.position.x = -0.6 + state.bar.scale.x / 2;
     const phase = (FLASHBANG.duration - state.remaining) * 3;
     state.stars.forEach((star, i) => { const a = phase + i * Math.PI * 2 / 4; star.position.set(Math.cos(a) * 0.55, -0.2 + Math.sin(a) * 0.09, 0);  });
-    const tenth = Math.ceil(state.remaining * 10 - 1e-6);
-    if (tenth !== state.labelTime) {
-      state.labelTime = tenth;
-      const ctx = state.canvas.getContext('2d'); ctx.clearRect(0, 0, 256, 80);
-      ctx.fillStyle = '#142936'; ctx.fillRect(0, 0, 256, 80);
-      ctx.strokeStyle = '#91eaff'; ctx.lineWidth = 5; ctx.strokeRect(3, 3, 250, 74);
-      ctx.fillStyle = '#ffe080'; ctx.font = 'bold 37px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      const label = `停止 ${(tenth / 10).toFixed(1)}秒`; ctx.fillText(window.skyI18n?.tr(label) || label, 128, 40, 240); state.texture.needsUpdate = true;
-    }
   }
   function detonate(grenade) {
     stats.detonated++;
@@ -207,7 +197,7 @@ export function createFlashbang(game) {
     for (const [enemy, state] of affected) {
       state.remaining = Math.max(0, state.remaining - dt);
       if (!state.remaining || enemy.dead || enemy.remove || !Jt.includes(enemy)) {
-        restorePose(state); removeEffect(state); state.texture.dispose(); affected.delete(enemy); continue;
+        restorePose(state); removeEffect(state); affected.delete(enemy); continue;
       }
       updateMarker(enemy, state);
     }

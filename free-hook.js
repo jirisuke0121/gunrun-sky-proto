@@ -2,7 +2,11 @@
 // 狙う足場: 水平14m以内・+2〜+12mの立てる足場のうち、ゾンビから4.5m以上離れていて、そこへ向かう線がどのゾンビからも3m以上離れていて、引く動きが壁や天井で止まらないもの。ゾンビから離れる向きを優先する。
 // 動きは本編のフック（引く→乗り上げる→離す）をそのまま使う。足場の手前に一時的なフックポイントを置いて引かせる。
 (() => {
-  const CFG = Object.freeze({ charges: 2, maxXZ: 14, minRise: 2, maxRise: 12, minZombieGap: 4.5, pathGap: 3, lockSeconds: 1, lift: .8 });
+  // reachUp: 線がゾンビの足元から2.4m以上の高さを通るなら、真下にいても塞がない。tries: 壁で止まる足場を飛ばして試す数（24→48）。
+  // startFree: 飛ぶ線の最初の2.5mは「ゾンビから3m」の判定に入れない。引く動きはすぐ体を浮かせるし、すぐ横のゾンビこそ
+  // 救済を押す理由。線全体で判定していた11/26まで、3m以内にゾンビが1体いるだけで全部の足場が外れ、追い詰められた場面の
+  // 83%で行き先が無かった（tools/rescue-trapped.cjs）。
+  const CFG = Object.freeze({ charges: 2, maxXZ: 14, minRise: 2, maxRise: 12, minZombieGap: 4.5, pathGap: 3, startFree: 2.5, reachUp: 2.4, tries: 48, lockSeconds: 1, lift: .8 });
   addEventListener('load', () => {
     const game = window.__skyInternals, G = window.__game, dock = document.getElementById('skillDock');
     if (!game || !G || !G.NAV || !dock || (window.skyPracticeMode&&!window.skyGuidedMode) || (window.SKY_CANYON_MAP&&(!window.skyGuidedMode||new URLSearchParams(location.search).get('return')==='canyon'))) return;
@@ -40,14 +44,23 @@
     const explain = text => window.skyPlayerClarity?.explain('tRescue',text);
 
     const segDist = (x, z, x0, z0, x1, z1) => { const dx = x1 - x0, dz = z1 - z0, l2 = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((x - x0) * dx + (z - z0) * dz) / l2)); return Math.hypot(x - (x0 + dx * t), z - (z0 + dz * t)); };
+    const LOOSE = Object.freeze({ ...CFG, minZombieGap: 3, pathGap: 2, interior: false });
+    // ゾンビが飛ぶ線を塞ぐか：線の上でいちばん近い点が水平で pathGap 未満、かつその点の高さがゾンビの手の届く高さ（足元+reachUp）より低いとき。
+    // 線の高さは、出発点からの割合 u で出発時の高さから足場の高さへ直線で上がるとみなす（引く動きは最初から上へ向かう）。
+    const blocks = (z, sx, sz, n, rise, u0, o) => {
+      const dx = n.x - sx, dz = n.z - sz, l2 = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((z.pos.x - sx) * dx + (z.pos.z - sz) * dz) / l2));
+      if (Math.hypot(z.pos.x - (sx + dx * t), z.pos.z - (sz + dz * t)) >= o.pathGap) return false;
+      const lineY = c.pos.y + rise * (u0 + (1 - u0) * t);
+      return lineY < z.pos.y + (o.reachUp ?? 99);
+    };
     // 引き終わりの勢い（約3m）で行き過ぎないよう、足場の手前（同じ足場の上）にフックポイントを置く。
-    function makeAnchor(t) {
+    function makeAnchor(t, o = CFG) {
       const dx = t.x - c.pos.x, dz = t.z - c.pos.z, len = Math.hypot(dx, dz) || 1; let back = 0;
       for (const k of [2.5, 2, 1.5, 1, .5]) {
         const bx = t.x - dx / len * k, bz = t.z - dz / len * k;
         if (nodes.some(n => Math.abs(n.y - t.y) < .15 && Math.hypot(n.x - bx, n.z - bz) < .6)) { back = k; break; }
       }
-      return [t.x - dx / len * back, t.y + CFG.lift, t.z - dz / len * back];
+      return [t.x - dx / len * back, t.y + o.lift, t.z - dz / len * back];
     }
     // 本編の引く動き（壁に当たったら壁沿いに上へ、天井に当たったら外れる）を、体の当たり判定で先に試す。
     function dryPull(anchor) {
@@ -65,25 +78,28 @@
     }
 
     // ゾンビのいない方向の高台を選ぶ（引く動きが壁や天井で止まらないことを先に確かめる）。
-    function chooseTarget() {
+    function chooseTarget(o = CFG) {
       const zs = livingZombies(), px = c.pos.x, pz = c.pos.z;
       let ax = 0, az = 0;
       for (const z of zs) { const dx = px - z.pos.x, dz = pz - z.pos.z, d = Math.max(1, Math.hypot(dx, dz)); ax += dx / d / d; az += dz / d / d; }
       const al = Math.hypot(ax, az); if (al > 1e-6) { ax /= al; az /= al; }
       const scored = [];
       for (let id = 0; id < nodes.length; id++) {
-        const n = nodes[id], rise = n.y - c.pos.y; if (!interior[id] || rise < CFG.minRise || rise > CFG.maxRise) continue;
-        const dx = n.x - px, dz = n.z - pz, xz = Math.hypot(dx, dz); if (xz > CFG.maxXZ || xz < 2) continue;
+        const n = nodes[id], rise = n.y - c.pos.y; if ((o.interior !== false && !interior[id]) || rise < o.minRise || rise > o.maxRise) continue;
+        const dx = n.x - px, dz = n.z - pz, xz = Math.hypot(dx, dz); if (xz > o.maxXZ || xz < 2) continue;
+        if (o.why) o.why.inRange = (o.why.inRange || 0) + 1;
         let gap = 99; for (const z of zs) gap = Math.min(gap, Math.hypot(n.x - z.pos.x, n.z - z.pos.z));
-        if (gap < CFG.minZombieGap) continue;
+        if (gap < o.minZombieGap) { if (o.why) o.why.gap = (o.why.gap || 0) + 1; continue; }
         // 飛んでいく線がゾンビの近くを通る足場は選ばない。
-        if (zs.some(z => segDist(z.pos.x, z.pos.z, px, pz, n.x, n.z) < CFG.pathGap)) continue;
+        const skip = Math.min(o.startFree || 0, xz * .5), sx = px + dx / xz * skip, sz = pz + dz / xz * skip;
+        if (zs.some(z => blocks(z, sx, sz, n, rise, skip / xz, o))) { if (o.why) o.why.path = (o.why.path || 0) + 1; continue; }
         const away = al > 1e-6 ? (dx * ax + dz * az) / xz : 0;
         scored.push({ id, n, xz, gap, score: 2 * away + Math.min(gap, 15) / 10 - xz / 20 + rise * .05 });
       }
       scored.sort((a, b) => b.score - a.score);
-      for (const s of scored.slice(0, 24)) {
-        const target = { id: s.id, x: s.n.x, y: s.n.y, z: s.n.z, gap: s.gap, xz: s.xz }, anchor = makeAnchor(target);
+      if (o.why) o.why.scored = scored.length;
+      for (const s of scored.slice(0, o.tries || 24)) {
+        const target = { id: s.id, x: s.n.x, y: s.n.y, z: s.n.z, gap: s.gap, xz: s.xz }, anchor = makeAnchor(target, o);
         if (dryPull(anchor)) return { ...target, anchor };
       }
       return null;
@@ -91,7 +107,8 @@
 
     function activate() {
       if (!available()) { explain(unavailableReason()); return false; }
-      const target = chooseTarget();
+      // 条件どおりの行き先が無いときは、ゾンビとの間隔の条件を一段ゆるめてもう一度探す（どこへも行けないよりよい）。
+      const target = chooseTarget() || chooseTarget(LOOSE);
       if (!target) { explain('安全に登れる高台がありません · 別の足場で使おう'); if(!window.skyPlayerClarity)say('近くに登れる高台がありません'); return false; }
       if (['ledge', 'ladder', 'slide'].includes(c.state)) { c.state = 'normal'; c.ledge = null; c.ladder = null; }
       if (c.state === 'swing') window.skySwing?.handOff?.();

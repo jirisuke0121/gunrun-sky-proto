@@ -12,14 +12,37 @@ export const FALL = Object.freeze({
   maxStun: 1.2,
 });
 
+// Knock-off near a ledge. One pistol hit slides a zombie about 1.9 m (measured 11/26, tools/high-ground-knockoff.cjs),
+// so a zombie that has just climbed up stays on the roof unless it was hit within ~1.5 m of the lip: in the measurement
+// only 6% of hits from high ground ended in a hurting fall. When the push points at a drop of more than 1.5 m within
+// `reach` and nothing solid is in the way, the push is raised just enough to carry it over the lip (at most `maxMul`
+// times the hit's own push). Away from ledges nothing changes.
+export const EDGE = Object.freeze({
+  reach: 2.6,          // m: lips farther than this along the push are left alone
+  minDrop: 1.5,        // m: only a drop that would hurt (FALL.free) counts as a lip
+  clear: .5,           // m: carry this far past the lip
+  slidePerKnock: .24,  // m of slide per 1 m/s of push (1.88 m at 7.8, linear in the measurement)
+  maxMul: 2,
+});
+
+// Distance along (dx, dz) to the first point with no floor within `minDrop` below, or null (wall first, or no lip in reach).
+export function lipAhead(x, y, z, dx, dz, raycast, free, cfg = EDGE) {
+  for (let d = .2; d <= cfg.reach + 1e-6; d += .2) {
+    const px = x + dx * d, pz = z + dz * d;
+    if (free && !free(px, y + .3, pz, .25, 1.4)) return null;
+    if (!raycast(px, y + .4, pz, 0, -1, 0, cfg.minDrop + .4)) return d;
+  }
+  return null;
+}
+
 // Damage in health points, as a share of the zombie's full health: 0 at `free`, all of it at `lethal`.
 export function fallDamage(drop, maxHealth, cfg = FALL) {
   if (!(drop > cfg.free) || !(maxHealth > 0)) return 0;
   return maxHealth * Math.min(1, (drop - cfg.free) / (cfg.lethal - cfg.free));
 }
 
-export function createZombieFall(game, cfg = FALL) {
-  const stats = { knocked: 0, damaged: 0, killed: 0, maxDrop: 0, lastDrop: 0 };
+export function createZombieFall(game, cfg = FALL, edge = EDGE) {
+  const stats = { knocked: 0, damaged: 0, killed: 0, maxDrop: 0, lastDrop: 0, carried: 0 };
   const flights = new WeakMap();
   const maxHealth = zombie => zombie.maxHp ||
     (window.skyChallenge?.value?.('zombieHealth', game.U?.zombieHealth) ?? game.U?.zombieHealth) || zombie.hp;
@@ -58,6 +81,19 @@ export function createZombieFall(game, cfg = FALL) {
   }
 
   const proto = game.ri.prototype, original = proto.update;
+  // Carry a knocked zombie over a near lip (see EDGE). Only for the gun/kick push (r > 0) on a living, ordinary zombie.
+  const raycast = game.raycast, free = game.oe, hurt = proto.hurt;
+  if (raycast && hurt) proto.hurt = function hurtWithLedge(t, e, i, s, r) {
+    const alive = !this.dead;
+    hurt.call(this, t, e, i, s, r);
+    if (!alive || !(r > 0) || this.stalker || this.remove || !Number.isFinite(e) || !Number.isFinite(i)) return;
+    const h = Math.hypot(e, i); if (h < .5) return;
+    const dx = e / h, dz = i / h, lip = lipAhead(this.pos.x, this.pos.y, this.pos.z, dx, dz, raycast, free, edge);
+    if (lip == null) return;
+    const need = (lip + edge.clear) / edge.slidePerKnock, extra = Math.min(r * edge.maxMul, need) - r;
+    if (extra <= 0) return;
+    this.vel.x += dx * extra; this.vel.z += dz * extra; stats.carried++;
+  };
   proto.update = function updateWithFallDamage(dt) {
     const beforeY = this.pos.y;
     original.call(this, dt);

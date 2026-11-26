@@ -17,13 +17,13 @@ const fs = require('node:fs');
   assert.equal(flashCanReach(origin,{...enemy(2,0,0),fall:{wait:1}},clear),false,'hidden spawn excluded');
   assert.equal(flashCanReach(origin,{...enemy(2,0,0),rise:{t:-1}},clear),false);
   const ray = rays[0];assert.ok(Math.abs(Math.hypot(...ray.slice(3,6))-1)<1e-9);assert.ok(ray[6]<2.1);
-  assert.equal(flashScreenOpacity(0),0.84);
-  assert.equal(flashScreenOpacity(0.05),0.84,'brief peak before fading');
-  assert.ok(flashScreenOpacity(0.35)>0.4,'visible full-screen afterglow');
+  assert.equal(flashScreenOpacity(0),0.5);
+  assert.equal(flashScreenOpacity(0.05),0.5,'brief peak before fading');
+  assert.ok(flashScreenOpacity(0.2)>0.2,'visible full-screen afterglow');assert.ok(flashScreenOpacity(0.35)<0.15,'the frozen pack is visible within 0.35 s');
   for (const reduced of [false,true]) {
     let previous=1;
     for(let age=0;age<1.1;age+=0.005){const value=flashScreenOpacity(age,reduced);assert.ok(value>=0&&value<=previous,'one pulse fades without strobing');previous=value}
-    assert.equal(flashScreenOpacity(reduced?0.4:0.8,reduced),0);
+    assert.equal(flashScreenOpacity(reduced?0.4:0.5,reduced),0);
   }
   assert.equal(flashScreenOpacity(0,true),0.22);
   assert.equal(flashScreenOpacity(-1),0);assert.equal(flashScreenOpacity(NaN),0);

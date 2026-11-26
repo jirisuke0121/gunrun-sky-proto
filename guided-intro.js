@@ -2,7 +2,7 @@ import { installGuidedChoice } from './guided-choice.js?v=20261122-no-hybrid-v1'
 import { installGuidedCoach } from './guided-coach.js?v=20261117-no-rotation-v1';
 import { describeLesson } from './guided-prompts.js?v=20261114-no-shoot-lesson-v1';
 import { createLessons } from './guided-lessons.js?v=20261114-no-shoot-lesson-v1';
-import { createPursuit, approachingPursuer } from './guided-defense.js?v=20261113-i18n-v1';
+import { createPursuit, approachingPursuer } from './guided-defense.js?v=20261126-soft-v1';
 // A real input trial followed by a physical course. No action is fired on the player's behalf.
 (() => {
  const params=new URLSearchParams(location.search),$=id=>document.getElementById(id);
