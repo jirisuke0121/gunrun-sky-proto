@@ -31,6 +31,7 @@ Made by jirisuke0121. The in-game list (home screen → クレジット / Credit
 |---|---|---|
 | `assets/combat-feedback/feedback-medium.woff` | Noto Sans JP Medium, subset | SIL Open Font License 1.1 (`assets/combat-feedback/FONT-LICENSE.txt`) |
 | `assets/challenge-score/*.webp`, `assets/combat-feedback/*.png`, `assets/minimap-rim.png`, `assets/lobby/*.svg` | The author's Unity project GunRun (UI art) and the author's own drawings | Origin of the Unity UI art to be confirmed — see "Open checks" |
+| `assets/apple-touch-icon.png` | Artwork supplied by the project owner for the iPhone Home Screen icon | Supplied for use in Zombie Parkour Escape |
 
 ## Open checks (not yet verified — owner to confirm before the Y8 upload)
 
