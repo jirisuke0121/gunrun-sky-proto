@@ -1,0 +1,32 @@
+name: Static and unit checks
+# Fast checks that need no browser. They run on every pull request and on every
+# push to main, with no path filter, so they can be a required status check.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Syntax of every shipped script
+        run: node tools/check-syntax.mjs
+      - name: All unit tests
+        run: |
+          status=0
+          for test in bench/*.test.cjs; do
+            echo "::group::$test"
+            node "$test" || { echo "::error file=$test::failed"; status=1; }
+            echo "::endgroup::"
+          done
+          exit $status
