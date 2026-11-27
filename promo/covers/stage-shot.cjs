@@ -1,5 +1,6 @@
 // Stage the leap at explicit gaps (from gap-scan) and render several cameras per gap in one browser session.
 // env SPECS = JSON [{id,x,z,h,a,apex?}], CAMS = optional JSON, W/H size, OUT dir.
+// env WANT = optional comma list of zombie model file names, one chaser each, in SLOTS order.
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const fs = require('fs');
 const SPECS = JSON.parse(process.env.SPECS);
@@ -15,11 +16,13 @@ const out = process.env.OUT || '/home/claude/hero/v3/s'; fs.mkdirSync(out, { rec
   p.on('pageerror', e => console.log('pageerror', e.message));
   await p.goto(`http://127.0.0.1:8899/index.html?lang=en&start_spot=north-mid&q=high${process.env.MOOD ? '&mood=' + process.env.MOOD : ''}`);
   await p.waitForFunction(() => window.skyStartReadiness?.ready && window.__game);
+  // The townsfolk load after the Unity body; wait for them so WANT can ask for any of them.
+  if (process.env.WANT) await p.waitForFunction(() => (window.__skyInternals?.zombieModels?.() || []).filter(m => m.kind === 'existing').length >= 4);
   await p.evaluate(() => window.__game.startGame());
   await p.waitForFunction(() => window.__game.mode === 'play');
   await p.evaluate((process_warm) => { window.__hold = true; const g = window.__game; for (let i = 0; i < (+process_warm || 60); i++) { window.__skyInternals.U.gunOn = false; g.P.invuln = 99; g.frameOnce(1 / 30); } }, process.env.WARM || 60);
   for (const spec of SPECS) {
-    const r = await p.evaluate(({ spec, CAMS, SLOTS, W, H, process_hide }) => {
+    const r = await p.evaluate(({ spec, CAMS, SLOTS, W, H, process_hide, WANT }) => {
       const g = window.__game, c = g.P, I = window.__skyInternals, U = I.U, T = g.debug, R = T.renderer, S = T.scene, C = T.camera, dt = 1 / 30;
       const step = () => { U.gunOn = false; c.invuln = 99; c.life = 9; g.frameOnce(dt); };
       const top = (x, z, y = 40) => { const h = I.raycast(x, y, z, 0, -1, 0, 80); return h ? y - h.t : -99; };
@@ -28,7 +31,15 @@ const out = process.env.OUT || '/home/claude/hero/v3/s'; fs.mkdirSync(out, { rec
       c.pos.set(ex - dx * 3.6, y0 + .02, ez - dz * 3.6); c.vel.set(0, 0, 0); c.onGround = true; c.state = 'normal'; c.yaw = yawFor;
       for (let i = 0; i < 2; i++) step();
       const keys = g.keys; let jumped = -1, jx = ex, jz = ez;
-      const live = I.Jt.filter(z => !z.dead);
+      // With WANT, spawn until each named model is present, so the picture shows the bodies you choose.
+      const live = WANT ? [] : I.Jt.filter(z => !z.dead);
+      for (const key of WANT || []) {
+        let found = I.Jt.find(z => !z.dead && !live.includes(z) && (z.m?.src?.url || '').includes(key));
+        for (let n = 0; !found && n < 300; n++) { const z = new g.Zombie(ex - dx * 3, y0, ez - dz * 3); g.zombies.push(z);
+          if ((z.m?.src?.url || '').includes(key)) found = z; else { g.zombies.splice(g.zombies.indexOf(z), 1); z.m?.root?.removeFromParent(); } }
+        if (!found) throw new Error('zombie model not spawned: ' + key);
+        live.push(found);
+      }
       const place = () => {
         const slots = SLOTS || [[.3, .45], [1.5, -.95], [2.7, .7], [3.8, -.3]];
         let s = 0;
@@ -106,7 +117,7 @@ const out = process.env.OUT || '/home/claude/hero/v3/s'; fs.mkdirSync(out, { rec
         shots.push({ n: k.n, url: R.domElement.toDataURL('image/png') });
       }
       return { info, shots };
-    }, { spec, CAMS, SLOTS, W: +(process.env.W || 960), H: +(process.env.H || 540), process_hide: !!process.env.HIDEPOLES });
+    }, { spec, CAMS, SLOTS, W: +(process.env.W || 960), H: +(process.env.H || 540), process_hide: !!process.env.HIDEPOLES, WANT: process.env.WANT ? process.env.WANT.split(',') : null });
     console.log(JSON.stringify(r.info));
     for (const s of r.shots) fs.writeFileSync(`${out}/${spec.id}-${s.n}.png`, Buffer.from(s.url.split(',')[1], 'base64'));
   }
