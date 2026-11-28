@@ -120,7 +120,7 @@
 
   // ---- Runtime (browser) ----
   let phase = 'off', planeT = 0, angle = 0, drop = null, box = null, anchor = null, built = null, leaveT = 0, canopyFold = 0;
-  let notice = '', stats = null, armed = false, over = null, overVoid = false, probeT = 0, inside = false, town = null, landable = null, hoverT = 0;
+  let notice = '', stats = null, armed = false, over = null, overVoid = false, probeT = 0, inside = false, town = null, landable = null, settle = null, airT = 0;
   const sky = () => root.__skyInternals, game = () => root.__game;
 
   function graph() { return game()?.NAV || null; }
@@ -270,7 +270,7 @@
     const dx = Math.cos(angle), dz = Math.sin(angle);
     c.vel.set(dx * CONFIG.glideStartSpeed, -CONFIG.glideSink, dz * CONFIG.glideStartSpeed);
     c.onGround = false; c.state = 'normal'; c.airT = 0; c.jumpBuf = 0;
-    canopyFold = 0; leaveT = 0; over = null; overVoid = false; probeT = 0; inside = false; hoverT = 0;
+    canopyFold = 0; leaveT = 0; over = null; overVoid = false; probeT = 0; inside = false; settle = null; airT = 0;
     // Look down at the town (the plane's view looked ahead).
     c.pitch = Math.min(c.pitch, -.72);
     say(controlsText('glide'));
@@ -341,25 +341,40 @@
       const ground = !!hit && c.pos.y - .1 - hit.t > CONFIG.groundMinY;
       overVoid = !ground; if (ground) over = { x: c.pos.x, z: c.pos.z };
     }
-    const outside = !town?.test(c.pos.x, c.pos.z);
-    if (!outside && overVoid && (phase === 'fall' || c.pos.y < CONFIG.lowY)) {
-      // Falling (let go) over a gap, or gliding low over one: head for the nearest walkable spot below the player (a spot it can come down on;
-      // heading back to the last ground point could run into a wall and sink into the gap).
-      let best = null, d = Infinity;
-      for (const n of landable || graph()?.nodes || []) {
-        if (n.y > c.pos.y - .3) continue;
-        const k = Math.hypot(n.x - c.pos.x, n.z - c.pos.z); if (k < d) { d = k; best = n; }
+    // Settling onto a chosen spot: moved there directly (not by velocity, so no wall or ledge of the physics can hold the
+    // player in the air), across at 12 m/s keeping a little above the spot, then straight down onto it.
+    if (settle) {
+      c.vel.set(0, 0, 0);
+      const dx = settle.x - c.pos.x, dz = settle.z - c.pos.z, across = Math.hypot(dx, dz), step = 12 * dt;
+      if (across > step) {
+        c.pos.x += dx / across * step; c.pos.z += dz / across * step;
+        c.pos.y = Math.max(c.pos.y - CONFIG.glideSink * dt, settle.y + .8);
+      } else {
+        c.pos.x = settle.x; c.pos.z = settle.z; c.pos.y -= 9 * dt;
+        if (c.pos.y <= settle.y + .05) { c.pos.y = settle.y + .05; land(false); }
       }
-      if (best && d > .3) {
-        const speed = Math.max(phase === 'glide' ? CONFIG.glideSpeed : 10, Math.hypot(c.vel.x, c.vel.z));
+      return;
+    }
+    // Last resort: the opening never lasts more than 14 s in the air (the nearest spot is used, as for the cloud sea).
+    if ((airT += dt) > 14) { land(true); return; }
+    // Below the rooftops with nothing underneath (a gap in the town, or past its edge): settle onto the nearest spot
+    // that can be landed on from above, below the player if there is one.
+    if (overVoid && c.pos.y < CONFIG.lowY) {
+      const best = nearestLandable(c.pos, c.pos.y - .3, c.vel) || nearestLandable(c.pos, Infinity, c.vel);
+      if (best) { settle = { x: best.x, y: best.y, z: best.z }; return; }
+    }
+    const outside = !town?.test(c.pos.x, c.pos.z);
+    if (!outside && overVoid && phase === 'fall') {
+      // Let go over a gap: drift toward the nearest spot below while falling (and settle onto it if still over the gap
+      // below the rooftops).
+      const best = nearestLandable(c.pos, c.pos.y - .3, c.vel);
+      if (best) {
+        const d = Math.hypot(best.x - c.pos.x, best.z - c.pos.z) || 1, speed = Math.max(10, Math.hypot(c.vel.x, c.vel.z));
         c.vel.x = (best.x - c.pos.x) / d * speed; c.vel.z = (best.z - c.pos.z) / d * speed;
       }
-      // Below the rooftops with nothing underneath: stop sinking until there is ground below again, so a gap is never
-      // fallen into (the move above brings the player over the nearest spot first).
-      // A safety limit: after 2.5 s of waiting the player sinks again (the cloud-sea rescue is the last resort).
-      if (c.pos.y < CONFIG.lowY && (hoverT += dt) < 2.5) c.vel.y = Math.max(c.vel.y, 0);
     } else if (outside) {
-      // Jumped off the plane before reaching the town (nothing under the player yet): head for the drop point instead.
+      // Past the edge of the town (or jumped off the plane before reaching it): head back to the last point with ground
+      // under it, or to the drop point.
       const to = over || drop, dx = to.x - c.pos.x, dz = to.z - c.pos.z, d = Math.hypot(dx, dz) || 1;
       const back = over ? Math.max(phase === 'glide' ? CONFIG.glideSpeed * .6 : 6, Math.hypot(c.vel.x, c.vel.z))
         : Math.max(phase === 'glide' ? CONFIG.glideSpeed : 12, Math.hypot(c.vel.x, c.vel.z));
@@ -368,6 +383,18 @@
     // The rectangle only holds once the player is inside it (a jump from the plane starts outside the town).
     if (!inside && box) inside = c.pos.x >= box.minX && c.pos.x <= box.maxX && c.pos.z >= box.minZ && c.pos.z <= box.maxZ;
     if (inside) contain(c.pos, c.vel, box);
+  }
+  // Nearest spot that can be landed on from above (no higher than maxY). With a heading (horizontal velocity), spots ahead
+  // count as closer and spots behind as farther, so a player crossing a gap is set down on its far side, not turned back.
+  function nearestLandable(pos, maxY, vel = null) {
+    const speed = vel ? Math.hypot(vel.x, vel.z) : 0, hx = speed > 1 ? vel.x / speed : 0, hz = speed > 1 ? vel.z / speed : 0;
+    let best = null, score = Infinity;
+    for (const n of landable || graph()?.nodes || []) {
+      if (n.y > maxY) continue;
+      const dx = n.x - pos.x, dz = n.z - pos.z, k = Math.hypot(dx, dz) - .7 * (dx * hx + dz * hz);
+      if (k < score) { score = k; best = n; }
+    }
+    return best;
   }
   function land(rescued) {
     const s = sky(), c = s.c;
