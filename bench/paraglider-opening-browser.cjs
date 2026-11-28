@@ -9,7 +9,8 @@ const dir=path.resolve(__dirname,'..'),port=process.argv[2]||'18851';
   const ctx=await browser.newContext({viewport:{width:800,height:450}});await ctx.addInitScript(()=>window.__hold=true);
   await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0}'}));
   const page=await ctx.newPage();page.setDefaultTimeout(120000);const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(`http://127.0.0.1:${port}/${url}`);
+  // Japanese UI: the jump button text is checked as written in the code (other languages are i18n.js's job).
+  await page.goto(`http://127.0.0.1:${port}/${url}${url.includes('?')?'&':'?'}lang=ja`);
   await page.waitForFunction(()=>window.__game&&window.skyStartReadiness?.ready);
   await page.locator(`#homeDifficulty [data-difficulty="${difficulty}"]`).first().click();await page.locator('#bStart').click();
   await page.waitForFunction(()=>__game.mode==='play');return{ctx,page,errors}};
