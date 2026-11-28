@@ -1,0 +1,5 @@
+962 Nhảy xuống
+963 “Nhảy xuống” để rơi bất cứ lúc nào · Chờ để thả giữa thị trấn
+964 Space để nhảy xuống · Chờ để thả giữa thị trấn
+965 Cần điều khiển để lái · “Nhảy xuống” để rơi nhanh
+966 WASD để lái · Space để nhảy xuống
