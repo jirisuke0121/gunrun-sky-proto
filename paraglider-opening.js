@@ -18,8 +18,13 @@
   const CONFIG = Object.freeze({
     center: Object.freeze({ x: 0, z: -4 }), dropJitter: 6, dropY: 46,
     planeSeconds: 2.6, planeSpeed: 30, planeLeave: 4,
-    glideSpeed: 9.5, glideAccel: 3.2, glideSink: 5.5, glideStartSpeed: 6,
-    releaseSink: 2, boundsMargin: 3, fallRescueY: -22,
+    glideSpeed: 12.5, glideAccel: 3.2, glideSink: 5.5, glideStartSpeed: 6,
+    releaseSink: 2, boundsMargin: -2, fallRescueY: -22,
+    // Town footprint: within `footprintReach` m of a walkable node. Gaps inside it (roof trenches, gaps between blocks) can be
+    // crossed high up; only below `lowY` does a gap push the player back to ground, so nobody drops into one.
+    footprintCell: 2, footprintReach: 6, lowY: 14,
+    // Ground lower than this is not a landing (the lowest walkable floor is -3.5 m; under the town there is deep structure).
+    groundMinY: -6,
     landInvuln: 1.5, zombieReaction: .4,
   });
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -61,6 +66,24 @@
     if (pos.z > box.maxZ) { pos.z = box.maxZ; if (vel.z > 0) vel.z = 0; hit = true; }
     return hit;
   }
+  // Grid of the town's footprint (cells within `reach` m of a node). test(x, z) -> true over the town or a gap inside it.
+  function footprint(nodes, cell = CONFIG.footprintCell, reach = CONFIG.footprintReach) {
+    const box = bounds(nodes, -reach - cell); if (!box) return { test: () => false };
+    const w = Math.ceil((box.maxX - box.minX) / cell) + 1, h = Math.ceil((box.maxZ - box.minZ) / cell) + 1;
+    const grid = new Uint8Array(w * h), r = Math.ceil(reach / cell);
+    for (const n of nodes) {
+      const cx = Math.round((n.x - box.minX) / cell), cz = Math.round((n.z - box.minZ) / cell);
+      for (let dz = -r; dz <= r; dz++) for (let dx = -r; dx <= r; dx++) {
+        const x = cx + dx, z = cz + dz;
+        if (x < 0 || z < 0 || x >= w || z >= h || Math.hypot(dx, dz) * cell > reach + cell * .5) continue;
+        grid[z * w + x] = 1;
+      }
+    }
+    return { test(x, z) {
+      const cx = Math.round((x - box.minX) / cell), cz = Math.round((z - box.minZ) / cell);
+      return cx >= 0 && cz >= 0 && cx < w && cz < h && grid[cz * w + cx] === 1;
+    } };
+  }
   // The plane comes in from `angle` and passes over the drop point after `planeSeconds`.
   function planeAt(drop, angle, t, config = CONFIG) {
     const dx = Math.cos(angle), dz = Math.sin(angle), along = (t - config.planeSeconds) * config.planeSpeed;
@@ -92,19 +115,25 @@
     return picks;
   }
 
-  const api = { CONFIG, OPENING, enabled, bounds, steer, contain, planeAt, yawFor, rankDanger };
+  const api = { CONFIG, OPENING, enabled, bounds, footprint, steer, contain, planeAt, yawFor, rankDanger };
   if (typeof module === 'object' && module.exports) { module.exports = api; return; }
 
   // ---- Runtime (browser) ----
   let phase = 'off', planeT = 0, angle = 0, drop = null, box = null, anchor = null, built = null, leaveT = 0, canopyFold = 0;
-  let notice = '', stats = null, armed = false, over = null, overVoid = false, probeT = 0, inside = false;
+  let notice = '', stats = null, armed = false, over = null, overVoid = false, probeT = 0, inside = false, town = null, landable = null, hoverT = 0;
   const sky = () => root.__skyInternals, game = () => root.__game;
 
   function graph() { return game()?.NAV || null; }
   function anchorPoint() {
     if (!enabled()) return null;
     const nav = graph(); if (!nav?.nodes?.length) return null;
-    box = box || bounds(nav.nodes);
+    box = box || bounds(nav.nodes); town = town || footprint(nav.nodes);
+    // Spots the player can come straight down on: a solid top within 0.3 m of the node, found by a ray from 3 m above
+    // (ropes, bars and other thin parts have nodes but nothing a falling body would stop on).
+    if (!landable) {
+      const s = sky();
+      landable = nav.nodes.filter(n => { const hit = s.raycast(n.x, n.y + 3, n.z, 0, -1, 0, 3.5); return hit && Math.abs(n.y + 3 - hit.t - n.y) < .3; });
+    }
     // The run is set up from one of the measured high-ground start spots (start-spots.js), as before: the first zombies are
     // placed from it and the crate candidates are found from it. Then the player is lifted into the plane. So the waiting
     // zombies (and the dangerous spots) change from run to run, and every spot is one whose zombie arrival was measured.
@@ -241,7 +270,7 @@
     const dx = Math.cos(angle), dz = Math.sin(angle);
     c.vel.set(dx * CONFIG.glideStartSpeed, -CONFIG.glideSink, dz * CONFIG.glideStartSpeed);
     c.onGround = false; c.state = 'normal'; c.airT = 0; c.jumpBuf = 0;
-    canopyFold = 0; leaveT = 0; over = null; overVoid = false; probeT = 0; inside = false;
+    canopyFold = 0; leaveT = 0; over = null; overVoid = false; probeT = 0; inside = false; hoverT = 0;
     // Look down at the town (the plane's view looked ahead).
     c.pitch = Math.min(c.pitch, -.72);
     say(controlsText('glide'));
@@ -302,16 +331,35 @@
     const c = sky().c;
     if (c.onGround || c.state !== 'normal') { land(false); return; }
     if (phase === 'glide') { const v = steer(c.vel, input(), c.yaw, dt); c.vel.set(v.x, v.y, v.z); }
-    // The town is not a rectangle: it has gaps down to the cloud sea. Probe straight down (30 times a second); over a gap,
-    // head back to the last point that had ground under it, so the edge of the town acts like a soft wall.
+    // Where the player may go: anywhere over the town's footprint (gaps inside it included, high up). Outside the footprint
+    // (the cloud sea around the town) the edge acts like a soft wall; low over a gap inside the town, the player is steered
+    // back to ground so nobody sinks into one. Ground is probed straight down 30 times a second.
     probeT -= dt;
     if (probeT <= 0) {
       probeT = 1 / 30;
       const hit = sky().raycast(c.pos.x, c.pos.y - .1, c.pos.z, 0, -1, 0, 160);
-      overVoid = !hit; if (hit) over = { x: c.pos.x, z: c.pos.z };
+      const ground = !!hit && c.pos.y - .1 - hit.t > CONFIG.groundMinY;
+      overVoid = !ground; if (ground) over = { x: c.pos.x, z: c.pos.z };
     }
-    // Jumped off the plane before reaching the town (nothing under the player yet): head for the drop point instead.
-    if (overVoid) {
+    const outside = !town?.test(c.pos.x, c.pos.z);
+    if (!outside && overVoid && (phase === 'fall' || c.pos.y < CONFIG.lowY)) {
+      // Falling (let go) over a gap, or gliding low over one: head for the nearest walkable spot below the player (a spot it can come down on;
+      // heading back to the last ground point could run into a wall and sink into the gap).
+      let best = null, d = Infinity;
+      for (const n of landable || graph()?.nodes || []) {
+        if (n.y > c.pos.y - .3) continue;
+        const k = Math.hypot(n.x - c.pos.x, n.z - c.pos.z); if (k < d) { d = k; best = n; }
+      }
+      if (best && d > .3) {
+        const speed = Math.max(phase === 'glide' ? CONFIG.glideSpeed : 10, Math.hypot(c.vel.x, c.vel.z));
+        c.vel.x = (best.x - c.pos.x) / d * speed; c.vel.z = (best.z - c.pos.z) / d * speed;
+      }
+      // Below the rooftops with nothing underneath: stop sinking until there is ground below again, so a gap is never
+      // fallen into (the move above brings the player over the nearest spot first).
+      // A safety limit: after 2.5 s of waiting the player sinks again (the cloud-sea rescue is the last resort).
+      if (c.pos.y < CONFIG.lowY && (hoverT += dt) < 2.5) c.vel.y = Math.max(c.vel.y, 0);
+    } else if (outside) {
+      // Jumped off the plane before reaching the town (nothing under the player yet): head for the drop point instead.
       const to = over || drop, dx = to.x - c.pos.x, dz = to.z - c.pos.z, d = Math.hypot(dx, dz) || 1;
       const back = over ? Math.max(phase === 'glide' ? CONFIG.glideSpeed * .6 : 6, Math.hypot(c.vel.x, c.vel.z))
         : Math.max(phase === 'glide' ? CONFIG.glideSpeed : 12, Math.hypot(c.vel.x, c.vel.z));
@@ -375,7 +423,7 @@
     mark.visible = false;
     if (phase === 'glide' || phase === 'fall') {
       const hit = s.raycast(c.pos.x, c.pos.y - .1, c.pos.z, 0, -1, 0, 120);
-      if (hit) { mark.visible = true; mark.position.set(c.pos.x, c.pos.y - .1 - hit.t + .06, c.pos.z); }
+      if (hit && c.pos.y - .1 - hit.t > CONFIG.groundMinY) { mark.visible = true; mark.position.set(c.pos.x, c.pos.y - .1 - hit.t + .06, c.pos.z); }
     }
   }
   function publish() {
