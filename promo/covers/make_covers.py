@@ -43,6 +43,6 @@ L.save('cover-landscape-1920x1080.jpg',quality=90)
 S=grade(RAW.crop((760,0,2560,1800)).resize((800,800),Image.LANCZOS)); S=shade(S,'top'); S=title(S,40,34,70)
 S.save('cover-square-800x800.jpg',quality=90)
 # Portrait 800x1200: lead zombie and runner, title top centre
-P=grade(RAW.crop((1160,0,2360,1800)).resize((800,1200),Image.LANCZOS)); P=shade(P,'bottom'); P=title(P,400,880,98,align='center')
+P=grade(RAW.crop((1040,0,2240,1800)).resize((800,1200),Image.LANCZOS)); P=shade(P,'bottom'); P=title(P,400,880,98,align='center')
 P.save('cover-portrait-800x1200.jpg',quality=90)
 for n,im in [('L',L),('S',S),('P',P)]: print(n,im.size)
