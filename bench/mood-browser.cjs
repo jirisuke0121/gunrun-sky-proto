@@ -16,11 +16,16 @@ async function open(browser,base,query){
  const ctx=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true,locale:'ja-JP'});
  // スマホの既定は影なし（2026-11-21）。暗さは影ありの高精細（いちばん暗くなる条件）で比べるので、画質を固定する。
  await ctx.addInitScript(()=>{try{localStorage.setItem('gunrun-render-quality-v1','high')}catch{}});
+ // 3画面を同じ場面で比べる。画面は順に開くので、ゲームを動かしたままだと測る時点の場面（ゾンビの位置・カメラに写る物）が
+ // 画面ごとに違い、ゲーム自身のカメラの暗さが毎回変わる。描画ループは止め（止めた画面は次の画面の読み込みも邪魔しない）、
+ // 乱数を固定して、開始後に同じコマ数だけ進める。
+ await ctx.addInitScript(()=>{window.__hold=true;let a=0x9e3779b9;Math.random=()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t^=t+Math.imul(t^t>>>7,61|t);return((t^t>>>14)>>>0)/4294967296}});
  await ctx.route('https://**/*',r=>r.fulfill({status:200,contentType:'application/json',body:'{"top":[],"total":0,"ok":true}'}));
  const p=await ctx.newPage(),errors=[];p.setDefaultTimeout(120000);p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error'&&!/GL Driver|Ignored attempt/.test(m.text()))errors.push(m.text())});
  await p.goto(base+`index.html?camera=after&lang=ja&controlpick=0&hookGuide=0&dev=1${query}`);
  await p.waitForFunction(()=>window.skyStartReadiness?.ready&&document.body.dataset.skyHumanLoaded==='true'&&window.skyLookInfo);
- await p.locator('#bStart').tap();await p.waitForTimeout(2500);
+ await p.locator('#bStart').tap();await p.waitForFunction(()=>__game.mode==='play');
+ await p.evaluate(()=>{for(let i=0;i<150;i++)__game.frameOnce(1/60)});
  return{ctx,p,errors};
 }
 // share of near-black pixels from a fixed camera
@@ -33,7 +38,8 @@ async function dark(p,view){
     if(window.__moodGrab&&c===g.Se){window.__moodGrab=false;const k=document.createElement('canvas');k.width=r.domElement.width>>2;k.height=r.domElement.height>>2;const x=k.getContext('2d',{willReadFrequently:true});x.drawImage(r.domElement,0,0,k.width,k.height);
      const d=x.getImageData(0,0,k.width,k.height).data;let n=0;for(let i=0;i<d.length;i+=4)if(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2]<40)n++;window.__moodDark=n/(d.length/4);}};
   }
-  window.__moodView=v;window.__moodDark=null;setTimeout(()=>{window.__moodGrab=true;const t=setInterval(()=>{if(window.__moodDark!==null){clearInterval(t);resolve(window.__moodDark)}},30)},700);
+  // the loop is held: draw by hand. A few frames first, because the shadow map refreshes every other frame.
+  window.__moodView=v;window.__moodDark=null;for(let i=0;i<4;i++)window.__game.frameOnce(0);window.__moodGrab=true;window.__game.frameOnce(0);resolve(window.__moodDark);
  }),view);
 }
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}/`;
@@ -98,7 +104,7 @@ async function dark(p,view){
    assert.ok(b<=.2&&b-a<.12,`dusk is too dark in a fixed view (${JSON.stringify(view)}): noon ${a} -> dusk ${b}`);
    assert.ok(c<=.2&&c-a<.12,`dawn is too dark in a fixed view (${JSON.stringify(view)}): noon ${a} -> dawn ${c}`);}
   for(const o of [noon,dusk,dawn])assert.deepEqual(o.errors,[],'no page errors');
-  // switches that remove things, checked one page at a time at the end (five live pages at once starve the software GPU)
+  // switches that remove things, checked one page at a time at the end (extra pages cost memory on the software GPU)
   for(const o of [noon,dusk,dawn])await o.ctx.close();
   const nocontact=await open(browser,base,'&contact=0');
   assert.equal(await nocontact.p.evaluate(()=>window.__skyInternals.ue.children.some(c=>c.name==='Contact shadow')),false,'?contact=0 removes the contact shadow');
