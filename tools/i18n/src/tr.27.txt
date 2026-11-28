@@ -1,0 +1,4 @@
+958 Yönlendirmek için çubuk · Bırakıp düşmek için zıpla
+959 Yönlendirmek için WASD · Bırakıp düşmek için Space
+960 Atlayış yakında · İstediğin yere süzül
+961 İndin · Kaç!

@@ -113,6 +113,26 @@ export function createWeaponDrops(sky, game) {
     sequence++; spawned++;
     if(!window.skyPlayerClarity)sky.rn(`${type.name}の武器箱が出現 · 光る箱に触れると装備・弾を補充`);
   }
+  // Paraglider opening (paraglider-opening.js): crates are put down before the player lands, on the spots where the waiting
+  // zombies stand thickest (strongest weapon at the most dangerous spot). They are already on the ground, so their light
+  // pillars can be seen from the glider. Returns what was placed (for the test hook).
+  function seedOpening(zombies) {
+    const rank = window.skyParaglider?.rankDanger;
+    if (!rank || !candidates.length || z.mission) return [];
+    const placed = [];
+    for (const pick of rank(candidates, zombies)) {
+      const item = items.find(i => !i.node);
+      if (!item) break;
+      item.node = pick.node; item.type = pick.type; item.age = FALL_SECONDS;
+      const material = materials[item.type];
+      item.band.material = item.ring.material = item.beam.material = material.color;
+      item.pillarMaterial.color.setHex(TYPES[item.type].pillar); item.glowMaterial.color.setHex(TYPES[item.type].pillar);
+      item.label.material = material.label; item.group.position.set(pick.node.x, pick.node.y + 1, pick.node.z);
+      spawned++;
+      placed.push({ weapon: TYPES[item.type].name, position: [pick.node.x, pick.node.y, pick.node.z], danger: pick.danger });
+    }
+    return placed;
+  }
   function collect(item) {
     const type = TYPES[item.type], profile = sky.WP[type.index];
     U.gunOn = true; sky.equipWeapon(type.index);
@@ -129,11 +149,13 @@ export function createWeaponDrops(sky, game) {
   function step(dt) {
     if(window.skyPracticeMode)return;
     if (sky.modeRef() !== 'play' || z.over || z.mission) return;
-    elapsed += dt;
+    // While the paraglider opening holds the run (not landed yet), the drop clock and crate lifetimes wait too.
+    const held = !!window.skyParaglider?.holding?.();
+    if (!held) elapsed += dt;
     const to = c.pos.toArray(), from = previous && Math.hypot(...to.map((v, k) => v - previous[k])) < 4 ? previous : to;
     for (const item of items) {
       if (!item.node) continue;
-      item.age += dt;
+      if (!held) item.age += dt;
       if (item.age + 1e-6 >= ITEM_SECONDS) { item.node = null; continue; }
       if (item.age < FALL_SECONDS || window.skyJumpGun?.presenting || ['ledge', 'ladder', 'swing'].includes(c.state)) continue;
       const point = [item.node.x, item.node.y + 1, item.node.z];
@@ -171,5 +193,5 @@ export function createWeaponDrops(sky, game) {
   }
   // Landed, collectable crates (for the ammo direction pin in edge-pins.js).
   const crates = () => items.filter(i => i.node && i.age >= FALL_SECONDS).map(i => ({ x: i.node.x, y: i.node.y + 1, z: i.node.z, weapon: TYPES[i.type].name }));
-  return { reset, placePickups, step, frame, crates };
+  return { reset, placePickups, seedOpening, step, frame, crates };
 }

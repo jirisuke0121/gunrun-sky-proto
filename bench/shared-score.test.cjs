@@ -184,10 +184,20 @@ function policyFixture(practice = false) {
   const v14board=await get('/ranking?'+v14scope);
   assert.equal(v14board.total,1);assert.equal(v14board.top[0].runId,v14.clientRunId);assert.equal(v14board.top[0].stars,0);
   assert.deepEqual((await get('/ghosts/'+v14.clientRunId+'?'+v14scope)).ghost.samples,ghost.samples);
-  assert.equal((await get('/ranking?'+scope)).top.some(r=>r.runId===v14.clientRunId),false,'v14 never enters v15');
+  assert.equal((await get('/ranking?'+scope)).top.some(r=>r.runId===v14.clientRunId),false,'v14 never enters the current rules');
   const badV14=structuredClone(v14);badV14.clientRunId=crypto.randomUUID();badV14.player='bad-v14';badV14.score.total++;
   assert.equal((await post(badV14)).receipt.ranked,false,'cached clients still require valid score arithmetic');
   assert.equal((await get('/ranking?'+v14scope)).total,1);
+  // Cached v15 clients (start spots, no paraglider opening) likewise keep their own board and replay while v16 rolls out.
+  const v15=make('cached-v15','hard',9100,{ghost});v15.challenge.version='corridor-balanced-score-v15';
+  assert.equal((await post(v15)).receipt.ranked,true);
+  const v15scope='map=old-town&rules=corridor-balanced-score-v15&mode=score&difficulty=all';
+  const v15board=await get('/ranking?'+v15scope);
+  assert.equal(v15board.total,1);assert.equal(v15board.top[0].runId,v15.clientRunId);
+  assert.deepEqual((await get('/ghosts/'+v15.clientRunId+'?'+v15scope)).ghost.samples,ghost.samples);
+  assert.equal((await get('/ranking?'+scope)).top.some(r=>r.runId===v15.clientRunId),false,'v15 never enters v16');
+  const badV15=structuredClone(v15);badV15.clientRunId=crypto.randomUUID();badV15.player='bad-v15';badV15.score.total++;
+  assert.equal((await post(badV15)).receipt.ranked,false,'cached v15 clients still require valid score arithmetic');
 
   // Parkour clear (no shots, no kills) is validated against the stored stats; the jump gun does not count as shooting.
   const parkour=make('parkour','hard',1);parkour.stats={};parkour.score=evaluate(120,0,2,{damageUnits:0,gunShots:0});

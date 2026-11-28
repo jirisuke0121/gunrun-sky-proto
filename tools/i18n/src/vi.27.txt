@@ -1,0 +1,4 @@
+958 Cần điều khiển để lái · Nhảy để buông dù và rơi xuống
+959 WASD để lái · Space để buông dù và rơi xuống
+960 Sắp nhảy · Lượn xuống bất cứ đâu bạn muốn
+961 Đã tiếp đất · Chạy thoát!

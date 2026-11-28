@@ -20,7 +20,7 @@ import { createEasyWeaponPort, reloadLowered, UNITY_WEAPONS } from './easy-weapo
 import { createUnityExplosionFx } from './unity-explosion-fx.js?v=20261124-blast-v12';
 import { createFirstPersonWeapons } from './first-person-weapons.js?v=20261122-first-person-v2';
 import { createJumpPickups } from './jump-pickups.js?v=20261101-jump-stash-v1';
-import { createWeaponDrops } from './weapon-drops.js?v=20261114-crate-pillar-v3';
+import { createWeaponDrops } from './weapon-drops.js?v=20261128-paraglider-v1';
 import { createDash } from './dash-boost.js?v=20261124-close-cam-v1';
 import { mergeStaticMaterialGroups } from './world-batching.js?v=20261122-no-fade-v1';
 import { installWallReadability } from './wall-readability.js?v=20261106-south-v1';

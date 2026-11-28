@@ -1,0 +1,4 @@
+958 Stick para dirigir · Salta para soltarte y caer
+959 WASD para dirigir · Space para soltarte y caer
+960 Salto inminente · Planea hasta donde quieras
+961 Aterrizaste · ¡Escapa!
