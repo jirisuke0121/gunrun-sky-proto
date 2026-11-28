@@ -42,7 +42,8 @@
   root.innerHTML = `<div class="onb-card">
     <header><p class="onb-kicker">GUNRUN · PARKOUR SURVIVAL</p><h2 id="onbTitle">コツ</h2>
       <p class="onb-lead" data-for="again">2分間、ゾンビから逃げ切ろう。自分で移動して逃げ道を選び、銃の自動照準・射撃で逃げる時間を作ります。</p>
-      <p class="onb-lead" data-for="name">ランキングに表示される名前です。あとからでも決められます。</p></header>
+      <p class="onb-lead" data-for="name">ランキングに表示される名前です。あとからでも決められます。</p>
+      <p class="onb-lead" data-for="need">ランキングに記録するため、ニックネームを決めてください。</p></header>
     <ol class="onb-steps">
       <li><b>走る・跳ぶ</b><span class="onb-pc"><kbd>W A S D</kbd> 移動　<kbd>Space</kbd> ジャンプ　<kbd>Q</kbd> 技（フック・爆破）　<kbd>E</kbd> スライド</span><span id="onbTouchMove" class="onb-touch">左側に指を置き、上へずらして押したまま前進。離すと停止。「ジャンプ」で跳ぶ</span></li>
       <li><b id="onbLookTitle">視点を回す</b><span id="onbPcLook" class="onb-pc"><kbd>マウス</kbd> で視点を動かす</span><span id="onbTouchLook" class="onb-touch"></span></li>
@@ -99,8 +100,9 @@
     $('onbIntro').disabled = !ready;
     $('onbIntro').textContent = ready ? '入門モードで練習する' : '読み込み中…';
   }
-  function openDialog(kind) {
+  function openDialog(kind, required = false) {
     mode = root.dataset.mode = kind;
+    if (required) root.dataset.required = '1'; else delete root.dataset.required;
     input.value = savedName(); error.textContent = ''; input.removeAttribute('aria-invalid');
     $('onbTitle').textContent = kind === 'name' ? 'ニックネームを決めよう' : 'コツ';
     $('onbMain').textContent = kind === 'name' ? 'あとで' : '閉じる';
@@ -117,15 +119,34 @@
     if (kind === 'name') input.focus({ preventScroll: true }); else buildTips();
   }
   function closeDialog() { stopTips(); root.hidden = true; document.body.classList.remove('onb-open'); }
+  // ---- Name gate (2026-11-28) ----
+  // A ranked run (Easy/Normal/Hard) needs a nickname from the second recorded run on: the first real run after the 入門
+  // course stays name-free (the name is asked after its result, skippable), but anyone who has played and still has no
+  // name is asked before the next start, so a run never shows on the board as a bare device tag. Not in automated
+  // browsers (the bench scripts) unless ?onboarding=auto or ?namegate=1, not in dev/qa/replay/practice.
+  const gateOn = storageOk && !window.skyDevMode && !['practice', 'oldtown_swing', 'dev', 'replay', 'qa'].some(key => params.has(key))
+    && (navigator.webdriver !== true || params.get('onboarding') === 'auto' || params.get('namegate') === '1') && params.get('namegate') !== '0';
+  const playedBefore = () => { try { return (JSON.parse(read('gunrun-run-history-v1') || '[]') || []).some(row => row && row.state !== 'excluded'); } catch { return false; } };
+  const needsName = () => gateOn && !savedName() && ['easy', 'normal', 'hard'].includes(window.skyChallenge?.id) && playedBefore();
+  let gated = null;
+  document.addEventListener('click', event => {
+    const button = event.target.closest?.('#bStart, #bRetry, #unityRetry');
+    if (!button || !needsName()) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    gated = button; openDialog('name', true);
+  }, true);
   $('onbSave').addEventListener('click', () => {
     if (!input.value.trim()) { error.textContent = '名前を入力してください'; input.focus(); return; }
-    if (commitName()) closeDialog();
+    if (!commitName()) return;
+    closeDialog();
+    // A start that was held back for the name goes on now.
+    const held = gated; gated = null; if (held && !needsName()) held.click();
   });
   $('onbIntro').addEventListener('click', () => { if (!commitName() || !courseReady()) return; closeDialog(); openCourse(); });
-  $('onbMain').addEventListener('click', () => { if (mode === 'name' && !input.value.trim()) { closeDialog(); return; } if (commitName()) closeDialog(); });
+  $('onbMain').addEventListener('click', () => { if (root.dataset.required) return; if (mode === 'name' && !input.value.trim()) { closeDialog(); return; } if (commitName()) closeDialog(); });
   $('onbSettings').addEventListener('click', () => { if (!commitName()) return; closeDialog(); $('bSettings')?.click(); });
   input.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); $(mode === 'name' ? 'onbSave' : 'onbIntro').click(); } });
-  root.addEventListener('keydown', event => { if (event.key === 'Escape') $('onbMain').click(); });
+  root.addEventListener('keydown', event => { if (event.key === 'Escape' && !root.dataset.required) $('onbMain').click(); });
   if (startButton) new MutationObserver(syncIntro).observe(startButton, { attributes: true, attributeFilter: ['disabled'] });
 
   // Always reachable from the home screen: the tips (the nickname is edited from the name chip).

@@ -1,7 +1,7 @@
 name: Intro tutorial
 on:
   pull_request:
-    paths: ['onboarding.*', 'first-run-guide.*', 'index.html', 'canyon.html', 'bench/onboarding*', 'bench/first-run-guide*', '.github/workflows/onboarding.yml']
+    paths: ['onboarding.*', 'first-run-guide.*', 'index.html', 'canyon.html', 'bench/onboarding*', 'bench/first-run-guide*', 'bench/name-gate*', '.github/workflows/onboarding.yml']
 permissions:
   contents: read
 jobs:
@@ -27,3 +27,5 @@ jobs:
         run: node bench/onboarding-browser.cjs
       - name: First-run lights (mission clock, score multipliers)
         run: node bench/first-run-guide-browser.cjs
+      - name: Name gate (second ranked run needs a nickname)
+        run: node bench/name-gate-browser.cjs

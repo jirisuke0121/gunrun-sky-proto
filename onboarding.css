@@ -109,3 +109,6 @@ html:not([lang=ja]) #app:not([data-fit=roomy]) #onbSplash .onb-splash-card h1{fo
 #app:not([data-fit=roomy]) #onbSplash .onb-start{min-height:46px;min-width:min(260px,100%);font-size:16px;margin-top:2px}
 #app:not([data-fit=roomy]) #onbSplash .onb-privacy{right:max(18px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));font-size:10.5px}
 #app[data-fit=tight] #onbSplash .onb-splash-sub{display:none}
+#onboarding .onb-lead[data-for=need]{display:none}
+#onboarding[data-required] .onb-lead[data-for=need]{display:block}
+#onboarding[data-required] .onb-lead[data-for=name],#onboarding[data-required] #onbMain,#onboarding[data-required] #onbSettings{display:none}

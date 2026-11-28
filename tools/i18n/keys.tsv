@@ -965,6 +965,7 @@
 964	スペースで飛び降りる · 待てば中央で降下	Space to jump off · Wait to drop over the middle
 965	スティックで移動 · 「飛び降りる」で急降下	Stick to steer · “Jump off” to drop fast
 966	WASDで移動 · スペースで飛び降りる	WASD to steer · Space to jump off
+967	ランキングに記録するため、ニックネームを決めてください。	Choose a nickname so your runs can be recorded in the ranking.
 p0	^(\\d+)秒停止$	Stun $1s
 p1	^技あと(\\d+)$	$1 moves
 p2	^装填中 · あと([\\d.]+)秒$	Reloading · $1 s left
