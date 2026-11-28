@@ -1,0 +1,5 @@
+962 Saltar
+963 “Saltar” para cair a qualquer hora · Espere para cair no centro
+964 Space para saltar · Espere para cair no centro
+965 Analógico para guiar · “Saltar” para cair rápido
+966 WASD para guiar · Space para saltar

@@ -1,0 +1,5 @@
+962 Aşağı atla
+963 İstediğin an “Aşağı atla” · Beklersen ortaya bırakılırsın
+964 Atlamak için Space · Beklersen ortaya bırakılırsın
+965 Yönlendirmek için çubuk · Hızlı inmek için “Aşağı atla”
+966 Yönlendirmek için WASD · Atlamak için Space

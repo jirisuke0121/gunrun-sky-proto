@@ -22,7 +22,8 @@ const dir=path.resolve(__dirname,'..'),port=process.argv[2]||'18851';
  // 1. Ranked difficulties start on the plane, high over the town; the clock and the zombies wait.
  for(const difficulty of ['easy','normal','hard']){
   const {ctx,page,errors}=await open('index.html?paraglider=1',{difficulty});
-  const s0=await state(page);assert.equal(s0.phase,'plane',`${difficulty}: on the plane`);assert.ok(s0.y>40,`${difficulty}: high (${s0.y})`);
+  const s0=await state(page);assert.equal(s0.phase,'plane',`${difficulty}: on the plane`);
+  assert.equal(await page.evaluate(()=>document.getElementById('tJump').textContent),'飛び降りる','jump button reads 飛び降りる on the plane');assert.ok(s0.y>40,`${difficulty}: high (${s0.y})`);
   assert.ok(s0.zombies.length>0,`${difficulty}: zombies are already waiting`);
   await run(page,1.5);const s1=await state(page);
   assert.equal(s1.phase,'plane');assert.equal(s1.t,0,'clock waits on the plane');assert.ok(moved(s0,s1)<.01,'zombies wait on the plane');
@@ -46,7 +47,8 @@ const dir=path.resolve(__dirname,'..'),port=process.argv[2]||'18851';
   await page.evaluate(()=>{__skyInternals.c.jumpBuf=.15});await run(page,.5);const s3=await state(page);
   assert.equal(s3.phase,'fall','let go of the glider');assert.ok(s3.vy<-8,`falls fast (${s3.vy.toFixed(1)})`);
   await run(page,8);const s4=await state(page);
-  assert.equal(s4.phase,'off','landed');assert.ok(s4.stats.landed,'landing recorded');assert.equal(s4.stats.rescued,false,'landed on the town');
+  assert.equal(s4.phase,'off','landed');
+  assert.equal(await page.evaluate(()=>document.getElementById('tJump').textContent),'ジャンプ','jump button back to ジャンプ after landing');assert.ok(s4.stats.landed,'landing recorded');assert.equal(s4.stats.rescued,false,'landed on the town');
   await page.evaluate(()=>{for(let i=0;i<180;i++)__game.frameOnce(1/60)});const s5=await state(page);
   assert.ok(s5.t>2.9&&s5.t<3.1,`clock runs from the landing (${s5.t.toFixed(2)})`);assert.ok(moved(s4,s5)>.5,'zombies chase after the landing');
   assert.ok(s5.drops.elapsed>2.9,'weapon-drop clock runs after landing');
@@ -67,7 +69,27 @@ const dir=path.resolve(__dirname,'..'),port=process.argv[2]||'18851';
     I.keys.KeyW=false;res.push({t,rescued:skyParaglider.stats.rescued,phase:skyParaglider.phase})}return res});
   assert.ok(out.every(r=>r.phase==='off'&&r.t<12),'every descent lands within 12 s');assert.equal(out.filter(r=>r.rescued).length,0,'no descent falls into the cloud sea');
   console.log('PASS edges',out.map(r=>r.t.toFixed(1)).join(' '));await ctx.close();}
- // 7. ?paraglider=0 keeps the old start.
+ // 7. Jump off the plane early (still outside the town): glide starts there, heads for the town and lands on it.
+ {const {ctx,page,errors}=await open('index.html?paraglider=1');
+  await run(page,.3);await page.evaluate(()=>{__skyInternals.c.jumpBuf=.15});await run(page,.1);const s=await state(page);
+  assert.equal(s.phase,'glide','jumped off the plane');assert.ok(s.stats.jumpedOff<.5,`early (${s.stats.jumpedOff} s)`);
+  assert.ok(Math.hypot(s.x-s.stats.drop[0],s.z-s.stats.drop[2])>50,'far from the drop point');
+  assert.equal(await page.evaluate(()=>document.getElementById('tJump').textContent),'飛び降りる','still 飛び降りる under the glider');
+  await run(page,14);const e=await state(page);
+  assert.equal(e.phase,'off','landed');assert.equal(e.stats.rescued,false,'reached the town');
+  await page.evaluate(()=>__game.frameOnce(1/60));
+  assert.equal(await page.evaluate(()=>document.getElementById('tJump').textContent),'ジャンプ');
+  // Any moment on the plane, glide or let go: always lands on the town.
+  const out=await page.evaluate(()=>{const I=__skyInternals,res=[];let seed=5;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+   for(let r=0;r<8;r++){
+    // From the home screen (not a retry), so every run has the plane.
+    __game.setMode('menu');__game.startGame();
+    const c=I.c,off=rnd()*2.4,rel=r%2?off+1+rnd()*3:99;let t=0;
+    while(skyParaglider.phase!=='off'&&t<25){if(skyParaglider.phase==='plane'&&t>=off)c.jumpBuf=.15;if(skyParaglider.phase==='glide'&&t>=rel)c.jumpBuf=.15;__game.advance(1/60);t+=1/60}
+    res.push({off:+off.toFixed(2),t:+t.toFixed(1),rescued:skyParaglider.stats.rescued,phase:skyParaglider.phase})}return res});
+  assert.ok(out.every(r=>r.phase==='off'),'all landed '+JSON.stringify(out));assert.equal(out.filter(r=>r.rescued).length,0,'none fell into the cloud sea '+JSON.stringify(out));
+  assert.equal(errors.length,0,errors.join('\n'));console.log('PASS plane jump-off',out.map(r=>r.off+'s→'+r.t+'s').join(' '));await ctx.close();}
+ // 8. ?paraglider=0 keeps the old start.
  {const {ctx,page}=await open('index.html?paraglider=0&random_start=1');const s=await state(page);
   assert.equal(s.phase,'off');assert.ok(s.y<12,'old high-ground start');console.log('PASS paraglider=0');await ctx.close();}
  await browser.close();server.kill();console.log('paraglider opening browser: ok');

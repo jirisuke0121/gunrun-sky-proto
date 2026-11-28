@@ -1,0 +1,5 @@
+962 Saltar
+963 “Saltar” para caer cuando quieras · Espera para caer en el centro
+964 Space para saltar · Espera para caer en el centro
+965 Stick para dirigir · “Saltar” para caer rápido
+966 WASD para dirigir · Space para saltar

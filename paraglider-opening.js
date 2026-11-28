@@ -97,7 +97,7 @@
 
   // ---- Runtime (browser) ----
   let phase = 'off', planeT = 0, angle = 0, drop = null, box = null, anchor = null, built = null, leaveT = 0, canopyFold = 0;
-  let notice = '', stats = null, armed = false, over = null, overVoid = false, probeT = 0;
+  let notice = '', stats = null, armed = false, over = null, overVoid = false, probeT = 0, inside = false;
   const sky = () => root.__skyInternals, game = () => root.__game;
 
   function graph() { return game()?.NAV || null; }
@@ -113,16 +113,77 @@
     anchor = { id: spot.id, x: spot.x, y: spot.y, z: spot.z, yaw: spot.yaw }; armed = true;
     return { x: spot.x, y: spot.y, z: spot.z, yaw: spot.yaw };
   }
+  // The follow camera is pulled back while riding the plane, so the plane shows three-quarters on instead of the underside
+  // of its tail. dash-boost.js sets the chase distance every frame (skyDash.frame, just before the camera is placed), so
+  // the override is applied right after it, and eases back to the normal chase over about 0.4 s after the jump.
+  const RIDE_CAMERA = Object.freeze({ distance: 9.5, height: 1.3, shoulder: .2 });
+  let rideView = 0, dashPatched = false;
+  function patchDashCamera() {
+    const dash = root.skyDash; if (dashPatched || !dash?.frame || !dash.camera) return;
+    dashPatched = true;
+    const original = dash.frame.bind(dash);
+    dash.frame = (...args) => {
+      const out = original(...args);
+      if (rideView > 0) for (const key of ['distance', 'height', 'shoulder']) dash.camera[key] += (RIDE_CAMERA[key] - dash.camera[key]) * rideView;
+      return out;
+    };
+  }
   function build() {
+    patchDashCamera();
     if (built) return built;
     const s = sky(); if (!s?.Geom || !s.ue) return null;
     const T = s.Geom;
-    // Plane: a plain high-wing transport, painted like the town's slate and stone (no yellow/orange: marker colours).
+    // Plane: a high-wing twin-turboprop transport with an open rear ramp (the player stands at its end, local z +8.6,
+    // y -2.8). Local -z is the nose. Built from a few primitives (no model file); slate/stone greys and the canopy's slate
+    // blue for the stripe, red/green wing-tip lights (no yellow/orange: those are marker colours).
     const plane = new T.Group(); plane.name = 'Opening plane';
-    const body = new T.Standard({ color: 0x8b97a3, roughness: .7 }), dark = new T.Standard({ color: 0x55606c, roughness: .8 });
-    const part = (w, h, d, m, x, y, z) => { const mesh = new T.Mesh(new T.Box(w, h, d), m); mesh.position.set(x, y, z); plane.add(mesh); return mesh; };
-    part(2.4, 2.4, 13, body, 0, 0, 0); part(1.6, 1.6, 2.2, dark, 0, -.1, -7.4);
-    part(18, .32, 3.2, body, 0, 1.25, -1); part(6.4, .26, 2, body, 0, .4, 6.3); part(.3, 2.6, 2.2, dark, 0, 1.8, 6.2);
+    const skin = new T.Standard({ color: 0xb4bdc5, roughness: .5, metalness: .1 });
+    const belly = new T.Standard({ color: 0x8c96a0, roughness: .6, metalness: .08 });
+    const trim = new T.Standard({ color: 0x5f7f9c, roughness: .5, metalness: .2 });
+    const glass = new T.Standard({ color: 0x1b2833, roughness: .15, metalness: .6 });
+    const metal = new T.Standard({ color: 0x3a434c, roughness: .4, metalness: .7 });
+    const inner = new T.Standard({ color: 0x2a3036, roughness: .9 });
+    const add = (geometry, material, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1, parent = plane) => {
+      const mesh = new T.Mesh(geometry, material); mesh.position.set(x, y, z); mesh.rotation.set(rx, ry, rz);
+      mesh.scale.set(sx, sy, sz); parent.add(mesh); return mesh;
+    };
+    const R = 1.35, half = Math.PI / 2;
+    // Fuselage: round tube, rounded nose, tapering tail cone swept up, darker belly and a slate-blue cheat line.
+    add(new T.Cylinder(R, R, 10.5, 18), skin, 0, 0, 0, half);
+    add(new T.Box(2.1, .5, 10.4), belly, 0, -1.08, 0);
+    add(new T.Sphere(R, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2), skin, 0, 0, -5.25, -half, 0, 0, 1, 1.55, 1);
+    add(new T.Cylinder(.42, R, 5.4, 18), skin, 0, .55, 7.85, half + .2); // narrows toward the tail
+    for (const side of [-1, 1]) add(new T.Box(.04, .16, 10), trim, side * (R - .01), .18, -.2);
+    // Cockpit glass (wrap-around strip) and a row of cabin windows each side.
+    add(new T.Box(2.05, .42, .9), glass, 0, .72, -6.05, -.55);
+    for (const side of [-1, 1]) {
+      add(new T.Box(.06, .38, .75), glass, side * 1.05, .64, -5.55, 0, side * .5);
+      for (let i = 0; i < 6; i++) add(new T.Box(.05, .32, .34), glass, side * (R - .005), .5, -3.4 + i * 1.25);
+    }
+    // Open rear ramp, hinged under the tail, its dark inside showing.
+    add(new T.Box(2.2, .14, 3.9), belly, 0, -1.92, 7.05, .38);
+    add(new T.Box(2.3, 2.1, .1), inner, 0, -.25, 5.18);
+    // High wing with tips, two engines (nacelle, spinner, spinning three-blade props), red/green lights.
+    const wing = new T.Box(24, .3, 3.1);
+    add(wing, skin, 0, 1.38, -1.1); add(new T.Box(24.1, .12, .5), belly, 0, 1.22, .3);
+    add(new T.Box(3.4, 1.05, 2.6), skin, 0, 1.0, -1.1);
+    const props = [];
+    for (const side of [-1, 1]) {
+      add(new T.Cylinder(.55, .45, 4.2, 14), belly, side * 4.6, .95, -1.9, half);
+      add(new T.Sphere(.32, 12, 8), metal, side * 4.6, .95, -4.15, 0, 0, 0, 1, 1, 1.5);
+      const hub = new T.Group(); hub.position.set(side * 4.6, .95, -4.1); plane.add(hub);
+      for (let k = 0; k < 3; k++) add(new T.Box(.16, 1.75, .05), metal, 0, 0, 0, 0, 0, k * Math.PI * 2 / 3, 1, 1, 1, hub)
+        .geometry.translate(0, .87, 0);
+      props.push(hub);
+      const light = add(new T.Sphere(.16, 8, 6), new T.Basic({ color: side < 0 ? 0xff3b3b : 0x3bff7a }), side * 12.05, 1.38, -1.1);
+      light.userData.navLight = true;
+    }
+    // T-tail: swept fin with a slate-blue cap, stabiliser on top.
+    add(new T.Box(.24, 3.4, 2.6), skin, 0, 2.6, 9.0, -.32);
+    add(new T.Box(.26, .5, 2.4), trim, 0, 4.05, 9.55, -.32);
+    add(new T.Box(7.4, .2, 1.7), skin, 0, 4.3, 9.95);
+    plane.userData.props = props;
+    plane.scale.setScalar(1);
     plane.visible = false; s.ue.add(plane);
     // Canopy: an arc of cloth cells above the player, with four lines down to the harness.
     const glider = new T.Group(); glider.name = 'Paraglider';
@@ -151,14 +212,26 @@
     return built;
   }
   function say(text) { notice = text; sky()?.rn?.(text); }
-  function controlsText() {
+  // The jump button / Space does one thing during the opening: jump off (the plane, then the glider).
+  function controlsText(where) {
     const touch = root.matchMedia?.('(pointer: coarse)')?.matches;
-    return touch ? 'スティックで移動 · ジャンプで離れて降下' : 'WASDで移動 · スペースで離れて降下';
+    if (where === 'plane') return touch ? '「飛び降りる」でいつでも降下 · 待てば中央で降下' : 'スペースで飛び降りる · 待てば中央で降下';
+    return touch ? 'スティックで移動 · 「飛び降りる」で急降下' : 'WASDで移動 · スペースで飛び降りる';
+  }
+  // Touch jump button label: 「飛び降りる」 while on the plane or under the glider, back to its own label after landing.
+  // The original label is read once (already translated if the page is not Japanese); i18n.js translates the new text.
+  const JUMP_OFF = '飛び降りる';
+  let jumpLabel = null;
+  function jumpButtonLabel(off) {
+    const button = root.document?.getElementById?.('tJump'); if (!button) return;
+    if (jumpLabel === null && !button.dataset.paraglider) jumpLabel = button.textContent;
+    if (off) { button.dataset.paraglider = '1'; if (button.dataset.paragliderText !== 'off') { button.textContent = JUMP_OFF; button.dataset.paragliderText = 'off'; } }
+    else if (button.dataset.paraglider) { delete button.dataset.paraglider; delete button.dataset.paragliderText; if (jumpLabel !== null) button.textContent = jumpLabel; }
   }
   function placeOnPlane() {
     const s = sky(), c = s.c, p = planeAt(drop, angle, planeT);
     // Standing at the open rear ramp: behind and below the tail, so the follow camera shows the plane ahead and the town below.
-    c.pos.set(p.x - p.dx * 8.6, p.y - 1.6, p.z - p.dz * 8.6);
+    c.pos.set(p.x - p.dx * 8.6, p.y - 1.4, p.z - p.dz * 8.6);
     c.vel.set(p.dx * CONFIG.planeSpeed, 0, p.dz * CONFIG.planeSpeed);
     c.onGround = false; c.state = 'normal'; c.airT = 0; c.jumpBuf = 0;
   }
@@ -168,14 +241,14 @@
     const dx = Math.cos(angle), dz = Math.sin(angle);
     c.vel.set(dx * CONFIG.glideStartSpeed, -CONFIG.glideSink, dz * CONFIG.glideStartSpeed);
     c.onGround = false; c.state = 'normal'; c.airT = 0; c.jumpBuf = 0;
-    canopyFold = 0; leaveT = 0; over = null; overVoid = false; probeT = 0;
+    canopyFold = 0; leaveT = 0; over = null; overVoid = false; probeT = 0; inside = false;
     // Look down at the town (the plane's view looked ahead).
     c.pitch = Math.min(c.pitch, -.72);
-    say(controlsText());
+    say(controlsText('glide'));
   }
   // retry: true when the run is a retry (not started from the home screen), which skips the plane.
   function begin(retry = false) {
-    phase = 'off'; leaveT = 0; notice = '';
+    phase = 'off'; leaveT = 0; notice = ''; jumpButtonLabel(false);
     // Only a run that br() set up from anchor() (not an explicit start such as a mission or a test position).
     const ready = armed; armed = false;
     if (!ready || !enabled() || !anchor || !build()) { stats = null; publish(); return false; }
@@ -186,9 +259,14 @@
     stats = { retry: !!retry, anchor: anchor.id, angle: +angle.toFixed(3), drop: [+drop.x.toFixed(2), drop.y, +drop.z.toFixed(2)], released: null, landed: null, rescued: false };
     // Opening crates are placed from the waiting zombies, before the player leaves the ground anchor.
     stats.crates = root.skyWeaponDrops?.seedOpening?.(s.Jt.filter(e => !e.dead).map(e => ({ x: e.pos.x, y: e.pos.y, z: e.pos.z }))) || [];
-    c.yaw = yawFor(Math.cos(angle), Math.sin(angle)); c.pitch = -.42;
+    // On the plane the first view is from behind and to one side (about 35 degrees), so the plane shows three-quarters on.
+    c.yaw = yawFor(Math.cos(angle), Math.sin(angle)) + (retry ? 0 : .6); c.pitch = retry ? -.42 : -.12;
+    // No damage can happen before landing, so no invulnerability blink in the air; landing gives the usual 1.5 s.
+    c.invuln = s.ceRef() - 1;
+    rideView = retry ? 0 : 1;
     if (retry) { planeT = CONFIG.planeSeconds; c.pos.set(drop.x, drop.y, drop.z); startGlide(); }
-    else { phase = 'plane'; planeT = 0; placeOnPlane(); say('まもなく降下 · 好きな場所へ降りよう'); }
+    else { phase = 'plane'; planeT = 0; placeOnPlane(); say(controlsText('plane')); }
+    jumpButtonLabel(true);
     publish();
     return true;
   }
@@ -198,6 +276,8 @@
     if (!flying()) return false;
     const s = sky(), c = s.c;
     if (phase === 'plane') {
+      // Jump off the ramp at any moment (from wherever the plane is), or be dropped over the middle when it gets there.
+      if (c.jumpBuf > 0) { stats.jumpedOff = +planeT.toFixed(2); startGlide(); s.Tt?.jump?.(); return false; }
       planeT += dt;
       if (planeT >= CONFIG.planeSeconds) { c.pos.set(drop.x, drop.y, drop.z); startGlide(); return false; }
       placeOnPlane(); return true;
@@ -230,16 +310,20 @@
       const hit = sky().raycast(c.pos.x, c.pos.y - .1, c.pos.z, 0, -1, 0, 160);
       overVoid = !hit; if (hit) over = { x: c.pos.x, z: c.pos.z };
     }
-    if (overVoid && over) {
-      const dx = over.x - c.pos.x, dz = over.z - c.pos.z, d = Math.hypot(dx, dz) || 1;
-      const back = Math.max(phase === 'glide' ? CONFIG.glideSpeed * .6 : 6, Math.hypot(c.vel.x, c.vel.z));
+    // Jumped off the plane before reaching the town (nothing under the player yet): head for the drop point instead.
+    if (overVoid) {
+      const to = over || drop, dx = to.x - c.pos.x, dz = to.z - c.pos.z, d = Math.hypot(dx, dz) || 1;
+      const back = over ? Math.max(phase === 'glide' ? CONFIG.glideSpeed * .6 : 6, Math.hypot(c.vel.x, c.vel.z))
+        : Math.max(phase === 'glide' ? CONFIG.glideSpeed : 12, Math.hypot(c.vel.x, c.vel.z));
       c.vel.x = dx / d * back; c.vel.z = dz / d * back;
     }
-    contain(c.pos, c.vel, box);
+    // The rectangle only holds once the player is inside it (a jump from the plane starts outside the town).
+    if (!inside && box) inside = c.pos.x >= box.minX && c.pos.x <= box.maxX && c.pos.z >= box.minZ && c.pos.z <= box.maxZ;
+    if (inside) contain(c.pos, c.vel, box);
   }
   function land(rescued) {
     const s = sky(), c = s.c;
-    phase = 'off'; canopyFold = 1e-3;
+    phase = 'off'; canopyFold = 1e-3; jumpButtonLabel(false);
     if (rescued) {
       // Fell through a gap into the cloud sea while the run had not started: put down on the nearest walkable node.
       const nav = graph(); let best = anchor, d = Infinity;
@@ -265,15 +349,18 @@
   function frame(dt) {
     const s = sky(); if (!built || !s) return;
     const { plane, glider, mark } = built, c = s.c, playing = s.modeRef() === 'play';
+    rideView = phase === 'plane' ? 1 : Math.max(0, rideView - dt * 2.5);
     // Home / result screens: hide everything (begin() resets the phase for the next run).
-    if (!playing && s.modeRef() !== 'pause') { plane.visible = glider.visible = mark.visible = false; return; }
+    if (!playing && s.modeRef() !== 'pause') { plane.visible = glider.visible = mark.visible = false; jumpButtonLabel(false); return; }
     // Plane: visible while it carries the player and for a few seconds after the drop, flying on out of the town.
-    const showPlane = phase === 'plane' || (drop && leaveT < CONFIG.planeLeave && planeT >= CONFIG.planeSeconds && stats && !stats.retry);
+    // After a jump the plane flies on (from wherever it was) until it has left the town.
+    const showPlane = phase === 'plane' || (drop && stats && !stats.retry && leaveT < CONFIG.planeLeave + CONFIG.planeSeconds - planeT);
     if (phase !== 'plane' && showPlane && playing) leaveT += dt;
     plane.visible = !!showPlane;
     if (plane.visible) {
-      const p = planeAt(drop, angle, phase === 'plane' ? planeT : CONFIG.planeSeconds + leaveT);
-      plane.position.set(p.x, p.y + 1.2, p.z); plane.rotation.set(0, yawFor(p.dx, p.dz), 0);
+      const p = planeAt(drop, angle, phase === 'plane' ? planeT : planeT + leaveT);
+      plane.position.set(p.x, p.y + 1.2, p.z); plane.rotation.set(0, yawFor(p.dx, p.dz), Math.sin(leaveT * .8) * .04);
+      for (const hub of plane.userData.props) hub.rotation.z += dt * 38;
     }
     // Canopy: open over the player while gliding; folds away quickly after release or landing.
     if (phase === 'glide') canopyFold = 0; else if (canopyFold > 0) canopyFold += dt * 4;
