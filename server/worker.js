@@ -261,10 +261,11 @@ async function ranking(env, cors, url) {
   const me = (url.searchParams.get("me") || "").slice(0, 40);
   const query = rankQuery(mode, map, difficulty, rules);
   // Materialize the ranked metadata once for top/total/self. Keep full replay
-  // JSON out of the result and load names only for the <=20 displayed rows.
+  // JSON out of the result and load names only for the <=20 displayed rows. A name is the device's latest one (set after a best run was sent).
   const result = await env.DB.prepare(query.sql.replace('r AS (', 'r AS MATERIALIZED (') + `
     , top AS (SELECT id AS runId,pos,substr(player,1,4) AS tag,
-      (SELECT json_extract(runs.json,'$.name') FROM runs WHERE runs.id=r.id) AS name,
+      COALESCE((SELECT json_extract(n.json,'$.name') FROM runs n WHERE n.player=r.player AND json_extract(n.json,'$.name') IS NOT NULL ORDER BY n.received_at DESC LIMIT 1),
+        (SELECT json_extract(runs.json,'$.name') FROM runs WHERE runs.id=r.id)) AS name,
       cleared,score,difficulty,stars,t,(player=?) AS me,CASE WHEN replay THEN id ELSE NULL END AS replayId,
       played_at AS playedAt,received_at AS receivedAt FROM r ORDER BY pos,score DESC,id LIMIT 20)
     SELECT (SELECT COUNT(*) FROM r) AS total,
