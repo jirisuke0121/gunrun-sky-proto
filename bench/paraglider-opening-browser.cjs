@@ -90,7 +90,21 @@ const dir=path.resolve(__dirname,'..'),port=process.argv[2]||'18851';
     res.push({off:+off.toFixed(2),t:+t.toFixed(1),rescued:skyParaglider.stats.rescued,phase:skyParaglider.phase})}return res});
   assert.ok(out.every(r=>r.phase==='off'),'all landed '+JSON.stringify(out));assert.equal(out.filter(r=>r.rescued).length,0,'none fell into the cloud sea '+JSON.stringify(out));
   assert.equal(errors.length,0,errors.join('\n'));console.log('PASS plane jump-off',out.map(r=>r.off+'s→'+r.t+'s').join(' '));await ctx.close();}
- // 8. ?paraglider=0 keeps the old start.
+ // 8. Reach: from the middle, steering straight in 16 directions reaches the edge of the town in every direction
+ // (gaps inside the town are crossed high up), and nobody sinks into a gap or the cloud sea.
+ {const {ctx,page,errors}=await open('index.html?paraglider=1');
+  const out=await page.evaluate(()=>{const I=__skyInternals,N=__game.NAV.nodes,res=[];
+   for(let k=0;k<16;k++){const a=k/16*Math.PI*2,dx=Math.sin(a),dz=-Math.cos(a);let edge=0;
+    for(const n of N){const rx=n.x,rz=n.z+4,along=rx*dx+rz*dz;if(Math.abs(-rx*dz+rz*dx)<4&&along>edge)edge=along}
+    __game.setMode('menu');__game.startGame();const c=I.c;c.jumpBuf=.15;__game.advance(1/60);c.pos.set(0,46,-4);c.yaw=Math.atan2(-dx,-dz);
+    let t=0,far=0;while(skyParaglider.phase!=='off'&&t<20){I.keys.KeyW=true;__game.advance(1/60);t+=1/60;far=Math.max(far,Math.hypot(c.pos.x,c.pos.z+4))}
+    I.keys.KeyW=false;res.push({dir:k*22.5,edge:Math.round(edge),far:Math.round(far),t:+t.toFixed(1),rescued:skyParaglider.stats.rescued})}return res});
+  // Low over a gap the glider is steered onto the nearest spot, which can stop one heading a little short of the edge.
+  const short=out.filter(r=>r.far<r.edge-5);assert.ok(short.length<=1,'15 of 16 directions reach the edge of the town '+JSON.stringify(short));
+  assert.deepEqual(out.filter(r=>r.far<r.edge-15),[],'every direction gets close to the edge of the town');
+  assert.equal(out.filter(r=>r.rescued).length,0,'no descent sinks into a gap '+JSON.stringify(out));assert.ok(out.every(r=>r.t<11),'lands within 11 s');
+  assert.equal(errors.length,0,errors.join('\n'));console.log('PASS reach',out.map(r=>r.dir+':'+r.far+'/'+r.edge).join(' '));await ctx.close();}
+ // 9. ?paraglider=0 keeps the old start.
  {const {ctx,page}=await open('index.html?paraglider=0&random_start=1');const s=await state(page);
   assert.equal(s.phase,'off');assert.ok(s.y<12,'old high-ground start');console.log('PASS paraglider=0');await ctx.close();}
  await browser.close();server.kill();console.log('paraglider opening browser: ok');

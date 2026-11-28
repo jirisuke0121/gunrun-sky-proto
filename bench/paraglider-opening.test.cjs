@@ -38,3 +38,9 @@ assert.equal(P.bounds([]),null);
  assert.ok(P.rankDanger([node(9,0,0)],[{x:1,y:4,z:1}]).length===0,'never on top of a zombie');
  assert.equal(P.rankDanger(nodes,[]).length,3,'no zombies: still three crates');}
 console.log('paraglider-opening rules: ok');
+// footprint: near any node (gaps inside the town count), not out in the cloud sea.
+{const nodes=[{x:0,z:0},{x:20,z:0}];const f=P.footprint(nodes,2,6);
+ assert.equal(f.test(0,0),true);assert.equal(f.test(5,0),true,'within 6 m');assert.equal(f.test(10,0),false,'14 m gap middle is 10 m from both');
+ assert.equal(f.test(0,20),false,'cloud sea');assert.equal(f.test(-100,0),false,'off the grid');
+ const g=P.footprint([{x:0,z:0},{x:10,z:0}],2,6);assert.equal(g.test(5,0),true,'a 10 m gap inside the town can be crossed');}
+console.log('paraglider-opening footprint: ok');
