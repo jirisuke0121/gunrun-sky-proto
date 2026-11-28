@@ -956,6 +956,10 @@
 955	自分の目線で遊びます。足元や背後の追手が見えにくくなります。この設定で遊んだランは、ランキング・プレイ記録に送信されません。	Play through your own eyes. Your feet and pursuers behind you are harder to see. Runs played with this on are not sent to the ranking or play records.
 956	一人称視点（おまけ）：ランキング対象外・記録送信なし	First-person view (bonus): not ranked, nothing sent
 957	練習・検証・一人称（おまけ）のため送信しません	Not sent: practice, test or first-person (bonus) mode
+958	スティックで移動 · ジャンプで離れて降下	Stick to steer · Jump to let go and drop
+959	WASDで移動 · スペースで離れて降下	WASD to steer · Space to let go and drop
+960	まもなく降下 · 好きな場所へ降りよう	Drop soon · Glide down anywhere you like
+961	着地 · 逃げ切れ	Landed · Escape!
 p0	^(\\d+)秒停止$	Stun $1s
 p1	^技あと(\\d+)$	$1 moves
 p2	^装填中 · あと([\\d.]+)秒$	Reloading · $1 s left
